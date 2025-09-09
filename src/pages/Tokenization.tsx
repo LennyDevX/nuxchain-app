@@ -1,0 +1,275 @@
+import { useState, useEffect } from 'react';
+import { useAccount } from 'wagmi';
+import { useNavigate } from 'react-router-dom';
+import useMintNFT from '../hooks/nfts/useMintNFT';
+
+// Import components
+import FileUpload from '../components/tokenization/FileUpload';
+import NFTDetails from '../components/tokenization/NFTDetails';
+import ProgressIndicator from '../components/tokenization/ProgressIndicator';
+import Benefits from '../components/tokenization/Benefits';
+import TokenizationInfo from '../components/tokenization/TokenizationInfo';
+
+interface FormData {
+  name: string;
+  description: string;
+  category: string;
+  royaltyPercentage: number;
+  attributes: Array<{
+    trait_type: string;
+    value: string;
+  }>;
+}
+
+function Tokenization() {
+  const { isConnected } = useAccount();
+  const navigate = useNavigate();
+  const { mintNFT, loading, error: mintError, txHash } = useMintNFT();
+  
+  // Form state
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    description: '',
+    category: 'art',
+    royaltyPercentage: 250, // 2.5% default
+    attributes: [{ trait_type: '', value: '' }]
+  });
+  
+  // File and upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+
+
+
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isConnected) {
+      setError('Please connect your wallet first');
+      return;
+    }
+    
+    if (!selectedFile) {
+      setError('Please select an image file');
+      return;
+    }
+    
+    if (!formData.name.trim() || !formData.description.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setError(null);
+      
+      const result = await mintNFT({
+        file: selectedFile,
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        royalty: formData.royaltyPercentage
+      });
+      
+      if (result.success) {
+        setSuccess(`🎉 NFT "${formData.name}" created successfully! Transaction hash: ${result.txHash}`);
+        setTimeout(() => {
+          navigate('/nfts');
+        }, 3000);
+      }
+      
+    } catch (err) {
+      console.error('Error creating NFT:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create NFT');
+    }
+  };
+
+  // Handle mint error
+  useEffect(() => {
+    if (mintError) {
+      setError(mintError);
+    }
+  }, [mintError]);
+
+  // Reset errors when form changes
+  useEffect(() => {
+    if (error || mintError) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, mintError]);
+  
+
+
+  // Add attribute field
+  const addAttribute = () => {
+    setFormData(prev => ({
+      ...prev,
+      attributes: [...prev.attributes, { trait_type: '', value: '' }]
+    }));
+  };
+
+  // Remove attribute field
+  const removeAttribute = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      attributes: prev.attributes.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update attribute
+  const updateAttribute = (index: number, field: 'trait_type' | 'value', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      attributes: prev.attributes.map((attr, i) => 
+        i === index ? { ...attr, [field]: value } : attr
+      )
+    }));
+  };
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError(null);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle file removal
+  const handleFileRemove = () => {
+    setSelectedFile(null);
+    setImagePreview(null);
+    setError(null);
+  };
+
+  return (
+    <div className="min-h-screen pt-20 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Create Your NFT
+          </h1>
+          <p className="text-xl text-white/60 max-w-2xl mx-auto">
+            Transform your digital art into a unique NFT on the blockchain
+          </p>
+        </div>
+
+        {/* Grid 4x4 Layout - Optimized Space Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Top Section - Benefits and Information (Full Width) */}
+          <div className="lg:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Benefits Section */}
+            <div className="lg:col-span-1">
+              <Benefits />
+            </div>
+            
+            {/* Information Section */}
+            <div className="lg:col-span-1">
+              <TokenizationInfo />
+            </div>
+          </div>
+
+          {/* Bottom Section - Tokenization System (Full Width) */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* File Upload Component */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="lg:col-span-1">
+                <FileUpload
+                  selectedFile={selectedFile}
+                  imagePreview={imagePreview}
+                  onFileSelect={handleFileSelect}
+                  onFileRemove={handleFileRemove}
+                  error={error}
+                />
+              </div>
+              
+              {/* NFT Details Component - Only show after image upload */}
+              {selectedFile && (
+                <div className="lg:col-span-1">
+                  <NFTDetails
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleSubmit}
+                    addAttribute={addAttribute}
+                    removeAttribute={removeAttribute}
+                    updateAttribute={updateAttribute}
+                    isUploading={loading}
+                    isPending={loading}
+                    isConfirming={loading}
+                    error={error || mintError || undefined}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Progress Indicator - Show during upload (Full Width) */}
+            {loading && (
+              <div className="lg:col-span-4">
+                <ProgressIndicator
+                  isUploading={loading}
+                  uploadProgress={loading ? 50 : 0}
+                  isPending={loading}
+                  isConfirming={loading}
+                  success={success}
+                />
+              </div>
+            )}
+
+            {/* Success/Error Messages (Full Width) */}
+            {(error || mintError) && (
+              <div className="lg:col-span-4">
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
+                  <p className="text-red-200">{error || mintError}</p>
+                </div>
+              </div>
+            )}
+
+            {success && (
+              <div className="lg:col-span-4">
+                <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4">
+                  <p className="text-green-200">NFT creado exitosamente!</p>
+                  {txHash && (
+                    <p className="text-green-300 text-sm mt-2">
+                      Hash de transacción: <span className="font-mono">{txHash}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Tokenization;
+
+        

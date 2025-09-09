@@ -1,0 +1,63 @@
+/* Custom CSS Variables for Brand Colors */
+:root {
+  --primary-black: #0a0a0a;
+  --secondary-black: #1a1a1a;
+  --accent-purple: #8b5cf6;
+  --deep-purple: #5b21b6;
+  --accent-red: #ef4444;
+  --deep-red: #dc2626;
+  --pure-white: #ffffff;
+  --off-white: #f8fafc;
+  --gradient-primary: linear-gradient(135deg, #0a0a0a 0%, #5b21b6 50%, #dc2626 100%);
+  --gradient-secondary: linear-gradient(45deg, #8b5cf6 0%, #ef4444 50%, #ffffff 100%);
+  --gradient-accent: linear-gradient(90deg, #1a1a1a 0%, #5b21b6 25%, #8b5cf6 50%, #ef4444 75%, #dc2626 100%);
+}
+
+/* Global Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--primary-black);
+  color: var(--pure-white);
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-purple);
+}
+
+/* Utility Classes */
+.backdrop-blur-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.border-gradient {
+  border: 1px solid;
+  border-image: var(--gradient-secondary) 1;
+}
+
+/* Clase para remover fondos conflictivos */
+.no-background {
+  background: transparent !important;
+}

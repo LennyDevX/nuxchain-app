@@ -1,0 +1,34 @@
+/* Enhanced Text Gradients */
+.text-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--accent-purple) 0%,
+    var(--pure-white) 25%,
+    var(--accent-red) 50%,
+    var(--pure-white) 75%,
+    var(--deep-purple) 100%
+  );
+  background-size: 400% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+.text-gradient-static {
+  background: linear-gradient(
+    135deg,
+    var(--accent-purple) 0%,
+    var(--accent-red) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.text-glow {
+  color: var(--pure-white);
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5),
+               0 0 20px rgba(139, 92, 246, 0.3),
+               0 0 30px rgba(139, 92, 246, 0.1);
+}

@@ -1,0 +1,36 @@
+/* Enhanced Gradient Backgrounds */
+.gradient-bg {
+  background: var(--gradient-primary);
+  position: relative;
+}
+
+.gradient-bg-secondary {
+  background: var(--gradient-secondary);
+}
+
+.gradient-bg-animated {
+  background: var(--gradient-accent);
+  background-size: 400% 400%;
+  animation: gradient-flow 8s ease infinite;
+}
+
+/* Global Background Class - Para usar en cualquier componente */
+.global-background {
+  background: var(--gradient-primary);
+  position: relative;
+  min-height: 100vh;
+}
+
+.global-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-accent);
+  opacity: 0.3;
+  background-size: 400% 400%;
+  animation: gradient-flow 8s ease infinite;
+  z-index: -1;
+}

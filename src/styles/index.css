@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Modular CSS Imports */
+@import "./globals.css";
+@import "./animations.css";
+@import "./buttons.css";
+@import "./cards.css";
+@import "./text.css";
+@import "./backgrounds.css";

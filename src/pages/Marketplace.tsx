@@ -122,8 +122,8 @@ function Marketplace() {
               </button>
             </div>
 
-            {/* NFT Grid - 2x2 Layout */}
-            <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'md:gap-4 lg:gap-6'}`}>
+            {/* Grid más espacioso para cards más grandes */}
+            <div className={`grid gap-3 ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8'}`}>
               {loading ? (
                 <div className="col-span-full text-center py-16">
                   <LoadingSpinner size="lg" text="Loading NFTs..." />

@@ -81,7 +81,7 @@ export default function MarketplaceStats({ stats, loading = false, className = '
   }, [stats.floorPrice, stats.totalMarketValue, stats.averagePrice, polPrice, convertPOLToUSD, formatPolValue]);
 
   return (
-    <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'md:gap-4'} ${className}`}>
+    <div className={`grid gap-4 ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'} ${className}`}>
       {/* Listed NFTs */}
       <StatCard
         title="Listed NFTs"

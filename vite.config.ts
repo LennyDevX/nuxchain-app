@@ -3,12 +3,22 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    conditions: ['production']
+  plugins: [
+    react({
+      jsxRuntime: 'automatic'
+    })
+  ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          wagmi: ['wagmi', '@tanstack/react-query']
+        }
+      }
+    }
   },
-  define: {
-    // Disable Lit development mode warnings
-    'process.env.NODE_ENV': '"production"'
+  esbuild: {
+    jsx: 'automatic'
   }
 })

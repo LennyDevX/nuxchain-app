@@ -92,7 +92,6 @@
 
 /* Chat Send Button Styling */
 .btn-send-message {
-  margin-bottom: 6px;
   width: 44px;
   height: 44px;
   background: linear-gradient(135deg, var(--accent-purple) 0%, var(--deep-purple) 50%, var(--accent-red) 100%);
@@ -106,6 +105,7 @@
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
   backdrop-filter: blur(10px);
   flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .btn-send-message:hover:not(:disabled) {

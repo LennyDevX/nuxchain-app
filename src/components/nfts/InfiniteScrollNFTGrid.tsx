@@ -1,6 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react';
 import NFTCard from './NFTCard';
 import { useImagePreloader } from '../../hooks/cache/useImageCache';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+
 import LoadingSpinner from '../../ui/LoadingSpinner';
 
 interface NFTData {
@@ -45,6 +47,7 @@ export default function InfiniteScrollNFTGrid({
   totalCount = 0,
   loadedCount = 0
 }: InfiniteScrollNFTGridProps) {
+  const isMobile = useIsMobile();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -154,12 +157,17 @@ export default function InfiniteScrollNFTGrid({
       )}
 
       {/* NFT Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className={`grid gap-4 ${
+        isMobile 
+          ? 'grid-cols-2' // 2x2 grid for mobile
+          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      }`}>
         {nfts.map((nft) => (
           <NFTCard
             key={nft.uniqueId || nft.tokenId}
             nft={nft}
             onListNFT={onListNFT}
+            isMobile={isMobile}
           />
         ))}
       </div>

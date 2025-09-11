@@ -1,6 +1,17 @@
-import { useState, useCallback, useRef, useEffect, useReducer } from 'react';
+import { useCallback, useRef, useEffect, useReducer } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
+
+// Tipos para los módulos JS
+interface ChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'assistant';
+  timestamp: string;
+  conversationId?: string;
+  isStreaming?: boolean;
+  error?: string;
+}
 
 // Generador de IDs únicos para evitar duplicados
 let messageIdCounter = 0;
@@ -63,7 +74,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
     try {
       // Prepare conversation history for Gemini API
-      const conversationHistory = state.messages.map(msg => ({
+      const conversationHistory = state.messages.map((msg: ChatMessage) => ({
         role: msg.sender === 'user' ? 'user' : 'model',
         parts: [{ text: msg.text }]
       }));
@@ -107,10 +118,10 @@ export function useChatStreaming(): UseChatStreamingReturn {
           onUpdate: (content: string) => {
             dispatch({ type: 'UPDATE_STREAM', payload: content });
           },
-          onFinish: (finalContent: string) => {
+          onFinish: () => {
             dispatch({ type: 'FINISH_STREAM' });
           },
-          onError: (error: Error, onRetry: () => void, messageId: string) => {
+          onError: (error: Error, _onRetry: () => void, messageId: string) => {
             dispatch({ 
               type: 'SET_ERROR', 
               payload: { error: error.message, messageId } 
@@ -145,7 +156,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
   }, [sendMessage]);
 
   // Convert internal state to external format
-  const messages: Message[] = state.messages.map(msg => ({
+  const messages: Message[] = state.messages.map((msg: ChatMessage) => ({
     id: msg.id,
     role: msg.sender === 'user' ? 'user' : 'assistant',
     content: msg.text,

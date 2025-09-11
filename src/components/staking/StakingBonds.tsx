@@ -1,3 +1,6 @@
+import React, { memo } from 'react'
+import { useIsMobile } from '../../hooks/mobile'
+
 interface Bond {
   id: string
   name: string
@@ -10,7 +13,8 @@ interface Bond {
   available: boolean
 }
 
-function StakingBonds() {
+const StakingBonds: React.FC = memo(() => {
+  const isMobile = useIsMobile()
 
   const bonds: Bond[] = [
     {
@@ -70,10 +74,16 @@ function StakingBonds() {
 
   return (
     <div className="card-unified">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-2xl font-bold text-white">Staking Options</h3>
-          <p className="text-white/60 text-sm mt-1">Available lockup periods and rewards (select period in Staking Form)</p>
+      <div className={`flex items-center justify-between mb-6 ${
+        isMobile ? 'flex-col space-y-3' : ''
+      }`}>
+        <div className={isMobile ? 'text-center' : ''}>
+          <h3 className={`font-bold text-white ${
+            isMobile ? 'text-xl' : 'text-2xl'
+          }`}>Staking Options</h3>
+          <p className={`text-white/60 mt-1 ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}>Available lockup periods and rewards (select period in Staking Form)</p>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
@@ -81,50 +91,89 @@ function StakingBonds() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={`grid gap-4 ${
+        isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-2 gap-6'
+      }`}>
         {bonds.map((bond) => (
           <div
             key={bond.id}
-            className="card-unified p-4"
+            className={`card-unified ${
+              isMobile ? 'p-3' : 'p-4'
+            }`}
           >
             
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h4 className="text-white font-semibold">{bond.name}</h4>
-                <p className="text-white/60 text-sm">{bond.duration} days lockup</p>
+            <div className={`flex justify-between items-start mb-3 ${
+              isMobile ? 'flex-col space-y-2' : ''
+            }`}>
+              <div className={isMobile ? 'text-center w-full' : ''}>
+                <h4 className={`text-white font-semibold ${
+                  isMobile ? 'text-sm' : ''
+                }`}>{isMobile ? bond.name.replace(' Bond', '') : bond.name}</h4>
+                <p className={`text-white/60 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>{bond.duration} days</p>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-green-400">{bond.apy}%</p>
+              <div className={`text-right ${
+                isMobile ? 'text-center w-full' : ''
+              }`}>
+                <p className={`font-bold text-green-400 ${
+                  isMobile ? 'text-lg' : 'text-2xl'
+                }`}>{bond.apy}%</p>
                 <p className="text-white/60 text-xs">APY</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-3">
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(bond.risk)}`}>
+            <div className={`flex items-center justify-between mb-3 ${
+              isMobile ? 'flex-col space-y-2' : ''
+            }`}>
+              <span className={`inline-flex items-center px-2 py-1 rounded-full font-medium ${getRiskColor(bond.risk)} ${
+                isMobile ? 'text-xs' : 'text-xs'
+              }`}>
                 {bond.risk} Risk
               </span>
-              <div className="text-right">
-                <p className="text-white/60 text-xs">Min: {bond.minAmount} POL</p>
-                <p className="text-white/60 text-xs">Max: {bond.maxAmount.toLocaleString()} POL</p>
+              <div className={`text-right ${
+                isMobile ? 'text-center w-full' : ''
+              }`}>
+                <p className="text-white/60 text-xs">Min: {isMobile ? bond.minAmount : bond.minAmount} POL</p>
+                <p className="text-white/60 text-xs">Max: {isMobile ? `${(bond.maxAmount/1000)}K` : bond.maxAmount.toLocaleString()} POL</p>
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-white/20">
-              <p className="text-white/80 text-sm mb-4">{bond.description}</p>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Daily Reward:</span>
-                  <span className="text-white">{(bond.apy / 365).toFixed(3)}%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Total Return:</span>
-                  <span className="text-green-400 font-medium">
-                    {((bond.apy / 365) * bond.duration).toFixed(2)}%
-                  </span>
+            {!isMobile && (
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <p className="text-white/80 text-sm mb-4">{bond.description}</p>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/60">Daily Reward:</span>
+                    <span className="text-white">{(bond.apy / 365).toFixed(3)}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/60">Total Return:</span>
+                    <span className="text-green-400 font-medium">
+                      {((bond.apy / 365) * bond.duration).toFixed(2)}%
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+            
+            {isMobile && (
+              <div className="mt-2 pt-2 border-t border-white/20">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/60">Daily:</span>
+                    <span className="text-white">{(bond.apy / 365).toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-white/60">Total:</span>
+                    <span className="text-green-400 font-medium">
+                      {((bond.apy / 365) * bond.duration).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -172,6 +221,8 @@ function StakingBonds() {
       </div>
     </div>
   )
-}
+})
+
+StakingBonds.displayName = 'StakingBonds'
 
 export default StakingBonds

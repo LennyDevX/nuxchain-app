@@ -1,4 +1,6 @@
 import { useRef, useEffect } from 'react'
+import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+import { getMobileOptimizationConfig, getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 
 interface InputTextAreaProps {
   value: string
@@ -16,12 +18,15 @@ export default function InputTextArea({
   placeholder = "Ask me about blockchain, cryptocurrencies, NFTs, DeFi, smart contracts..."
 }: InputTextAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isMobile = useIsMobile()
+  const optimizationConfig = getMobileOptimizationConfig()
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current
     if (textarea) {
       textarea.style.height = 'auto'
-      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px'
+      const maxHeight = isMobile ? 100 : 120
+      textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px'
     }
   }
 
@@ -35,9 +40,20 @@ export default function InputTextArea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onKeyPress={onKeyPress}
-      placeholder={placeholder}
+      placeholder={isMobile ? "Ask about blockchain, NFTs..." : placeholder}
       disabled={disabled}
-      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 focus:bg-white/8 resize-none min-h-[48px] max-h-[120px] text-sm leading-relaxed backdrop-blur-md transition-all duration-300 hover:bg-white/7 hover:border-white/15 overflow-hidden"
+      className={`w-full bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 focus:bg-white/8 resize-none backdrop-blur-md overflow-hidden ${
+        isMobile ? 'px-3 py-2 min-h-[40px] max-h-[100px] text-sm' : 'px-4 py-3 min-h-[48px] max-h-[120px] text-sm'
+      } ${
+        isMobile ? 'leading-normal' : 'leading-relaxed'
+      } ${
+        optimizationConfig.reduceAnimations 
+          ? 'transition-colors duration-150' 
+          : 'transition-all duration-300'
+      } hover:bg-white/7 hover:border-white/15`}
+      style={{
+        fontSize: getOptimizedFontSize(14, isMobile) + 'px'
+      }}
       rows={1}
     />
   )

@@ -21,8 +21,14 @@ app.use(cors(corsOptions));
 // Cambia el límite de JSON a 2MB
 app.use(express.json({ limit: '2mb' }));
 
-// Rutas API
-app.use('/server', routes);
+// Rutas API - ajustado para Vercel
+if (env.isVercel) {
+  // En Vercel, las rutas ya están reescritas, no necesitamos el prefijo /server
+  app.use('/', routes);
+} else {
+  // En desarrollo local, usar el prefijo /server
+  app.use('/server', routes);
+}
 
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);

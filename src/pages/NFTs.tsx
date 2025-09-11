@@ -121,6 +121,7 @@ function NFTs() {
         <div className="mb-6 md:mb-8">
           <NFTStats 
             nfts={userNFTs}
+            loading={loading}
           />
         </div>
         

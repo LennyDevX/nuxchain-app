@@ -286,21 +286,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </button>
         </div>
         
-        {/* Swipe indicator for mobile */}
-        {isMobile && (
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 mb-1">
-            <div className="flex space-x-1">
-              {tabs.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    index === currentTabIndex ? 'bg-white/80' : 'bg-white/20'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
 
       <div 
@@ -310,13 +296,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Swipe hint for mobile */}
-        {isMobile && (
-          <div className="absolute top-2 right-2 text-white/40 text-xs flex items-center">
-            <span className="mr-1">👈👉</span>
-            Swipe to navigate
-          </div>
-        )}
+
         {activeTab === 'stake' && (
           <div className="space-y-6">
             <div>

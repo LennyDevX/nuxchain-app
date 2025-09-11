@@ -4,6 +4,7 @@ import ChatMessage from '../components/chat/ChatMessage'
 import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
+
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { useChatNavbar } from '../hooks/mobile/useChatNavbar'
@@ -14,7 +15,7 @@ function Chat() {
   const [showWelcome, setShowWelcome] = useState(true)
   const { messages, isLoading, isStreaming, sendMessage } = useChatStreaming()
   const isMobile = useIsMobile()
-  const { isVisible: isNavbarVisible, isDragging, dragY } = useChatNavbar()
+  const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
 
   const handleSendMessage = async (e?: React.FormEvent) => {
@@ -91,7 +92,7 @@ function Chat() {
                     onChange={setMessage}
                     onKeyPress={handleKeyPress}
                     disabled={isLoading || isStreaming}
-                    placeholder="Ask me about blockchain, cryptocurrencies, NFTs, DeFi..."
+                    placeholder={isMobile ? "Ask me anything... (Double tap for navigation)" : "Ask me about blockchain, cryptocurrencies, NFTs, DeFi..."}
                   />
                 </div>
                 <div className="flex-shrink-0">
@@ -99,6 +100,7 @@ function Chat() {
                     disabled={!message.trim() || isLoading || isStreaming}
                     isLoading={isLoading || isStreaming}
                     onClick={() => handleSendMessage()}
+                    hasText={message.trim().length > 0}
                   />
                 </div>
               </div>
@@ -112,20 +114,6 @@ function Chat() {
           </div>
           </div>
         </div>
-
-        {/* Navbar Slide Indicator - Solo en móvil */}
-        {isMobile && !isNavbarVisible && (
-          <div className={`fixed bottom-1 left-1/2 transform -translate-x-1/2 z-20 ${
-            optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'
-          } ${
-            isDragging ? 'opacity-100 scale-110' : 'opacity-50 hover:opacity-80'
-          }`}>
-            <div className="bg-black/60 backdrop-blur-md rounded-full px-4 py-2 flex items-center space-x-2 border border-white/10 shadow-lg">
-              <div className="w-6 h-1 bg-white/50 rounded-full"></div>
-              <span className="text-xs text-white/70 font-medium">Desliza hacia arriba</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

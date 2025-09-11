@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useAccount } from 'wagmi';
 import useMarketplace, { type MarketplaceNFT } from '../hooks/nfts/useMarketplace';
 import MarketplaceFilters from '../components/marketplace/MarketplaceFilters';
 import MarketplaceStatsModule from '../components/marketplace/MarketplaceStatsModule';
@@ -6,11 +7,13 @@ import NFTCardMemo from '../components/marketplace/NFTCardMemo';
 import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
+import ConnectWallet from '../ui/ConnectWallet';
 
 // Lazy load the BuyModal component
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));
 
 function Marketplace() {
+  const { isConnected } = useAccount();
   const isMobile = useIsMobile();
   const {
     filteredNFTs,
@@ -62,6 +65,10 @@ function Marketplace() {
     { name: "Photography", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'photography').length, icon: "📸" }
   ], [filteredNFTs]);
 
+  if (!isConnected) {
+    return <ConnectWallet pageName="Marketplace" />;
+  }
+
   return (
     <div className="min-h-screen py-4 md:py-8">
       <div className={`max-w-7xl mx-auto ${isMobile ? 'px-3' : 'px-4 sm:px-6 lg:px-8'}`}>
@@ -87,6 +94,24 @@ function Marketplace() {
         {/* Stats */}
         <div className={isMobile ? 'mb-6' : 'mb-8'}>
           <MarketplaceStatsModule />
+        </div>
+
+        {/* Security Notice */}
+        <div className={isMobile ? 'mb-6' : 'mb-8'}>
+          <div className="card-unified">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-sm">⚠️</div>
+              <div>
+                <h3 className="text-white font-medium text-sm mb-2">Important Security Notice</h3>
+                <ul className="text-white/60 text-xs space-y-1 list-disc list-inside">
+                  <li>Never share your private keys or seed phrase with anyone</li>
+                  <li>Always verify contract addresses before signing transactions</li>
+                  <li>Be cautious of phishing websites and fake marketplaces</li>
+                  <li>Keep your wallet software updated for security</li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Main Layout: Sidebar + Content */}
@@ -122,8 +147,8 @@ function Marketplace() {
               </button>
             </div>
 
-            {/* NFT Grid - 2x2 Layout */}
-            <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'md:gap-4 lg:gap-6'}`}>
+            {/* Grid más espacioso para cards más grandes */}
+            <div className={`grid gap-3 ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8'}`}>
               {loading ? (
                 <div className="col-span-full text-center py-16">
                   <LoadingSpinner size="lg" text="Loading NFTs..." />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useBottomNavbar } from '../../hooks/mobile';
+import { useChatNavbar } from '../../hooks/mobile/useChatNavbar';
 import WalletConnect from '../web3/WalletConnect';
 
 // Iconos SVG
@@ -34,6 +35,7 @@ const MenuIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+
 interface NavItem {
   path: string;
   label: string;
@@ -42,8 +44,14 @@ interface NavItem {
 
 const MobileBottomNavbar: React.FC = () => {
   const location = useLocation();
-  const { isVisible, isMobile } = useBottomNavbar();
+  const isInChat = location.pathname === '/chat';
+  const bottomNavbar = useBottomNavbar();
+  const chatNavbar = useChatNavbar();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Usar el hook apropiado según la página
+  const { isVisible, isMobile } = isInChat ? chatNavbar : bottomNavbar;
+  const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
 
   const navItems: NavItem[] = [
     { path: '/', label: 'Home', icon: HomeIcon },
@@ -56,8 +64,8 @@ const MobileBottomNavbar: React.FC = () => {
     return location.pathname === path;
   };
 
-  // No renderizar si no es móvil o si estamos en la página de chat
-  if (!isMobile || location.pathname === '/chat') {
+  // No renderizar si no es móvil
+  if (!isMobile) {
     return null;
   }
 
@@ -77,6 +85,7 @@ const MobileBottomNavbar: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={isInChat ? hideNavbar : undefined}
                 className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 ${
                   active
                     ? 'bg-blue-500/20 scale-105 shadow-lg shadow-blue-500/20'

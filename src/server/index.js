@@ -6,18 +6,29 @@ import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
 import websocketHandler from './middlewares/websocket-handler.js';
 import { initializeKnowledgeBaseOnStartup } from './services/embeddings-service.js';
+import { getCorsConfig, applySecurityHeaders } from '../security/cors-policies.js';
 
 // Crear la aplicación express
 const app = express();
 const port = env.port;
 
-// Middleware
-app.use(cors());
+// CORS Configuration basada en el entorno
+const corsOptions = getCorsConfig(env.nodeEnv);
+
+// Middleware de seguridad
+app.use(applySecurityHeaders);
+app.use(cors(corsOptions));
 // Cambia el límite de JSON a 2MB
 app.use(express.json({ limit: '2mb' }));
 
-// Rutas API
-app.use('/server', routes);
+// Rutas API - ajustado para Vercel
+if (env.isVercel) {
+  // En Vercel, las rutas ya están reescritas, no necesitamos el prefijo /server
+  app.use('/', routes);
+} else {
+  // En desarrollo local, usar el prefijo /server
+  app.use('/server', routes);
+}
 
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);

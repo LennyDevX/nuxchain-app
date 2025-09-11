@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useReducer } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
+import { API_ENDPOINTS } from '../../config/api';
 
 // Tipos para los módulos JS
 interface ChatMessage {
@@ -86,7 +87,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       });
 
       // Make streaming request
-      const response = await fetch('http://localhost:3002/server/gemini/stream', {
+      const response = await fetch(API_ENDPOINTS.gemini.stream, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

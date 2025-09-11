@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useIsMobile } from './useIsMobile';
 
 export interface UseChatNavbarReturn {
@@ -23,35 +23,65 @@ export const useChatNavbar = (): UseChatNavbarReturn => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragY, setDragY] = useState<number>(0);
   const [startY, setStartY] = useState<number>(0);
+  const [lastTap, setLastTap] = useState<number>(0);
   const isMobile = useIsMobile();
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Funciones para controlar la visibilidad
   const showNavbar = useCallback(() => {
     setIsVisible(true);
+    
+    // Limpiar timeout anterior
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    
+    // Auto-ocultar después de 5 segundos de inactividad
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, 5000);
   }, []);
 
   const hideNavbar = useCallback(() => {
     setIsVisible(false);
+    
+    // Limpiar timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
   }, []);
 
   const toggleNavbar = useCallback(() => {
     setIsVisible(prev => !prev);
   }, []);
 
-  // Manejo de gestos táctiles
+  // Manejo de gestos táctiles y doble tap
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (!isMobile) return;
     
     const touch = e.touches[0];
     const windowHeight = window.innerHeight;
     const bottomThreshold = windowHeight - 100; // Área de 100px desde abajo
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
     
-    // Solo activar si el toque está en la parte inferior de la pantalla
+    // Detectar doble tap (menos de 300ms entre taps)
+    if (tapLength < 300 && tapLength > 0) {
+      // Doble tap detectado - toggle navbar
+      toggleNavbar();
+      setLastTap(0); // Reset para evitar triple tap
+      return;
+    }
+    
+    setLastTap(currentTime);
+    
+    // Solo activar deslizamiento si el toque está en la parte inferior de la pantalla
     if (touch.clientY > bottomThreshold) {
       setStartY(touch.clientY);
       setIsDragging(true);
     }
-  }, [isMobile]);
+  }, [isMobile, lastTap, toggleNavbar]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging || !isMobile) return;
@@ -98,11 +128,18 @@ export const useChatNavbar = (): UseChatNavbarReturn => {
     };
   }, [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  // Auto-ocultar en desktop
+  // Auto-ocultar en desktop y cleanup
   useEffect(() => {
     if (!isMobile) {
       setIsVisible(false);
     }
+    
+    // Cleanup timeout al desmontar
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
   }, [isMobile]);
 
   return {

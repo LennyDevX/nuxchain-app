@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface MarketplaceFiltersProps {
   categories: { name: string; count: number; icon: string; }[];
@@ -31,13 +30,12 @@ export default function MarketplaceFilters({
   currentFilters,
   className = ''
 }: MarketplaceFiltersProps) {
-  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState(currentFilters.searchQuery);
   const [priceMin, setPriceMin] = useState(currentFilters.priceRange.min.toString());
   const [priceMax, setPriceMax] = useState(
     currentFilters.priceRange.max === Infinity ? '' : currentFilters.priceRange.max.toString()
   );
-  const [categoriesExpanded, setCategoriesExpanded] = useState(!isMobile);
+  const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
   // Update local state when filters change externally
   useEffect(() => {
@@ -109,18 +107,16 @@ export default function MarketplaceFilters({
           <label className="block text-sm font-medium text-white/80">
             Categories
           </label>
-          {isMobile && (
-            <button
-              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
-              className="text-white/60 hover:text-white transition-colors"
-            >
-              {categoriesExpanded ? '▲' : '▼'}
-            </button>
-          )}
+          <button
+            onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+            className="text-white/60 hover:text-white transition-colors"
+          >
+            {categoriesExpanded ? '▲' : '▼'}
+          </button>
         </div>
         
-        {/* Selected Category Display (Mobile) */}
-        {isMobile && !categoriesExpanded && (
+        {/* Selected Category Display (Collapsed) */}
+        {!categoriesExpanded && (
           <div className="mb-3">
             <button
               onClick={() => setCategoriesExpanded(true)}
@@ -142,12 +138,12 @@ export default function MarketplaceFilters({
         )}
         
         {/* Categories List */}
-        {(!isMobile || categoriesExpanded) && (
+        {categoriesExpanded && (
           <div className="space-y-2">
             <button
               onClick={() => {
                 onCategoryChange('all');
-                if (isMobile) setCategoriesExpanded(false);
+                setCategoriesExpanded(false);
               }}
               className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
                 currentFilters.category === 'all'
@@ -169,7 +165,7 @@ export default function MarketplaceFilters({
                 key={category.name}
                 onClick={() => {
                   onCategoryChange(category.name);
-                  if (isMobile) setCategoriesExpanded(false);
+                  setCategoriesExpanded(false);
                 }}
                 className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
                   currentFilters.category === category.name

@@ -1,7 +1,9 @@
 import { memo, useCallback } from 'react';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
-import { formatCurrency } from '../../utils/format';
+
+import { formatPolValue } from '../../utils/format';
+import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 
 interface NFTData {
   tokenId: string;
@@ -28,13 +30,17 @@ interface NFTCardProps {
 
 function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
   const { imageUrl, isLoading: imageLoading, error: imageError } = useImageCache(nft.image);
+  const { convertPOLToUSD } = usePOLPrice();
   
   const handleListNFT = useCallback(() => {
     onListNFT(nft.tokenId);
   }, [onListNFT, nft.tokenId]);
 
-  // Format price for mobile display
-  const formattedPrice = nft.price ? formatCurrency(Number(formatEther(nft.price))) : null;
+  // Format price for display with POL and USD
+  const pricePOL = nft.price ? Number(formatEther(nft.price)) : 0;
+  const priceUSD = convertPOLToUSD(pricePOL);
+    const formattedPricePOL = pricePOL > 0 ? `${formatPolValue(pricePOL)} POL` : null;
+  const formattedPriceUSD = pricePOL > 0 && priceUSD ? `${priceUSD}` : null;
   return (
     <div className={`card-interactive overflow-hidden group ${isMobile ? 'text-sm' : ''}`}>
       <div className="aspect-square bg-gradient-to-br from-purple-500/20 to-blue-500/20 relative overflow-hidden">
@@ -92,9 +98,16 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
           {nft.isForSale && nft.price && (
             <div className={`text-center ${isMobile ? 'mb-2' : 'text-right'}`}>
               <p className={`text-white/60 ${isMobile ? 'text-xs mb-1' : 'text-xs mb-1'}`}>Price</p>
-              <p className={`font-bold text-green-400 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-                {formattedPrice}
-              </p>
+              <div className={`space-y-1 ${isMobile ? '' : 'space-y-1'}`}>
+                <p className={`font-bold text-purple-400 ${isMobile ? 'text-sm' : 'text-sm'}`}>
+                  {formattedPricePOL}
+                </p>
+                {formattedPriceUSD && (
+                  <p className={`font-medium text-green-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                    {formattedPriceUSD}
+                  </p>
+                )}
+              </div>
             </div>
           )}
           {!isMobile && (

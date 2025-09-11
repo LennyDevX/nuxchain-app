@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
 import SmartStakingABI from '../../abi/SmartStaking.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/contractErrors'
+import { useIsMobile } from '../../hooks/mobile'
 
 interface StakingFormProps {
   stakingContractAddress: string
@@ -14,10 +15,57 @@ interface StakingFormProps {
 
 function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDeposit }: StakingFormProps) {
   const { address } = useAccount()
+  const isMobile = useIsMobile()
   const [depositAmount, setDepositAmount] = useState('')
   const [lockupDuration, setLockupDuration] = useState('30') // days
   const [compoundLockupDuration, setCompoundLockupDuration] = useState('30') // days for compound
   const [activeTab, setActiveTab] = useState('stake')
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+  const tabsContainerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  
+  const tabs = ['stake', 'claim', 'withdraw', 'compound', 'emergency']
+  const currentTabIndex = tabs.indexOf(activeTab)
+  
+  // Handle touch events for swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMobile) return
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isMobile) return
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+  
+  const handleTouchEnd = () => {
+    if (!isMobile || !touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+    
+    if (isLeftSwipe && currentTabIndex < tabs.length - 1) {
+      setActiveTab(tabs[currentTabIndex + 1])
+    }
+    if (isRightSwipe && currentTabIndex > 0) {
+      setActiveTab(tabs[currentTabIndex - 1])
+    }
+    
+    setTouchStart(0)
+    setTouchEnd(0)
+  }
+  
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    if (isMobile && tabsContainerRef.current) {
+      const activeButton = tabsContainerRef.current.children[currentTabIndex] as HTMLElement
+      if (activeButton) {
+        activeButton.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+      }
+    }
+  }, [activeTab, isMobile, currentTabIndex])
 
   const { data: balance } = useBalance({
     address: address,
@@ -147,60 +195,128 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   return (
     <div className="card-unified overflow-hidden">
       {/* Tabs */}
-      <div className="flex border-b border-white/20">
-        <button
-          onClick={() => setActiveTab('stake')}
-          className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-            activeTab === 'stake'
-              ? 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
-              : 'text-white/60 hover:text-white/80'
+      <div className={`border-b border-white/20 relative ${
+        isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
+      }`}>
+        <div 
+          ref={tabsContainerRef}
+          className={`${
+            isMobile ? 'flex min-w-max px-2' : 'flex w-full'
           }`}
         >
-          Stake
-        </button>
-        <button
-          onClick={() => setActiveTab('claim')}
-          className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-            activeTab === 'claim'
-              ? 'bg-yellow-500/20 text-yellow-400 border-b-2 border-yellow-400'
-              : 'text-white/60 hover:text-white/80'
-          }`}
-        >
-          Claim Rewards
-        </button>
-        <button
-          onClick={() => setActiveTab('withdraw')}
-          className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-            activeTab === 'withdraw'
-              ? 'bg-red-500/20 text-red-400 border-b-2 border-red-400'
-              : 'text-white/60 hover:text-white/80'
-          }`}
-        >
-          Withdraw All
-        </button>
-        <button
-          onClick={() => setActiveTab('compound')}
-          className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-            activeTab === 'compound'
-              ? 'bg-green-500/20 text-green-400 border-b-2 border-green-400'
-              : 'text-white/60 hover:text-white/80'
-          }`}
-        >
-          Compound
-        </button>
-        <button
-          onClick={() => setActiveTab('emergency')}
-          className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
-            activeTab === 'emergency'
-              ? 'bg-orange-500/20 text-orange-400 border-b-2 border-orange-400'
-              : 'text-white/60 hover:text-white/80'
-          }`}
-        >
-          Emergency
-        </button>
+          <button
+            onClick={() => setActiveTab('stake')}
+            className={`font-medium transition-all duration-300 ${
+              isMobile 
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+                : 'flex-1 py-4 px-6 text-center'
+            } ${
+              activeTab === 'stake'
+                ? isMobile 
+                  ? 'bg-blue-500/30 text-blue-300 shadow-lg transform scale-105'
+                  : 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
+                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+            }`}
+          >
+            Stake
+          </button>
+          <button
+            onClick={() => setActiveTab('claim')}
+            className={`font-medium transition-all duration-300 ${
+              isMobile 
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+                : 'flex-1 py-4 px-6 text-center'
+            } ${
+              activeTab === 'claim'
+                ? isMobile 
+                  ? 'bg-yellow-500/30 text-yellow-300 shadow-lg transform scale-105'
+                  : 'bg-yellow-500/20 text-yellow-400 border-b-2 border-yellow-400'
+                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+            }`}
+          >
+            Claim
+          </button>
+          <button
+            onClick={() => setActiveTab('withdraw')}
+            className={`font-medium transition-all duration-300 ${
+              isMobile 
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+                : 'flex-1 py-4 px-6 text-center'
+            } ${
+              activeTab === 'withdraw'
+                ? isMobile 
+                  ? 'bg-red-500/30 text-red-300 shadow-lg transform scale-105'
+                  : 'bg-red-500/20 text-red-400 border-b-2 border-red-400'
+                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+            }`}
+          >
+            Withdraw
+          </button>
+          <button
+            onClick={() => setActiveTab('compound')}
+            className={`font-medium transition-all duration-300 ${
+              isMobile 
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+                : 'flex-1 py-4 px-6 text-center'
+            } ${
+              activeTab === 'compound'
+                ? isMobile 
+                  ? 'bg-green-500/30 text-green-300 shadow-lg transform scale-105'
+                  : 'bg-green-500/20 text-green-400 border-b-2 border-green-400'
+                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+            }`}
+          >
+            Compound
+          </button>
+          <button
+            onClick={() => setActiveTab('emergency')}
+            className={`font-medium transition-all duration-300 ${
+              isMobile 
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+                : 'flex-1 py-4 px-6 text-center'
+            } ${
+              activeTab === 'emergency'
+                ? isMobile 
+                  ? 'bg-orange-500/30 text-orange-300 shadow-lg transform scale-105'
+                  : 'bg-orange-500/20 text-orange-400 border-b-2 border-orange-400'
+                : 'text-white/60 hover:text-white/80 hover:bg-white/5'
+            }`}
+          >
+            Emergency
+          </button>
+        </div>
+        
+        {/* Swipe indicator for mobile */}
+        {isMobile && (
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 mb-1">
+            <div className="flex space-x-1">
+              {tabs.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    index === currentTabIndex ? 'bg-white/80' : 'bg-white/20'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="p-6">
+      <div 
+        ref={contentRef}
+        className={`${isMobile ? 'p-4' : 'p-6'} relative`}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Swipe hint for mobile */}
+        {isMobile && (
+          <div className="absolute top-2 right-2 text-white/40 text-xs flex items-center">
+            <span className="mr-1">👈👉</span>
+            Swipe to navigate
+          </div>
+        )}
         {activeTab === 'stake' && (
           <div className="space-y-6">
             <div>

@@ -1,3 +1,4 @@
+import React, { memo } from 'react'
 import { formatEther } from 'viem'
 
 import { useReadContract } from 'wagmi'
@@ -12,7 +13,7 @@ interface PoolInfoProps {
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2 || '0x0A57f28E47D42B6AAD6A4B1D91E7A896d107b637'
 const POL_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000001010' // POL token on Polygon
 
-function PoolInfo({ totalPoolBalance, uniqueUsersCount }: PoolInfoProps) {
+const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {
   // Get actual contract balance
   const { data: contractBalance } = useReadContract({
     address: POL_CONTRACT_ADDRESS as `0x${string}`,
@@ -105,6 +106,8 @@ function PoolInfo({ totalPoolBalance, uniqueUsersCount }: PoolInfoProps) {
       </div>
     </div>
   )
-}
+})
+
+PoolInfo.displayName = 'PoolInfo'
 
 export default PoolInfo

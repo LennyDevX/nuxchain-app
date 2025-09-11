@@ -1,10 +1,12 @@
 
+import React, { memo } from 'react'
+
 interface ContractInfoProps {
   contractAddress: string
   isPaused: boolean
 }
 
-function ContractInfo({ contractAddress, isPaused }: ContractInfoProps) {
+const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPaused }) => {
   const polygonScanUrl = `https://polygonscan.com/address/${contractAddress}`
   
   const truncateAddress = (address: string) => {
@@ -67,6 +69,8 @@ function ContractInfo({ contractAddress, isPaused }: ContractInfoProps) {
       </div>
     </div>
   )
-}
+})
+
+ContractInfo.displayName = 'ContractInfo'
 
 export default ContractInfo

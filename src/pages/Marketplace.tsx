@@ -5,11 +5,13 @@ import MarketplaceStatsModule from '../components/marketplace/MarketplaceStatsMo
 import NFTCardMemo from '../components/marketplace/NFTCardMemo';
 import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { useIsMobile } from '../hooks/mobile/useIsMobile';
 
 // Lazy load the BuyModal component
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));
 
 function Marketplace() {
+  const isMobile = useIsMobile();
   const {
     filteredNFTs,
     loading,
@@ -21,7 +23,7 @@ function Marketplace() {
     sortBy,
     currentFilters
   } = useMarketplace();
-usePOLPrice();
+  usePOLPrice();
 
   const [refreshing, setRefreshing] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
@@ -61,14 +63,14 @@ usePOLPrice();
   ], [filteredNFTs]);
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-4 md:py-8">
+      <div className={`max-w-7xl mx-auto ${isMobile ? 'px-3' : 'px-4 sm:px-6 lg:px-8'}`}>
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">
+        <div className={`text-center ${isMobile ? 'mb-6' : 'mb-8'}`}>
+          <h1 className={`font-bold text-white ${isMobile ? 'text-2xl mb-3' : 'text-4xl mb-4'}`}>
             NFT Marketplace
           </h1>
-          <p className="text-xl text-white/60 max-w-3xl mx-auto">
+          <p className={`text-white/60 max-w-3xl mx-auto ${isMobile ? 'text-base px-4' : 'text-xl'}`}>
             Discover, buy, and sell unique digital assets on our decentralized marketplace
           </p>
         </div>
@@ -83,16 +85,16 @@ usePOLPrice();
         )}
 
         {/* Stats */}
-        <div className="mb-8">
+        <div className={isMobile ? 'mb-6' : 'mb-8'}>
           <MarketplaceStatsModule />
         </div>
 
         {/* Main Layout: Sidebar + Content */}
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className={`flex flex-col gap-6 ${isMobile ? '' : 'lg:flex-row lg:gap-8'}`}>
           {/* Sidebar - Filters */}
-          <div className="lg:w-80 flex-shrink-0">
-            <div className="card-unified p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-white mb-6">Filters</h3>
+          <div className={`${isMobile ? 'w-full' : 'lg:w-80'} flex-shrink-0`}>
+            <div className={`card-unified ${isMobile ? 'p-4' : 'p-6'} ${isMobile ? '' : 'sticky top-8'}`}>
+              <h3 className={`font-semibold text-white ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`}>Filters</h3>
               <MarketplaceFilters
                 categories={categories}
                 onCategoryChange={filterByCategory}
@@ -107,21 +109,21 @@ usePOLPrice();
 
           {/* Main Content - NFT Grid */}
           <div className="flex-1">
-            <div className="mb-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-white">
+            <div className={`mb-4 flex justify-between items-center ${isMobile ? 'flex-col gap-3 sm:flex-row' : ''}`}>
+              <h2 className={`font-semibold text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
                 {filteredNFTs.length} NFTs
               </h2>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-200 disabled:opacity-50"
+                className={`bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 ${isMobile ? 'px-3 py-2 text-sm w-full sm:w-auto' : 'px-4 py-2 text-sm'}`}
               >
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
 
-            {/* NFT Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* NFT Grid - 2x2 Layout */}
+            <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'md:gap-4 lg:gap-6'}`}>
               {loading ? (
                 <div className="col-span-full text-center py-16">
                   <LoadingSpinner size="lg" text="Loading NFTs..." />

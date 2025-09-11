@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useAirdrops } from '../../hooks/airdrops/index.tsx';
+import { useIsMobile } from '../../hooks/mobile';
 
 interface StatCardProps {
   title: string;
@@ -14,7 +15,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, trend, trendValue, loading }) => {
   if (loading) {
     return (
-      <div className="card-stats">
+      <div className="card-unified">
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-2">
             <div className="w-6 h-6 bg-white/10 rounded"></div>
@@ -50,7 +51,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, trend
   };
 
   return (
-    <div className="card-stats">
+    <div className="card-unified">
       <div className="flex items-center justify-between mb-2">
         <span className="text-white/60 text-xs font-medium truncate">{title}</span>
         <div className="flex items-center space-x-1">
@@ -80,7 +81,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, trend
 };
 
 const AirdropStatics: React.FC = React.memo(() => {
-  const { airdrops, globalStats, loading, error } = useAirdrops();
+  const { globalStats, loading, error } = useAirdrops();
+  const isMobile = useIsMobile();
 
   // Memoize stats calculation to prevent unnecessary recalculations
   const stats = useMemo(() => ({
@@ -138,19 +140,29 @@ const AirdropStatics: React.FC = React.memo(() => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      {statsData.map((stat, index) => (
-        <StatCard
-          key={index}
-          title={stat.title}
-          value={stat.value}
-          subtitle={stat.subtitle}
-          icon={stat.icon}
-          trend={stat.trend}
-          trendValue={stat.trendValue}
-          loading={loading}
-        />
-      ))}
+    <div className={`mb-8 ${
+      isMobile 
+        ? 'grid grid-cols-2 gap-4' 
+        : 'grid grid-cols-1 md:grid-cols-3 gap-6'
+    } transition-all duration-300`}>
+      {statsData.map((stat, index) => {
+        // En móvil: primeras 2 cards en la primera fila, tercera card en la segunda fila centrada
+        const mobileGridClass = isMobile && index === 2 ? 'col-span-2' : '';
+        
+        return (
+          <div key={index} className={mobileGridClass}>
+            <StatCard
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.subtitle}
+              icon={stat.icon}
+              trend={stat.trend}
+              trendValue={stat.trendValue}
+              loading={loading}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 });

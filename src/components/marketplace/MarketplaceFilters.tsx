@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface MarketplaceFiltersProps {
   categories: { name: string; count: number; icon: string; }[];
@@ -30,11 +31,13 @@ export default function MarketplaceFilters({
   currentFilters,
   className = ''
 }: MarketplaceFiltersProps) {
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState(currentFilters.searchQuery);
   const [priceMin, setPriceMin] = useState(currentFilters.priceRange.min.toString());
   const [priceMax, setPriceMax] = useState(
     currentFilters.priceRange.max === Infinity ? '' : currentFilters.priceRange.max.toString()
   );
+  const [categoriesExpanded, setCategoriesExpanded] = useState(!isMobile);
 
   // Update local state when filters change externally
   useEffect(() => {
@@ -102,47 +105,89 @@ export default function MarketplaceFilters({
 
       {/* Categories */}
       <div>
-        <label className="block text-sm font-medium text-white/80 mb-3">
-          Categories
-        </label>
-        <div className="space-y-2">
-          <button
-            onClick={() => onCategoryChange('all')}
-            className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
-              currentFilters.category === 'all'
-                ? 'bg-purple-500/20 border-purple-500/50 text-white'
-                : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span>📁</span>
-                <span className="text-sm font-medium">All Categories</span>
-              </div>
-              <span className="text-xs text-white/40">{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
-            </div>
-          </button>
-          
-          {categories.map((category) => (
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-white/80">
+            Categories
+          </label>
+          {isMobile && (
             <button
-              key={category.name}
-              onClick={() => onCategoryChange(category.name)}
+              onClick={() => setCategoriesExpanded(!categoriesExpanded)}
+              className="text-white/60 hover:text-white transition-colors"
+            >
+              {categoriesExpanded ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
+        
+        {/* Selected Category Display (Mobile) */}
+        {isMobile && !categoriesExpanded && (
+          <div className="mb-3">
+            <button
+              onClick={() => setCategoriesExpanded(true)}
               className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
-                currentFilters.category === category.name
+                currentFilters.category === 'all'
                   ? 'bg-purple-500/20 border-purple-500/50 text-white'
                   : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span>{category.icon}</span>
-                  <span className="text-sm font-medium">{category.name}</span>
+                  <span>{currentFilters.category === 'all' ? '📁' : categories.find(cat => cat.name === currentFilters.category)?.icon || '📁'}</span>
+                  <span className="text-sm font-medium">{formatCategoryName(currentFilters.category)}</span>
                 </div>
-                <span className="text-xs text-white/40">{category.count}</span>
+                <span className="text-xs text-white/40">▼</span>
               </div>
             </button>
-          ))}
-        </div>
+          </div>
+        )}
+        
+        {/* Categories List */}
+        {(!isMobile || categoriesExpanded) && (
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                onCategoryChange('all');
+                if (isMobile) setCategoriesExpanded(false);
+              }}
+              className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
+                currentFilters.category === 'all'
+                  ? 'bg-purple-500/20 border-purple-500/50 text-white'
+                  : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span>📁</span>
+                  <span className="text-sm font-medium">All Categories</span>
+                </div>
+                <span className="text-xs text-white/40">{categories.reduce((sum, cat) => sum + cat.count, 0)}</span>
+              </div>
+            </button>
+            
+            {categories.map((category) => (
+              <button
+                key={category.name}
+                onClick={() => {
+                  onCategoryChange(category.name);
+                  if (isMobile) setCategoriesExpanded(false);
+                }}
+                className={`w-full p-3 rounded-lg border transition-all duration-200 text-left ${
+                  currentFilters.category === category.name
+                    ? 'bg-purple-500/20 border-purple-500/50 text-white'
+                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span>{category.icon}</span>
+                    <span className="text-sm font-medium">{category.name}</span>
+                  </div>
+                  <span className="text-xs text-white/40">{category.count}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Sort Options */}

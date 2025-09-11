@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import InfiniteScrollNFTGrid from '../components/nfts/InfiniteScrollNFTGrid';
@@ -7,6 +7,7 @@ import NFTStats from '../components/nfts/NFTStats';
 import ListingModal from '../components/nfts/ListingModal';
 import useUserNFTsLazy from '../hooks/nfts/useUserNFTsLazy';
 import useListNFT from '../hooks/nfts/useListNFT';
+import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWallet';
 
 
@@ -15,6 +16,8 @@ import ConnectWallet from '../ui/ConnectWallet';
 function NFTs() {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  
   const { 
     nfts: userNFTs, 
     loading, 
@@ -34,11 +37,8 @@ function NFTs() {
   const [listingTokenId, setListingTokenId] = useState<string | null>(null);
   const [showListingModal, setShowListingModal] = useState(false);
   
-  // Calculate stats from NFTs
-  const totalNFTs = userNFTs.length;
-const forSaleCount = userNFTs.filter((nft) => nft.isForSale).length;
-
-
+  // Calculate stats from NFTs - memoized for performance
+  // Remove unused nftStats declaration since it's not being used anywhere
 
   // Handle listing errors
   useEffect(() => {
@@ -101,28 +101,33 @@ const forSaleCount = userNFTs.filter((nft) => nft.isForSale).length;
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-4 md:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">
+        <div className={`text-center mb-6 md:mb-8 ${isMobile ? 'px-2' : ''}`}>
+          <h1 className={`font-bold text-white mb-3 md:mb-4 ${
+            isMobile ? 'text-2xl' : 'text-4xl'
+          }`}>
             My NFTs
           </h1>
-          <p className="text-xl text-white/60 max-w-3xl mx-auto">
+          <p className={`text-white/60 max-w-3xl mx-auto ${
+            isMobile ? 'text-base px-4' : 'text-xl'
+          }`}>
             Manage your collection of unique NFTs created on our platform
           </p>
         </div>
 
         {/* Stats Cards */}
-        <NFTStats 
-            totalNFTs={totalNFTs}
-            forSaleCount={forSaleCount}
-            loading={loading}
+        <div className="mb-6 md:mb-8">
+          <NFTStats 
             nfts={userNFTs}
           />
+        </div>
         
         {/* Actions Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className={`flex flex-col gap-3 mb-4 md:mb-6 ${
+          isMobile ? 'space-y-3' : 'sm:flex-row gap-4'
+        }`}>
           <div className="flex-1">
             <NFTFilters
               searchTerm={searchTerm}
@@ -133,24 +138,26 @@ const forSaleCount = userNFTs.filter((nft) => nft.isForSale).length;
               onFilterChange={setFilter}
               availableCategories={availableCategories}
               onCreateNFT={handleCreateNFT}
+              isMobile={isMobile}
             />
           </div>
-
         </div>
         
-        {/* NFTs Grid */}
-        <InfiniteScrollNFTGrid
-          nfts={filteredNFTs as any[]}
-          loading={loading}
-          loadingMore={loadingMore}
-          error={error}
-          hasMore={hasMore}
-          onListNFT={handleListNFT}
-          onCreateNFT={handleCreateNFT}
-          onLoadMore={loadMoreNFTs}
-          totalCount={totalCount}
-          loadedCount={loadedCount}
-        />
+        {/* NFT Grid */}
+        <div className={`${isMobile ? 'px-1' : ''}`}>
+          <InfiniteScrollNFTGrid
+            nfts={filteredNFTs}
+            loading={loading}
+            loadingMore={loadingMore}
+            error={error}
+            hasMore={hasMore}
+            onListNFT={handleListNFT}
+            onCreateNFT={handleCreateNFT}
+            onLoadMore={loadMoreNFTs}
+            totalCount={totalCount}
+            loadedCount={loadedCount}
+          />
+        </div>
         
         {/* Listing Modal */}
         <ListingModal
@@ -168,4 +175,4 @@ const forSaleCount = userNFTs.filter((nft) => nft.isForSale).length;
   );
 }
 
-export default NFTs
+export default memo(NFTs);

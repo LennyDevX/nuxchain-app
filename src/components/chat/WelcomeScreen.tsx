@@ -1,10 +1,15 @@
 import AnimatedAILogo from '../../ui/AnimatedAILogo'
+import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+import { getMobileOptimizationConfig } from '../../utils/mobile/performanceOptimization'
 
 interface WelcomeScreenProps {
   onQuestionSelect: (question: string) => void
 }
 
 export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) {
+  const isMobile = useIsMobile()
+  const optimizationConfig = getMobileOptimizationConfig()
+  
   const quickQuestions = [
     {
       icon: "🚀",
@@ -43,23 +48,41 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
 
         {/* Quick Questions */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-white mb-6">Quick questions to get started:</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className={`font-semibold text-white mb-6 ${
+            isMobile ? 'text-lg' : 'text-xl'
+          }`}>Quick questions to get started:</h2>
+          <div className={`grid gap-3 ${
+            isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 gap-4'
+          }`}>
             {quickQuestions.map((item, index) => (
               <button
                 key={index}
                 onClick={() => onQuestionSelect(item.question)}
-                className="group p-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 text-left"
+                className={`group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-left ${
+                  optimizationConfig.reduceAnimations 
+                    ? 'transition-colors duration-150' 
+                    : 'transition-all duration-200'
+                } ${
+                  isMobile ? 'p-3' : 'p-4'
+                }`}
               >
-                <div className="flex items-start space-x-3">
-                  <span className="text-2xl">{item.icon}</span>
-                  <div>
-                    <h3 className="font-medium text-white group-hover:text-brand-purple-300 transition-colors">
+                <div className={`flex items-start ${
+                  isMobile ? 'flex-col space-y-2' : 'space-x-3'
+                }`}>
+                  <span className={`${
+                    isMobile ? 'text-xl self-center' : 'text-2xl'
+                  }`}>{item.icon}</span>
+                  <div className={isMobile ? 'text-center' : ''}>
+                    <h3 className={`font-medium text-white group-hover:text-brand-purple-300 transition-colors ${
+                      isMobile ? 'text-sm' : 'text-base'
+                    }`}>
                       {item.title}
                     </h3>
-                    <p className="text-sm text-white/60 mt-1">
-                      {item.question}
-                    </p>
+                    {!isMobile && (
+                      <p className="text-sm text-white/60 mt-1">
+                        {item.question}
+                      </p>
+                    )}
                   </div>
                 </div>
               </button>

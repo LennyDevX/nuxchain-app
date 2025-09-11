@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router-dom'
 import WalletConnect from '../web3/WalletConnect'
+import { useIsMobile } from '../../hooks/mobile'
 
 function Navbar() {
   const location = useLocation()
+  const isMobile = useIsMobile()
 
   const navLinks = [
     { path: '/', label: 'Home' },
@@ -15,6 +17,11 @@ function Navbar() {
 
   const isActive = (path: string) => {
     return location.pathname === path
+  }
+
+  // En móviles, no mostrar navbar superior
+  if (isMobile) {
+    return null;
   }
 
   return (
@@ -55,33 +62,6 @@ function Navbar() {
             <WalletConnect />
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button className="text-white/80 hover:text-white focus:outline-none focus:text-white">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile menu (hidden by default) */}
-      <div className="md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-black/20 backdrop-blur-md">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                isActive(link.path)
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
         </div>
       </div>
     </nav>

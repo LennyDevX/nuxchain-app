@@ -1,17 +1,27 @@
+import { useIsMobile } from '../../hooks/mobile';
+import { getMobileOptimizationConfig } from '../../utils/mobile';
+
 function HeroSection() {
+  const isMobile = useIsMobile();
+  const optimizationConfig = getMobileOptimizationConfig();
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-      {/* Image on the left */}
-      <div className="flex justify-center items-center">
-        <div className="relative">
-          <img 
-            src="/Airdrops-NFts.webp" 
-            alt="Exclusive NFT Airdrops" 
-            className="w-full max-w-md rounded-2xl shadow-2xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent rounded-2xl"></div>
+    <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2'} gap-12 mb-16`}>
+      {/* Image on the left - Hidden on mobile */}
+      {!isMobile && (
+        <div className="flex justify-center items-center">
+          <div className="relative">
+            <img 
+              src="/Airdrops-NFts.webp" 
+              alt="Exclusive NFT Airdrops" 
+              className={`w-full max-w-md rounded-2xl shadow-2xl border border-purple-500/30 hover:border-purple-400/50 ${
+                optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'
+              }`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-purple-900/20 to-transparent rounded-2xl"></div>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Text and title on the right */}
       <div className="flex flex-col justify-center space-y-6">
@@ -43,11 +53,15 @@ function HeroSection() {
             <span className="text-gray-300">Instant delivery to your wallet</span>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-          <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+        <div className={`flex flex-col ${isMobile ? 'space-y-3' : 'sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4'}`}>
+          <button className={`bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg ${
+            optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300 transform hover:scale-105'
+          }`}>
             Explore Airdrops
           </button>
-          <button className="border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 font-bold py-3 px-8 rounded-lg transition-all duration-300 hover:border-purple-400">
+          <button className={`border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 font-bold py-3 px-8 rounded-lg ${
+            optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'
+          } hover:border-purple-400`}>
             Learn More
           </button>
         </div>

@@ -1,3 +1,4 @@
+import React, { memo } from 'react'
 import { formatEther } from 'viem'
 
 interface DepositData {
@@ -47,7 +48,7 @@ function getROIRate(lockupDuration: bigint): string {
   }
 }
 
-function UserInfo({ userInfo, pendingRewards, userDeposits, totalDeposit }: UserInfoProps) {
+const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, userDeposits, totalDeposit }: UserInfoProps) => {
   return (
     <div className="space-y-6">
       {/* User Information */}
@@ -168,6 +169,8 @@ function UserInfo({ userInfo, pendingRewards, userDeposits, totalDeposit }: User
       </div>
     </div>
   )
-}
+})
+
+UserInfo.displayName = 'UserInfo'
 
 export default UserInfo

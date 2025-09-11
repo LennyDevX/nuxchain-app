@@ -1,13 +1,18 @@
 import { useAccount, useReadContract } from 'wagmi'
+import { memo, useMemo, lazy, Suspense } from 'react'
 import SmartStakingABI from '../abi/SmartStaking.json'
 import GlobalBackground from '../ui/gradientBackground'
-import StakingForm from '../components/staking/StakingForm'
-import UserInfo from '../components/staking/UserInfo'
-import PoolInfo from '../components/staking/PoolInfo'
-import StakingBonds from '../components/staking/StakingBonds'
-import StakingStats from '../components/staking/StakingStats'
-import ContractInfo from '../components/staking/ContractInfo'
+import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWallet'
+import { useIsMobile } from '../hooks/mobile'
+
+// Lazy load components for better performance
+const StakingForm = lazy(() => import('../components/staking/StakingForm'))
+const UserInfo = lazy(() => import('../components/staking/UserInfo'))
+const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
+const StakingBonds = lazy(() => import('../components/staking/StakingBonds'))
+const StakingStats = lazy(() => import('../components/staking/StakingStats'))
+const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 
 // Interfaces
 interface DepositData {
@@ -26,76 +31,118 @@ interface UserInfoData {
 // Contract address from environment variables
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2 
 
-function Staking() {
+const Staking = memo(() => {
   const { address, isConnected } = useAccount()
+  const isMobile = useIsMobile()
 
-  // Read contract data
-  const { data: userInfo } = useReadContract({
+  // Memoize contract configuration for better performance
+  const contractConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
     abi: SmartStakingABI.abi,
+  }), [STAKING_CONTRACT_ADDRESS])
+
+  // Read contract data with optimized queries
+  const { data: userInfo } = useReadContract({
+    ...contractConfig,
     functionName: 'getUserInfo',
     args: [address],
-    query: { enabled: !!address }
+    query: { 
+      enabled: !!address,
+      staleTime: 30000, // 30 seconds
+      refetchInterval: isMobile ? 60000 : 30000 // Longer intervals on mobile
+    }
   })
 
   const { data: userDeposits } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'getUserDeposits',
     args: [address],
-    query: { enabled: !!address }
+    query: { 
+      enabled: !!address,
+      staleTime: 30000,
+      refetchInterval: isMobile ? 60000 : 30000
+    }
   })
 
   const { data: totalPoolBalance } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'totalPoolBalance',
+    query: {
+      staleTime: 60000, // 1 minute
+      refetchInterval: isMobile ? 120000 : 60000
+    }
   })
 
   const { data: uniqueUsersCount } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'uniqueUsersCount',
+    query: {
+      staleTime: 60000,
+      refetchInterval: isMobile ? 120000 : 60000
+    }
   })
 
   const { data: pendingRewards } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'calculateRewards',
     args: [address],
-    query: { enabled: !!address }
+    query: { 
+      enabled: !!address,
+      staleTime: 15000, // 15 seconds for rewards
+      refetchInterval: isMobile ? 30000 : 15000
+    }
   })
 
-  const { data: totalDeposit, error: totalDepositError } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+  const { data: totalDeposit } = useReadContract({
+    ...contractConfig,
     functionName: 'getTotalDeposit',
     args: [address],
-    query: { enabled: !!address }
+    query: { 
+      enabled: !!address,
+      staleTime: 30000,
+      refetchInterval: isMobile ? 60000 : 30000
+    }
   })
 
   const { data: contractVersion } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'getContractVersion',
+    query: {
+      staleTime: 300000, // 5 minutes - rarely changes
+      refetchInterval: false
+    }
   })
 
   const { data: contractBalance } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'getContractBalance',
+    query: {
+      staleTime: 60000,
+      refetchInterval: isMobile ? 120000 : 60000
+    }
   })
-
-  // Debug logs
-  console.log('Total Deposit:', totalDeposit)
-  console.log('Total Deposit Error:', totalDepositError)
-  console.log('Address:', address)
 
   const { data: isPaused } = useReadContract({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    ...contractConfig,
     functionName: 'paused',
+    query: {
+      staleTime: 60000,
+      refetchInterval: isMobile ? 120000 : 60000
+    }
   })
+
+  // Memoize processed data to prevent unnecessary re-renders
+  const processedData = useMemo(() => ({
+    userInfo,
+    userDeposits,
+    totalPoolBalance: (totalPoolBalance as bigint) || 0n,
+    uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
+    pendingRewards: (pendingRewards as bigint) || 0n,
+    totalDeposit: (totalDeposit as bigint) || 0n,
+    contractVersion: (contractVersion as bigint) || 0n,
+    contractBalance: (contractBalance as bigint) || 0n,
+    isPaused: (isPaused as boolean) || false
+  }), [userInfo, userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
 
 
 
@@ -118,17 +165,19 @@ function Staking() {
         </div>
 
 
-        <StakingStats
-          totalPoolBalance={totalPoolBalance as bigint}
-          uniqueUsersCount={uniqueUsersCount as bigint}
-          totalDeposit={totalDeposit as bigint}
-          pendingRewards={pendingRewards as bigint}
-          contractVersion={contractVersion as bigint}
-          contractBalance={contractBalance as bigint}
-        />
+        <Suspense fallback={<LoadingSpinner />}>
+          <StakingStats
+            totalPoolBalance={processedData.totalPoolBalance}
+            uniqueUsersCount={processedData.uniqueUsersCount}
+            totalDeposit={processedData.totalDeposit}
+            pendingRewards={processedData.pendingRewards}
+            contractVersion={processedData.contractVersion}
+            contractBalance={processedData.contractBalance}
+          />
+        </Suspense>
 
         {/* Contract Paused Alert */}
-        {Boolean(isPaused) && (
+        {processedData.isPaused && (
           <div className="mb-8 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
             <div className="flex items-center">
               <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,35 +189,47 @@ function Staking() {
         )}
 
         {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={`grid gap-8 ${
+          isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
+        }`}>
           {/* Left Column - Staking Form and Bonds */}
           <div className="space-y-8">
-            <StakingForm 
-              stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-              pendingRewards={(pendingRewards as bigint) || 0n}
-              isPaused={(isPaused as boolean) || false}
-              totalDeposit={(totalDeposit as bigint) || 0n}
-            />
-            {/* Staking Bonds Section */}
-            <StakingBonds />
+            <Suspense fallback={<LoadingSpinner />}>
+              <StakingForm 
+                stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                pendingRewards={processedData.pendingRewards}
+                isPaused={processedData.isPaused}
+                totalDeposit={processedData.totalDeposit}
+              />
+            </Suspense>
+            {/* Staking Bonds Section - Load after form on mobile */}
+            <Suspense fallback={<LoadingSpinner />}>
+              <StakingBonds />
+            </Suspense>
           </div>
 
           {/* Right Column - User Info and Pool Info */}
           <div className="space-y-6">
-            <UserInfo 
-              userInfo={userInfo as UserInfoData | undefined}
-              pendingRewards={(pendingRewards as bigint) || 0n}
-              userDeposits={userDeposits as DepositData[] | undefined}
-              totalDeposit={(totalDeposit as bigint) || 0n}
-            />
-            <PoolInfo 
-              totalPoolBalance={(totalPoolBalance as bigint) || 0n}
-              uniqueUsersCount={(uniqueUsersCount as bigint) || 0n}
-            />
-            <ContractInfo 
-              contractAddress={STAKING_CONTRACT_ADDRESS}
-              isPaused={(isPaused as boolean) || false}
-            />
+            <Suspense fallback={<LoadingSpinner />}>
+              <UserInfo 
+                userInfo={processedData.userInfo as UserInfoData | undefined}
+                pendingRewards={processedData.pendingRewards}
+                userDeposits={processedData.userDeposits as DepositData[] | undefined}
+                totalDeposit={processedData.totalDeposit}
+              />
+            </Suspense>
+            <Suspense fallback={<LoadingSpinner />}>
+              <PoolInfo 
+                totalPoolBalance={processedData.totalPoolBalance}
+                uniqueUsersCount={processedData.uniqueUsersCount}
+              />
+            </Suspense>
+            <Suspense fallback={<LoadingSpinner />}>
+              <ContractInfo 
+                contractAddress={STAKING_CONTRACT_ADDRESS}
+                isPaused={processedData.isPaused}
+              />
+            </Suspense>
           </div>
         </div>
 
@@ -188,6 +249,8 @@ function Staking() {
       </div>
     </GlobalBackground>
   )
-}
+})
+
+Staking.displayName = 'Staking'
 
 export default Staking

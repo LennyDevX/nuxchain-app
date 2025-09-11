@@ -5,11 +5,17 @@ import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
+import { useIsMobile } from '../hooks/mobile/useIsMobile'
+import { useChatNavbar } from '../hooks/mobile/useChatNavbar'
+import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimization'
 
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
   const { messages, isLoading, isStreaming, sendMessage } = useChatStreaming()
+  const isMobile = useIsMobile()
+  const { isVisible: isNavbarVisible, isDragging, dragY } = useChatNavbar()
+  const optimizationConfig = getMobileOptimizationConfig()
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -55,7 +61,9 @@ function Chat() {
        
 
         {/* Messages Container or Welcome Screen */}
-        <div className="flex-1 overflow-y-auto pb-32 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
+        <div className={`flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30 ${
+          isMobile ? 'pb-32' : 'pb-32'
+        }`}>
           {showWelcome ? (
             <WelcomeScreen onQuestionSelect={handleQuestionSelect} />
           ) : (
@@ -64,9 +72,17 @@ function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-white/10 bg-brand-black-600/50 backdrop-blur-glass z-10">
+        <div className={`fixed left-0 right-0 border-t border-white/10 bg-brand-black-600/50 backdrop-blur-glass z-10 bottom-0 ${
+          optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'
+        } ${
+          isDragging ? 'pointer-events-none' : ''
+        }`} style={{
+          transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
+        }}>
           <div className="max-w-4xl mx-auto">
-          <div className="px-6 py-4">
+          <div className={`${
+            isMobile ? 'px-4 py-4' : 'px-6 py-4'
+          }`}>
             <form onSubmit={handleSendMessage} className="relative">
               <div className="flex items-end space-x-3">
                 <div className="flex-1">
@@ -88,12 +104,28 @@ function Chat() {
               </div>
             </form>
             
-            <p className="text-xs text-white/40 mt-3 text-center">
-              🤖 Powered by Gemini AI • Press Enter to send, Shift+Enter for new line
-            </p>
+            {!isMobile && (
+              <p className="text-xs text-white/40 mt-3 text-center">
+                🤖 Powered by Gemini AI • Press Enter to send, Shift+Enter for new line
+              </p>
+            )}
           </div>
           </div>
         </div>
+
+        {/* Navbar Slide Indicator - Solo en móvil */}
+        {isMobile && !isNavbarVisible && (
+          <div className={`fixed bottom-1 left-1/2 transform -translate-x-1/2 z-20 ${
+            optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'
+          } ${
+            isDragging ? 'opacity-100 scale-110' : 'opacity-50 hover:opacity-80'
+          }`}>
+            <div className="bg-black/60 backdrop-blur-md rounded-full px-4 py-2 flex items-center space-x-2 border border-white/10 shadow-lg">
+              <div className="w-6 h-1 bg-white/50 rounded-full"></div>
+              <span className="text-xs text-white/70 font-medium">Desliza hacia arriba</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

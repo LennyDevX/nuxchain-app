@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { MarketplaceStats } from '../../hooks/nfts/useMarketplace';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface MarketplaceStatsProps {
   stats: MarketplaceStats;
@@ -56,6 +57,7 @@ function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
 
 export default function MarketplaceStats({ stats, loading = false, className = '' }: MarketplaceStatsProps) {
   const { convertPOLToUSD, polPrice } = usePOLPrice();
+  const isMobile = useIsMobile();
   
   const formatPolValue = useMemo(() => {
     return (value: number) => {
@@ -79,7 +81,7 @@ export default function MarketplaceStats({ stats, loading = false, className = '
   }, [stats.floorPrice, stats.totalMarketValue, stats.averagePrice, polPrice, convertPOLToUSD, formatPolValue]);
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
+    <div className={`grid grid-cols-2 gap-3 ${isMobile ? 'gap-2' : 'md:gap-4'} ${className}`}>
       {/* Listed NFTs */}
       <StatCard
         title="Listed NFTs"

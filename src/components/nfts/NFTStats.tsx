@@ -11,9 +11,25 @@ interface NFTData {
 
 interface NFTStatsProps {
   nfts: NFTData[];
+  loading?: boolean;
 }
 
-export default memo(function NFTStats({ nfts }: NFTStatsProps) {
+function StatCardSkeleton() {
+  return (
+    <div className="card-stats">
+      <div className="animate-pulse">
+        <div className="flex items-center justify-between mb-2">
+          <div className="w-6 h-6 bg-white/10 rounded"></div>
+          <div className="w-12 h-3 bg-white/10 rounded"></div>
+        </div>
+        <div className="w-20 h-6 bg-white/10 rounded mb-1"></div>
+        <div className="w-16 h-3 bg-white/10 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) {
   const isMobile = useIsMobile();
   const { convertPOLToUSD, polPrice } = usePOLPrice();
 
@@ -36,6 +52,18 @@ export default memo(function NFTStats({ nfts }: NFTStatsProps) {
   const formattedTotalValueUSD = polPrice ? convertPOLToUSD(totalEstimatedValuePOL) : 'Loading...';
   const formattedListedCount = listedForSaleCount.toLocaleString();
   const formattedTotalCount = totalNFTsCount.toLocaleString();
+  if (loading) {
+    return (
+      <div className={`grid gap-3 ${isMobile ? 'grid-cols-2 grid-rows-2' : 'grid-cols-3'}`}>
+        <StatCardSkeleton />
+        <StatCardSkeleton />
+        <div className={isMobile ? 'col-span-2' : ''}>
+          <StatCardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`grid gap-3 ${isMobile ? 'grid-cols-2 grid-rows-2' : 'grid-cols-3'}`}>
       {/* Total Portfolio Value */}

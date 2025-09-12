@@ -61,31 +61,19 @@ const TokenizationSection: React.FC = () => {
           {/* Right side - Image - Solo en desktop */}
           {!isMobile && (
             <div className="flex justify-center">
-              <div className="relative group">
-                <div className="absolute -inset-6 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-300 animate-pulse"></div>
-                <div className="relative">
-                  <img 
-                    src="/GiftBoxNFT.webp" 
-                    alt="NFT Tokenization" 
-                    className="w-96 h-96 object-contain mx-auto animate-float"
-                    style={{ animationDuration: '8s', animationDelay: '1s' }}
-                  />
-                  {/* Floating particles */}
-                  <div className="absolute top-10 left-10 w-3 h-3 bg-cyan-400 rounded-full animate-ping" style={{ animationDelay: '0s' }}></div>
-                  <div className="absolute top-20 right-16 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
-                  <div className="absolute bottom-16 left-20 w-2 h-2 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '2s' }}></div>
-                  <div className="absolute bottom-10 right-10 w-3 h-3 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-                </div>
-                <div className="absolute bottom-20 right-10 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+              <div className="relative">
+                <img 
+                  src="/GiftBoxNFT.webp" 
+                  alt="NFT Tokenization" 
+                  className="w-96 h-96 object-contain mx-auto"
+                />
               </div>
             </div>
           )}
         </div>
       </div>
       
-      {/* Background decorative elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+
     </section>
   );
 };

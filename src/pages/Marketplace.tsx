@@ -97,22 +97,7 @@ function Marketplace() {
         </div>
 
         {/* Security Notice */}
-        <div className={isMobile ? 'mb-6' : 'mb-8'}>
-          <div className="card-unified">
-            <div className="flex items-start gap-3">
-              <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-sm">⚠️</div>
-              <div>
-                <h3 className="text-white font-medium text-sm mb-2">Important Security Notice</h3>
-                <ul className="text-white/60 text-xs space-y-1 list-disc list-inside">
-                  <li>Never share your private keys or seed phrase with anyone</li>
-                  <li>Always verify contract addresses before signing transactions</li>
-                  <li>Be cautious of phishing websites and fake marketplaces</li>
-                  <li>Keep your wallet software updated for security</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Main Layout: Sidebar + Content */}
         <div className={`flex flex-col gap-6 ${isMobile ? '' : 'lg:flex-row lg:gap-8'}`}>
@@ -128,6 +113,7 @@ function Marketplace() {
                 onSortChange={sortBy}
                 currentFilters={currentFilters}
                 className=""
+                isLoading={loading}
               />
             </div>
           </div>

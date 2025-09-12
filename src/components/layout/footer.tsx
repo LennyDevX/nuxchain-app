@@ -28,11 +28,11 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Platform</h4>
             <ul className="space-y-2">
-              <li><a href="#staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</a></li>
-              <li><a href="#nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</a></li>
-              <li><a href="#marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</a></li>
-              <li><a href="#tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</a></li>
-              <li><a href="#airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</a></li>
+              <li><a href="/staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</a></li>
+              <li><a href="/nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</a></li>
+              <li><a href="/marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</a></li>
+              <li><a href="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</a></li>
+              <li><a href="/airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</a></li>
             </ul>
           </div>
 
@@ -40,10 +40,18 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
-              <li><a href="#chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxchain AI</a></li>
-              <li><a href="#analytics" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Market Analysis</a></li>
-              <li><a href="#recommendations" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Smart Recommendations</a></li>
-              <li><a href="#portfolio" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Portfolio Tracker</a></li>
+              <li>
+                <a href="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuvim AI 🤖</a>
+                
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">Market Analysis</span>
+                <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">Smart Recommendations</span>
+                <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              </li>
             </ul>
           </div>
 

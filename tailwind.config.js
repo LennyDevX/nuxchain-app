@@ -132,6 +132,7 @@ export default {
       },
       animation: {
         'fade-in': 'fade-in 0.5s ease-in-out',
+        'fadeIn': 'fade-in 0.5s ease-in-out',
         'slide-up': 'slide-up 0.3s ease-out',
         'bounce-slow': 'bounce-slow 1s infinite',
         'gradient-shift': 'gradient-shift 8s ease-in-out infinite',

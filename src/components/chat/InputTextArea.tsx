@@ -40,7 +40,7 @@ export default function InputTextArea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onKeyPress={onKeyPress}
-      placeholder={isMobile ? "Ask about blockchain, NFTs..." : placeholder}
+      placeholder={isMobile ? "Ask Nuvim" : placeholder}
       disabled={disabled}
       className={`w-full bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 focus:bg-white/8 resize-none backdrop-blur-md overflow-hidden ${
         isMobile ? 'px-3 py-2 min-h-[40px] max-h-[100px] text-sm' : 'px-4 py-3 min-h-[48px] max-h-[120px] text-sm'

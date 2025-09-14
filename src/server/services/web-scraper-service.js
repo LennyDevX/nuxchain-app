@@ -156,6 +156,28 @@ class WebScraperService {
   }
 
   /**
+   * Función de compatibilidad para scrapeUrl (wrapper de extractContent)
+   * @param {string} url - URL a procesar
+   * @param {Object} options - Opciones de scraping
+   * @returns {Promise<Object>} Resultado del scraping
+   */
+  async scrapeUrl(url, options = {}) {
+    try {
+      const result = await this.extractContent(url);
+      return {
+        success: true,
+        ...result
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        url: url
+      };
+    }
+  }
+
+  /**
    * Extrae contenido principal de una página web
    * @param {string} url - URL de la página
    * @returns {Promise<Object>} Contenido extraído
@@ -492,36 +514,56 @@ class WebScraperService {
   formatForChat(extractedContent) {
     const { title, content, excerpt, metadata, url } = extractedContent;
     
-    // Formato simplificado que se integra mejor en la conversación
+    // Formato optimizado para mejor presentación en el chat
     let formattedContent = '';
     
-    // Solo agregar el título si es diferente del contenido
+    // Encabezado con información de la fuente
+    formattedContent += `📄 **Contenido de URL**\n`;
+    formattedContent += `🔗 **Fuente:** [${metadata?.domain || 'Sitio web'}](${url})\n\n`;
+    
+    // Agregar título con formato mejorado
     if (title && title.trim() && !content.toLowerCase().includes(title.toLowerCase().substring(0, 50))) {
-      formattedContent += `**${title}**\n\n`;
+      formattedContent += `## ${title}\n\n`;
     }
     
-    // Usar el resumen ejecutivo si está disponible y es más conciso
+    // Usar el resumen ejecutivo si está disponible y es útil
     if (excerpt && excerpt.length > 100 && excerpt.length < content.length * 0.8) {
-      formattedContent += `${excerpt}\n\n`;
+      formattedContent += `📋 **Resumen:** ${excerpt}\n\n`;
     }
     
-    // Contenido principal limpio y bien estructurado
+    // Información adicional útil
+    if (metadata?.readingTime) {
+      formattedContent += `⏱️ **Tiempo de lectura:** ~${metadata.readingTime} min\n\n`;
+    }
+    
+    // Contenido principal con estructura optimizada
     const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 50);
     
     if (paragraphs.length > 1) {
+      formattedContent += `📖 **Contenido:**\n\n`;
       paragraphs.forEach((paragraph, index) => {
         const cleanParagraph = paragraph.trim().replace(/\s+/g, ' ');
         if (cleanParagraph.length > 50) {
-          formattedContent += `${cleanParagraph}\n\n`;
+          // Agregar numeración solo para contenido extenso
+          if (paragraphs.length > 3 && cleanParagraph.length > 200) {
+            formattedContent += `**${index + 1}.** ${cleanParagraph}\n\n`;
+          } else {
+            formattedContent += `${cleanParagraph}\n\n`;
+          }
         }
       });
     } else {
-      // Si no hay párrafos claros, usar el contenido completo
-      formattedContent += `${content}\n\n`;
+      // Contenido único con mejor formato
+      formattedContent += `📖 **Contenido:**\n\n`;
+      const cleanContent = content.trim().replace(/\s+/g, ' ');
+      formattedContent += `${cleanContent}\n\n`;
     }
     
-    // Eliminar la referencia a la URL para evitar que aparezca en la respuesta del bot
-    // formattedContent += `\n*Fuente: ${metadata.domain}*`;
+    // Información de metadatos útil
+    if (metadata?.extractedAt) {
+      const extractedDate = new Date(metadata.extractedAt).toLocaleString('es-ES');
+      formattedContent += `\n---\n📅 *Extraído el: ${extractedDate}*`;
+    }
     
     return formattedContent.trim();
   }

@@ -4,13 +4,20 @@
 const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_NODE_ENV === 'development';
 const isProduction = import.meta.env.PROD || import.meta.env.VITE_NODE_ENV === 'production' || import.meta.env.NODE_ENV === 'production';
 
+// Detectar si estamos en localhost (siempre desarrollo)
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || 
+   window.location.hostname === '127.0.0.1' ||
+   window.location.hostname === '0.0.0.0');
+
 // Forzar producción si estamos en el dominio de producción
 const isProductionDomain = typeof window !== 'undefined' && 
   (window.location.hostname === 'www.nuxchain.com' || 
    window.location.hostname === 'nuxchain.com' ||
    window.location.hostname.includes('vercel.app'));
 
-const shouldUseProduction = isProduction || isProductionDomain;
+// Lógica de detección: localhost siempre desarrollo, dominios de producción siempre producción
+const shouldUseProduction = !isLocalhost && (isProduction || isProductionDomain);
 
 // URLs del servidor según el entorno
 const API_CONFIG = {
@@ -39,9 +46,44 @@ export const apiConfig = getCurrentConfig();
 // URLs específicas para diferentes servicios
 export const API_ENDPOINTS = {
   gemini: {
+    generate: `${apiConfig.serverURL}/gemini`,
     stream: `${apiConfig.serverURL}/gemini/stream`,
-    chat: `${apiConfig.serverURL}/gemini`,
-    health: `${apiConfig.serverURL}/gemini/health`
+    analyze: `${apiConfig.serverURL}/gemini/analyze`,
+    compare: `${apiConfig.serverURL}/gemini/compare`,
+    functionCalling: `${apiConfig.serverURL}/gemini/function-calling`,
+    extractUrl: `${apiConfig.serverURL}/gemini/extract-url`,
+    extractMultipleUrls: `${apiConfig.serverURL}/gemini/extract-multiple-urls`,
+    validateUrl: `${apiConfig.serverURL}/gemini/validate-url`,
+    // New endpoints for URL Context
+    urlContext: `${apiConfig.serverURL}/gemini/url-context`,
+    chatWithTools: `${apiConfig.serverURL}/gemini/chat-with-tools`,
+    streamWithTools: `${apiConfig.serverURL}/gemini/stream-with-tools`,
+    embeddings: {
+      index: `${apiConfig.serverURL}/gemini/embeddings/index`,
+      search: `${apiConfig.serverURL}/gemini/embeddings/search`,
+      clear: `${apiConfig.serverURL}/gemini/embeddings/index`
+    },
+    batch: {
+      generate: `${apiConfig.serverURL}/gemini/batch/generate`,
+      embeddings: `${apiConfig.serverURL}/gemini/batch/embeddings`,
+      analyze: `${apiConfig.serverURL}/gemini/batch/analyze`,
+      status: `${apiConfig.serverURL}/gemini/batch/status`,
+      active: `${apiConfig.serverURL}/gemini/batch/active`,
+      cancel: `${apiConfig.serverURL}/gemini/batch`,
+      stats: `${apiConfig.serverURL}/gemini/batch/stats`
+    },
+    analytics: {
+      metrics: `${apiConfig.serverURL}/gemini/analytics/metrics`,
+      realtime: `${apiConfig.serverURL}/gemini/analytics/realtime`,
+      insights: `${apiConfig.serverURL}/gemini/analytics/insights`,
+      stream: `${apiConfig.serverURL}/gemini/analytics/stream`,
+      export: `${apiConfig.serverURL}/gemini/analytics/export`,
+      reset: `${apiConfig.serverURL}/gemini/analytics/reset`
+    },
+    cache: `${apiConfig.serverURL}/gemini/cache`,
+    models: `${apiConfig.serverURL}/gemini/models`,
+    stats: `${apiConfig.serverURL}/gemini/stats`,
+    contextCache: `${apiConfig.serverURL}/gemini/context-cache/stats`
   }
 };
 
@@ -58,6 +100,7 @@ console.log('🔧 API Configuration:', {
   detection: {
     isDevelopment,
     isProduction,
+    isLocalhost,
     isProductionDomain,
     shouldUseProduction,
     hostname: typeof window !== 'undefined' ? window.location.hostname : 'server-side'

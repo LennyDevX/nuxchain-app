@@ -1,10 +1,15 @@
 import { 
   processGeminiRequest, 
   processGeminiStreamRequest,
+  processGeminiStreamRequestWithTools,
   createOptimizedGeminiStream,
-  processFunctionCallingRequest, 
+  processFunctionCallingRequest,
+  processGeminiRequestWithTools,
+  executeFunctionCall,
   clearCache as clearGeminiCache 
 } from '../services/gemini-service.js';
+import urlContextService from '../services/url-context-service.js';
+
 import { streamText } from '../utils/stream-utils.js';
 import { getMetrics } from '../middlewares/logger.js';
 import embeddingsService from '../services/embeddings-service.js';
@@ -1375,3 +1380,205 @@ export async function validateUrl(req, res, next) {
     });
   }
 }
+
+/**
+ * Procesa URL Context usando Gemini
+ * POST /api/gemini/url-context
+ * body: { url: string, query?: string, options?: object }
+ */
+export async function processUrlContext(req, res, next) {
+  try {
+    const { url, query, options = {} } = req.body;
+    
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ 
+        error: 'Se requiere una URL válida',
+        example: { url: 'https://example.com', query: 'Resumen del contenido' }
+      });
+    }
+
+    console.log(`Procesando URL Context para: ${url}`);
+
+    // Procesar URL Context usando el servicio
+    const result = await urlContextService.processUrlContext(url, query, options);
+    
+    res.json({
+      success: true,
+      url,
+      query,
+      result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error processing URL context:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      url: req.body.url,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+
+
+/**
+ * Procesa solicitud de Gemini con herramientas habilitadas (URL Context y Google Search)
+ * POST /api/gemini/chat-with-tools
+ * body: { messages: array, options?: object }
+ */
+export async function processChatWithTools(req, res, next) {
+  try {
+    const { messages, options = {} } = req.body;
+    
+    console.log('🔧 [CONTROLLER] Procesando chat con herramientas habilitadas');
+    console.log('🔧 [CONTROLLER] Mensajes recibidos:', messages?.length || 0);
+    console.log('🔧 [CONTROLLER] Opciones recibidas:', JSON.stringify(options, null, 2));
+    
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ 
+        error: 'Se requiere un array de mensajes no vacío',
+        example: { messages: [{ role: 'user', content: 'Busca información sobre React' }] }
+      });
+    }
+
+    // Formatear mensajes para Gemini
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
+    }));
+
+    console.log('🔧 [CONTROLLER] Mensajes formateados:', JSON.stringify(formattedMessages, null, 2));
+
+    // Configurar herramientas habilitadas
+    const enabledTools = options.enabledTools || [];
+    const model = options.model || 'gemini-2.5-flash-lite';
+
+    console.log('🔧 [CONTROLLER] Herramientas habilitadas:', enabledTools);
+    console.log('🔧 [CONTROLLER] Modelo a usar:', model);
+
+    // Procesar usando Gemini con herramientas
+    const result = await processGeminiRequestWithTools(formattedMessages, model, options, enabledTools);
+    
+    res.json({
+      success: true,
+      result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error processing chat with tools:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+/**
+ * Stream de chat con herramientas habilitadas
+ * POST /api/gemini/stream-with-tools
+ * body: { messages: array, options?: object }
+ */
+export async function streamChatWithTools(req, res, next) {
+  try {
+    const { messages, options = {} } = req.body;
+    
+    console.log('🔧 [CONTROLLER] Recibiendo request de stream con herramientas');
+    console.log('🔧 [CONTROLLER] Mensajes recibidos:', messages?.length || 0);
+    console.log('🔧 [CONTROLLER] Opciones recibidas:', JSON.stringify(options, null, 2));
+    
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ 
+        error: 'Se requiere un array de mensajes no vacío'
+      });
+    }
+
+    console.log('🔧 [CONTROLLER] Iniciando stream de chat con herramientas');
+
+    // Formatear mensajes para Gemini
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
+    }));
+
+    console.log('🔧 [CONTROLLER] Mensajes formateados:', JSON.stringify(formattedMessages, null, 2));
+
+    // Configurar headers para streaming optimizado
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // Procesar con herramientas y streaming
+    const enabledTools = options.enabledTools || [];
+    console.log('🔧 [CONTROLLER] Herramientas habilitadas:', enabledTools);
+    
+    const stream = await processGeminiStreamRequestWithTools(formattedMessages, 'gemini-2.5-flash-lite', options, enabledTools);
+    
+    // Buffer para acumular texto y mejorar la presentación
+    let textBuffer = '';
+    let lastFlushTime = Date.now();
+    const FLUSH_INTERVAL = 100; // ms
+    const BUFFER_SIZE = 50; // caracteres
+    
+    const flushBuffer = () => {
+      if (textBuffer && !res.destroyed) {
+        res.write(textBuffer);
+        textBuffer = '';
+        lastFlushTime = Date.now();
+      }
+    };
+    
+    // Manejar el stream de Gemini con mejor formateo
+    try {
+      for await (const chunk of stream) {
+        if (!res.destroyed) {
+          const text = chunk.text || '';
+          if (text) {
+            textBuffer += text;
+            
+            // Flush basado en tamaño del buffer, tiempo o puntuación
+            const now = Date.now();
+            const shouldFlush = 
+              textBuffer.length >= BUFFER_SIZE ||
+              (now - lastFlushTime) >= FLUSH_INTERVAL ||
+              text.includes('\n') ||
+              text.includes('.') ||
+              text.includes('?') ||
+              text.includes('!');
+            
+            if (shouldFlush) {
+              flushBuffer();
+            }
+          }
+        }
+      }
+      
+      // Flush final del buffer
+      flushBuffer();
+      
+    } catch (streamError) {
+      console.error('Error processing stream:', streamError);
+      if (!res.destroyed) {
+        res.write(`\n\n[Error: ${streamError.message}]`);
+      }
+    }
+    
+    if (!res.destroyed) {
+      res.end();
+    }
+    
+  } catch (error) {
+    console.error('Error streaming chat with tools:', error);
+    if (!res.destroyed) {
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
+    }
+  }
+}
+  

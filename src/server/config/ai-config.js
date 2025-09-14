@@ -63,4 +63,32 @@ export const defaultFunctionDeclaration = {
   }
 };
 
+// URL Context tool declaration
+export const urlContextFunctionDeclaration = {
+  name: 'urlContext',
+  parameters: {
+    type: 'object',
+    description: 'Fetch and analyze content from a URL to provide context for the conversation.',
+    properties: {
+      url: {
+        type: 'string',
+        description: 'The URL to fetch content from. Must be a valid HTTP or HTTPS URL.'
+      },
+      includeImages: {
+        type: 'boolean',
+        description: 'Whether to include images from the URL in the analysis. Default is false.'
+      }
+    },
+    required: ['url']
+  }
+};
+
+
+
+// Combined function declarations for tools
+export const allFunctionDeclarations = [
+  defaultFunctionDeclaration,
+  urlContextFunctionDeclaration
+];
+
 export default ai;

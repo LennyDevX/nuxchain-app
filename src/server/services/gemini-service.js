@@ -1,8 +1,10 @@
-import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, getSafeModel, getModelInfo } from '../config/ai-config.js';
+import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, getSafeModel, getModelInfo, urlContextFunctionDeclaration, allFunctionDeclarations } from '../config/ai-config.js';
 import { incrementTokenCount } from '../middlewares/logger.js';
 import env from '../config/environment.js';
 import contextCacheService from './context-cache-service.js';
 import embeddingsService from './embeddings-service.js';
+import urlContextService from './url-context-service.js';
+
 
 /**
  * Utilidad para timeout y reintentos
@@ -284,6 +286,286 @@ export function getManagedResponseCache() {
 }
 
 /**
+ * Ejecuta una función específica basada en el function call
+ * @param {Object} functionCall - Llamada a función de Gemini
+ * @returns {Promise<Object>} - Resultado de la función
+ */
+export async function executeFunctionCall(functionCall) {
+  const { name, args } = functionCall;
+  
+  console.log('🔧 [EXEC] Ejecutando función:', name);
+  console.log('🔧 [EXEC] Argumentos recibidos:', JSON.stringify(args, null, 2));
+  
+  try {
+    let result;
+    switch (name) {
+      case 'urlContext':
+        console.log('🔧 [EXEC] Llamando executeUrlContext con argumentos:', JSON.stringify(args, null, 2));
+        result = await executeUrlContext(args);
+        console.log('🔧 [EXEC] Resultado de urlContext:', JSON.stringify(result, null, 2));
+        return result;
+
+      case 'controlLight':
+        console.log('🔧 [EXEC] Llamando executeControlLight con argumentos:', JSON.stringify(args, null, 2));
+        result = await executeControlLight(args);
+        console.log('🔧 [EXEC] Resultado de controlLight:', JSON.stringify(result, null, 2));
+        return result;
+      default:
+        throw new Error(`Función no reconocida: ${name}`);
+    }
+  } catch (error) {
+    console.error(`🔧 [EXEC] Error ejecutando función ${name}:`, error);
+    const errorResult = {
+      error: true,
+      message: error.message
+    };
+    console.log('🔧 [EXEC] Resultado de error:', JSON.stringify(errorResult, null, 2));
+    return errorResult;
+  }
+}
+
+/**
+ * Ejecuta la función de URL Context
+ * @param {Object} args - Argumentos de la función
+ * @returns {Promise<Object>} - Resultado del contexto de URL
+ */
+async function executeUrlContext(args) {
+  try {
+    const { url, includeImages = false } = args;
+    const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
+    
+    return {
+      success: true,
+      data: contextData,
+      message: `Contenido obtenido exitosamente de ${url}`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+      message: `Error al obtener contenido de la URL: ${error.message}`
+    };
+  }
+}
+
+
+
+/**
+ * Ejecuta la función de control de luz (función original)
+ * @param {Object} args - Argumentos de la función
+ * @returns {Promise<Object>} - Resultado del control
+ */
+async function executeControlLight(args) {
+  try {
+    const { brightness, colorTemperature } = args;
+    
+    // Simular control de luz
+    return {
+      success: true,
+      data: { brightness, colorTemperature },
+      message: `Luz configurada: brillo ${brightness}%, temperatura ${colorTemperature}`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+      message: `Error al controlar la luz: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Procesa una solicitud a Gemini con herramientas habilitadas
+ * @param {Object|String} contents - Contenido del prompt
+ * @param {String} model - Modelo a utilizar
+ * @param {Object} params - Parámetros adicionales
+ * @param {Array} enabledTools - Herramientas habilitadas
+ * @returns {Promise<Object>} - Respuesta con posibles function calls ejecutados
+ */
+export async function processGeminiRequestWithTools(contents, model = DEFAULT_MODEL, params = {}, enabledTools = []) {
+  console.log('🔧 [TOOLS] Iniciando processGeminiRequestWithTools');
+  console.log('🔧 [TOOLS] Herramientas habilitadas:', enabledTools);
+  console.log('🔧 [TOOLS] Parámetros:', JSON.stringify(params, null, 2));
+  
+  if (!env.geminiApiKey) {
+    throw new Error('API key no configurada');
+  }
+  
+  if (!contents) {
+    throw new Error('Se requiere un prompt o historial de mensajes');
+  }
+
+  // Si se solicita streaming, verificar si hay herramientas habilitadas
+  if (params.stream) {
+    console.log('🔧 [TOOLS] Modo streaming detectado, redirigiendo a processGeminiStreamRequestWithTools');
+    if (enabledTools && enabledTools.length > 0) {
+      return await processGeminiStreamRequestWithTools(contents, model, params, enabledTools);
+    } else {
+      // Sin herramientas, usar la función original
+      console.log('🔧 [TOOLS] Sin herramientas en streaming, usando función original');
+      return await processGeminiStreamRequest(contents, model, params);
+    }
+  }
+
+  // Configurar herramientas basadas en enabledTools
+  const tools = [];
+  const allowedFunctionNames = [];
+  
+  if (enabledTools.includes('urlContext')) {
+    console.log('🔧 [TOOLS] Agregando herramienta urlContext');
+    tools.push(urlContextFunctionDeclaration);
+    allowedFunctionNames.push('urlContext');
+  }
+  
+  // googleSearch tool removed
+  
+  if (enabledTools.includes('controlLight')) {
+    console.log('🔧 [TOOLS] Agregando herramienta controlLight');
+    tools.push(defaultFunctionDeclaration);
+    allowedFunctionNames.push('controlLight');
+  }
+
+  console.log('🔧 [TOOLS] Herramientas configuradas:', allowedFunctionNames);
+  console.log('🔧 [TOOLS] Total de declaraciones de funciones:', tools.length);
+
+  // Si no hay herramientas habilitadas, usar procesamiento normal
+  if (tools.length === 0) {
+    console.log('🔧 [TOOLS] Sin herramientas configuradas, usando procesamiento normal');
+    return await processGeminiRequest(contents, model, params);
+  }
+
+  const safeModel = getSafeModel(model);
+  const modelInfo = getModelInfo(safeModel);
+  
+  const maxTokens = Math.min(
+    params.maxOutputTokens || 2048,
+    modelInfo?.maxTokens || 2048
+  );
+  
+  const generationConfig = {
+    temperature: params.temperature || 0.7,
+    topK: params.topK || 40,
+    topP: params.topP || 0.95,
+    maxOutputTokens: maxTokens,
+    responseMimeType: 'text/plain',
+  };
+
+  const toolConfig = {
+    functionCallingConfig: {
+      mode: 'NONE'
+    }
+  };
+  
+  // Para consultas sobre precios actuales o información en tiempo real, forzar el uso de herramientas
+  const isRealTimeQuery = contents.some(content => {
+    const text = content.parts?.[0]?.text?.toLowerCase() || '';
+    console.log('🔧 [DEBUG] Texto analizado:', text);
+    
+    const hasPrecio = text.includes('precio') || text.includes('preico');
+    const hasBitcoin = text.includes('bitcoin') || text.includes('btc');
+    const hasTimeIndicator = text.includes('actual') || text.includes('hoy') || text.includes('ahora') || 
+                            text.includes('últimas') || text.includes('tiempo real');
+    const hasDatePattern = /\b\d{1,2}\b.*\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b.*\b\d{4}\b/.test(text) ||
+                            /\d{4}-\d{2}-\d{2}/.test(text) ||
+                            /\d{1,2}\/\d{1,2}\/\d{4}/.test(text) ||
+                            /\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+\d{1,2},?\s+\d{4}\b/.test(text);
+    
+    console.log('🔧 [DEBUG] Condiciones:', { hasPrecio, hasBitcoin, hasTimeIndicator, hasDatePattern });
+    
+    const shouldUseTools = hasPrecio && hasBitcoin && (hasTimeIndicator || hasDatePattern);
+    console.log('🔧 [DEBUG] Debería usar herramientas:', shouldUseTools);
+    
+    return shouldUseTools;
+  });
+  
+  console.log('🔧 [DEBUG] isRealTimeQuery:', isRealTimeQuery);
+  console.log('🔧 [DEBUG] allowedFunctionNames:', allowedFunctionNames);
+  
+  if (isRealTimeQuery && allowedFunctionNames.includes('googleSearch')) {
+    console.log('🔧 [DEBUG] Configurando modo ANY para usar herramientas');
+    toolConfig.functionCallingConfig.mode = 'ANY';
+    toolConfig.functionCallingConfig.allowedFunctionNames = allowedFunctionNames;
+  }
+
+  try {
+    console.log('🔧 [TOOLS] Realizando primera llamada a Gemini con herramientas');
+    console.log('🔧 [TOOLS] Configuración de herramientas:', JSON.stringify(toolConfig, null, 2));
+    
+    // Primera llamada a Gemini con herramientas
+    const response = await withTimeoutAndRetry(() => ai.models.generateContent({
+      model: safeModel,
+      contents: contents,
+      generationConfig,
+      tools: [{ functionDeclarations: tools }],
+      toolConfig,
+      ...params
+    }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+
+    console.log('🔧 [TOOLS] Respuesta de Gemini recibida');
+    console.log('🔧 [TOOLS] Texto de respuesta:', response.text || 'Sin texto');
+    console.log('🔧 [TOOLS] Function calls detectados:', response.functionCalls?.length || 0);
+    
+    if (response.functionCalls) {
+      console.log('🔧 [TOOLS] Function calls:', JSON.stringify(response.functionCalls, null, 2));
+    }
+
+    // Verificar si hay function calls
+    if (response.functionCalls && response.functionCalls.length > 0) {
+      console.log('🔧 [TOOLS] Ejecutando', response.functionCalls.length, 'function calls');
+      const functionResults = [];
+      
+      // Ejecutar cada function call
+      for (const functionCall of response.functionCalls) {
+        console.log('🔧 [TOOLS] Ejecutando función:', functionCall.name, 'con argumentos:', JSON.stringify(functionCall.args, null, 2));
+        const result = await executeFunctionCall(functionCall);
+        console.log('🔧 [TOOLS] Resultado de función:', functionCall.name, ':', JSON.stringify(result, null, 2));
+        functionResults.push({
+          functionCall,
+          result
+        });
+      }
+
+      // Crear contenido enriquecido con los resultados de las funciones
+      const enrichedContents = [
+        ...Array.isArray(contents) ? contents : [{ role: 'user', parts: [{ text: contents }] }],
+        {
+          role: 'model',
+          parts: [{ text: response.text || 'Ejecutando herramientas...' }]
+        },
+        {
+          role: 'user',
+          parts: [{
+            text: `Resultados de las herramientas:\n${functionResults.map(fr => 
+              `${fr.functionCall.name}: ${JSON.stringify(fr.result, null, 2)}`
+            ).join('\n\n')}\n\nPor favor, proporciona una respuesta basada en esta información.`
+          }]
+        }
+      ];
+
+      // Segunda llamada para generar respuesta final
+      const finalResponse = await withTimeoutAndRetry(() => ai.models.generateContent({
+        model: safeModel,
+        contents: enrichedContents,
+        generationConfig,
+        ...params
+      }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+
+      return {
+        text: finalResponse.text,
+        functionCalls: response.functionCalls,
+        functionResults: functionResults,
+        usage: finalResponse.usage
+      };
+    }
+
+    // Si no hay function calls, devolver respuesta normal
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
  * Procesa una solicitud de function calling a la API de Gemini
  * @param {Object} options - Opciones de la solicitud
  * @returns {Promise<Object>} - Respuesta con function calls
@@ -487,5 +769,100 @@ export function createOptimizedGeminiStream(geminiStream, options = {}) {
       buffer = '';
     }
   });
+}
+
+/**
+ * Crea un stream simulado dividiendo el texto en chunks
+ * @param {String} text - Texto completo a dividir
+ * @returns {AsyncIterable} - Stream simulado
+ */
+function createSimulatedStream(text) {
+  const chunkSize = 10; // Caracteres por chunk
+  const delay = 50; // Delay entre chunks en ms
+  
+  return {
+    async *[Symbol.asyncIterator]() {
+      for (let i = 0; i < text.length; i += chunkSize) {
+        const chunk = text.slice(i, i + chunkSize);
+        yield { text: chunk };
+        
+        // Pequeño delay para simular streaming
+        if (i + chunkSize < text.length) {
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+  };
+}
+
+/**
+ * Procesa una solicitud de streaming a Gemini con herramientas habilitadas
+ * @param {Object|String} contents - Contenido del prompt
+ * @param {String} model - Modelo a utilizar
+ * @param {Object} params - Parámetros adicionales
+ * @param {Array} enabledTools - Herramientas habilitadas
+ * @returns {Promise<AsyncIterable>} - Stream de respuesta
+ */
+export async function processGeminiStreamRequestWithTools(contents, model = DEFAULT_MODEL, params = {}, enabledTools = ['urlContext', 'googleSearch', 'controlLight']) {
+  if (!env.geminiApiKey) {
+    throw new Error('API key no configurada');
+  }
+  
+  if (!contents) {
+    throw new Error('Se requiere un prompt o historial de mensajes');
+  }
+
+  // Configurar herramientas
+  const tools = [];
+  const allowedFunctionNames = [];
+  
+  if (enabledTools.includes('urlContext')) {
+    tools.push(urlContextFunctionDeclaration);
+    allowedFunctionNames.push('urlContext');
+  }
+  
+  // googleSearch tool removed
+  
+  if (enabledTools.includes('controlLight')) {
+    tools.push(defaultFunctionDeclaration);
+    allowedFunctionNames.push('controlLight');
+  }
+
+  // Si no hay herramientas, usar la función original
+  if (tools.length === 0) {
+    return await processGeminiStreamRequest(contents, model, params);
+  }
+
+  // Usar la misma lógica que processGeminiRequestWithTools pero con streaming simulado
+  try {
+    // Procesar con herramientas usando la función que sabemos que funciona
+    const result = await processGeminiRequestWithTools(contents, model, params, enabledTools);
+    
+    // Extraer el texto final de la respuesta
+    let finalText = '';
+    if (result && result.text) {
+      finalText = result.text;
+    } else if (result && typeof result === 'string') {
+      finalText = result;
+    } else if (result && result.response && result.response.text) {
+      finalText = typeof result.response.text === 'function' ? result.response.text() : result.response.text;
+    } else {
+      finalText = 'Lo siento, no pude generar una respuesta con las herramientas disponibles.';
+    }
+    
+    // Crear stream simulado con el resultado
+    return createSimulatedStream(finalText);
+    
+  } catch (error) {
+    console.error('Error in processGeminiStreamRequestWithTools:', error);
+    
+    // Fallback: usar streaming normal sin herramientas
+    try {
+      return await processGeminiStreamRequest(contents, model, params);
+    } catch (fallbackError) {
+      console.error('Fallback streaming also failed:', fallbackError);
+      return createSimulatedStream('Lo siento, ocurrió un error al procesar tu solicitud.');
+    }
+  }
 }
 

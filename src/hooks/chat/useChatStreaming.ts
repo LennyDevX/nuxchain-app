@@ -1,7 +1,17 @@
-import { useCallback, useRef, useEffect, useReducer } from 'react';
+import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
 import { API_ENDPOINTS } from '../../config/api';
+
+// Función para detectar URLs en el texto
+const detectUrls = (text: string): string[] => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = text.match(urlRegex) || [];
+  console.log('🔍 [FRONTEND] URLs detectadas:', urls);
+  return urls;
+};
+
+// Google Search functionality removed - only URL context remains
 
 // Tipos para los módulos JS
 interface ChatMessage {
@@ -38,12 +48,14 @@ interface UseChatStreamingReturn {
   sendMessage: (message: string) => Promise<void>;
   clearMessages: () => void;
   retryLastMessage: () => void;
+  isUsingUrlContext: boolean;
 }
 
 export function useChatStreaming(): UseChatStreamingReturn {
   const [state, dispatch] = useReducer(chatReducer, initialChatState);
   const streamingServiceRef = useRef<StreamingService | null>(null);
   const lastUserMessageRef = useRef<string>('');
+  const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
 
   // Initialize streaming service
   useEffect(() => {
@@ -86,19 +98,54 @@ export function useChatStreaming(): UseChatStreamingReturn {
         parts: [{ text: messageText }]
       });
 
+      // Detectar URLs automáticamente
+      const detectedUrls = detectUrls(messageText);
+      const useTools = detectedUrls.length > 0;
+      
+      console.log('🔍 [FRONTEND] Análisis de herramientas:');
+      console.log('🔍 [FRONTEND] - URLs detectadas:', detectedUrls.length);
+      console.log('🔍 [FRONTEND] - Usar herramientas:', useTools);
+      
+      // Actualizar estado de herramientas
+      setIsUsingUrlContext(detectedUrls.length > 0);
+      
+      // Seleccionar endpoint apropiado
+      const endpoint = useTools ? API_ENDPOINTS.gemini.streamWithTools : API_ENDPOINTS.gemini.stream;
+      console.log('🔍 [FRONTEND] Endpoint seleccionado:', endpoint);
+      
+      // Preparar el cuerpo de la solicitud
+      const requestBody: any = {
+        messages: conversationHistory,
+        model: 'gemini-2.5-flash-lite',
+        temperature: 0.7,
+        maxTokens: 2048,
+        stream: true
+      };
+      
+      // Agregar configuración de herramientas si es necesario
+      if (useTools) {
+        const enabledTools = [];
+        if (detectedUrls.length > 0) {
+          enabledTools.push('urlContext');
+          requestBody.urls = detectedUrls;
+        }
+        requestBody.options = {
+          enabledTools
+        };
+        
+        console.log('🔍 [FRONTEND] Herramientas habilitadas:', enabledTools);
+        console.log('🔍 [FRONTEND] Configuración de opciones:', requestBody.options);
+      }
+      
+      console.log('🔍 [FRONTEND] Request body completo:', JSON.stringify(requestBody, null, 2));
+      
       // Make streaming request
-      const response = await fetch(API_ENDPOINTS.gemini.stream, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          messages: conversationHistory,
-          model: 'gemini-2.5-flash-lite',
-          temperature: 0.7,
-          maxTokens: 2048,
-          stream: true
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -143,6 +190,9 @@ export function useChatStreaming(): UseChatStreamingReturn {
           messageId: userMessage.id 
         } 
       });
+    } finally {
+      // Resetear estado de herramientas
+      setIsUsingUrlContext(false);
     }
   }, [state.messages, state.status, state.conversationId]);
 
@@ -173,7 +223,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     error: state.error,
     sendMessage,
     clearMessages,
-    retryLastMessage
+    retryLastMessage,
+    isUsingUrlContext
   };
 }
 

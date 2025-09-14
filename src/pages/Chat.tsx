@@ -13,10 +13,12 @@ import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimiza
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
-  const { messages, isLoading, isStreaming, sendMessage } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, isUsingUrlContext } = useChatStreaming()
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
+
+
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -84,7 +86,21 @@ function Chat() {
           <div className={`${
             isMobile ? 'px-4 py-4' : 'px-6 py-4'
           }`}>
+
+            
             <form onSubmit={handleSendMessage} className="relative">
+              {/* Indicador de herramienta activa */}
+              {isUsingUrlContext && (
+                <div className="flex items-center space-x-2 mb-3 px-3 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg">
+                  <div className="flex items-center space-x-2 text-cyan-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span className="text-xs font-medium">Analysis URL Context</span>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-end space-x-3">
                 <div className="flex-1">
                   <InputTextArea
@@ -92,7 +108,7 @@ function Chat() {
                     onChange={setMessage}
                     onKeyPress={handleKeyPress}
                     disabled={isLoading || isStreaming}
-                    placeholder={isMobile ? "Ask me anything... (Double tap for navigation)" : "Ask me about blockchain, cryptocurrencies, NFTs, DeFi..."}
+                    placeholder={isMobile ? "Ask Nuvim" : "Ask Nuvim"}
                   />
                 </div>
                 <div className="flex-shrink-0">

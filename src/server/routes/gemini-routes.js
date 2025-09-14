@@ -62,6 +62,14 @@ router.get('/analytics/stream', geminiController.streamMetrics);
 router.post('/analytics/export', geminiController.exportMetrics);
 router.post('/analytics/reset', geminiController.resetMetrics);
 
+// === NUEVAS RUTAS: URL CONTEXT ===
+// URL Context processing
+router.post('/url-context', geminiController.processUrlContext);
+
+// Chat con herramientas habilitadas
+router.post('/chat-with-tools', geminiController.processChatWithTools);
+router.post('/stream-with-tools', geminiController.streamChatWithTools);
+
 // Endpoints existentes
 router.delete('/cache', geminiController.clearCache);
 router.get('/models', geminiController.getAvailableModels);

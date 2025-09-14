@@ -50,8 +50,8 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
   const isOwner = account && nft.owner && account.toLowerCase() === nft.owner.toLowerCase();
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900/95 backdrop-blur-md border border-white/10 rounded-2xl p-6 max-w-md w-full">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="card-unified border border-white/10 rounded-2xl p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white">Comprar NFT</h3>
           <button

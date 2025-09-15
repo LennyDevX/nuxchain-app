@@ -1,7 +1,9 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+import { useNavigate } from 'react-router-dom'
 
 function NFTSection() {
   const isMobile = useIsMobile()
+  const navigate = useNavigate()
   
   return (
     <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
@@ -35,7 +37,10 @@ function NFTSection() {
           </div>
           
           <div className={`${isMobile ? 'flex justify-center' : ''}`}>
-            <button className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:scale-105 transition-transform duration-200`}>
+            <button 
+              onClick={() => navigate('/nfts')}
+              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary`}
+            >
               Explore NFTs
             </button>
           </div>

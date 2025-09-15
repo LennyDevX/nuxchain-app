@@ -50,10 +50,9 @@ const TokenizationSection: React.FC = () => {
             <div className={`${isMobile ? 'flex justify-center' : ''}`}>
               <button 
                 onClick={handleTokenizeClick}
-                className={`group relative ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25`}
+                className={`group relative ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} btn-primary`}
               >
                 <span className="relative z-10">Tokenize Image</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
           </div>

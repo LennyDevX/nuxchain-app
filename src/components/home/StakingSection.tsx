@@ -129,7 +129,7 @@ function StakingSection() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Up to 25% APY rewards</span>
+                <span className="text-white/80">Up to 300% APY rewards</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>

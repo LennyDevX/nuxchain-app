@@ -97,47 +97,72 @@ const StakingBonds: React.FC = memo(() => {
         {bonds.map((bond) => (
           <div
             key={bond.id}
-            className={`card-unified ${
-              isMobile ? 'p-3' : 'p-4'
+            className={`card-unified relative overflow-hidden ${
+              isMobile ? 'p-3 bg-gradient-to-br from-white/5 to-white/10 border border-white/20 rounded-xl' : 'p-6'
             }`}
           >
-            
-            <div className={`flex justify-between items-start mb-3 ${
-              isMobile ? 'flex-col space-y-2' : ''
-            }`}>
-              <div className={isMobile ? 'text-center w-full' : ''}>
-                <h4 className={`text-white font-semibold ${
-                  isMobile ? 'text-sm' : ''
-                }`}>{isMobile ? bond.name.replace(' Bond', '') : bond.name}</h4>
-                <p className={`text-white/60 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>{bond.duration} days</p>
+            {/* Mobile: Compact Header */}
+            {isMobile ? (
+              <div className="text-center mb-3">
+                <div className="flex items-center justify-center space-x-1 mb-1">
+                  <div className={`w-2 h-2 rounded-full ${getRiskColor(bond.risk).includes('green') ? 'bg-green-400' : getRiskColor(bond.risk).includes('yellow') ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
+                  <h4 className="text-white font-bold text-sm">{bond.name.replace(' Bond', '')}</h4>
+                </div>
+                <p className="text-white/70 text-xs">{bond.duration}d</p>
               </div>
-              <div className={`text-right ${
-                isMobile ? 'text-center w-full' : ''
-              }`}>
-                <p className={`font-bold text-green-400 ${
-                  isMobile ? 'text-lg' : 'text-2xl'
-                }`}>{bond.apy}%</p>
-                <p className="text-white/60 text-xs">APY</p>
+            ) : (
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h4 className="text-white font-semibold text-lg">{bond.name}</h4>
+                  <p className="text-white/60 text-sm">{bond.duration} days</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-green-400 text-2xl">{bond.apy}%</p>
+                  <p className="text-white/60 text-xs">APY</p>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className={`flex items-center justify-between mb-3 ${
-              isMobile ? 'flex-col space-y-2' : ''
-            }`}>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full font-medium ${getRiskColor(bond.risk)} ${
-                isMobile ? 'text-xs' : 'text-xs'
-              }`}>
-                {bond.risk} Risk
-              </span>
-              <div className={`text-right ${
-                isMobile ? 'text-center w-full' : ''
-              }`}>
-                <p className="text-white/60 text-xs">Min: {isMobile ? bond.minAmount : bond.minAmount} POL</p>
-                <p className="text-white/60 text-xs">Max: {isMobile ? `${(bond.maxAmount/1000)}K` : bond.maxAmount.toLocaleString()} POL</p>
+            {/* Mobile: Compact APY Display */}
+            {isMobile && (
+              <div className="text-center mb-3">
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                  <p className="font-bold text-green-400 text-xl">{bond.apy}%</p>
+                  <p className="text-green-300/80 text-xs">APY</p>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Mobile: Compact Risk and Limits */}
+            {isMobile ? (
+              <div className="space-y-2">
+                <div className="flex justify-center">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full font-medium text-xs ${getRiskColor(bond.risk)}`}>
+                    {bond.risk}
+                  </span>
+                </div>
+                <div className="bg-white/5 rounded-lg p-2 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/70 text-xs">Min:</span>
+                    <span className="text-white font-medium text-xs">{bond.minAmount >= 1000 ? `${(bond.minAmount/1000)}K` : bond.minAmount}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/70 text-xs">Max:</span>
+                    <span className="text-white font-medium text-xs">{bond.maxAmount >= 1000 ? `${(bond.maxAmount/1000)}K` : bond.maxAmount}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between mb-4">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full font-medium text-xs ${getRiskColor(bond.risk)}`}>
+                  {bond.risk} Risk
+                </span>
+                <div className="text-right">
+                  <p className="text-white/60 text-xs">Min: {bond.minAmount} POL</p>
+                  <p className="text-white/60 text-xs">Max: {bond.maxAmount.toLocaleString()} POL</p>
+                </div>
+              </div>
+            )}
 
             {!isMobile && (
               <div className="mt-4 pt-4 border-t border-white/20">
@@ -159,17 +184,17 @@ const StakingBonds: React.FC = memo(() => {
             )}
             
             {isMobile && (
-              <div className="mt-2 pt-2 border-t border-white/20">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-white/60">Daily:</span>
-                    <span className="text-white">{(bond.apy / 365).toFixed(2)}%</span>
+              <div className="mt-3 pt-2 border-t border-white/20">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center bg-white/5 rounded p-1.5">
+                    <p className="text-white/70 text-xs">Daily</p>
+                    <p className="text-white font-semibold text-xs">{(bond.apy / 365).toFixed(2)}%</p>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-white/60">Total:</span>
-                    <span className="text-green-400 font-medium">
+                  <div className="text-center bg-green-500/10 rounded p-1.5">
+                    <p className="text-green-300/80 text-xs">Total</p>
+                    <p className="text-green-400 font-bold text-xs">
                       {((bond.apy / 365) * bond.duration).toFixed(1)}%
-                    </span>
+                    </p>
                   </div>
                 </div>
               </div>

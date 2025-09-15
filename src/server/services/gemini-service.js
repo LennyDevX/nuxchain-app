@@ -86,23 +86,41 @@ const responseCache = new ResponseCache();
  */
 async function enrichContextWithKnowledgeBase(query) {
   try {
+    console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
+    
+    // Verificar que el índice esté inicializado
+    const indexStats = embeddingsService.getIndexStats('knowledge_base');
+    console.log(`📊 Estadísticas del índice: ${indexStats.size} documentos`);
+    
+    if (indexStats.size === 0) {
+      console.warn('⚠️ Base de conocimientos no inicializada');
+      return '';
+    }
+    
     // Buscar información relevante en la base de conocimientos
-    const searchResults = await embeddingsService.searchSimilar('knowledge_base', query, {
-      limit: 3,
-      threshold: 0.7
+    const searchResults = await embeddingsService.searchSimilar('knowledge_base', query, 5, {
+      threshold: 0.5  // Reducir threshold para obtener más resultados
     });
+    
+    console.log(`🔎 Resultados de búsqueda: ${searchResults.length}`);
     
     if (searchResults && searchResults.length > 0) {
       const relevantInfo = searchResults
-        .map(result => result.text)
+        .map(result => result.content || result.text)
         .join('\n\n');
       
-      return `Información relevante de Nuxchain:\n${relevantInfo}\n\nBasándote en esta información y tu conocimiento general, responde a la siguiente consulta:`;
+      console.log(`📚 Encontrados ${searchResults.length} documentos relevantes para: "${query}"`);
+      console.log(`🎯 Scores: ${searchResults.map(r => r.score.toFixed(3)).join(', ')}`);
+      console.log(`📝 Categorías: ${searchResults.map(r => r.meta?.type || 'unknown').join(', ')}`);
+      
+      return `Información relevante de Nuxchain:\n${relevantInfo}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
     }
     
+    console.log(`❌ No se encontró información relevante para: "${query}"`);
     return '';
   } catch (error) {
-    console.warn('Error al consultar base de conocimientos:', error.message);
+    console.error('❌ Error al consultar base de conocimientos:', error.message);
+    console.error(error.stack);
     return '';
   }
 }

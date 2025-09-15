@@ -62,7 +62,11 @@ class EmbeddingsService {
 
     scores.sort((a, b) => b.score - a.score);
 
-    return scores.slice(0, topK).map(({ idx, score }) => ({
+    // Aplicar threshold si está especificado
+    const threshold = options.threshold || 0;
+    const filteredScores = threshold > 0 ? scores.filter(s => s.score >= threshold) : scores;
+
+    return filteredScores.slice(0, topK).map(({ idx, score }) => ({
       score,
       content: index.meta[idx].text || '',
       meta: index.meta[idx]

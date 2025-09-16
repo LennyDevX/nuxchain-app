@@ -4,6 +4,11 @@ import { getCorsConfig, validateOrigin, applySecurityHeaders } from '../../src/s
 
 // Función handler para Vercel
 export default async function handler(req, res) {
+  // La URL ya viene reescrita por Vercel, solo necesitamos asegurar que empiece con /
+  if (!req.url.startsWith('/')) {
+    req.url = '/' + req.url;
+  }
+  
   // Obtener la configuración CORS para el entorno actual (asumiendo desarrollo para Vercel)
   const corsConfig = getCorsConfig(process.env.NODE_ENV || 'development');
 

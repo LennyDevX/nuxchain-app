@@ -4,6 +4,7 @@
   "framework": "vite",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
+  "alias": ["www.nuxchain.com", "nuxchain.com"],
   "functions": {
     "api/server/[...path].js": {
       "maxDuration": 30

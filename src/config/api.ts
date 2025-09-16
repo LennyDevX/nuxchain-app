@@ -27,8 +27,8 @@ const API_CONFIG = {
   },
   production: {
     // En producción, usar las variables de entorno específicas de producción
-    baseURL: import.meta.env.VITE_PROD_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://www.nuxchain.com',
-    serverURL: import.meta.env.VITE_PROD_SERVER_URL || import.meta.env.VITE_SERVER_URL || 'https://www.nuxchain.com/server'
+    baseURL: import.meta.env.VITE_PROD_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://www.nuxchain.com/api',
+    serverURL: import.meta.env.VITE_PROD_SERVER_URL || import.meta.env.VITE_SERVER_URL || 'https://www.nuxchain.com/api/server'
   }
 };
 

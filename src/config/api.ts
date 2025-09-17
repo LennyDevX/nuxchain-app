@@ -14,7 +14,12 @@ const isLocalhost = typeof window !== 'undefined' &&
 const isProductionDomain = typeof window !== 'undefined' && 
   (window.location.hostname === 'www.nuxchain.com' || 
    window.location.hostname === 'nuxchain.com' ||
-   window.location.hostname.includes('vercel.app'));
+   window.location.hostname.includes('vercel.app') ||
+   window.location.hostname.includes('nuxchain.com'));
+
+// Detectar si estamos en un deployment de Vercel
+// Removing unused variable declaration
+  window.location.hostname.includes('vercel.app');
 
 // Lógica de detección: localhost siempre desarrollo, dominios de producción siempre producción
 const shouldUseProduction = !isLocalhost && (isProduction || isProductionDomain);
@@ -26,9 +31,9 @@ const API_CONFIG = {
     serverURL: import.meta.env.VITE_SERVER_URL || 'http://localhost:3002/server'
   },
   production: {
-    // En producción, usar las variables de entorno específicas de producción
-    baseURL: import.meta.env.VITE_PROD_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'https://www.nuxchain.com/api',
-    serverURL: import.meta.env.VITE_PROD_SERVER_URL || import.meta.env.VITE_SERVER_URL || 'https://www.nuxchain.com/api/server'
+    // En producción, usar rutas absolutas para serverless functions
+    baseURL: import.meta.env.VITE_PROD_API_BASE_URL || '/api',
+    serverURL: import.meta.env.VITE_PROD_SERVER_URL || '/server'
   }
 };
 

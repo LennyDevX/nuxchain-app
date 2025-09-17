@@ -1,0 +1,15 @@
+# Exclude server-side files from Vercel deployment
+src/server/
+src/security/
+serverless/
+
+# Exclude development files
+.env
+*.log
+node_modules/
+
+# Exclude test files
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts

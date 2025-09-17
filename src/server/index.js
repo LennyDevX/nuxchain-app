@@ -7,6 +7,9 @@ import errorHandler from './middlewares/error-handler.js';
 import websocketHandler from './middlewares/websocket-handler.js';
 import { initializeKnowledgeBaseOnStartup } from './services/embeddings-service.js';
 import { getCorsConfig, applySecurityHeaders } from '../security/cors-policies.js';
+import { setupSecurityMiddlewares } from '../security/security-middleware.js';
+import { setupSecureWebSocketServer } from '../security/websocket-security.js';
+import environmentConfig from '../security/environment-config.js';
 
 // Crear la aplicación express
 const app = express();
@@ -15,10 +18,21 @@ const port = env.port;
 // CORS Configuration basada en el entorno
 const corsOptions = getCorsConfig(env.nodeEnv);
 
-// Middleware de seguridad
-app.use(applySecurityHeaders);
+// CORS ANTES de los middlewares de seguridad para manejar preflight
 app.use(cors(corsOptions));
-// Cambia el límite de JSON a 2MB
+
+// Manejar solicitudes OPTIONS explícitamente para todas las rutas
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return cors(corsOptions)(req, res, next);
+  }
+  next();
+});
+
+// Configurar todos los middlewares de seguridad avanzados
+setupSecurityMiddlewares(app);
+
+// Cambia el límite de JSON a 2MB (ya configurado en security middleware)
 app.use(express.json({ limit: '2mb' }));
 
 // Rutas API - ajustado para Vercel
@@ -39,8 +53,15 @@ initializeKnowledgeBaseOnStartup();
 // Crear servidor HTTP para soportar WebSockets
 const server = createServer(app);
 
-// Inicializar WebSocket handler
-websocketHandler.initialize(server);
+// Inicializar WebSocket handler con seguridad avanzada
+if (environmentConfig.isProduction) {
+  // En producción, usar WebSocket seguro
+  const wss = setupSecureWebSocketServer(server);
+  websocketHandler.initialize(server, wss);
+} else {
+  // En desarrollo, usar configuración estándar
+  websocketHandler.initialize(server);
+}
 
 // Verificar el entorno de ejecución
 if (env.isVercel) {

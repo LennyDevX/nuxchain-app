@@ -4,10 +4,10 @@ import env from './environment.js';
 // Configuración para la API de Gemini
 const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
 
-// Fix: Remove extra quote from model name
-export const DEFAULT_MODEL = 'gemini-2.5-flash-lite'; // Keep working model as default
+// Fix: Use gemini-2.5-flash-lite as confirmed by user
+export const DEFAULT_MODEL = 'gemini-2.5-flash-lite'; // Use working model as default
 
-// Available models with compatibility info - Only Gemini 2.5+ models
+// Available models with compatibility info - Valid Gemini models
 export const AVAILABLE_MODELS = {
   'gemini-2.5-flash-lite': {
     name: 'gemini-2.5-flash-lite',
@@ -16,7 +16,7 @@ export const AVAILABLE_MODELS = {
     maxTokens: 8192,
     isPreview: false,
     isDefault: true
-  }
+  },
 };
 
 // Function to validate and get model info

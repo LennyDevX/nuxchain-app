@@ -743,8 +743,10 @@ export function createOptimizedGeminiStream(geminiStream, options = {}) {
   return new ReadableStream({
     async start(controller) {
       try {
+        // Handle the new API stream format - iterate directly over the response
         for await (const chunk of geminiStream) {
-          const text = chunk.text || '';
+          // Extract text from the response chunk using the new API format
+          const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text || chunk.text || '';
           
           if (enableCompression && text) {
             buffer += text;

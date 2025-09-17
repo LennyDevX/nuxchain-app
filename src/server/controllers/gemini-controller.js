@@ -216,13 +216,9 @@ export async function generateContent(req, res, next) {
         res.setHeader('X-Accel-Buffering', 'no'); // Nginx
         res.setHeader('X-Content-Type-Options', 'nosniff');
         
-        // CORS para streaming (ya incluido arriba)
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        
         // Detectar características del cliente
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Mobile|Android|iPhone/.test(userAgent);
-        const connectionType = req.headers['connection-type'] || 'unknown';
         
         // Configuración adaptativa
         const streamConfig = {
@@ -245,6 +241,7 @@ export async function generateContent(req, res, next) {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
+                analyticsService.completeRequest(requestMetrics);
                 res.end();
                 break;
               }
@@ -263,6 +260,7 @@ export async function generateContent(req, res, next) {
           } catch (error) {
             // Mejor manejo de errores en streaming
             console.error('Error in streaming pump:', error);
+            analyticsService.failRequest(requestMetrics, error);
             if (!res.headersSent) {
               res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
             } else {
@@ -283,6 +281,7 @@ export async function generateContent(req, res, next) {
       } catch (streamError) {
         // Mejor manejo de errores en streaming
         console.error('Stream setup error:', streamError);
+        analyticsService.failRequest(requestMetrics, streamError);
         if (!res.headersSent) {
           return res.status(500).json({ 
             error: 'No se pudo inicializar el stream',
@@ -294,45 +293,33 @@ export async function generateContent(req, res, next) {
       }
     }
 
-    const response = await processGeminiRequest(contents, model, params);
+    // Solo procesar respuesta no-streaming si no es streaming
+    if (!stream) {
+      const response = await processGeminiRequest(contents, model, params);
+      
+      // Registrar éxito en analytics
+      analyticsService.endRequest(requestMetrics, {
+        tokensUsed: response.usage?.totalTokens || 0,
+        inputTokens: response.usage?.promptTokens || 0,
+        outputTokens: response.usage?.completionTokens || 0,
+        model: model || 'default'
+      });
 
-    // Streaming adaptativo mejorado
-    if (stream) {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Transfer-Encoding', 'chunked');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      
-      // Streaming adaptativo basado en complejidad de respuesta
-      const responseLength = response.text?.length || 0;
-      const adaptiveConfig = {
-        chunkSize: responseLength > 1000 ? 20 : 15,
-        delayMs: responseLength > 1000 ? 12 : 8
-      };
-      
-      return streamText(res, response.text || '', adaptiveConfig);
+      return res.json({
+        message: 'Respuesta de Gemini generada correctamente',
+        response: response.text,
+        // Si el modelo devuelve imagen, inclúyela
+        image: response.image || null,
+        metadata: {
+          model: model || 'default',
+          tokensUsed: response.usage?.totalTokens || 0,
+          timestamp: new Date().toISOString(),
+          contextCache: Array.isArray(contents) && contents.length >= 3 ? 'potentially-used' : 'not-applicable'
+        }
+      });
     }
 
-    // Registrar éxito en analytics
-    analyticsService.endRequest(requestMetrics, {
-      tokensUsed: response.usage?.totalTokens || 0,
-      inputTokens: response.usage?.promptTokens || 0,
-      outputTokens: response.usage?.completionTokens || 0,
-      model: model || 'default'
-    });
 
-    res.json({
-      message: 'Respuesta de Gemini generada correctamente',
-      response: response.text,
-      // Si el modelo devuelve imagen, inclúyela
-      image: response.image || null,
-      metadata: {
-        model: model || 'default',
-        tokensUsed: response.usage?.totalTokens || 0,
-        timestamp: new Date().toISOString(),
-        contextCache: Array.isArray(contents) && contents.length >= 3 ? 'potentially-used' : 'not-applicable'
-      }
-    });
   } catch (error) {
     // Registrar fallo en analytics
     analyticsService.failRequest(requestMetrics, error);

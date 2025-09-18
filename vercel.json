@@ -76,26 +76,43 @@
   },
   "framework": "vite",
   "regions": ["iad1"],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
+      "source": "/api/health",
+      "destination": "/api/index?path=health"
+    },
+    {
+      "source": "/api/chat",
+      "destination": "/api/index?path=chat"
+    },
+    {
+      "source": "/api/gemini",
+      "destination": "/api/index?path=gemini"
+    },
+    {
+      "source": "/api/gemini-v2",
+      "destination": "/api/index?path=gemini-v2"
+    },
+    {
+      "source": "/api/scraper",
+      "destination": "/api/index?path=scraper"
+    },
+    {
+      "source": "/api/embeddings",
+      "destination": "/api/index?path=embeddings"
+    },
+    {
       "source": "/server/gemini/stream",
-      "destination": "/api/server/gemini/stream"
-    },
-    {
-      "source": "/server/gemini/stream-with-tools",
-      "destination": "/api/server/gemini?path=stream-with-tools"
-    },
-    {
-      "source": "/test-gemini/(.*)",
-      "destination": "/api/test-gemini?path=$1"
+      "destination": "/api/index?path=gemini-v2"
     },
     {
       "source": "/server/gemini/(.*)",
-      "destination": "/api/server/gemini?path=$1"
-    },
-    {
-      "source": "/server/(.*)",
-      "destination": "/api/server/$1"
+      "destination": "/api/index?path=gemini-v2"
     },
     {
       "source": "/((?!api|_next|_static|favicon.ico).*)",

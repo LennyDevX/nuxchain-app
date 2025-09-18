@@ -1,8 +1,24 @@
+import winston from 'winston';
+
 // Métricas simples
 let totalRequests = 0;
 let totalErrors = 0;
 let totalTokens = 0;
 let tokenCount = 0;
+
+// Configuración del logger de Winston
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    // new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    // new winston.transports.File({ filename: 'combined.log' })
+  ],
+});
 
 export const getMetrics = () => ({
   totalRequests,
@@ -22,16 +38,24 @@ export const incrementErrorCount = () => {
   totalErrors++;
 };
 
-export default function logger(req, res, next) {
+export const logError = (message, error, context = {}) => {
+  logger.error(message, { error: error.message, stack: error.stack, ...context });
+};
+
+export const logInfo = (message, context = {}) => {
+  logger.info(message, { ...context });
+};
+
+export default function requestLogger(req, res, next) {
+  totalRequests++;
   const start = Date.now();
-  const { method, url } = req;
+  const { method, url, ip } = req;
   
-  console.log(`[${new Date().toISOString()}] ${method} ${url} - START`);
+  logInfo(`Request received: ${method} ${url}`, { method, url, ip });
   
-  // Interceptar el final de la respuesta
   res.on('finish', () => {
     const duration = Date.now() - start;
-    console.log(`[${new Date().toISOString()}] ${method} ${url} - ${res.statusCode} (${duration}ms)`);
+    logInfo(`Request completed: ${method} ${url}`, { method, url, ip, statusCode: res.statusCode, duration });
   });
   
   next();

@@ -43,6 +43,10 @@ export const createRateLimit = (options = {}) => {
  * Slow Down - Ralentiza requests cuando se acerca al límite
  */
 export const createSlowDown = (options = {}) => {
+  const config = {
+    ...rateLimitConfig,
+    ...options
+  };
   return slowDown({
     windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutos
     delayAfter: options.delayAfter || 50, // Comenzar a ralentizar después de 50 requests
@@ -50,7 +54,8 @@ export const createSlowDown = (options = {}) => {
     maxDelayMs: options.maxDelayMs || 20000, // Máximo delay de 20 segundos
     skipFailedRequests: true,
     skipSuccessfulRequests: false,
-    keyGenerator: (req) => req.ip
+    keyGenerator: (req) => req.ip, // Use req.ip as the key for rate limiting
+    handler: config.handler,
   });
 };
 

@@ -1,7 +1,8 @@
-import { incrementErrorCount } from './logger.js';
+import { incrementErrorCount, logError } from './logger.js';
 
 export default function errorHandler(err, req, res, next) {
   incrementErrorCount();
+  logError('Error en la solicitud', err, { method: req.method, url: req.url, ip: req.ip });
   
   console.error('Error Handler:', err);
   

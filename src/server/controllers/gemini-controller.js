@@ -16,7 +16,10 @@ import embeddingsService from '../services/embeddings-service.js';
 import contextCacheService from '../services/context-cache-service.js';
 import analyticsService from '../services/analytics-service.js';
 import batchService from '../services/batch-service.js';
-import webScraperService from '../services/web-scraper-service.js';
+import WebScraperService from '../services/web-scraper.js';
+
+// Create instance of simple web scraper
+const webScraperService = new WebScraperService();
 
 // === Configuración ===
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB, cambiar aquí para ajustar el límite
@@ -1114,7 +1117,14 @@ export async function extractUrlContent(req, res, next) {
     console.log(`Intentando extraer contenido de: ${url}`);
 
     // Extraer contenido de la URL
-    const extractedContent = await webScraperService.extractContent(url);
+    const extractionResult = await webScraperService.extractContent(url);
+    
+    // Check if extraction was successful
+    if (!extractionResult.success) {
+      throw new Error(extractionResult.error || 'Error extrayendo contenido');
+    }
+
+    const extractedContent = extractionResult;
     
     // Si se solicita, agregar al contexto usando embeddings
     if (includeInContext) {
@@ -1135,11 +1145,13 @@ export async function extractUrlContent(req, res, next) {
       }
     }
 
-    // Formatear respuesta
+    // Formatear respuesta (create a simple format since formatForChat doesn't exist in WebScraperService)
+    const formattedContent = `📄 **Contenido de URL**\n🔗 **Fuente:** [${extractedContent.metadata?.domain || 'Sitio web'}](${url})\n\n## ${extractedContent.title}\n\n📖 **Contenido:**\n\n${extractedContent.content}`;
+
     const response = {
       success: true,
       data: extractedContent,
-      formatted: webScraperService.formatForChat(extractedContent),
+      formatted: formattedContent,
       addedToContext: includeInContext
     };
 
@@ -1205,13 +1217,65 @@ export async function extractMultipleUrls(req, res, next) {
 
     const { includeInContext = false, ...extractOptions } = options;
     
-    // Extraer contenido de múltiples URLs
-    const result = await webScraperService.extractMultipleUrls(urls, extractOptions);
+    // Extraer contenido de múltiples URLs usando WebScraperService
+    const extractionPromises = urls.map(async (url) => {
+      try {
+        const extractedContent = await webScraperService.extractContent(url);
+        if (extractedContent.success) {
+          return {
+            url,
+            success: true,
+            content: extractedContent.content,
+            title: extractedContent.title || 'Sin título',
+            metadata: {
+              url,
+              title: extractedContent.title || 'Sin título',
+              extractedAt: new Date().toISOString()
+            }
+          };
+        } else {
+          return {
+            url,
+            success: false,
+            error: extractedContent.error || 'Error desconocido'
+          };
+        }
+      } catch (error) {
+        return {
+          url,
+          success: false,
+          error: error.message || 'Error al extraer contenido'
+        };
+      }
+    });
+
+    const extractionResults = await Promise.allSettled(extractionPromises);
+    
+    const results = [];
+    const errors = [];
+    
+    extractionResults.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        if (result.value.success) {
+          results.push(result.value);
+        } else {
+          errors.push({
+            url: urls[index],
+            error: result.value.error
+          });
+        }
+      } else {
+        errors.push({
+          url: urls[index],
+          error: result.reason?.message || 'Error en la promesa'
+        });
+      }
+    });
     
     // Si se solicita, agregar contenido exitoso al contexto
-    if (includeInContext && result.results.length > 0) {
+    if (includeInContext && results.length > 0) {
       try {
-        const documentsForContext = result.results.map(content => ({
+        const documentsForContext = results.map(content => ({
           content: content.content,
           metadata: {
             ...content.metadata,
@@ -1223,23 +1287,27 @@ export async function extractMultipleUrls(req, res, next) {
         }));
 
         await embeddingsService.upsertIndex('url_context', documentsForContext);
-        console.log(`${result.results.length} URLs agregadas al contexto`);
+        console.log(`${results.length} URLs agregadas al contexto`);
       } catch (contextError) {
         console.warn('Error agregando URLs al contexto:', contextError);
       }
     }
 
     // Formatear respuestas
-    const formattedResults = result.results.map(content => ({
+    const formattedResults = results.map(content => ({
       ...content,
-      formatted: webScraperService.formatForChat(content)
+      formatted: `**${content.title}**\n\nURL: ${content.url}\n\n${content.content}`
     }));
 
     const response = {
       success: true,
       results: formattedResults,
-      errors: result.errors,
-      summary: result.summary,
+      errors: errors,
+      summary: {
+        total: urls.length,
+        successful: results.length,
+        failed: errors.length
+      },
       addedToContext: includeInContext
     };
 

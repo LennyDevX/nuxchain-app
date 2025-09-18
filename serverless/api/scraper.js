@@ -1,14 +1,39 @@
 /**
- * Función Serverless para Web Scraper - NuxChain App
- * Maneja extracción de contenido de URLs y web scraping
+ * Función Serverless para Web Scraping - NuxChain App
+ * Extracción de contenido web con validación y seguridad optimizada
  */
 
-import { withSecurity } from '../../src/security/serverless-security.js';
-import webScraperService from '../../src/server/services/web-scraper-service.js';
-import urlContextService from '../../src/server/services/url-context-service.js';
+import { createServerlessHandler } from '../middleware/router.js';
+import { validateRequest, commonSchemas } from '../middleware/validation.js';
+import { cacheAndCompress, cacheConfigs } from '../middleware/cache.js';
+import { withErrorHandling, NotFoundError, ValidationError } from '../middleware/error-handler.js';
+import { WebScraperService } from '../../src/server/services/web-scraper.js';
 
-// Configuración CORS para producción
-const corsConfig = getCorsConfig('production');
+// Instancia del servicio
+const webScraperService = new WebScraperService();
+
+/**
+ * Configurar rutas del scraper
+ */
+const setupScraperRoutes = (router) => {
+  // Health check con cache corto
+  router.get('/api/scraper/health', 
+    cacheAndCompress(cacheConfigs.short),
+    handleHealth
+  );
+
+  // Extracción de contenido con validación y cache medio
+  router.post('/api/scraper/extract',
+    validateRequest(commonSchemas.scrapeUrl, 'body'),
+    cacheAndCompress(cacheConfigs.medium),
+    handleExtract
+  );
+
+  // Endpoint para limpiar cache (solo desarrollo)
+  if (process.env.NODE_ENV === 'development') {
+    router.post('/api/scraper/clear-cache', handleClearCache);
+  }
+};
 
 /**
  * Maneja las solicitudes CORS
@@ -105,7 +130,46 @@ async function scraperHandler(req, res) {
   }
 }
 
-export default withSecurity(scraperHandler);
+// Crear y exportar el handler optimizado
+const scraperHandler = createServerlessHandler(setupScraperRoutes, {
+  cors: true,
+  security: true
+});
+
+export default scraperHandler;
+
+/**
+ * Handler para extracción de contenido
+ */
+const handleExtract = withErrorHandling(async (req, res) => {
+  const { url, options = {} } = req.validated.body;
+
+  try {
+    console.log(`🔍 Iniciando scraping de: ${url}`);
+    
+    const result = await webScraperService.scrapeUrl(url, {
+      timeout: options.timeout || 30000,
+      waitFor: options.waitFor,
+      extractImages: options.extractImages || false
+    });
+
+    console.log(`✅ Scraping completado para: ${url}`);
+    
+    return res.status(200).json({
+      success: true,
+      data: result,
+      metadata: {
+        url,
+        timestamp: new Date().toISOString(),
+        processingTime: result.processingTime || null
+      }
+    });
+
+  } catch (error) {
+    console.error(`❌ Error en scraping de ${url}:`, error);
+    throw new ValidationError(`Error en extracción de ${url}: ${error.message}`);
+  }
+});
 
 /**
  * Maneja extracción de contenido de una URL
@@ -129,17 +193,26 @@ async function handleExtractUrl(req, res, body, query) {
   }
   
   try {
-    const result = await webScraperService.extractContent(url, options);
+    const extractedContent = await webScraperService.extractContent(url, options);
     
-    res.status(200).json({
-      success: true,
-      data: {
-        url,
-        content: result,
-        extractedAt: new Date().toISOString()
-      },
-      timestamp: new Date().toISOString()
-    });
+    if (extractedContent.success) {
+      res.status(200).json({
+        success: true,
+        data: {
+          url,
+          content: extractedContent.content,
+          title: extractedContent.title,
+          extractedAt: new Date().toISOString()
+        },
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: extractedContent.error || 'Error al extraer contenido',
+        url
+      });
+    }
   } catch (error) {
     console.error('Error extrayendo contenido:', error);
     res.status(500).json({
@@ -188,8 +261,21 @@ async function handleExtractMultipleUrls(req, res, body) {
     const results = await Promise.allSettled(
       urls.map(async (url) => {
         try {
-          const content = await webScraperService.extractContent(url, options);
-          return { url, content, status: 'success' };
+          const extractedContent = await webScraperService.extractContent(url, options);
+          if (extractedContent.success) {
+            return { 
+              url, 
+              content: extractedContent.content,
+              title: extractedContent.title,
+              status: 'success' 
+            };
+          } else {
+            return { 
+              url, 
+              error: extractedContent.error || 'Error al extraer contenido', 
+              status: 'error' 
+            };
+          }
         } catch (error) {
           return { url, error: error.message, status: 'error' };
         }
@@ -326,30 +412,47 @@ async function handleProcessUrlContext(req, res, body, query) {
 }
 
 /**
- * Health check
+ * Handler para health check
  */
-async function handleHealthCheck(req, res) {
-  try {
-    // Verificar que los servicios estén disponibles
-    const testUrl = 'https://httpbin.org/status/200';
-    const testResult = await fetch(testUrl, { 
-      method: 'HEAD', 
-      timeout: 5000 
-    });
-    
-    res.status(200).json({
-      status: testResult.ok ? 'healthy' : 'degraded',
-      service: 'scraper-api',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development',
-      testUrl: testResult.ok ? 'accessible' : 'inaccessible'
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'unhealthy',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+const handleHealth = withErrorHandling(async (req, res) => {
+  const health = {
+    status: 'healthy',
+    service: 'web-scraper',
+    timestamp: new Date().toISOString(),
+    version: '2.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    features: {
+      caching: true,
+      compression: true,
+      validation: true,
+      errorHandling: true
+    }
+  };
+
+  return res.status(200).json(health);
+});
+
+/**
+ * Handler para limpiar cache (solo desarrollo)
+ */
+const handleClearCache = withErrorHandling(async (req, res) => {
+  if (process.env.NODE_ENV !== 'development') {
+    throw new NotFoundError('Endpoint no disponible en producción');
   }
-}
+
+  const { clearCache, getCacheStats } = await import('../middleware/cache.js');
+  
+  const statsBefore = getCacheStats();
+  clearCache();
+  const statsAfter = getCacheStats();
+
+  return res.status(200).json({
+    success: true,
+    message: 'Cache limpiado exitosamente',
+    stats: {
+      before: statsBefore,
+      after: statsAfter
+    },
+    timestamp: new Date().toISOString()
+  });
+});

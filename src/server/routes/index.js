@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Ruta de prueba general para verificar que el servidor está funcionando
 router.get('/hello', (_, res) => {
-  res.json({ 
+  res.json({
     message: 'Hola desde el servidor de Nuxchain-App!',
     timestamp: new Date().toISOString()
   });

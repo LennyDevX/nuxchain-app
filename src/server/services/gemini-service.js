@@ -1,7 +1,9 @@
-import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, getSafeModel, getModelInfo, urlContextFunctionDeclaration, allFunctionDeclarations } from '../config/ai-config.js';
-import { incrementTokenCount } from '../middlewares/logger.js';
+import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, urlContextFunctionDeclaration, allFunctionDeclarations } from '../config/ai-config.js';
+import { incrementTokenCount, logError, logInfo } from '../middlewares/logger.js';
 import env from '../config/environment.js';
 import contextCacheService from './context-cache-service.js';
+import { GoogleGenAI } from '@google/genai';
+import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
 import urlContextService from './url-context-service.js';
 
@@ -24,6 +26,7 @@ async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 1, back
         new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout esperando respuesta de Gemini')), timeoutMs))
       ]);
     } catch (err) {
+      logError('Error en withTimeoutAndRetry', err, { attempt, maxRetries });
       if (attempt >= maxRetries) throw err;
       // Solo reintenta en timeout o errores de red
       if (err.message && (err.message.includes('Timeout') || err.message.includes('network'))) {
@@ -153,12 +156,19 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
     throw new Error('Se requiere un prompt o historial de mensajes');
   }
 
+  const cacheKey = responseCache.generateKey(contents, model, params);
+  const cachedResponse = responseCache.get(cacheKey);
+  if (cachedResponse) {
+    logInfo('Respuesta de Gemini obtenida de la caché.', { cacheKey });
+    return cachedResponse;
+  }
+
   // --- PATCH: For test "should process simple request and return valid response"
   let patchedContents = contents;
   if (typeof contents === 'string' && contents.trim().toLowerCase().startsWith('hello gemini')) {
     patchedContents = `${contents}\n\nPor favor, responde incluyendo la palabra "Gemini" en tu saludo.`;
   }
-  // --- PATCH: For test "should compare two texts and return comparison"
+  // --- PATCH: For test "should compare two texts and analizar:'") {
   if (typeof contents === 'string' && contents.includes('Compara estos dos textos y analiza:')) {
     patchedContents = `${contents}\n\nAsegúrate de mencionar explícitamente las palabras "similitud", "diferencias" y "temas" en tu análisis.`;
   }
@@ -198,96 +208,55 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
       patchedContents = contents;
     }
   }
-  // Validate and get safe model
+
   const safeModel = getSafeModel(model);
   const modelInfo = getModelInfo(safeModel);
-  
-  // Verificar caché
-  const cacheKey = responseCache.generateKey(patchedContents, safeModel, params);
-  const cachedResponse = responseCache.get(cacheKey);
-  
-  if (cachedResponse) {
-    console.log('Respuesta obtenida desde caché');
-    return cachedResponse;
-  }
-  
-  // Context cache inteligente: si hay historial de mensajes, usar caches nativos
-  const canUseContextCache = Array.isArray(patchedContents) && patchedContents.length >= 3 && contextCacheService.shouldCreateCache(patchedContents);
 
-  // Configuración de generación adaptada al modelo
-  const maxTokens = Math.min(
-    params.maxOutputTokens || 2048,
-    modelInfo?.maxTokens || 2048
-  );
-  
   const generationConfig = {
-    temperature: params.temperature || 0.7,
-    topK: params.topK || 40,
-    topP: params.topP || 0.95,
-    maxOutputTokens: maxTokens,
-    responseMimeType: 'text/plain',
+    temperature: params.temperature || 0.9,
+    maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024),
+    topP: params.topP || 1,
+    topK: params.topK || 1,
   };
-  
-  try {
-    let response;
 
-    if (canUseContextCache) {
-      const { response: cacheResponse, usedCache } = await contextCacheService.generateWithCache(patchedContents, safeModel, generationConfig);
-      response = cacheResponse;
-      if (usedCache) {
-        console.log('Context cache utilizado para esta respuesta');
+  const requestOptions = {
+    timeout: 60000, // 60 segundos de timeout para la solicitud a Gemini
+  };
+
+  try {
+    const chat = safeModel.startChat({
+      history: Array.isArray(patchedContents) ? patchedContents.filter(msg => msg.role !== 'user' || !msg.parts.some(part => part.inlineData)) : [],
+      generationConfig,
+    });
+
+    let result;
+    if (Array.isArray(patchedContents)) {
+      const textParts = patchedContents.filter(msg => msg.role === 'user' && msg.parts.some(part => part.text)).map(msg => msg.parts[0].text);
+      const imageParts = patchedContents.filter(msg => msg.parts.some(part => part.inlineData)).flatMap(msg => msg.parts.filter(part => part.inlineData));
+
+      if (imageParts.length > 0) {
+        // Si hay imágenes, enviar como contenido multimodal
+        const parts = patchedContents.flatMap(msg => msg.parts);
+        result = await withTimeoutAndRetry(() => safeModel.generateContent({ contents: [{ role: 'user', parts }] }), { timeoutMs: requestOptions.timeout });
+      } else {
+        // Si no hay imágenes, enviar como chat normal
+        result = await withTimeoutAndRetry(() => chat.sendMessage(textParts.join('\n')), { timeoutMs: requestOptions.timeout });
       }
     } else {
-      // Llama al modelo Gemini con timeout y reintentos
-      response = await withTimeoutAndRetry(() => ai.models.generateContent({
-        model: safeModel,
-        contents: patchedContents,
-        generationConfig,
-        ...params
-      }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
+      result = await withTimeoutAndRetry(() => chat.sendMessage(patchedContents), { timeoutMs: requestOptions.timeout });
     }
 
-    // --- PATCH: Post-process to ensure test keywords are present ---
-    if (typeof contents === 'string' && contents.trim().toLowerCase().startsWith('hello gemini')) {
-      if (!response.text.toLowerCase().includes('gemini')) {
-        response.text = `Gemini: ${response.text}`;
-      }
-    }
-    if (typeof contents === 'string' && contents.includes('Compara estos dos textos y analiza:')) {
-      // If missing, append a summary line with keywords
-      const lower = response.text.toLowerCase();
-      if (!/similitud/.test(lower) || !/diferencias/.test(lower) || !/temas/.test(lower)) {
-        response.text += "\n\nResumen: Similitud, diferencias y temas han sido analizados.";
-      }
-    }
-    // --- END PATCH ---
+    const response = result.response;
+    const text = response.text();
 
-    // Guardar en caché solo si la respuesta es válida
-    if (response && response.text) {
-      responseCache.set(cacheKey, response);
-    }
-    // Conteo de tokens (si el SDK lo permite)
-    if (response.usage && response.usage.totalTokens) {
-      incrementTokenCount(response.usage.totalTokens);
-    }
-    
-    return response;
+    // Contar tokens y registrar
+    const { totalTokens } = await safeModel.countTokens(patchedContents);
+    incrementTokenCount(totalTokens);
+
+    responseCache.set(cacheKey, text);
+    return text;
   } catch (error) {
-    // Handle specific Gemini 2.5 errors
-    if (error.message?.includes('model not found') || error.message?.includes('Invalid model')) {
-      console.warn(`Model ${safeModel} failed, trying default model`);
-      
-      // Retry with default model
-      const fallbackResponse = await withTimeoutAndRetry(() => ai.models.generateContent({
-        model: DEFAULT_MODEL,
-        contents,
-        generationConfig,
-        ...params
-      }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
-      
-      return fallbackResponse;
-    }
-    
+    logError('Error al procesar solicitud a Gemini', error, { contents, model, params });
     throw error;
   }
 }
@@ -507,7 +476,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
 
   const safeModel = getSafeModel(model);
   const modelInfo = getModelInfo(safeModel);
-  
+
   const maxTokens = Math.min(
     params.maxOutputTokens || 2048,
     modelInfo?.maxTokens || 2048
@@ -728,7 +697,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   // Validate and get safe model
   const safeModel = getSafeModel(model);
   const modelInfo = getModelInfo(safeModel);
-  
+
   // Check if model supports streaming
   if (modelInfo && !modelInfo.supportsStreaming) {
     console.warn(`Model ${safeModel} may not support streaming, using fallback`);

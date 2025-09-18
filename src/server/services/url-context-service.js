@@ -3,7 +3,7 @@
  * Permite obtener contenido de URLs para proporcionar contexto adicional
  */
 
-import webScraperService from './web-scraper-service.js';
+import SimpleWebScraperService from './simple-web-scraper.js';
 import analyticsService from './analytics-service.js';
 
 class UrlContextService {
@@ -11,6 +11,7 @@ class UrlContextService {
     this.cache = new Map();
     this.maxCacheSize = 100;
     this.cacheTTL = 300000; // 5 minutos
+    this.webScraper = new SimpleWebScraperService();
   }
 
   /**
@@ -40,14 +41,13 @@ class UrlContextService {
         return cachedResult;
       }
 
-      // Obtener contenido usando el web scraper existente
-      const scrapedContent = await webScraperService.scrapeUrl(url, {
-        includeImages: options.includeImages || false,
-        maxContentLength: options.maxContentLength || 10000,
-        timeout: options.timeout || 10000
-      });
+      // Obtener contenido usando el simple web scraper
+        const scrapedContent = await this.webScraper.extractContent(url);
 
       if (!scrapedContent.success) {
+        // En lugar de lanzar un error, podemos devolver un objeto con información de error
+        // o un contenido vacío para que Gemini pueda decidir qué hacer.
+        // Por ahora, lanzaremos un error para que el flujo de error sea consistente.
         throw new Error(`Error al obtener contenido de la URL: ${scrapedContent.error}`);
       }
 

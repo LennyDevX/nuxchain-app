@@ -46,9 +46,9 @@ export function getSafeModel(requestedModel) {
 
 export const defaultFunctionDeclaration = {
   name: 'controlLight',
+  description: 'Set the brightness and color temperature of a room light.',
   parameters: {
     type: 'object',
-    description: 'Set the brightness and color temperature of a room light.',
     properties: {
       brightness: {
         type: 'number',
@@ -66,9 +66,9 @@ export const defaultFunctionDeclaration = {
 // URL Context tool declaration
 export const urlContextFunctionDeclaration = {
   name: 'urlContext',
+  description: 'Fetch and analyze content from a URL to provide context for the conversation.',
   parameters: {
     type: 'object',
-    description: 'Fetch and analyze content from a URL to provide context for the conversation.',
     properties: {
       url: {
         type: 'string',

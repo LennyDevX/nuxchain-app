@@ -47,11 +47,21 @@ if (env.isVercel) {
 // Middleware de manejo de errores (debe estar al final)
 app.use(errorHandler);
 
-// Inicializar base de conocimientos automáticamente
-initializeKnowledgeBaseOnStartup();
-
 // Crear servidor HTTP para soportar WebSockets
 const server = createServer(app);
+
+// Función asíncrona para inicializar el servidor
+async function startServer() {
+  try {
+    // Inicializar base de conocimientos antes de que el servidor esté listo
+    console.log('🔄 Inicializando base de conocimientos...');
+    await initializeKnowledgeBaseOnStartup();
+    console.log('✅ Base de conocimientos lista para usar');
+  } catch (error) {
+    console.error('❌ Error en inicialización de base de conocimientos:', error);
+    // Continuar con el servidor aunque falle la inicialización
+  }
+}
 
 // Inicializar WebSocket handler con seguridad avanzada
 if (environmentConfig.isProduction) {
@@ -65,24 +75,36 @@ if (environmentConfig.isProduction) {
 
 // Verificar el entorno de ejecución
 if (env.isVercel) {
-  // En Vercel, exportamos la aplicación como un módulo
-  console.log('Running on Vercel - Knowledge base will be initialized automatically');
+  // En Vercel, inicializar la base de conocimientos inmediatamente
+  console.log('Running on Vercel - Initializing knowledge base...');
+  startServer().then(() => {
+    console.log('✅ Vercel: Knowledge base initialized and ready');
+  }).catch(error => {
+    console.error('❌ Vercel: Error initializing knowledge base:', error);
+  });
   console.log('Note: WebSocket functionality may be limited in serverless environment');
 } else {
-  // En desarrollo, iniciamos el servidor
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-    console.log(`WebSocket server available at ws://localhost:${port}/ws/streaming`);
-    console.log('Knowledge base initialization started...');
-    console.log('Enhanced streaming features enabled:');
-    console.log('  ✓ Semantic chunking');
-    console.log('  ✓ Contextual pauses');
-    console.log('  ✓ Variable speed streaming');
-    console.log('  ✓ WebSocket support');
-    console.log('  ✓ Syntax highlighting');
-    console.log('  ✓ Progress indicators');
-    console.log('  ✓ Typing indicators');
-    console.log('  ✓ Adaptive compression');
+  // En desarrollo, inicializar primero y luego arrancar el servidor
+  startServer().then(() => {
+    server.listen(port, () => {
+      console.log(`Server running on http://localhost:${port}`);
+      console.log(`WebSocket server available at ws://localhost:${port}/ws/streaming`);
+      console.log('Enhanced streaming features enabled:');
+      console.log('  ✓ Semantic chunking');
+      console.log('  ✓ Contextual pauses');
+      console.log('  ✓ Variable speed streaming');
+      console.log('  ✓ WebSocket support');
+      console.log('  ✓ Syntax highlighting');
+      console.log('  ✓ Progress indicators');
+      console.log('  ✓ Typing indicators');
+      console.log('  ✓ Adaptive compression');
+    });
+  }).catch(error => {
+    console.error('❌ Error durante la inicialización:', error);
+    // Arrancar el servidor de todas formas
+    server.listen(port, () => {
+      console.log(`Server running on http://localhost:${port} (with initialization errors)`);
+    });
   });
   
   // Manejo de cierre graceful

@@ -1,6 +1,8 @@
-import fetch from 'node-fetch';
-import { JSDOM } from 'jsdom';
-import { Readability } from '@mozilla/readability';
+// Usar fetch nativo en Node.js 18+ (Vercel)
+// import fetch from 'node-fetch'; // No necesario en Node.js 18+
+// Comentar JSDOM y Readability para compatibilidad serverless
+// import { JSDOM } from 'jsdom';
+// import { Readability } from '@mozilla/readability';
 
 /**
  * Servicio para extraer contenido de páginas web
@@ -234,219 +236,150 @@ class WebScraperService {
     try {
       console.log(`Extrayendo contenido de: ${cleanedUrl}`);
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-      const response = await fetch(cleanedUrl, {
-        headers: {
-          'User-Agent': this.userAgent,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'DNT': '1',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'none',
-          'Sec-Fetch-User': '?1',
-          'Cache-Control': 'max-age=0',
-          'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-          'sec-ch-ua-mobile': '?0',
-          'sec-ch-ua-platform': '"Windows"'
-        },
-        signal: controller.signal,
-        follow: 5, // Máximo 5 redirects
-        size: 5000000 // Máximo 5MB
-      });
-
-      clearTimeout(timeoutId);
-
-      console.log(`Respuesta HTTP: ${response.status} ${response.statusText}`);
-      console.log(`Content-Type: ${response.headers.get('content-type')}`);
-      console.log(`URL final: ${response.url}`);
-
-      if (!response.ok) {
-        // Intentar obtener más información del error
-        let errorBody = '';
-        try {
-          errorBody = await response.text();
-          console.log(`Cuerpo del error: ${errorBody.substring(0, 500)}`);
-        } catch (e) {
-          console.log('No se pudo leer el cuerpo del error');
-        }
-        throw new Error(`Error HTTP: ${response.status} ${response.statusText}. URL: ${response.url}`);
+      // Intentar primero con el método completo (JSDOM + Readability)
+      try {
+        return await this.extractWithJSDOM(cleanedUrl);
+      } catch (jsdomError) {
+        console.warn(`JSDOM falló para ${cleanedUrl}:`, jsdomError.message);
+        console.log('Intentando extracción básica con regex...');
+        return await this.extractWithRegex(cleanedUrl);
       }
-
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('text/html')) {
-        throw new Error(`El contenido no es HTML válido. Content-Type: ${contentType}`);
-      }
-
-      const html = await response.text();
-      console.log(`HTML obtenido, longitud: ${html.length}`);
-      
-      // Verificar si la página indica que no existe (verificación más específica)
-      const title = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || '';
-      const bodyStart = html.substring(0, 2000).toLowerCase();
-      
-      if ((title.toLowerCase().includes('404') || title.toLowerCase().includes('not found')) &&
-          (bodyStart.includes('this page doesn\'t exist') || 
-           bodyStart.includes('page not found') ||
-           bodyStart.includes('404 error'))) {
-        throw new Error('La página no existe o no se puede encontrar');
-      }
-      
-      const dom = new JSDOM(html, { url: cleanedUrl });
-      const document = dom.window.document;
-
-      // Extraer metadatos
-      const metadata = this.extractMetadata(document);
-      console.log(`Metadatos extraídos:`, metadata);
-
-      // Usar Readability para extraer contenido principal
-      const reader = new Readability(document, {
-        debug: false,
-        maxElemsToParse: 0,
-        nbTopCandidates: 10, // Aumentado para considerar más candidatos
-        charThreshold: 200, // Reducido para capturar más contenido
-        classesToPreserve: ['highlight', 'code', 'pre', 'content', 'article', 'post', 'entry', 'text'],
-        keepClasses: true // Mantener clases para mejor extracción
-      });
-
-      const article = reader.parse();
-      
-      if (!article) {
-        // Si Readability falla, intentar extracción básica
-        console.warn('Readability falló, intentando extracción básica');
-        const bodyText = document.body ? document.body.textContent : '';
-        const title = document.title || metadata.title || 'Sin título';
-        
-        console.log(`Texto del body extraído: ${bodyText ? bodyText.length : 0} caracteres`);
-        console.log(`Primeros 200 caracteres: ${bodyText ? bodyText.substring(0, 200) : 'N/A'}`);
-        
-        if (bodyText && bodyText.trim().length > 20) { // Reducir el umbral de 50 a 20
-          const content = bodyText.replace(/\s+/g, ' ').trim().substring(0, this.maxContentLength);
-          console.log(`Contenido básico extraído exitosamente: ${content.length} caracteres`);
-          return {
-            url: cleanedUrl,
-            title,
-            content,
-            excerpt: content.substring(0, 300) + (content.length > 300 ? '...' : ''),
-            metadata: {
-              ...metadata,
-              length: content.length,
-              extractionMethod: 'basic'
-            },
-            success: true
-          };
-        }
-        
-        // Intentar extraer de elementos específicos como último recurso
-        const fallbackSelectors = [
-          'main', 'article', '.content', '.post', '.entry', 'section', 
-          'div[class*="content"]', 'div[class*="post"]', 'div[class*="article"]',
-          '.article-body', '.post-content', '.entry-content', '.page-content',
-          '[role="main"]', '.main-content', '#content', '#main',
-          '.text', '.description', '.summary', '.excerpt',
-          'div[id*="content"]', 'div[id*="article"]', 'div[id*="post"]',
-          'p', 'div', 'span'
-        ];
-        let fallbackContent = '';
-        
-        console.log(`Intentando extracción con selectores fallback para ${cleanedUrl}`);
-        
-        for (const selector of fallbackSelectors) {
-          const elements = document.querySelectorAll(selector);
-          console.log(`Selector '${selector}': encontrados ${elements.length} elementos`);
-          if (elements.length > 0) {
-            fallbackContent = Array.from(elements)
-              .map(el => el.textContent || '')
-              .join(' ')
-              .replace(/\s+/g, ' ')
-              .trim();
-            console.log(`Contenido extraído con '${selector}': ${fallbackContent.length} caracteres`);
-            if (fallbackContent.length > 20) {
-              console.log(`✓ Contenido válido extraído usando selector '${selector}': ${fallbackContent.length} caracteres`);
-              return {
-                url: cleanedUrl,
-                title,
-                content: fallbackContent.substring(0, this.maxContentLength),
-                excerpt: fallbackContent.substring(0, 300) + (fallbackContent.length > 300 ? '...' : ''),
-                metadata: {
-                  ...metadata,
-                  length: fallbackContent.length,
-                  extractionMethod: `fallback-${selector}`
-                },
-                success: true
-              };
-            }
-          }
-        }
-        
-        // Último intento: extraer todo el texto visible
-        console.log('Último intento: extrayendo todo el texto visible');
-        const allText = document.documentElement.textContent || document.documentElement.innerText || '';
-        const cleanAllText = allText.replace(/\s+/g, ' ').trim();
-        console.log(`Texto total extraído: ${cleanAllText.length} caracteres`);
-        
-        if (cleanAllText.length > 50) {
-          console.log('✓ Usando texto completo como último recurso');
-          return {
-            url: cleanedUrl,
-            title,
-            content: cleanAllText.substring(0, this.maxContentLength),
-            excerpt: cleanAllText.substring(0, 300) + (cleanAllText.length > 300 ? '...' : ''),
-            metadata: {
-              ...metadata,
-              length: cleanAllText.length,
-              extractionMethod: 'full-text-fallback'
-            },
-            success: true
-          };
-        }
-        
-        // Fallback para sitios conocidos que tienen protecciones anti-bot
-        const knownSiteFallback = this.getKnownSiteContent(cleanedUrl);
-        if (knownSiteFallback) {
-          console.log(`✓ Usando contenido conocido para ${cleanedUrl}`);
-          return knownSiteFallback;
-        }
-        
-        console.error(`❌ No se pudo extraer contenido de ${cleanedUrl}`);
-        console.error(`HTML length: ${html.length}, Body text: ${bodyText ? bodyText.length : 0}, All text: ${cleanAllText.length}`);
-        throw new Error('No se pudo extraer contenido legible de la página');
-      }
-
-      // Limpiar y limitar el contenido
-      let content = article.textContent || article.content || '';
-      content = content.replace(/\s+/g, ' ').trim();
-      
-      if (content.length > this.maxContentLength) {
-        content = content.substring(0, this.maxContentLength) + '...';
-      }
-
-      const result = {
-        url: cleanedUrl,
-        title: article.title || metadata.title,
-        content,
-        excerpt: article.excerpt || metadata.description || content.substring(0, 300) + '...',
-        metadata: {
-          ...metadata,
-          length: content.length,
-          extractionMethod: 'readability',
-          readingTime: Math.ceil(content.split(' ').length / 200), // Estimación en minutos
-          extractedAt: new Date().toISOString(),
-          domain: new URL(url).hostname
-        }
-      };
-
-      console.log(`Contenido extraído exitosamente de ${url}: ${content.length} caracteres`);
-      return result;
 
     } catch (error) {
-      console.error(`Error extrayendo contenido de ${url}:`, error.message);
+      console.error(`Error extrayendo contenido de ${cleanedUrl}:`, error.message);
       throw new Error(`Error al extraer contenido: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extrae contenido usando JSDOM y Readability (método completo)
+   * @param {string} cleanedUrl - URL limpia
+   * @returns {Promise<Object>} Contenido extraído
+   */
+  async extractWithJSDOM(cleanedUrl) {
+    // Siempre usar regex para compatibilidad serverless
+    console.log(`Usando método regex para ${cleanedUrl}`);
+    return await this.extractWithRegex(cleanedUrl);
+  }
+
+  /**
+   * Extrae contenido usando regex simple (método fallback)
+   * @param {string} cleanedUrl - URL limpia
+   * @param {string} html - HTML opcional ya obtenido
+   * @returns {Promise<Object>} Contenido extraído
+   */
+  async extractWithRegex(cleanedUrl, html = null) {
+    try {
+      let htmlContent = html;
+      
+      // Si no se proporciona HTML, hacer solicitud HTTP
+      if (!htmlContent) {
+        console.log(`Haciendo solicitud HTTP a ${cleanedUrl}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        const response = await fetch(cleanedUrl, {
+          headers: {
+            'User-Agent': this.userAgent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          },
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        htmlContent = await response.text();
+      }
+      
+      console.log(`Procesando HTML de ${cleanedUrl}, tamaño: ${htmlContent.length} caracteres`);
+      
+      // Extraer título usando regex
+      const titleMatch = htmlContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const title = titleMatch ? titleMatch[1].trim().replace(/&[^;]+;/g, '') : 'Sin título';
+      
+      // Extraer descripción meta
+      const descMatch = htmlContent.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+      const description = descMatch ? descMatch[1].trim() : '';
+      
+      // Extraer contenido del body usando regex más robusto
+      let content = htmlContent;
+      
+      // Intentar extraer solo el body
+      const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      if (bodyMatch) {
+        content = bodyMatch[1];
+      }
+      
+      // Remover elementos no deseados
+      content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+      content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+      content = content.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '');
+      content = content.replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '');
+      content = content.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '');
+      content = content.replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, '');
+      content = content.replace(/<!--[\s\S]*?-->/g, '');
+      
+      // Extraer texto de elementos principales
+      const mainContentRegex = /<(article|main|div[^>]*class[^>]*content|div[^>]*class[^>]*post|div[^>]*class[^>]*article|section)[^>]*>([\s\S]*?)<\/\1>/gi;
+      let mainContent = '';
+      let match;
+      
+      while ((match = mainContentRegex.exec(content)) !== null) {
+        const elementContent = match[2];
+        if (elementContent && elementContent.length > mainContent.length) {
+          mainContent = elementContent;
+        }
+      }
+      
+      // Si no se encontró contenido principal, usar todo el body
+      if (!mainContent || mainContent.length < 100) {
+        mainContent = content;
+      }
+      
+      // Limpiar HTML tags y entidades
+      mainContent = mainContent.replace(/<[^>]+>/g, ' ');
+      mainContent = mainContent.replace(/&nbsp;/g, ' ');
+      mainContent = mainContent.replace(/&[a-zA-Z0-9#]+;/g, ' ');
+      mainContent = mainContent.replace(/\s+/g, ' ').trim();
+      
+      console.log(`Contenido extraído: ${mainContent.length} caracteres`);
+      
+      if (mainContent.length < 20) {
+        throw new Error(`Contenido extraído muy corto: ${mainContent.length} caracteres`);
+      }
+      
+      let finalContent = mainContent.substring(0, this.maxContentLength);
+       if (finalContent.length === this.maxContentLength) {
+         finalContent += '...';
+       }
+      
+      const excerpt = description || finalContent.substring(0, 300) + (finalContent.length > 300 ? '...' : '');
+      
+      console.log(`✓ Contenido extraído exitosamente de ${cleanedUrl}: ${finalContent.length} caracteres`);
+
+      return {
+        url: cleanedUrl,
+        title,
+        content: finalContent,
+        excerpt,
+        metadata: {
+          title,
+          description,
+          length: finalContent.length,
+          extractionMethod: 'regex-enhanced',
+          extractedAt: new Date().toISOString(),
+          domain: new URL(cleanedUrl).hostname
+        },
+        success: true
+      };
+      
+    } catch (error) {
+      console.error(`Error en extractWithRegex para ${cleanedUrl}:`, error);
+      throw error;
     }
   }
 

@@ -1,4 +1,4 @@
-import embeddingsService from './embeddings-service.js';
+// Eliminada importación de embeddingsService para evitar dependencia circular
 
 /**
  * Base de conocimientos limpia con contenido bilingüe
@@ -248,44 +248,129 @@ export const knowledgeBase = [
     metadata: { type: "developer", category: "resources", topic: "integration" }
   },
 
+  // === ARQUITECTURA TÉCNICA ===
+  {
+    content: "Nuxchain App está construida con tecnologías modernas: React 18 para la interfaz de usuario con hooks avanzados y concurrent features, Vite 7 como build tool para desarrollo rápido y hot module replacement, TypeScript para tipado estático y mejor experiencia de desarrollo, TailwindCSS para estilos utilitarios y diseño responsive, Wagmi v2 para hooks de React optimizados para Ethereum, Viem v2 como biblioteca TypeScript para interacciones blockchain, y TanStack Query para gestión de estado del servidor y caché. / Nuxchain App is built with modern technologies: React 18 for user interface with advanced hooks and concurrent features, Vite 7 as build tool for fast development and hot module replacement, TypeScript for static typing and better developer experience, TailwindCSS for utility styles and responsive design, Wagmi v2 for optimized React hooks for Ethereum, Viem v2 as TypeScript library for blockchain interactions, and TanStack Query for server state management and caching. Commands: 'Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain React', 'Nuxchain Vite'.",
+    metadata: { type: "technical", category: "architecture", topic: "tech-stack" }
+  },
+  {
+    content: "Estructura del proyecto Nuxchain: Frontend en React con páginas principales (Home, Staking, Marketplace, NFTs, Airdrops, Chat, Tokenization), componentes organizados por funcionalidad, hooks personalizados para lógica reutilizable, servicios para APIs y blockchain, configuración centralizada, y sistema de routing con React Router. Backend con Express.js, servicios de embeddings, web scraping, y controladores para Gemini AI. Deployment en Vercel con serverless functions. / Nuxchain project structure: React frontend with main pages (Home, Staking, Marketplace, NFTs, Airdrops, Chat, Tokenization), components organized by functionality, custom hooks for reusable logic, services for APIs and blockchain, centralized configuration, and routing system with React Router. Backend with Express.js, embedding services, web scraping, and Gemini AI controllers. Deployment on Vercel with serverless functions. Commands: 'Nuxchain project structure', 'Nuxchain frontend', 'Nuxchain backend'.",
+    metadata: { type: "technical", category: "architecture", topic: "project-structure" }
+  },
+  {
+    content: "Configuración de desarrollo en Nuxchain: Scripts npm para desarrollo (dev, dev:server, dev:full con concurrently), build para producción, linting con ESLint, preview para testing local. Variables de entorno para diferentes ambientes (desarrollo vs producción), configuración automática de APIs según el entorno, soporte para localhost y dominios de producción. Hot reload y fast refresh habilitados para desarrollo eficiente. / Nuxchain development configuration: npm scripts for development (dev, dev:server, dev:full with concurrently), build for production, linting with ESLint, preview for local testing. Environment variables for different environments (development vs production), automatic API configuration based on environment, support for localhost and production domains. Hot reload and fast refresh enabled for efficient development. Commands: 'Nuxchain development', 'Nuxchain npm scripts', 'Nuxchain environment'.",
+    metadata: { type: "technical", category: "development", topic: "configuration" }
+  },
+
+  // === FUNCIONALIDADES DE PÁGINAS ===
+  {
+    content: "Página Home de Nuxchain: Sección hero con introducción a la plataforma, sección de IA destacando Nuvim AI 1.0, información sobre staking con estadísticas en tiempo real, preview del marketplace NFT, sección de airdrops con próximos eventos, información de tokenización, sección de beneficios del ecosistema, y footer con enlaces importantes. Diseño responsive y optimizado para conversión. / Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuvim AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Commands: 'Nuxchain home page', 'Nuxchain landing'.",
+    metadata: { type: "technical", category: "pages", topic: "home" }
+  },
+  {
+    content: "Página de Staking en Nuxchain: Formulario de staking con validación en tiempo real, información del pool con APY actual, estadísticas de usuario (balance, rewards, deposits), información del contrato con direcciones verificadas, carousel informativo sobre beneficios, bonds de staking para diferentes períodos, y dashboard de gestión de posiciones. Integración completa con SmartStaking contract. / Nuxchain Staking page: Staking form with real-time validation, pool information with current APY, user statistics (balance, rewards, deposits), contract information with verified addresses, informative carousel about benefits, staking bonds for different periods, and position management dashboard. Complete integration with SmartStaking contract. Commands: 'Nuxchain staking page', 'Nuxchain staking interface'.",
+    metadata: { type: "technical", category: "pages", topic: "staking" }
+  },
+  {
+    content: "Página de Marketplace en Nuxchain: Grid de NFTs con scroll infinito, filtros avanzados por colección/precio/rareza, estadísticas del marketplace en tiempo real, modal de compra con confirmación, sistema de ofertas, integración con Alchemy y Moralis APIs, caché optimizado para metadatos, y soporte para múltiples formatos de NFT. Diseño optimizado para navegación y descubrimiento. / Nuxchain Marketplace page: NFT grid with infinite scroll, advanced filters by collection/price/rarity, real-time marketplace statistics, purchase modal with confirmation, offer system, integration with Alchemy and Moralis APIs, optimized cache for metadata, and support for multiple NFT formats. Design optimized for navigation and discovery. Commands: 'Nuxchain marketplace page', 'Nuxchain NFT marketplace'.",
+    metadata: { type: "technical", category: "pages", topic: "marketplace" }
+  },
+  {
+    content: "Página de Chat con Nuvim AI: Interfaz de chat en tiempo real con streaming, soporte multimodal (texto e imágenes), procesamiento automático de URLs con web scraping, sistema de embeddings para contexto persistente, welcome screen con sugerencias, área de input con autocompletado, y integración completa con Google Gemini AI. Optimizado para respuestas rápidas y contexto relevante. / Nuxchain Chat page with Nuvim AI: Real-time chat interface with streaming, multimodal support (text and images), automatic URL processing with web scraping, embedding system for persistent context, welcome screen with suggestions, input area with autocomplete, and complete integration with Google Gemini AI. Optimized for fast responses and relevant context. Commands: 'Nuxchain chat page', 'Nuxchain Nuvim AI interface'.",
+    metadata: { type: "technical", category: "pages", topic: "chat" }
+  },
+  {
+    content: "Página de NFTs en Nuxchain: Grid infinito de NFTs del usuario, filtros por colección y estado, estadísticas personales de NFTs, modal de listing para venta, gestión de ofertas recibidas, historial de transacciones, y integración con wallet para mostrar NFTs owned. Diseño optimizado para gestión de colecciones personales. / Nuxchain NFTs page: Infinite grid of user's NFTs, filters by collection and status, personal NFT statistics, listing modal for sale, management of received offers, transaction history, and wallet integration to show owned NFTs. Design optimized for personal collection management. Commands: 'Nuxchain NFTs page', 'Nuxchain my NFTs'.",
+    metadata: { type: "technical", category: "pages", topic: "nfts" }
+  },
+  {
+    content: "Página de Airdrops en Nuxchain: Dashboard de airdrops disponibles, formulario de participación, estadísticas de airdrops, contador de tiempo para próximos eventos, historial de participación, verificación de elegibilidad automática, y sistema de notificaciones. Integración con contratos de airdrop para distribución automática. / Nuxchain Airdrops page: Available airdrops dashboard, participation form, airdrop statistics, time counter for upcoming events, participation history, automatic eligibility verification, and notification system. Integration with airdrop contracts for automatic distribution. Commands: 'Nuxchain airdrops page', 'Nuxchain airdrop dashboard'.",
+    metadata: { type: "technical", category: "pages", topic: "airdrops" }
+  },
+  {
+    content: "Página de Tokenización en Nuxchain: Herramientas para crear tokens ERC-20 y NFTs ERC-721, upload de archivos a IPFS, configuración de metadatos, gestión de royalties, whitelist management, batch minting, indicador de progreso, detalles técnicos de tokens, FAQ sobre tokenización, y beneficios del proceso. Interfaz step-by-step para facilitar la creación. / Nuxchain Tokenization page: Tools to create ERC-20 tokens and ERC-721 NFTs, file upload to IPFS, metadata configuration, royalty management, whitelist management, batch minting, progress indicator, technical token details, tokenization FAQ, and process benefits. Step-by-step interface to facilitate creation. Commands: 'Nuxchain tokenization page', 'Nuxchain create tokens'.",
+    metadata: { type: "technical", category: "pages", topic: "tokenization" }
+  },
+
+  // === INTEGRACIONES EXTERNAS ===
+  {
+    content: "Integración con Alchemy API en Nuxchain: Obtención de metadatos completos de NFTs, información de colecciones, historial de transacciones, verificación de ownership, datos de rareza y traits, y sincronización en tiempo real con blockchain. Caché optimizado para reducir llamadas API y mejorar rendimiento. Soporte para múltiples redes blockchain. / Nuxchain Alchemy API integration: Complete NFT metadata retrieval, collection information, transaction history, ownership verification, rarity and traits data, and real-time blockchain synchronization. Optimized cache to reduce API calls and improve performance. Support for multiple blockchain networks. Commands: 'Nuxchain Alchemy integration', 'Nuxchain NFT metadata'.",
+    metadata: { type: "technical", category: "integrations", topic: "alchemy" }
+  },
+  {
+    content: "Integración con Moralis API en Nuxchain: Analytics avanzados de blockchain, tracking de portfolios, datos de precios en tiempo real, estadísticas de mercado, información de liquidez, y métricas de DeFi. Utilizado para dashboard analytics y reportes de rendimiento del ecosistema. / Nuxchain Moralis API integration: Advanced blockchain analytics, portfolio tracking, real-time price data, market statistics, liquidity information, and DeFi metrics. Used for analytics dashboard and ecosystem performance reports. Commands: 'Nuxchain Moralis integration', 'Nuxchain analytics'.",
+    metadata: { type: "technical", category: "integrations", topic: "moralis" }
+  },
+  {
+    content: "Integración con IPFS en Nuxchain: Almacenamiento descentralizado de metadatos de NFTs, imágenes y archivos multimedia, pinning automático para disponibilidad permanente, gestión de hashes IPFS, y optimización de carga de contenido. Utilizado en tokenización y marketplace para garantizar descentralización completa. / Nuxchain IPFS integration: Decentralized storage of NFT metadata, images and multimedia files, automatic pinning for permanent availability, IPFS hash management, and content loading optimization. Used in tokenization and marketplace to ensure complete decentralization. Commands: 'Nuxchain IPFS', 'Nuxchain decentralized storage'.",
+    metadata: { type: "technical", category: "integrations", topic: "ipfs" }
+  },
+  {
+    content: "Integración con Google Gemini AI en Nuxchain: Procesamiento de lenguaje natural para Nuvim AI 1.0, análisis de contenido web, generación de respuestas contextuales, soporte multimodal para texto e imágenes, streaming de respuestas en tiempo real, y sistema de embeddings para memoria persistente. Optimizado para respuestas rápidas y precisas sobre el ecosistema Nuxchain. / Nuxchain Google Gemini AI integration: Natural language processing for Nuvim AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem. Commands: 'Nuxchain Gemini AI', 'Nuxchain AI integration'.",
+    metadata: { type: "technical", category: "integrations", topic: "gemini-ai" }
+  },
+
+  // === AUTENTICACIÓN WEB3 ===
+  {
+    content: "Sistema de Autenticación Web3 en Nuxchain: Integración con Wagmi y Viem para conexión de wallets, soporte para MetaMask, WalletConnect, Coinbase Wallet, y Rainbow Wallet, gestión de sesiones persistentes, verificación de firmas digitales, y manejo de múltiples redes blockchain. Incluye hooks personalizados para estado de conexión y switching de redes automático. / Nuxchain Web3 Authentication System: Integration with Wagmi and Viem for wallet connection, support for MetaMask, WalletConnect, Coinbase Wallet, and Rainbow Wallet, persistent session management, digital signature verification, and multi-blockchain network handling. Includes custom hooks for connection state and automatic network switching. Commands: 'Nuxchain wallet connection', 'Nuxchain Web3 auth'.",
+    metadata: { type: "technical", category: "authentication", topic: "web3" }
+  },
+  {
+    content: "Wallets Soportadas en Nuxchain: MetaMask (wallet principal recomendada), WalletConnect (para wallets móviles), Coinbase Wallet (integración nativa), Rainbow Wallet (soporte completo), y compatibilidad con cualquier wallet que implemente EIP-1193. Detección automática de wallets instaladas, fallback a WalletConnect para wallets no detectadas, y gestión de errores de conexión. / Supported Wallets in Nuxchain: MetaMask (main recommended wallet), WalletConnect (for mobile wallets), Coinbase Wallet (native integration), Rainbow Wallet (full support), and compatibility with any wallet implementing EIP-1193. Automatic detection of installed wallets, fallback to WalletConnect for undetected wallets, and connection error handling. Commands: 'Nuxchain supported wallets', 'Nuxchain wallet compatibility'.",
+    metadata: { type: "technical", category: "authentication", topic: "wallets" }
+  },
+
+  // === DESARROLLO Y CONFIGURACIÓN ===
+  {
+    content: "Guía de Desarrollo Local en Nuxchain: Instalación con 'npm install', desarrollo con 'npm run dev' (frontend) y 'npm run dev:full' (fullstack), configuración de variables de entorno (.env.local), setup de base de datos local, configuración de APIs externas (Alchemy, Moralis), y testing con 'npm test'. Incluye hot reload, debugging tools, y desarrollo con mock data. / Nuxchain Local Development Guide: Installation with 'npm install', development with 'npm run dev' (frontend) and 'npm run dev:full' (fullstack), environment variables configuration (.env.local), local database setup, external APIs configuration (Alchemy, Moralis), and testing with 'npm test'. Includes hot reload, debugging tools, and development with mock data. Commands: 'Nuxchain local development', 'Nuxchain dev setup'.",
+    metadata: { type: "developer", category: "development", topic: "local-setup" }
+  },
+  {
+    content: "Configuración de Entorno en Nuxchain: Variables de entorno para desarrollo (.env.local) y producción (.env), configuración de APIs (ALCHEMY_API_KEY, MORALIS_API_KEY, GOOGLE_AI_API_KEY), URLs de endpoints según entorno, configuración de base de datos, y secrets de autenticación. Detección automática de entorno (localhost vs Vercel), y fallbacks para desarrollo sin APIs externas. / Nuxchain Environment Configuration: Environment variables for development (.env.local) and production (.env), API configuration (ALCHEMY_API_KEY, MORALIS_API_KEY, GOOGLE_AI_API_KEY), endpoint URLs by environment, database configuration, and authentication secrets. Automatic environment detection (localhost vs Vercel), and fallbacks for development without external APIs. Commands: 'Nuxchain environment config', 'Nuxchain env variables'.",
+    metadata: { type: "developer", category: "development", topic: "environment" }
+  },
+  {
+    content: "Scripts de Build y Deploy en Nuxchain: 'npm run build' para build de producción, 'npm run preview' para preview local del build, 'npm run lint' para linting del código, 'npm run type-check' para verificación de TypeScript, y deploy automático en Vercel con GitHub integration. Optimizaciones de bundle, tree shaking, y code splitting automático para mejor performance. / Nuxchain Build and Deploy Scripts: 'npm run build' for production build, 'npm run preview' for local build preview, 'npm run lint' for code linting, 'npm run type-check' for TypeScript verification, and automatic deploy on Vercel with GitHub integration. Bundle optimizations, tree shaking, and automatic code splitting for better performance. Commands: 'Nuxchain build process', 'Nuxchain deploy'.",
+    metadata: { type: "developer", category: "development", topic: "build-deploy" }
+  },
+
+  // === DEPLOYMENT VERCEL ===
+  {
+    content: "Deployment en Vercel de Nuxchain: Configuración automática con vercel.json, serverless functions para APIs, variables de entorno en dashboard de Vercel, custom domains, SSL automático, y CDN global. Integración con GitHub para deploy automático en push a main branch. Optimizaciones específicas para React/Vite y funciones serverless de Node.js. / Nuxchain Vercel Deployment: Automatic configuration with vercel.json, serverless functions for APIs, environment variables in Vercel dashboard, custom domains, automatic SSL, and global CDN. GitHub integration for automatic deploy on push to main branch. Specific optimizations for React/Vite and Node.js serverless functions. Commands: 'Nuxchain Vercel deployment', 'Nuxchain production setup'.",
+    metadata: { type: "technical", category: "deployment", topic: "vercel" }
+  },
+
+  // === COMPONENTES Y FUNCIONALIDADES AVANZADAS ===
+  {
+    content: "Componente Layout en Nuxchain: Header responsive con navegación principal, sidebar colapsible con menú de secciones, footer con links importantes, breadcrumbs para navegación, y theme switcher. Incluye componentes de loading states, error boundaries, y optimizaciones de performance con lazy loading. Diseño mobile-first con breakpoints optimizados. / Nuxchain Layout Component: Responsive header with main navigation, collapsible sidebar with section menu, footer with important links, breadcrumbs for navigation, and theme switcher. Includes loading states components, error boundaries, and performance optimizations with lazy loading. Mobile-first design with optimized breakpoints. Commands: 'Nuxchain layout', 'Nuxchain navigation'.",
+    metadata: { type: "technical", category: "components", topic: "layout" }
+  },
+  {
+    content: "Sistema de Firebase en Nuxchain: Autenticación de usuarios, Firestore para almacenamiento de datos, Storage para archivos multimedia, Real-time Database para chat y notificaciones, y Cloud Functions para lógica serverless. Configuración de reglas de seguridad, índices optimizados, y sincronización offline. Integración con Web3 para datos híbridos. / Nuxchain Firebase System: User authentication, Firestore for data storage, Storage for multimedia files, Real-time Database for chat and notifications, and Cloud Functions for serverless logic. Security rules configuration, optimized indexes, and offline synchronization. Integration with Web3 for hybrid data. Commands: 'Nuxchain Firebase', 'Nuxchain database'.",
+    metadata: { type: "technical", category: "backend", topic: "firebase" }
+  },
+  {
+    content: "Optimizaciones de Performance en Nuxchain: Code splitting automático con Vite, lazy loading de componentes y rutas, memoización con React.memo y useMemo, virtual scrolling para listas grandes, image optimization con lazy loading, y caching estratégico de APIs. Bundle analysis y tree shaking para reducir tamaño. Service workers para caching offline. / Nuxchain Performance Optimizations: Automatic code splitting with Vite, lazy loading of components and routes, memoization with React.memo and useMemo, virtual scrolling for large lists, image optimization with lazy loading, and strategic API caching. Bundle analysis and tree shaking to reduce size. Service workers for offline caching. Commands: 'Nuxchain performance', 'Nuxchain optimization'.",
+    metadata: { type: "technical", category: "performance", topic: "optimization" }
+  },
+  {
+    content: "Sistema de Notificaciones en Nuxchain: Toast notifications para acciones del usuario, push notifications para eventos importantes, notificaciones en tiempo real para transacciones blockchain, sistema de badges para elementos no leídos, y centro de notificaciones con historial. Integración con wallet events y smart contract events. / Nuxchain Notification System: Toast notifications for user actions, push notifications for important events, real-time notifications for blockchain transactions, badge system for unread items, and notification center with history. Integration with wallet events and smart contract events. Commands: 'Nuxchain notifications', 'Nuxchain alerts'.",
+    metadata: { type: "technical", category: "features", topic: "notifications" }
+  },
+  {
+    content: "Gestión de Estados en Nuxchain: Context API para estado global, custom hooks para lógica reutilizable, localStorage para persistencia local, sessionStorage para datos temporales, y Zustand para estado complejo. Patrones de estado para Web3 (wallet, network, transactions), y sincronización con backend APIs. / Nuxchain State Management: Context API for global state, custom hooks for reusable logic, localStorage for local persistence, sessionStorage for temporary data, and Zustand for complex state. State patterns for Web3 (wallet, network, transactions), and synchronization with backend APIs. Commands: 'Nuxchain state management', 'Nuxchain hooks'.",
+    metadata: { type: "technical", category: "architecture", topic: "state" }
+  },
+  {
+    content: "Seguridad en Nuxchain: Validación de inputs con Zod, sanitización de datos, protección CSRF, rate limiting en APIs, validación de firmas Web3, y auditoría de smart contracts. Manejo seguro de private keys (nunca almacenadas), validación de transacciones, y protección contra ataques comunes. HTTPS obligatorio en producción. / Nuxchain Security: Input validation with Zod, data sanitization, CSRF protection, API rate limiting, Web3 signature validation, and smart contract auditing. Secure private key handling (never stored), transaction validation, and protection against common attacks. Mandatory HTTPS in production. Commands: 'Nuxchain security', 'Nuxchain validation'.",
+    metadata: { type: "security", category: "security", topic: "protection" }
+  },
+
   // === COMMANDS ===
   {
-    content: "Available commands for Nuxchain information: 'Nuxchain general', 'Nuxchain staking', 'Nuxchain marketplace', 'Nuxchain airdrop', 'Nuxchain technical', 'Nuxchain help', 'Nuxchain tokenization', 'Nuxchain roadmap', 'Nuxchain AI chat', 'Nuxchain troubleshooting', 'Nuxchain advanced strategies', 'Nuxchain developers'. Use specific topics for detailed information. / Comandos disponibles para información de Nuxchain: 'Nuxchain general', 'Nuxchain staking', 'Nuxchain marketplace', 'Nuxchain airdrop', 'Nuxchain technical', 'Nuxchain help', 'Nuxchain tokenization', 'Nuxchain roadmap', 'Nuxchain AI chat', 'Nuxchain troubleshooting', 'Nuxchain advanced strategies', 'Nuxchain developers'. Usa temas específicos para información detallada. Commands: 'Nuxchain commands'.",
+    content: "Available commands for Nuxchain information: 'Nuxchain general', 'Nuxchain staking', 'Nuxchain marketplace', 'Nuxchain airdrop', 'Nuxchain technical', 'Nuxchain help', 'Nuxchain tokenization', 'Nuxchain roadmap', 'Nuxchain AI chat', 'Nuxchain troubleshooting', 'Nuxchain advanced strategies', 'Nuxchain developers', 'Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain development'. Use specific topics for detailed information. / Comandos disponibles para información de Nuxchain: 'Nuxchain general', 'Nuxchain staking', 'Nuxchain marketplace', 'Nuxchain airdrop', 'Nuxchain technical', 'Nuxchain help', 'Nuxchain tokenization', 'Nuxchain roadmap', 'Nuxchain AI chat', 'Nuxchain troubleshooting', 'Nuxchain advanced strategies', 'Nuxchain developers', 'Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain development'. Usa temas específicos para información detallada. Commands: 'Nuxchain commands'.",
     metadata: { type: "commands", category: "help", topic: "available" }
   }
 ];
 
-/**
- * Función para inicializar automáticamente la base de conocimientos al arrancar el servidor
- */
-export async function initializeKnowledgeBaseOnStartup() {
-  try {
-    console.log('🚀 Inicializando base de conocimientos automáticamente...');
-    console.log('📚 Inicializando base de conocimientos con contenido bilingüe y referencias POL...');
-    
-    // Inicializar el índice con los documentos
-    const result = await embeddingsService.upsertIndex('knowledge_base', knowledgeBase.map(doc => ({
-      text: doc.content,
-      meta: doc.metadata
-    })));
-
-    console.log(`✅ Base de conocimientos inicializada: ${knowledgeBase.length} documentos indexados`);
-    console.log('📊 Categorías disponibles:', [...new Set(knowledgeBase.map(d => d.metadata.type))]);
-    
-    // Mostrar estadísticas detalladas
-    const categoryStats = {};
-    knowledgeBase.forEach(doc => {
-      const category = doc.metadata.type;
-      categoryStats[category] = (categoryStats[category] || 0) + 1;
-    });
-    
-    console.log('📈 Distribución por categorías:');
-    Object.entries(categoryStats).forEach(([category, count]) => {
-      console.log(`   - ${category}: ${count} documentos`);
-    });
-    
-  } catch (error) {
-    console.error('❌ Error inicializando base de conocimientos:', error.message);
-    // No lanzar error para no interrumpir el arranque del servidor
-  }
-}
+// Función de inicialización movida a embeddings-service.js para evitar dependencia circular

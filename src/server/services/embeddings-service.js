@@ -101,11 +101,43 @@ class EmbeddingsService {
 
 const embeddingsService = new EmbeddingsService();
 
-import { knowledgeBase, initializeKnowledgeBaseOnStartup } from './knowledge-base.js';
-
 /**
  * Función para inicializar automáticamente la base de conocimientos al arrancar el servidor
  */
-export { initializeKnowledgeBaseOnStartup };
+export async function initializeKnowledgeBaseOnStartup() {
+  try {
+    console.log('🚀 Inicializando base de conocimientos automáticamente...');
+    console.log('📚 Inicializando base de conocimientos con contenido bilingüe y referencias POL...');
+    
+    // Importar dinámicamente para evitar dependencia circular
+    const { knowledgeBase } = await import('./knowledge-base.js');
+    
+    // Inicializar el índice con los documentos
+    const result = await embeddingsService.upsertIndex('knowledge_base', knowledgeBase.map(doc => ({
+      text: doc.content,
+      meta: doc.metadata
+    })));
+
+    console.log(`✅ Base de conocimientos inicializada: ${knowledgeBase.length} documentos indexados`);
+    console.log('📊 Categorías disponibles:', [...new Set(knowledgeBase.map(d => d.metadata.type))]);
+    
+    // Mostrar estadísticas detalladas
+    const categoryStats = {};
+    knowledgeBase.forEach(doc => {
+      const category = doc.metadata.type;
+      categoryStats[category] = (categoryStats[category] || 0) + 1;
+    });
+    
+    console.log('📈 Distribución por categorías:');
+    Object.entries(categoryStats).forEach(([category, count]) => {
+      console.log(`   - ${category}: ${count} documentos`);
+    });
+    
+  } catch (error) {
+    console.error('❌ Error inicializando base de conocimientos:', error.message);
+    console.error('Stack trace:', error.stack);
+    // No lanzar error para no interrumpir el arranque del servidor
+  }
+}
 
 export default embeddingsService;

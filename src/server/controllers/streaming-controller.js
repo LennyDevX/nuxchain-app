@@ -8,6 +8,7 @@ import websocketStreamingService from '../services/websocket-streaming-service.j
 import uxEnhancementService from '../services/ux-enhancement-service.js';
 import { processGeminiStreamRequest, createOptimizedGeminiStream } from '../services/gemini-service.js';
 import analyticsService from '../services/analytics-service.js';
+import { functionCalling } from './gemini-controller.js';
 
 class StreamingController {
   constructor() {
@@ -93,10 +94,45 @@ class StreamingController {
       }
 
       // Obtener stream de Gemini
-      const geminiStream = await processGeminiStreamRequest({
-        prompt,
-        ...options
-      });
+      let geminiStream;
+      if (options.useTools) {
+        // Si se usan herramientas, llamar a functionCalling
+        const toolResult = await functionCalling({ body: { prompt, options } }, res, () => {});
+        // Asumiendo que functionCalling devuelve un objeto con la respuesta o un error
+        if (toolResult && toolResult.error) {
+          throw new Error(toolResult.error);
+        } else if (toolResult) {
+          // Si hay un resultado de herramienta, enviarlo como un chunk y finalizar el stream
+          const toolResponseChunk = {
+            type: 'content_chunk',
+            sessionId,
+            chunk: {
+              content: JSON.stringify(toolResult),
+              contentType: 'json',
+              isToolResult: true
+            },
+            metadata: {
+              chunkIndex: 0,
+              totalProcessed: 1,
+              timestamp: Date.now(),
+              processingTime: Date.now() - startTime
+            }
+          };
+          res.write(`data: ${JSON.stringify(toolResponseChunk)}\n\n`);
+          await this.finalizeStream(sessionId, res, {
+            totalChunks: 1,
+            totalTime: Date.now() - startTime,
+            contentLength: JSON.stringify(toolResult).length,
+            uxConfig
+          });
+          return;
+        }
+      } else {
+        geminiStream = await processGeminiStreamRequest({
+          prompt,
+          ...options
+        });
+      }
 
       if (!geminiStream) {
         throw new Error('No se pudo obtener el stream de Gemini');

@@ -1,6 +1,6 @@
 # Exclude server-side files from Vercel deployment
-src/server/
-src/security/
+# src/server/ - COMMENTED OUT: Needed for serverless functions
+# src/security/ - COMMENTED OUT: Needed for serverless functions
 serverless/
 
 # Exclude development files

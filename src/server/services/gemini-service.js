@@ -15,7 +15,7 @@ import urlContextService from './url-context-service.js';
  * @param {Number} options.backoffMs - Tiempo de espera entre reintentos en milisegundos
  * @returns {Promise<any>} - Resultado de la función
  */
-async function withTimeoutAndRetry(fn, { timeoutMs = 30000, maxRetries = 2, backoffMs = 2000 } = {}) {
+async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 1, backoffMs = 1000 } = {}) {
   let attempt = 0;
   while (attempt <= maxRetries) {
     try {
@@ -82,10 +82,22 @@ const responseCache = new ResponseCache();
 /**
  * Enriquece el contexto con información relevante de la base de conocimientos
  * @param {String} query - Consulta del usuario
+ * @param {Object} options - Opciones de enriquecimiento
+ * @param {Boolean} options.skipNuxchainContext - Si true, no agrega contexto de Nuxchain
  * @returns {Promise<String>} - Contexto enriquecido
  */
-async function enrichContextWithKnowledgeBase(query) {
+export async function enrichContextWithKnowledgeBase(query, options = {}) {
   try {
+    // Detectar si la consulta contiene URLs
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const hasUrls = urlRegex.test(query);
+    
+    // Si hay URLs o se especifica skipNuxchainContext, no agregar contexto de Nuxchain
+    if (hasUrls || options.skipNuxchainContext) {
+      console.log(`🔍 Saltando contexto de Nuxchain - URLs detectadas: ${hasUrls}, skipNuxchainContext: ${options.skipNuxchainContext}`);
+      return '';
+    }
+    
     console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
     
     // Verificar que el índice esté inicializado
@@ -232,7 +244,7 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
         contents: patchedContents,
         generationConfig,
         ...params
-      }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+      }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
     }
 
     // --- PATCH: Post-process to ensure test keywords are present ---
@@ -271,7 +283,7 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
         contents,
         generationConfig,
         ...params
-      }), { timeoutMs: 35000, maxRetries: 1, backoffMs: 2500 });
+      }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
       
       return fallbackResponse;
     }
@@ -349,15 +361,27 @@ export async function executeFunctionCall(functionCall) {
  */
 async function executeUrlContext(args) {
   try {
-    const { url, includeImages = false } = args;
-    const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
+    // Verificar que la API key esté configurada
+    if (!env.geminiApiKey) {
+      throw new Error('GEMINI_API_KEY no está configurada. En producción, asegúrate de configurar esta variable de entorno en tu plataforma de hosting.');
+    }
     
-    return {
-      success: true,
-      data: contextData,
-      message: `Contenido obtenido exitosamente de ${url}`
-    };
+    const { url, includeImages = false } = args;
+    try {
+      const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
+      toolOutput = JSON.stringify(contextData);
+    } catch (error) {
+      console.error('Error al obtener contexto de URL:', error.message);
+      toolOutput = JSON.stringify({ error: error.message });
+    }
+// Remove break statement since it's not inside a loop or switch
+return {
+  success: true,
+  data: contextData,
+  message: `URL context retrieved successfully`
+};
   } catch (error) {
+    console.error('Error en executeUrlContext:', error.message);
     return {
       success: false,
       error: error.message,
@@ -428,8 +452,9 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
   // Configurar herramientas basadas en enabledTools
   const tools = [];
   const allowedFunctionNames = [];
+  const hasUrlContext = enabledTools.includes('urlContext');
   
-  if (enabledTools.includes('urlContext')) {
+  if (hasUrlContext) {
     console.log('🔧 [TOOLS] Agregando herramienta urlContext');
     tools.push(urlContextFunctionDeclaration);
     allowedFunctionNames.push('urlContext');
@@ -441,6 +466,34 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
     console.log('🔧 [TOOLS] Agregando herramienta controlLight');
     tools.push(defaultFunctionDeclaration);
     allowedFunctionNames.push('controlLight');
+  }
+  
+  // Enriquecer contexto con base de conocimientos para consultas relevantes
+  if (typeof contents === 'string') {
+    const knowledgeContext = await enrichContextWithKnowledgeBase(contents, {
+      skipNuxchainContext: hasUrlContext
+    });
+    if (knowledgeContext) {
+      contents = `${knowledgeContext}\n\n${contents}`;
+    }
+  } else if (Array.isArray(contents) && contents.length > 0) {
+    // Para conversaciones, enriquecer solo el último mensaje del usuario
+    const lastMessage = contents[contents.length - 1];
+    if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0] && lastMessage.parts[0].text) {
+      const knowledgeContext = await enrichContextWithKnowledgeBase(lastMessage.parts[0].text, {
+        skipNuxchainContext: hasUrlContext
+      });
+      if (knowledgeContext) {
+        // Crear una copia del último mensaje con contexto enriquecido
+        const enrichedLastMessage = {
+          ...lastMessage,
+          parts: [{
+            text: `${knowledgeContext}\n\n${lastMessage.parts[0].text}`
+          }]
+        };
+        contents = [...contents.slice(0, -1), enrichedLastMessage];
+      }
+    }
   }
 
   console.log('🔧 [TOOLS] Herramientas configuradas:', allowedFunctionNames);
@@ -475,7 +528,12 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
   };
   
   // Para consultas sobre precios actuales o información en tiempo real, forzar el uso de herramientas
-  const isRealTimeQuery = contents.some(content => {
+  let isRealTimeQuery = false;
+  
+  // Manejar tanto strings como arrays
+  const contentsArray = Array.isArray(contents) ? contents : [{ parts: [{ text: contents }] }];
+  
+  isRealTimeQuery = contentsArray.some(content => {
     const text = content.parts?.[0]?.text?.toLowerCase() || '';
     console.log('🔧 [DEBUG] Texto analizado:', text);
     
@@ -517,7 +575,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
       tools: [{ functionDeclarations: tools }],
       toolConfig,
       ...params
-    }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+    }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
 
     console.log('🔧 [TOOLS] Respuesta de Gemini recibida');
     console.log('🔧 [TOOLS] Texto de respuesta:', response.text || 'Sin texto');
@@ -566,7 +624,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
         contents: enrichedContents,
         generationConfig,
         ...params
-      }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+      }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
 
       return {
         text: finalResponse.text,
@@ -620,7 +678,7 @@ export async function processFunctionCallingRequest({
     model,
     contents: prompt,
     config
-  }), { timeoutMs: 35000, maxRetries: 2, backoffMs: 2500 });
+  }), { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 });
   
   return {
     text: response.text,
@@ -699,7 +757,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
         generationConfig,
         ...params
       }), 
-      { timeoutMs: 45000, maxRetries: 2, backoffMs: 3000 }
+      { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 }
     );
     
     return response;
@@ -717,7 +775,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
           generationConfig,
           ...params
         }), 
-        { timeoutMs: 45000, maxRetries: 1, backoffMs: 3000 }
+        { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 }
       );
       
       return fallbackResponse;
@@ -792,27 +850,41 @@ export function createOptimizedGeminiStream(geminiStream, options = {}) {
 }
 
 /**
- * Crea un stream simulado dividiendo el texto en chunks
- * @param {String} text - Texto completo a dividir
- * @returns {AsyncIterable} - Stream simulado
+ * Crea un stream simulado para respuestas que no requieren streaming real
+ * @param {string} text - Texto a transmitir
+ * @param {Object} options - Opciones de configuración
+ * @returns {ReadableStream} - Stream simulado
  */
-function createSimulatedStream(text) {
-  const chunkSize = 10; // Caracteres por chunk
-  const delay = 50; // Delay entre chunks en ms
+function createSimulatedStream(text, options = {}) {
+  const { chunkSize = 10, delayMs = 50 } = options;
   
-  return {
-    async *[Symbol.asyncIterator]() {
-      for (let i = 0; i < text.length; i += chunkSize) {
-        const chunk = text.slice(i, i + chunkSize);
-        yield { text: chunk };
+  return new ReadableStream({
+    start(controller) {
+      let index = 0;
+      
+      function pushChunk() {
+        if (index >= text.length) {
+          controller.close();
+          return;
+        }
         
-        // Pequeño delay para simular streaming
-        if (i + chunkSize < text.length) {
-          await new Promise(resolve => setTimeout(resolve, delay));
+        const chunk = text.slice(index, index + chunkSize);
+        const encoder = new TextEncoder();
+        controller.enqueue(encoder.encode(chunk));
+        
+        index += chunkSize;
+        
+        if (index < text.length) {
+          setTimeout(pushChunk, delayMs);
+        } else {
+          controller.close();
         }
       }
+      
+      // Iniciar el streaming
+      setTimeout(pushChunk, delayMs);
     }
-  };
+  });
 }
 
 /**
@@ -824,6 +896,8 @@ function createSimulatedStream(text) {
  * @returns {Promise<AsyncIterable>} - Stream de respuesta
  */
 export async function processGeminiStreamRequestWithTools(contents, model = DEFAULT_MODEL, params = {}, enabledTools = ['urlContext', 'googleSearch', 'controlLight']) {
+  console.log('🔧 [STREAM-TOOLS] Iniciando con herramientas:', enabledTools);
+  
   if (!env.geminiApiKey) {
     throw new Error('API key no configurada');
   }
@@ -832,56 +906,33 @@ export async function processGeminiStreamRequestWithTools(contents, model = DEFA
     throw new Error('Se requiere un prompt o historial de mensajes');
   }
 
-  // Configurar herramientas
-  const tools = [];
-  const allowedFunctionNames = [];
-  
-  if (enabledTools.includes('urlContext')) {
-    tools.push(urlContextFunctionDeclaration);
-    allowedFunctionNames.push('urlContext');
-  }
-  
-  // googleSearch tool removed
-  
-  if (enabledTools.includes('controlLight')) {
-    tools.push(defaultFunctionDeclaration);
-    allowedFunctionNames.push('controlLight');
-  }
-
-  // Si no hay herramientas, usar la función original
-  if (tools.length === 0) {
-    return await processGeminiStreamRequest(contents, model, params);
-  }
-
-  // Usar la misma lógica que processGeminiRequestWithTools pero con streaming simulado
   try {
-    // Procesar con herramientas usando la función que sabemos que funciona
+    // Primero procesamos con herramientas (no streaming)
+    console.log('🔧 [STREAM-TOOLS] Procesando con herramientas habilitadas');
+    
     const result = await processGeminiRequestWithTools(contents, model, params, enabledTools);
     
-    // Extraer el texto final de la respuesta
-    let finalText = '';
-    if (result && result.text) {
-      finalText = result.text;
-    } else if (result && typeof result === 'string') {
-      finalText = result;
-    } else if (result && result.response && result.response.text) {
-      finalText = typeof result.response.text === 'function' ? result.response.text() : result.response.text;
-    } else {
-      finalText = 'Lo siento, no pude generar una respuesta con las herramientas disponibles.';
+    // Si hay function calls, devolvemos la respuesta completa como stream simulado
+    if (result.functionCalls && result.functionCalls.length > 0) {
+      console.log('🔧 [STREAM-TOOLS] Function calls detectados, devolviendo respuesta completa');
+      return createSimulatedStream(result.text || 'Procesando información...');
     }
     
-    // Crear stream simulado con el resultado
-    return createSimulatedStream(finalText);
+    // Si no hay function calls, usar streaming normal
+    console.log('🔧 [STREAM-TOOLS] No hay function calls, usando streaming normal');
+    return await processGeminiStreamRequest(contents, model, params);
     
   } catch (error) {
     console.error('Error in processGeminiStreamRequestWithTools:', error);
     
-    // Fallback: usar streaming normal sin herramientas
+    // Fallback: intentar streaming normal
     try {
+      console.log('🔧 [STREAM-TOOLS] Fallback a streaming normal');
       return await processGeminiStreamRequest(contents, model, params);
     } catch (fallbackError) {
-      console.error('Fallback streaming also failed:', fallbackError);
-      return createSimulatedStream('Lo siento, ocurrió un error al procesar tu solicitud.');
+      console.error('Error en fallback:', fallbackError);
+      const errorMessage = `Lo siento, ocurrió un error al procesar tu solicitud: ${error.message}`;
+      return createSimulatedStream(errorMessage);
     }
   }
 }

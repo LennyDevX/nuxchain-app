@@ -241,7 +241,7 @@ export async function generateContent(req, res, next) {
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
-                analyticsService.completeRequest(requestMetrics);
+                analyticsService.endRequest(requestMetrics);
                 res.end();
                 break;
               }
@@ -401,7 +401,7 @@ export async function functionCalling(req, res, next) {
     });
   } catch (error) {
     analyticsService.failRequest(requestMetrics, error);
-    next(error);
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -1471,100 +1471,146 @@ export async function processChatWithTools(req, res, next) {
  */
 export async function streamChatWithTools(req, res, next) {
   try {
-    const { messages, options = {} } = req.body;
+    console.log('🔧 [CONTROLLER] Iniciando streamChatWithTools');
+    console.log('🔧 [CONTROLLER] Método:', req.method);
     
-    console.log('🔧 [CONTROLLER] Recibiendo request de stream con herramientas');
-    console.log('🔧 [CONTROLLER] Mensajes recibidos:', messages?.length || 0);
-    console.log('🔧 [CONTROLLER] Opciones recibidas:', JSON.stringify(options, null, 2));
-    
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ 
-        error: 'Se requiere un array de mensajes no vacío'
-      });
+    // Validar método
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
     }
-
-    console.log('🔧 [CONTROLLER] Iniciando stream de chat con herramientas');
-
-    // Formatear mensajes para Gemini
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role,
-      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
-    }));
-
-    console.log('🔧 [CONTROLLER] Mensajes formateados:', JSON.stringify(formattedMessages, null, 2));
-
-    // Configurar headers para streaming optimizado
+    
+    // Validar API key
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('🔧 [CONTROLLER] GEMINI_API_KEY no configurada');
+      return res.status(500).json({ error: 'API key no configurada' });
+    }
+    
+    console.log('🔧 [CONTROLLER] API Key disponible:', apiKey ? 'Sí' : 'No');
+    console.log('🔧 [CONTROLLER] API Key length:', apiKey?.length || 0);
+    
+    // Parsear body
+    const { messages, enabledTools = [] } = req.body || {};
+    
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Messages array is required' });
+    }
+    
+    console.log('🔧 [CONTROLLER] Messages recibidos:', messages.length);
+    console.log('🔧 [CONTROLLER] Enabled tools:', enabledTools.length);
+    
+    // Configurar headers para streaming
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-
-    // Procesar con herramientas y streaming
-    const enabledTools = options.enabledTools || [];
-    console.log('🔧 [CONTROLLER] Herramientas habilitadas:', enabledTools);
     
-    const stream = await processGeminiStreamRequestWithTools(formattedMessages, 'gemini-2.5-flash-lite', options, enabledTools);
+    // Usar el servicio de Gemini existente en lugar de importación directa
+    const lastMessage = messages[messages.length - 1];
+    const prompt = lastMessage.content || 'Hola';
     
-    // Buffer para acumular texto y mejorar la presentación
-    let textBuffer = '';
-    let lastFlushTime = Date.now();
-    const FLUSH_INTERVAL = 100; // ms
-    const BUFFER_SIZE = 50; // caracteres
+    console.log('🔧 [CONTROLLER] Prompt:', prompt);
     
-    const flushBuffer = () => {
-      if (textBuffer && !res.destroyed) {
-        res.write(textBuffer);
-        textBuffer = '';
-        lastFlushTime = Date.now();
-      }
-    };
+    // Formatear mensajes para Gemini
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
+    }));
     
-    // Manejar el stream de Gemini con mejor formateo
+    console.log('🔧 [CONTROLLER] Mensajes formateados:', formattedMessages.length);
+    
+    // Detectar URLs en el mensaje para habilitar herramientas automáticamente
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const urls = prompt.match(urlRegex);
+    
+    // Configurar herramientas habilitadas automáticamente
+    let finalEnabledTools = [...enabledTools];
+    if (urls && urls.length > 0 && !finalEnabledTools.includes('urlContext')) {
+      finalEnabledTools.push('urlContext');
+      console.log('🔧 [CONTROLLER] URL detectada, habilitando herramienta urlContext automáticamente');
+    }
+    
+    console.log('🔧 [CONTROLLER] Herramientas finales habilitadas:', finalEnabledTools);
+    
     try {
-      for await (const chunk of stream) {
-        if (!res.destroyed) {
-          const text = chunk.text || '';
-          if (text) {
-            textBuffer += text;
+      // Usar el servicio de streaming con herramientas
+      const geminiStream = await processGeminiStreamRequestWithTools(
+        formattedMessages, 
+        'gemini-2.0-flash-exp', 
+        { temperature: 0.7, maxOutputTokens: 2048 }, 
+        finalEnabledTools
+      );
+      
+      console.log('🔧 [CONTROLLER] Stream de Gemini iniciado');
+      
+      // Verificar si es un ReadableStream (simulado) o un stream de Gemini
+      if (geminiStream && typeof geminiStream.getReader === 'function') {
+        // Es un ReadableStream simulado
+        console.log('🔧 [CONTROLLER] Procesando ReadableStream simulado');
+        const reader = geminiStream.getReader();
+        const decoder = new TextDecoder();
+        
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
             
-            // Flush basado en tamaño del buffer, tiempo o puntuación
-            const now = Date.now();
-            const shouldFlush = 
-              textBuffer.length >= BUFFER_SIZE ||
-              (now - lastFlushTime) >= FLUSH_INTERVAL ||
-              text.includes('\n') ||
-              text.includes('.') ||
-              text.includes('?') ||
-              text.includes('!');
-            
-            if (shouldFlush) {
-              flushBuffer();
+            if (res.destroyed || res.writableEnded) {
+              console.log('🔧 [CONTROLLER] Conexión cerrada por el cliente');
+              await reader.cancel();
+              break;
             }
+            
+            const text = decoder.decode(value, { stream: true });
+            if (text) {
+              res.write(text);
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } else {
+        // Es un stream de Gemini normal
+        console.log('🔧 [CONTROLLER] Procesando stream de Gemini');
+        for await (const chunk of geminiStream) {
+          if (res.destroyed || res.writableEnded) {
+            console.log('🔧 [CONTROLLER] Conexión cerrada por el cliente');
+            break;
+          }
+          
+          const text = chunk.text || chunk || '';
+          if (text) {
+            res.write(text);
           }
         }
       }
       
-      // Flush final del buffer
-      flushBuffer();
+      res.end();
+      console.log('🔧 [CONTROLLER] Stream completado exitosamente');
       
     } catch (streamError) {
-      console.error('Error processing stream:', streamError);
-      if (!res.destroyed) {
-        res.write(`\n\n[Error: ${streamError.message}]`);
+      console.error('🔧 [CONTROLLER] Error en streaming:', streamError);
+      
+      if (!res.headersSent) {
+        res.status(500);
       }
-    }
-    
-    if (!res.destroyed) {
+      
+      const errorText = `Lo siento, ocurrió un error al procesar tu solicitud: ${streamError.message}`;
+      res.write(errorText);
       res.end();
     }
+    
+    console.log('🔧 [CONTROLLER] Respuesta enviada exitosamente');
     
   } catch (error) {
-    console.error('Error streaming chat with tools:', error);
-    if (!res.destroyed) {
-      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
-      res.end();
+    console.error('🔧 [CONTROLLER] Error en streamChatWithTools:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: error.message, 
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 }

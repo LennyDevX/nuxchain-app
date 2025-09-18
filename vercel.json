@@ -82,6 +82,14 @@
       "destination": "/api/server/gemini/stream"
     },
     {
+      "source": "/server/gemini/stream-with-tools",
+      "destination": "/api/server/gemini?path=stream-with-tools"
+    },
+    {
+      "source": "/test-gemini/(.*)",
+      "destination": "/api/test-gemini?path=$1"
+    },
+    {
       "source": "/server/gemini/(.*)",
       "destination": "/api/server/gemini?path=$1"
     },

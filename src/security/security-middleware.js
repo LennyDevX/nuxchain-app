@@ -70,11 +70,16 @@ export const apiKeyAuth = (req, res, next) => {
   const publicEndpoints = [
     '/api/health', 
     '/api/gemini/models',
+    '/api/chat/stream',
+    '/api/gemini/stream',
     '/hello',
     '/server/hello',
     '/server/gemini/health',
     '/server/gemini/hello',
     '/server/gemini/stream',
+    '/server/gemini/stream-with-tools',
+    '/server/gemini/chat-with-tools',
+    '/server/gemini/url-context',
     '/server/gemini',
     '/server/chat',
     '/server/embeddings'

@@ -5,8 +5,23 @@
 
 import { withSecurity } from '../../src/security/serverless-security.js';
 import embeddingsService from '../../src/server/services/embeddings-service.js';
+import { initializeKnowledgeBaseOnStartup } from '../../src/server/services/embeddings-service.js';
+
+// Inicializar base de conocimiento en primera ejecución
+let isKnowledgeBaseInitialized = false;
+
+async function ensureKnowledgeBaseInitialized() {
+  if (!isKnowledgeBaseInitialized) {
+    console.log('🚀 Inicializando base de conocimientos en serverless...');
+    await initializeKnowledgeBaseOnStartup();
+    isKnowledgeBaseInitialized = true;
+    console.log('✅ Base de conocimientos inicializada en serverless');
+  }
+}
 
 async function embeddingsHandler(req, res) {
+  // Asegurar que la base de conocimiento esté inicializada
+  await ensureKnowledgeBaseInitialized();
   
   try {
     const { method, body, query, url } = req;
@@ -62,8 +77,7 @@ async function handleSearchEmbeddings(req, res, body, query) {
   }
   
   try {
-    const results = await embeddingsService.searchSimilar(searchQuery, {
-      limit,
+    const results = await embeddingsService.searchSimilar('knowledge_base', searchQuery, limit, {
       threshold
     });
     

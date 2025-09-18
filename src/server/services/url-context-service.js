@@ -3,7 +3,7 @@
  * Permite obtener contenido de URLs para proporcionar contexto adicional
  */
 
-import SimpleWebScraperService from './simple-web-scraper.js';
+import WebScraperService from './web-scraper.js';
 import analyticsService from './analytics-service.js';
 
 class UrlContextService {
@@ -11,7 +11,7 @@ class UrlContextService {
     this.cache = new Map();
     this.maxCacheSize = 100;
     this.cacheTTL = 300000; // 5 minutos
-    this.webScraper = new SimpleWebScraperService();
+    this.webScraper = new WebScraperService();
   }
 
   /**

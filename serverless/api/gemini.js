@@ -1,106 +1,123 @@
 /**
- * Función Serverless para Gemini - NuxChain App
- * Maneja todas las operaciones específicas de Gemini AI
+ * Función Serverless para Gemini AI - NuxChain App
+ * Procesamiento optimizado de solicitudes de IA con Gemini
  */
 
-import { withSecurity } from '../../src/security/serverless-security.js';
-import { 
-  generateContent,
-  functionCalling,
-  analyzeContent,
-  compareContent,
-  extractKeywords,
-  summarizeContent,
-  translateContent,
-  generateCode,
-  explainCode,
-  optimizeCode,
-  generateTests,
-  reviewCode,
-  generateDocumentation,
-  processBatchGeneration,
-  getModels,
-  getModelInfo
-} from '../../src/server/controllers/gemini-controller.js';
+import { createServerlessHandler } from '../middleware/router.js';
+import { validateRequest, commonSchemas } from '../middleware/validation.js';
+import { cacheAndCompress, cacheConfigs } from '../middleware/cache.js';
+import { withErrorHandling, ValidationError, ExternalServiceError } from '../middleware/error-handler.js';
+import handlers from '../handlers/gemini-handlers.js';
 
-async function geminiHandler(req, res) {
-  const { method, body, query, url } = req;
-  const path = new URL(url, `http://${req.headers.host}`).pathname;
-  
-  // Enrutar basado en el path y método
-  try {
-    if (path.includes('/function-calling')) {
-      return await functionCalling(req, res);
-    } else if (path.includes('/analyze')) {
-      return await analyzeContent(req, res);
-    } else if (path.includes('/compare')) {
-      return await compareContent(req, res);
-    } else if (path.includes('/extract-keywords')) {
-      return await extractKeywords(req, res);
-    } else if (path.includes('/summarize')) {
-      return await summarizeContent(req, res);
-    } else if (path.includes('/translate')) {
-      return await translateContent(req, res);
-    } else if (path.includes('/generate-code')) {
-      return await generateCode(req, res);
-    } else if (path.includes('/explain-code')) {
-      return await explainCode(req, res);
-    } else if (path.includes('/optimize-code')) {
-      return await optimizeCode(req, res);
-    } else if (path.includes('/generate-tests')) {
-      return await generateTests(req, res);
-    } else if (path.includes('/review-code')) {
-      return await reviewCode(req, res);
-    } else if (path.includes('/generate-docs')) {
-      return await generateDocumentation(req, res);
-    } else if (path.includes('/batch')) {
-      return await processBatchGeneration(req, res);
-    } else if (path.includes('/models')) {
-      if (path.includes('/info')) {
-        return await getModelInfo(req, res);
-      } else {
-        return await getModels(req, res);
-      }
-    } else if (path.includes('/stream')) {
-      // Import the streaming function
-      const { streamChatWithTools } = await import('../../src/server/controllers/gemini-controller.js');
-      return await streamChatWithTools(req, res);
-    } else if (path.includes('/health')) {
-      return res.status(200).json({
-        status: 'healthy',
-        service: 'gemini-api',
-        timestamp: new Date().toISOString(),
-        endpoints: [
-          '/api/gemini/function-calling',
-          '/api/gemini/analyze',
-          '/api/gemini/compare',
-          '/api/gemini/extract-keywords',
-          '/api/gemini/summarize',
-          '/api/gemini/translate',
-          '/api/gemini/generate-code',
-          '/api/gemini/explain-code',
-          '/api/gemini/optimize-code',
-          '/api/gemini/generate-tests',
-          '/api/gemini/review-code',
-          '/api/gemini/generate-docs',
-          '/api/gemini/batch',
-          '/api/gemini/models',
-          '/api/gemini/models/info',
-          '/api/gemini/stream',
-          '/api/gemini/health'
-        ]
-      });
-    } else {
-      // Endpoint por defecto - generación de contenido
-      return await generateContent(req, res);
-    }
-  } catch (error) {
-    console.error('Error en función serverless de Gemini:', error);
-    return res.status(500).json({
-      error: 'Error interno del servidor',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Error procesando solicitud'
-    });
-  }
+/**
+ * Configuración de rutas para Gemini AI
+ */
+function setupGeminiRoutes(router) {
+  // Health check con cache corto
+  router.get('/health', 
+    cacheAndCompress(cacheConfigs.short),
+    handlers.handleHealth
+  );
+
+  // Generación de contenido con validación y cache
+  router.post('/generate',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.medium),
+    handlers.handleGenerate
+  );
+
+  // Function calling con validación
+  router.post('/function-calling',
+    validateRequest(schemas.geminiGenerate),
+    handlers.handleFunctionCalling
+  );
+
+  // Rutas especializadas con cache
+  router.post('/analyze',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.medium),
+    handlers.handleAnalyze
+  );
+
+  router.post('/compare',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.medium),
+    handlers.handleCompare
+  );
+
+  router.post('/extract-keywords',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleExtractKeywords
+  );
+
+  router.post('/summarize',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.medium),
+    handlers.handleSummarize
+  );
+
+  router.post('/translate',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleTranslate
+  );
+
+  // Rutas de código con cache largo
+  router.post('/code/generate',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleGenerateCode
+  );
+
+  router.post('/code/explain',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleExplainCode
+  );
+
+  router.post('/code/optimize',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleOptimizeCode
+  );
+
+  router.post('/code/test',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleGenerateTests
+  );
+
+  router.post('/code/review',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleReviewCode
+  );
+
+  router.post('/code/document',
+    validateRequest(schemas.geminiGenerate),
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleGenerateDocumentation
+  );
+
+  // Procesamiento por lotes
+  router.post('/batch',
+    validateRequest(schemas.geminiBatch),
+    handlers.handleBatchGeneration
+  );
+
+  // Información de modelos
+  router.get('/models',
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleGetModels
+  );
+
+  router.get('/models/:model',
+    cacheAndCompress(cacheConfigs.long),
+    handlers.handleGetModelInfo
+  );
 }
 
-export default withSecurity(geminiHandler);
+const geminiHandler = createServerlessHandler(setupGeminiRoutes)
+
+export default withErrorHandling(geminiHandler);

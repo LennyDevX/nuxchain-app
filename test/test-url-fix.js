@@ -3,7 +3,7 @@
  * sin mezclar información de Nuxchain
  */
 
-import { processGeminiRequestWithTools } from './src/server/services/gemini-service.js';
+import { processGeminiRequestWithTools } from '../src/server/services/gemini-service.js';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno

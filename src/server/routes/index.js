@@ -1,5 +1,6 @@
 import express from 'express';
 import geminiRoutes from './gemini-routes.js';
+import geminiOptimizedRoutes from './gemini-optimized-routes.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
 import errorHandler from '../middlewares/error-handler.js'; // Add import
 
@@ -15,6 +16,9 @@ router.get('/hello', (_, res) => {
 
 // Usar el router de Gemini
 router.use('/gemini', geminiRoutes);
+
+// Usar el router de Gemini Optimizado v2.0
+router.use('/gemini-optimized', geminiOptimizedRoutes);
 
 // Usar el router de streaming mejorado
 router.use('/streaming', enhancedStreamingRoutes);

@@ -4,8 +4,12 @@
  */
 
 import { withSecurity } from '../src/security/serverless-security.js';
-import webScraperService from '../src/server/services/web-scraper-service.js';
+import { getCorsConfig } from '../src/security/cors-policies.js';
+import WebScraperService from '../src/server/services/web-scraper.js';
 import urlContextService from '../src/server/services/url-context-service.js';
+
+// Create instance of WebScraperService
+const webScraperService = new WebScraperService();
 
 // Configuración CORS para producción
 const corsConfig = getCorsConfig('production');
@@ -129,17 +133,26 @@ async function handleExtractUrl(req, res, body, query) {
   }
   
   try {
-    const result = await webScraperService.extractContent(url, options);
+    const extractedContent = await webScraperService.extractContent(url, options);
     
-    res.status(200).json({
-      success: true,
-      data: {
-        url,
-        content: result,
-        extractedAt: new Date().toISOString()
-      },
-      timestamp: new Date().toISOString()
-    });
+    if (extractedContent.success) {
+      res.status(200).json({
+        success: true,
+        data: {
+          url,
+          content: extractedContent.content,
+          title: extractedContent.title,
+          extractedAt: new Date().toISOString()
+        },
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: extractedContent.error || 'Error al extraer contenido',
+        url
+      });
+    }
   } catch (error) {
     console.error('Error extrayendo contenido:', error);
     res.status(500).json({
@@ -188,8 +201,21 @@ async function handleExtractMultipleUrls(req, res, body) {
     const results = await Promise.allSettled(
       urls.map(async (url) => {
         try {
-          const content = await webScraperService.extractContent(url, options);
-          return { url, content, status: 'success' };
+          const extractedContent = await webScraperService.extractContent(url, options);
+          if (extractedContent.success) {
+            return { 
+              url, 
+              content: extractedContent.content,
+              title: extractedContent.title,
+              status: 'success' 
+            };
+          } else {
+            return { 
+              url, 
+              error: extractedContent.error || 'Error al extraer contenido', 
+              status: 'error' 
+            };
+          }
         } catch (error) {
           return { url, error: error.message, status: 'error' };
         }

@@ -3,7 +3,7 @@
  * Protección integral para producción
  */
 
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import slowDown from 'express-slow-down';
 import helmet from 'helmet';
 import { getCorsConfig, rateLimitConfig, blockedIPs } from './cors-policies.js';
@@ -24,7 +24,7 @@ export const createRateLimit = (options = {}) => {
     message: config.message,
     standardHeaders: config.standardHeaders,
     legacyHeaders: config.legacyHeaders,
-    keyGenerator: config.keyGenerator,
+    keyGenerator: ipKeyGenerator, // Use ipKeyGenerator for IPv6 compatibility
     handler: config.handler,
     // Configuración adicional para producción
     store: options.store, // Para usar Redis en producción
@@ -48,14 +48,15 @@ export const createSlowDown = (options = {}) => {
     ...options
   };
   return slowDown({
-    windowMs: options.windowMs || 15 * 60 * 1000, // 15 minutos
-    delayAfter: options.delayAfter || 50, // Comenzar a ralentizar después de 50 requests
-    delayMs: options.delayMs || 500, // Incrementar delay en 500ms por request
-    maxDelayMs: options.maxDelayMs || 20000, // Máximo delay de 20 segundos
-    skipFailedRequests: true,
-    skipSuccessfulRequests: false,
-    keyGenerator: (req) => req.ip, // Use req.ip as the key for rate limiting
-    handler: config.handler,
+    windowMs: config.windowMs,
+    delayAfter: config.delayAfter,
+    delayMs: () => 500, // New behavior for express-slow-down v2
+    // max: config.max, // Removed as it's not supported by express-slow-down
+    message: config.message,
+    headers: config.headers,
+    skip: config.skip,
+    validate: { delayMs: false }, // Disable warning for delayMs
+    keyGenerator: ipKeyGenerator, // Use ipKeyGenerator for IPv6 compatibility
   });
 };
 

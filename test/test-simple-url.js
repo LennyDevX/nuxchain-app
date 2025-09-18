@@ -2,7 +2,7 @@
  * Script simple para probar la funcionalidad de URLs
  */
 
-import { enrichContextWithKnowledgeBase } from './src/server/services/gemini-service.js';
+import { enrichContextWithKnowledgeBase } from '../src/server/services/gemini-service.js';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno

@@ -21,8 +21,12 @@ const isProductionDomain = typeof window !== 'undefined' &&
 // Removing unused variable declaration
   window.location.hostname.includes('vercel.app');
 
-// Lógica de detección: localhost siempre desarrollo, dominios de producción siempre producción
-const shouldUseProduction = !isLocalhost && (isProduction || isProductionDomain);
+// Forzar desarrollo si estamos accediendo desde cualquier dominio pero hay un servidor local
+// Esto permite que la app funcione en desarrollo incluso cuando se accede desde dominios de producción
+const forceDevMode = import.meta.env.VITE_FORCE_DEV === 'true';
+
+// Lógica de detección: usar desarrollo si estamos en localhost, en modo forzado, o si no es explícitamente producción
+const shouldUseProduction = !forceDevMode && !isLocalhost && (isProduction || isProductionDomain);
 
 // URLs del servidor según el entorno
 const API_CONFIG = {
@@ -33,7 +37,7 @@ const API_CONFIG = {
   production: {
     // En producción, usar rutas absolutas para serverless functions
     baseURL: import.meta.env.VITE_PROD_API_BASE_URL || '/api',
-    serverURL: import.meta.env.VITE_PROD_SERVER_URL || '/server'
+    serverURL: import.meta.env.VITE_PROD_SERVER_URL || '/api/server/gemini.js'
   }
 };
 
@@ -48,53 +52,59 @@ const getCurrentConfig = () => {
 // Exportar la configuración
 export const apiConfig = getCurrentConfig();
 
+// Función helper para construir URLs de API
+export const buildApiUrl = (endpoint: string) => {
+  if (shouldUseProduction) {
+    // En producción (Vercel), usar rutas directas que coincidan con los rewrites
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `/server${path}`;
+  }
+  // En desarrollo, usar la URL normal
+  return `${apiConfig.serverURL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+};
+
 // URLs específicas para diferentes servicios
 export const API_ENDPOINTS = {
   gemini: {
-    generate: `${apiConfig.serverURL}/gemini`,
-    stream: `${apiConfig.serverURL}/gemini/stream`,
-    analyze: `${apiConfig.serverURL}/gemini/analyze`,
-    compare: `${apiConfig.serverURL}/gemini/compare`,
-    functionCalling: `${apiConfig.serverURL}/gemini/function-calling`,
-    extractUrl: `${apiConfig.serverURL}/gemini/extract-url`,
-    extractMultipleUrls: `${apiConfig.serverURL}/gemini/extract-multiple-urls`,
-    validateUrl: `${apiConfig.serverURL}/gemini/validate-url`,
+    generate: buildApiUrl('/gemini'),
+    stream: buildApiUrl('/gemini/stream'),
+    analyze: buildApiUrl('/gemini/analyze'),
+    compare: buildApiUrl('/gemini/compare'),
+    functionCalling: buildApiUrl('/gemini/function-calling'),
+    extractUrl: buildApiUrl('/gemini/extract-url'),
+    extractMultipleUrls: buildApiUrl('/gemini/extract-multiple-urls'),
+    validateUrl: buildApiUrl('/gemini/validate-url'),
     // New endpoints for URL Context
-    urlContext: `${apiConfig.serverURL}/gemini/url-context`,
-    chatWithTools: `${apiConfig.serverURL}/gemini/chat-with-tools`,
-    streamWithTools: `${apiConfig.serverURL}/gemini/stream-with-tools`,
+    urlContext: buildApiUrl('/gemini/url-context'),
+    chatWithTools: buildApiUrl('/gemini/chat-with-tools'),
+    streamWithTools: buildApiUrl('/gemini/stream-with-tools'),
     embeddings: {
-      index: `${apiConfig.serverURL}/gemini/embeddings/index`,
-      search: `${apiConfig.serverURL}/gemini/embeddings/search`,
-      clear: `${apiConfig.serverURL}/gemini/embeddings/index`
+      index: buildApiUrl('/gemini/embeddings/index'),
+      search: buildApiUrl('/gemini/embeddings/search'),
+      clear: buildApiUrl('/gemini/embeddings/index')
     },
     batch: {
-      generate: `${apiConfig.serverURL}/gemini/batch/generate`,
-      embeddings: `${apiConfig.serverURL}/gemini/batch/embeddings`,
-      analyze: `${apiConfig.serverURL}/gemini/batch/analyze`,
-      status: `${apiConfig.serverURL}/gemini/batch/status`,
-      active: `${apiConfig.serverURL}/gemini/batch/active`,
-      cancel: `${apiConfig.serverURL}/gemini/batch`,
-      stats: `${apiConfig.serverURL}/gemini/batch/stats`
+      generate: buildApiUrl('/gemini/batch/generate'),
+      embeddings: buildApiUrl('/gemini/batch/embeddings'),
+      analyze: buildApiUrl('/gemini/batch/analyze'),
+      status: buildApiUrl('/gemini/batch/status'),
+      active: buildApiUrl('/gemini/batch/active'),
+      cancel: buildApiUrl('/gemini/batch'),
+      stats: buildApiUrl('/gemini/batch/stats')
     },
     analytics: {
-      metrics: `${apiConfig.serverURL}/gemini/analytics/metrics`,
-      realtime: `${apiConfig.serverURL}/gemini/analytics/realtime`,
-      insights: `${apiConfig.serverURL}/gemini/analytics/insights`,
-      stream: `${apiConfig.serverURL}/gemini/analytics/stream`,
-      export: `${apiConfig.serverURL}/gemini/analytics/export`,
-      reset: `${apiConfig.serverURL}/gemini/analytics/reset`
+      metrics: buildApiUrl('/gemini/analytics/metrics'),
+      realtime: buildApiUrl('/gemini/analytics/realtime'),
+      insights: buildApiUrl('/gemini/analytics/insights'),
+      stream: buildApiUrl('/gemini/analytics/stream'),
+      export: buildApiUrl('/gemini/analytics/export'),
+      reset: buildApiUrl('/gemini/analytics/reset')
     },
-    cache: `${apiConfig.serverURL}/gemini/cache`,
-    models: `${apiConfig.serverURL}/gemini/models`,
-    stats: `${apiConfig.serverURL}/gemini/stats`,
-    contextCache: `${apiConfig.serverURL}/gemini/context-cache/stats`
+    cache: buildApiUrl('/gemini/cache'),
+    models: buildApiUrl('/gemini/models'),
+    stats: buildApiUrl('/gemini/stats'),
+    contextCache: buildApiUrl('/gemini/context-cache/stats')
   }
-};
-
-// Función helper para construir URLs de API
-export const buildApiUrl = (endpoint: string) => {
-  return `${apiConfig.serverURL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 };
 
 // Log de configuración (temporal para debug en producción)

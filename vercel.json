@@ -110,12 +110,16 @@
       "destination": "/api/index?path=context-stats"
     },
     {
+      "source": "/server/gemini/stream-with-tools",
+      "destination": "/api/server/gemini?path=stream-with-tools"
+    },
+    {
       "source": "/server/gemini/stream",
-      "destination": "/api/index?path=gemini-v2"
+      "destination": "/api/server/gemini?path=stream"
     },
     {
       "source": "/server/gemini/(.*)",
-      "destination": "/api/index?path=gemini-v2"
+      "destination": "/api/server/gemini?path=$1"
     },
     {
       "source": "/((?!api|_next|_static|favicon.ico).*)",

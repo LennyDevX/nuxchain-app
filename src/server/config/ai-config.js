@@ -24,24 +24,28 @@ export function getModelInfo(modelName) {
   return AVAILABLE_MODELS[modelName] || null;
 }
 
-// Function to get safe model (fallback to working model)
+// Function to get safe model name (fallback to working model)
 export function getSafeModel(requestedModel) {
   const modelInfo = getModelInfo(requestedModel);
   
+  let modelName;
   // If model exists and is stable, use it
   if (modelInfo && modelInfo.isStable) {
-    return requestedModel;
+    modelName = requestedModel;
   }
-  
   // If it's a preview model, warn but allow
-  if (modelInfo && modelInfo.isPreview) {
+  else if (modelInfo && modelInfo.isPreview) {
     console.warn(`Using preview model: ${requestedModel}. This may be unstable.`);
-    return requestedModel;
+    modelName = requestedModel;
+  }
+  // Fallback to default working model
+  else {
+    console.warn(`Model ${requestedModel} not found or unstable. Falling back to ${DEFAULT_MODEL}`);
+    modelName = DEFAULT_MODEL;
   }
   
-  // Fallback to default working model
-  console.warn(`Model ${requestedModel} not found or unstable. Falling back to ${DEFAULT_MODEL}`);
-  return DEFAULT_MODEL;
+  // Return the model name for use with ai.models.generateContent()
+  return modelName;
 }
 
 export const defaultFunctionDeclaration = {

@@ -215,13 +215,13 @@ async function handleDocumentation(req, res) {
               messages: [
                 { role: 'user', content: '¿Cuál es la capital de España?' }
               ],
-              model: 'gemini-2.5-flash'
+              model: 'gemini-2.5-flash-lite'
             }
           },
           response: {
             content: 'La capital de España es Madrid.',
             metadata: {
-              model: 'gemini-2.5-flash',
+              model: 'gemini-2.5-flash-lite',
               responseTime: 1250,
               cached: false,
               requestId: 'req_abc123'

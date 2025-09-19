@@ -9,7 +9,7 @@ import streamingController from '../../../src/server/controllers/streaming-contr
 // === CONFIGURACIÓN DEL HANDLER ===
 
 const chatConfig = {
-  defaultModel: 'gemini-2.5-flash',
+  defaultModel: 'gemini-2.5-flash-lite',
   maxTokens: 2048,
   temperature: 0.7,
   supportedMethods: ['GET', 'POST', 'OPTIONS'],
@@ -34,7 +34,7 @@ function validateChatConfig(body) {
     errors.push('maxTokens debe estar entre 1 y 8192');
   }
   
-  if (body.model && !['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-pro', 'gemini-1.5-pro'].includes(body.model)) {
+  if (body.model && !['gemini-2.5-flash-lite'].includes(body.model)) {
     errors.push('Modelo no soportado');
   }
   
@@ -221,7 +221,7 @@ async function handleGetInfo(req, res) {
     capabilities: {
       streaming: chatConfig.enableStreaming,
       functionCalling: chatConfig.enableTools,
-      models: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-pro', 'gemini-1.5-pro']
+      models: ['gemini-2.5-flash-lite']
     },
     limits: {
       maxTokens: 8192,

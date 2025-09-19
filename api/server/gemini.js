@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         description: 'Chat con IA usando herramientas',
         parameters: {
           messages: 'Array de mensajes (requerido)',
-          model: 'Modelo de IA (opcional, default: gemini-1.5-flash)',
+          model: 'Modelo de IA (opcional, default: gemini-2.5-flash-lite)',
           enabledTools: 'Array de herramientas habilitadas (opcional)'
         }
       },

@@ -90,7 +90,7 @@ Endpoint principal para streaming semántico mejorado.
 {
   "prompt": "Tu pregunta aquí",
   "options": {
-    "model": "gemini-pro",
+    "model": "gemini-2.5-flash-lite",
     "temperature": 0.7
   },
   "streamingConfig": {

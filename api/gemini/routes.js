@@ -120,7 +120,7 @@ const endpoints = {
         method: 'POST',
         body: {
           messages: [{ role: 'user', content: 'Hola, ¿cómo estás?' }],
-          model: 'gemini-2.5-flash'
+          model: 'gemini-2.5-flash-lite'
         }
       },
       streaming: {

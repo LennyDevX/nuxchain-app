@@ -29,7 +29,7 @@ const analysisConfig = {
     timeout: 45000
   },
   
-  defaultModel: 'gemini-2.5-flash'
+  defaultModel: 'gemini-2.5-flash-lite'
 };
 
 // === PROMPTS DE ANÁLISIS ===

@@ -1606,7 +1606,7 @@ export async function streamChatWithTools(req, res, next) {
       // Usar el servicio de streaming con herramientas
       const geminiStream = await processGeminiStreamRequestWithTools(
         formattedMessages, 
-        'gemini-2.0-flash-exp', 
+        'gemini-2.5-flash-lite', 
         { temperature: 0.7, maxOutputTokens: 2048 }, 
         finalEnabledTools
       );

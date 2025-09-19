@@ -446,18 +446,11 @@ export const handleBatchGeneration = withErrorHandling(async (req, res) => {
 export const handleGetModels = withErrorHandling(async (req, res) => {
   const models = [
     {
-      id: 'gemini-1.5-pro',
-      name: 'Gemini 1.5 Pro',
-      description: 'Modelo más avanzado para tareas complejas',
-      maxTokens: 2097152,
+      id: 'gemini-2.5-flash-lite',
+      name: 'Gemini 2.5 Flash Lite',
+      description: 'Modelo optimizado y único disponible',
+      maxTokens: 8192,
       features: ['text', 'images', 'code', 'function-calling']
-    },
-    {
-      id: 'gemini-1.5-flash',
-      name: 'Gemini 1.5 Flash',
-      description: 'Modelo rápido para tareas generales',
-      maxTokens: 1048576,
-      features: ['text', 'images', 'code']
     }
   ];
 
@@ -476,11 +469,11 @@ export const handleGetModelInfo = withErrorHandling(async (req, res) => {
   const { model } = req.query;
 
   const modelInfo = {
-    'gemini-1.5-pro': {
-      id: 'gemini-1.5-pro',
-      name: 'Gemini 1.5 Pro',
-      version: '1.5',
-      description: 'Modelo más avanzado de Google para tareas complejas de IA',
+    'gemini-2.5-flash-lite': {
+      id: 'gemini-2.5-flash-lite',
+      name: 'Gemini 2.5 Flash Lite',
+      version: '2.5',
+      description: 'Modelo optimizado y único disponible en el proyecto',
       capabilities: {
         textGeneration: true,
         imageAnalysis: true,
@@ -489,29 +482,7 @@ export const handleGetModelInfo = withErrorHandling(async (req, res) => {
         multimodal: true
       },
       limits: {
-        maxTokens: 2097152,
-        maxImages: 16,
-        maxVideoDuration: '1 hour'
-      },
-      pricing: {
-        inputTokens: '$0.00125 per 1K tokens',
-        outputTokens: '$0.00375 per 1K tokens'
-      }
-    },
-    'gemini-1.5-flash': {
-      id: 'gemini-1.5-flash',
-      name: 'Gemini 1.5 Flash',
-      version: '1.5',
-      description: 'Modelo optimizado para velocidad y eficiencia',
-      capabilities: {
-        textGeneration: true,
-        imageAnalysis: true,
-        codeGeneration: true,
-        functionCalling: false,
-        multimodal: true
-      },
-      limits: {
-        maxTokens: 1048576,
+        maxTokens: 8192,
         maxImages: 16,
         maxVideoDuration: '30 minutes'
       },

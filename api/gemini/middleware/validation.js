@@ -33,8 +33,8 @@ export const schemas = {
       },
       model: { 
         type: 'string', 
-        default: 'gemini-2.5-flash',
-        enum: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-pro', 'gemini-1.5-pro']
+        default: 'gemini-2.5-flash-lite',
+      enum: ['gemini-2.5-flash-lite']
       },
       stream: { 
         type: 'boolean', 
@@ -83,7 +83,7 @@ export const schemas = {
       },
       model: { 
         type: 'string', 
-        default: 'gemini-2.5-flash' 
+        default: 'gemini-2.5-flash-lite' 
       },
       temperature: { 
         type: 'number', 
@@ -114,7 +114,7 @@ export const schemas = {
       },
       model: { 
         type: 'string', 
-        default: 'gemini-2.5-flash' 
+        default: 'gemini-2.5-flash-lite' 
       }
     }
   },
@@ -134,7 +134,7 @@ export const schemas = {
           properties: {
             id: { type: 'string' },
             prompt: { type: 'string', minLength: 1, maxLength: 5000 },
-            model: { type: 'string', default: 'gemini-2.5-flash' }
+            model: { type: 'string', default: 'gemini-2.5-flash-lite' }
           }
         }
       },

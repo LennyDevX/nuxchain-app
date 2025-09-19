@@ -111,36 +111,65 @@ const knowledgeBase = [
   }
 ];
 
-// Función simple de búsqueda semántica
+// Función mejorada de búsqueda semántica para producción
+// Función mejorada de búsqueda semántica para producción
 function searchKnowledgeBase(query) {
   const queryLower = query.toLowerCase();
   const results = [];
+  
+  // Expandir palabras clave con términos más relevantes
+  const importantKeywords = ['nuxchain', 'nuvim', 'polygon', 'staking', 'nft', 'marketplace', 
+                            'airdrop', 'tokenization', 'gemini', 'ai', 'chat', 'protocol', 
+                            'smart', 'contract', 'rewards', 'pol', 'wallet', 'transaction'];
   
   for (const doc of knowledgeBase) {
     const content = doc.content.toLowerCase();
     let score = 0;
     
-    // Búsqueda por palabras clave
-    const keywords = ['staking', 'nux', 'validator', 'smart', 'contract', 'blockchain', 'tokens', 'rewards'];
-    for (const keyword of keywords) {
+    // Búsqueda por palabras clave importantes (mayor puntuación)
+    for (const keyword of importantKeywords) {
       if (queryLower.includes(keyword) && content.includes(keyword)) {
-        score += 0.1;
+        score += 0.2; // Mayor puntuación para palabras clave
       }
     }
     
-    // Búsqueda por coincidencias de texto
-    const queryWords = queryLower.split(' ').filter(word => word.length > 3);
+      // Búsqueda por coincidencias de texto (todas las palabras >2 caracteres)
+    const queryWords = queryLower.split(' ').filter(word => word.length > 2);
     for (const word of queryWords) {
       if (content.includes(word)) {
-        score += 0.05;
+        score += 0.08;
       }
     }
     
-    if (score > 0) {
+    // Búsqueda por metadatos (categorías y temas)
+    const metadataLower = JSON.stringify(doc.metadata).toLowerCase();
+    for (const word of queryWords) {
+      if (metadataLower.includes(word)) {
+        score += 0.15; // Puntuación más alta para coincidencias en metadatos
+      }
+    }
+    
+    // Búsqueda por frases completas (palabras consecutivas)
+    const queryPhrases = queryLower.match(/\b\w+\s+\w+\b/g) || [];
+    for (const phrase of queryPhrases) {
+      if (content.includes(phrase)) {
+        score += 0.3; // Puntuación más alta para frases completas
+      }
+    }
+    
+    // Aumentar puntuación para respuestas en el idioma correcto
+    const isSpanishQuery = /[áéíóúñ]/.test(queryLower);
+    const hasSpanishContent = /[áéíóúñ]/.test(content);
+    if (isSpanishQuery && hasSpanishContent) {
+      score += 0.1; // Mejor coincidencia para consultas en español
+    }
+    
+    if (score > 0.4) { // Umbral más alto para evitar resultados irrelevantes
       results.push({ ...doc, score });
     }
   }
   
+  // Ordenar por score y limitar a los 5 mejores resultados
   return results.sort((a, b) => b.score - a.score).slice(0, 5);
 }
 
@@ -172,34 +201,75 @@ export default async function handler(req, res) {
       const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
       userQuery = lastUserMessage?.content || lastUserMessage?.parts?.[0]?.text || '';
     } else if (prompt) {
-      contents = prompt;
-      userQuery = typeof prompt === 'string' ? prompt : prompt.parts?.[0]?.text || '';
+      // Handle prompt format - ensure it's in the correct structure for Gemini
+      if (typeof prompt === 'string') {
+        userQuery = prompt;
+        contents = [
+          { role: 'user', parts: [{ text: prompt }] }
+        ];
+      } else if (Array.isArray(prompt)) {
+        // Handle array of prompt parts
+        contents = prompt;
+        // Try to find the user query in the array
+        const userPart = prompt.find(p => p.role === 'user');
+        userQuery = userPart?.parts?.[0]?.text || '';
+      } else {
+        // Handle object format
+        contents = prompt;
+        userQuery = prompt.parts?.[0]?.text || '';
+      }
     } else {
       return res.status(400).json({ error: 'Either prompt or messages is required' });
     }
 
-    console.log('🔍 Vercel: Buscando en base de conocimientos:', userQuery);
+    // Detectar si la consulta contiene URLs
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const hasUrls = urlRegex.test(userQuery);
     
-    // Search knowledge base
-    const knowledgeResults = searchKnowledgeBase(userQuery);
-    console.log('📚 Vercel: Encontrados', knowledgeResults.length, 'documentos relevantes');
+    // Log para debug
+    console.log(`🔄 Vercel Debug - Procesando consulta: "${userQuery.substring(0, 50)}${userQuery.length > 50 ? '...' : ''}"`);
+    console.log(`📝 Vercel Debug - Formato de contenido: ${Array.isArray(contents) ? 'Array de mensajes' : typeof contents}`);
     
-    // Enhance prompt with knowledge base context if relevant results found
-    if (knowledgeResults.length > 0) {
-      const contextInfo = knowledgeResults.map(doc => doc.content).join('\n\n');
+    // Si hay URLs, no agregar contexto de Nuxchain
+    if (hasUrls) {
+      console.log(`🔍 Vercel: Saltando contexto de Nuxchain - URLs detectadas`);
+    } else {
+      console.log('🔍 Vercel: Buscando en base de conocimientos');
       
-      // Add context to the conversation
-      if (Array.isArray(contents)) {
-        contents.push({
-          role: 'user',
-          parts: [{ text: `Contexto relevante de la base de conocimientos de Nuxchain:\n\n${contextInfo}\n\nPor favor, usa esta información para responder de manera más precisa y específica sobre Nuxchain.` }]
-        });
-      } else {
-        contents = [
-          { role: 'user', parts: [{ text: `Contexto relevante de la base de conocimientos de Nuxchain:\n\n${contextInfo}\n\nPregunta del usuario: ${userQuery}\n\nPor favor, responde usando la información del contexto.` }] }
-        ];
+      // Search knowledge base
+      const knowledgeResults = searchKnowledgeBase(userQuery);
+      console.log('📚 Vercel: Encontrados', knowledgeResults.length, 'documentos relevantes');
+      
+      // Log de scores para depuración
+      if (knowledgeResults.length > 0) {
+        console.log('🎯 Vercel: Scores:', knowledgeResults.map(r => r.score.toFixed(2)).join(', '));
       }
-    }
+        
+        // Enhance prompt with knowledge base context if relevant results found
+        if (knowledgeResults.length > 0) {
+          // Limitar a los 2 mejores resultados y truncar cada uno a 300 caracteres
+          const limitedResults = knowledgeResults.slice(0, 2).map(doc => {
+            // Truncar el contenido si es demasiado largo
+            const truncatedContent = doc.content.length > 300 ? 
+              doc.content.substring(0, 300) + '... (contenido truncado)' : 
+              doc.content;
+            return truncatedContent;
+          }).join('\n\n');
+          
+          // Add context to the conversation
+          if (Array.isArray(contents)) {
+            contents.push({
+              role: 'system',
+              parts: [{ text: `Usa la siguiente información específica de Nuxchain para responder:\n\n${limitedResults}\n\nMantén la respuesta concisa y directa.` }]
+            });
+          } else {
+            contents = [
+              { role: 'system', parts: [{ text: `Usa la siguiente información específica de Nuxchain para responder:\n\n${limitedResults}\n\nMantén la respuesta concisa y directa.` }] },
+              { role: 'user', parts: [{ text: userQuery }] }
+            ];
+          }
+        }
+      }
 
     // Set streaming headers
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -219,7 +289,7 @@ export default async function handler(req, res) {
         temperature: 0.7,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 2048
+        maxOutputTokens: 700  // Reducido para respuestas más concisas
       }
     });
 

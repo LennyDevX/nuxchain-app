@@ -209,49 +209,46 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
     }
   }
 
-  const safeModel = getSafeModel(model);
-  const modelInfo = getModelInfo(safeModel);
-
-  const generationConfig = {
-    temperature: params.temperature || 0.9,
-    maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024),
-    topP: params.topP || 1,
-    topK: params.topK || 1,
-  };
+  const safeModelName = getSafeModel(model);
+  const modelInfo = getModelInfo(model); // Use original model name for info lookup
 
   const requestOptions = {
     timeout: 60000, // 60 segundos de timeout para la solicitud a Gemini
   };
 
   try {
-    const chat = safeModel.startChat({
-      history: Array.isArray(patchedContents) ? patchedContents.filter(msg => msg.role !== 'user' || !msg.parts.some(part => part.inlineData)) : [],
-      generationConfig,
-    });
-
-    let result;
+    // Preparar contenido para la nueva API
+    let contents;
     if (Array.isArray(patchedContents)) {
-      const textParts = patchedContents.filter(msg => msg.role === 'user' && msg.parts.some(part => part.text)).map(msg => msg.parts[0].text);
-      const imageParts = patchedContents.filter(msg => msg.parts.some(part => part.inlineData)).flatMap(msg => msg.parts.filter(part => part.inlineData));
-
-      if (imageParts.length > 0) {
-        // Si hay imágenes, enviar como contenido multimodal
-        const parts = patchedContents.flatMap(msg => msg.parts);
-        result = await withTimeoutAndRetry(() => safeModel.generateContent({ contents: [{ role: 'user', parts }] }), { timeoutMs: requestOptions.timeout });
-      } else {
-        // Si no hay imágenes, enviar como chat normal
-        result = await withTimeoutAndRetry(() => chat.sendMessage(textParts.join('\n')), { timeoutMs: requestOptions.timeout });
-      }
+      contents = patchedContents;
     } else {
-      result = await withTimeoutAndRetry(() => chat.sendMessage(patchedContents), { timeoutMs: requestOptions.timeout });
+      contents = [{ role: 'user', parts: [{ text: patchedContents }] }];
     }
 
-    const response = result.response;
-    const text = response.text();
+    // Usar la nueva API del SDK
+    const result = await withTimeoutAndRetry(() => ai.models.generateContent({
+      model: safeModelName,
+      contents: contents,
+      generationConfig: {
+        temperature: params.temperature || 0.9,
+        maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024),
+        topP: params.topP || 1,
+        topK: params.topK || 1,
+      }
+    }), { timeoutMs: requestOptions.timeout });
 
-    // Contar tokens y registrar
-    const { totalTokens } = await safeModel.countTokens(patchedContents);
-    incrementTokenCount(totalTokens);
+    const text = result.text;
+
+    // Contar tokens usando la nueva API
+    try {
+      const tokenResult = await ai.models.countTokens({
+        model: safeModelName,
+        contents: contents
+      });
+      incrementTokenCount(tokenResult.totalTokens || 0);
+    } catch (tokenError) {
+      console.warn('Error counting tokens:', tokenError);
+    }
 
     responseCache.set(cacheKey, text);
     return text;
@@ -336,21 +333,22 @@ async function executeUrlContext(args) {
     }
     
     const { url, includeImages = false } = args;
-    try {
-      const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
-      toolOutput = JSON.stringify(contextData);
-    } catch (error) {
-      console.error('Error al obtener contexto de URL:', error.message);
-      toolOutput = JSON.stringify({ error: error.message });
-    }
-// Remove break statement since it's not inside a loop or switch
-return {
-  success: true,
-  data: contextData,
-  message: `URL context retrieved successfully`
-};
+    
+    console.log('🔧 [URL_CONTEXT] Procesando URL:', url);
+    console.log('🔧 [URL_CONTEXT] Incluir imágenes:', includeImages);
+    
+    const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
+    
+    console.log('🔧 [URL_CONTEXT] Contexto obtenido exitosamente');
+    
+    return {
+      success: true,
+      data: contextData,
+      message: `URL context retrieved successfully from ${url}`
+    };
+    
   } catch (error) {
-    console.error('Error en executeUrlContext:', error.message);
+    console.error('🔧 [URL_CONTEXT] Error en executeUrlContext:', error.message);
     return {
       success: false,
       error: error.message,
@@ -475,7 +473,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
   }
 
   const safeModel = getSafeModel(model);
-  const modelInfo = getModelInfo(safeModel);
+  const modelInfo = getModelInfo(model); // Use original model name for info lookup
 
   const maxTokens = Math.min(
     params.maxOutputTokens || 2048,
@@ -696,7 +694,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   
   // Validate and get safe model
   const safeModel = getSafeModel(model);
-  const modelInfo = getModelInfo(safeModel);
+  const modelInfo = getModelInfo(model); // Use original model name for info lookup
 
   // Check if model supports streaming
   if (modelInfo && !modelInfo.supportsStreaming) {

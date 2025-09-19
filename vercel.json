@@ -102,9 +102,12 @@
       "source": "/api/scraper",
       "destination": "/api/index?path=scraper"
     },
+    { "source": "/api/embeddings", "destination": "/api/index?path=embeddings" },
+        { "source": "/api/chat-v2", "destination": "/api/index?path=chat-v2" },
+        { "source": "/api/context-cleanup", "destination": "/api/index?path=context-cleanup" },
     {
-      "source": "/api/embeddings",
-      "destination": "/api/index?path=embeddings"
+      "source": "/api/context-stats",
+      "destination": "/api/index?path=context-stats"
     },
     {
       "source": "/server/gemini/stream",

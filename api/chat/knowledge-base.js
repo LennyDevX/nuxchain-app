@@ -1,9 +1,7 @@
-// Eliminada importación de embeddingsService para evitar dependencia circular
+// Nuxchain Knowledge Base for Production
+// Base de conocimiento de Nuxchain para Producción
 
-/**
- * Base de conocimientos limpia con contenido bilingüe
- */
-export const knowledgeBase = [
+const knowledgeBase = [
   // === INFORMACIÓN GENERAL ===
   {
     content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuvim AI 1.0), and tokenization tools. / Nuxchain es una plataforma descentralizada integral que combina staking, marketplace de NFTs, airdrops y tokenización. Es un ecosistema completo para la gestión de activos digitales y generación de ingresos pasivos. La plataforma incluye contratos Smart Staking, marketplace de NFTs, chat con IA (Nuvim AI 1.0), y herramientas de tokenización. Commands: 'Nuxchain', 'Nuxchain platform', 'Nuxchain general'.",
@@ -17,36 +15,6 @@ export const knowledgeBase = [
     content: "Nuxchain differentiates itself by not having a traditional token or cryptocurrency. Instead, we focus on NFTs 2.0 - digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. This approach creates sustainable value through utility rather than speculation, driving a powerful economy guided by user sentiment and dedication. / Nuxchain se diferencia al no tener un token o criptomoneda tradicional. En su lugar, nos enfocamos en NFTs 2.0 - representaciones de arte digital con beneficios únicos y poderosos que gamifican la experiencia del usuario tanto dentro como fuera del ecosistema Nuxchain. Este enfoque crea valor sostenible a través de la utilidad en lugar de la especulación, impulsando una economía poderosa regida por el sentimiento y dedicación del usuario. Commands: 'Nuxchain differentiation', 'Nuxchain no token', 'Nuxchain NFTs focus', 'Nuxchain user economy'.",
     metadata: { type: "general", category: "strategy", topic: "differentiation" }
   },
-  {
-    content: "Nuxchain's economy is powered by user sentiment and dedication rather than traditional tokenomics. Our approach focuses on creating genuine value through user engagement, NFT utilities, and ecosystem participation. This sentiment-driven economy ensures that value creation is aligned with user satisfaction and long-term platform growth, avoiding speculative bubbles and focusing on sustainable development. / La economía de Nuxchain está impulsada por el sentimiento y dedicación del usuario en lugar de tokenomics tradicionales. Nuestro enfoque se centra en crear valor genuino a través del compromiso del usuario, utilidades de NFT, y participación en el ecosistema. Esta economía impulsada por el sentimiento asegura que la creación de valor esté alineada con la satisfacción del usuario y el crecimiento a largo plazo de la plataforma, evitando burbujas especulativas y enfocándose en el desarrollo sostenible. Commands: 'Nuxchain economy', 'Nuxchain user sentiment', 'Nuxchain sustainable economy'.",
-    metadata: { type: "general", category: "economy", topic: "sentiment-driven" }
-  },
-  {
-    content: "Nuxchain uses Polygon and Ethereum as primary blockchain bases, avoiding fragmentation while developing innovations around these established blockchains. Built with advanced smart contracts using ReentrancyGuard, Pausable, AccessControl, ERC721, and ERC2981 standards for maximum security, transparency and decentralization in all operations. / Nuxchain utiliza Polygon y Ethereum como bases blockchain primarias, evitando fragmentación mientras desarrolla innovaciones alrededor de estas blockchains establecidas. Construido con contratos inteligentes avanzados usando estándares ReentrancyGuard, Pausable, AccessControl, ERC721, y ERC2981 para máxima seguridad, transparencia y descentralización en todas las operaciones. Commands: 'Nuxchain technology', 'Nuxchain blockchain', 'Nuxchain security', 'Nux-chain'.",
-    metadata: { type: "general", category: "technology", topic: "blockchain" }
-  },
-
-  // === ECOSISTEMA NUXCHAIN ===
-  {
-    content: "Nuxchain Protocol is dedicated to smart contract innovation, serving as the foundation for all platform operations. It focuses on developing cutting-edge blockchain solutions and optimizing contract efficiency for better user experience and security. / Nuxchain Protocol está dedicado a la innovación de contratos inteligentes, sirviendo como la fundación para todas las operaciones de la plataforma. Se enfoca en desarrollar soluciones blockchain de vanguardia y optimizar la eficiencia de contratos para mejor experiencia de usuario y seguridad. Commands: 'Nuxchain Protocol', 'Nuxchain smart contracts', 'Nuxchain innovation'.",
-    metadata: { type: "ecosystem", category: "protocol", topic: "smart-contracts" }
-  },
-  {
-    content: "Nux-AI is the AI hub and fundamental part of the Nuxchain core, where we develop AI-based tools and services to optimize user experience. This includes Nuvim AI 1.0 chatbot, AI-powered analytics, automated trading strategies, and intelligent contract interactions. The AI system learns from user behavior to provide personalized recommendations and enhanced platform functionality. / Nux-AI es el hub de IA y parte fundamental del núcleo de Nuxchain, donde desarrollamos herramientas y servicios basados en IA para optimizar la experiencia del usuario. Esto incluye el chatbot Nuvim AI 1.0, análisis impulsados por IA, estrategias de trading automatizadas, e interacciones inteligentes de contratos. El sistema de IA aprende del comportamiento del usuario para proporcionar recomendaciones personalizadas y funcionalidad mejorada de la plataforma. Commands: 'Nux-AI', 'Nuxchain AI hub', 'Nuvim AI', 'Nuxchain artificial intelligence'.",
-    metadata: { type: "ecosystem", category: "ai", topic: "hub" }
-  },
-  {
-    content: "Nuxchain Labs is our R&D laboratory designed to attract talent, collaborate with exceptional teams, and develop innovative and experimental ideas in the Web3 ecosystem. The lab focuses on researching emerging technologies, testing new blockchain implementations, developing experimental features, and fostering partnerships with other innovative projects in the space. / Nuxchain Labs es nuestro laboratorio de I+D diseñado para atraer talento, colaborar con equipos excepcionales, y desarrollar ideas innovadoras y experimentales en el ecosistema Web3. El laboratorio se enfoca en investigar tecnologías emergentes, probar nuevas implementaciones blockchain, desarrollar características experimentales, y fomentar asociaciones con otros proyectos innovadores en el espacio. Commands: 'Nuxchain Labs', 'Nuxchain R&D', 'Nuxchain research', 'Nuxchain innovation lab'.",
-    metadata: { type: "ecosystem", category: "labs", topic: "research" }
-  },
-  {
-    content: "Nux-Vault is an advanced security system focused on tracking, investment strategies, and diversification, functioning as a treasury to manage platform resources. It implements sophisticated risk management protocols, automated portfolio rebalancing, multi-signature security, and strategic asset allocation to ensure platform sustainability and growth. The vault system protects user funds and optimizes returns through intelligent investment strategies. / Nux-Vault es un sistema de seguridad avanzado enfocado en seguimiento, estrategias de inversión y diversificación, funcionando como una tesorería para gestionar los recursos de la plataforma. Implementa protocolos sofisticados de gestión de riesgos, rebalanceo automático de portafolio, seguridad multi-firma, y asignación estratégica de activos para asegurar la sostenibilidad y crecimiento de la plataforma. El sistema de vault protege los fondos de usuarios y optimiza retornos a través de estrategias de inversión inteligentes. Commands: 'Nux-Vault', 'Nuxchain treasury', 'Nuxchain security system', 'Nuxchain vault'.",
-    metadata: { type: "ecosystem", category: "vault", topic: "security-treasury" }
-  },
-  {
-    content: "Nuvim AI 1.0 is the first stable version of the AI chat integrated into Nuxchain platform. It provides complete platform integration, allowing users to ask questions about staking, marketplace, NFTs, airdrops, and all platform features. The AI uses Gemini models and supports multimodal interactions including text and images. / Nuvim AI 1.0 es la primera versión estable del chat con IA integrado en la plataforma Nuxchain. Proporciona integración completa con la plataforma, permitiendo a los usuarios hacer preguntas sobre staking, marketplace, NFTs, airdrops, y todas las funcionalidades de la plataforma. La IA usa modelos Gemini y soporta interacciones multimodales incluyendo texto e imágenes. Commands: 'Nuvim AI', 'Nuxchain AI', 'Nuxchain chat'.",
-    metadata: { type: "general", category: "ai", topic: "nuvim-ai" }
-  },
 
   // === SMART STAKING CONTRACT ===
   {
@@ -58,7 +26,7 @@ export const knowledgeBase = [
     metadata: { type: "smart-contract", category: "staking", topic: "limits" }
   },
   {
-    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI of 0.01% with lockup bonuses. Maximum ROI cap is 125%. Lockup periods offer enhanced rates: No lockup: 0.01% per hour, 30 days: 0.012% per hour, 90 days: 0.016% per hour, 180 days: 0.02% per hour, 365 days: 0.03% per hour. Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 ETH for security. / Cálculo de recompensas en SmartStaking de Nuxchain: Usa ROI base por hora de 0.01% (100 puntos base) con bonos de lockup. El límite máximo de ROI es 125% (12500 puntos base). Los períodos de lockup ofrecen tasas mejoradas: Sin lockup: 0.01% por hora, 30 días: 0.012% por hora, 90 días: 0.016% por hora, 180 días: 0.02% por hora, 365 días: 0.03% por hora. Las recompensas se calculan en tiempo real y pueden reclamarse o reinvertirse en cualquier momento. El límite de retiro diario es 1000 ETH por seguridad. Commands: 'Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup'.",
+    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI of 0.01%  with lockup bonuses. Maximum ROI cap is 125%. Lockup periods offer enhanced rates: No lockup: 0.01% per hour, 30 days: 0.012% per hour, 90 days: 0.016% per hour, 180 days: 0.02% per hour, 365 days: 0.03% per hour. Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 ETH for security. Commission rate is 6% on rewards. / Cálculo de recompensas en SmartStaking de Nuxchain: Usa ROI base por hora de 0.01% (100 puntos base) con bonos de lockup. El límite máximo de ROI es 125% (12500 puntos base). Los períodos de lockup ofrecen tasas mejoradas: Sin lockup: 0.01% por hora, 30 días: 0.012% por hora, 90 días: 0.016% por hora, 180 días: 0.02% por hora, 365 días: 0.03% por hora. Las recompensas se calculan en tiempo real y pueden reclamarse o reinvertirse en cualquier momento. El límite de retiro diario es 1000 ETH por seguridad. La tasa de comisión es 6% sobre las recompensas. Commands: 'Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup'.",
     metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" }
   },
 
@@ -111,33 +79,55 @@ export const knowledgeBase = [
     content: "NFT utility in Nuxchain includes: Governance voting rights, staking bonuses, exclusive access to features, marketplace fee discounts, participation in special airdrops, gamification rewards, and cross-platform benefits. These utilities make NFTs functional assets rather than just collectibles, providing ongoing value to holders and creating a sustainable ecosystem. / La utilidad de NFTs en Nuxchain incluye: derechos de voto en governance, bonos de staking, acceso exclusivo a funcionalidades, descuentos en fees del marketplace, participación en airdrops especiales, recompensas de gamificación, y beneficios entre plataformas. Estas utilidades hacen que los NFTs sean activos funcionales en lugar de solo coleccionables, proporcionando valor continuo a los poseedores y creando un ecosistema sostenible. Commands: 'Nuxchain NFT', 'Nuxchain NFT utility', 'Nuxchain NFT benefits'.",
     metadata: { type: "nft", category: "utility", topic: "benefits" }
   },
+  {
+    content: "NFT trading fees: 2.5% marketplace fee on sales, creator royalties (0-10% set by creator), gas fees for blockchain transactions. No fees for browsing, making offers, or listing items. / Fees de trading de NFTs: 2.5% de fee del marketplace en ventas, royalties del creador (0-10% establecido por el creador), fees de gas para transacciones blockchain. Sin fees por navegar, hacer ofertas, o listar items. Commands: 'NFT fees', 'marketplace fees'.",
+    metadata: { type: "marketplace", category: "fees", topic: "trading-costs" }
+  },
+  {
+    content: "How to list NFT for sale: 1) Connect wallet with NFT, 2) Go to 'My NFTs' section, 3) Select NFT to sell, 4) Set price in ETH or NUVOS, 5) Choose sale type (fixed price/auction), 6) Confirm listing transaction. / Cómo listar NFT para venta: 1) Conecta wallet con NFT, 2) Ve a sección 'Mis NFTs', 3) Selecciona NFT para vender, 4) Establece precio en ETH o NUVOS, 5) Elige tipo de venta (precio fijo/subasta), 6) Confirma transacción de listado. Commands: 'list NFT', 'sell my NFT'.",
+    metadata: { type: "marketplace", category: "guide", topic: "listing" }
+  },
+  {
+    content: "NFT offer system: Make offers below listing price, automatic expiration after 7 days, counter-offers supported, escrow system for secure transactions, notification system for offer updates. / Sistema de ofertas de NFT: Hacer ofertas por debajo del precio de listado, expiración automática después de 7 días, contra-ofertas soportadas, sistema de escrow para transacciones seguras, sistema de notificaciones para actualizaciones de ofertas. Commands: 'NFT offers', 'make offer'.",
+    metadata: { type: "marketplace", category: "offers", topic: "offer-system" }
+  },
 
   // === AIRDROPS ===
   {
     content: "Nuxchain airdrops reward early adopters and active users. Eligibility based on wallet activity, staking participation, platform engagement, and holding specific NFTs. Current upcoming airdrops include: NUVO Token Pre-Launch (Q2 2025) for early platform users with enhanced staking rewards, and Governance NFT airdrop for active community members with voting rights and exclusive access. Registration is required through the Airdrops Dashboard. / Los airdrops de Nuxchain recompensan a los primeros adoptantes y usuarios activos. Elegibilidad basada en actividad de wallet, participación en staking, compromiso con la plataforma, y posesión de NFTs específicos. Los próximos airdrops incluyen: NUVO Token Pre-Launch (Q2 2025) para usuarios tempranos de la plataforma con recompensas de staking mejoradas, y airdrop de NFT de Gobernanza para miembros activos de la comunidad con derechos de voto y acceso exclusivo. Se requiere registro a través del Dashboard de Airdrops. Commands: 'Nuxchain airdrop', 'Nuxchain rewards', 'Nuxchain NUVO token', 'Nuxchain governance NFT'.",
-    metadata: { type: "airdrop", category: "rewards", topic: "eligibility" }
+    metadata: { type: "airdrops", category: "rewards", topic: "eligibility" }
   },
   {
     content: "Nuxchain airdrop system includes multiple distribution mechanisms: automatic airdrops for eligible users, manual claim processes through the dashboard, and time-limited campaigns. The Airdrop contract handles secure token distribution with functions like claimAirdrop(), checkEligibility(), and getAirdropInfo(). Users can track their airdrop history and upcoming eligibility through their profile dashboard. / El sistema de airdrops de Nuxchain incluye múltiples mecanismos de distribución: airdrops automáticos para usuarios elegibles, procesos de reclamación manual a través del dashboard, y campañas con tiempo limitado. El contrato de Airdrop maneja la distribución segura de tokens con funciones como claimAirdrop(), checkEligibility(), y getAirdropInfo(). Los usuarios pueden rastrear su historial de airdrops y próxima elegibilidad a través de su dashboard de perfil. Commands: 'Nuxchain airdrop claim', 'Nuxchain airdrop contract', 'Nuxchain airdrop history'.",
-    metadata: { type: "airdrop", category: "system", topic: "distribution" }
+    metadata: { type: "airdrops", category: "system", topic: "distribution" }
   },
   {
     content: "To participate in Nuxchain airdrops: 1) Keep POL in staking, 2) Participate in community, 3) Own Nuxchain NFTs, 4) Keep wallet connected during snapshots. / Para participar en airdrops de Nuxchain: 1) Mantén POL en staking, 2) Participa en la comunidad, 3) Posee NFTs de Nuxchain, 4) Mantén wallet conectada durante snapshots. Commands: 'Nuxchain participate airdrop'.",
-    metadata: { type: "airdrop", category: "tutorial", topic: "participation" }
+    metadata: { type: "airdrops", category: "tutorial", topic: "participation" }
   },
   {
     content: "Nuxchain airdrops are announced on Discord, Twitter and the platform. Snapshots are taken on specific dates and tokens are distributed automatically. / Los airdrops de Nuxchain se anuncian en Discord, Twitter y la plataforma. Los snapshots se toman en fechas específicas y los tokens se distribuyen automáticamente. Commands: 'Nuxchain airdrop announcements'.",
-    metadata: { type: "airdrop", category: "process", topic: "distribution" }
+    metadata: { type: "airdrops", category: "process", topic: "distribution" }
+  },
+
+  // === NUVIM AI 1.0 ===
+  {
+    content: "Nuvim AI 1.0 is Nuxchain's intelligent assistant powered by advanced language models. Provides real-time information about the ecosystem, helps with transactions, answers questions, and offers personalized recommendations. / Nuvim AI 1.0 es el asistente inteligente de Nuxchain potenciado por modelos de lenguaje avanzados. Proporciona información en tiempo real sobre el ecosistema, ayuda con transacciones, responde preguntas, y ofrece recomendaciones personalizadas. Commands: 'Nuvim AI', 'AI assistant'.",
+    metadata: { type: "ai", category: "nuvim", topic: "overview" }
+  },
+  {
+    content: "Nuvim AI capabilities: Natural language processing, multimodal input (text and images), web content analysis, real-time data integration, personalized responses, transaction assistance, and ecosystem guidance. Available 24/7 in multiple languages. / Capacidades de Nuvim AI: Procesamiento de lenguaje natural, input multimodal (texto e imágenes), análisis de contenido web, integración de datos en tiempo real, respuestas personalizadas, asistencia en transacciones, y guía del ecosistema. Disponible 24/7 en múltiples idiomas. Commands: 'AI capabilities', 'what can Nuvim do'.",
+    metadata: { type: "ai", category: "capabilities", topic: "features" }
+  },
+  {
+    content: "How to use Nuvim AI: 1) Navigate to Chat page, 2) Type your question or upload image, 3) AI processes and provides contextual response, 4) Follow up with additional questions, 5) Use suggested commands for quick actions. No registration required beyond wallet connection. / Cómo usar Nuvim AI: 1) Navega a página de Chat, 2) Escribe tu pregunta o sube imagen, 3) IA procesa y proporciona respuesta contextual, 4) Continúa con preguntas adicionales, 5) Usa comandos sugeridos para acciones rápidas. No se requiere registro más allá de conexión de wallet. Commands: 'how to use AI', 'AI guide'.",
+    metadata: { type: "ai", category: "guide", topic: "usage" }
   },
 
   // === TOKENIZATION TOOLS ===
   {
     content: "Nuxchain provides comprehensive tokenization tools for creating and managing digital assets. Features include: ERC-20 token creation with customizable parameters, ERC-721 NFT minting with metadata management, batch minting capabilities, royalty settings for creators, and whitelist management for exclusive launches. The tokenization section offers step-by-step guides and templates for different token types. Integration with IPFS for decentralized metadata storage. / Nuxchain proporciona herramientas completas de tokenización para crear y gestionar activos digitales. Las características incluyen: creación de tokens ERC-20 con parámetros personalizables, acuñación de NFTs ERC-721 con gestión de metadatos, capacidades de acuñación por lotes, configuración de regalías para creadores, y gestión de listas blancas para lanzamientos exclusivos. La sección de tokenización ofrece guías paso a paso y plantillas para diferentes tipos de tokens. Integración con IPFS para almacenamiento descentralizado de metadatos. Commands: 'Nuxchain tokenization', 'Nuxchain create token', 'Nuxchain mint NFT', 'Nuxchain whitelist'.",
     metadata: { type: "tokenization", category: "tools", topic: "overview" }
-  },
-  {
-    content: "Nuxchain roadmap spans from 2024 to 2025 with major milestones: Foundation Phase (Q1 2024) - Smart Staking Contract v1 deployment, Development Phase (Q2-Q3 2024) - Alpha v1.0 Platform Release, Launch Phase (Q4 2024) - Beta Platform Launch, Initial Phase (Q1 2025) - Smart Staking 1.0 launch, Innovation Phase (Q2 2025) - NFT Dashboard and Gemini AI Chatbot integration. Future plans include marketplace v2.0, governance token launch, and cross-chain expansion. / La hoja de ruta de Nuxchain abarca desde 2024 hasta 2025 con hitos importantes: Fase de Fundación (Q1 2024) - Despliegue del Contrato Smart Staking v1, Fase de Desarrollo (Q2-Q3 2024) - Lanzamiento de la Plataforma Alpha v1.0, Fase de Lanzamiento (Q4 2024) - Lanzamiento de la Plataforma Beta, Fase Inicial (Q1 2025) - Lanzamiento de Smart Staking 1.0, Fase de Innovación (Q2 2025) - Integración del Dashboard NFT y Chatbot Gemini AI. Los planes futuros incluyen marketplace v2.0, lanzamiento del token de gobernanza, y expansión entre cadenas. Commands: 'Nuxchain roadmap', 'Nuxchain timeline', 'Nuxchain future plans'.",
-    metadata: { type: "general", category: "roadmap", topic: "timeline" }
   },
 
   // === TECHNICAL INFORMATION ===
@@ -161,42 +151,6 @@ export const knowledgeBase = [
     content: "Nuxchain integrates with multiple external APIs and services: Alchemy API for comprehensive NFT data and metadata, Moralis API for blockchain analytics, IPFS for decentralized storage of NFT metadata and images, Google Gemini AI for intelligent chat responses, and Polygon Gas Station for real-time gas price optimization. The platform uses caching mechanisms to ensure fast response times and reduce API costs. / Nuxchain se integra con múltiples APIs y servicios externos: API de Alchemy para datos completos de NFTs y metadatos, API de Moralis para análisis de blockchain, IPFS para almacenamiento descentralizado de metadatos e imágenes de NFTs, Google Gemini AI para respuestas inteligentes de chat, y Polygon Gas Station para optimización de precios de gas en tiempo real. La plataforma usa mecanismos de caché para asegurar tiempos de respuesta rápidos y reducir costos de API. Commands: 'Nuxchain APIs', 'Nuxchain integrations', 'Nuxchain IPFS', 'Nuxchain Alchemy'.",
     metadata: { type: "technical", category: "integrations", topic: "external-apis" }
   },
-
-  // === FAQ ===
-  {
-    content: "What if my transaction fails in Nuxchain? Check: sufficient POL for gas, wallet connected, limits not exceeded, contract not paused. Try increasing gas limit. Common errors include 'insufficient funds', 'execution reverted', or 'user rejected transaction'. For persistent issues, check Polygonscan for detailed error messages. / ¿Qué pasa si mi transacción falla en Nuxchain? Verifica: suficiente POL para gas, wallet conectada, límites no excedidos, contrato no pausado. Intenta aumentar gas limit. Errores comunes incluyen 'insufficient funds', 'execution reverted', o 'user rejected transaction'. Para problemas persistentes, verifica Polygonscan para mensajes de error detallados. Commands: 'Nuxchain transaction fails', 'Nuxchain troubleshooting'.",
-    metadata: { type: "faq", category: "troubleshooting", topic: "transactions" }
-  },
-  {
-    content: "How to maximize staking rewards in Nuxchain? 1) Stake larger amounts for better compound effects, 2) Use compound function regularly to reinvest rewards, 3) Keep funds staked longer for maximum ROI multiplier (up to 1.25x), 4) Monitor gas fees and compound during low-cost periods. The hourly ROI of 0.01% compounds over time for significant returns. / ¿Cómo maximizar las recompensas de staking en Nuxchain? 1) Haz staking de cantidades mayores para mejores efectos de interés compuesto, 2) Usa la función compound regularmente para reinvertir recompensas, 3) Mantén fondos en staking por más tiempo para el multiplicador máximo de ROI (hasta 1.25x), 4) Monitorea las tarifas de gas y haz compound durante períodos de bajo costo. El ROI por hora de 0.01% se compone con el tiempo para retornos significativos. Commands: 'Nuxchain maximize rewards', 'Nuxchain staking tips'.",
-    metadata: { type: "faq", category: "optimization", topic: "staking-rewards" }
-  },
-  {
-    content: "How to buy and sell NFTs on Nuxchain marketplace? To buy: 1) Browse marketplace or use filters, 2) Click on desired NFT, 3) Review details and price, 4) Click 'Buy Now' and confirm transaction. To sell: 1) Go to your profile/NFTs section, 2) Select NFT to list, 3) Set price in POL, 4) Confirm listing transaction. You can also make offers on unlisted NFTs or accept offers on your NFTs. / ¿Cómo comprar y vender NFTs en el marketplace de Nuxchain? Para comprar: 1) Navega el marketplace o usa filtros, 2) Haz clic en el NFT deseado, 3) Revisa detalles y precio, 4) Haz clic en 'Buy Now' y confirma la transacción. Para vender: 1) Ve a tu perfil/sección de NFTs, 2) Selecciona NFT para listar, 3) Establece precio en POL, 4) Confirma transacción de listado. También puedes hacer ofertas en NFTs no listados o aceptar ofertas en tus NFTs. Commands: 'Nuxchain buy NFT', 'Nuxchain sell NFT', 'Nuxchain NFT offers'.",
-    metadata: { type: "faq", category: "tutorial", topic: "nft-trading" }
-  },
-  {
-    content: "Can I cancel an offer in Nuxchain marketplace? Yes, you can cancel offers you've made using cancelOffer(). The deposited POL is automatically returned. / ¿Puedo cancelar una oferta en el marketplace de Nuxchain? Sí, puedes cancelar ofertas que hayas hecho usando cancelOffer(). El POL depositado se devuelve automáticamente. Commands: 'Nuxchain cancel offer'.",
-    metadata: { type: "faq", category: "marketplace", topic: "offers" }
-  },
-  {
-    content: "How long does it take to receive staking rewards in Nuxchain? Rewards are calculated in real-time and available for withdrawal immediately after deposit. / ¿Cuánto tiempo toma recibir recompensas de staking en Nuxchain? Las recompensas se calculan en tiempo real y están disponibles para retiro inmediatamente después del depósito. Commands: 'Nuxchain FAQ rewards timing'.",
-    metadata: { type: "faq", category: "staking", topic: "timing" }
-  },
-  {
-    content: "Can I unstake at any time in Nuxchain? Yes, you can withdraw your funds and rewards at any time without penalties using withdraw() or withdrawAll(). / ¿Puedo hacer unstake en cualquier momento en Nuxchain? Sí, puedes retirar tus fondos y recompensas en cualquier momento sin penalizaciones usando withdraw() o withdrawAll(). Commands: 'Nuxchain unstake'.",
-    metadata: { type: "faq", category: "staking", topic: "unstaking" }
-  },
-  {
-    content: "How do royalties work in Nuxchain marketplace? Royalties (max 10%) are automatically paid to the original creator on each secondary sale of the NFT. / ¿Cómo funcionan los royalties en el marketplace de Nuxchain? Los royalties (max 10%) se pagan automáticamente al creador original en cada venta secundaria del NFT. Commands: 'Nuxchain royalties'.",
-    metadata: { type: "faq", category: "marketplace", topic: "royalties" }
-  },
-  {
-    content: "Are there limits in Nuxchain marketplace? Yes: maximum 50 NFTs per batch mint, configurable minimum price, maximum 10% royalty, and gas limits per transaction. / ¿Hay límites en el marketplace de Nuxchain? Sí: máximo 50 NFTs por batch mint, precio mínimo configurable, royalty máximo 10%, y límites de gas por transacción. Commands: 'Nuxchain marketplace limits'.",
-    metadata: { type: "faq", category: "marketplace", topic: "limits" }
-  },
-
-  // === TOKENIZATION ===
   {
     content: "Asset tokenization in Nuxchain: NUVOS allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset. / Tokenización de activos en Nuxchain: NUVOS permite tokenizar activos del mundo real como inmuebles, arte, commodities. Cada token representa una fracción del activo subyacente. Commands: 'Nuxchain tokenization'.",
     metadata: { type: "tokenization", category: "assets", topic: "real-world-assets" }
@@ -226,6 +180,10 @@ export const knowledgeBase = [
 
   // === ROADMAP ===
   {
+    content: "Nuxchain roadmap spans from 2024 to 2025 with major milestones: Foundation Phase (Q1 2024) - Smart Staking Contract v1 deployment, Development Phase (Q2-Q3 2024) - Alpha v1.0 Platform Release, Launch Phase (Q4 2024) - Beta Platform Launch, Initial Phase (Q1 2025) - Smart Staking 1.0 launch, Innovation Phase (Q2 2025) - NFT Dashboard and Gemini AI Chatbot integration. Future plans include marketplace v2.0, governance token launch, and cross-chain expansion. / La hoja de ruta de Nuxchain abarca desde 2024 hasta 2025 con hitos importantes: Fase de Fundación (Q1 2024) - Despliegue del Contrato Smart Staking v1, Fase de Desarrollo (Q2-Q3 2024) - Lanzamiento de la Plataforma Alpha v1.0, Fase de Lanzamiento (Q4 2024) - Lanzamiento de la Plataforma Beta, Fase Inicial (Q1 2025) - Lanzamiento de Smart Staking 1.0, Fase de Innovación (Q2 2025) - Integración del Dashboard NFT y Chatbot Gemini AI. Los planes futuros incluyen marketplace v2.0, lanzamiento del token de gobernanza, y expansión entre cadenas. Commands: 'Nuxchain roadmap', 'Nuxchain timeline', 'Nuxchain future plans'.",
+    metadata: { type: "general", category: "roadmap", topic: "timeline" }
+  },
+  {
     content: "Q1 2024 Nuxchain: Launch of Smart Staking v2.0, integration with more wallets, marketplace UI/UX improvements. / Q1 2024 Nuxchain: Lanzamiento de Smart Staking v2.0, integración con más wallets, mejoras en UI/UX del marketplace. Commands: 'Nuxchain roadmap Q1 2024'.",
     metadata: { type: "roadmap", category: "q1-2024", topic: "upcoming-features" }
   },
@@ -236,6 +194,28 @@ export const knowledgeBase = [
   {
     content: "Q3-Q4 2024 Nuxchain: Multi-chain expansion, strategic partnerships, advanced DeFi functionalities, real asset tokenization. / Q3-Q4 2024 Nuxchain: Expansión multi-chain, partnerships estratégicos, funcionalidades avanzadas de DeFi, tokenización de activos reales. Commands: 'Nuxchain roadmap H2 2024'.",
     metadata: { type: "roadmap", category: "h2-2024", topic: "expansion-defi" }
+  },
+
+  // === FAQ ===
+  {
+    content: "FAQ - Transaction Issues: If your transaction is stuck, check gas fees and network congestion. Use higher gas prices during peak times. For failed transactions, verify wallet balance and contract approvals. Contact support if issues persist. Common solutions: increase gas limit, check network status, verify contract addresses, ensure sufficient POL balance. / FAQ - Problemas de Transacciones: Si tu transacción está atascada, verifica las tarifas de gas y la congestión de la red. Usa precios de gas más altos durante horas pico. Para transacciones fallidas, verifica el saldo de la wallet y las aprobaciones de contratos. Contacta soporte si los problemas persisten. Soluciones comunes: aumentar límite de gas, verificar estado de la red, verificar direcciones de contratos, asegurar suficiente balance de POL. Commands: 'Nuxchain transaction help', 'Nuxchain stuck transaction', 'Nuxchain gas issues'.",
+    metadata: { type: "faq", category: "transactions", topic: "troubleshooting" }
+  },
+  {
+    content: "FAQ - Staking Rewards: Rewards are calculated automatically based on your staking amount and duration. Check your dashboard for real-time calculations. Rewards can be claimed anytime but consider gas costs. APY varies by tier and total staked amount. Compound rewards for maximum returns. Emergency withdrawal available with penalties. / FAQ - Recompensas de Staking: Las recompensas se calculan automáticamente basadas en tu cantidad de staking y duración. Revisa tu dashboard para cálculos en tiempo real. Las recompensas se pueden reclamar en cualquier momento pero considera los costos de gas. El APY varía por tier y cantidad total en staking. Compón las recompensas para máximos retornos. Retiro de emergencia disponible con penalizaciones. Commands: 'Nuxchain staking rewards', 'Nuxchain APY calculation', 'Nuxchain compound rewards'.",
+    metadata: { type: "faq", category: "staking", topic: "rewards" }
+  },
+  {
+    content: "FAQ - NFT Trading: To trade NFTs, connect your wallet and browse the marketplace. You can buy instantly or make offers. Sellers can accept, reject, or counter offers. All transactions are secured by smart contracts. Check NFT history and authenticity before purchasing. Use filters to find specific collections or price ranges. / FAQ - Trading de NFTs: Para tradear NFTs, conecta tu wallet y navega el marketplace. Puedes comprar instantáneamente o hacer ofertas. Los vendedores pueden aceptar, rechazar o contra-ofertar. Todas las transacciones están aseguradas por contratos inteligentes. Verifica el historial y autenticidad del NFT antes de comprar. Usa filtros para encontrar colecciones específicas o rangos de precios. Commands: 'Nuxchain NFT trading', 'Nuxchain marketplace help', 'Nuxchain NFT offers'.",
+    metadata: { type: "faq", category: "nft", topic: "trading" }
+  },
+  {
+    content: "FAQ - Wallet Connection: Nuxchain supports MetaMask, Trust Wallet, WalletConnect, and Coinbase Wallet. Ensure you're on Polygon network (Chain ID: 137). If connection fails, try refreshing the page, clearing browser cache, or switching networks manually. For mobile, use WalletConnect for best compatibility. Always verify you're on the official Nuxchain domain. / FAQ - Conexión de Wallet: Nuxchain soporta MetaMask, Trust Wallet, WalletConnect, y Coinbase Wallet. Asegúrate de estar en la red Polygon (Chain ID: 137). Si la conexión falla, intenta refrescar la página, limpiar caché del navegador, o cambiar redes manualmente. Para móvil, usa WalletConnect para mejor compatibilidad. Siempre verifica que estés en el dominio oficial de Nuxchain. Commands: 'Nuxchain wallet connection', 'Nuxchain Polygon network', 'Nuxchain WalletConnect'.",
+    metadata: { type: "faq", category: "wallet", topic: "connection" }
+  },
+  {
+    content: "FAQ - Airdrops: To participate in airdrops, connect your wallet and check eligibility requirements. Some airdrops require staking, NFT ownership, or community participation. Distribution is automatic for eligible wallets. Check the airdrops page regularly for new opportunities. Past participation may increase future eligibility. / FAQ - Airdrops: Para participar en airdrops, conecta tu wallet y verifica los requisitos de elegibilidad. Algunos airdrops requieren staking, propiedad de NFTs, o participación comunitaria. La distribución es automática para wallets elegibles. Revisa la página de airdrops regularmente para nuevas oportunidades. La participación pasada puede aumentar la elegibilidad futura. Commands: 'Nuxchain airdrop participation', 'Nuxchain airdrop eligibility', 'Nuxchain airdrop requirements'.",
+    metadata: { type: "faq", category: "airdrops", topic: "participation" }
   },
 
   // === ADVANCED USE CASES ===
@@ -310,6 +290,24 @@ export const knowledgeBase = [
     metadata: { type: "technical", category: "integrations", topic: "gemini-ai" }
   },
 
+  // === INTEGRACIONES EXTERNAS ===
+  {
+    content: "Integración con Alchemy API en Nuxchain: Obtención de metadatos completos de NFTs, información de colecciones, historial de transacciones, verificación de ownership, datos de rareza y traits, y sincronización en tiempo real con blockchain. Caché optimizado para reducir llamadas API y mejorar rendimiento. Soporte para múltiples redes blockchain. / Nuxchain Alchemy API integration: Complete NFT metadata retrieval, collection information, transaction history, ownership verification, rarity and traits data, and real-time blockchain synchronization. Optimized cache to reduce API calls and improve performance. Support for multiple blockchain networks. Commands: 'Nuxchain Alchemy integration', 'Nuxchain NFT metadata'.",
+    metadata: { type: "technical", category: "integrations", topic: "alchemy" }
+  },
+  {
+    content: "Integración con Moralis API en Nuxchain: Analytics avanzados de blockchain, tracking de portfolios, datos de precios en tiempo real, estadísticas de mercado, información de liquidez, y métricas de DeFi. Utilizado para dashboard analytics y reportes de rendimiento del ecosistema. / Nuxchain Moralis API integration: Advanced blockchain analytics, portfolio tracking, real-time price data, market statistics, liquidity information, and DeFi metrics. Used for analytics dashboard and ecosystem performance reports. Commands: 'Nuxchain Moralis integration', 'Nuxchain analytics'.",
+    metadata: { type: "technical", category: "integrations", topic: "moralis" }
+  },
+  {
+    content: "Integración con IPFS en Nuxchain: Almacenamiento descentralizado de metadatos de NFTs, imágenes y archivos multimedia, pinning automático para disponibilidad permanente, gestión de hashes IPFS, y optimización de carga de contenido. Utilizado en tokenización y marketplace para garantizar descentralización completa. / Nuxchain IPFS integration: Decentralized storage of NFT metadata, images and multimedia files, automatic pinning for permanent availability, IPFS hash management, and content loading optimization. Used in tokenization and marketplace to ensure complete decentralization. Commands: 'Nuxchain IPFS', 'Nuxchain decentralized storage'.",
+    metadata: { type: "technical", category: "integrations", topic: "ipfs" }
+  },
+  {
+    content: "Integración con Google Gemini AI en Nuxchain: Procesamiento de lenguaje natural para Nuvim AI 1.0, análisis de contenido web, generación de respuestas contextuales, soporte multimodal para texto e imágenes, streaming de respuestas en tiempo real, y sistema de embeddings para memoria persistente. Optimizado para respuestas rápidas y precisas sobre el ecosistema Nuxchain. / Nuxchain Google Gemini AI integration: Natural language processing for Nuvim AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem. Commands: 'Nuxchain Gemini AI', 'Nuxchain AI integration'.",
+    metadata: { type: "technical", category: "integrations", topic: "gemini-ai" }
+  },
+
   // === AUTENTICACIÓN WEB3 ===
   {
     content: "Sistema de Autenticación Web3 en Nuxchain: Integración con Wagmi y Viem para conexión de wallets, soporte para MetaMask, WalletConnect, Coinbase Wallet, y Rainbow Wallet, gestión de sesiones persistentes, verificación de firmas digitales, y manejo de múltiples redes blockchain. Incluye hooks personalizados para estado de conexión y switching de redes automático. / Nuxchain Web3 Authentication System: Integration with Wagmi and Viem for wallet connection, support for MetaMask, WalletConnect, Coinbase Wallet, and Rainbow Wallet, persistent session management, digital signature verification, and multi-blockchain network handling. Includes custom hooks for connection state and automatic network switching. Commands: 'Nuxchain wallet connection', 'Nuxchain Web3 auth'.",
@@ -333,7 +331,6 @@ export const knowledgeBase = [
     content: "Scripts de Build y Deploy en Nuxchain: 'npm run build' para build de producción, 'npm run preview' para preview local del build, 'npm run lint' para linting del código, 'npm run type-check' para verificación de TypeScript, y deploy automático en Vercel con GitHub integration. Optimizaciones de bundle, tree shaking, y code splitting automático para mejor performance. / Nuxchain Build and Deploy Scripts: 'npm run build' for production build, 'npm run preview' for local build preview, 'npm run lint' for code linting, 'npm run type-check' for TypeScript verification, and automatic deploy on Vercel with GitHub integration. Bundle optimizations, tree shaking, and automatic code splitting for better performance. Commands: 'Nuxchain build process', 'Nuxchain deploy'.",
     metadata: { type: "developer", category: "development", topic: "build-deploy" }
   },
-
   {
     content: "Deployment en Vercel para Nuxchain: Configuración automática con GitHub integration, variables de entorno en dashboard de Vercel, build commands optimizados, edge functions para APIs, y CDN global para assets estáticos. Incluye preview deployments para pull requests, rollback automático en caso de errores, y monitoring de performance en tiempo real. / Vercel Deployment for Nuxchain: Automatic configuration with GitHub integration, environment variables in Vercel dashboard, optimized build commands, edge functions for APIs, and global CDN for static assets. Includes preview deployments for pull requests, automatic rollback on errors, and real-time performance monitoring. Commands: 'Nuxchain Vercel deployment', 'Nuxchain production deploy'.",
     metadata: { type: "developer", category: "deployment", topic: "vercel" }
@@ -437,13 +434,12 @@ function getRelevantContext(query) {
   const results = searchKnowledgeBase(query, 3);
   console.log('Resultados encontrados:', results.length);
   const context = results.map(item => item.content).join('\n\n');
-  console.log('Contexto generado (primeros 200 chars):', context.substring(0, 200));
+  console.log('Contexto generado (primeros 300 chars):', context.substring(0, 300));
   return context;
 }
 
 export {
+  knowledgeBase,
   searchKnowledgeBase,
   getRelevantContext
 };
-
-// Función de inicialización movida a embeddings-service.js para evitar dependencia circular

@@ -105,7 +105,7 @@ function optimizeMessages(messages, maxMessages = 20) {
  * Genera contenido usando Gemini.
  * POST /api/gemini/generate
  */
-export async function generateContent(req, res, next) {
+export async function generateContent(req, res, next = null) {
   // Iniciar tracking de analytics
   const requestMetrics = analyticsService.startRequest('generate_content', req.body.model || 'default');
   
@@ -211,9 +211,8 @@ export async function generateContent(req, res, next) {
     // Streaming nativo mejorado
     if (stream) {
       try {
-        // Headers optimizados para streaming
+        // Headers optimizados para streaming (sin forzar Transfer-Encoding)
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Transfer-Encoding', 'chunked');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('X-Accel-Buffering', 'no'); // Nginx
@@ -223,9 +222,9 @@ export async function generateContent(req, res, next) {
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Mobile|Android|iPhone/.test(userAgent);
         
-        // Configuración adaptativa
+        // Configuración adaptativa (reservada para uso futuro)
         const streamConfig = {
-          enableCompression: !isMobile, // Menos compresión en móviles
+          enableCompression: !isMobile,
           bufferSize: isMobile ? 512 : 1024,
           flushInterval: isMobile ? 30 : 50
         };
@@ -233,65 +232,93 @@ export async function generateContent(req, res, next) {
         // Obtener stream nativo de Gemini
         const geminiStream = await processGeminiStreamRequest(contents, model, params);
         
-        // Crear stream optimizado
-        const optimizedStream = createOptimizedGeminiStream(geminiStream, streamConfig);
+        // Escribir directamente al response iterando sobre el stream
+        let aborted = false;
+        const onAbort = () => { aborted = true; };
         
-        // Pipe el stream al response
-        const reader = optimizedStream.getReader();
+        // FIXED: Improved event handling for Vercel compatibility
+        try {
+          req.on('close', onAbort);
+          if (req.on && typeof req.on === 'function') {
+            req.on('aborted', onAbort);
+          }
+        } catch (eventError) {
+          console.warn('Could not attach request events:', eventError.message);
+        }
 
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) {
-                analyticsService.endRequest(requestMetrics);
-                res.end();
-                break;
-              }
-              if (res.destroyed || res.writableEnded) {
-                await reader.cancel();
-                break;
-              }
-              if (!res.write(value)) {
-                await new Promise((resolve) => {
-                  res.once('drain', resolve);
-                  res.once('error', resolve);
-                  res.once('close', resolve);
-                });
-              }
-            }
-          } catch (error) {
-            // Mejor manejo de errores en streaming
-            console.error('Error in streaming pump:', error);
-            analyticsService.failRequest(requestMetrics, error);
-            if (!res.headersSent) {
-              res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
-            } else {
-              res.end('Stream error: ' + (error.message || 'Error desconocido'));
+        try {
+          for await (const chunk of geminiStream) {
+            if (aborted || res.destroyed || res.writableEnded) break;
+            const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
+            if (!text) continue;
+            if (!res.write(text)) {
+              await new Promise((resolve) => {
+                res.once('drain', resolve);
+                res.once('error', resolve);
+                res.once('close', resolve);
+              });
             }
           }
-        };
+          analyticsService.endRequest(requestMetrics);
+          if (!res.writableEnded) res.end();
+        } catch (error) {
+          console.error('Error durante el streaming directo:', error);
+          analyticsService.failRequest(requestMetrics, error);
+          if (!res.headersSent) {
+            res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
+          } else {
+            try { res.end('Stream error: ' + (error.message || 'Error desconocido')); } catch (_) {}
+          }
+        } finally {
+          // FIXED: Removed req.off() calls as they don't exist in Vercel environment
+          // The cleanup is handled by res.on('close') and res.on('finish') events instead
+        }
 
-        req.on('close', () => {
-          reader.cancel().catch(console.error);
-        });
-        req.on('aborted', () => {
-          reader.cancel().catch(console.error);
-        });
-
-        return pump();
+        return;
 
       } catch (streamError) {
         // Mejor manejo de errores en streaming
         console.error('Stream setup error:', streamError);
         analyticsService.failRequest(requestMetrics, streamError);
+        
+        // Determinar el tipo de error y respuesta apropiada
+        let errorMessage = 'Error interno del servidor';
+        let statusCode = 500;
+        
+        if (streamError.message?.includes('temporalmente no disponible') ||
+            streamError.message?.includes('sobrecargado') ||
+            streamError.message?.includes('overloaded') ||
+            streamError.status === 503) {
+          errorMessage = 'El servicio está temporalmente sobrecargado. Por favor, inténtalo de nuevo en unos momentos.';
+          statusCode = 503;
+        } else if (streamError.message?.includes('API key') ||
+                   streamError.message?.includes('authentication')) {
+          errorMessage = 'Error de autenticación con el servicio de IA';
+          statusCode = 401;
+        } else if (streamError.message?.includes('Timeout')) {
+          errorMessage = 'El servicio tardó demasiado en responder. Por favor, inténtalo de nuevo.';
+          statusCode = 408;
+        } else if (streamError.message) {
+          errorMessage = streamError.message;
+        }
+        
         if (!res.headersSent) {
-          return res.status(500).json({ 
-            error: 'No se pudo inicializar el stream',
-            message: streamError.message 
+          return res.status(statusCode).json({ 
+            message: errorMessage,
+            error: errorMessage,
+            code: statusCode,
+            isOverload: statusCode === 503,
+            retryAfter: statusCode === 503 ? 30 : undefined
           });
         } else {
-          res.end('Stream setup error: ' + (streamError.message || 'Error desconocido'));
+          try {
+            res.end(`data: ${JSON.stringify({ 
+              error: errorMessage, 
+              code: statusCode,
+              isOverload: statusCode === 503,
+              retryAfter: statusCode === 503 ? 30 : undefined
+            })}\n\n`);
+          } catch (_) {}
         }
       }
     }
@@ -324,9 +351,42 @@ export async function generateContent(req, res, next) {
 
 
   } catch (error) {
+    // FIXED: Improved error handling to prevent FUNCTION_INVOCATION_FAILED
+    console.error('Critical error in generateContent:', error);
+    
     // Registrar fallo en analytics
-    analyticsService.failRequest(requestMetrics, error);
-    next(error);
+    if (requestMetrics) {
+      try {
+        analyticsService.failRequest(requestMetrics, error);
+      } catch (analyticsError) {
+        console.error('Error logging analytics:', analyticsError);
+      }
+    }
+    
+    // Ensure response is sent properly
+    if (!res.headersSent) {
+      try {
+        return res.status(500).json({ 
+          message: 'Error interno del servidor',
+          error: 'Ha ocurrido un error inesperado',
+          code: 500
+        });
+      } catch (responseError) {
+        console.error('Error sending error response:', responseError);
+      }
+    } else {
+      try {
+        res.end(`data: ${JSON.stringify({ 
+          error: 'Error interno del servidor', 
+          code: 500
+        })}\n\n`);
+      } catch (endError) {
+        console.error('Error ending response:', endError);
+      }
+    }
+    
+    // FIXED: Don't call next(error) in Vercel as it can cause FUNCTION_INVOCATION_FAILED
+    // Instead, ensure the response is properly handled above
   }
 }
 

@@ -2,7 +2,7 @@ import { memo, useCallback } from 'react';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 
-import { formatPolValue } from '../../utils/format';
+import { formatPolValue } from '../../utils/formats/format';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 
 interface NFTData {

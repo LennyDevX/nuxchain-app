@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import ai from '../config/ai-config.js';
 import env from '../config/environment.js';
 
@@ -10,20 +11,26 @@ class EmbeddingsService {
     this.defaultModel = 'text-embedding-004';
   }
 
-  async embedTexts(texts = [], model = this.defaultModel) {
-    if (!env.geminiApiKey) throw new Error('API key no configurada');
+  async embedTexts(texts = [], model = 'text-embedding-004') {
+    if (!process.env.GEMINI_API_KEY) throw new Error('API key no configurada');
     if (!Array.isArray(texts) || texts.length === 0) return [];
 
-    const res = await ai.models.embedContent({
-      model,
-      contents: texts.map(t => ({ role: 'user', parts: [{ text: t }]}))
-    });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    const vectors = res.embeddings?.[0]?.values
-      ? res.embeddings.map(e => new Float32Array(e.values))
-      : (res[0]?.values ? res.map(e => new Float32Array(e.values)) : []);
-
-    return vectors;
+    try {
+      const embeddings = [];
+      for (const text of texts) {
+        const response = await ai.models.embedContent({
+          model: model,
+          contents: text
+        });
+        embeddings.push(new Float32Array(response.embeddings[0].values));
+      }
+      return embeddings;
+    } catch (error) {
+      console.error('Error generando embeddings:', error);
+      return [];
+    }
   }
 
   // Crea/actualiza un índice en memoria

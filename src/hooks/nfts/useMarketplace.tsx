@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { usePublicClient } from 'wagmi';
 import { getContract, isAddress, formatEther, type Abi } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
-import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfsUtils';
+import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import { nftCollectionCache } from '../../utils/cache/NFTCollectionCache';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;

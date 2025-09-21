@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
-import { normalizeCategory } from '../../utils/ipfsUtils';
+import { normalizeCategory } from '../../utils/ipfs/ipfsUtils';
 
 // Use V2 contract address
 const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;

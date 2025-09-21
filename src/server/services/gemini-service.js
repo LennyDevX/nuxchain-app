@@ -17,7 +17,7 @@ import urlContextService from './url-context-service.js';
  * @param {Number} options.backoffMs - Tiempo de espera entre reintentos en milisegundos
  * @returns {Promise<any>} - Resultado de la función
  */
-async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 1, backoffMs = 1000 } = {}) {
+async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 3, backoffMs = 1000 } = {}) {
   let attempt = 0;
   while (attempt <= maxRetries) {
     try {
@@ -28,9 +28,22 @@ async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 1, back
     } catch (err) {
       logError('Error en withTimeoutAndRetry', err, { attempt, maxRetries });
       if (attempt >= maxRetries) throw err;
-      // Solo reintenta en timeout o errores de red
-      if (err.message && (err.message.includes('Timeout') || err.message.includes('network'))) {
-        await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, attempt)));
+      
+      // Reintentar en casos específicos
+      const shouldRetry = err.message && (
+        err.message.includes('Timeout') || 
+        err.message.includes('network') ||
+        err.message.includes('overloaded') ||
+        err.message.includes('UNAVAILABLE') ||
+        err.status === 503 ||
+        err.status === 429 ||
+        err.status === 500
+      );
+      
+      if (shouldRetry) {
+        const delay = backoffMs * Math.pow(2, attempt) + Math.random() * 1000; // Jitter
+        console.log(`Reintentando en ${delay}ms (intento ${attempt + 1}/${maxRetries + 1})`);
+        await new Promise(r => setTimeout(r, delay));
         attempt++;
       } else {
         throw err;
@@ -724,28 +737,70 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
         generationConfig,
         ...params
       }), 
-      { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 }
+      { timeoutMs: 20000, maxRetries: 3, backoffMs: 2000 }
     );
     
     return response;
   } catch (error) {
-    // Handle streaming errors for new models
+    console.error(`Error en streaming con modelo ${safeModel}:`, error.message);
+    
+    // Handle various API errors
     if (error.message?.includes('streaming not supported') || 
-        error.message?.includes('model not found')) {
-      console.warn(`Streaming failed for ${safeModel}, trying default model`);
+        error.message?.includes('model not found') ||
+        error.message?.includes('overloaded') ||
+        error.message?.includes('UNAVAILABLE') ||
+        error.status === 503) {
       
-      // Retry with default model
-      const fallbackResponse = await withTimeoutAndRetry(() => 
-        ai.models.generateContentStream({
-          model: DEFAULT_MODEL,
-          contents: enrichedContents,
-          generationConfig,
-          ...params
-        }), 
-        { timeoutMs: 15000, maxRetries: 1, backoffMs: 1000 }
-      );
+      console.warn(`Streaming failed for ${safeModel}, trying fallback strategies`);
       
-      return fallbackResponse;
+      // Strategy 1: Try with reduced parameters
+      try {
+        const reducedConfig = {
+          ...generationConfig,
+          maxOutputTokens: Math.min(generationConfig.maxOutputTokens, 1024),
+          temperature: 0.7
+        };
+        
+        console.log('Intentando con configuración reducida...');
+        const fallbackResponse = await withTimeoutAndRetry(() => 
+          ai.models.generateContentStream({
+            model: safeModel,
+            contents: enrichedContents,
+            generationConfig: reducedConfig
+          }), 
+          { timeoutMs: 15000, maxRetries: 2, backoffMs: 3000 }
+        );
+        
+        return fallbackResponse;
+      } catch (fallbackError) {
+        console.warn('Fallback con configuración reducida falló, intentando modelo por defecto...');
+        
+        // Strategy 2: Try with default model
+        try {
+          const defaultResponse = await withTimeoutAndRetry(() => 
+            ai.models.generateContentStream({
+              model: DEFAULT_MODEL,
+              contents: enrichedContents,
+              generationConfig: {
+                ...generationConfig,
+                maxOutputTokens: 1024,
+                temperature: 0.7
+              }
+            }), 
+            { timeoutMs: 15000, maxRetries: 2, backoffMs: 3000 }
+          );
+          
+          return defaultResponse;
+        } catch (defaultError) {
+          console.error('Todos los fallbacks fallaron:', defaultError.message);
+          const retryAfter = 30; // Tiempo recomendado de espera en segundos
+          const error = new Error(`Servicio temporalmente no disponible. El modelo está sobrecargado. Por favor, inténtalo de nuevo en unos momentos.`);
+          error.status = 503;
+          error.retryAfter = retryAfter;
+          error.isOverload = true;
+          throw error;
+        }
+      }
     }
     
     throw error;

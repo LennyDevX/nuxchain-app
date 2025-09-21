@@ -88,6 +88,10 @@ export const apiKeyAuth = (req, res, next) => {
     '/server/gemini/url-context',
     '/server/gemini',
     '/server/chat',
+    '/server/chat/stream',
+    '/server/chat/stream-with-tools',
+    '/server/api/chat/stream',
+    '/server/api/chat/stream-with-tools',
     '/server/embeddings'
   ];
   

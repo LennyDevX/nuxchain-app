@@ -1,6 +1,11 @@
 {
   "version": 2,
-
+  "rewrites": [
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
@@ -15,121 +20,9 @@
         },
         {
           "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, X-API-Key"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https: wss: ws:; frame-ancestors 'none';"
+          "value": "Content-Type, Authorization, X-API-Key"
         }
       ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "VERCEL": "1"
-  },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  },
-  "framework": "vite",
-  "regions": ["iad1"],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/health",
-      "destination": "/api/index?path=health"
-    },
-    {
-      "source": "/api/chat",
-      "destination": "/api/index?path=chat"
-    },
-    {
-      "source": "/api/gemini",
-      "destination": "/api/index?path=gemini"
-    },
-    {
-      "source": "/api/gemini-v2",
-      "destination": "/api/index?path=gemini-v2"
-    },
-    {
-      "source": "/api/scraper",
-      "destination": "/api/index?path=scraper"
-    },
-    { "source": "/api/embeddings", "destination": "/api/index?path=embeddings" },
-        { "source": "/api/chat-v2", "destination": "/api/index?path=chat-v2" },
-        { "source": "/api/context-cleanup", "destination": "/api/index?path=context-cleanup" },
-    {
-      "source": "/api/context-stats",
-      "destination": "/api/index?path=context-stats"
-    },
-    {
-      "source": "/server/gemini/stream-with-tools",
-      "destination": "/api/server/gemini?path=stream-with-tools"
-    },
-    {
-      "source": "/server/gemini/stream",
-      "destination": "/api/server/gemini?path=stream"
-    },
-    {
-      "source": "/server/gemini/(.*)",
-      "destination": "/api/server/gemini?path=$1"
-    },
-    {
-      "source": "/((?!api|_next|_static|favicon.ico).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "0 0 * * *"
     }
   ]
 }

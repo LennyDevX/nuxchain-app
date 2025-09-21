@@ -5,6 +5,7 @@
 
 import { getCorsConfig } from './cors-policies.js';
 import environmentConfig from './environment-config.js';
+import { WebSocketServer } from 'ws';
 
 /**
  * Validación de origen para WebSocket
@@ -258,9 +259,7 @@ export const webSocketSecurityMiddleware = (ws, req) => {
  * Configuración de WebSocket Server con seguridad
  */
 export const setupSecureWebSocketServer = (server, options = {}) => {
-  const WebSocket = require('ws');
-  
-  const wss = new WebSocket.Server({
+  const wss = new WebSocketServer({
     server,
     verifyClient: (info) => {
       const { origin, req } = info;

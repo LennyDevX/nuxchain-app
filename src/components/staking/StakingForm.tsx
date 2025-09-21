@@ -3,7 +3,7 @@ import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt 
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
 import SmartStakingABI from '../../abi/SmartStaking.json'
-import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/contractErrors'
+import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 
 interface StakingFormProps {

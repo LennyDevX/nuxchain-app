@@ -8,6 +8,21 @@ export default defineConfig({
       jsxRuntime: 'automatic'
     })
   ],
+  server: {
+    proxy: {
+      // Proxy para rutas de API en desarrollo
+      '/gemini': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        rewrite: (path) => `/server${path}`
+      },
+      '/api': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        rewrite: (path) => path.replace('/api', '/server')
+      }
+    }
+  },
   build: {
     rollupOptions: {
       output: {

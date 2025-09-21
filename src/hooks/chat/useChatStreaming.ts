@@ -1,7 +1,14 @@
 import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
-import { API_ENDPOINTS } from '../../config/api';
+// Define API endpoints directly since the import is not available
+const API_ENDPOINTS = {
+  gemini: {
+    stream: '/api/chat/stream',
+    streamWithTools: '/api/chat/stream-with-tools'
+  }
+} as const;
+import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotification';
 
 // Función para detectar URLs en el texto
 const detectUrls = (text: string): string[] => {
@@ -149,7 +156,29 @@ export function useChatStreaming(): UseChatStreamingReturn {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Intentar obtener información detallada del error
+        let errorInfo = null;
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            try {
+              errorInfo = JSON.parse(errorText);
+            } catch {
+              // Si no es JSON, usar el texto como mensaje
+              errorInfo = { message: errorText };
+            }
+          }
+        } catch {
+          // Si no se puede leer el cuerpo, usar información básica
+        }
+        
+        // Crear error con información detallada
+        const error = new Error(errorInfo?.message || `HTTP error! status: ${response.status}`);
+        (error as any).status = response.status;
+        (error as any).isOverload = errorInfo?.isOverload || response.status === 503;
+        (error as any).retryAfter = errorInfo?.retryAfter;
+        
+        throw error;
       }
 
       if (!response.body) {
@@ -170,6 +199,15 @@ export function useChatStreaming(): UseChatStreamingReturn {
             dispatch({ type: 'FINISH_STREAM' });
           },
           onError: (error: Error, _onRetry: () => void, messageId: string) => {
+            // Verificar si es un error de sobrecarga
+            if ((error as any).isOverload || (error as any).status === 503 || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
+              const retryDelay = ((error as any).retryAfter ? (error as any).retryAfter : 5);
+              showApiOverloadToast(retryDelay);
+              
+              // No mostrar error en el chat para errores de sobrecarga
+              return;
+            }
+            
             dispatch({ 
               type: 'SET_ERROR', 
               payload: { error: error.message, messageId } 
@@ -181,15 +219,66 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error al enviar el mensaje';
       
-      dispatch({ 
-        type: 'SET_ERROR', 
-        payload: { 
-          error: errorMessage, 
-          messageId: userMessage.id 
-        } 
-      });
+      let errorMessage = 'Error al enviar el mensaje';
+      let shouldRetry = false;
+      let retryDelay = 3000;
+      let isOverloadError = false;
+      
+      if (error instanceof Error) {
+        // Detectar errores de sobrecarga de la API
+        if ((error as any).isOverload || (error as any).status === 503 || error.message.includes('503') || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
+          errorMessage = 'El servicio está temporalmente sobrecargado. Reintentando automáticamente...';
+          shouldRetry = true;
+          isOverloadError = true;
+          retryDelay = ((error as any).retryAfter ? (error as any).retryAfter * 1000 : 5000); // Use server's retryAfter or default to 5 seconds
+          
+          // Mostrar notificación de sobrecarga
+          showApiOverloadToast(Math.ceil(retryDelay / 1000));
+          
+        } else if (error.message.includes('408') || error.message.includes('Timeout')) {
+          errorMessage = 'El servicio tardó demasiado en responder. Reintentando...';
+          shouldRetry = true;
+          retryDelay = 3000;
+        } else if (error.message.includes('401') || error.message.includes('authentication')) {
+          errorMessage = 'Error de autenticación. Por favor, recarga la página.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      // Solo mostrar error en el chat si no es un error de sobrecarga
+      // (la notificación toast ya maneja la comunicación al usuario)
+      if (!isOverloadError) {
+        dispatch({ 
+          type: 'SET_ERROR', 
+          payload: { 
+            error: errorMessage, 
+            messageId: userMessage.id 
+          } 
+        });
+      }
+      
+      // Implementar reintento automático para errores temporales
+      if (shouldRetry) {
+        // Para errores de sobrecarga, no mostrar mensaje adicional en el chat
+        if (!isOverloadError) {
+          dispatch({ 
+            type: 'SET_ERROR', 
+            payload: { 
+              error: `Reintentando en ${retryDelay / 1000} segundos...`, 
+              messageId: userMessage.id 
+            } 
+          });
+        }
+        
+        setTimeout(() => {
+          console.log('Reintentando envío de mensaje automáticamente...');
+          // Limpiar error antes del reintento
+          dispatch({ type: 'CLEAR_ERROR' });
+          sendMessage(messageText);
+        }, retryDelay);
+      }
     } finally {
       // Resetear estado de herramientas
       setIsUsingUrlContext(false);

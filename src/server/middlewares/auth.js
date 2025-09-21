@@ -1,42 +1,43 @@
 import env from '../config/environment.js';
 
-export default function auth(req, res, next) {
-  // Para Vercel Preview y producción, temporalmente permitir todas las requests
-  // Esto evita problemas de autenticación mientras están en development/preview
-  return next();
+function auth(req, res, next) {
+  // En desarrollo local, permitir todas las requests
+  if (env.nodeEnv === 'development' && !env.isVercel) {
+    return next();
+  }
   
-  // Código de autenticación completo (comentado temporalmente)
-  /*
-  // Siempre permitir acceso si no tenemos SERVER_API_KEY configurada
+  // En producción (Vercel), verificar API key solo para endpoints sensibles
+  const sensitiveEndpoints = ['/batch/', '/analytics/', '/admin/'];
+  const isSensitiveEndpoint = sensitiveEndpoints.some(endpoint => req.path.includes(endpoint));
+  
+  // Para endpoints públicos como /stream, permitir acceso sin API key
+  if (!isSensitiveEndpoint) {
+    return next();
+  }
+  
+  // Para endpoints sensibles, verificar API key
+  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  
   if (!env.serverApiKey) {
-    return next();
+    console.warn('⚠️ SERVER_API_KEY no está configurada');
+    return next(); // Permitir en caso de configuración faltante
   }
-  
-  // Permitir acceso en desarrollo
-  if (env.nodeEnv === 'development') {
-    return next();
-  }
-  
-  // Permitir acceso en Vercel (cualquier variante de detección)
-  if (env.isVercel || process.env.VERCEL || process.env.VERCEL_ENV || process.env.VERCEL_URL) {
-    console.log('Auth middleware - Running on Vercel, bypassing auth');
-    return next();
-  }
-  
-  // Solo en este punto verificar API key
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization'];
   
   if (!apiKey || apiKey !== env.serverApiKey) {
     console.log('Auth middleware - Unauthorized access attempt', { 
       hasApiKey: !!apiKey, 
       environment: env.nodeEnv,
-      isVercel: env.isVercel 
+      isVercel: env.isVercel,
+      endpoint: req.path
     });
     return res.status(401).json({
-      error: 'Unauthorized - API key required'
+      error: 'Unauthorized',
+      message: 'API key requerida para este endpoint'
     });
   }
   
   next();
-  */
 }
+
+export default auth;
+export { auth };

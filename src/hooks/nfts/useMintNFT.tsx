@@ -3,7 +3,7 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, keccak256, toHex } from 'viem';
 import type { Abi } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
-import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfsUtils';
+import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
 
 interface MintNFTParams {
   file: File;

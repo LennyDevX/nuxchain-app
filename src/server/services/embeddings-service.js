@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import ai from '../config/ai-config.js';
 import env from '../config/environment.js';
 
@@ -10,20 +11,26 @@ class EmbeddingsService {
     this.defaultModel = 'text-embedding-004';
   }
 
-  async embedTexts(texts = [], model = this.defaultModel) {
-    if (!env.geminiApiKey) throw new Error('API key no configurada');
+  async embedTexts(texts = [], model = 'text-embedding-004') {
+    if (!process.env.GEMINI_API_KEY) throw new Error('API key no configurada');
     if (!Array.isArray(texts) || texts.length === 0) return [];
 
-    const res = await ai.models.embedContent({
-      model,
-      contents: texts.map(t => ({ role: 'user', parts: [{ text: t }]}))
-    });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    const vectors = res.embeddings?.[0]?.values
-      ? res.embeddings.map(e => new Float32Array(e.values))
-      : (res[0]?.values ? res.map(e => new Float32Array(e.values)) : []);
-
-    return vectors;
+    try {
+      const embeddings = [];
+      for (const text of texts) {
+        const response = await ai.models.embedContent({
+          model: model,
+          contents: text
+        });
+        embeddings.push(new Float32Array(response.embeddings[0].values));
+      }
+      return embeddings;
+    } catch (error) {
+      console.error('Error generando embeddings:', error);
+      return [];
+    }
   }
 
   // Crea/actualiza un índice en memoria
@@ -62,7 +69,11 @@ class EmbeddingsService {
 
     scores.sort((a, b) => b.score - a.score);
 
-    return scores.slice(0, topK).map(({ idx, score }) => ({
+    // Aplicar threshold si está especificado
+    const threshold = options.threshold || 0;
+    const filteredScores = threshold > 0 ? scores.filter(s => s.score >= threshold) : scores;
+
+    return filteredScores.slice(0, topK).map(({ idx, score }) => ({
       score,
       content: index.meta[idx].text || '',
       meta: index.meta[idx]
@@ -97,11 +108,43 @@ class EmbeddingsService {
 
 const embeddingsService = new EmbeddingsService();
 
-import { knowledgeBase, initializeKnowledgeBaseOnStartup } from './knowledge-base.js';
-
 /**
  * Función para inicializar automáticamente la base de conocimientos al arrancar el servidor
  */
-export { initializeKnowledgeBaseOnStartup };
+export async function initializeKnowledgeBaseOnStartup() {
+  try {
+    console.log('🚀 Inicializando base de conocimientos automáticamente...');
+    console.log('📚 Inicializando base de conocimientos con contenido bilingüe y referencias POL...');
+    
+    // Importar dinámicamente para evitar dependencia circular
+    const { knowledgeBase } = await import('./knowledge-base.js');
+    
+    // Inicializar el índice con los documentos
+    const result = await embeddingsService.upsertIndex('knowledge_base', knowledgeBase.map(doc => ({
+      text: doc.content,
+      meta: doc.metadata
+    })));
+
+    console.log(`✅ Base de conocimientos inicializada: ${knowledgeBase.length} documentos indexados`);
+    console.log('📊 Categorías disponibles:', [...new Set(knowledgeBase.map(d => d.metadata.type))]);
+    
+    // Mostrar estadísticas detalladas
+    const categoryStats = {};
+    knowledgeBase.forEach(doc => {
+      const category = doc.metadata.type;
+      categoryStats[category] = (categoryStats[category] || 0) + 1;
+    });
+    
+    console.log('📈 Distribución por categorías:');
+    Object.entries(categoryStats).forEach(([category, count]) => {
+      console.log(`   - ${category}: ${count} documentos`);
+    });
+    
+  } catch (error) {
+    console.error('❌ Error inicializando base de conocimientos:', error.message);
+    console.error('Stack trace:', error.stack);
+    // No lanzar error para no interrumpir el arranque del servidor
+  }
+}
 
 export default embeddingsService;

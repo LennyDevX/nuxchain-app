@@ -1,58 +1,7 @@
 export default function TokenizationInfo() {
   return (
     <div className="space-y-6">
-      {/* What to Expect */}
-      <div className="card-unified">
-        <h2 className="text-xl font-bold text-white mb-4 text-center">
-          🚀 What to Expect During NFT Creation
-        </h2>
-        
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-white font-bold text-xs">1</div>
-            <div>
-              <h3 className="text-white font-medium text-sm mb-1">📤 Upload to IPFS</h3>
-              <p className="text-white/60 text-xs leading-relaxed">
-                Your image and metadata will be uploaded to IPFS (InterPlanetary File System), 
-                ensuring permanent, decentralized storage that can't be censored or taken down.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-white font-bold text-xs">2</div>
-            <div>
-              <h3 className="text-white font-medium text-sm mb-1">⚡ Mint on Polygon</h3>
-              <p className="text-white/60 text-xs leading-relaxed">
-                Your NFT will be minted on the Polygon blockchain, providing fast transactions 
-                and low fees while maintaining Ethereum compatibility.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-white font-bold text-xs">3</div>
-            <div>
-              <h3 className="text-white font-medium text-sm mb-1">⏳ Wallet Display Delay</h3>
-              <p className="text-white/60 text-xs leading-relaxed">
-                Your wallet might initially show "Unknown" for the NFT image for 2-5 minutes 
-                due to metadata propagation. This is completely normal!
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-white font-bold text-xs">4</div>
-            <div>
-              <h3 className="text-white font-medium text-sm mb-1">✅ Immediate Availability</h3>
-              <p className="text-white/60 text-xs leading-relaxed">
-                Your NFT will be immediately viewable in our app's NFTs section, 
-                where you can manage, list for sale, or transfer it.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Technical Details */}
       <div className="card-unified">
@@ -169,20 +118,7 @@ export default function TokenizationInfo() {
       </div>
 
       {/* Security Notice */}
-      <div className="card-unified">
-        <div className="flex items-start gap-3">
-          <div className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-sm">⚠️</div>
-          <div>
-            <h3 className="text-white font-medium text-sm mb-2">Important Security Notice</h3>
-            <ul className="text-white/60 text-xs space-y-1 list-disc list-inside">
-              <li>Never share your private keys or seed phrase with anyone</li>
-              <li>Always verify contract addresses before signing transactions</li>
-              <li>Be cautious of phishing websites and fake marketplaces</li>
-              <li>Keep your wallet software updated for security</li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 }

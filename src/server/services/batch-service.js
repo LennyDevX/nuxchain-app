@@ -402,17 +402,26 @@ class BatchService {
       throw new Error(`Request ${index}: prompt es requerido`);
     }
     
-    const result = await processGeminiRequest(prompt, model, {
-      temperature,
-      maxOutputTokens: maxTokens,
-      ...otherParams
-    });
-    
-    return {
-      text: result.text,
-      tokensUsed: result.usage?.totalTokens || 0,
-      model: model || 'default'
-    };
+    try {
+      const result = await processGeminiRequest(prompt, model, {
+        temperature,
+        maxOutputTokens: maxTokens,
+        ...otherParams
+      });
+      
+      return {
+        text: result.text,
+        tokensUsed: result.usage?.totalTokens || 0,
+        model: model || 'default'
+      };
+    } catch (error) {
+      // Capturar el error de processGeminiRequest y devolverlo de forma estructurada
+      return {
+        success: false,
+        error: error.message,
+        model: model || 'default'
+      };
+    }
   }
 
   async processWithConcurrency(items, processor, concurrency) {

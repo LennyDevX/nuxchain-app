@@ -68,7 +68,7 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
         <div className="flex justify-between items-center">
           <span className="text-white/60">Estimated APY:</span>
           <div className="text-right">
-            <span className="text-green-400 font-bold text-lg">12.5%</span>
+            <span className="text-green-400 font-bold text-lg">87.6%</span>
             <p className="text-white/40 text-xs">Annual Percentage Yield</p>
           </div>
         </div>
@@ -77,32 +77,56 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
         <div className="mt-6 pt-4 border-t border-white/10">
           <div className="flex justify-between items-center mb-2">
             <span className="text-white/60 text-sm">Pool Health:</span>
-            <span className="text-green-400 font-medium text-sm">Excellent</span>
+            <span className={`font-medium text-sm ${
+              !contractBalance || contractBalance === 0n
+                ? 'text-red-400'
+                : !totalPoolBalance || totalPoolBalance === 0n
+                ? 'text-yellow-400'
+                : contractBalance >= totalPoolBalance
+                ? 'text-green-400'
+                : 'text-orange-400'
+            }`}>
+              {!contractBalance || contractBalance === 0n
+                ? 'No Funds'
+                : !totalPoolBalance || totalPoolBalance === 0n
+                ? 'No Stakes'
+                : contractBalance >= totalPoolBalance
+                ? 'Excellent'
+                : 'Low Funds'}
+            </span>
           </div>
           <div className="w-full bg-white/10 rounded-full h-2">
-            <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+            <div 
+              className={`h-2 rounded-full ${
+                !contractBalance || contractBalance === 0n
+                  ? 'bg-gradient-to-r from-red-400 to-red-500'
+                  : !totalPoolBalance || totalPoolBalance === 0n
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
+                  : contractBalance >= totalPoolBalance
+                  ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+                  : 'bg-gradient-to-r from-orange-400 to-orange-500'
+              }`}
+              style={{ 
+                width: !contractBalance || contractBalance === 0n
+                  ? '0%'
+                  : !totalPoolBalance || totalPoolBalance === 0n
+                  ? '50%'
+                  : `${Math.min(100, Number((contractBalance * 100n) / totalPoolBalance))}%`
+              }}
+            ></div>
           </div>
-          <p className="text-white/40 text-xs mt-1">Based on liquidity and user activity</p>
+          <p className="text-white/40 text-xs mt-1">
+            {!contractBalance || contractBalance === 0n
+              ? 'Contract has no funds for rewards'
+              : !totalPoolBalance || totalPoolBalance === 0n
+              ? 'No active stakes in pool'
+              : contractBalance >= totalPoolBalance
+              ? 'Contract has sufficient funds for all rewards'
+              : 'Contract funds may be insufficient for all rewards'}
+          </p>
         </div>
 
-        {/* Reward Distribution */}
-        <div className="mt-6 pt-4 border-t border-white/10">
-          <h4 className="text-white/80 font-medium mb-3">Reward Distribution</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Stakers:</span>
-              <span className="text-white">85%</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Treasury:</span>
-              <span className="text-white">10%</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-white/60">Development:</span>
-              <span className="text-white">5%</span>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   )

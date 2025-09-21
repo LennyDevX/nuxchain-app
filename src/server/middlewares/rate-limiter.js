@@ -1,3 +1,5 @@
+import { logError } from './logger.js';
+
 // Configuración para rate limiting
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minuto
 const RATE_LIMIT_MAX = 30; // Máximo 30 peticiones por ventana
@@ -16,6 +18,7 @@ export default function rateLimiterMiddleware(req, res, next) {
   rateLimitMap.set(ip, timestamps);
   
   if (timestamps.length > RATE_LIMIT_MAX) {
+    logError('Rate limit exceeded', new Error('Too many requests from IP'), { ip, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_MS });
     return res.status(429).json({ 
       error: 'Rate limit exceeded. Try again later.',
       retryAfter: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000)

@@ -1,17 +1,25 @@
 import { 
   processGeminiRequest, 
   processGeminiStreamRequest,
+  processGeminiStreamRequestWithTools,
   createOptimizedGeminiStream,
-  processFunctionCallingRequest, 
+  processFunctionCallingRequest,
+  processGeminiRequestWithTools,
+  executeFunctionCall,
   clearCache as clearGeminiCache 
 } from '../services/gemini-service.js';
+import urlContextService from '../services/url-context-service.js';
+
 import { streamText } from '../utils/stream-utils.js';
 import { getMetrics } from '../middlewares/logger.js';
 import embeddingsService from '../services/embeddings-service.js';
 import contextCacheService from '../services/context-cache-service.js';
 import analyticsService from '../services/analytics-service.js';
 import batchService from '../services/batch-service.js';
-import webScraperService from '../services/web-scraper-service.js';
+import WebScraperService from '../services/web-scraper.js';
+
+// Create instance of simple web scraper
+const webScraperService = new WebScraperService();
 
 // === Configuración ===
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB, cambiar aquí para ajustar el límite
@@ -97,7 +105,7 @@ function optimizeMessages(messages, maxMessages = 20) {
  * Genera contenido usando Gemini.
  * POST /api/gemini/generate
  */
-export async function generateContent(req, res, next) {
+export async function generateContent(req, res, next = null) {
   // Iniciar tracking de analytics
   const requestMetrics = analyticsService.startRequest('generate_content', req.body.model || 'default');
   
@@ -203,25 +211,20 @@ export async function generateContent(req, res, next) {
     // Streaming nativo mejorado
     if (stream) {
       try {
-        // Headers optimizados para streaming
+        // Headers optimizados para streaming (sin forzar Transfer-Encoding)
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Transfer-Encoding', 'chunked');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('X-Accel-Buffering', 'no'); // Nginx
         res.setHeader('X-Content-Type-Options', 'nosniff');
         
-        // CORS para streaming (ya incluido arriba)
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        
         // Detectar características del cliente
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Mobile|Android|iPhone/.test(userAgent);
-        const connectionType = req.headers['connection-type'] || 'unknown';
         
-        // Configuración adaptativa
+        // Configuración adaptativa (reservada para uso futuro)
         const streamConfig = {
-          enableCompression: !isMobile, // Menos compresión en móviles
+          enableCompression: !isMobile,
           bufferSize: isMobile ? 512 : 1024,
           flushInterval: isMobile ? 30 : 50
         };
@@ -229,109 +232,161 @@ export async function generateContent(req, res, next) {
         // Obtener stream nativo de Gemini
         const geminiStream = await processGeminiStreamRequest(contents, model, params);
         
-        // Crear stream optimizado
-        const optimizedStream = createOptimizedGeminiStream(geminiStream, streamConfig);
+        // Escribir directamente al response iterando sobre el stream
+        let aborted = false;
+        const onAbort = () => { aborted = true; };
         
-        // Pipe el stream al response
-        const reader = optimizedStream.getReader();
+        // FIXED: Improved event handling for Vercel compatibility
+        try {
+          req.on('close', onAbort);
+          if (req.on && typeof req.on === 'function') {
+            req.on('aborted', onAbort);
+          }
+        } catch (eventError) {
+          console.warn('Could not attach request events:', eventError.message);
+        }
 
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) {
-                res.end();
-                break;
-              }
-              if (res.destroyed || res.writableEnded) {
-                await reader.cancel();
-                break;
-              }
-              if (!res.write(value)) {
-                await new Promise((resolve) => {
-                  res.once('drain', resolve);
-                  res.once('error', resolve);
-                  res.once('close', resolve);
-                });
-              }
-            }
-          } catch (error) {
-            // Mejor manejo de errores en streaming
-            console.error('Error in streaming pump:', error);
-            if (!res.headersSent) {
-              res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
-            } else {
-              res.end('Stream error: ' + (error.message || 'Error desconocido'));
+        try {
+          for await (const chunk of geminiStream) {
+            if (aborted || res.destroyed || res.writableEnded) break;
+            const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
+            if (!text) continue;
+            if (!res.write(text)) {
+              await new Promise((resolve) => {
+                res.once('drain', resolve);
+                res.once('error', resolve);
+                res.once('close', resolve);
+              });
             }
           }
-        };
+          analyticsService.endRequest(requestMetrics);
+          if (!res.writableEnded) res.end();
+        } catch (error) {
+          console.error('Error durante el streaming directo:', error);
+          analyticsService.failRequest(requestMetrics, error);
+          if (!res.headersSent) {
+            res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
+          } else {
+            try { res.end('Stream error: ' + (error.message || 'Error desconocido')); } catch (_) {}
+          }
+        } finally {
+          // FIXED: Removed req.off() calls as they don't exist in Vercel environment
+          // The cleanup is handled by res.on('close') and res.on('finish') events instead
+        }
 
-        req.on('close', () => {
-          reader.cancel().catch(console.error);
-        });
-        req.on('aborted', () => {
-          reader.cancel().catch(console.error);
-        });
-
-        return pump();
+        return;
 
       } catch (streamError) {
         // Mejor manejo de errores en streaming
         console.error('Stream setup error:', streamError);
+        analyticsService.failRequest(requestMetrics, streamError);
+        
+        // Determinar el tipo de error y respuesta apropiada
+        let errorMessage = 'Error interno del servidor';
+        let statusCode = 500;
+        
+        if (streamError.message?.includes('temporalmente no disponible') ||
+            streamError.message?.includes('sobrecargado') ||
+            streamError.message?.includes('overloaded') ||
+            streamError.status === 503) {
+          errorMessage = 'El servicio está temporalmente sobrecargado. Por favor, inténtalo de nuevo en unos momentos.';
+          statusCode = 503;
+        } else if (streamError.message?.includes('API key') ||
+                   streamError.message?.includes('authentication')) {
+          errorMessage = 'Error de autenticación con el servicio de IA';
+          statusCode = 401;
+        } else if (streamError.message?.includes('Timeout')) {
+          errorMessage = 'El servicio tardó demasiado en responder. Por favor, inténtalo de nuevo.';
+          statusCode = 408;
+        } else if (streamError.message) {
+          errorMessage = streamError.message;
+        }
+        
         if (!res.headersSent) {
-          return res.status(500).json({ 
-            error: 'No se pudo inicializar el stream',
-            message: streamError.message 
+          return res.status(statusCode).json({ 
+            message: errorMessage,
+            error: errorMessage,
+            code: statusCode,
+            isOverload: statusCode === 503,
+            retryAfter: statusCode === 503 ? 30 : undefined
           });
         } else {
-          res.end('Stream setup error: ' + (streamError.message || 'Error desconocido'));
+          try {
+            res.end(`data: ${JSON.stringify({ 
+              error: errorMessage, 
+              code: statusCode,
+              isOverload: statusCode === 503,
+              retryAfter: statusCode === 503 ? 30 : undefined
+            })}\n\n`);
+          } catch (_) {}
         }
       }
     }
 
-    const response = await processGeminiRequest(contents, model, params);
+    // Solo procesar respuesta no-streaming si no es streaming
+    if (!stream) {
+      const response = await processGeminiRequest(contents, model, params);
+      
+      // Registrar éxito en analytics
+      analyticsService.endRequest(requestMetrics, {
+        tokensUsed: response.usage?.totalTokens || 0,
+        inputTokens: response.usage?.promptTokens || 0,
+        outputTokens: response.usage?.completionTokens || 0,
+        model: model || 'default'
+      });
 
-    // Streaming adaptativo mejorado
-    if (stream) {
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Transfer-Encoding', 'chunked');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      
-      // Streaming adaptativo basado en complejidad de respuesta
-      const responseLength = response.text?.length || 0;
-      const adaptiveConfig = {
-        chunkSize: responseLength > 1000 ? 20 : 15,
-        delayMs: responseLength > 1000 ? 12 : 8
-      };
-      
-      return streamText(res, response.text || '', adaptiveConfig);
+      return res.json({
+        message: 'Respuesta de Gemini generada correctamente',
+        response: response.text,
+        // Si el modelo devuelve imagen, inclúyela
+        image: response.image || null,
+        metadata: {
+          model: model || 'default',
+          tokensUsed: response.usage?.totalTokens || 0,
+          timestamp: new Date().toISOString(),
+          contextCache: Array.isArray(contents) && contents.length >= 3 ? 'potentially-used' : 'not-applicable'
+        }
+      });
     }
 
-    // Registrar éxito en analytics
-    analyticsService.endRequest(requestMetrics, {
-      tokensUsed: response.usage?.totalTokens || 0,
-      inputTokens: response.usage?.promptTokens || 0,
-      outputTokens: response.usage?.completionTokens || 0,
-      model: model || 'default'
-    });
 
-    res.json({
-      message: 'Respuesta de Gemini generada correctamente',
-      response: response.text,
-      // Si el modelo devuelve imagen, inclúyela
-      image: response.image || null,
-      metadata: {
-        model: model || 'default',
-        tokensUsed: response.usage?.totalTokens || 0,
-        timestamp: new Date().toISOString(),
-        contextCache: Array.isArray(contents) && contents.length >= 3 ? 'potentially-used' : 'not-applicable'
-      }
-    });
   } catch (error) {
+    // FIXED: Improved error handling to prevent FUNCTION_INVOCATION_FAILED
+    console.error('Critical error in generateContent:', error);
+    
     // Registrar fallo en analytics
-    analyticsService.failRequest(requestMetrics, error);
-    next(error);
+    if (requestMetrics) {
+      try {
+        analyticsService.failRequest(requestMetrics, error);
+      } catch (analyticsError) {
+        console.error('Error logging analytics:', analyticsError);
+      }
+    }
+    
+    // Ensure response is sent properly
+    if (!res.headersSent) {
+      try {
+        return res.status(500).json({ 
+          message: 'Error interno del servidor',
+          error: 'Ha ocurrido un error inesperado',
+          code: 500
+        });
+      } catch (responseError) {
+        console.error('Error sending error response:', responseError);
+      }
+    } else {
+      try {
+        res.end(`data: ${JSON.stringify({ 
+          error: 'Error interno del servidor', 
+          code: 500
+        })}\n\n`);
+      } catch (endError) {
+        console.error('Error ending response:', endError);
+      }
+    }
+    
+    // FIXED: Don't call next(error) in Vercel as it can cause FUNCTION_INVOCATION_FAILED
+    // Instead, ensure the response is properly handled above
   }
 }
 
@@ -409,7 +464,7 @@ export async function functionCalling(req, res, next) {
     });
   } catch (error) {
     analyticsService.failRequest(requestMetrics, error);
-    next(error);
+    res.status(500).json({ error: error.message });
   }
 }
 
@@ -1122,7 +1177,14 @@ export async function extractUrlContent(req, res, next) {
     console.log(`Intentando extraer contenido de: ${url}`);
 
     // Extraer contenido de la URL
-    const extractedContent = await webScraperService.extractContent(url);
+    const extractionResult = await webScraperService.extractContent(url);
+    
+    // Check if extraction was successful
+    if (!extractionResult.success) {
+      throw new Error(extractionResult.error || 'Error extrayendo contenido');
+    }
+
+    const extractedContent = extractionResult;
     
     // Si se solicita, agregar al contexto usando embeddings
     if (includeInContext) {
@@ -1143,11 +1205,13 @@ export async function extractUrlContent(req, res, next) {
       }
     }
 
-    // Formatear respuesta
+    // Formatear respuesta (create a simple format since formatForChat doesn't exist in WebScraperService)
+    const formattedContent = `📄 **Contenido de URL**\n🔗 **Fuente:** [${extractedContent.metadata?.domain || 'Sitio web'}](${url})\n\n## ${extractedContent.title}\n\n📖 **Contenido:**\n\n${extractedContent.content}`;
+
     const response = {
       success: true,
       data: extractedContent,
-      formatted: webScraperService.formatForChat(extractedContent),
+      formatted: formattedContent,
       addedToContext: includeInContext
     };
 
@@ -1213,13 +1277,65 @@ export async function extractMultipleUrls(req, res, next) {
 
     const { includeInContext = false, ...extractOptions } = options;
     
-    // Extraer contenido de múltiples URLs
-    const result = await webScraperService.extractMultipleUrls(urls, extractOptions);
+    // Extraer contenido de múltiples URLs usando WebScraperService
+    const extractionPromises = urls.map(async (url) => {
+      try {
+        const extractedContent = await webScraperService.extractContent(url);
+        if (extractedContent.success) {
+          return {
+            url,
+            success: true,
+            content: extractedContent.content,
+            title: extractedContent.title || 'Sin título',
+            metadata: {
+              url,
+              title: extractedContent.title || 'Sin título',
+              extractedAt: new Date().toISOString()
+            }
+          };
+        } else {
+          return {
+            url,
+            success: false,
+            error: extractedContent.error || 'Error desconocido'
+          };
+        }
+      } catch (error) {
+        return {
+          url,
+          success: false,
+          error: error.message || 'Error al extraer contenido'
+        };
+      }
+    });
+
+    const extractionResults = await Promise.allSettled(extractionPromises);
+    
+    const results = [];
+    const errors = [];
+    
+    extractionResults.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        if (result.value.success) {
+          results.push(result.value);
+        } else {
+          errors.push({
+            url: urls[index],
+            error: result.value.error
+          });
+        }
+      } else {
+        errors.push({
+          url: urls[index],
+          error: result.reason?.message || 'Error en la promesa'
+        });
+      }
+    });
     
     // Si se solicita, agregar contenido exitoso al contexto
-    if (includeInContext && result.results.length > 0) {
+    if (includeInContext && results.length > 0) {
       try {
-        const documentsForContext = result.results.map(content => ({
+        const documentsForContext = results.map(content => ({
           content: content.content,
           metadata: {
             ...content.metadata,
@@ -1231,23 +1347,27 @@ export async function extractMultipleUrls(req, res, next) {
         }));
 
         await embeddingsService.upsertIndex('url_context', documentsForContext);
-        console.log(`${result.results.length} URLs agregadas al contexto`);
+        console.log(`${results.length} URLs agregadas al contexto`);
       } catch (contextError) {
         console.warn('Error agregando URLs al contexto:', contextError);
       }
     }
 
     // Formatear respuestas
-    const formattedResults = result.results.map(content => ({
+    const formattedResults = results.map(content => ({
       ...content,
-      formatted: webScraperService.formatForChat(content)
+      formatted: `**${content.title}**\n\nURL: ${content.url}\n\n${content.content}`
     }));
 
     const response = {
       success: true,
       results: formattedResults,
-      errors: result.errors,
-      summary: result.summary,
+      errors: errors,
+      summary: {
+        total: urls.length,
+        successful: results.length,
+        failed: errors.length
+      },
       addedToContext: includeInContext
     };
 
@@ -1375,3 +1495,251 @@ export async function validateUrl(req, res, next) {
     });
   }
 }
+
+/**
+ * Procesa URL Context usando Gemini
+ * POST /api/gemini/url-context
+ * body: { url: string, query?: string, options?: object }
+ */
+export async function processUrlContext(req, res, next) {
+  try {
+    const { url, query, options = {} } = req.body;
+    
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ 
+        error: 'Se requiere una URL válida',
+        example: { url: 'https://example.com', query: 'Resumen del contenido' }
+      });
+    }
+
+    console.log(`Procesando URL Context para: ${url}`);
+
+    // Procesar URL Context usando el servicio
+    const result = await urlContextService.processUrlContext(url, query, options);
+    
+    res.json({
+      success: true,
+      url,
+      query,
+      result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error processing URL context:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      url: req.body.url,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+
+
+/**
+ * Procesa solicitud de Gemini con herramientas habilitadas (URL Context y Google Search)
+ * POST /api/gemini/chat-with-tools
+ * body: { messages: array, options?: object }
+ */
+export async function processChatWithTools(req, res, next) {
+  try {
+    const { messages, options = {} } = req.body;
+    
+    console.log('🔧 [CONTROLLER] Procesando chat con herramientas habilitadas');
+    console.log('🔧 [CONTROLLER] Mensajes recibidos:', messages?.length || 0);
+    console.log('🔧 [CONTROLLER] Opciones recibidas:', JSON.stringify(options, null, 2));
+    
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ 
+        error: 'Se requiere un array de mensajes no vacío',
+        example: { messages: [{ role: 'user', content: 'Busca información sobre React' }] }
+      });
+    }
+
+    // Formatear mensajes para Gemini
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
+    }));
+
+    console.log('🔧 [CONTROLLER] Mensajes formateados:', JSON.stringify(formattedMessages, null, 2));
+
+    // Configurar herramientas habilitadas
+    const enabledTools = options.enabledTools || [];
+    const model = options.model || 'gemini-2.5-flash-lite';
+
+    console.log('🔧 [CONTROLLER] Herramientas habilitadas:', enabledTools);
+    console.log('🔧 [CONTROLLER] Modelo a usar:', model);
+
+    // Procesar usando Gemini con herramientas
+    const result = await processGeminiRequestWithTools(formattedMessages, model, options, enabledTools);
+    
+    res.json({
+      success: true,
+      result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error processing chat with tools:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+/**
+ * Stream de chat con herramientas habilitadas
+ * POST /api/gemini/stream-with-tools
+ * body: { messages: array, options?: object }
+ */
+export async function streamChatWithTools(req, res, next) {
+  try {
+    console.log('🔧 [CONTROLLER] Iniciando streamChatWithTools');
+    console.log('🔧 [CONTROLLER] Método:', req.method);
+    
+    // Validar método
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+    
+    // Validar API key
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('🔧 [CONTROLLER] GEMINI_API_KEY no configurada');
+      return res.status(500).json({ error: 'API key no configurada' });
+    }
+    
+    console.log('🔧 [CONTROLLER] API Key disponible:', apiKey ? 'Sí' : 'No');
+    console.log('🔧 [CONTROLLER] API Key length:', apiKey?.length || 0);
+    
+    // Parsear body
+    const { messages, enabledTools = [] } = req.body || {};
+    
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Messages array is required' });
+    }
+    
+    console.log('🔧 [CONTROLLER] Messages recibidos:', messages.length);
+    console.log('🔧 [CONTROLLER] Enabled tools:', enabledTools.length);
+    
+    // Configurar headers para streaming
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // Usar el servicio de Gemini existente en lugar de importación directa
+    const lastMessage = messages[messages.length - 1];
+    const prompt = lastMessage.content || 'Hola';
+    
+    console.log('🔧 [CONTROLLER] Prompt:', prompt);
+    
+    // Formatear mensajes para Gemini
+    const formattedMessages = messages.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content || msg.parts?.[0]?.text || '' }]
+    }));
+    
+    console.log('🔧 [CONTROLLER] Mensajes formateados:', formattedMessages.length);
+    
+    // Detectar URLs en el mensaje para habilitar herramientas automáticamente
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+    const urls = prompt.match(urlRegex);
+    
+    // Configurar herramientas habilitadas automáticamente
+    let finalEnabledTools = [...enabledTools];
+    if (urls && urls.length > 0 && !finalEnabledTools.includes('urlContext')) {
+      finalEnabledTools.push('urlContext');
+      console.log('🔧 [CONTROLLER] URL detectada, habilitando herramienta urlContext automáticamente');
+    }
+    
+    console.log('🔧 [CONTROLLER] Herramientas finales habilitadas:', finalEnabledTools);
+    
+    try {
+      // Usar el servicio de streaming con herramientas
+      const geminiStream = await processGeminiStreamRequestWithTools(
+        formattedMessages, 
+        'gemini-2.5-flash-lite', 
+        { temperature: 0.7, maxOutputTokens: 2048 }, 
+        finalEnabledTools
+      );
+      
+      console.log('🔧 [CONTROLLER] Stream de Gemini iniciado');
+      
+      // Verificar si es un ReadableStream (simulado) o un stream de Gemini
+      if (geminiStream && typeof geminiStream.getReader === 'function') {
+        // Es un ReadableStream simulado
+        console.log('🔧 [CONTROLLER] Procesando ReadableStream simulado');
+        const reader = geminiStream.getReader();
+        const decoder = new TextDecoder();
+        
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            if (res.destroyed || res.writableEnded) {
+              console.log('🔧 [CONTROLLER] Conexión cerrada por el cliente');
+              await reader.cancel();
+              break;
+            }
+            
+            const text = decoder.decode(value, { stream: true });
+            if (text) {
+              res.write(text);
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } else {
+        // Es un stream de Gemini normal
+        console.log('🔧 [CONTROLLER] Procesando stream de Gemini');
+        for await (const chunk of geminiStream) {
+          if (res.destroyed || res.writableEnded) {
+            console.log('🔧 [CONTROLLER] Conexión cerrada por el cliente');
+            break;
+          }
+          
+          const text = chunk.text || chunk || '';
+          if (text) {
+            res.write(text);
+          }
+        }
+      }
+      
+      res.end();
+      console.log('🔧 [CONTROLLER] Stream completado exitosamente');
+      
+    } catch (streamError) {
+      console.error('🔧 [CONTROLLER] Error en streaming:', streamError);
+      
+      if (!res.headersSent) {
+        res.status(500);
+      }
+      
+      const errorText = `Lo siento, ocurrió un error al procesar tu solicitud: ${streamError.message}`;
+      res.write(errorText);
+      res.end();
+    }
+    
+    console.log('🔧 [CONTROLLER] Respuesta enviada exitosamente');
+    
+  } catch (error) {
+    console.error('🔧 [CONTROLLER] Error en streamChatWithTools:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: error.message, 
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  }
+}
+  

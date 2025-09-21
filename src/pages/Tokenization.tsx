@@ -7,8 +7,7 @@ import useMintNFT from '../hooks/nfts/useMintNFT';
 import FileUpload from '../components/tokenization/FileUpload';
 import NFTDetails from '../components/tokenization/NFTDetails';
 import ProgressIndicator from '../components/tokenization/ProgressIndicator';
-import Benefits from '../components/tokenization/Benefits';
-import TokenizationInfo from '../components/tokenization/TokenizationInfo';
+import InfoCarousel from '../components/tokenization/InfoCarousel';
 
 interface FormData {
   name: string;
@@ -181,24 +180,23 @@ function Tokenization() {
           </p>
         </div>
 
-        {/* Grid 4x4 Layout - Optimized Space Distribution */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Top Section - Benefits and Information (Full Width) */}
-          <div className="lg:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Benefits Section */}
-            <div className="lg:col-span-1">
-              <Benefits />
+        {/* File Upload Section - Top */}
+        <div className="mb-12">
+          {!selectedFile ? (
+            /* Centered File Upload when no file selected */
+            <div className="flex justify-center">
+              <div className="w-full max-w-md">
+                <FileUpload
+                  selectedFile={selectedFile}
+                  imagePreview={imagePreview}
+                  onFileSelect={handleFileSelect}
+                  onFileRemove={handleFileRemove}
+                  error={error}
+                />
+              </div>
             </div>
-            
-            {/* Information Section */}
-            <div className="lg:col-span-1">
-              <TokenizationInfo />
-            </div>
-          </div>
-
-          {/* Bottom Section - Tokenization System (Full Width) */}
-          <div className="lg:col-span-4 space-y-8">
-            {/* File Upload Component */}
+          ) : (
+            /* Side by side layout when file is selected */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="lg:col-span-1">
                 <FileUpload
@@ -210,28 +208,35 @@ function Tokenization() {
                 />
               </div>
               
-              {/* NFT Details Component - Only show after image upload */}
-              {selectedFile && (
-                <div className="lg:col-span-1">
-                  <NFTDetails
-                    formData={formData}
-                    setFormData={setFormData}
-                    onSubmit={handleSubmit}
-                    addAttribute={addAttribute}
-                    removeAttribute={removeAttribute}
-                    updateAttribute={updateAttribute}
-                    isUploading={loading}
-                    isPending={loading}
-                    isConfirming={loading}
-                    error={error || mintError || undefined}
-                  />
-                </div>
-              )}
+              <div className="lg:col-span-1">
+                <NFTDetails
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleSubmit}
+                  addAttribute={addAttribute}
+                  removeAttribute={removeAttribute}
+                  updateAttribute={updateAttribute}
+                  isUploading={loading}
+                  isPending={loading}
+                  isConfirming={loading}
+                  error={error || mintError || undefined}
+                />
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Progress Indicator - Show during upload (Full Width) */}
+        {/* Information Carousel - Bottom Section */}
+        <div className="mb-8">
+          <InfoCarousel />
+        </div>
+
+        {/* Status Messages and Progress */}
+        <div className="space-y-6">
+
+            {/* Progress Indicator - Show during upload */}
             {loading && (
-              <div className="lg:col-span-4">
+              <div className="w-full">
                 <ProgressIndicator
                   isUploading={loading}
                   uploadProgress={loading ? 50 : 0}
@@ -242,9 +247,9 @@ function Tokenization() {
               </div>
             )}
 
-            {/* Success/Error Messages (Full Width) */}
+            {/* Success/Error Messages */}
             {(error || mintError) && (
-              <div className="lg:col-span-4">
+              <div className="w-full">
                 <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
                   <p className="text-red-200">{error || mintError}</p>
                 </div>
@@ -252,7 +257,7 @@ function Tokenization() {
             )}
 
             {success && (
-              <div className="lg:col-span-4">
+              <div className="w-full">
                 <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4">
                   <p className="text-green-200">NFT creado exitosamente!</p>
                   {txHash && (
@@ -263,7 +268,6 @@ function Tokenization() {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
     </div>

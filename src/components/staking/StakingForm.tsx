@@ -3,7 +3,7 @@ import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt 
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
 import SmartStakingABI from '../../abi/SmartStaking.json'
-import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/contractErrors'
+import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 
 interface StakingFormProps {
@@ -338,13 +338,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 value={lockupDuration}
                 onChange={(e) => setLockupDuration(e.target.value)}
                 className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                style={{ color: 'white' }}
               >
-                <option value="0" style={{ color: 'black' }}>Flexible (0.01% per hour)</option>
-                <option value="30" style={{ color: 'black' }}>30 days (0.012% per hour)</option>
-                <option value="90" style={{ color: 'black' }}>90 days (0.016% per hour)</option>
-                <option value="180" style={{ color: 'black' }}>180 days (0.02% per hour)</option>
-                <option value="365" style={{ color: 'black' }}>365 days (0.03% per hour)</option>
+                <option value="0" className="bg-gray-800 text-white">Flexible (0.01% per hour)</option>
+                <option value="30" className="bg-gray-800 text-white">30 days (0.012% per hour)</option>
+                <option value="90" className="bg-gray-800 text-white">90 days (0.016% per hour)</option>
+                <option value="180" className="bg-gray-800 text-white">180 days (0.02% per hour)</option>
+                <option value="365" className="bg-gray-800 text-white">365 days (0.03% per hour)</option>
               </select>
               <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <p className="text-blue-400 text-sm font-medium mb-1">
@@ -437,13 +436,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 value={compoundLockupDuration}
                 onChange={(e) => setCompoundLockupDuration(e.target.value)}
                 className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 mb-4"
-                style={{ color: 'white' }}
               >
-                <option value="0" style={{ color: 'black' }}>Flexible (0.01% per hour)</option>
-                <option value="30" style={{ color: 'black' }}>30 days (0.012% per hour)</option>
-                <option value="90" style={{ color: 'black' }}>90 days (0.016% per hour)</option>
-                <option value="180" style={{ color: 'black' }}>180 days (0.02% per hour)</option>
-                <option value="365" style={{ color: 'black' }}>365 days (0.03% per hour)</option>
+                <option value="0" className="bg-gray-800 text-white">Flexible (0.01% per hour)</option>
+                <option value="30" className="bg-gray-800 text-white">30 days (0.012% per hour)</option>
+                <option value="90" className="bg-gray-800 text-white">90 days (0.016% per hour)</option>
+                <option value="180" className="bg-gray-800 text-white">180 days (0.02% per hour)</option>
+                <option value="365" className="bg-gray-800 text-white">365 days (0.03% per hour)</option>
               </select>
               <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg mb-4">
                 <p className="text-green-400 text-sm font-medium mb-1">

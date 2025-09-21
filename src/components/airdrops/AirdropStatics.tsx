@@ -105,16 +105,14 @@ const AirdropStatics: React.FC = React.memo(() => {
       value: stats.uniqueUsers,
       subtitle: 'Total registered',
       icon: '👥',
-      trend: 'up' as const,
-      trendValue: '+12%'
+      
     },
     {
       title: 'POL Distributed',
       value: `${stats.totalPOLDistributed.toLocaleString()} POL`,
       subtitle: 'Total claimed rewards',
       icon: '💰',
-      trend: 'up' as const,
-      trendValue: '+8%'
+      
     }
   ], [stats]);
 
@@ -157,7 +155,6 @@ const AirdropStatics: React.FC = React.memo(() => {
               subtitle={stat.subtitle}
               icon={stat.icon}
               trend={stat.trend}
-              trendValue={stat.trendValue}
               loading={loading}
             />
           </div>

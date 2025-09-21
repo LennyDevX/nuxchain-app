@@ -13,6 +13,7 @@ const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingBonds = lazy(() => import('../components/staking/StakingBonds'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
+const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
 
 // Interfaces
 interface DepositData {
@@ -210,26 +211,43 @@ const Staking = memo(() => {
 
           {/* Right Column - User Info and Pool Info */}
           <div className="space-y-6">
-            <Suspense fallback={<LoadingSpinner />}>
-              <UserInfo 
-                userInfo={processedData.userInfo as UserInfoData | undefined}
-                pendingRewards={processedData.pendingRewards}
-                userDeposits={processedData.userDeposits as DepositData[] | undefined}
-                totalDeposit={processedData.totalDeposit}
-              />
-            </Suspense>
-            <Suspense fallback={<LoadingSpinner />}>
-              <PoolInfo 
-                totalPoolBalance={processedData.totalPoolBalance}
-                uniqueUsersCount={processedData.uniqueUsersCount}
-              />
-            </Suspense>
-            <Suspense fallback={<LoadingSpinner />}>
-              <ContractInfo 
-                contractAddress={STAKING_CONTRACT_ADDRESS}
-                isPaused={processedData.isPaused}
-              />
-            </Suspense>
+            {isMobile ? (
+              <Suspense fallback={<LoadingSpinner />}>
+                <StakingInfoCarousel 
+                  userInfo={processedData.userInfo as UserInfoData | undefined}
+                  pendingRewards={processedData.pendingRewards}
+                  userDeposits={processedData.userDeposits as DepositData[] | undefined}
+                  totalDeposit={processedData.totalDeposit}
+                  totalPoolBalance={processedData.totalPoolBalance}
+                  uniqueUsersCount={processedData.uniqueUsersCount}
+                  contractAddress={STAKING_CONTRACT_ADDRESS}
+                  isPaused={processedData.isPaused}
+                />
+              </Suspense>
+            ) : (
+              <>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <UserInfo 
+                    userInfo={processedData.userInfo as UserInfoData | undefined}
+                    pendingRewards={processedData.pendingRewards}
+                    userDeposits={processedData.userDeposits as DepositData[] | undefined}
+                    totalDeposit={processedData.totalDeposit}
+                  />
+                </Suspense>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <PoolInfo 
+                    totalPoolBalance={processedData.totalPoolBalance}
+                    uniqueUsersCount={processedData.uniqueUsersCount}
+                  />
+                </Suspense>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <ContractInfo 
+                    contractAddress={STAKING_CONTRACT_ADDRESS}
+                    isPaused={processedData.isPaused}
+                  />
+                </Suspense>
+              </>
+            )}
           </div>
         </div>
 

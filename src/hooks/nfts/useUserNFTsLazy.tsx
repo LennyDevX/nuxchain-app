@@ -3,7 +3,7 @@ import { usePublicClient, useAccount } from 'wagmi';
 import { getContract, isAddress, type Abi } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
 import { nftCollectionCache } from '../../utils/cache/NFTCollectionCache';
-import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfsUtils';
+import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import { imageCache } from '../../utils/cache/ImageCache';
 
 interface NFTData {

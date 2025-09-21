@@ -139,7 +139,7 @@ function NFTs() {
               onFilterChange={setFilter}
               availableCategories={availableCategories}
               onCreateNFT={handleCreateNFT}
-              isMobile={isMobile}
+              isLoading={loading}
             />
           </div>
         </div>

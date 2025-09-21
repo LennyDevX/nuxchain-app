@@ -1,61 +1,10 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 interface GlobalBackgroundProps {
   children: React.ReactNode;
 }
 
 const GlobalBackground: React.FC<GlobalBackgroundProps> = ({ children }) => {
-  // Memoize star positions to prevent re-rendering
-  const farStars = useMemo(() => 
-    Array.from({ length: 150 }, (_, i) => ({
-      id: `star-far-${i}`,
-      width: Math.random() * 1 + 0.5,
-      height: Math.random() * 1 + 0.5,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      opacity: Math.random() * 0.6 + 0.2,
-      animationDelay: Math.random() * 3,
-      animationDuration: Math.random() * 2 + 2
-    })), []
-  );
-
-  const midStars = useMemo(() => 
-    Array.from({ length: 80 }, (_, i) => ({
-      id: `star-mid-${i}`,
-      width: Math.random() * 2 + 1,
-      height: Math.random() * 2 + 1,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      opacity: Math.random() * 0.8 + 0.3,
-      boxShadow: Math.random() * 4 + 2,
-      animationDuration: Math.random() * 3 + 2
-    })), []
-  );
-
-  const brightStars = useMemo(() => 
-    Array.from({ length: 30 }, (_, i) => ({
-      id: `star-bright-${i}`,
-      width: Math.random() * 3 + 2,
-      height: Math.random() * 3 + 2,
-      left: Math.random() * 100,
-      top: Math.random() * 100,
-      opacity: Math.random() * 0.9 + 0.4,
-      boxShadow1: Math.random() * 8 + 4,
-      boxShadow2: Math.random() * 16 + 8,
-      animationDuration: Math.random() * 4 + 3
-    })), []
-  );
-
-  const shootingStars = useMemo(() => 
-    Array.from({ length: 3 }, (_, i) => ({
-      id: `shooting-star-${i}`,
-      left: Math.random() * 100,
-      top: Math.random() * 50,
-      animationDuration: Math.random() * 3 + 4,
-      animationDelay: Math.random() * 10
-    })), []
-  );
-
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Deep space base background */}
@@ -76,86 +25,6 @@ const GlobalBackground: React.FC<GlobalBackgroundProps> = ({ children }) => {
         }}
       ></div>
       
-      {/* Star field - Layer 1 (distant stars) */}
-      <div className="fixed inset-0 z-0">
-        {farStars.map((star) => (
-          <div
-            key={star.id}
-            className="absolute bg-white rounded-full animate-pulse"
-            style={{
-              width: star.width + 'px',
-              height: star.height + 'px',
-              left: star.left + '%',
-              top: star.top + '%',
-              opacity: star.opacity,
-              animationDelay: star.animationDelay + 's',
-              animationDuration: star.animationDuration + 's'
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Star field - Layer 2 (medium stars) */}
-      <div className="fixed inset-0 z-0">
-        {midStars.map((star) => (
-          <div
-            key={star.id}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: star.width + 'px',
-              height: star.height + 'px',
-              left: star.left + '%',
-              top: star.top + '%',
-              opacity: star.opacity,
-              boxShadow: `0 0 ${star.boxShadow}px rgba(255, 255, 255, 0.8)`,
-              animation: `twinkle ${star.animationDuration}s ease-in-out infinite alternate`
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Star field - Layer 3 (bright stars) */}
-      <div className="fixed inset-0 z-0">
-        {brightStars.map((star) => (
-          <div
-            key={star.id}
-            className="absolute bg-white rounded-full"
-            style={{
-              width: star.width + 'px',
-              height: star.height + 'px',
-              left: star.left + '%',
-              top: star.top + '%',
-              opacity: star.opacity,
-              boxShadow: `0 0 ${star.boxShadow1}px rgba(255, 255, 255, 0.9), 0 0 ${star.boxShadow2}px rgba(255, 255, 255, 0.4)`,
-              animation: `bright-twinkle ${star.animationDuration}s ease-in-out infinite alternate`
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Occasional shooting stars */}
-      <div className="fixed inset-0 z-0">
-        {shootingStars.map((star) => (
-          <div
-            key={star.id}
-            className="absolute"
-            style={{
-              left: star.left + '%',
-              top: star.top + '%',
-              animation: `shooting-star ${star.animationDuration}s linear infinite`,
-              animationDelay: star.animationDelay + 's'
-            }}
-          >
-            <div 
-              className="w-1 h-1 bg-white rounded-full"
-              style={{
-                boxShadow: '0 0 6px rgba(255, 255, 255, 0.8), -100px 0 20px rgba(255, 255, 255, 0.3)'
-              }}
-            />
-          </div>
-        ))}
-      </div>
-      
       {/* Orbes de energía cósmica */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-1/4 left-1/6 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl animate-float"
@@ -171,31 +40,7 @@ const GlobalBackground: React.FC<GlobalBackgroundProps> = ({ children }) => {
         {children}
       </div>
       
-      <style>{`
-        @keyframes nebula-drift {
-          0% { transform: translateX(-10px) translateY(-5px) scale(1); }
-          100% { transform: translateX(10px) translateY(5px) scale(1.05); }
-        }
-        
-        @keyframes twinkle {
-          0% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-          100% { opacity: 0.3; transform: scale(1); }
-        }
-        
-        @keyframes bright-twinkle {
-          0% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
-          100% { opacity: 0.4; transform: scale(1); }
-        }
-        
-        @keyframes shooting-star {
-          0% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateX(300px) translateY(300px) rotate(45deg); opacity: 0; }
-        }
-      `}</style>
+      
     </div>
   );
 };

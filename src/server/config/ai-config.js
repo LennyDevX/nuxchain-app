@@ -4,10 +4,10 @@ import env from './environment.js';
 // Configuración para la API de Gemini
 const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
 
-// Fix: Remove extra quote from model name
-export const DEFAULT_MODEL = 'gemini-2.5-flash-lite'; // Keep working model as default
+// Fix: Use gemini-2.5-flash-lite as confirmed by user
+export const DEFAULT_MODEL = 'gemini-2.5-flash-lite'; // Use working model as default
 
-// Available models with compatibility info - Only Gemini 2.5+ models
+// Available models with compatibility info - Valid Gemini models
 export const AVAILABLE_MODELS = {
   'gemini-2.5-flash-lite': {
     name: 'gemini-2.5-flash-lite',
@@ -16,7 +16,7 @@ export const AVAILABLE_MODELS = {
     maxTokens: 8192,
     isPreview: false,
     isDefault: true
-  }
+  },
 };
 
 // Function to validate and get model info
@@ -24,31 +24,35 @@ export function getModelInfo(modelName) {
   return AVAILABLE_MODELS[modelName] || null;
 }
 
-// Function to get safe model (fallback to working model)
+// Function to get safe model name (fallback to working model)
 export function getSafeModel(requestedModel) {
   const modelInfo = getModelInfo(requestedModel);
   
+  let modelName;
   // If model exists and is stable, use it
   if (modelInfo && modelInfo.isStable) {
-    return requestedModel;
+    modelName = requestedModel;
   }
-  
   // If it's a preview model, warn but allow
-  if (modelInfo && modelInfo.isPreview) {
+  else if (modelInfo && modelInfo.isPreview) {
     console.warn(`Using preview model: ${requestedModel}. This may be unstable.`);
-    return requestedModel;
+    modelName = requestedModel;
+  }
+  // Fallback to default working model
+  else {
+    console.warn(`Model ${requestedModel} not found or unstable. Falling back to ${DEFAULT_MODEL}`);
+    modelName = DEFAULT_MODEL;
   }
   
-  // Fallback to default working model
-  console.warn(`Model ${requestedModel} not found or unstable. Falling back to ${DEFAULT_MODEL}`);
-  return DEFAULT_MODEL;
+  // Return the model name for use with ai.models.generateContent()
+  return modelName;
 }
 
 export const defaultFunctionDeclaration = {
   name: 'controlLight',
+  description: 'Set the brightness and color temperature of a room light.',
   parameters: {
     type: 'object',
-    description: 'Set the brightness and color temperature of a room light.',
     properties: {
       brightness: {
         type: 'number',
@@ -62,5 +66,33 @@ export const defaultFunctionDeclaration = {
     required: ['brightness', 'colorTemperature']
   }
 };
+
+// URL Context tool declaration
+export const urlContextFunctionDeclaration = {
+  name: 'urlContext',
+  description: 'Fetch and analyze content from a URL to provide context for the conversation.',
+  parameters: {
+    type: 'object',
+    properties: {
+      url: {
+        type: 'string',
+        description: 'The URL to fetch content from. Must be a valid HTTP or HTTPS URL.'
+      },
+      includeImages: {
+        type: 'boolean',
+        description: 'Whether to include images from the URL in the analysis. Default is false.'
+      }
+    },
+    required: ['url']
+  }
+};
+
+
+
+// Combined function declarations for tools
+export const allFunctionDeclarations = [
+  defaultFunctionDeclaration,
+  urlContextFunctionDeclaration
+];
 
 export default ai;

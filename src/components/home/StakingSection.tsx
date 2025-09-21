@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function StakingSection() {
   const [stakingAmount, setStakingAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState('30');
+  const navigate = useNavigate();
   
   // Staking calculator logic
   const getMultiplier = () => {
@@ -107,7 +109,10 @@ function StakingSection() {
                 </div>
               </div>
               
-              <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform duration-200">
+              <button
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform duration-200"
+                onClick={() => navigate('/staking')}
+              >
                 Start Staking
               </button>
             </div>
@@ -129,7 +134,7 @@ function StakingSection() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Up to 25% APY rewards</span>
+                <span className="text-white/80">Base APY 87% anual rewards</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
@@ -137,7 +142,7 @@ function StakingSection() {
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Auto-compound rewards</span>
+                <span className="text-white/80">Auto-compound rewards system </span>
               </div>
             </div>
           </div>

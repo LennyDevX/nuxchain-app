@@ -6,6 +6,8 @@ export class StreamingService {
     this.webWorker = null;
     this.workerSessionId = 0;
     this.pendingWorkerCallbacks = new Map();
+    this.debounceTimers = new Map();
+    this.pendingUpdates = new Map();
     this.initializeWebWorker();
   }
 
@@ -82,10 +84,16 @@ export class StreamingService {
             }
           }
           
+          // Optimized update detection with better performance heuristics
+          const hasNaturalBreak = decodedChunk.includes('.') || 
+                                 decodedChunk.includes('\n') || 
+                                 decodedChunk.includes('!') || 
+                                 decodedChunk.includes('?');
+          
           const shouldUpdate = !isLowPerformance || 
-                              decodedChunk.includes('.') || 
-                              decodedChunk.includes('\\n') ||
-                              fullResponse.length % 100 === 0;
+                              hasNaturalBreak ||
+                              (fullResponse.length > 0 && fullResponse.length % 75 === 0) ||
+                              chunkIndex % 3 === 0; // Update every 3rd chunk for smoother flow
           
           self.postMessage({
             type: 'CHUNK_PROCESSED',
@@ -160,27 +168,35 @@ export class StreamingService {
     let lastUpdate = Date.now();
     let chunkIndex = 0;
     
-    // Enhanced performance configuration for smoother streaming
+    // Enhanced performance configuration with adaptive throttling
     const getUpdateThrottle = () => {
-      const baseFPS = shouldReduceMotion ? 20 : 60;
+      const baseFPS = shouldReduceMotion ? 15 : 45; // Reduced for better performance
       const frameBudget = 1000 / baseFPS;
       
       if (isLowPerformance) {
-        return Math.max(100, frameBudget * 2);
+        return Math.max(120, frameBudget * 2.5); // Increased throttle for low performance
       }
       
-      return Math.max(16, frameBudget); // ~60fps for smooth streaming
+      // Adaptive throttling based on content length
+      const contentLength = fullResponse.length;
+      const adaptiveMultiplier = contentLength > 1000 ? 1.5 : 1;
+      
+      return Math.max(20, frameBudget * adaptiveMultiplier); // Minimum 20ms for stability
     };
     
-    // Smart buffer updates with Web Worker support
-    const smartUpdate = (content) => {
-      if (frameId) {
-        cancelAnimationFrame(frameId);
+    // Optimized debounced update system
+    const debouncedUpdate = this.createDebouncedUpdate(onUpdate, getUpdateThrottle());
+    
+    const smartUpdate = (content, forceUpdate = false) => {
+      if (forceUpdate) {
+        // Cancel any pending debounced updates and update immediately
+        debouncedUpdate.cancel();
+        if (frameId) cancelAnimationFrame(frameId);
+        frameId = requestAnimationFrame(() => onUpdate(content));
+      } else {
+        // Use debounced update for better performance
+        debouncedUpdate(content);
       }
-      
-      frameId = requestAnimationFrame(() => {
-        onUpdate(content);
-      });
     };
     
     this.activeStreams.add(reader);
@@ -214,8 +230,12 @@ export class StreamingService {
             fullResponse += result.fullResponse;
             
             if (result.shouldUpdate) {
-              smartUpdate(fullResponse + accumulatedChunk);
-              lastUpdate = Date.now();
+              const now = Date.now();
+              const timeSinceLastUpdate = now - lastUpdate;
+              const forceUpdate = timeSinceLastUpdate >= getUpdateThrottle() * 2;
+              
+              smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
+              if (forceUpdate) lastUpdate = now;
             }
           } catch (workerError) {
             console.warn('Worker processing failed, falling back to main thread:', workerError);
@@ -229,8 +249,9 @@ export class StreamingService {
             const throttleDelay = getUpdateThrottle();
             
             if (result.shouldUpdate || now - lastUpdate >= throttleDelay) {
-              smartUpdate(fullResponse + accumulatedChunk);
-              lastUpdate = now;
+              const forceUpdate = now - lastUpdate >= throttleDelay * 1.5;
+              smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
+              if (forceUpdate) lastUpdate = now;
             }
           }
         } else {
@@ -242,8 +263,9 @@ export class StreamingService {
           const throttleDelay = getUpdateThrottle();
           
           if (result.shouldUpdate || now - lastUpdate >= throttleDelay) {
-            smartUpdate(fullResponse + accumulatedChunk);
-            lastUpdate = now;
+            const forceUpdate = now - lastUpdate >= throttleDelay * 1.5;
+            smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
+            if (forceUpdate) lastUpdate = now;
           }
         }
       }
@@ -254,14 +276,19 @@ export class StreamingService {
       }
       
       // Final update and cache the result
+      debouncedUpdate.cancel();
       if (frameId) cancelAnimationFrame(frameId);
       console.log('Finalizing stream with content:', fullResponse);
       onUpdate(fullResponse);
       onFinish(fullResponse);
       
-      // Cache successful response with TTL
+      // Cache successful response with TTL (async)
         if (fullResponse && lastMessage?.conversationId) {
-             enhancedCache.set(lastMessage.conversationId, fullResponse, 3600000); // Cache with conversationId for 1 hour
+             try {
+               await enhancedCache.set(lastMessage.conversationId, fullResponse, 3600000); // Cache with conversationId for 1 hour
+             } catch (error) {
+               console.warn('Failed to cache response:', error);
+             }
         }
       
     } catch (error) {
@@ -335,12 +362,18 @@ export class StreamingService {
       }
     }
     
-    // More frequent updates for smoother streaming
+    // Optimized update detection for main thread processing
+    const hasNaturalBreak = chunk.includes('.') || 
+                           chunk.includes('\n') || 
+                           chunk.includes('!') || 
+                           chunk.includes('?');
+    
+    const hasWordBoundary = chunk.includes(' ') && chunk.trim().length > 3;
+    
     const shouldUpdate = !isLowPerformance || 
-                        chunk.includes('.') || 
-                        chunk.includes('\n') ||
-                        chunk.includes(' ') ||
-                        processedContent.length % 50 === 0; // Reduced from 150 to 50
+                        hasNaturalBreak ||
+                        hasWordBoundary ||
+                        (processedContent.length > 0 && processedContent.length % 60 === 0);
     
     return {
       processedContent,
@@ -362,6 +395,39 @@ export class StreamingService {
 
   getActiveStreamCount() {
     return this.activeStreams.size;
+  }
+
+  createDebouncedUpdate(updateFn, delay) {
+    let timeoutId = null;
+    let lastContent = null;
+    
+    const debouncedFn = (content) => {
+      lastContent = content;
+      
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      timeoutId = setTimeout(() => {
+        if (lastContent !== null) {
+          requestAnimationFrame(() => {
+            updateFn(lastContent);
+            lastContent = null;
+          });
+        }
+        timeoutId = null;
+      }, delay);
+    };
+    
+    debouncedFn.cancel = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      lastContent = null;
+    };
+    
+    return debouncedFn;
   }
 
   destroy() {

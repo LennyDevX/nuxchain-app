@@ -1,5 +1,4 @@
 // Nuxchain Knowledge Base for Production
-// Base de conocimiento de Nuxchain para Producción
 
 const knowledgeBase = [
   // === INFORMACIÓN GENERAL ===

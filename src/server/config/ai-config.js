@@ -15,7 +15,8 @@ export const AVAILABLE_MODELS = {
     supportsStreaming: true,
     maxTokens: 8192,
     isPreview: false,
-    isDefault: true
+    isDefault: true,
+    temperatureRange: [0, 1]
   },
 };
 

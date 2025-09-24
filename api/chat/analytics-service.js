@@ -30,8 +30,6 @@ class AnalyticsService {
 
     this.metrics.requests.set(requestId, requestMetrics);
     
-    console.log(`📊 [Analytics] Iniciando seguimiento: ${service}/${operation} [${requestId}]`);
-    
     return requestMetrics;
   }
 
@@ -42,7 +40,6 @@ class AnalyticsService {
    */
   endRequest(requestMetrics, additionalData = {}) {
     if (!requestMetrics || !requestMetrics.id) {
-      console.warn('⚠️ [Analytics] RequestMetrics inválido para endRequest');
       return;
     }
 
@@ -63,9 +60,6 @@ class AnalyticsService {
 
     this.metrics.requests.set(requestMetrics.id, completedMetrics);
     
-    console.log(`✅ [Analytics] Solicitud completada: ${requestMetrics.service}/${requestMetrics.operation} - ${duration}ms`);
-    
-    // Limpiar métricas antiguas para evitar memory leaks
     this.cleanupOldMetrics();
   }
 
@@ -76,7 +70,6 @@ class AnalyticsService {
    */
   failRequest(requestMetrics, error) {
     if (!requestMetrics || !requestMetrics.id) {
-      console.warn('⚠️ [Analytics] RequestMetrics inválido para failRequest');
       return;
     }
 
@@ -101,9 +94,9 @@ class AnalyticsService {
 
     this.metrics.requests.set(requestMetrics.id, failedMetrics);
     
+    // Solo log de error crítico
     console.error(`❌ [Analytics] Solicitud fallida: ${requestMetrics.service}/${requestMetrics.operation} - ${duration}ms - ${error.message}`);
     
-    // Limpiar métricas antiguas
     this.cleanupOldMetrics();
   }
 
@@ -127,12 +120,10 @@ class AnalyticsService {
 
     this.metrics.performance.get(name).push(performanceMetric);
     
-    console.log(`📈 [Analytics] Métrica registrada: ${name} = ${value}`);
-    
-    // Mantener solo las últimas 100 métricas por nombre
+    // Mantener solo las últimas 50 métricas por nombre
     const metrics = this.metrics.performance.get(name);
-    if (metrics.length > 100) {
-      this.metrics.performance.set(name, metrics.slice(-100));
+    if (metrics.length > 50) {
+      this.metrics.performance.set(name, metrics.slice(-50));
     }
   }
 
@@ -217,7 +208,7 @@ class AnalyticsService {
    */
   cleanupOldMetrics() {
     const now = Date.now();
-    const maxAge = 30 * 60 * 1000; // 30 minutos
+    const maxAge = 10 * 60 * 1000; // 10 minutos
 
     // Limpiar requests antiguos
     for (const [id, metrics] of this.metrics.requests.entries()) {
@@ -243,7 +234,6 @@ class AnalyticsService {
   reset() {
     this.metrics.requests.clear();
     this.metrics.performance.clear();
-    console.log('🔄 [Analytics] Métricas reiniciadas');
   }
 }
 

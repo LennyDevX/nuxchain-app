@@ -22,15 +22,14 @@ class UrlContextService {
    */
   async fetchUrlContext(url, options = {}) {
     const requestMetrics = analyticsService.startRequest('url_context', 'url-fetch');
-    
     try {
       // Validar URL
       if (!this.isValidUrl(url)) {
         throw new Error('URL inválida proporcionada');
       }
 
-      // Verificar caché
-      const cacheKey = this.generateCacheKey(url, options);
+      // Usar un cacheKey simple si las opciones no afectan el resultado
+      const cacheKey = url;
       const cachedResult = this.getFromCache(cacheKey);
       if (cachedResult) {
         analyticsService.endRequest(requestMetrics, {
@@ -41,18 +40,16 @@ class UrlContextService {
         return cachedResult;
       }
 
-      // Obtener contenido usando el simple web scraper
-        const scrapedContent = await this.webScraper.extractContent(url);
+      // Limitar el tamaño máximo de contenido por defecto
+      const maxContentLength = options.maxContentLength || 3000;
+      const scrapedContent = await this.webScraper.extractContent(url, { ...options, maxContentLength });
 
       if (!scrapedContent.success) {
-        // En lugar de lanzar un error, podemos devolver un objeto con información de error
-        // o un contenido vacío para que Gemini pueda decidir qué hacer.
-        // Por ahora, lanzaremos un error para que el flujo de error sea consistente.
         throw new Error(`Error al obtener contenido de la URL: ${scrapedContent.error}`);
       }
 
       // Procesar y estructurar el contenido para Gemini
-      const processedContent = this.processContentForGemini(scrapedContent, options);
+      const processedContent = this.processContentForGemini(scrapedContent, { ...options, maxContentLength });
 
       // Guardar en caché
       this.saveToCache(cacheKey, processedContent);
@@ -68,6 +65,8 @@ class UrlContextService {
       return processedContent;
     } catch (error) {
       analyticsService.failRequest(requestMetrics, error);
+      // Solo log de error crítico
+      console.error('Error en fetchUrlContext:', error.message);
       throw error;
     }
   }
@@ -80,17 +79,11 @@ class UrlContextService {
    */
   processContentForGemini(scrapedContent, options = {}) {
     const { title, content, metadata, url } = scrapedContent;
-    
-    // Limpiar y estructurar el contenido
     let cleanContent = content || '';
-    
-    // Limitar longitud del contenido
-    const maxLength = options.maxContentLength || 10000;
+    const maxLength = options.maxContentLength || 3000;
     if (cleanContent.length > maxLength) {
       cleanContent = cleanContent.substring(0, maxLength) + '...';
     }
-
-    // Crear contexto estructurado para Gemini
     const contextData = {
       url: url,
       title: title || 'Sin título',
@@ -104,7 +97,6 @@ class UrlContextService {
       },
       summary: this.generateContentSummary(cleanContent, title)
     };
-
     return contextData;
   }
 
@@ -116,11 +108,9 @@ class UrlContextService {
    */
   generateContentSummary(content, title) {
     if (!content) return 'Contenido no disponible';
-    
-    // Extraer las primeras oraciones más relevantes
+    // Limitar a 2 oraciones para mayor velocidad
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
-    const summary = sentences.slice(0, 3).join('. ');
-    
+    const summary = sentences.slice(0, 2).join('. ');
     return summary || content.substring(0, 200) + '...';
   }
 
@@ -158,7 +148,8 @@ class UrlContextService {
    * @returns {string} - Clave de caché
    */
   generateCacheKey(url, options) {
-    return `${url}_${JSON.stringify(options)}`;
+    // Usar solo la URL como clave para simplificar y mejorar el hit rate
+    return url;
   }
 
   /**
@@ -169,12 +160,10 @@ class UrlContextService {
   getFromCache(key) {
     const item = this.cache.get(key);
     if (!item) return null;
-    
     if (Date.now() - item.timestamp > this.cacheTTL) {
       this.cache.delete(key);
       return null;
     }
-    
     return item.data;
   }
 
@@ -186,10 +175,17 @@ class UrlContextService {
   saveToCache(key, data) {
     // Limpiar caché si está lleno
     if (this.cache.size >= this.maxCacheSize) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      // Eliminar el elemento más antiguo
+      let oldestKey;
+      let oldestTime = Infinity;
+      for (const [k, v] of this.cache.entries()) {
+        if (v.timestamp < oldestTime) {
+          oldestTime = v.timestamp;
+          oldestKey = k;
+        }
+      }
+      if (oldestKey) this.cache.delete(oldestKey);
     }
-    
     this.cache.set(key, {
       data,
       timestamp: Date.now()
@@ -212,8 +208,6 @@ class UrlContextService {
    */
   async processUrlContext(url, query, options = {}) {
     try {
-      console.log(`Procesando URL Context: ${url}`);
-      
       // Obtener el contenido de la URL
       const contextData = await this.fetchUrlContext(url, options);
       
@@ -233,7 +227,7 @@ class UrlContextService {
       
       return result;
     } catch (error) {
-      console.error('Error en processUrlContext:', error);
+      console.error('Error en processUrlContext:', error.message);
       throw error;
     }
   }

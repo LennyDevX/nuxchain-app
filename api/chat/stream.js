@@ -34,6 +34,24 @@ function checkSecurity(req) {
   return null;
 }
 
+// Cache simple en memoria para contexto relevante
+const contextCache = new Map();
+const CONTEXT_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+function getCachedContext(key) {
+  const item = contextCache.get(key);
+  if (!item) return null;
+  if (Date.now() - item.timestamp > CONTEXT_CACHE_TTL) {
+    contextCache.delete(key);
+    return null;
+  }
+  return item.value;
+}
+
+function setCachedContext(key, value) {
+  contextCache.set(key, { value, timestamp: Date.now() });
+}
+
 export default async function handler(req, res) {
   // Manejar preflight CORS
   if (req.method === 'OPTIONS') {
@@ -58,19 +76,16 @@ export default async function handler(req, res) {
   try {
     const { message, conversationHistory = [], messages = [] } = req.body;
 
-    // Manejar tanto el formato antiguo (message + conversationHistory) como el nuevo (messages)
+    // Limitar historial a los últimos 5 mensajes
     let finalMessage;
     let finalHistory;
-    
     if (messages && messages.length > 0) {
-      // Formato nuevo: usar el array de messages
-      finalHistory = messages.slice(0, -1); // Todos excepto el último
+      finalHistory = messages.slice(-5); // Solo los últimos 5
       const lastMessage = messages[messages.length - 1];
       finalMessage = lastMessage.content || lastMessage.parts?.[0]?.text || lastMessage.text;
     } else {
-      // Formato antiguo: usar message + conversationHistory
       finalMessage = message;
-      finalHistory = conversationHistory;
+      finalHistory = conversationHistory.slice(-5); // Solo los últimos 5
     }
 
     if (!finalMessage) {
@@ -82,74 +97,71 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API key de Gemini no configurada' });
     }
 
-    // Inicializar Gemini
+    // Inicializar Gemini con modelo optimizado
     const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
-    // Inicializar y obtener contexto relevante usando embeddings con sistema de fallback mejorado
+    // Preprocesar: saltar embeddings si el mensaje es muy corto
     let relevantContext = '';
-    let searchMethod = 'unknown';
-    
-    try {
-      const embeddingsService = await initializeKnowledgeBaseForVercel();
-      
-      // Verificar si el servicio está en modo fallback
-      if (embeddingsService.fallbackMode) {
-        console.log('⚠️ Servicio de embeddings en modo fallback:', embeddingsService.fallbackReason);
-        console.log('🕒 Timestamp del fallback:', embeddingsService.fallbackTimestamp);
-        searchMethod = 'fallback_embeddings';
+    let searchMethod = 'skipped';
+    const cacheKey = finalMessage.trim().toLowerCase();
+
+    if (finalMessage.length < 15) {
+      // Mensaje corto, usar solo contexto base
+      relevantContext = '';
+      searchMethod = 'short_message';
+    } else {
+      // Buscar en cache primero
+      const cached = getCachedContext(cacheKey);
+      if (cached) {
+        relevantContext = cached;
+        searchMethod = 'cache';
       } else {
-        searchMethod = 'normal_embeddings';
-      }
-      
-      // Buscar contexto usando embeddings (normal o fallback)
-      const searchResults = await embeddingsService.search('knowledge_base', finalMessage, 3, {
-        threshold: 0.3 // Umbral de similitud mínimo
-      });
-      
-      if (searchResults && searchResults.length > 0) {
-        relevantContext = searchResults.map(result => result.content).join('\n\n');
-        console.log(`✅ Contexto encontrado con ${searchMethod}:`, searchResults.length, 'resultados');
-        console.log('📊 Scores de similitud:', searchResults.map(r => r.score.toFixed(3)).join(', '));
-        
-        // Log adicional para modo fallback
-        if (embeddingsService.fallbackMode) {
-          console.log('🔄 Búsqueda realizada con sistema de fallback mejorado');
+        try {
+          const embeddingsService = await initializeKnowledgeBaseForVercel();
+          // Limitar topK y threshold para acelerar
+          const searchResults = await embeddingsService.search('knowledge_base', finalMessage, 2, {
+            threshold: 0.25
+          });
+          // Filtrar solo inglés
+          const englishResults = searchResults.filter(r =>
+            (r.meta?.language || '').toLowerCase() === 'en' ||
+            /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(r.content)
+          );
+          if (englishResults && englishResults.length > 0) {
+            relevantContext = englishResults.map(result => result.content).join('\n\n');
+            setCachedContext(cacheKey, relevantContext);
+            searchMethod = 'embeddings';
+          } else {
+            // Fallback final a búsqueda simple si no se encuentra nada
+            const fallbackContext = getRelevantContext(finalMessage);
+            relevantContext = Array.isArray(fallbackContext)
+              ? fallbackContext.filter(doc =>
+                  (doc.metadata?.language || '').toLowerCase() === 'en' ||
+                  /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+                ).map(doc => doc.content).join('\n\n')
+              : fallbackContext;
+            setCachedContext(cacheKey, relevantContext);
+            searchMethod = 'simple_search';
+          }
+        } catch (error) {
+          // Log solo para errores críticos
+          console.error('❌ Error crítico con embeddings:', error.message);
+          const fallbackContext = getRelevantContext(finalMessage);
+          relevantContext = Array.isArray(fallbackContext)
+            ? fallbackContext.filter(doc =>
+                (doc.metadata?.language || '').toLowerCase() === 'en' ||
+                /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+              ).map(doc => doc.content).join('\n\n')
+            : fallbackContext;
+          setCachedContext(cacheKey, relevantContext);
+          searchMethod = 'error_fallback';
         }
-      } else {
-        // Fallback final a búsqueda simple si no se encuentra nada
-        relevantContext = getRelevantContext(finalMessage);
-        searchMethod = 'simple_search';
-        console.log('⚠️ Usando fallback de búsqueda simple (último recurso)');
-      }
-    } catch (error) {
-      console.error('❌ Error crítico con embeddings, usando fallback simple:', error.message);
-      console.error('📍 Stack trace:', error.stack);
-      relevantContext = getRelevantContext(finalMessage);
-      searchMethod = 'error_fallback';
-      
-      // Log adicional para debugging en producción
-      if (error.message.includes('API key')) {
-        console.error('🔑 Error de API key detectado en stream.js');
       }
     }
-    
-    // Debug: Log para verificar el contexto en producción
-    console.log('Mensaje del usuario:', finalMessage);
-    console.log('Contexto relevante encontrado:', relevantContext ? 'SÍ' : 'NO');
-    console.log('Longitud del contexto:', relevantContext?.length || 0);
-    console.log('Método de búsqueda utilizado:', searchMethod);
-    
-    // Métricas adicionales para monitoreo
-    console.log('📊 Métricas de búsqueda:', {
-      method: searchMethod,
-      hasContext: !!relevantContext,
-      contextLength: relevantContext?.length || 0,
-      timestamp: new Date().toISOString()
-    });
-    
+
     // Fallback si no hay contexto relevante
     const contextToUse = relevantContext || `Nuxchain es una plataforma descentralizada integral que combina staking, marketplace de NFTs, airdrops y tokenización. Es un ecosistema completo para la gestión de activos digitales y generación de ingresos pasivos. La plataforma incluye contratos Smart Staking, marketplace de NFTs, chat con IA (Nuvim AI 1.0), y herramientas de tokenización.`;
-    
+
     // Crear prompt con contexto de Nuxchain
     const systemPrompt = `Eres Nuvim AI 1.0, el asistente inteligente oficial de Nuxchain. Tu misión es ayudar a los usuarios con información precisa y actualizada sobre el ecosistema Nuxchain.
 
@@ -188,27 +200,36 @@ INSTRUCCIONES:
       // Configurar headers para streaming
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.setHeader('Transfer-Encoding', 'chunked');
-      
+
+      // Streaming optimizado: usar modelo rápido y chunks grandes
       const response = await ai.models.generateContentStream({
-        model: 'gemini-2.0-flash-001',
+        model: 'gemini-2.5-flash-lite',
         contents: contents,
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.8,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 2048, // Chunks más grandes
         },
       });
-      
+
+      let buffer = '';
+      const BUFFER_SIZE = 1000; // Enviar chunks más grandes
+
       for await (const chunk of response) {
         const chunkText = chunk.text;
         if (chunkText) {
-          res.write(chunkText);
+          buffer += chunkText;
+          if (buffer.length >= BUFFER_SIZE) {
+            res.write(buffer);
+            buffer = '';
+          }
         }
       }
-      
+      if (buffer) res.write(buffer);
       res.end();
     } catch (streamError) {
+      // Log solo para errores críticos
       console.error('Error en streaming:', streamError);
       return res.status(500).json({ 
         error: 'Error en el streaming de respuesta',
@@ -217,8 +238,8 @@ INSTRUCCIONES:
     }
 
   } catch (error) {
+    // Log solo para errores críticos
     console.error('Error en chat/stream:', error);
-    
     if (!res.headersSent) {
       return res.status(500).json({ 
         error: 'Error interno del servidor',

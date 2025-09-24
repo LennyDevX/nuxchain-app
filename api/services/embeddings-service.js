@@ -140,8 +140,13 @@ export async function initializeKnowledgeBaseForVercel() {
     
     // Importar la base de conocimientos
     const { knowledgeBase } = await import('../chat/knowledge-base.js');
-    console.log(`📚 Base de conocimientos cargada: ${knowledgeBase.length} documentos`);
-    
+    // Filtrar solo documentos en inglés
+    const englishDocs = knowledgeBase.filter(doc =>
+      (doc.metadata?.language || '').toLowerCase() === 'en' ||
+      /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content) // Heurística simple para inglés
+    );
+    console.log(`📚 Base de conocimientos cargada: ${englishDocs.length} documentos (solo inglés)`);
+
     const embeddingsService = getEmbeddingsService();
     
     // Verificar si ya está inicializada
@@ -154,15 +159,15 @@ export async function initializeKnowledgeBaseForVercel() {
     
     console.log('🔄 Iniciando proceso de indexación...');
     
-    // Inicializar el índice con los documentos
-    const result = await embeddingsService.upsertIndex('knowledge_base', knowledgeBase.map(doc => ({
+    // Inicializar el índice con los documentos en inglés
+    const result = await embeddingsService.upsertIndex('knowledge_base', englishDocs.map(doc => ({
       text: doc.content,
       meta: doc.metadata
     })));
 
-    console.log(`✅ Base de conocimientos inicializada en Vercel: ${knowledgeBase.length} documentos indexados`);
+    console.log(`✅ Base de conocimientos inicializada en Vercel: ${englishDocs.length} documentos indexados`);
     console.log('📊 Resultado de indexación:', result);
-    console.log('📊 Categorías disponibles:', [...new Set(knowledgeBase.map(d => d.metadata.type))]);
+    console.log('📊 Categorías disponibles:', [...new Set(englishDocs.map(d => d.metadata.type))]);
     
     // Verificar que la inicialización fue exitosa
     if (embeddingsService.isInitialized()) {
@@ -196,9 +201,13 @@ export async function initializeKnowledgeBaseForVercel() {
       console.log('🔄 Usando búsqueda de fallback para:', query);
       
       try {
-        // Importar la base de conocimientos estática usando import dinámico
-        const { searchKnowledgeBase } = await import('../chat/knowledge-base.js');
-        const results = searchKnowledgeBase(query, topK);
+        const { searchKnowledgeBase, knowledgeBase } = await import('../chat/knowledge-base.js');
+        // Filtrar solo inglés en fallback
+        const englishDocs = knowledgeBase.filter(doc =>
+          (doc.metadata?.language || '').toLowerCase() === 'en' ||
+          /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+        );
+        const results = searchKnowledgeBase(query, topK, englishDocs);
         
         // Convertir al formato esperado por el sistema de embeddings
         return results.map((item, index) => ({

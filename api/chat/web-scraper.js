@@ -6,7 +6,7 @@
 class WebScraperService {
   constructor() {
     // Configuración optimizada para Vercel
-    this.timeout = 15000; // 15 segundos para Vercel
+    this.timeout = 10000; // 10 segundos para mayor velocidad
     this.maxRetries = 2;
     this.userAgent = 'Mozilla/5.0 (compatible; NuxchainBot/1.0)';
   }
@@ -42,8 +42,6 @@ class WebScraperService {
    * @returns {Promise<Object>} - Contenido extraído
    */
   async extractContent(url, options = {}) {
-    console.log(`🌐 [WebScraper] Extrayendo contenido de: ${url}`);
-    
     try {
       if (!this.isValidUrl(url)) {
         throw new Error('URL inválida');
@@ -74,24 +72,28 @@ class WebScraperService {
       const html = await response.text();
       const extractedData = this.parseHtml(html, url);
 
-      console.log(`✅ [WebScraper] Contenido extraído exitosamente de ${url}`);
-      
+      // Limitar contenido extraído a los primeros 3000 caracteres
+      let limitedContent = extractedData.content || '';
+      if (limitedContent.length > 3000) {
+        limitedContent = limitedContent.substring(0, 3000) + '...';
+      }
+
       return {
         success: true,
         url: url,
         title: extractedData.title,
-        content: extractedData.content,
+        content: limitedContent,
         metadata: {
           domain: new URL(url).hostname,
           extractedAt: new Date().toISOString(),
-          contentLength: extractedData.content?.length || 0,
+          contentLength: limitedContent.length,
           ...extractedData.metadata
         }
       };
 
     } catch (error) {
+      // Solo log de error crítico
       console.error(`❌ [WebScraper] Error extrayendo contenido de ${url}:`, error.message);
-      
       return {
         success: false,
         url: url,

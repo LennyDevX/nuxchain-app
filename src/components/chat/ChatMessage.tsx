@@ -1,5 +1,6 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import MessageItem from './MessageItem'
+import { debounce } from '../../utils/performance/debounce'
 
 interface Message {
   id: string
@@ -19,40 +20,69 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
   const containerRef = useRef<HTMLDivElement>(null)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
   const [lastMessageCount, setLastMessageCount] = useState(0)
+  const [isNearBottomCached, setIsNearBottomCached] = useState(true)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  const lastScrollPositionRef = useRef(0)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  // Optimized scroll to bottom with requestAnimationFrame
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      })
+    }
+  }, [])
 
-  const isNearBottom = () => {
+  // Memoized and optimized isNearBottom check
+  const checkIsNearBottom = useCallback(() => {
     if (!containerRef.current) return true
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current
-    return scrollHeight - scrollTop - clientHeight < 100
-  }
+    const threshold = 150 // Increased threshold for better UX
+    return scrollHeight - scrollTop - clientHeight < threshold
+  }, [])
 
-  // Detectar cuando el usuario está haciendo scroll manualmente
+  // Debounced scroll position update
+  const updateScrollPosition = useMemo(
+    () => debounce(() => {
+      const isNear = checkIsNearBottom()
+      if (isNear !== isNearBottomCached) {
+        setIsNearBottomCached(isNear)
+      }
+    }, 100),
+    [checkIsNearBottom, isNearBottomCached]
+  )
+
+  // Optimized scroll detection with throttling
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
-    let scrollTimeout: NodeJS.Timeout
-    
     const handleScroll = () => {
-      setIsUserScrolling(true)
-      clearTimeout(scrollTimeout)
-      scrollTimeout = setTimeout(() => {
-        setIsUserScrolling(false)
-      }, 1000)
+      const currentScrollTop = container.scrollTop
+      
+      // Only process if scroll position actually changed significantly
+      if (Math.abs(currentScrollTop - lastScrollPositionRef.current) > 5) {
+        lastScrollPositionRef.current = currentScrollTop
+        
+        setIsUserScrolling(true)
+        updateScrollPosition()
+        
+        clearTimeout(scrollTimeoutRef.current)
+        scrollTimeoutRef.current = setTimeout(() => {
+          setIsUserScrolling(false)
+        }, 1500) // Increased timeout for better UX
+      }
     }
 
-    container.addEventListener('scroll', handleScroll)
+    // Use passive listener for better performance
+    container.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
       container.removeEventListener('scroll', handleScroll)
-      clearTimeout(scrollTimeout)
+      clearTimeout(scrollTimeoutRef.current)
     }
-  }, [])
+  }, [updateScrollPosition])
 
-  // Auto-scroll inteligente
+  // Optimized auto-scroll with better conditions
   useEffect(() => {
     if (!shouldAutoScroll) return
     
@@ -60,17 +90,24 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
     const hasNewMessage = newMessageCount > lastMessageCount
     
     if (hasNewMessage) {
-      // Solo hacer scroll automático si:
-      // 1. Es el primer mensaje
-      // 2. El usuario está cerca del final
-      // 3. El usuario no está scrolleando activamente
-      if (newMessageCount === 1 || (!isUserScrolling && isNearBottom())) {
-        setTimeout(scrollToBottom, 100)
+      // Enhanced auto-scroll conditions:
+      // 1. First message always scrolls
+      // 2. User near bottom and not actively scrolling
+      // 3. Loading state (streaming) should always scroll if near bottom
+      const shouldScroll = newMessageCount === 1 || 
+        (!isUserScrolling && isNearBottomCached) ||
+        (isLoading && isNearBottomCached)
+      
+      if (shouldScroll) {
+        // Use requestAnimationFrame for smoother scrolling
+        requestAnimationFrame(() => {
+          setTimeout(scrollToBottom, 50) // Reduced delay for better responsiveness
+        })
       }
     }
     
     setLastMessageCount(newMessageCount)
-  }, [messages, shouldAutoScroll, isUserScrolling, lastMessageCount])
+  }, [messages, shouldAutoScroll, isUserScrolling, isNearBottomCached, isLoading, lastMessageCount, scrollToBottom])
 
   return (
     <div className="relative">
@@ -104,8 +141,8 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Scroll to bottom button */}
-      {isUserScrolling && !isNearBottom() && (
+      {/* Optimized scroll to bottom button */}
+      {(isUserScrolling || !isNearBottomCached) && (
         <button
           onClick={scrollToBottom}
           className="fixed bottom-32 right-4 z-30 bg-purple-600/90 hover:bg-purple-700 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-purple-500/30 transition-all duration-300 hover:scale-110 hover:shadow-purple-500/25"

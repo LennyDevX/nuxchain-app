@@ -1,23 +1,40 @@
 export class EnhancedCacheManager {
   constructor(options = {}) {
     this.maxSize = options.maxSize || 100;
-    this.defaultTTL = options.defaultTTL || 3600000; // 1 hour
+    this.defaultTTL = options.defaultTTL || 1800000; // 30 minutes
     this.cache = new Map();
     this.accessTimes = new Map();
     this.cleanupInterval = setInterval(() => this.cleanup(), 300000); // 5 minutes
+    this.compressionEnabled = options.compression !== false;
+    this.compressionThreshold = options.compressionThreshold || 1000; // Compress if > 1KB
   }
 
-  set(key, value, ttl = this.defaultTTL) {
+  async set(key, value, ttl = this.defaultTTL) {
     // Remove oldest if at capacity
     if (this.cache.size >= this.maxSize) {
       this.evictLRU();
     }
 
+    // Compress large values if compression is enabled
+    let processedValue = value;
+    let isCompressed = false;
+    
+    if (this.compressionEnabled && typeof value === 'string' && value.length > this.compressionThreshold) {
+      try {
+        processedValue = await this.compressData(value);
+        isCompressed = true;
+      } catch (error) {
+        console.warn('Compression failed, storing uncompressed:', error);
+        processedValue = value;
+      }
+    }
+
     const expiresAt = Date.now() + ttl;
     const entry = {
-      value,
+      value: processedValue,
+      isCompressed,
       expiresAt,
-      size: this.calculateSize(value),
+      size: this.calculateSize(processedValue),
       accessCount: 0,
       createdAt: Date.now()
     };
@@ -28,7 +45,7 @@ export class EnhancedCacheManager {
     return true;
   }
 
-  get(key) {
+  async get(key) {
     const entry = this.cache.get(key);
     
     if (!entry) {
@@ -44,6 +61,17 @@ export class EnhancedCacheManager {
     // Update access metadata
     entry.accessCount++;
     this.accessTimes.set(key, Date.now());
+    
+    // Decompress if needed
+    if (entry.isCompressed) {
+      try {
+        return await this.decompressData(entry.value);
+      } catch (error) {
+        console.warn('Decompression failed:', error);
+        this.delete(key);
+        return null;
+      }
+    }
     
     return entry.value;
   }
@@ -161,6 +189,83 @@ export class EnhancedCacheManager {
         }
       })
     );
+  }
+
+  // Simple compression using built-in compression
+  async compressData(data) {
+    if (typeof CompressionStream !== 'undefined') {
+      const stream = new CompressionStream('gzip');
+      const writer = stream.writable.getWriter();
+      const reader = stream.readable.getReader();
+      
+      writer.write(new TextEncoder().encode(data));
+      writer.close();
+      
+      const chunks = [];
+      let done = false;
+      
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) chunks.push(value);
+      }
+      
+      return new Uint8Array(chunks.reduce((acc, chunk) => [...acc, ...chunk], []));
+    }
+    
+    // Fallback: simple string compression using LZ-like algorithm
+    return this.simpleCompress(data);
+  }
+  
+  async decompressData(compressedData) {
+    if (typeof DecompressionStream !== 'undefined' && compressedData instanceof Uint8Array) {
+      const stream = new DecompressionStream('gzip');
+      const writer = stream.writable.getWriter();
+      const reader = stream.readable.getReader();
+      
+      writer.write(compressedData);
+      writer.close();
+      
+      const chunks = [];
+      let done = false;
+      
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) chunks.push(value);
+      }
+      
+      return new TextDecoder().decode(new Uint8Array(chunks.reduce((acc, chunk) => [...acc, ...chunk], [])));
+    }
+    
+    // Fallback: simple decompression
+    return this.simpleDecompress(compressedData);
+  }
+  
+  simpleCompress(str) {
+    // Simple run-length encoding for repeated characters
+    return str.replace(/(.)\1{2,}/g, (match, char) => `${char}${match.length}`);
+  }
+  
+  simpleDecompress(str) {
+    // Reverse simple run-length encoding
+    return str.replace(/(.)([0-9]+)/g, (match, char, count) => char.repeat(parseInt(count)));
+  }
+  
+  // Enhanced memory management
+  optimizeMemory() {
+    const stats = this.getStats();
+    
+    // If memory usage is high, be more aggressive with cleanup
+    if (stats.totalSize > this.maxSize * 1000) { // Assuming 1KB average per entry
+      this.cleanup(true); // Force cleanup
+      
+      // Reduce cache size temporarily
+      const targetSize = Math.floor(this.maxSize * 0.7);
+      while (this.cache.size > targetSize) {
+        this.evictLRU();
+      }
+    }
   }
 
   destroy() {

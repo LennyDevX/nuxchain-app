@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "functions": {
+    "api/chat/stream-with-tools.js": {
+      "maxDuration": 60
+    },
+    "api/chat/stream.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api).*)",

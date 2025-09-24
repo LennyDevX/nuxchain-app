@@ -6,11 +6,13 @@
 class WebScraperService {
   constructor() {
     this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    this.timeout = 10000;
+    // Timeout reducido para Vercel (máximo 25s de función)
+    this.timeout = process.env.VERCEL ? 5000 : 10000;
     this.maxContentLength = 50000;
     this.cache = new Map();
     this.cacheTimeout = 30 * 60 * 1000; // 30 minutos
-    this.maxRetries = 3;
+    // Reducir reintentos en producción para evitar timeouts
+    this.maxRetries = process.env.VERCEL ? 1 : 3;
     this.retryDelay = 1000; // 1 segundo inicial
   }
 
@@ -111,6 +113,8 @@ class WebScraperService {
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
+      console.log(`[WebScraper] [PRODUCTION] Iniciando fetch para: ${url} (timeout: ${this.timeout}ms)`);
+      
       const response = await fetch(url, {
         headers: {
           'User-Agent': this.userAgent,
@@ -123,6 +127,7 @@ class WebScraperService {
       });
 
       clearTimeout(timeoutId);
+      console.log(`[WebScraper] [PRODUCTION] Respuesta recibida: ${response.status} para ${url}`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -134,12 +139,13 @@ class WebScraperService {
       }
 
       const html = await response.text();
-      console.log(`[SimpleWebScraper] HTML obtenido: ${html.length} caracteres`);
+      console.log(`[WebScraper] [PRODUCTION] HTML obtenido: ${html.length} caracteres`);
 
       return this.parseHtmlContentAdvanced(url, html);
 
     } catch (fetchError) {
       clearTimeout(timeoutId);
+      console.error(`[WebScraper] [PRODUCTION] Error en fetch: ${fetchError.message}`);
       throw fetchError;
     }
   }

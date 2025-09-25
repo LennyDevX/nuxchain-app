@@ -1271,7 +1271,7 @@ export async function extractMultipleUrls(req, res, next) {
 
     if (urls.length > 10) {
       return res.status(400).json({ 
-        error: 'Máximo 10 URLs permitidas por solicitud'
+        error: 'Máximo 10 URLs permitidas por request para evitar sobrecarga',
       });
     }
 
@@ -1667,7 +1667,7 @@ export async function streamChatWithTools(req, res, next) {
       const geminiStream = await processGeminiStreamRequestWithTools(
         formattedMessages, 
         'gemini-2.5-flash-lite', 
-        { temperature: 0.7, maxOutputTokens: 2048 }, 
+        { temperature: 0.8, maxOutputTokens: 2048 }, 
         finalEnabledTools
       );
       

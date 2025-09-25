@@ -73,11 +73,15 @@ export default async function handler(req, res) {
         const searchResults = await embeddingsService.search('knowledge_base', testQuery, 2, {
           threshold: 0.3
         });
-        
+        // Filtrar solo inglés
+        const englishResults = searchResults.filter(r =>
+          (r.meta?.language || '').toLowerCase() === 'en' ||
+          /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(r.content)
+        );
         healthCheck.checks.embeddingsSearch = {
-          status: searchResults && searchResults.length > 0 ? 'ok' : 'warning',
-          message: `Búsqueda de prueba: ${searchResults?.length || 0} resultados`,
-          resultsCount: searchResults?.length || 0,
+          status: englishResults && englishResults.length > 0 ? 'ok' : 'warning',
+          message: `Búsqueda de prueba (solo inglés): ${englishResults?.length || 0} resultados`,
+          resultsCount: englishResults?.length || 0,
           testQuery,
           fallbackUsed: embeddingsService.fallbackMode || false
         };
@@ -89,15 +93,21 @@ export default async function handler(req, res) {
         };
       }
     }
-
     // 4. Probar sistema de fallback
     try {
       const fallbackResults = getRelevantContext('Nuxchain staking');
+      // Filtrar solo inglés
+      const englishFallback = Array.isArray(fallbackResults)
+        ? fallbackResults.filter(doc =>
+            (doc.metadata?.language || '').toLowerCase() === 'en' ||
+            /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+          )
+        : fallbackResults;
       healthCheck.checks.fallbackSystem = {
-        status: fallbackResults ? 'ok' : 'warning',
-        message: fallbackResults ? 'Sistema de fallback funcional' : 'Sistema de fallback sin resultados',
-        hasResults: !!fallbackResults,
-        contextLength: fallbackResults?.length || 0
+        status: englishFallback && englishFallback.length > 0 ? 'ok' : 'warning',
+        message: englishFallback ? 'Sistema de fallback funcional (solo inglés)' : 'Sistema de fallback sin resultados',
+        hasResults: !!englishFallback,
+        contextLength: englishFallback?.length || 0
       };
     } catch (error) {
       healthCheck.checks.fallbackSystem = {

@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { getRelevantContext } from './knowledge-base.js';
+import { getRelevantContext } from '../services/knowledge-base.js';
 import { initializeKnowledgeBaseForVercel } from '../services/embeddings-service.js';
 
 // Configuración CORS para Vercel

@@ -6,10 +6,10 @@ import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
 import websocketHandler from './middlewares/websocket-handler.js';
 import { initializeKnowledgeBaseOnStartup } from './services/embeddings-service.js';
-import { getCorsConfig, applySecurityHeaders } from '../security/cors-policies.js';
-import { setupSecurityMiddlewares } from '../security/security-middleware.js';
-import { setupSecureWebSocketServer } from '../security/websocket-security.js';
-import environmentConfig from '../security/environment-config.js';
+import { getCorsConfig, applySecurityHeaders } from '../../security/cors-policies.js';
+import { setupSecurityMiddlewares } from '../../security/security-middleware.js';
+import { setupSecureWebSocketServer } from '../../security/websocket-security.js';
+import environmentConfig from '../../security/environment-config.js';
 
 // Crear la aplicación express
 const app = express();

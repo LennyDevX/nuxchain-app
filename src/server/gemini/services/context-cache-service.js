@@ -141,7 +141,7 @@ class ContextCacheService {
           contents: [lastMessage], // Solo el último mensaje
           cachedContent: cacheInfo.cacheName,
           generationConfig: {
-            temperature: params.temperature || 0.7,
+            temperature: params.temperature || 0.8,
             topK: params.topK || 40,
             topP: params.topP || 0.95,
             maxOutputTokens: params.maxOutputTokens || 2048,

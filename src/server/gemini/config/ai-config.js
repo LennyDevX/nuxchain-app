@@ -16,7 +16,6 @@ export const AVAILABLE_MODELS = {
     maxTokens: 8192,
     isPreview: false,
     isDefault: true,
-    temperatureRange: [0, 1]
   },
 };
 

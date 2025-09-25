@@ -12,7 +12,8 @@ function validateEnvironment() {
   };
   
   const missing = [];
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+  // Considerar producción sólo si NODE_ENV === 'production'
+  const isProduction = process.env.NODE_ENV === 'production';
   
   for (const [key, value] of Object.entries(requiredVars)) {
     if (!value) {
@@ -37,11 +38,19 @@ function validateEnvironment() {
 // Ejecutar validación
 const isValid = validateEnvironment();
 
+// Mejorar detección de Vercel: requerir valores significativos en variables
+const detectedVercel = (
+  process.env.VERCEL === '1' ||
+  process.env.VERCEL_ENV === 'production' ||
+  (process.env.VERCEL_URL && process.env.NODE_ENV === 'production')
+);
+
 export default {
   port: process.env.PORT || 3002,
   geminiApiKey: process.env.GEMINI_API_KEY,
   serverApiKey: process.env.SERVER_API_KEY,
-  isVercel: process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined || process.env.VERCEL_URL !== undefined,
+  // isVercel ahora es true sólo en casos claros de Vercel/producción
+  isVercel: Boolean(detectedVercel),
   nodeEnv: process.env.NODE_ENV || 'development',
   isEnvironmentValid: isValid,
   

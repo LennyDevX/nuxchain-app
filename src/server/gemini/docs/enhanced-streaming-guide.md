@@ -320,7 +320,7 @@ ws.send(JSON.stringify({
 ### Semantic Streaming Service
 
 ```javascript
-import semanticStreamingService from './services/semantic-streaming-service.js';
+import semanticStreamingService from '../services/semantic-streaming-service.js';
 
 // Configuración personalizada
 const config = {
@@ -346,7 +346,7 @@ const chunks = await semanticStreamingService.processContentStream(
 ### UX Enhancement Service
 
 ```javascript
-import uxEnhancementService from './services/ux-enhancement-service.js';
+import uxEnhancementService from '../services/ux-enhancement-service.js';
 
 // Crear typing indicator
 const indicator = uxEnhancementService.createTypingIndicator('session_123', {
@@ -372,7 +372,7 @@ const scrollConfig = uxEnhancementService.generateSmoothScrollConfig(
 ### WebSocket Streaming Service
 
 ```javascript
-import websocketStreamingService from './services/websocket-streaming-service.js';
+import websocketStreamingService from '../services/websocket-streaming-service.js';
 
 // Configurar límites de conexión
 websocketStreamingService.setConnectionLimits({

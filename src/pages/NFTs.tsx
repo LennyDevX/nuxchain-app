@@ -34,6 +34,7 @@ function NFTs() {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
   const [listingTokenId, setListingTokenId] = useState<string | null>(null);
   const [showListingModal, setShowListingModal] = useState(false);
   
@@ -49,7 +50,7 @@ function NFTs() {
 
   // Filter NFTs based on search term, category, and status
   const filteredNFTs = useMemo(() => {
-    return userNFTs.filter(nft => {
+    let filtered = userNFTs.filter(nft => {
       const matchesSearch = searchTerm === '' || 
         nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         nft.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -66,7 +67,22 @@ function NFTs() {
       
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [userNFTs, searchTerm, selectedCategory, filter]);
+
+    // Sort NFTs based on selected sort option
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'price':
+          return Number(a.price || 0) - Number(b.price || 0);
+        case 'price-desc':
+          return Number(b.price || 0) - Number(a.price || 0);
+        case 'date':
+        default:
+          return Number(b.tokenId) - Number(a.tokenId);
+      }
+    });
+  }, [userNFTs, searchTerm, selectedCategory, filter, sortBy]);
 
   // Get unique categories from NFTs for dynamic filtering
   const availableCategories = useMemo(() => {
@@ -140,6 +156,8 @@ function NFTs() {
               availableCategories={availableCategories}
               onCreateNFT={handleCreateNFT}
               isLoading={loading}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
             />
           </div>
         </div>

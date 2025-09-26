@@ -139,13 +139,44 @@ export async function initializeKnowledgeBaseForVercel() {
     });
     
     // Importar la base de conocimientos
-    const { knowledgeBase } = await import('../chat/knowledge-base.js');
-    // Filtrar solo documentos en inglés
-    const englishDocs = knowledgeBase.filter(doc =>
-      (doc.metadata?.language || '').toLowerCase() === 'en' ||
-      /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content) // Heurística simple para inglés
-    );
-    console.log(`📚 Base de conocimientos cargada: ${englishDocs.length} documentos (solo inglés)`);
+    const { knowledgeBase } = await import('./knowledge-base.js');
+    // Filtrado inteligente de documentos para indexación
+    // En lugar de filtrar estrictamente por idioma, evaluamos la calidad y la utilidad del documento
+    const filteredDocs = knowledgeBase.filter(doc => {
+      const contentLower = doc.content.toLowerCase();
+      const hasUsefulContent = 
+        // Priorizar documentos con categorías definidas
+        !!doc.metadata?.category && 
+        !!doc.metadata?.topic &&
+        // Excluir documentos vacíos o con contenido irrelevante
+        contentLower.length > 50 && 
+        !contentLower.includes('placeholder') && 
+        !contentLower.includes('ejemplo') && 
+        !contentLower.includes('example');
+      
+      // Incluir todos los documentos de calidad
+      return hasUsefulContent;
+    });
+    
+    // Clasificar documentos por categorías para una mejor organización
+    const categorizedDocs = filteredDocs.map(doc => {
+      const contentLower = doc.content.toLowerCase();
+      return {
+        ...doc,
+        searchCategory: doc.metadata?.type || 
+          (contentLower.includes('staking') || contentLower.includes('apy') ? 'staking' :
+           contentLower.includes('nft') || contentLower.includes('marketplace') ? 'nft' :
+           contentLower.includes('airdrop') ? 'airdrop' : 'general')
+      };
+    });
+    
+    console.log(`📚 Base de conocimientos optimizada: ${categorizedDocs.length} documentos listos para indexación`);
+    console.log('📊 Distribución por categorías:', 
+      categorizedDocs.reduce((acc, doc) => {
+        acc[doc.searchCategory] = (acc[doc.searchCategory] || 0) + 1;
+        return acc;
+      }, {}));
+    console.log(`📚 Base de conocimientos cargada: ${categorizedDocs.length} documentos optimizados`);
 
     const embeddingsService = getEmbeddingsService();
     
@@ -159,10 +190,10 @@ export async function initializeKnowledgeBaseForVercel() {
     
     console.log('🔄 Iniciando proceso de indexación...');
     
-    // Inicializar el índice con los documentos en inglés
-    const result = await embeddingsService.upsertIndex('knowledge_base', englishDocs.map(doc => ({
+    // Inicializar el índice con los documentos categorizados y optimizados
+    const result = await embeddingsService.upsertIndex('knowledge_base', categorizedDocs.map(doc => ({
       text: doc.content,
-      meta: doc.metadata
+      meta: { ...doc.metadata, searchCategory: doc.searchCategory }
     })));
 
     console.log(`✅ Base de conocimientos inicializada en Vercel: ${englishDocs.length} documentos indexados`);
@@ -201,13 +232,16 @@ export async function initializeKnowledgeBaseForVercel() {
       console.log('🔄 Usando búsqueda de fallback para:', query);
       
       try {
-        const { searchKnowledgeBase, knowledgeBase } = await import('../chat/knowledge-base.js');
-        // Filtrar solo inglés en fallback
-        const englishDocs = knowledgeBase.filter(doc =>
-          (doc.metadata?.language || '').toLowerCase() === 'en' ||
-          /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+        const { searchKnowledgeBase, knowledgeBase } = await import('./knowledge-base.js');
+        // No filtrar tan estrictamente en el fallback
+        const filteredDocs = knowledgeBase.filter(doc =>
+          doc.content.toLowerCase().includes('staking') ||
+          doc.content.toLowerCase().includes('apy') ||
+          doc.content.toLowerCase().includes('lockup') ||
+          doc.content.toLowerCase().includes('bloqueo') ||
+          true // Incluir todos los documentos como último recurso
         );
-        const results = searchKnowledgeBase(query, topK, englishDocs);
+        const results = searchKnowledgeBase(query, topK, filteredDocs);
         
         // Convertir al formato esperado por el sistema de embeddings
         return results.map((item, index) => ({

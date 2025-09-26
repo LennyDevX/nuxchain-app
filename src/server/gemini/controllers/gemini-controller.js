@@ -36,7 +36,7 @@ function validateInput(data) {
     errors.push('Debes proporcionar un prompt o un historial de mensajes válido. Ejemplo: { prompt: "¿Cuál es la capital de Francia?" }');
   }
   if (data.temperature !== undefined && (typeof data.temperature !== 'number' || data.temperature < 0 || data.temperature > 2)) {
-    errors.push('El parámetro "temperature" debe ser un número entre 0 y 2. Ejemplo: { temperature: 0.8 }');
+    errors.push('El parámetro "temperature" debe ser un número entre 0 y 2. Ejemplo: { temperature: 0.7 }');
   }
   if (data.maxTokens !== undefined && (typeof data.maxTokens !== 'number' || data.maxTokens < 1 || data.maxTokens > 8192)) {
     errors.push('El parámetro "maxTokens" debe ser un número entre 1 y 8192. Ejemplo: { maxTokens: 2048 }');
@@ -1667,7 +1667,7 @@ export async function streamChatWithTools(req, res, next) {
       const geminiStream = await processGeminiStreamRequestWithTools(
         formattedMessages, 
         'gemini-2.5-flash-lite', 
-        { temperature: 0.8, maxOutputTokens: 2048 }, 
+        { temperature: 0.7, maxOutputTokens: 2048 }, 
         finalEnabledTools
       );
       

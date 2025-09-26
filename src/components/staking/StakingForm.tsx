@@ -5,6 +5,7 @@ import { polygon } from 'wagmi/chains'
 import SmartStakingABI from '../../abi/SmartStaking.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
+import StakingPeriodCarousel from '../ui/StakingPeriodCarousel'
 
 interface StakingFormProps {
   stakingContractAddress: string
@@ -17,8 +18,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   const { address } = useAccount()
   const isMobile = useIsMobile()
   const [depositAmount, setDepositAmount] = useState('')
-  const [lockupDuration, setLockupDuration] = useState('30') // days
-  const [compoundLockupDuration, setCompoundLockupDuration] = useState('30') // days for compound
+  const [lockupDuration, setLockupDuration] = useState('0') // default: Flexible
+  const [compoundLockupDuration, setCompoundLockupDuration] = useState('0') // default: Flexible
   const [activeTab, setActiveTab] = useState('stake')
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
@@ -31,11 +32,21 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   // Handle touch events for swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return
+    // Don't interfere with form elements
+    const target = e.target as HTMLElement
+    if (target.tagName === 'SELECT' || target.tagName === 'OPTION' || target.closest('select')) {
+      return
+    }
     setTouchStart(e.targetTouches[0].clientX)
   }
   
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return
+    // Don't interfere with form elements
+    const target = e.target as HTMLElement
+    if (target.tagName === 'SELECT' || target.tagName === 'OPTION' || target.closest('select')) {
+      return
+    }
     setTouchEnd(e.targetTouches[0].clientX)
   }
   
@@ -330,37 +341,63 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               </div>
             </div>
 
-            <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
-                Lockup period (days)
-              </label>
-              <select
-                value={lockupDuration}
-                onChange={(e) => setLockupDuration(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-              >
-                <option value="0" className="bg-gray-800 text-white">Flexible (0.01% per hour)</option>
-                <option value="30" className="bg-gray-800 text-white">30 days (0.012% per hour)</option>
-                <option value="90" className="bg-gray-800 text-white">90 days (0.016% per hour)</option>
-                <option value="180" className="bg-gray-800 text-white">180 days (0.02% per hour)</option>
-                <option value="365" className="bg-gray-800 text-white">365 days (0.03% per hour)</option>
-              </select>
-              <div className="mt-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <p className="text-blue-400 text-sm font-medium mb-1">
-                  📈 Estimated ROI:
-                </p>
-                <p className="text-white/80 text-sm">
-                  {lockupDuration === '0' && 'Daily: ~0.24% | Monthly: ~7.2% | Annual: ~87.6%'}
-                  {lockupDuration === '30' && 'Daily: ~0.29% | Monthly: ~8.6% | Annual: ~105.1%'}
-                  {lockupDuration === '90' && 'Daily: ~0.38% | Monthly: ~11.5% | Annual: ~140.2%'}
-                  {lockupDuration === '180' && 'Daily: ~0.48% | Monthly: ~14.4% | Annual: ~175.2%'}
-                  {lockupDuration === '365' && 'Daily: ~0.72% | Monthly: ~21.6% | Annual: ~262.8%'}
-                </p>
-                <p className="text-yellow-400 text-xs mt-1">
-                  ⚠️ Longer periods = Higher ROI but funds locked
-                </p>
-              </div>
-            </div>
+            <StakingPeriodCarousel
+              value={lockupDuration}
+              onChange={setLockupDuration}
+              options={[
+                {
+                  value: "0",
+                  label: "Flexible",
+                  description: "0.01% per hour",
+                  roi: {
+                    daily: "~0.24%",
+                    monthly: "~7.2%",
+                    annual: "~87.6%"
+                  }
+                },
+                {
+                  value: "30",
+                  label: "30 Days",
+                  description: "0.012% per hour",
+                  roi: {
+                    daily: "~0.29%",
+                    monthly: "~8.6%",
+                    annual: "~105.1%"
+                  }
+                },
+                {
+                  value: "90",
+                  label: "90 Days",
+                  description: "0.016% per hour",
+                  roi: {
+                    daily: "~0.38%",
+                    monthly: "~11.5%",
+                    annual: "~140.2%"
+                  }
+                },
+                {
+                  value: "180",
+                  label: "180 Days",
+                  description: "0.02% per hour",
+                  roi: {
+                    daily: "~0.48%",
+                    monthly: "~14.4%",
+                    annual: "~175.2%"
+                  }
+                },
+                {
+                  value: "365",
+                  label: "365 Days",
+                  description: "0.03% per hour",
+                  roi: {
+                    daily: "~0.72%",
+                    monthly: "~21.6%",
+                    annual: "~262.8%"
+                  }
+                }
+              ]}
+              label="Lockup period (days)"
+            />
 
             <button
               onClick={handleDeposit}
@@ -428,37 +465,63 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               </p>
             </div>
             
-            <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
-                Lockup period for compounded rewards (days)
-              </label>
-              <select
-                value={compoundLockupDuration}
-                onChange={(e) => setCompoundLockupDuration(e.target.value)}
-                className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 mb-4"
-              >
-                <option value="0" className="bg-gray-800 text-white">Flexible (0.01% per hour)</option>
-                <option value="30" className="bg-gray-800 text-white">30 days (0.012% per hour)</option>
-                <option value="90" className="bg-gray-800 text-white">90 days (0.016% per hour)</option>
-                <option value="180" className="bg-gray-800 text-white">180 days (0.02% per hour)</option>
-                <option value="365" className="bg-gray-800 text-white">365 days (0.03% per hour)</option>
-              </select>
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg mb-4">
-                <p className="text-green-400 text-sm font-medium mb-1">
-                  📈 Compound ROI:
-                </p>
-                <p className="text-white/80 text-sm">
-                  {compoundLockupDuration === '0' && 'Daily: ~0.24% | Monthly: ~7.2% | Annual: ~87.6%'}
-                  {compoundLockupDuration === '30' && 'Daily: ~0.29% | Monthly: ~8.6% | Annual: ~105.1%'}
-                  {compoundLockupDuration === '90' && 'Daily: ~0.38% | Monthly: ~11.5% | Annual: ~140.2%'}
-                  {compoundLockupDuration === '180' && 'Daily: ~0.48% | Monthly: ~14.4% | Annual: ~175.2%'}
-                  {compoundLockupDuration === '365' && 'Daily: ~0.72% | Monthly: ~21.6% | Annual: ~262.8%'}
-                </p>
-                <p className="text-yellow-400 text-xs mt-1">
-                  💡 Compounded rewards are reinvested with the selected period
-                </p>
-              </div>
-            </div>
+            <StakingPeriodCarousel
+              value={compoundLockupDuration}
+              onChange={setCompoundLockupDuration}
+              options={[
+                {
+                  value: "0",
+                  label: "Flexible",
+                  description: "0.01% per hour",
+                  roi: {
+                    daily: "~0.24%",
+                    monthly: "~7.2%",
+                    annual: "~87.6%"
+                  }
+                },
+                {
+                  value: "30",
+                  label: "30 Days",
+                  description: "0.012% per hour",
+                  roi: {
+                    daily: "~0.29%",
+                    monthly: "~8.6%",
+                    annual: "~105.1%"
+                  }
+                },
+                {
+                  value: "90",
+                  label: "90 Days",
+                  description: "0.016% per hour",
+                  roi: {
+                    daily: "~0.38%",
+                    monthly: "~11.5%",
+                    annual: "~140.2%"
+                  }
+                },
+                {
+                  value: "180",
+                  label: "180 Days",
+                  description: "0.02% per hour",
+                  roi: {
+                    daily: "~0.48%",
+                    monthly: "~14.4%",
+                    annual: "~175.2%"
+                  }
+                },
+                {
+                  value: "365",
+                  label: "365 Days",
+                  description: "0.03% per hour",
+                  roi: {
+                    daily: "~0.72%",
+                    monthly: "~21.6%",
+                    annual: "~262.8%"
+                  }
+                }
+              ]}
+              label="Lockup period for compounded rewards (days)"
+            />
             
             <button
               onClick={handleCompound}

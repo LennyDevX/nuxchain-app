@@ -124,7 +124,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       const requestBody: any = {
         messages: conversationHistory,
         model: 'gemini-2.5-flash-lite',
-        temperature: 0.8,
+        temperature: 0.7,
         maxTokens: 2048,
         stream: true
       };

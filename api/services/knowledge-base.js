@@ -43,7 +43,7 @@ const knowledgeBase = [
     metadata: { type: "staking", category: "tutorial", topic: "claiming" }
   },
   {
-    content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 ETH. / Niveles de APY en Nuxchain basados en períodos de lockup: Sin lockup: 0.01% por hora (87.6% APY), 30 días de lockup: 0.012% por hora (105.1% APY), 90 días de lockup: 0.016% por hora (140.2% APY), 180 días de lockup: 0.02% por hora (175.2% APY), 365 días de lockup: 0.03% por hora (262.8% APY). Se aplica un límite máximo de ROI del 125% a todos los depósitos. La tasa de comisión es del 6% sobre las recompensas. El límite de retiro diario es de 1000 ETH. Commands: 'Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates'.",
+    content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 ETH. / Niveles de APY en Nuxchain basados en períodos de lockup: Sin lockup: 0.01% por hora (87.6% APY), 30 días de lockup: 0.012% por hora (105.1% APY), 90 días de lockup: 0.016% por hora (140.2% APY), 180 días de lockup: 0.02% por hora (175.2% APY), 365 días de lockup: 0.03% por hora (262.8% APY). Se aplica un límite máximo de ROI del 125% a todos los depósitos. La tasa de comisión es del 6% sobre las recompensas. El límite de retiro diario es de 1000 POL. Commands: 'Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates'.",
     metadata: { type: "staking", category: "rewards", topic: "apy-tiers" }
   },
   {
@@ -389,31 +389,91 @@ const knowledgeBase = [
     metadata: { type: "faq", category: "marketplace", topic: "royalties" }
   },
   {
-    content: "Límites de la plataforma Nuxchain: Staking mínimo 100 NUVOS, máximo 1,000,000 NUVOS por transacción. NFT máximo 50 MB por archivo, formatos soportados: JPG, PNG, GIF, MP4, MP3. Ofertas máximo 7 días de duración. Gas limit recomendado: 300,000 para staking, 150,000 para NFT transfers. / Nuxchain platform limits: Minimum staking 100 NUVOS, maximum 1,000,000 NUVOS per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers. Commands: 'platform limits', 'Nuxchain restrictions'.",
+    content: "Límites de la plataforma Nuxchain: Staking mínimo 5 POL, máximo 10,000 POL por transacción. NFT máximo 50 MB por archivo, formatos soportados: JPG, PNG, GIF, MP4, MP3. Ofertas máximo 7 días de duración. Gas limit recomendado: 300,000 para staking, 150,000 para NFT transfers. / Nuxchain platform limits: Minimum staking 100 NUVOS, maximum 1,000,000 NUVOS per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers. Commands: 'platform limits', 'Nuxchain restrictions'.",
     metadata: { type: "faq", category: "general", topic: "limits" }
   }
 ];
 
-// Función para buscar en la base de conocimiento
-function searchKnowledgeBase(query, limit = 5) {
-  console.log('Base de conocimiento cargada con', knowledgeBase.length, 'elementos');
+// Función para buscar en la base de conocimiento - Optimizada para búsquedas inteligentes
+function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
+  console.log('Base de conocimiento cargada con', docs.length, 'elementos');
   const queryLower = query.toLowerCase();
   console.log('Query en minúsculas:', queryLower);
   
+  // Preprocesar query para eliminar palabras vacías
+  const stopWords = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'a', 'al', 'para', 'por', 'con', 'en', 'y', 'o', 'es', 'son', 'que', 'como', 'cuál', 'cuáles', 'qué', 'quién', 'quiénes', 'aquel', 'aquella', 'aquellos', 'aquellas', 'this', 'that', 'these', 'those', 'the', 'a', 'an', 'and', 'or', 'is', 'are', 'in', 'on', 'at', 'for', 'with'];
+  const queryWords = queryLower.split(/\s+/) 
+    .filter(word => !stopWords.includes(word) && word.length > 2)
+    .map(word => word.replace(/[^a-zA-Z0-9]/g, ''))
+    .filter(Boolean);
+  
+  // Determinar categorías de la query
+  const categories = {
+    staking: queryLower.includes('staking') || queryLower.includes('apy') || queryLower.includes('lockup') || queryLower.includes('bloqueo'),
+    nft: queryLower.includes('nft') || queryLower.includes('marketplace') || queryLower.includes('colección'),
+    airdrop: queryLower.includes('airdrop') || queryLower.includes('recompensa') || queryLower.includes('reward'),
+    general: !queryWords.length || (queryWords.length === 1 && queryWords[0].length < 5)
+  };
+  
   // Buscar coincidencias exactas en comandos
-  const exactMatches = knowledgeBase.filter(item => 
+  const exactMatches = docs.filter(item => 
     item.content.toLowerCase().includes(`commands: '${queryLower}'`) ||
-    item.content.toLowerCase().includes(`'${queryLower}'`)
+    item.content.toLowerCase().includes(`'${queryLower}'`) ||
+    (item.metadata?.category && queryLower.includes(item.metadata.category.toLowerCase())) ||
+    (item.metadata?.topic && queryLower.includes(item.metadata.topic.toLowerCase()))
   );
   
-  // Buscar coincidencias en contenido
-  const contentMatches = knowledgeBase.filter(item => 
-    item.content.toLowerCase().includes(queryLower) &&
-    !exactMatches.includes(item)
-  );
+  // Buscar coincidencias en contenido usando algoritmo de puntuación mejorado
+  const scoredMatches = docs
+    .filter(item => !exactMatches.includes(item))
+    .map(item => {
+      const contentLower = item.content.toLowerCase();
+      let score = 0;
+      
+      // Puntuación por coincidencia directa
+      if (contentLower.includes(queryLower)) {
+        score += 0.5;
+      }
+      
+      // Puntuación por palabras clave de la query
+      queryWords.forEach(word => {
+        if (contentLower.includes(word)) {
+          // Mayor puntuación para palabras más largas
+          score += (word.length / 100) * 3;
+        }
+      });
+      
+      // Puntuación por categoría coincidente
+      if (categories.staking && ['staking', 'smart-contract'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.nft && ['nft', 'marketplace'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.airdrop && ['airdrops'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.general && ['general'].includes(item.metadata?.type)) {
+        score += 0.1;
+      }
+      
+      // Puntuación por idioma (priorizar coincidencia de idioma)
+      const queryHasSpanish = /[áéíóúñÑ]/.test(query);
+      const contentHasSpanish = /[áéíóúñÑ]/.test(contentLower);
+      if (queryHasSpanish && contentHasSpanish) {
+        score += 0.1;
+      }
+      
+      return { ...item, score };
+    })
+    .filter(item => item.score > 0.1) // Filtrar resultados con puntuación mínima
+    .sort((a, b) => b.score - a.score); // Ordenar por puntuación descendente
+  
+  // Combinar resultados exactos y por puntuación
+  const combinedResults = [...exactMatches, ...scoredMatches.slice(0, limit - exactMatches.length)];
+  
+  // Asegurar que el límite no se exceda
+  return combinedResults.slice(0, limit);
   
   // Buscar coincidencias en metadatos
-  const metadataMatches = knowledgeBase.filter(item => 
+  const metadataMatches = docs.filter(item => 
     (item.metadata.type.toLowerCase().includes(queryLower) ||
      item.metadata.category.toLowerCase().includes(queryLower) ||
      item.metadata.topic.toLowerCase().includes(queryLower)) &&

@@ -122,10 +122,13 @@ export default async function handler(req, res) {
           const searchResults = await embeddingsService.search('knowledge_base', finalMessage, 2, {
             threshold: 0.25
           });
-          // Filtrar solo inglés
+          // Filtrar para incluir contenido en inglés (incluso si contiene español)
           const englishResults = searchResults.filter(r =>
             (r.meta?.language || '').toLowerCase() === 'en' ||
-            /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(r.content)
+            r.content.toLowerCase().includes('staking') ||
+            r.content.toLowerCase().includes('apy') ||
+            r.content.toLowerCase().includes('lockup') ||
+            /[a-zA-Z]/.test(r.content) // Al menos algunos caracteres en inglés
           );
           if (englishResults && englishResults.length > 0) {
             relevantContext = englishResults.map(result => result.content).join('\n\n');
@@ -137,7 +140,10 @@ export default async function handler(req, res) {
             relevantContext = Array.isArray(fallbackContext)
               ? fallbackContext.filter(doc =>
                   (doc.metadata?.language || '').toLowerCase() === 'en' ||
-                  /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+                  doc.content.toLowerCase().includes('staking') ||
+                  doc.content.toLowerCase().includes('apy') ||
+                  doc.content.toLowerCase().includes('lockup') ||
+                  /[a-zA-Z]/.test(doc.content) // Al menos algunos caracteres en inglés
                 ).map(doc => doc.content).join('\n\n')
               : fallbackContext;
             setCachedContext(cacheKey, relevantContext);
@@ -148,11 +154,14 @@ export default async function handler(req, res) {
           console.error('❌ Error crítico con embeddings:', error.message);
           const fallbackContext = getRelevantContext(finalMessage);
           relevantContext = Array.isArray(fallbackContext)
-            ? fallbackContext.filter(doc =>
-                (doc.metadata?.language || '').toLowerCase() === 'en' ||
-                /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
-              ).map(doc => doc.content).join('\n\n')
-            : fallbackContext;
+              ? fallbackContext.filter(doc =>
+                  (doc.metadata?.language || '').toLowerCase() === 'en' ||
+                  doc.content.toLowerCase().includes('staking') ||
+                  doc.content.toLowerCase().includes('apy') ||
+                  doc.content.toLowerCase().includes('lockup') ||
+                  /[a-zA-Z]/.test(doc.content) // Al menos algunos caracteres en inglés
+                ).map(doc => doc.content).join('\n\n')
+              : fallbackContext;
           setCachedContext(cacheKey, relevantContext);
           searchMethod = 'error_fallback';
         }
@@ -206,7 +215,7 @@ INSTRUCCIONES:
         model: 'gemini-2.5-flash-lite',
         contents: contents,
         generationConfig: {
-          temperature: 0.8,
+          temperature: 0.7,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048, // Chunks más grandes

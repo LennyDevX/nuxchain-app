@@ -790,7 +790,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
         const reducedConfig = {
           ...generationConfig,
           maxOutputTokens: Math.min(generationConfig.maxOutputTokens, 1024),
-          temperature: 0.8
+          temperature: 0.7
         };
         
         console.log('Intentando con configuración reducida...');
@@ -816,7 +816,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
               generationConfig: {
                 ...generationConfig,
                 maxOutputTokens: 1024,
-                temperature: 0.8
+                temperature: 0.7
               }
             }), 
             { timeoutMs: 15000, maxRetries: 2, backoffMs: 3000 }

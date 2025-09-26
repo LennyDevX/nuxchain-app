@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MobileFriendlySelect from '../ui/MobileFriendlySelect';
 
 // Hook to detect mobile devices
 const useIsMobile = () => {
@@ -322,17 +323,13 @@ export default function MarketplaceFilters({
             <label className="block text-sm font-medium text-white/80 mb-2">
               Sort by
             </label>
-            <select
+            <MobileFriendlySelect
               value={currentFilters.sortBy}
-              onChange={(e) => onSortChange(e.target.value as 'price' | 'name' | 'date')}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className="bg-gray-800">
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => onSortChange(value as 'price' | 'name' | 'date')}
+              options={SORT_OPTIONS}
+              label="Sort by"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
+            />
           </div>
 
           {/* Price Range */}

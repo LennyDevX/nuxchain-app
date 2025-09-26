@@ -453,7 +453,7 @@ INSTRUCCIONES GENERALES:
       model: 'gemini-2.0-flash-001',
       contents: contents,
       generationConfig: {
-        temperature: 0.8,
+        temperature: 0.7,
         topK: 40,
         topP: 0.95,
         maxOutputTokens: 8192,
@@ -562,7 +562,7 @@ INSTRUCCIONES GENERALES:
         model: 'gemini-2.5-flash-lite',
         contents: contentsWithToolResults,
         generationConfig: {
-          temperature: 0.8,
+          temperature: 0.7,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 8192,

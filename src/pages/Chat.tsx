@@ -111,7 +111,7 @@ function Chat() {
                     placeholder={isMobile ? "Ask Nuvim" : "Ask Nuvim"}
                   />
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 p-2">
                   <SendMessageButton
                     disabled={!message.trim() || isLoading || isStreaming}
                     isLoading={isLoading || isStreaming}

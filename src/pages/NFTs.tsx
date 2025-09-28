@@ -8,7 +8,7 @@ import ListingModal from '../components/nfts/ListingModal';
 import useUserNFTsLazy from '../hooks/nfts/useUserNFTsLazy';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import ConnectWallet from '../ui/ConnectWallet';
+import ConnectWallet from '../ui/ConnectWalletAlert';
 
 
 

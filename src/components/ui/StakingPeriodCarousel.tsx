@@ -99,14 +99,13 @@ export default function StakingPeriodCarousel({
           {label}
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {options.map((option) => (
+          {options.map((option, index) => (
             <button
               key={option.value}
               onClick={() => onChange(option.value)}
-              className={`p-4 rounded-lg border transition-all duration-300 text-left ${
-                option.value === value
-                  ? 'bg-blue-500/20 border-blue-500/50 text-white transform scale-105'
-                  : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
+              className={`p-4 rounded-lg border transition-all duration-300 text-left ${index === options.length - 1 ? 'col-span-2' : ''} ${option.value === value
+                ? 'bg-blue-500/20 border-blue-500/50 text-white transform scale-105'
+                : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'}
               }`}
             >
               <h4 className="font-medium">{option.label}</h4>

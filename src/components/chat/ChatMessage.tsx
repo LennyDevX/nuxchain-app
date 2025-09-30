@@ -122,9 +122,7 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
             <div className="max-w-[80%]">
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
+                  {/* No icon - just the three dots indicator */}
                 </div>
                 <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
                   <div className="flex space-x-1">
@@ -146,7 +144,7 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
         <button
           onClick={scrollToBottom}
           className="fixed bottom-32 right-4 z-30 bg-purple-600/90 hover:bg-purple-700 text-white p-3 rounded-full shadow-xl backdrop-blur-sm border border-purple-500/30 transition-all duration-300 hover:scale-110 hover:shadow-purple-500/25"
-          aria-label="Ir al final de la conversación"
+          aria-label="Go to the end of the conversation"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />

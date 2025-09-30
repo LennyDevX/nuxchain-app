@@ -35,10 +35,10 @@ const LabsPage: React.FC = () => {
           <div 
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg rounded-xl transition-all duration-300 transform hover:scale-105">
+            <button className="btn-primary">
               Explore Projects
             </button>
-            <button className="bg-slate-800/50 hover:bg-slate-700/50 text-white px-8 py-6 text-lg rounded-xl border border-slate-700">
+            <button className="btn-secondary">
               Meet Our AI
             </button>
           </div>

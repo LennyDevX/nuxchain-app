@@ -14,6 +14,10 @@ test/
 src/server/
 serverless/
 
+# Ignorar directorios que no deben ser funciones serverless
+api/services/
+api/middlewares/
+
 # Ignorar funciones individuales - solo usar la función unificada
 api/chat.js
 api/embeddings.js

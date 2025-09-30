@@ -1,47 +1,171 @@
-import { GoogleGenAI } from '@google/genai';
-import { getRelevantContext } from '../services/knowledge-base.js';
-import { initializeKnowledgeBaseForVercel } from '../services/embeddings-service.js';
+/**
+ * Gemini Semantic Streaming API for Vercel
+ * Adapted from local implementation with serverless optimizations
+ */
 
-// Configuración CORS para Vercel
+import { GoogleGenAI } from '@google/genai';
+
+// ===== TEMPORARY IMPLEMENTATIONS FOR VERCEL =====
+// These implementations replace the local services to work in Vercel's serverless environment
+
+// Import the complete knowledge base service
+import { getRelevantContext as getKnowledgeBaseContext, searchKnowledgeBase } from '../services/knowledge-base.js';
+
+// Enhanced getRelevantContext using the complete knowledge base
+function getRelevantContext(query) {
+  console.log('🔍 [PRODUCTION] Using complete knowledge base for query:', query);
+  
+  try {
+    // Use the comprehensive knowledge base service
+    const context = getKnowledgeBaseContext(query);
+    
+    if (context && context.length > 0) {
+      console.log('✅ [PRODUCTION] Found relevant context from knowledge base, length:', context.length);
+      return context;
+    }
+    
+    // Fallback to direct search if no context found
+    const searchResults = searchKnowledgeBase(query, 3);
+    if (searchResults && searchResults.length > 0) {
+      const fallbackContext = searchResults.map(item => item.content).join('\n\n');
+      console.log('✅ [PRODUCTION] Using search results as fallback, length:', fallbackContext.length);
+      return fallbackContext;
+    }
+    
+    // Final fallback
+    console.log('⚠️ [PRODUCTION] No specific context found, using general fallback');
+    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
+    
+  } catch (error) {
+    console.error('❌ [PRODUCTION] Error in getRelevantContext:', error.message);
+    // Emergency fallback
+    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
+  }
+}
+
+// Temporary implementation of semantic streaming service
+const semanticStreamingService = {
+  async streamSemanticContent(res, content, options = {}) {
+    console.log('🔧 [PRODUCTION] Using semantic streaming for content length:', content.length);
+    
+    const { 
+      enableSemanticChunking = true,
+      enableContextualPauses = true,
+      enableVariableSpeed = true,
+      chunkSize = 30,
+      baseDelay = 25
+    } = options;
+    
+    if (!enableSemanticChunking) {
+      // Simple streaming without semantic analysis
+      for (let i = 0; i < content.length; i += chunkSize) {
+        const chunk = content.slice(i, i + chunkSize);
+        res.write(chunk);
+        await new Promise(resolve => setTimeout(resolve, baseDelay));
+      }
+      return;
+    }
+    
+    // Semantic chunking implementation
+    const sentences = content.split(/([.!?]+\s+)/);
+    let currentChunk = '';
+    
+    for (let i = 0; i < sentences.length; i++) {
+      const sentence = sentences[i];
+      currentChunk += sentence;
+      
+      // Determine if we should send this chunk
+      const shouldSend = 
+        currentChunk.length >= chunkSize ||
+        /[.!?]+\s*$/.test(sentence) ||
+        i === sentences.length - 1;
+      
+      if (shouldSend && currentChunk.trim()) {
+        res.write(currentChunk);
+        
+        // Calculate delay based on content complexity
+        let delay = baseDelay;
+        if (enableContextualPauses) {
+          if (/[.!?]+\s*$/.test(sentence)) delay *= 2; // Pause after sentences
+          if (/[,;:]\s*$/.test(sentence)) delay *= 1.5; // Shorter pause after commas
+        }
+        
+        if (enableVariableSpeed) {
+          // Adjust speed based on content complexity
+          if (/\b(blockchain|cryptocurrency|staking|tokenization)\b/i.test(currentChunk)) {
+            delay *= 1.3; // Slower for complex terms
+          }
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        currentChunk = '';
+      }
+    }
+    
+    // Send any remaining content
+    if (currentChunk.trim()) {
+      res.write(currentChunk);
+    }
+  }
+};
+
+// Temporary implementation of error handling
+function withErrorHandling(handler) {
+  return async (req, res) => {
+    try {
+      return await handler(req, res);
+    } catch (error) {
+      console.error('🚨 [PRODUCTION] Error caught by error handler:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Internal server error', message: error.message });
+      }
+    }
+  };
+}
+
+// Temporary implementation of rate limiter
+const rateLimiter = {
+  soft: (req, res, next) => {
+    console.log('🔧 [PRODUCTION] Rate limiter - allowing request');
+    if (next) next();
+    return Promise.resolve();
+  }
+};
+
+// CORS configuration for Vercel
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-  'Access-Control-Max-Age': '86400',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Max-Age': '86400'
 };
 
-// Lista de endpoints públicos que no requieren API key
-const publicEndpoints = [
-  '/api/chat/stream',
-  '/api/chat/stream-with-tools',
-  '/api/embeddings'
-];
-
-// Middleware de seguridad
+// Security check function
 function checkSecurity(req) {
-  const path = req.url;
-  const isPublicEndpoint = publicEndpoints.some(endpoint => 
-    path === endpoint || path.startsWith(endpoint)
-  );
+  const publicEndpoints = ['/api/chat/stream', '/api/chat/stream-with-tools'];
+  const currentPath = req.url?.split('?')[0];
   
-  if (!isPublicEndpoint) {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== process.env.API_KEY) {
-      return { error: 'API Key requerida', status: 401 };
-    }
+  if (publicEndpoints.includes(currentPath)) {
+    return { allowed: true };
   }
   
-  return null;
+  const apiKey = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.SERVER_API_KEY) {
+    return { allowed: false, reason: 'Invalid API key' };
+  }
+  
+  return { allowed: true };
 }
 
-// Cache simple en memoria para contexto relevante
+// Simple in-memory cache for relevant context
 const contextCache = new Map();
-const CONTEXT_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 function getCachedContext(key) {
   const item = contextCache.get(key);
   if (!item) return null;
-  if (Date.now() - item.timestamp > CONTEXT_CACHE_TTL) {
+  
+  if (Date.now() - item.timestamp > CACHE_TTL) {
     contextCache.delete(key);
     return null;
   }
@@ -52,208 +176,214 @@ function setCachedContext(key, value) {
   contextCache.set(key, { value, timestamp: Date.now() });
 }
 
-export default async function handler(req, res) {
-  // Manejar preflight CORS
-  if (req.method === 'OPTIONS') {
-    return res.status(200).json({});
-  }
-
-  // Aplicar headers CORS
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-
-  // Verificar seguridad
-  const securityCheck = checkSecurity(req);
-  if (securityCheck) {
-    return res.status(securityCheck.status).json({ error: securityCheck.error });
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
-  }
-
+// Main stream handler function
+async function streamHandler(req, res) {
+  console.log('🚀 [PRODUCTION] Stream handler started');
+  
   try {
+    // Handle CORS preflight
+    if (req.method === 'OPTIONS') {
+      Object.entries(corsHeaders).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+      return res.status(200).json({});
+    }
+
+    // Apply soft rate limiting
+    await rateLimiter.soft(req, res);
+
+    // Set CORS headers
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      res.setHeader(key, value);
+    });
+
+    // Security check
+    const securityResult = checkSecurity(req);
+    if (!securityResult.allowed) {
+      console.log('🔒 [PRODUCTION] Security check failed:', securityResult.reason);
+      return res.status(401).json({ error: securityResult.reason });
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
     const { message, conversationHistory = [], messages = [] } = req.body;
 
-    // Limitar historial a los últimos 5 mensajes
+    // Limit history to last 5 messages
     let finalMessage;
     let finalHistory;
     if (messages && messages.length > 0) {
-      finalHistory = messages.slice(-5); // Solo los últimos 5
+      finalHistory = messages.slice(-5);
       const lastMessage = messages[messages.length - 1];
       finalMessage = lastMessage.content || lastMessage.parts?.[0]?.text || lastMessage.text;
     } else {
       finalMessage = message;
-      finalHistory = conversationHistory.slice(-5); // Solo los últimos 5
+      finalHistory = conversationHistory.slice(-5);
     }
 
     if (!finalMessage) {
-      return res.status(400).json({ error: 'Mensaje requerido' });
+      return res.status(400).json({ error: 'Message required' });
     }
 
-    // Verificar que la API key de Gemini esté configurada
+    // Check that Gemini API key is configured
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'API key de Gemini no configurada' });
+      return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
-    // Inicializar Gemini con modelo optimizado
-    const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+    console.log('🤖 [PRODUCTION] Initializing Gemini AI');
+    
+    // Initialize Gemini
+    const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    // Preprocesar: saltar embeddings si el mensaje es muy corto
+    // Context retrieval logic
     let relevantContext = '';
     let searchMethod = 'skipped';
     const cacheKey = finalMessage.trim().toLowerCase();
 
     if (finalMessage.length < 15) {
-      // Mensaje corto, usar solo contexto base
-      relevantContext = '';
       searchMethod = 'short_message';
     } else {
-      // Buscar en cache primero
+      // Try cache first
       const cached = getCachedContext(cacheKey);
       if (cached) {
         relevantContext = cached;
         searchMethod = 'cache';
       } else {
         try {
-          const embeddingsService = await initializeKnowledgeBaseForVercel();
-          // Limitar topK y threshold para acelerar
-          const searchResults = await embeddingsService.search('knowledge_base', finalMessage, 2, {
-            threshold: 0.25
-          });
-          // Filtrar para incluir contenido en inglés (incluso si contiene español)
-          const englishResults = searchResults.filter(r =>
-            (r.meta?.language || '').toLowerCase() === 'en' ||
-            r.content.toLowerCase().includes('staking') ||
-            r.content.toLowerCase().includes('apy') ||
-            r.content.toLowerCase().includes('lockup') ||
-            /[a-zA-Z]/.test(r.content) // Al menos algunos caracteres en inglés
-          );
-          if (englishResults && englishResults.length > 0) {
-            relevantContext = englishResults.map(result => result.content).join('\n\n');
-            setCachedContext(cacheKey, relevantContext);
-            searchMethod = 'embeddings';
-          } else {
-            // Fallback final a búsqueda simple si no se encuentra nada
-            const fallbackContext = getRelevantContext(finalMessage);
-            relevantContext = Array.isArray(fallbackContext)
-              ? fallbackContext.filter(doc =>
-                  (doc.metadata?.language || '').toLowerCase() === 'en' ||
-                  doc.content.toLowerCase().includes('staking') ||
-                  doc.content.toLowerCase().includes('apy') ||
-                  doc.content.toLowerCase().includes('lockup') ||
-                  /[a-zA-Z]/.test(doc.content) // Al menos algunos caracteres en inglés
-                ).map(doc => doc.content).join('\n\n')
-              : fallbackContext;
-            setCachedContext(cacheKey, relevantContext);
-            searchMethod = 'simple_search';
+          const directSearchResults = getRelevantContext(finalMessage);
+          if (directSearchResults) {
+            relevantContext = directSearchResults;
           }
+          searchMethod = 'direct_search';
         } catch (error) {
-          // Log solo para errores críticos
-          console.error('❌ Error crítico con embeddings:', error.message);
-          const fallbackContext = getRelevantContext(finalMessage);
-          relevantContext = Array.isArray(fallbackContext)
-              ? fallbackContext.filter(doc =>
-                  (doc.metadata?.language || '').toLowerCase() === 'en' ||
-                  doc.content.toLowerCase().includes('staking') ||
-                  doc.content.toLowerCase().includes('apy') ||
-                  doc.content.toLowerCase().includes('lockup') ||
-                  /[a-zA-Z]/.test(doc.content) // Al menos algunos caracteres en inglés
-                ).map(doc => doc.content).join('\n\n')
-              : fallbackContext;
+          console.error('Error retrieving context:', error.message);
+          searchMethod = 'error';
+        }
+        
+        // Cache the result if we have relevant context
+        if (relevantContext) {
           setCachedContext(cacheKey, relevantContext);
-          searchMethod = 'error_fallback';
         }
       }
     }
 
-    // Fallback si no hay contexto relevante
-    const contextToUse = relevantContext || `Nuxchain es una plataforma descentralizada integral que combina staking, marketplace de NFTs, airdrops y tokenización. Es un ecosistema completo para la gestión de activos digitales y generación de ingresos pasivos. La plataforma incluye contratos Smart Staking, marketplace de NFTs, chat con IA (Nuvim AI 1.0), y herramientas de tokenización.`;
+    // Fallback context
+    const contextToUse = relevantContext || `Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.`;
 
-    // Crear prompt con contexto de Nuxchain
-    const systemPrompt = `Eres Nuvim AI 1.0, el asistente inteligente oficial de Nuxchain. Tu misión es ayudar a los usuarios con información precisa y actualizada sobre el ecosistema Nuxchain.
+    // Create prompt with Nuxchain context
+    const systemPrompt = `I'm an intelligent assistant for the Nuxchain platform. I'm here to help you with accurate and up-to-date information about the Nuxchain ecosystem.
 
-CONTEXTO RELEVANTE DE NUXCHAIN:
+RELEVANT NUXCHAIN CONTEXT:
 ${contextToUse}
 
-INSTRUCCIONES:
-- Responde siempre en el mismo idioma que el usuario
-- Usa la información del contexto cuando sea relevante
-- Si no tienes información específica sobre algo de Nuxchain, indícalo claramente
-- Sé amigable, profesional y útil
-- Puedes usar emojis ocasionalmente para hacer la conversación más amena
-- Si el usuario pregunta sobre temas no relacionados con Nuxchain, puedes ayudar pero siempre menciona que eres el asistente de Nuxchain`;
+INSTRUCTIONS:
+- Always respond in English
+- Use information from the context when relevant
+- If you don't have specific information about something related to Nuxchain, clearly state it
+- Be helpful, friendly, and conversational
+- You can use emojis occasionally to make the conversation more pleasant
+- Focus on being helpful rather than introducing yourself repeatedly
+- If the user asks about topics not related to Nuxchain, you can help but keep the focus on how it might relate to the platform`;
 
-    // Preparar el contenido con historial y contexto
-    const contents = [
-      {
-        role: 'user',
-        parts: [{ text: systemPrompt }]
-      },
-      {
-        role: 'model',
-        parts: [{ text: '¡Hola! Soy Nuvim AI 1.0, tu asistente inteligente de Nuxchain. Estoy aquí para ayudarte con cualquier pregunta sobre nuestro ecosistema blockchain. ¿En qué puedo asistirte hoy? 😊' }]
-      },
-      ...finalHistory.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content || msg.parts?.[0]?.text || msg.text }]
-      })),
-      {
-        role: 'user',
-        parts: [{ text: finalMessage }]
+    // Prepare content with history and context
+    const contents = `${systemPrompt}\n\nUser: ${finalMessage}`;
+
+    // Configure headers for streaming
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Connection', 'keep-alive');
+    
+    // Extract streaming configuration
+    const { streamingConfig = {} } = req.body;
+    const semanticOptions = {
+      enableSemanticChunking: streamingConfig.enableSemanticChunking !== false,
+      enableContextualPauses: streamingConfig.enableContextualPauses !== false,
+      enableVariableSpeed: streamingConfig.enableVariableSpeed !== false,
+      clientInfo: {
+        userAgent: req.headers['user-agent'] || '',
+        language: req.headers['accept-language'] || 'en-US'
       }
-    ];
+    };
+
+    // Timeout control for Vercel
+    const requestStartTime = Date.now();
+    const MAX_EXECUTION_TIME = 15000; // 15 seconds
+
+    const timeoutDetector = setInterval(() => {
+      if (Date.now() - requestStartTime > MAX_EXECUTION_TIME && !res.writableEnded) {
+        if (!res.destroyed) {
+          res.write('\n⚠️ Execution time limit approaching.\n');
+        }
+        clearInterval(timeoutDetector);
+      }
+    }, 1000);
 
     try {
-      // Configurar headers para streaming
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.setHeader('Transfer-Encoding', 'chunked');
-
-      // Streaming optimizado: usar modelo rápido y chunks grandes
+      // Generate content stream
       const response = await ai.models.generateContentStream({
-        model: 'gemini-2.5-flash-lite',
-        contents: contents,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048, // Chunks más grandes
-        },
+        model: 'gemini-2.5-flash',
+        contents: contents
       });
 
-      let buffer = '';
-      const BUFFER_SIZE = 1000; // Enviar chunks más grandes
+      // Process and stream the response
+      let accumulatedText = '';
+      let streamStarted = false;
 
       for await (const chunk of response) {
-        const chunkText = chunk.text;
-        if (chunkText) {
-          buffer += chunkText;
-          if (buffer.length >= BUFFER_SIZE) {
-            res.write(buffer);
-            buffer = '';
+        if (res.destroyed || res.writableEnded) break;
+
+        try {
+          console.log('=== CHUNK DEBUG ===');
+          console.log('Chunk type:', typeof chunk);
+          console.log('Chunk keys:', Object.keys(chunk));
+          console.log('Full chunk:', JSON.stringify(chunk, null, 2));
+          console.log('chunk.text type:', typeof chunk.text);
+          console.log('chunk.text value:', chunk.text);
+          console.log('chunk.text():', typeof chunk.text === 'function' ? chunk.text() : 'not a function');
+          console.log('==================');
+          
+          const text = chunk.text || '';
+          if (text) {
+            accumulatedText += text;
+            // Start streaming once we have sufficient content
+            if (!streamStarted && accumulatedText.length > 20) {
+              streamStarted = true;
+              await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
+              accumulatedText = '';
+            }
           }
+        } catch (error) {
+          console.error('Error processing chunk:', error.message);
         }
       }
-      if (buffer) res.write(buffer);
-      res.end();
-    } catch (streamError) {
-      // Log solo para errores críticos
-      console.error('Error en streaming:', streamError);
-      return res.status(500).json({ 
-        error: 'Error en el streaming de respuesta',
-        details: streamError.message
-      });
-    }
 
+      // Stream any remaining text
+      if (accumulatedText && !res.writableEnded) {
+        await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
+      }
+
+      // Clean up
+      clearInterval(timeoutDetector);
+      if (!res.writableEnded) {
+        res.end();
+      }
+    } catch (error) {
+      clearInterval(timeoutDetector);
+      console.error('Gemini API error:', error.message || error);
+      if (!res.writableEnded) {
+        res.write(`\n❌ I apologize, but I encountered an error while processing your request. Please try again.\n`);
+        res.end();
+      }
+    }
   } catch (error) {
-    // Log solo para errores críticos
-    console.error('Error en chat/stream:', error);
-    if (!res.headersSent) {
-      return res.status(500).json({ 
-        error: 'Error interno del servidor',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+    console.error('Unexpected error in stream handler:', error);
+    if (!res.writableEnded) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 }
+
+// Apply error handling middleware and export the handler
+export default withErrorHandling(streamHandler);

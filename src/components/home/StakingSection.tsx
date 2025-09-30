@@ -110,7 +110,7 @@ function StakingSection() {
               </div>
               
               <button
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-bold hover:scale-105 transition-transform duration-200"
+                className="w-full btn-primary"
                 onClick={() => navigate('/staking')}
               >
                 Start Staking

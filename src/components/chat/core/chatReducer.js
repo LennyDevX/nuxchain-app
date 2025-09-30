@@ -49,16 +49,29 @@ export const chatReducer = (state, action) => {
       };
 
     case 'START_STREAMING':
+      // Update status to streaming without adding an empty message
+      // The streaming message will be added when content is first received in UPDATE_STREAM
       return {
         ...state,
-        status: 'streaming',
-        messages: [...state.messages, { text: '', sender: 'bot', isStreaming: true, timestamp: new Date().toISOString(), id: generateUniqueId('assistant') }],
+        status: 'streaming'
       };
 
     case 'UPDATE_STREAM':
       const updatedMessages = [...state.messages];
-      const lastMessage = updatedMessages[updatedMessages.length - 1];
-      if (lastMessage?.isStreaming) {
+      let lastMessage = updatedMessages[updatedMessages.length - 1];
+      
+      // If no streaming message exists yet, create one
+      if (!lastMessage || !lastMessage.isStreaming) {
+        lastMessage = { 
+          text: action.payload, 
+          sender: 'bot', 
+          isStreaming: true, 
+          timestamp: new Date().toISOString(), 
+          id: generateUniqueId('assistant') 
+        };
+        updatedMessages.push(lastMessage);
+      } else {
+        // Otherwise, update the existing streaming message
         lastMessage.text = action.payload;
       }
       return { ...state, messages: updatedMessages };

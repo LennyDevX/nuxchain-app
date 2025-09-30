@@ -1,7 +1,5 @@
-/**
- * Servicio para manejar URL Context de Gemini API
- * Permite obtener contenido de URLs para proporcionar contexto adicional
- */
+// URL Context Service for Gemini API
+// Provides functionality to fetch content from URLs for additional context
 
 import WebScraperService from './web-scraper.js';
 import analyticsService from './analytics-service.js';
@@ -10,25 +8,25 @@ class UrlContextService {
   constructor() {
     this.cache = new Map();
     this.maxCacheSize = 100;
-    this.cacheTTL = 300000; // 5 minutos
+    this.cacheTTL = 300000; // 5 minutes
     this.webScraper = new WebScraperService();
   }
 
   /**
-   * Obtiene el contenido de una URL para usar como contexto
-   * @param {string} url - URL a procesar
-   * @param {Object} options - Opciones adicionales
-   * @returns {Promise<Object>} - Contenido procesado de la URL
+   * Fetches content from a URL for use as context
+   * @param {string} url - URL to process
+   * @param {Object} options - Additional options
+   * @returns {Promise<Object>} - Processed URL content
    */
   async fetchUrlContext(url, options = {}) {
     const requestMetrics = analyticsService.startRequest('url_context', 'url-fetch');
     try {
-      // Validar URL
+      // Validate URL
       if (!this.isValidUrl(url)) {
-        throw new Error('URL inválida proporcionada');
+        throw new Error('Invalid URL provided');
       }
 
-      // Usar un cacheKey simple si las opciones no afectan el resultado
+      // Use simple cacheKey if options don't affect result
       const cacheKey = url;
       const cachedResult = this.getFromCache(cacheKey);
       if (cachedResult) {
@@ -40,18 +38,18 @@ class UrlContextService {
         return cachedResult;
       }
 
-      // Limitar el tamaño máximo de contenido por defecto
+      // Limit maximum content length by default
       const maxContentLength = options.maxContentLength || 3000;
       const scrapedContent = await this.webScraper.extractContent(url, { ...options, maxContentLength });
 
       if (!scrapedContent.success) {
-        throw new Error(`Error al obtener contenido de la URL: ${scrapedContent.error}`);
+        throw new Error(`Failed to get content from URL: ${scrapedContent.error}`);
       }
 
-      // Procesar y estructurar el contenido para Gemini
+      // Process and structure content for Gemini
       const processedContent = this.processContentForGemini(scrapedContent, { ...options, maxContentLength });
 
-      // Guardar en caché
+      // Save to cache
       this.saveToCache(cacheKey, processedContent);
 
       analyticsService.endRequest(requestMetrics, {
@@ -65,17 +63,17 @@ class UrlContextService {
       return processedContent;
     } catch (error) {
       analyticsService.failRequest(requestMetrics, error);
-      // Solo log de error crítico
-      console.error('Error en fetchUrlContext:', error.message);
+      // Critical error logging only
+      console.error('Error in fetchUrlContext:', error.message);
       throw error;
     }
   }
 
   /**
-   * Procesa el contenido scrapeado para optimizarlo para Gemini
-   * @param {Object} scrapedContent - Contenido obtenido del scraper
-   * @param {Object} options - Opciones de procesamiento
-   * @returns {Object} - Contenido procesado
+   * Processes scraped content to optimize it for Gemini
+   * @param {Object} scrapedContent - Content obtained from scraper
+   * @param {Object} options - Processing options
+   * @returns {Object} - Processed content
    */
   processContentForGemini(scrapedContent, options = {}) {
     const { title, content, metadata, url } = scrapedContent;
@@ -86,7 +84,7 @@ class UrlContextService {
     }
     const contextData = {
       url: url,
-      title: title || 'Sin título',
+      title: title || 'No title',
       content: cleanContent,
       metadata: {
         domain: this.extractDomain(url),
@@ -101,23 +99,23 @@ class UrlContextService {
   }
 
   /**
-   * Genera un resumen del contenido para contexto
-   * @param {string} content - Contenido a resumir
-   * @param {string} title - Título del contenido
-   * @returns {string} - Resumen generado
+   * Generates a summary of the content for context
+   * @param {string} content - Content to summarize
+   * @param {string} title - Title of the content
+   * @returns {string} - Generated summary
    */
   generateContentSummary(content, title) {
-    if (!content) return 'Contenido no disponible';
-    // Limitar a 2 oraciones para mayor velocidad
+    if (!content) return 'Content not available';
+    // Limit to 2 sentences for faster processing
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
     const summary = sentences.slice(0, 2).join('. ');
     return summary || content.substring(0, 200) + '...';
   }
 
   /**
-   * Valida si una URL es válida
-   * @param {string} url - URL a validar
-   * @returns {boolean} - True si es válida
+   * Validates if a URL is valid
+   * @param {string} url - URL to validate
+   * @returns {boolean} - True if valid
    */
   isValidUrl(url) {
     try {
@@ -129,9 +127,9 @@ class UrlContextService {
   }
 
   /**
-   * Extrae el dominio de una URL
+   * Extracts domain from a URL
    * @param {string} url - URL
-   * @returns {string} - Dominio extraído
+   * @returns {string} - Extracted domain
    */
   extractDomain(url) {
     try {
@@ -142,20 +140,20 @@ class UrlContextService {
   }
 
   /**
-   * Genera clave de caché
+   * Generates cache key
    * @param {string} url - URL
-   * @param {Object} options - Opciones
-   * @returns {string} - Clave de caché
+   * @param {Object} options - Options
+   * @returns {string} - Cache key
    */
   generateCacheKey(url, options) {
-    // Usar solo la URL como clave para simplificar y mejorar el hit rate
+    // Use only URL as key to simplify and improve hit rate
     return url;
   }
 
   /**
-   * Obtiene contenido del caché
-   * @param {string} key - Clave de caché
-   * @returns {Object|null} - Contenido cacheado o null
+   * Gets content from cache
+   * @param {string} key - Cache key
+   * @returns {Object|null} - Cached content or null
    */
   getFromCache(key) {
     const item = this.cache.get(key);
@@ -168,14 +166,14 @@ class UrlContextService {
   }
 
   /**
-   * Guarda contenido en caché
-   * @param {string} key - Clave de caché
-   * @param {Object} data - Datos a cachear
+   * Saves content to cache
+   * @param {string} key - Cache key
+   * @param {Object} data - Data to cache
    */
   saveToCache(key, data) {
-    // Limpiar caché si está lleno
+    // Clean cache if full
     if (this.cache.size >= this.maxCacheSize) {
-      // Eliminar el elemento más antiguo
+      // Remove oldest item
       let oldestKey;
       let oldestTime = Infinity;
       for (const [k, v] of this.cache.entries()) {
@@ -193,56 +191,14 @@ class UrlContextService {
   }
 
   /**
-   * Limpia el caché
+   * Clears the cache
    */
   clearCache() {
     this.cache.clear();
   }
-
-  /**
-   * Procesa URL Context (método principal llamado desde el controlador)
-   * @param {string} url - URL a procesar
-   * @param {string} query - Query opcional para el contexto
-   * @param {Object} options - Opciones adicionales
-   * @returns {Promise<Object>} - Resultado del procesamiento
-   */
-  async processUrlContext(url, query, options = {}) {
-    try {
-      // Obtener el contenido de la URL
-      const contextData = await this.fetchUrlContext(url, options);
-      
-      // Si hay una query, agregar contexto adicional
-      let result = {
-        url: contextData.url,
-        title: contextData.title,
-        content: contextData.content,
-        summary: contextData.summary,
-        metadata: contextData.metadata
-      };
-      
-      if (query) {
-        result.query = query;
-        result.contextualResponse = `Basado en el contenido de ${contextData.title || url}: ${contextData.summary}`;
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Error en processUrlContext:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Obtiene estadísticas del servicio
-   * @returns {Object} - Estadísticas
-   */
-  getStats() {
-    return {
-      cacheSize: this.cache.size,
-      maxCacheSize: this.maxCacheSize,
-      cacheTTL: this.cacheTTL
-    };
-  }
 }
 
-export default new UrlContextService();
+// Create singleton instance
+const urlContextService = new UrlContextService();
+
+export default urlContextService;

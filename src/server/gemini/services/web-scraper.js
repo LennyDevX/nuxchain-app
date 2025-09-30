@@ -1,23 +1,23 @@
 /**
- * Servicio de web scraping para entorno serverless
- * Compatible con Vercel y otros entornos serverless
- * Versión mejorada con análisis inteligente de contenido
+ * Advanced HTML Content Parser
+ * Parses HTML with semantic analysis, content extraction, and categorization
  */
+
 class WebScraperService {
   constructor() {
     this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-    // Timeout reducido para Vercel (máximo 25s de función)
+    // Reduced timeout for Vercel (maximum 25s function limit)
     this.timeout = process.env.VERCEL ? 5000 : 10000;
-    this.maxContentLength = 50000;
+    this.maxContentLength = 5000;
     this.cache = new Map();
-    this.cacheTimeout = 30 * 60 * 1000; // 30 minutos
-    // Reducir reintentos en producción para evitar timeouts
+    this.cacheTimeout = 30 * 60 * 1000; // 30 minutes
+    // Reduce retries in production to avoid timeouts
     this.maxRetries = process.env.VERCEL ? 1 : 3;
-    this.retryDelay = 1000; // 1 segundo inicial
+    this.retryDelay = 1000; // 1 second initial delay
   }
 
   /**
-   * Detecta URLs en un texto
+   * Detects URLs in text
    */
   detectUrls(text) {
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
@@ -25,7 +25,7 @@ class WebScraperService {
   }
 
   /**
-   * Valida si una URL es válida
+   * Validates if a URL is valid
    */
   isValidUrl(url) {
     try {
@@ -37,12 +37,12 @@ class WebScraperService {
   }
 
   /**
-   * Sistema de caché inteligente
+   * Intelligent caching system
    */
   getCachedContent(url) {
     const cached = this.cache.get(url);
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      console.log(`[SimpleWebScraper] ✓ Contenido obtenido desde caché: ${url}`);
+      console.log(`[SimpleWebScraper] ✓ Content retrieved from cache: ${url}`);
       return cached.data;
     }
     return null;
@@ -54,7 +54,7 @@ class WebScraperService {
       timestamp: Date.now()
     });
     
-    // Limpiar caché antiguo
+    // Clean up old cache
     if (this.cache.size > 100) {
       const oldestKey = this.cache.keys().next().value;
       this.cache.delete(oldestKey);
@@ -62,10 +62,10 @@ class WebScraperService {
   }
 
   /**
-   * Extrae contenido con reintentos inteligentes
+   * Extracts content with intelligent retries
    */
   async extractContent(url) {
-    // Verificar caché primero
+    // Check cache first
     const cachedResult = this.getCachedContent(url);
     if (cachedResult) {
       return cachedResult;
@@ -74,15 +74,44 @@ class WebScraperService {
     let lastError;
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        console.log(`[SimpleWebScraper] Intento ${attempt}/${this.maxRetries} - Extrayendo: ${url}`);
-        
+        console.log(`[SimpleWebScraper] Attempt ${attempt}/${this.maxRetries} - Extracting: ${url}`);
+          
         if (!this.isValidUrl(url)) {
-          return { success: false, error: 'URL no válida' };
+          throw new Error('Invalid URL format');
         }
 
-        const result = await this.extractContentWithTimeout(url);
+        // Create a controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        // Fetch with proper headers and timeout
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'User-Agent': this.userAgent,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Language': 'en-US,en;q=0.9'
+          },
+          signal: controller.signal,
+          redirect: 'follow'
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        // For known sites, use optimized extraction
+        const knownSiteContent = this.getKnownSiteContent(url);
+        if (knownSiteContent) {
+          this.setCachedContent(url, knownSiteContent);
+          return knownSiteContent;
+        }
+
+        const html = await response.text();
+        const result = this.parseHtmlContentAdvanced(url, html);
         
-        // Cachear resultado exitoso
         if (result.success) {
           this.setCachedContent(url, result);
         }
@@ -91,94 +120,54 @@ class WebScraperService {
 
       } catch (error) {
         lastError = error;
-        console.warn(`[SimpleWebScraper] Intento ${attempt} falló:`, error.message);
+        console.warn(`[SimpleWebScraper] Attempt ${attempt} failed:`, error.message);
         
-        if (attempt < this.maxRetries) {
-          const delay = this.retryDelay * Math.pow(2, attempt - 1); // Backoff exponencial
-          console.log(`[SimpleWebScraper] Reintentando en ${delay}ms...`);
-          await this.sleep(delay);
-        }
+        // If it's the last attempt, throw the error
+        if (attempt === this.maxRetries) break;
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, this.retryDelay * Math.pow(2, attempt - 1)));
       }
     }
 
-    console.error(`[SimpleWebScraper] Todos los intentos fallaron para ${url}:`, lastError.message);
-    return { success: false, error: `Error después de ${this.maxRetries} intentos: ${lastError.message}` };
+    // If all retries failed, return error result
+    console.error(`[SimpleWebScraper] All extraction attempts failed for ${url}`, lastError);
+    return {
+      url,
+      error: lastError?.message || 'Failed to extract content',
+      success: false
+    };
   }
 
   /**
-   * Extrae contenido con timeout
-   */
-  async extractContentWithTimeout(url) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      console.log(`[WebScraper] [PRODUCTION] Iniciando fetch para: ${url} (timeout: ${this.timeout}ms)`);
-      
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': this.userAgent,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache',
-          'Accept-Encoding': 'gzip, deflate, br'
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      console.log(`[WebScraper] [PRODUCTION] Respuesta recibida: ${response.status} para ${url}`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      if (!contentType.includes('text/html')) {
-        throw new Error(`Contenido no es HTML: ${contentType}`);
-      }
-
-      const html = await response.text();
-      console.log(`[WebScraper] [PRODUCTION] HTML obtenido: ${html.length} caracteres`);
-
-      return this.parseHtmlContentAdvanced(url, html);
-
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      console.error(`[WebScraper] [PRODUCTION] Error en fetch: ${fetchError.message}`);
-      throw fetchError;
-    }
-  }
-
-  /**
-   * Parsea contenido HTML con análisis avanzado
+   * Parses HTML content with advanced analysis
    */
   parseHtmlContentAdvanced(url, html) {
     try {
-      // Extraer metadatos básicos
+      // Extract basic metadata
       const metadata = this.extractBasicMetadata(html);
       
-      // Detección inteligente de contenido principal
+      // Intelligent main content detection
       const mainContent = this.extractMainContentIntelligent(html);
       
-      // Análisis de contenido
+      // Content analysis
       const contentAnalysis = this.analyzeContent(mainContent);
       
-      // Extracción contextual mejorada
+      // Enhanced contextual extraction
       const contextualData = this.extractContextualData(mainContent);
       
-      // Limpiar y procesar contenido final
+      // Clean and process final content
       const cleanContent = this.cleanHtmlTags(mainContent);
       
       if (cleanContent.length < 50) {
-        throw new Error('Contenido extraído insuficiente');
+        throw new Error('Insufficient extracted content');
       }
 
       const finalContent = cleanContent.substring(0, this.maxContentLength);
       const excerpt = metadata.description || contextualData.summary || 
                      finalContent.substring(0, 300) + (finalContent.length > 300 ? '...' : '');
 
-      console.log(`[SimpleWebScraper] ✓ Contenido procesado: ${finalContent.length} caracteres`);
+      console.log(`[SimpleWebScraper] ✓ Content processed: ${finalContent.length} characters`);
 
       return {
         url,
@@ -194,34 +183,35 @@ class WebScraperService {
         metadata: {
           ...metadata,
           length: finalContent.length,
-          extractionMethod: 'intelligent-analysis',
+          extractionMethod: 'advanced',
           extractedAt: new Date().toISOString(),
-          domain: new URL(url).hostname,
-          contentAnalysis,
-          processingTime: Date.now()
+          domain: new URL(url).hostname
         },
         success: true
       };
-
     } catch (error) {
-      console.error(`[SimpleWebScraper] Error parseando HTML:`, error.message);
-      throw error;
+      console.error(`[SimpleWebScraper] Error processing ${url}:`, error);
+      return {
+        url,
+        error: error.message,
+        success: false
+      };
     }
   }
 
   /**
-   * Extrae metadatos básicos del HTML
+   * Extracts basic metadata from HTML
    */
   extractBasicMetadata(html) {
-    // Título
+    // Title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const title = titleMatch ? this.cleanText(titleMatch[1]) : 'Sin título';
+    const title = titleMatch ? this.cleanText(titleMatch[1]) : 'Untitled';
 
-    // Descripción meta
+    // Meta description
     const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
     const description = descMatch ? this.cleanText(descMatch[1]) : '';
 
-    // Keywords meta
+    // Meta keywords
     const keywordsMatch = html.match(/<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i);
     const keywords = keywordsMatch ? this.cleanText(keywordsMatch[1]) : '';
 
@@ -242,16 +232,16 @@ class WebScraperService {
   }
 
   /**
-   * Detección inteligente de contenido principal usando heurísticas
+   * Intelligent main content detection using heuristics
    */
   extractMainContentIntelligent(html) {
-    // Limpiar elementos no deseados primero
+    // Clean unwanted elements first
     let content = html;
     content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
     content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
     content = content.replace(/<!--[\s\S]*?-->/g, '');
 
-    // Selectores con puntuación por prioridad
+    // Selectors with priority scoring
     const contentSelectors = [
       { regex: /<main[^>]*>([\s\S]*?)<\/main>/gi, score: 10 },
       { regex: /<article[^>]*>([\s\S]*?)<\/article>/gi, score: 9 },
@@ -266,7 +256,7 @@ class WebScraperService {
     let bestContent = '';
     let bestScore = 0;
 
-    // Evaluar cada selector
+    // Evaluate each selector
     for (const selector of contentSelectors) {
       const matches = [...content.matchAll(selector.regex)];
       for (const match of matches) {
@@ -280,7 +270,7 @@ class WebScraperService {
       }
     }
 
-    // Si no se encontró buen contenido, usar body con filtros
+    // If no good content found, use body with filters
     if (!bestContent || bestScore < 50) {
       const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
       if (bodyMatch) {
@@ -294,30 +284,30 @@ class WebScraperService {
   }
 
   /**
-   * Calcula puntuación de calidad del contenido
+   * Calculates content quality score
    */
   calculateContentScore(content) {
     const textContent = this.cleanHtmlTags(content);
     let score = 0;
 
-    // Longitud del texto (más texto = mejor, hasta un límite)
+    // Text length (more text = better, up to a limit)
     const length = textContent.length;
     score += Math.min(length / 100, 50);
 
-    // Densidad de párrafos
+    // Paragraph density
     const paragraphs = (content.match(/<p[^>]*>/gi) || []).length;
     score += paragraphs * 5;
 
-    // Presencia de encabezados
+    // Presence of headings
     const headings = (content.match(/<h[1-6][^>]*>/gi) || []).length;
     score += headings * 3;
 
-    // Penalizar contenido con muchos enlaces (navegación)
+    // Penalize content with many links (navigation)
     const links = (content.match(/<a[^>]*>/gi) || []).length;
     const linkDensity = links / Math.max(textContent.length / 100, 1);
     score -= linkDensity * 10;
 
-    // Penalizar contenido con muchas listas (menús)
+    // Penalize content with many lists (menus)
     const lists = (content.match(/<li[^>]*>/gi) || []).length;
     if (lists > 10) score -= lists * 2;
 
@@ -325,12 +315,12 @@ class WebScraperService {
   }
 
   /**
-   * Filtra contenido del body removiendo navegación y elementos no deseados
+   * Filters body content by removing navigation and unwanted elements
    */
   filterBodyContent(bodyContent) {
     let filtered = bodyContent;
     
-    // Remover elementos de navegación y estructura
+    // Remove navigation and structural elements
     const elementsToRemove = [
       /<nav[^>]*>[\s\S]*?<\/nav>/gi,
       /<header[^>]*>[\s\S]*?<\/header>/gi,
@@ -349,19 +339,19 @@ class WebScraperService {
   }
 
   /**
-   * Analiza el contenido para categorización y sentimientos
+   * Analyzes content for categorization and sentiment
    */
   analyzeContent(content) {
     const textContent = this.cleanHtmlTags(content).toLowerCase();
     
-    // Categorización básica por palabras clave
+    // Basic keyword-based categorization
     const categories = {
-      'tecnología': ['javascript', 'python', 'react', 'node', 'api', 'desarrollo', 'código', 'programación', 'software'],
+      'technology': ['javascript', 'python', 'react', 'node', 'api', 'development', 'code', 'programming', 'software'],
       'blockchain': ['blockchain', 'crypto', 'bitcoin', 'ethereum', 'nft', 'defi', 'smart contract', 'web3'],
-      'negocios': ['empresa', 'negocio', 'mercado', 'ventas', 'marketing', 'estrategia', 'finanzas'],
-      'educación': ['tutorial', 'aprender', 'curso', 'guía', 'enseñar', 'estudiante', 'educación'],
-      'noticias': ['noticia', 'actualidad', 'información', 'reportaje', 'acontecimiento'],
-      'documentación': ['documentación', 'manual', 'referencia', 'api docs', 'especificación']
+      'business': ['company', 'business', 'market', 'sales', 'marketing', 'strategy', 'finance'],
+      'education': ['tutorial', 'learn', 'course', 'guide', 'teach', 'student', 'education'],
+      'news': ['news', 'current events', 'information', 'report', 'event'],
+      'documentation': ['documentation', 'manual', 'reference', 'api docs', 'specification']
     };
 
     let detectedCategory = 'general';
@@ -375,21 +365,22 @@ class WebScraperService {
       }
     }
 
-    // Análisis de sentimientos básico
-    const positiveWords = ['excelente', 'bueno', 'genial', 'fantástico', 'útil', 'recomendado', 'éxito'];
-    const negativeWords = ['malo', 'terrible', 'problema', 'error', 'fallo', 'difícil', 'complicado'];
+    // Define English positive and negative words for sentiment analysis
+    const positiveWords = ['good', 'excellent', 'success', 'improvement', 'benefit', 'innovation', 'positive'];
+    const negativeWords = ['bad', 'terrible', 'problem', 'error', 'failure', 'difficult', 'complicated'];
     
+    // Calculate positive and negative word counts
     const positiveCount = positiveWords.filter(word => textContent.includes(word)).length;
     const negativeCount = negativeWords.filter(word => textContent.includes(word)).length;
     
     let sentiment = 'neutral';
-    if (positiveCount > negativeCount + 1) sentiment = 'positivo';
-    else if (negativeCount > positiveCount + 1) sentiment = 'negativo';
+    if (positiveCount > negativeCount + 1) sentiment = 'positive';
+    else if (negativeCount > positiveCount + 1) sentiment = 'negative';
 
-    // Detectar tipo de contenido
+    // Detect content type
     const contentType = this.detectContentType(content, textContent);
 
-    // Calcular puntuación de legibilidad básica
+    // Calculate basic readability score
     const readabilityScore = this.calculateReadabilityScore(textContent);
 
     return {
@@ -402,61 +393,69 @@ class WebScraperService {
   }
 
   /**
-   * Detecta el tipo de contenido
+   * Detects content type
    */
   detectContentType(htmlContent, textContent) {
-    // Detectar código
+    // Detect technical content
     if (htmlContent.includes('<code>') || htmlContent.includes('<pre>') || 
         textContent.includes('function') || textContent.includes('import')) {
-      return 'tutorial-técnico';
+      return 'technical-tutorial';
     }
 
-    // Detectar artículo
+    // Detect article
     if (htmlContent.includes('<article>') || htmlContent.includes('<h1>')) {
-      return 'artículo';
+      return 'article';
     }
 
-    // Detectar documentación
+    // Detect documentation
     if (textContent.includes('api') && textContent.includes('endpoint')) {
-      return 'documentación';
+      return 'documentation';
     }
 
-    // Detectar noticia
-    if (textContent.includes('fecha') || textContent.includes('publicado')) {
-      return 'noticia';
+    // Detect news
+    if (textContent.includes('date') || textContent.includes('published')) {
+      return 'news';
     }
 
-    return 'página-web';
+    // Default content type
+    return 'general';
   }
 
   /**
-   * Calcula puntuación básica de legibilidad
+   * Calculates basic readability score
    */
   calculateReadabilityScore(text) {
-    const sentences = text.split(/[.!?]+/).length;
-    const words = text.split(/\s+/).length;
-    const avgWordsPerSentence = words / Math.max(sentences, 1);
+    // Simple readability score based on sentence length and vocabulary complexity
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10).length;
+    const words = text.split(/\s+/).filter(w => w.length > 0).length;
     
-    // Puntuación simple: menos palabras por oración = más legible
-    if (avgWordsPerSentence < 15) return 'alta';
-    if (avgWordsPerSentence < 25) return 'media';
-    return 'baja';
+    if (sentences === 0 || words === 0) return 50; // Default score if insufficient text
+    
+    const avgWordsPerSentence = words / sentences;
+    const complexWords = text.split(/\s+/).filter(word => word.length > 6).length;
+    const complexWordRatio = complexWords / words;
+    
+    // Higher score = more readable
+    // Base score 100, subtract for complexity
+    let score = 100 - (avgWordsPerSentence * 2) - (complexWordRatio * 100);
+    
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   /**
-   * Extrae datos contextuales mejorados
+   * Extracts enhanced contextual data
    */
   extractContextualData(content) {
     const textContent = this.cleanHtmlTags(content);
     
-    // Generar resumen automático (primeras oraciones significativas)
+    // Generate automatic summary (first significant sentences)
     const sentences = textContent.split(/[.!?]+/).filter(s => s.trim().length > 20);
     const summary = sentences.slice(0, 3).join('. ').trim();
     
-    // Extraer puntos clave (párrafos cortos o elementos de lista)
+    // Extract key points (short paragraphs or list items)
     const keyPoints = [];
     
-    // Buscar listas
+    // Search for lists
     const listItems = [...content.matchAll(/<li[^>]*>(.*?)<\/li>/gi)];
     listItems.slice(0, 5).forEach(match => {
       const point = this.cleanHtmlTags(match[1]).trim();
@@ -465,7 +464,7 @@ class WebScraperService {
       }
     });
     
-    // Si no hay listas, usar párrafos cortos
+    // If no lists, use short paragraphs
     if (keyPoints.length === 0) {
       const paragraphs = [...content.matchAll(/<p[^>]*>(.*?)<\/p>/gi)];
       paragraphs.slice(0, 3).forEach(match => {
@@ -483,36 +482,28 @@ class WebScraperService {
   }
 
   /**
-   * Función auxiliar para sleep
-   */
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Limpia tags HTML y normaliza texto
+   * Removes HTML tags from text
    */
   cleanHtmlTags(html) {
     return html
-      .replace(/<[^>]+>/g, ' ')           // Remover tags HTML
-      .replace(/&nbsp;/g, ' ')            // Reemplazar &nbsp;
-      .replace(/&[a-zA-Z0-9#]+;/g, ' ')   // Remover entidades HTML
-      .replace(/\s+/g, ' ')               // Normalizar espacios
-      .trim();                            // Remover espacios al inicio/final
+      .replace(/<[^>]*>/g, ' ')  // Remove all HTML tags
+      .replace(/\s+/g, ' ')     // Collapse multiple spaces
+      .trim();                  // Trim leading/trailing whitespace
   }
 
   /**
-   * Limpia texto de caracteres especiales
+   * Cleans text by removing unwanted characters
    */
   cleanText(text) {
     return text
-      .replace(/&[a-zA-Z0-9#]+;/g, ' ')   // Remover entidades HTML
-      .replace(/\s+/g, ' ')               // Normalizar espacios
-      .trim();                            // Remover espacios al inicio/final
+      .replace(/[\n\r]+/g, ' ') // Replace newlines with spaces
+      .replace(/\s+/g, ' ')     // Collapse multiple spaces
+      .replace(/[<>]/g, '')     // Remove angle brackets
+      .trim();                  // Trim leading/trailing whitespace
   }
 
   /**
-   * Obtiene contenido conocido para sitios específicos
+   * Gets known content for specific sites
    */
   getKnownSiteContent(url) {
     const domain = new URL(url).hostname.toLowerCase();

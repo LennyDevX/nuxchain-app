@@ -117,19 +117,19 @@ export function validateDepositAmount(amount: string, balance?: bigint): { isVal
   const numAmount = parseFloat(amount);
   
   if (!amount || numAmount <= 0) {
-    return { isValid: false, error: '❌ El monto debe ser mayor a 0 POL' };
+    return { isValid: false, error: '❌ Amount must be greater than 0 POL' };
   }
   
   if (numAmount < 5) {
-    return { isValid: false, error: '❌ El monto mínimo de depósito es 5 POL' };
+    return { isValid: false, error: '❌ Minimum deposit amount is 5 POL' };
   }
   
   if (numAmount > 10000) {
-    return { isValid: false, error: '❌ El monto máximo de depósito es 10,000 POL' };
+    return { isValid: false, error: '❌ Maximum deposit amount is 10,000 POL' };
   }
   
   if (balance && BigInt(Math.floor(numAmount * 1e18)) > balance) {
-    return { isValid: false, error: '❌ Saldo insuficiente en tu wallet' };
+    return { isValid: false, error: '❌ Insufficient balance in your wallet' };
   }
   
   return { isValid: true };
@@ -146,7 +146,7 @@ export function validateLockupDuration(duration: string): { isValid: boolean; er
   if (!validDurations.includes(duration)) {
     return { 
       isValid: false, 
-      error: '❌ Período de bloqueo inválido. Selecciona: Flexible, 30, 90, 180 o 365 días' 
+      error: '❌ Invalid lockup period. Select: Flexible, 30, 90, 180 or 365 days' 
     };
   }
   

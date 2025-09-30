@@ -10,11 +10,11 @@ const API_ENDPOINTS = {
 } as const;
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotification';
 
-// Función para detectar URLs en el texto
+// Function to detect URLs in text
 const detectUrls = (text: string): string[] => {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const urls = text.match(urlRegex) || [];
-  console.log('🔍 [FRONTEND] URLs detectadas:', urls);
+  console.log('🔍 [FRONTEND] URLs detected:', urls);
   return urls;
 };
 
@@ -105,31 +105,31 @@ export function useChatStreaming(): UseChatStreamingReturn {
         parts: [{ text: messageText }]
       });
 
-      // Detectar URLs automáticamente
+      // Automatically detect URLs
       const detectedUrls = detectUrls(messageText);
       const useTools = detectedUrls.length > 0;
       
-      console.log('🔍 [FRONTEND] Análisis de herramientas:');
-      console.log('🔍 [FRONTEND] - URLs detectadas:', detectedUrls.length);
-      console.log('🔍 [FRONTEND] - Usar herramientas:', useTools);
+      console.log('🔍 [FRONTEND] Tool analysis:');
+      console.log('🔍 [FRONTEND] - URLs detected:', detectedUrls.length);
+      console.log('🔍 [FRONTEND] - Use tools:', useTools);
       
-      // Actualizar estado de herramientas
+      // Update tool state
       setIsUsingUrlContext(detectedUrls.length > 0);
       
-      // Seleccionar endpoint apropiado
+      // Select appropriate endpoint
       const endpoint = useTools ? API_ENDPOINTS.gemini.streamWithTools : API_ENDPOINTS.gemini.stream;
-      console.log('🔍 [FRONTEND] Endpoint seleccionado:', endpoint);
+      console.log('🔍 [FRONTEND] Selected endpoint:', endpoint);
       
       // Preparar el cuerpo de la solicitud
       const requestBody: any = {
         messages: conversationHistory,
         model: 'gemini-2.5-flash-lite',
-        temperature: 0.7,
-        maxTokens: 2048,
+        temperature: 0.6,
+        maxTokens: 4096,
         stream: true
       };
       
-      // Agregar configuración de herramientas si es necesario
+      // Add tool configuration if needed
       if (useTools) {
         const enabledTools = [];
         if (detectedUrls.length > 0) {
@@ -140,11 +140,11 @@ export function useChatStreaming(): UseChatStreamingReturn {
           enabledTools
         };
         
-        console.log('🔍 [FRONTEND] Herramientas habilitadas:', enabledTools);
-        console.log('🔍 [FRONTEND] Configuración de opciones:', requestBody.options);
+        console.log('🔍 [FRONTEND] Enabled tools:', enabledTools);
+        console.log('🔍 [FRONTEND] Options configuration:', requestBody.options);
       }
       
-      console.log('🔍 [FRONTEND] Request body completo:', JSON.stringify(requestBody, null, 2));
+      console.log('🔍 [FRONTEND] Complete request body:', JSON.stringify(requestBody, null, 2));
       
       // Make streaming request
       const response = await fetch(endpoint, {
@@ -228,20 +228,20 @@ export function useChatStreaming(): UseChatStreamingReturn {
       if (error instanceof Error) {
         // Detectar errores de sobrecarga de la API
         if ((error as any).isOverload || (error as any).status === 503 || error.message.includes('503') || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
-          errorMessage = 'El servicio está temporalmente sobrecargado. Reintentando automáticamente...';
+          errorMessage = 'The service is temporarily overloaded. Retrying automatically...';
           shouldRetry = true;
           isOverloadError = true;
           retryDelay = ((error as any).retryAfter ? (error as any).retryAfter * 1000 : 5000); // Use server's retryAfter or default to 5 seconds
           
-          // Mostrar notificación de sobrecarga
+          // Show overload notification
           showApiOverloadToast(Math.ceil(retryDelay / 1000));
           
         } else if (error.message.includes('408') || error.message.includes('Timeout')) {
-          errorMessage = 'El servicio tardó demasiado en responder. Reintentando...';
+          errorMessage = 'The service took too long to respond. Retrying...';
           shouldRetry = true;
           retryDelay = 3000;
         } else if (error.message.includes('401') || error.message.includes('authentication')) {
-          errorMessage = 'Error de autenticación. Por favor, recarga la página.';
+          errorMessage = 'Authentication error. Please refresh the page.';
         } else {
           errorMessage = error.message;
         }
@@ -273,7 +273,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
         }
         
         setTimeout(() => {
-          console.log('Reintentando envío de mensaje automáticamente...');
+          console.log('Retrying message sending automatically...');
           // Limpiar error antes del reintento
           dispatch({ type: 'CLEAR_ERROR' });
           sendMessage(messageText);

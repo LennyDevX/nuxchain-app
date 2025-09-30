@@ -1,19 +1,19 @@
 /**
- * Utilidad para probar las notificaciones de sobrecarga de la API de Gemini
- * Este archivo permite simular errores 503 para verificar el funcionamiento
- * del sistema de notificaciones UI
+ * Utility to test Gemini API overload notifications
+ * This file allows simulating 503 errors to verify the functioning
+ * of the UI notification system
  */
 
-// Función para simular un error de sobrecarga
+// Function to simulate an overload error
 export function simulateOverloadError() {
-  const error = new Error('Servicio temporalmente no disponible. El modelo está sobrecargado. Por favor, inténtalo de nuevo en unos momentos.');
+  const error = new Error('Service temporarily unavailable. The model is overloaded. Please try again in a few moments.');
   error.status = 503;
   error.retryAfter = 30;
   error.isOverload = true;
   return error;
 }
 
-// Función para simular diferentes tipos de errores de API
+// Function to simulate different types of API errors
 export function simulateApiError(type = 'overload') {
   switch (type) {
     case 'overload':
@@ -40,13 +40,13 @@ export function simulateApiError(type = 'overload') {
   }
 }
 
-// Función para probar el hook useChatStreaming con errores simulados
+// Function to test the useChatStreaming hook with simulated errors
 export function testChatStreamingWithOverload() {
-  console.log('🧪 Iniciando prueba de notificaciones de sobrecarga...');
+  console.log('🧪 Starting overload notification test...');
   
-  // Simular error de sobrecarga
+  // Simulate overload error
   const overloadError = simulateOverloadError();
-  console.log('📋 Error simulado:', {
+  console.log('📋 Simulated error:', {
     message: overloadError.message,
     status: overloadError.status,
     retryAfter: overloadError.retryAfter,
@@ -56,16 +56,16 @@ export function testChatStreamingWithOverload() {
   return overloadError;
 }
 
-// Función para probar diferentes escenarios de error
+// Function to test different error scenarios
 export function runErrorScenarios() {
   const scenarios = [
-    { name: 'Sobrecarga de API', type: 'overload' },
-    { name: 'Timeout de solicitud', type: 'timeout' },
-    { name: 'Límite de tasa', type: 'rate_limit' },
-    { name: 'Error del servidor', type: 'server_error' }
+    { name: 'API Overload', type: 'overload' },
+    { name: 'Request Timeout', type: 'timeout' },
+    { name: 'Rate Limit', type: 'rate_limit' },
+    { name: 'Server Error', type: 'server_error' }
   ];
   
-  console.log('🎯 Ejecutando escenarios de prueba de errores:');
+  console.log('🎯 Running error test scenarios:');
   
   scenarios.forEach((scenario, index) => {
     console.log(`\n${index + 1}. ${scenario.name}:`);
@@ -73,15 +73,15 @@ export function runErrorScenarios() {
     console.log('   - Status:', error.status);
     console.log('   - Message:', error.message);
     if (error.retryAfter) {
-      console.log('   - Retry After:', error.retryAfter, 'segundos');
+      console.log('   - Retry After:', error.retryAfter, 'seconds');
     }
     if (error.isOverload) {
-      console.log('   - Es sobrecarga: Sí');
+      console.log('   - Is overload: Yes');
     }
   });
 }
 
-// Función para verificar la detección de errores de sobrecarga
+// Function to verify overload error detection
 export function isOverloadError(error) {
   return (
     error?.status === 503 ||
@@ -91,58 +91,58 @@ export function isOverloadError(error) {
   );
 }
 
-// Función para extraer información de reintento
+// Function to extract retry information
 export function extractRetryInfo(error) {
-  const retryAfter = error?.retryAfter || 30; // Default 30 segundos
+  const retryAfter = error?.retryAfter || 30; // Default 30 seconds
   const isOverload = isOverloadError(error);
   
   return {
     shouldRetry: isOverload,
     retryAfter,
     isOverload,
-    message: error?.message || 'Error desconocido'
+    message: error?.message || 'Unknown error'
   };
 }
 
-// Función para probar el componente de notificación
+// Function to test the notification component
 export function testNotificationComponent() {
-  console.log('🔔 Probando componente de notificación...');
+  console.log('🔔 Testing notification component...');
   
-  // Simular diferentes estados de la notificación
+  // Simulate different notification states
   const testStates = [
-    { retryAfter: 30, message: 'Sobrecarga inicial' },
-    { retryAfter: 15, message: 'Mitad del tiempo de espera' },
-    { retryAfter: 5, message: 'Casi listo para reintentar' },
-    { retryAfter: 0, message: 'Reintentando ahora' }
+    { retryAfter: 30, message: 'Initial overload' },
+    { retryAfter: 15, message: 'Half waiting time' },
+    { retryAfter: 5, message: 'Almost ready to retry' },
+    { retryAfter: 0, message: 'Retrying now' }
   ];
   
   testStates.forEach((state, index) => {
-    console.log(`Estado ${index + 1}:`, state);
+    console.log(`State ${index + 1}:`, state);
   });
   
   return testStates;
 }
 
-// Función principal para ejecutar todas las pruebas
+// Main function to run all tests
 export function runAllTests() {
-  console.log('🚀 Iniciando suite completa de pruebas de sobrecarga...');
+  console.log('🚀 Starting complete overload test suite...');
   console.log('=' .repeat(50));
   
-  // Prueba 1: Simulación de errores
-  console.log('\n📋 Prueba 1: Simulación de errores');
+  // Test 1: Error simulation
+  console.log('\n📋 Test 1: Error simulation');
   runErrorScenarios();
   
-  // Prueba 2: Detección de sobrecarga
-  console.log('\n🔍 Prueba 2: Detección de sobrecarga');
+  // Test 2: Overload detection
+  console.log('\n🔍 Test 2: Overload detection');
   const overloadError = simulateOverloadError();
   const retryInfo = extractRetryInfo(overloadError);
-  console.log('Información de reintento:', retryInfo);
+  console.log('Retry information:', retryInfo);
   
-  // Prueba 3: Componente de notificación
-  console.log('\n🔔 Prueba 3: Estados de notificación');
+  // Test 3: Notification component
+  console.log('\n🔔 Test 3: Notification states');
   const notificationStates = testNotificationComponent();
   
-  console.log('\n✅ Todas las pruebas completadas');
+  console.log('\n✅ All tests completed');
   console.log('=' .repeat(50));
   
   return {
@@ -152,7 +152,7 @@ export function runAllTests() {
   };
 }
 
-// Exportar todas las funciones para uso en desarrollo
+// Export all functions for development use
 export default {
   simulateOverloadError,
   simulateApiError,
@@ -164,7 +164,7 @@ export default {
   runAllTests
 };
 
-// Para uso en consola del navegador
+// For browser console use
 if (typeof window !== 'undefined') {
   window.testOverload = {
     simulateOverloadError,
@@ -177,6 +177,6 @@ if (typeof window !== 'undefined') {
     runAllTests
   };
   
-  console.log('🔧 Utilidades de prueba de sobrecarga disponibles en window.testOverload');
-  console.log('💡 Ejecuta window.testOverload.runAllTests() para probar todo');
+  console.log('🔧 Overload test utilities available in window.testOverload');
+  console.log('💡 Run window.testOverload.runAllTests() to test everything');
 }

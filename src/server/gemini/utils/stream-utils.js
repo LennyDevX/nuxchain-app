@@ -1,5 +1,5 @@
-/**
- * Transmite texto al cliente con control de backpressure mejorado
+/*
+ * Streams text to client with improved backpressure control
  */
 export async function streamText(res, text, options = {}) {
   const {
@@ -59,7 +59,7 @@ export async function streamText(res, text, options = {}) {
 }
 
 /**
- * Stream JSON progresivo para respuestas estructuradas
+ * Progressive JSON streaming for structured responses
  */
 export async function streamJSON(res, data, options = {}) {
   const jsonString = JSON.stringify(data, null, 2);
@@ -70,7 +70,7 @@ export async function streamJSON(res, data, options = {}) {
 }
 
 /**
- * Streaming adaptativo inteligente basado en contenido y conexión
+ * Intelligent adaptive streaming based on content and connection
  */
 export async function streamTextAdaptive(res, text, options = {}) {
   const {
@@ -136,7 +136,7 @@ export async function streamTextAdaptive(res, text, options = {}) {
 }
 
 /**
- * Streaming con pausas inteligentes para mejor UX
+ * Streaming with smart pauses for better UX
  */
 export async function streamTextWithSmartPauses(res, text, options = {}) {
   const { pauseAtSentences = true, pauseAtParagraphs = true } = options;
@@ -163,7 +163,7 @@ export async function streamTextWithSmartPauses(res, text, options = {}) {
 }
 
 /**
- * Stream nativo optimizado para Gemini con compresión inteligente
+ * Optimized native stream for Gemini with intelligent compression
  */
 export async function streamGeminiResponse(res, geminiStream, options = {}) {
   const {
@@ -199,12 +199,12 @@ export async function streamGeminiResponse(res, geminiStream, options = {}) {
       if (enableCompression) {
         buffer += text;
         
-        // Determinar cuándo enviar el buffer
+        // Determine when to send the buffer
         const shouldFlush = 
           buffer.length >= bufferThreshold ||
-          text.includes('\n\n') || // Párrafos completos
-          text.match(/[.!?]\s/) || // Oraciones completas
-          chunkCount % 5 === 0; // Cada 5 chunks
+          text.includes('\n\n') || // Complete paragraphs
+          text.match(/[.!?]\s/) || // Complete sentences
+          chunkCount % 5 === 0; // Every 5 chunks
         
         if (shouldFlush) {
           await writeWithBackpressure(res, buffer);
@@ -241,7 +241,7 @@ export async function streamGeminiResponse(res, geminiStream, options = {}) {
 }
 
 /**
- * Escritura con manejo de backpressure mejorado
+ * Writing with improved backpressure handling
  */
 async function writeWithBackpressure(res, data) {
   return new Promise((resolve, reject) => {

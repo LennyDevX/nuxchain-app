@@ -305,22 +305,22 @@ class ContextEffectivenessService {
     const responseText = response.parts?.[0]?.text || response.content || response;
     let qualityScore = 0.5;
     
-    // Longitud apropiada
+    // Appropriate length
     if (responseText.length > 50) qualityScore += 0.1;
     if (responseText.length > 200) qualityScore += 0.1;
     
-    // Estructura (párrafos, listas, etc.)
+    // Structure (paragraphs, lists, etc.)
     if (responseText.includes('\n') || responseText.includes('•') || responseText.includes('-')) {
       qualityScore += 0.1;
     }
     
-    // Código o ejemplos
-    if (responseText.includes('```') || responseText.includes('ejemplo')) {
+    // Code or examples
+    if (responseText.includes('```') || responseText.includes('example')) {
       qualityScore += 0.1;
     }
     
-    // Referencias a conversación previa
-    const contextWords = ['anterior', 'mencionaste', 'como dijiste', 'siguiendo', 'continuando'];
+    // References to previous conversation
+    const contextWords = ['previous', 'mentioned', 'as you said', 'following', 'continuing'];
     contextWords.forEach(word => {
       if (responseText.toLowerCase().includes(word)) {
         qualityScore += 0.05;
@@ -331,7 +331,7 @@ class ContextEffectivenessService {
   }
 
   /**
-   * Detecta indicadores de error
+   * Detects error indicators
    */
   detectErrorIndicators(messages, response) {
     const indicators = {
@@ -344,12 +344,12 @@ class ContextEffectivenessService {
     
     const responseText = (response.parts?.[0]?.text || response.content || response).toLowerCase();
     
-    // Detectar pérdida de contexto
-    if (responseText.includes('no recuerdo') || responseText.includes('no tengo información')) {
+    // Detect context loss
+    if (responseText.includes('i don\'t remember') || responseText.includes('i don\'t have information')) {
       indicators.contextLoss = true;
     }
     
-    // Detectar repetición
+    // Detect repetition
     if (messages.length > 1) {
       const prevResponse = messages[messages.length - 2];
       if (prevResponse && prevResponse.role === 'model') {
@@ -361,12 +361,12 @@ class ContextEffectivenessService {
       }
     }
     
-    // Detectar mención de errores
+    // Detect error mentioned
     if (responseText.includes('error') || responseText.includes('problema')) {
       indicators.errorMentioned = true;
     }
     
-    // Detectar respuesta incompleta
+    // Detect incomplete response
     if (responseText.length < 20 || responseText.endsWith('...')) {
       indicators.incompleteness = true;
     }

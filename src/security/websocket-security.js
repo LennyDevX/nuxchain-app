@@ -1,6 +1,6 @@
-/**
- * Seguridad para WebSocket - NuxChain App
- * Protección específica para conexiones WebSocket
+/*
+ * WebSocket Security - NuxChain App
+ * Specific protection for WebSocket connections
  */
 
 import { getCorsConfig } from './cors-policies.js';
@@ -8,16 +8,16 @@ import environmentConfig from './environment-config.js';
 import { WebSocketServer } from 'ws';
 
 /**
- * Validación de origen para WebSocket
+ * WebSocket origin validation
  */
 export const validateWebSocketOrigin = (origin) => {
   const corsConfig = getCorsConfig();
   
   if (!origin) {
-    return environmentConfig.isDevelopment; // Permitir en desarrollo sin origin
+    return environmentConfig.isDevelopment; // Allow in development without origin
   }
   
-  // Verificar si el origen está en la lista permitida
+  // Check if origin is in allowed list
   if (corsConfig.origin === true) return true;
   if (corsConfig.origin === false) return false;
   
@@ -37,17 +37,17 @@ export const validateWebSocketOrigin = (origin) => {
 };
 
 /**
- * Rate limiting para WebSocket
+ * WebSocket rate limiting
  */
 class WebSocketRateLimit {
   constructor(options = {}) {
-    this.windowMs = options.windowMs || 60000; // 1 minuto
+    this.windowMs = options.windowMs || 60000; // 1 minute
     this.maxConnections = options.maxConnections || 10;
     this.maxMessages = options.maxMessages || 100;
     this.connections = new Map();
     this.messages = new Map();
     
-    // Limpiar datos antiguos cada minuto
+    // Clean up old data every minute
     setInterval(() => this.cleanup(), this.windowMs);
   }
   
@@ -61,14 +61,14 @@ class WebSocketRateLimit {
     
     const ipConnections = this.connections.get(ip);
     
-    // Filtrar conexiones dentro de la ventana de tiempo
+    // Filter connections within time window
     const recentConnections = ipConnections.filter(time => time > windowStart);
     
     if (recentConnections.length >= this.maxConnections) {
       return false;
     }
     
-    // Agregar nueva conexión
+    // Add new connection
     recentConnections.push(now);
     this.connections.set(ip, recentConnections);
     
@@ -85,14 +85,14 @@ class WebSocketRateLimit {
     
     const ipMessages = this.messages.get(ip);
     
-    // Filtrar mensajes dentro de la ventana de tiempo
+    // Filter messages within time window
     const recentMessages = ipMessages.filter(time => time > windowStart);
     
     if (recentMessages.length >= this.maxMessages) {
       return false;
     }
     
-    // Agregar nuevo mensaje
+    // Add new message
     recentMessages.push(now);
     this.messages.set(ip, recentMessages);
     
@@ -103,7 +103,7 @@ class WebSocketRateLimit {
     const now = Date.now();
     const windowStart = now - this.windowMs;
     
-    // Limpiar conexiones antiguas
+    // Clean up old connections
     for (const [ip, connections] of this.connections.entries()) {
       const recentConnections = connections.filter(time => time > windowStart);
       if (recentConnections.length === 0) {
@@ -113,7 +113,7 @@ class WebSocketRateLimit {
       }
     }
     
-    // Limpiar mensajes antiguos
+    // Clean up old messages
     for (const [ip, messages] of this.messages.entries()) {
       const recentMessages = messages.filter(time => time > windowStart);
       if (recentMessages.length === 0) {
@@ -125,25 +125,25 @@ class WebSocketRateLimit {
   }
 }
 
-// Instancia global de rate limiting
+// Global rate limiting instance
 const wsRateLimit = new WebSocketRateLimit({
-  windowMs: 60000, // 1 minuto
+  windowMs: 60000, // 1 minute
   maxConnections: environmentConfig.isProduction ? 5 : 20,
   maxMessages: environmentConfig.isProduction ? 50 : 200
 });
 
 /**
- * Validación de autenticación WebSocket
+ * WebSocket authentication validation
  */
 export const validateWebSocketAuth = (req) => {
-  // Verificar API key en query params o headers
+  // Check API key in query params or headers
   const apiKey = req.url?.includes('apiKey=') 
     ? new URL(req.url, 'http://localhost').searchParams.get('apiKey')
     : req.headers['x-api-key'];
     
   const validApiKey = environmentConfig.serverApiKey;
   
-  // En desarrollo, permitir conexiones sin API key
+  // In development, allow connections without API key
   if (environmentConfig.isDevelopment && !apiKey) {
     return true;
   }
@@ -152,111 +152,116 @@ export const validateWebSocketAuth = (req) => {
 };
 
 /**
- * Middleware de seguridad para WebSocket
+ * WebSocket security middleware
  */
 export const webSocketSecurityMiddleware = (ws, req) => {
   const clientIP = req.socket.remoteAddress || req.connection.remoteAddress;
   const origin = req.headers.origin;
   
-  console.log(`Nueva conexión WebSocket desde IP: ${clientIP}, Origin: ${origin}`);
+  console.log(`New WebSocket connection from IP: ${clientIP}, Origin: ${origin}`);
   
-  // Validar origen
+  // Validate origin
   if (!validateWebSocketOrigin(origin)) {
-    console.warn(`Origen no permitido para WebSocket: ${origin}`);
-    ws.close(1008, 'Origen no permitido');
+    console.warn(`WebSocket origin not allowed: ${origin}`);
+    ws.close(1008, 'Origin not allowed');
     return false;
   }
   
-  // Validar autenticación
+  // Validate authentication
   if (!validateWebSocketAuth(req)) {
-    console.warn(`Autenticación fallida para WebSocket desde IP: ${clientIP}`);
-    ws.close(1008, 'Autenticación requerida');
+    console.warn(`WebSocket authentication failed from IP: ${clientIP}`);
+    ws.close(1008, 'Authentication required');
     return false;
   }
   
-  // Verificar rate limiting de conexiones
+  // Check connection rate limiting
   if (!wsRateLimit.checkConnection(clientIP)) {
-    console.warn(`Rate limit excedido para conexiones WebSocket desde IP: ${clientIP}`);
-    ws.close(1008, 'Demasiadas conexiones');
+    console.warn(`WebSocket connection rate limit exceeded from IP: ${clientIP}`);
+    ws.close(1008, 'Too many connections');
     return false;
   }
   
-  // Configurar rate limiting de mensajes
+  // Configure message rate limiting
   ws.on('message', (message) => {
     if (!wsRateLimit.checkMessage(clientIP)) {
-      console.warn(`Rate limit excedido para mensajes WebSocket desde IP: ${clientIP}`);
-      ws.close(1008, 'Demasiados mensajes');
+      console.warn(`WebSocket message rate limit exceeded from IP: ${clientIP}`);
+      ws.close(1008, 'Too many messages');
       return;
     }
     
-    // Validar tamaño del mensaje
-    if (message.length > 1024 * 1024) { // 1MB máximo
-      console.warn(`Mensaje demasiado grande desde IP: ${clientIP}`);
-      ws.close(1009, 'Mensaje demasiado grande');
+    // Validate message size
+    if (message.length > 1024 * 1024) { // 1MB maximum
+      console.warn(`Message too large from IP: ${clientIP}`);
+      ws.close(1009, 'Message too large');
       return;
     }
     
-    // Validar formato del mensaje
+    // Validate message format
     try {
-      const parsedMessage = JSON.parse(message);
+      let parsedMessage;
+      if (typeof message === 'string') {
+        parsedMessage = JSON.parse(message);
+      } else {
+        parsedMessage = JSON.parse(message.toString());
+      }
       
-      // Validar estructura básica
+      // Validate basic structure
       if (!parsedMessage.type || typeof parsedMessage.type !== 'string') {
-        ws.close(1003, 'Formato de mensaje inválido');
+        ws.close(1003, 'Invalid message format');
         return;
       }
       
-      // Validar tipos de mensaje permitidos
+      // Validate allowed message types
       const allowedTypes = ['chat', 'ping', 'pong', 'subscribe', 'unsubscribe'];
       if (!allowedTypes.includes(parsedMessage.type)) {
-        ws.close(1003, 'Tipo de mensaje no permitido');
+        ws.close(1003, 'Message type not allowed');
         return;
       }
-      
+    
     } catch (error) {
-      console.warn(`Mensaje JSON inválido desde IP: ${clientIP}`);
-      ws.close(1003, 'Formato JSON inválido');
+      console.warn(`Invalid JSON message from IP: ${clientIP}`);
+      ws.close(1003, 'Invalid JSON format');
       return;
     }
   });
   
-  // Configurar timeout de conexión
+  // Configure connection timeout
   const connectionTimeout = setTimeout(() => {
     if (ws.readyState === ws.OPEN) {
-      console.warn(`Timeout de conexión WebSocket para IP: ${clientIP}`);
-      ws.close(1000, 'Timeout de conexión');
+      console.warn(`WebSocket connection timeout for IP: ${clientIP}`);
+      ws.close(1000, 'Connection timeout');
     }
   }, environmentConfig.isProduction ? 300000 : 600000); // 5 min prod, 10 min dev
   
-  // Limpiar timeout cuando se cierre la conexión
+  // Clean up timeout when connection closes
   ws.on('close', () => {
     clearTimeout(connectionTimeout);
   });
   
-  // Configurar ping/pong para mantener conexión viva
+  // Configure ping/pong to keep connection alive
   const pingInterval = setInterval(() => {
     if (ws.readyState === ws.OPEN) {
       ws.ping();
     } else {
       clearInterval(pingInterval);
     }
-  }, 30000); // Ping cada 30 segundos
+  }, 30000); // Ping every 30 seconds
   
   ws.on('pong', () => {
-    // Resetear timeout en pong
+    // Reset timeout on pong
     clearTimeout(connectionTimeout);
   });
   
   ws.on('close', () => {
     clearInterval(pingInterval);
-    console.log(`Conexión WebSocket cerrada para IP: ${clientIP}`);
+    console.log(`WebSocket connection closed for IP: ${clientIP}`);
   });
   
   return true;
 };
 
 /**
- * Configuración de WebSocket Server con seguridad
+ * Secure WebSocket Server configuration
  */
 export const setupSecureWebSocketServer = (server, options = {}) => {
   const wss = new WebSocketServer({
@@ -265,19 +270,19 @@ export const setupSecureWebSocketServer = (server, options = {}) => {
       const { origin, req } = info;
       const clientIP = req.socket.remoteAddress;
       
-      // Validaciones de seguridad antes de establecer la conexión
+      // Security validations before establishing connection
       if (!validateWebSocketOrigin(origin)) {
-        console.warn(`Conexión WebSocket rechazada - Origen: ${origin}, IP: ${clientIP}`);
+        console.warn(`WebSocket connection rejected - Origin: ${origin}, IP: ${clientIP}`);
         return false;
       }
       
       if (!validateWebSocketAuth(req)) {
-        console.warn(`Conexión WebSocket rechazada - Auth fallida, IP: ${clientIP}`);
+        console.warn(`WebSocket connection rejected - Auth failed, IP: ${clientIP}`);
         return false;
       }
       
       if (!wsRateLimit.checkConnection(clientIP)) {
-        console.warn(`Conexión WebSocket rechazada - Rate limit, IP: ${clientIP}`);
+        console.warn(`WebSocket connection rejected - Rate limit, IP: ${clientIP}`);
         return false;
       }
       
@@ -290,12 +295,12 @@ export const setupSecureWebSocketServer = (server, options = {}) => {
     webSocketSecurityMiddleware(ws, req);
   });
   
-  console.log('✅ WebSocket Server seguro configurado');
+  console.log('✅ Secure WebSocket Server configured');
   return wss;
 };
 
 /**
- * Utilidades de monitoreo WebSocket
+ * WebSocket monitoring utilities
  */
 export const getWebSocketStats = () => {
   return {

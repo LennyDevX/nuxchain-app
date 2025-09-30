@@ -1,56 +1,293 @@
-import { GoogleGenAI } from '@google/genai';
-import { getRelevantContext } from '../services/knowledge-base.js';
-import { initializeKnowledgeBaseForVercel } from '../services/embeddings-service.js';
-import urlContextService from '../services/url-context-service.js';
+/**
+ * Gemini Function Calling API for Vercel
+ * Adapted from local implementation with serverless optimizations
+ */
 
-// Configuración CORS para Vercel
+import { GoogleGenAI } from '@google/genai';
+
+// ===== TEMPORARY IMPLEMENTATIONS FOR VERCEL =====
+// These implementations replace the local services to work in Vercel's serverless environment
+
+// Import the complete knowledge base service
+import { getRelevantContext as getKnowledgeBaseContext, searchKnowledgeBase } from '../services/knowledge-base.js';
+
+// Enhanced getRelevantContext using the complete knowledge base
+function getRelevantContext(query) {
+  console.log('🔍 [PRODUCTION] Using complete knowledge base for query:', query);
+  
+  try {
+    // Use the comprehensive knowledge base service
+    const context = getKnowledgeBaseContext(query);
+    
+    if (context && context.length > 0) {
+      console.log('✅ [PRODUCTION] Found relevant context from knowledge base, length:', context.length);
+      return context;
+    }
+    
+    // Fallback to direct search if no context found
+    const searchResults = searchKnowledgeBase(query, 3);
+    if (searchResults && searchResults.length > 0) {
+      const fallbackContext = searchResults.map(item => item.content).join('\n\n');
+      console.log('✅ [PRODUCTION] Using search results as fallback, length:', fallbackContext.length);
+      return fallbackContext;
+    }
+    
+    // Final fallback
+    console.log('⚠️ [PRODUCTION] No specific context found, using general fallback');
+    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
+    
+  } catch (error) {
+    console.error('❌ [PRODUCTION] Error in getRelevantContext:', error.message);
+    // Emergency fallback
+    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
+  }
+}
+
+// Enhanced URL context service with real content extraction
+const urlContextService = {
+  async fetchUrlContext(url, options = {}) {
+    console.log('🔧 [PRODUCTION] Fetching content from URL:', url);
+    
+    try {
+      // Simple URL validation
+      const urlObj = new URL(url);
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        throw new Error('Invalid URL protocol');
+      }
+      
+      // Fetch the actual content
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+          'Upgrade-Insecure-Requests': '1',
+        },
+        timeout: 10000 // 10 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const html = await response.text();
+      
+      // Extract text content from HTML
+      const textContent = this.extractTextFromHTML(html);
+      const title = this.extractTitle(html);
+      
+      // Limit content length
+      const maxLength = options.maxContentLength || 3000;
+      const truncatedContent = textContent.length > maxLength 
+        ? textContent.substring(0, maxLength) + '...'
+        : textContent;
+      
+      console.log(`✅ [PRODUCTION] Successfully extracted ${truncatedContent.length} characters from ${url}`);
+      
+      return {
+        url: url,
+        content: truncatedContent,
+        title: title || `Content from ${urlObj.hostname}`,
+        summary: this.generateSummary(truncatedContent),
+        metadata: {
+          extractedAt: new Date().toISOString(),
+          source: 'real_extraction',
+          originalLength: textContent.length,
+          truncated: textContent.length > maxLength
+        }
+      };
+    } catch (error) {
+      console.error('Error in URL context service:', error);
+      
+      // Fallback to basic information
+      const urlObj = new URL(url);
+      return {
+        url: url,
+        content: `Unable to extract content from ${url}. Error: ${error.message}. This appears to be a ${urlObj.hostname} page.`,
+        title: `${urlObj.hostname} - Content Unavailable`,
+        summary: 'Content extraction failed',
+        metadata: {
+          extractedAt: new Date().toISOString(),
+          source: 'fallback',
+          error: error.message
+        }
+      };
+    }
+  },
+  
+  extractTextFromHTML(html) {
+    // Remove script and style elements
+    let text = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+    text = text.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    
+    // Remove HTML tags
+    text = text.replace(/<[^>]*>/g, ' ');
+    
+    // Decode HTML entities
+    text = text.replace(/&nbsp;/g, ' ');
+    text = text.replace(/&amp;/g, '&');
+    text = text.replace(/&lt;/g, '<');
+    text = text.replace(/&gt;/g, '>');
+    text = text.replace(/&quot;/g, '"');
+    text = text.replace(/&#39;/g, "'");
+    
+    // Clean up whitespace
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    return text;
+  },
+  
+  extractTitle(html) {
+    const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    return titleMatch ? titleMatch[1].trim() : null;
+  },
+  
+  generateSummary(content) {
+    if (!content || content.length < 100) return content;
+    
+    // Take first 200 characters and try to end at a sentence
+    let summary = content.substring(0, 200);
+    const lastSentence = summary.lastIndexOf('.');
+    if (lastSentence > 50) {
+      summary = summary.substring(0, lastSentence + 1);
+    }
+    return summary + (content.length > 200 ? '...' : '');
+  }
+};
+
+// Temporary implementation of semantic streaming service
+const semanticStreamingService = {
+  async streamSemanticContent(res, content, options = {}) {
+    console.log('🔧 [PRODUCTION] Using semantic streaming for content length:', content.length);
+    
+    const { 
+      enableSemanticChunking = true,
+      enableContextualPauses = true,
+      enableVariableSpeed = true,
+      chunkSize = 30,
+      baseDelay = 25
+    } = options;
+    
+    if (!enableSemanticChunking) {
+      // Simple streaming without semantic analysis
+      for (let i = 0; i < content.length; i += chunkSize) {
+        const chunk = content.slice(i, i + chunkSize);
+        res.write(chunk);
+        await new Promise(resolve => setTimeout(resolve, baseDelay));
+      }
+      return;
+    }
+    
+    // Semantic chunking implementation
+    const sentences = content.split(/([.!?]+\s+)/);
+    let currentChunk = '';
+    
+    for (let i = 0; i < sentences.length; i++) {
+      const sentence = sentences[i];
+      currentChunk += sentence;
+      
+      // Determine if we should send this chunk
+      const shouldSend = 
+        currentChunk.length >= chunkSize ||
+        /[.!?]+\s*$/.test(sentence) ||
+        i === sentences.length - 1;
+      
+      if (shouldSend && currentChunk.trim()) {
+        res.write(currentChunk);
+        
+        // Calculate delay based on content complexity
+        let delay = baseDelay;
+        if (enableContextualPauses) {
+          if (/[.!?]+\s*$/.test(sentence)) delay *= 2; // Pause after sentences
+          if (/[,;:]\s*$/.test(sentence)) delay *= 1.5; // Shorter pause after commas
+        }
+        
+        if (enableVariableSpeed) {
+          // Adjust speed based on content complexity
+          if (/\b(blockchain|cryptocurrency|staking|tokenization)\b/i.test(currentChunk)) {
+            delay *= 1.3; // Slower for complex terms
+          }
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        currentChunk = '';
+      }
+    }
+    
+    // Send any remaining content
+    if (currentChunk.trim()) {
+      res.write(currentChunk);
+    }
+  }
+};
+
+// Temporary implementation of error handling
+function withErrorHandling(handler) {
+  return async (req, res) => {
+    try {
+      return await handler(req, res);
+    } catch (error) {
+      console.error('🚨 [PRODUCTION] Error caught by error handler:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Internal server error', message: error.message });
+      }
+    }
+  };
+}
+
+// Temporary implementation of rate limiter
+const rateLimiter = {
+  strict: (req, res, next) => {
+    console.log('🔧 [PRODUCTION] Rate limiter - allowing request');
+    if (next) next();
+    return Promise.resolve();
+  }
+};
+
+// CORS configuration for Vercel
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-  'Access-Control-Max-Age': '86400',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+  'Access-Control-Max-Age': '86400'
 };
 
-// Lista de endpoints públicos que no requieren API key
-const publicEndpoints = [
-  '/api/chat/stream',
-  '/api/chat/stream-with-tools',
-  '/api/embeddings'
-];
-
-// Middleware de seguridad
+// Security check function
 function checkSecurity(req) {
-  const path = req.url;
-  const isPublicEndpoint = publicEndpoints.some(endpoint => 
-    path === endpoint || path.startsWith(endpoint)
-  );
+  const publicEndpoints = ['/api/chat/stream', '/api/chat/stream-with-tools'];
+  const currentPath = req.url?.split('?')[0];
   
-  if (!isPublicEndpoint) {
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey || apiKey !== process.env.API_KEY) {
-      return { error: 'API Key requerida', status: 401 };
-    }
+  if (publicEndpoints.includes(currentPath)) {
+    return { allowed: true };
   }
   
-  return null;
+  const apiKey = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.SERVER_API_KEY) {
+    return { allowed: false, reason: 'Invalid API key' };
+  }
+  
+  return { allowed: true };
 }
 
-// Herramientas disponibles para el modelo
+// Available tools for the model
 const tools = [
   {
     name: 'url_context_tool',
-    description: 'Extrae y analiza contenido de URLs para proporcionar contexto adicional',
+    description: 'Extracts and analyzes content from URLs to provide additional context',
     parameters: {
       type: 'object',
       properties: {
         url: {
           type: 'string',
-          description: 'La URL de la cual extraer contenido'
+          description: 'The URL to extract content from'
         },
         analysis_type: {
           type: 'string',
           enum: ['summary', 'detailed', 'technical'],
-          description: 'Tipo de análisis a realizar en el contenido'
+          description: 'Type of analysis to perform on the content'
         }
       },
       required: ['url']
@@ -58,18 +295,18 @@ const tools = [
   },
   {
     name: 'nuxchain_search',
-    description: 'Busca información específica en la base de conocimientos de Nuxchain',
+    description: 'Searches for specific information in the Nuxchain knowledge base',
     parameters: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: 'Consulta de búsqueda en la base de conocimientos'
+          description: 'Search query in the knowledge base'
         },
         category: {
           type: 'string',
           enum: ['staking', 'nfts', 'airdrops', 'tokenization', 'general'],
-          description: 'Categoría específica para buscar'
+          description: 'Specific category to search'
         }
       },
       required: ['query']
@@ -77,7 +314,7 @@ const tools = [
   }
 ];
 
-// Función para ejecutar herramientas
+// Function to execute tools
 async function executeTool(toolName, parameters) {
   try {
     switch (toolName) {
@@ -86,28 +323,27 @@ async function executeTool(toolName, parameters) {
       case 'nuxchain_search':
         return await executeNuxchainSearch(parameters);
       default:
-        return { error: `Herramienta desconocida: ${toolName}` };
+        return { error: `Unknown tool: ${toolName}` };
     }
   } catch (error) {
-    console.error(`Error ejecutando herramienta ${toolName}:`, error);
-    return { error: `Error ejecutando ${toolName}: ${error.message}` };
+    console.error(`Error executing tool ${toolName}:`, error);
+    return { error: `Error executing ${toolName}: ${error.message}` };
   }
 }
 
-// Implementación de la herramienta de contexto de URL usando el servicio existente
+// Implementation of URL context tool
 async function executeUrlContextTool(parameters) {
   const { url, analysis_type = 'summary' } = parameters;
   
   try {
-    console.log(`🔍 [PRODUCTION] Procesando URL con servicio: ${url}`);
+    console.log(`🔍 [PRODUCTION] Processing URL: ${url}`);
     
-    // Usar el servicio existente que ya tiene manejo de cache y timeouts optimizados
     const result = await urlContextService.fetchUrlContext(url, {
       analysis_type,
-      maxContentLength: 3000 // Limitar para Vercel
+      maxContentLength: 3000
     });
     
-    console.log(`✅ [PRODUCTION] URL procesada exitosamente: ${result.content?.length || 0} caracteres`);
+    console.log(`✅ [PRODUCTION] URL successfully processed: ${result.content?.length || 0} characters`);
     
     return {
       success: true,
@@ -121,490 +357,319 @@ async function executeUrlContextTool(parameters) {
     };
     
   } catch (error) {
-    console.error(`❌ [PRODUCTION] Error en url_context_tool para ${url}:`, error.message);
+    console.error(`❌ [PRODUCTION] Error in url_context_tool for ${url}:`, error.message);
     
     return {
-      error: `Error procesando URL: ${error.message}`,
+      error: `Error processing URL: ${error.message}`,
       url,
       error_type: error.name || 'UnknownError'
     };
   }
 }
 
-// Implementación de búsqueda en Nuxchain
+// Implementation of Nuxchain search
 async function executeNuxchainSearch(parameters) {
   const { query, category } = parameters;
   
   try {
-    // Usar el sistema de embeddings existente
-    const embeddingsService = await initializeKnowledgeBaseForVercel();
+    console.log(`🔍 [PRODUCTION] Searching Nuxchain knowledge base: ${query} (category: ${category || 'all'})`);
     
-    const searchResults = await embeddingsService.search('knowledge_base', query, 5, {
-      threshold: 0.2,
-      category: category
-    });
+    // Use direct search for more detailed results
+    const searchResults = searchKnowledgeBase(query, 5);
     
     if (searchResults && searchResults.length > 0) {
+      console.log(`✅ [PRODUCTION] Found ${searchResults.length} results in knowledge base`);
+      
       return {
         query,
         category,
-        results: searchResults.map(result => ({
-          content: result.content,
-          score: result.score,
-          metadata: result.metadata
+        results: searchResults.map((item, index) => ({
+          content: item.content,
+          metadata: item.metadata,
+          score: Math.max(0.9 - (index * 0.1), 0.3), // Decreasing score
+          source: 'nuxchain_knowledge_base',
+          type: item.metadata?.type || 'general',
+          topic: item.metadata?.topic || 'unknown'
         })),
-        found: searchResults.length
+        found: searchResults.length,
+        method: 'comprehensive_knowledge_base_search'
       };
     } else {
-      // Fallback a búsqueda simple
+      // Fallback to general context
       const fallbackResult = getRelevantContext(query);
+      console.log('⚠️ [PRODUCTION] No specific search results, using general context');
+      
       return {
         query,
         category,
-        results: [{ content: fallbackResult, score: 0.5, source: 'fallback' }],
+        results: [{
+          content: fallbackResult,
+          score: 0.5,
+          source: 'nuxchain_knowledge_base_fallback',
+          type: 'general',
+          topic: 'fallback'
+        }],
         found: 1,
-        method: 'fallback'
+        method: 'fallback_context_search'
       };
     }
   } catch (error) {
-    return { error: `Error en búsqueda: ${error.message}` };
+    console.error(`❌ [PRODUCTION] Error in nuxchain_search:`, error.message);
+    return { error: `Search error: ${error.message}` };
   }
 }
 
-export default async function handler(req, res) {
-  console.log('🚀 [PRODUCTION] Handler iniciado');
+// Simple in-memory cache for relevant context
+const contextCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCachedContext(key) {
+  const item = contextCache.get(key);
+  if (!item) return null;
   
-  // Timeout global para Vercel (50 segundos - ajustado según vercel.json)
-  let globalTimeout;
+  if (Date.now() - item.timestamp > CACHE_TTL) {
+    contextCache.delete(key);
+    return null;
+  }
+  return item.value;
+}
+
+function setCachedContext(key, value) {
+  contextCache.set(key, { value, timestamp: Date.now() });
+}
+
+// Main stream handler function
+async function streamWithToolsHandler(req, res) {
+  console.log('🚀 [PRODUCTION] Stream with tools handler started');
   
   try {
-    globalTimeout = setTimeout(() => {
-      console.error('⏰ [PRODUCTION] Timeout global de Vercel alcanzado');
-      if (!res.headersSent) {
-        res.status(408).json({ error: 'Timeout del servidor' });
-      }
-    }, 50000);
-
-    console.log('⏰ [PRODUCTION] Timeout global configurado');
-    
-    // Manejar preflight CORS
+    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
-      console.log('🔄 [PRODUCTION] Manejando preflight CORS');
       Object.entries(corsHeaders).forEach(([key, value]) => {
         res.setHeader(key, value);
       });
-      if (globalTimeout) clearTimeout(globalTimeout);
       return res.status(200).json({});
     }
 
-    console.log('🔧 [PRODUCTION] Aplicando headers CORS');
-    // Aplicar headers CORS
+    // Apply rate limiting
+    await rateLimiter.strict(req, res);
+
+    // Set CORS headers
     Object.entries(corsHeaders).forEach(([key, value]) => {
       res.setHeader(key, value);
     });
 
-    console.log('🔒 [PRODUCTION] Verificando seguridad');
-    // Verificar seguridad
-    const securityCheck = checkSecurity(req);
-    if (securityCheck) {
-      console.log('❌ [PRODUCTION] Fallo de seguridad:', securityCheck.error);
-      if (globalTimeout) clearTimeout(globalTimeout);
-      return res.status(securityCheck.status).json({ error: securityCheck.error });
+    // Security check
+    const securityResult = checkSecurity(req);
+    if (!securityResult.allowed) {
+      console.log('🔒 [PRODUCTION] Security check failed:', securityResult.reason);
+      return res.status(401).json({ error: securityResult.reason });
     }
 
     if (req.method !== 'POST') {
-      console.log('❌ [PRODUCTION] Método no permitido:', req.method);
-      if (globalTimeout) clearTimeout(globalTimeout);
-      return res.status(405).json({ error: 'Método no permitido' });
+      return res.status(405).json({ error: 'Method not allowed' });
     }
-    
-    console.log('✅ [PRODUCTION] Validaciones iniciales completadas');
-    const { message, conversationHistory = [], messages = [], useTools = true } = req.body;
-    
-    console.log(`📥 [PRODUCTION] Request body recibido:`, {
-      hasMessage: !!message,
-      hasConversationHistory: conversationHistory.length,
-      hasMessages: messages.length,
-      useTools
-    });
 
-    // Manejar tanto el formato antiguo como el nuevo
+    const { message, conversationHistory = [], messages = [] } = req.body;
+
+    // Limit history to last 5 messages
     let finalMessage;
     let finalHistory;
-    
     if (messages && messages.length > 0) {
-      // Formato nuevo del frontend: array de messages
-      console.log(`📥 [PRODUCTION] Procesando formato de messages del frontend`);
-      
-      finalHistory = messages.slice(0, -1).map(msg => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content || msg.parts?.[0]?.text || msg.text
-      }));
-      
+      finalHistory = messages.slice(-5);
       const lastMessage = messages[messages.length - 1];
       finalMessage = lastMessage.content || lastMessage.parts?.[0]?.text || lastMessage.text;
-      
-      console.log(`📥 [PRODUCTION] Mensaje final extraído: ${finalMessage?.substring(0, 100)}...`);
-      console.log(`📥 [PRODUCTION] Historia de conversación: ${finalHistory.length} mensajes`);
     } else {
-      // Formato antiguo: message + conversationHistory
       finalMessage = message;
-      finalHistory = conversationHistory;
+      finalHistory = conversationHistory.slice(-5);
     }
 
     if (!finalMessage) {
-      return res.status(400).json({ error: 'Mensaje requerido' });
+      return res.status(400).json({ error: 'Message required' });
     }
 
-    // Verificar API key de Gemini
+    // Check that Gemini API key is configured
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'API key de Gemini no configurada' });
+      return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
-    // Inicializar Gemini
-    const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
+    console.log('🤖 [PRODUCTION] Initializing Gemini AI with function calling');
+    
+    // Initialize Gemini
+    const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    // Obtener contexto relevante
+    // Context retrieval logic
     let relevantContext = '';
-    try {
-      const embeddingsService = await initializeKnowledgeBaseForVercel();
-      const searchResults = await embeddingsService.search('knowledge_base', finalMessage, 3, {
-        threshold: 0.3
-      });
-      
-      if (searchResults && searchResults.length > 0) {
-        relevantContext = searchResults.map(result => result.content).join('\n\n');
+    const cacheKey = finalMessage.trim().toLowerCase();
+
+    if (finalMessage.length >= 15) {
+      // Try cache first
+      const cached = getCachedContext(cacheKey);
+      if (cached) {
+        relevantContext = cached;
       } else {
-        relevantContext = getRelevantContext(finalMessage);
-      }
-    } catch (error) {
-      console.error('Error con embeddings:', error);
-      relevantContext = getRelevantContext(finalMessage);
-    }
-
-    const contextToUse = relevantContext || `Nuxchain es una plataforma descentralizada integral que combina staking, marketplace de NFTs, airdrops y tokenización.`;
-
-    // Detectar URLs en el mensaje automáticamente (regex mejorado)
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g;
-    const detectedUrls = finalMessage.match(urlRegex) || [];
-    
-    // También detectar URLs sin protocolo
-    const urlWithoutProtocolRegex = /(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/g;
-    const urlsWithoutProtocol = finalMessage.match(urlWithoutProtocolRegex) || [];
-    
-    // Filtrar URLs válidas sin protocolo (que no sean solo dominios comunes)
-    const validUrlsWithoutProtocol = urlsWithoutProtocol.filter(url => 
-      !url.startsWith('www.') || url.includes('/') || url.includes('?') || url.includes('#')
-    );
-    
-    // Combinar resultados crudos
-    const allDetectedRawUrls = [...detectedUrls, ...validUrlsWithoutProtocol];
-
-    // Normalizar y desduplicar URLs para evitar dobles conteos (por ejemplo, con y sin protocolo)
-    const normalizeUrlForComparison = (raw) => {
-      if (!raw) return null;
-      let s = String(raw).trim();
-      // Eliminar envolturas o puntuación alrededor (backticks, comillas, paréntesis) y al final
-      s = s.replace(/^[`'"\(\[]+/, '').replace(/[`'"\)\]\.,;:!?]+$/, '');
-      // Añadir protocolo si falta
-      if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
-      try {
-        const u = new URL(s);
-        // No comparar el hash y quitar el slash final cuando aplique
-        u.hash = '';
-        if (u.pathname !== '/') {
-          u.pathname = u.pathname.replace(/\/+$/, '');
+        try {
+          const directSearchResults = getRelevantContext(finalMessage);
+          if (directSearchResults) {
+            relevantContext = directSearchResults;
+          }
+        } catch (error) {
+          console.error('Error retrieving context:', error.message);
         }
-        return u.toString();
-      } catch {
-        return null;
-      }
-    };
-
-    const allDetectedUrls = [];
-    const seenUrls = new Set();
-    for (const raw of allDetectedRawUrls) {
-      const norm = normalizeUrlForComparison(raw);
-      if (!norm) continue;
-      if (!seenUrls.has(norm)) {
-        seenUrls.add(norm);
-        allDetectedUrls.push(norm);
-      }
-    }
-
-    // Configurar headers para streaming lo antes posible
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-    
-    // Bloque de análisis previo de URLs para evitar bloqueos por function-calling
-    let preFetchedUrlContextBlock = '';
-    let toolsEnabled = useTools; // habilitamos herramientas solo si no hay URLs prefetch
-
-    if (allDetectedUrls.length > 0) {
-      try {
-        // Informar progreso al cliente inmediatamente
-        res.write(`🔎 Analizando ${allDetectedUrls.length} ${allDetectedUrls.length === 1 ? 'URL' : 'URLs'}...\n`);
-
-        // Limitar número de URLs para cumplir límites de tiempo
-        const urlsToProcess = allDetectedUrls.slice(0, 3);
-
-        const results = await Promise.allSettled(
-          urlsToProcess.map(url => urlContextService.fetchUrlContext(url, { maxContentLength: 3000 }))
-        );
-
-        const successful = results
-          .map((r, i) => ({ r, url: urlsToProcess[i] }))
-          .filter(x => x.r.status === 'fulfilled' && x.r.value && x.r.value.content);
-
-        if (successful.length > 0) {
-          preFetchedUrlContextBlock = successful.map(({ r }) => {
-            const v = r.value;
-            const preview = (v.content || '').slice(0, 1200);
-            return `URL: ${v.url}\nTítulo: ${v.title}\nResumen: ${v.summary}\nContenido (extracto):\n${preview}`;
-          }).join('\n\n---\n\n');
-
-          // Añadir instrucción explícita de resumen
-          preFetchedUrlContextBlock = `\n\nDATOS EXTRAÍDOS DE LAS URLS (usar para tu respuesta):\n${preFetchedUrlContextBlock}\n\n`;
-
-          // Avisar al cliente
-          res.write(`✅ Análisis ${allDetectedUrls.length === 1 ? 'de la URL' : 'de las URLs'} completado. Preparando resumen...\n`);
-        } else {
-          res.write('⚠️ No fue posible extraer contenido de las URL(s). Continuaré con una respuesta general.\n');
+        
+        // Cache the result if we have relevant context
+        if (relevantContext) {
+          setCachedContext(cacheKey, relevantContext);
         }
-
-        // Deshabilitar tools para evitar que el modelo vuelva a pedir function-calls
-        toolsEnabled = false;
-      } catch (prefetchErr) {
-        console.error('❌ Error preprocesando URLs:', prefetchErr);
-        res.write('⚠️ Ocurrió un problema al analizar las URL(s). Continuaré con una respuesta general.\n');
-        toolsEnabled = false;
       }
     }
-    
-    // Crear prompt del sistema
-    let systemPrompt = `Eres Nuvim AI 1.0, un asistente inteligente avanzado con herramientas especializadas. Puedes ayudar con análisis de URLs, búsquedas en bases de conocimiento y consultas generales.
 
-CONTEXTO RELEVANTE DE NUXCHAIN (cuando sea aplicable):
+    // Fallback context
+    const contextToUse = relevantContext || `Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.`;
+
+    // Create prompt with Nuxchain context
+    const systemPrompt = `I'm an intelligent assistant for the Nuxchain platform. I'm here to help you with accurate and up-to-date information about the Nuxchain ecosystem.
+
+RELEVANT NUXCHAIN CONTEXT:
 ${contextToUse}
 
-HERRAMIENTAS DISPONIBLES:
-- url_context_tool: Para extraer y analizar contenido de URLs (OBLIGATORIO para cualquier URL detectada)
-- nuxchain_search: Para buscar información específica en la base de conocimientos de Nuxchain`;
+AVAILABLE TOOLS:
+- url_context_tool: Extract and analyze content from URLs
+- nuxchain_search: Search the Nuxchain knowledge base for specific information
 
-    // Si se detectan URLs, reforzar instrucciones de resumen
-    if (allDetectedUrls.length > 0) {
-      systemPrompt += `
+INSTRUCTIONS:
+- Always respond in English
+- Use the available tools when they can provide better or more specific information
+- Use information from the context when relevant
+- If you don't have specific information about something related to Nuxchain, use the nuxchain_search tool
+- Be helpful, friendly, and conversational
+- You can use emojis occasionally to make the conversation more pleasant
+- Focus on being helpful rather than introducing yourself repeatedly
+- If the user asks about topics not related to Nuxchain, you can help but keep the focus on how it might relate to the platform`;
 
-🚨 ALERTA CRÍTICA: Se detectaron ${allDetectedUrls.length} URL(s) en el mensaje del usuario: ${allDetectedUrls.join(', ')}
+    // Prepare content with history and context
+    const contents = `${systemPrompt}\n\nUser: ${finalMessage}`;
 
-⚠️ ACCIÓN OBLIGATORIA INMEDIATA:
-- Si ya recibiste datos extraídos de las URL(s) en este mismo mensaje, úsalo directamente para responder.
-- Si no hay datos extraídos, usa url_context_tool para cada URL y luego responde con un resumen.
-- La respuesta debe incluir un bloque por URL siguiendo este formato conciso:
-  • Título
-  • Enlace
-  • De qué trata (2–3 líneas, sin repetir el título)
-  • Puntos clave (3–5 bullets, concretos)
-  • Recomendaciones/Próximos pasos (opcional)
-- No declares cuántas URL(s) detectaste; enfócate en explicar el contenido y en aportar valor práctico.`;
-    }
+    // Configure headers for streaming
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Connection', 'keep-alive');
     
-    systemPrompt += `
-
-INSTRUCCIONES GENERALES:
-- Responde siempre en el mismo idioma que el usuario
-- Sé amigable, profesional y útil
-- Proporciona análisis detallados y extensos cuando sea apropiado
-- No uses backticks ni formato de código para URLs o títulos
-- No repitas el título dentro de la descripción; evita redundancias
-- Usa frases cortas y bullets claros; prioriza la claridad
-- Evita emojis salvo que el usuario los utilice primero`;
-
-    // Preparar contenido con historial y posible bloque de contexto de URL
-    const contents = [
-      {
-        role: 'user',
-        parts: [{ text: systemPrompt }]
-      },
-      {
-        role: 'model',
-        parts: [{ text: '¡Hola! Soy Nuvim AI 1.0, tu asistente inteligente de Nuxchain con herramientas especializadas. ¿En qué puedo ayudarte hoy? 😊' }]
-      },
-      ...finalHistory.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content || msg.parts?.[0]?.text || msg.text }]
-      })),
-    ];
-
-    if (preFetchedUrlContextBlock) {
-      contents.push({ role: 'user', parts: [{ text: preFetchedUrlContextBlock }] });
-      contents.push({ role: 'user', parts: [{ text: 'Por favor, genera un resumen claro y organizado basado en los datos de las URL(s) anteriores.' }] });
-    }
-
-    contents.push({
-      role: 'user',
-      parts: [{ text: finalMessage }]
-    });
-    
-    console.log(`📤 [PRODUCTION] Contenidos preparados para Gemini: ${contents.length} elementos`);
-
-    // Configuración del modelo con o sin herramientas (deshabilitadas cuando ya preprocesamos URLs)
-    const modelConfig = {
-      model: 'gemini-2.0-flash-001',
-      contents: contents,
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 8192,
+    // Extract streaming configuration
+    const { streamingConfig = {} } = req.body;
+    const semanticOptions = {
+      enableSemanticChunking: streamingConfig.enableSemanticChunking !== false,
+      enableContextualPauses: streamingConfig.enableContextualPauses !== false,
+      enableVariableSpeed: streamingConfig.enableVariableSpeed !== false,
+      clientInfo: {
+        userAgent: req.headers['user-agent'] || '',
+        language: req.headers['accept-language'] || 'en-US'
       }
     };
 
-    if (toolsEnabled) {
-      modelConfig.tools = [{ functionDeclarations: tools }];
-      console.log(`🔧 [PRODUCTION] Herramientas habilitadas: ${tools.map(t => t.name).join(', ')}`);
-    } else {
-      console.log('🔧 [PRODUCTION] Herramientas deshabilitadas (usando datos preextraídos si aplica)');
-    }
+    // Timeout control for Vercel
+    const requestStartTime = Date.now();
+    const MAX_EXECUTION_TIME = 25000; // 25 seconds for function calling
 
-    console.log(`🤖 [PRODUCTION] Iniciando generación de contenido con modelo: ${modelConfig.model}`);
+    const timeoutDetector = setInterval(() => {
+      if (Date.now() - requestStartTime > MAX_EXECUTION_TIME && !res.writableEnded) {
+        if (!res.destroyed) {
+          res.write('\n⚠️ Execution time limit approaching.\n');
+        }
+        clearInterval(timeoutDetector);
+      }
+    }, 1000);
 
-    const response = await ai.models.generateContentStream(modelConfig);
+    try {
+      // Generate content stream with function calling
+      const response = await ai.models.generateContentStream({
+        model: 'gemini-2.5-flash',
+        contents: contents,
+        tools: [{ functionDeclarations: tools }]
+      });
 
-    let toolCallsDetected = false;
-    let toolResults = [];
-    
-    for await (const chunk of response) {
-      // Manejar llamadas a herramientas solo si están habilitadas
-      if (toolsEnabled && chunk.functionCalls) {
-        toolCallsDetected = true;
-        console.log(`🔧 [PRODUCTION] Detectadas ${chunk.functionCalls.length} llamadas a herramientas`);
-        
-        for (const functionCall of chunk.functionCalls) {
-          console.log(`🔧 [PRODUCTION] Ejecutando herramienta: ${functionCall.name} con args:`, functionCall.args);
+      // Process and stream the response
+      let accumulatedText = '';
+      let streamStarted = false;
+
+      for await (const chunk of response) {
+        if (res.destroyed || res.writableEnded) break;
+
+        try {
+          // Check for function calls
+          const functionCalls = chunk.functionCalls;
+          if (functionCalls && functionCalls.length > 0) {
+            console.log('🔧 [PRODUCTION] Processing function calls:', functionCalls.length);
+            
+            for (const functionCall of functionCalls) {
+              const { name, args } = functionCall;
+              console.log(`🔧 [PRODUCTION] Executing function: ${name}`);
+              
+              const toolResult = await executeTool(name, args);
+              
+              // Stream the tool result
+              const toolMessage = `\n🔧 Using ${name}...\n`;
+              res.write(toolMessage);
+              
+              if (toolResult.error) {
+                res.write(`❌ Error: ${toolResult.error}\n\n`);
+              } else {
+                res.write(`✅ Tool executed successfully\n\n`);
+              }
+            }
+          }
+
+          console.log('=== CHUNK DEBUG (WITH TOOLS) ===');
+          console.log('Chunk type:', typeof chunk);
+          console.log('Chunk keys:', Object.keys(chunk));
+          console.log('Full chunk:', JSON.stringify(chunk, null, 2));
+          console.log('chunk.text type:', typeof chunk.text);
+          console.log('chunk.text value:', chunk.text);
+          console.log('chunk.text():', typeof chunk.text === 'function' ? chunk.text() : 'not a function');
+          console.log('chunk.functionCalls:', chunk.functionCalls);
+          console.log('================================');
           
-          try {
-            const toolResult = await executeTool(functionCall.name, functionCall.args);
-            
-            toolResults.push({
-              name: functionCall.name,
-              args: functionCall.args,
-              result: toolResult
-            });
-            
-            console.log(`✅ [PRODUCTION] Herramienta ${functionCall.name} ejecutada exitosamente`);
-          } catch (toolError) {
-            console.error(`❌ [PRODUCTION] Error ejecutando herramienta ${functionCall.name}:`, toolError);
-            toolResults.push({
-              name: functionCall.name,
-              args: functionCall.args,
-              result: { error: `Error ejecutando herramienta: ${toolError.message}` }
-            });
+          const text = chunk.text || '';
+          if (text) {
+            accumulatedText += text;
+            // Start streaming once we have sufficient content
+            if (!streamStarted && accumulatedText.length > 20) {
+              streamStarted = true;
+              await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
+              accumulatedText = '';
+            }
           }
+        } catch (error) {
+          console.error('Error processing chunk:', error.message);
         }
       }
-      
-      // Enviar texto normal
-      const chunkText = chunk.text;
-      if (chunkText) {
-        res.write(chunkText);
-      }
-    }
-    
-    // Si se detectaron llamadas a herramientas, generar respuesta natural con Gemini
-    if (toolsEnabled && toolCallsDetected && toolResults.length > 0) {
-      console.log(`🔄 [PRODUCTION] Generando respuesta natural con resultados de ${toolResults.length} herramientas`);
-      
-      // Formatear resultados para el contexto de Gemini
-      const toolResultsContext = toolResults.map(tool => {
-        if (tool.name === 'url_context_tool') {
-          if (tool.result.error) {
-            return `Error al analizar la URL ${tool.args.url}: ${tool.result.error}`;
-          } else {
-            return `Contenido de ${tool.args.url}:\n${tool.result.content}`;
-          }
-        } else if (tool.name === 'nuxchain_search') {
-          if (tool.result.error) {
-            return `Error en búsqueda: ${tool.result.error}`;
-          } else {
-            const results = tool.result.results.map(r => r.content).join('\n\n');
-            return `Resultados de búsqueda para "${tool.result.query}":\n${results}`;
-          }
-        }
-        return `Resultado de ${tool.name}: ${JSON.stringify(tool.result, null, 2)}`;
-      }).join('\n\n');
-      
-      // Crear nueva conversación con los resultados de las herramientas
-      const contentsWithToolResults = [
-        {
-          role: 'user',
-          parts: [{ text: systemPrompt }]
-        },
-        {
-          role: 'model',
-          parts: [{ text: 'He ejecutado las herramientas necesarias y obtenido la siguiente información.' }]
-        },
-        ...finalHistory.map(msg => ({
-          role: msg.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: msg.content || msg.parts?.[0]?.text || msg.text }]
-        })),
-        {
-          role: 'user',
-          parts: [{ text: finalMessage }]
-        },
-        {
-          role: 'model',
-          parts: [{ text: `Información obtenida:\n\n${toolResultsContext}\n\nAhora proporciona un análisis completo y útil basado en esta información.` }]
-        }
-      ];
-      
-      const naturalResponse = await ai.models.generateContentStream({
-        model: 'gemini-2.5-flash-lite',
-        contents: contentsWithToolResults,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,
-        }
-      });
-      
-      // Enviar la respuesta natural
-      for await (const chunk of naturalResponse) {
-        const chunkText = chunk.text;
-        if (chunkText) {
-          res.write(chunkText);
-        }
-      }
-    }
-    
-    // Limpiar timeout y finalizar respuesta
-    clearTimeout(globalTimeout);
-    res.end();
-    console.log(`✅ [PRODUCTION] Streaming completado exitosamente`);
 
-  } catch (error) {
-    console.error('❌ [PRODUCTION] Error en chat/stream-with-tools:', error.message);
-    
-    // Limpiar timeout en caso de error
-    if (globalTimeout) {
-      clearTimeout(globalTimeout);
-    }
-    
-    if (!res.headersSent) {
-      return res.status(500).json({ 
-        error: 'Error interno del servidor',
-        details: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      });
-    } else {
-      // Si ya se enviaron headers, intentar terminar el stream gracefully
-      try {
-        res.write('\n\n❌ Error interno del servidor');
-        res.end();
-      } catch (endError) {
-        console.error('❌ [PRODUCTION] Error terminando stream:', endError.message);
+      // Stream any remaining text
+      if (accumulatedText && !res.writableEnded) {
+        await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
       }
+
+      // Clean up
+      clearInterval(timeoutDetector);
+      if (!res.writableEnded) {
+        res.end();
+      }
+    } catch (error) {
+      clearInterval(timeoutDetector);
+      console.error('Gemini API error:', error.message || error);
+      if (!res.writableEnded) {
+        res.write(`\n❌ I apologize, but I encountered an error while processing your request. Please try again.\n`);
+        res.end();
+      }
+    }
+  } catch (error) {
+    console.error('Unexpected error in stream with tools handler:', error);
+    if (!res.writableEnded) {
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 }
+
+// Apply error handling middleware and export the handler
+export default withErrorHandling(streamWithToolsHandler);

@@ -79,8 +79,25 @@ export class StreamingService {
           
           let fullResponse = '';
           for (const line of lines) {
-            if (line.trim()) {
-              fullResponse += line + '\\n';
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+            
+            // Parse SSE format: "data: {...}"
+            if (trimmedLine.startsWith('data: ')) {
+              try {
+                const jsonStr = trimmedLine.substring(6); // Remove "data: " prefix
+                
+                // Skip [DONE] marker
+                if (jsonStr === '[DONE]') continue;
+                
+                const parsed = JSON.parse(jsonStr);
+                if (parsed.text) {
+                  fullResponse += parsed.text;
+                }
+              } catch (error) {
+                // Fallback: use the line as-is if not valid JSON
+                fullResponse += line + '\\n';
+              }
             }
           }
           
@@ -357,8 +374,26 @@ export class StreamingService {
     
     let processedContent = '';
     for (const line of lines) {
-      if (line.trim()) {
-        processedContent += line + '\n';
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
+      
+      // Parse SSE format: "data: {...}"
+      if (trimmedLine.startsWith('data: ')) {
+        try {
+          const jsonStr = trimmedLine.substring(6); // Remove "data: " prefix
+          
+          // Skip [DONE] marker
+          if (jsonStr === '[DONE]') continue;
+          
+          const data = JSON.parse(jsonStr);
+          if (data.text) {
+            processedContent += data.text;
+          }
+        } catch (error) {
+          console.warn('Failed to parse SSE line:', trimmedLine, error);
+          // Fallback: use the line as-is if not valid JSON
+          processedContent += line + '\n';
+        }
       }
     }
     

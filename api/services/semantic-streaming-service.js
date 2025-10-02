@@ -309,6 +309,35 @@ class SemanticStreamingService {
   async delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  /**
+   * ASEGURAR: Método para calcular delay óptimo
+   */
+  calculateOptimalDelay(chunk) {
+    // Sin delay para chunks pequeños
+    if (chunk.length < 10) return 0;
+    
+    // Delay más largo para fin de párrafo
+    if (chunk.endsWith('\n\n')) return 50;
+    
+    // Delay corto para fin de oración
+    if (chunk.match(/[.!?]\s*$/)) return 30;
+    
+    // Delay mínimo para el resto
+    return 10;
+  }
+  
+  /**
+   * ASEGURAR: Flush final del buffer
+   */
+  flush() {
+    const remaining = this.buffer;
+    this.buffer = '';
+    this.isInCodeBlock = false;
+    this.codeBlockBuffer = '';
+    
+    return remaining ? [remaining] : [];
+  }
 }
 
 // Create and export an instance of the service

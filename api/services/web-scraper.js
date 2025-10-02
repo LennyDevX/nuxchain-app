@@ -4,8 +4,11 @@
 class WebScraperService {
   constructor() {
     // Configuration optimized for Vercel
-    this.timeout = 15000; // 15 seconds for better reliability
-    this.maxRetries = 2;
+    // OPTIMIZACIÓN: Timeout reducido para Vercel
+    // En producción (Vercel): 8 segundos máximo
+    // En desarrollo: 15 segundos
+    this.timeout = process.env.VERCEL ? 8000 : 15000; // 15 seconds for better reliability
+    this.maxRetries = process.env.VERCEL ? 1 : 2; // Menos reintentos en prod
     this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NuxchainBot/1.0';
   }
 

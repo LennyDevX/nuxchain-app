@@ -1,11 +1,13 @@
 {
   "version": 2,
   "functions": {
-    "api/chat/stream-with-tools.js": {
-      "maxDuration": 60
-    },
     "api/chat/stream.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1536
+    },
+    "api/**/*.js": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "rewrites": [
@@ -29,8 +31,20 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization, X-API-Key"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
 }

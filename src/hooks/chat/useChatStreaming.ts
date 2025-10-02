@@ -10,12 +10,20 @@ const API_ENDPOINTS = {
 } as const;
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotification';
 
-// Function to detect URLs in text
+// Function to detect URLs in text - FIXED
 const detectUrls = (text: string): string[] => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  // FIXED: Character class doesn't need escaped +
+  const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
   const urls = text.match(urlRegex) || [];
   console.log('🔍 [FRONTEND] URLs detected:', urls);
-  return urls;
+  return urls.filter(url => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 };
 
 // Google Search functionality removed - only URL context remains
@@ -56,6 +64,32 @@ interface UseChatStreamingReturn {
   clearMessages: () => void;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
+}
+
+// NUEVO: Definir interfaces para tipos específicos
+interface ErrorWithExtras extends Error {
+  status?: number;
+  isOverload?: boolean;
+  isTimeout?: boolean;
+  retryAfter?: number;
+}
+
+interface ErrorInfo {
+  message?: string;
+  isOverload?: boolean;
+  retryAfter?: number;
+}
+
+interface RequestBody {
+  messages: Array<{
+    role: string;
+    parts: Array<{ text: string }>;
+  }>;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  stream: boolean;
+  urls?: string[];
 }
 
 export function useChatStreaming(): UseChatStreamingReturn {
@@ -107,21 +141,16 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
       // Automatically detect URLs
       const detectedUrls = detectUrls(messageText);
-      const useTools = detectedUrls.length > 0;
       
-      console.log('🔍 [FRONTEND] Tool analysis:');
-      console.log('🔍 [FRONTEND] - URLs detected:', detectedUrls.length);
-      console.log('🔍 [FRONTEND] - Use tools:', useTools);
+      // CAMBIO: Siempre usar el endpoint stream.js principal
+      // El backend maneja URLs automáticamente si están presentes
+      const endpoint = API_ENDPOINTS.gemini.stream;
       
-      // Update tool state
-      setIsUsingUrlContext(detectedUrls.length > 0);
-      
-      // Select appropriate endpoint
-      const endpoint = useTools ? API_ENDPOINTS.gemini.streamWithTools : API_ENDPOINTS.gemini.stream;
       console.log('🔍 [FRONTEND] Selected endpoint:', endpoint);
+      console.log('🔍 [FRONTEND] - URLs detected:', detectedUrls.length);
       
-      // Preparar el cuerpo de la solicitud
-      const requestBody: any = {
+      // FIXED: Tipo específico en lugar de any
+      const requestBody: RequestBody = {
         messages: conversationHistory,
         model: 'gemini-2.5-flash-lite',
         temperature: 0.6,
@@ -129,19 +158,11 @@ export function useChatStreaming(): UseChatStreamingReturn {
         stream: true
       };
       
-      // Add tool configuration if needed
-      if (useTools) {
-        const enabledTools = [];
-        if (detectedUrls.length > 0) {
-          enabledTools.push('urlContext');
-          requestBody.urls = detectedUrls;
-        }
-        requestBody.options = {
-          enabledTools
-        };
-        
-        console.log('🔍 [FRONTEND] Enabled tools:', enabledTools);
-        console.log('🔍 [FRONTEND] Options configuration:', requestBody.options);
+      // Si hay URLs, agregarlas al contexto
+      if (detectedUrls.length > 0) {
+        requestBody.urls = detectedUrls;
+        setIsUsingUrlContext(true);
+        console.log('🔗 [FRONTEND] URLs incluidas en el request:', detectedUrls);
       }
       
       console.log('🔍 [FRONTEND] Complete request body:', JSON.stringify(requestBody, null, 2));
@@ -157,12 +178,12 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
       if (!response.ok) {
         // Intentar obtener información detallada del error
-        let errorInfo = null;
+        let errorInfo: ErrorInfo | null = null;
         try {
           const errorText = await response.text();
           if (errorText) {
             try {
-              errorInfo = JSON.parse(errorText);
+              errorInfo = JSON.parse(errorText) as ErrorInfo;
             } catch {
               // Si no es JSON, usar el texto como mensaje
               errorInfo = { message: errorText };
@@ -172,11 +193,17 @@ export function useChatStreaming(): UseChatStreamingReturn {
           // Si no se puede leer el cuerpo, usar información básica
         }
         
-        // Crear error con información detallada
-        const error = new Error(errorInfo?.message || `HTTP error! status: ${response.status}`);
-        (error as any).status = response.status;
-        (error as any).isOverload = errorInfo?.isOverload || response.status === 503;
-        (error as any).retryAfter = errorInfo?.retryAfter;
+        // FIXED: Crear error tipado
+        const error: ErrorWithExtras = new Error(errorInfo?.message || `HTTP error! status: ${response.status}`);
+        error.status = response.status;
+        error.isOverload = errorInfo?.isOverload || response.status === 503;
+        error.retryAfter = errorInfo?.retryAfter;
+        
+        // MEJORA: Mejor manejo de errores de timeout
+        if (response.status === 408 || response.status === 504) {
+          error.isTimeout = true;
+          error.retryAfter = 3; // Reintentar en 3 segundos
+        }
         
         throw error;
       }
@@ -199,9 +226,12 @@ export function useChatStreaming(): UseChatStreamingReturn {
             dispatch({ type: 'FINISH_STREAM' });
           },
           onError: (error: Error, _onRetry: () => void, messageId: string) => {
+            // FIXED: Type assertion correcta
+            const errorWithExtras = error as ErrorWithExtras;
+            
             // Verificar si es un error de sobrecarga
-            if ((error as any).isOverload || (error as any).status === 503 || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
-              const retryDelay = ((error as any).retryAfter ? (error as any).retryAfter : 5);
+            if (errorWithExtras.isOverload || errorWithExtras.status === 503 || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
+              const retryDelay = errorWithExtras.retryAfter ?? 5;
               showApiOverloadToast(retryDelay);
               
               // No mostrar error en el chat para errores de sobrecarga
@@ -226,12 +256,21 @@ export function useChatStreaming(): UseChatStreamingReturn {
       let isOverloadError = false;
       
       if (error instanceof Error) {
+        // FIXED: Type assertion correcta
+        const errorWithExtras = error as ErrorWithExtras;
+        
+        // MEJORA: Manejo de timeouts
+        if (errorWithExtras.isTimeout || error.message.includes('timeout')) {
+          errorMessage = 'El servicio tardó demasiado en responder. Reintentando...';
+          shouldRetry = true;
+          retryDelay = 3000;
+        }
         // Detectar errores de sobrecarga de la API
-        if ((error as any).isOverload || (error as any).status === 503 || error.message.includes('503') || error.message.includes('sobrecargado') || error.message.includes('overloaded')) {
+        else if (errorWithExtras.isOverload || errorWithExtras.status === 503) {
           errorMessage = 'The service is temporarily overloaded. Retrying automatically...';
           shouldRetry = true;
           isOverloadError = true;
-          retryDelay = ((error as any).retryAfter ? (error as any).retryAfter * 1000 : 5000); // Use server's retryAfter or default to 5 seconds
+          retryDelay = (errorWithExtras.retryAfter ?? 5) * 1000;
           
           // Show overload notification
           showApiOverloadToast(Math.ceil(retryDelay / 1000));

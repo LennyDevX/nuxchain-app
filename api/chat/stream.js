@@ -1,389 +1,344 @@
-/**
- * Gemini Semantic Streaming API for Vercel
- * Adapted from local implementation with serverless optimizations
- */
+import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
+import { getRelevantContext } from '../services/embeddings-service.js';
 
-import { GoogleGenAI } from '@google/genai';
+// ============================================================================
+// RATE LIMITING
+// ============================================================================
+const rateLimitStore = new Map();
+const RATE_LIMIT = {
+  windowMs: 60000,
+  maxRequests: 30,
+  blockDurationMs: 300000
+};
 
-// ===== TEMPORARY IMPLEMENTATIONS FOR VERCEL =====
-// These implementations replace the local services to work in Vercel's serverless environment
+const metrics = {
+  total: 0,
+  success: 0,
+  errors: 0,
+  avgResponseTime: 0
+};
 
-// Import the complete knowledge base service
-import { getRelevantContext as getKnowledgeBaseContext, searchKnowledgeBase } from '../services/knowledge-base.js';
-
-// Enhanced getRelevantContext using the complete knowledge base
-function getRelevantContext(query) {
-  console.log('🔍 [PRODUCTION] Using complete knowledge base for query:', query);
+function validateRequest(body) {
+  const errors = [];
   
-  try {
-    // Use the comprehensive knowledge base service
-    const context = getKnowledgeBaseContext(query);
-    
-    if (context && context.length > 0) {
-      console.log('✅ [PRODUCTION] Found relevant context from knowledge base, length:', context.length);
-      return context;
-    }
-    
-    // Fallback to direct search if no context found
-    const searchResults = searchKnowledgeBase(query, 3);
-    if (searchResults && searchResults.length > 0) {
-      const fallbackContext = searchResults.map(item => item.content).join('\n\n');
-      console.log('✅ [PRODUCTION] Using search results as fallback, length:', fallbackContext.length);
-      return fallbackContext;
-    }
-    
-    // Final fallback
-    console.log('⚠️ [PRODUCTION] No specific context found, using general fallback');
-    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
-    
-  } catch (error) {
-    console.error('❌ [PRODUCTION] Error in getRelevantContext:', error.message);
-    // Emergency fallback
-    return "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.";
+  if (!body || typeof body !== 'object') {
+    errors.push('Invalid request body');
+    return errors;
   }
+  
+  let messageContent = '';
+  
+  if (body.messages && Array.isArray(body.messages)) {
+    const lastMessage = body.messages[body.messages.length - 1];
+    messageContent = lastMessage?.parts?.[0]?.text || '';
+  } else if (body.message) {
+    messageContent = body.message;
+  } else if (Array.isArray(body)) {
+    messageContent = body[body.length - 1]?.content || '';
+  } else if (typeof body === 'string') {
+    messageContent = body;
+  }
+  
+  if (!messageContent || typeof messageContent !== 'string') {
+    errors.push('Message content is required');
+  }
+  
+  if (messageContent.length > 10000) {
+    errors.push('Message exceeds maximum length');
+  }
+  
+  if (/<script|javascript:|onerror=/i.test(messageContent)) {
+    errors.push('Potentially malicious content detected');
+  }
+  
+  return errors;
 }
 
-// Temporary implementation of semantic streaming service
-const semanticStreamingService = {
-  async streamSemanticContent(res, content, options = {}) {
-    console.log('🔧 [PRODUCTION] Using semantic streaming for content length:', content.length);
-    
-    const { 
-      enableSemanticChunking = true,
-      enableContextualPauses = true,
-      enableVariableSpeed = true,
-      chunkSize = 30,
-      baseDelay = 25
-    } = options;
-    
-    if (!enableSemanticChunking) {
-      // Simple streaming without semantic analysis
-      for (let i = 0; i < content.length; i += chunkSize) {
-        const chunk = content.slice(i, i + chunkSize);
-        res.write(chunk);
-        await new Promise(resolve => setTimeout(resolve, baseDelay));
-      }
-      return;
-    }
-    
-    // Semantic chunking implementation
-    const sentences = content.split(/([.!?]+\s+)/);
-    let currentChunk = '';
-    
-    for (let i = 0; i < sentences.length; i++) {
-      const sentence = sentences[i];
-      currentChunk += sentence;
-      
-      // Determine if we should send this chunk
-      const shouldSend = 
-        currentChunk.length >= chunkSize ||
-        /[.!?]+\s*$/.test(sentence) ||
-        i === sentences.length - 1;
-      
-      if (shouldSend && currentChunk.trim()) {
-        res.write(currentChunk);
-        
-        // Calculate delay based on content complexity
-        let delay = baseDelay;
-        if (enableContextualPauses) {
-          if (/[.!?]+\s*$/.test(sentence)) delay *= 2; // Pause after sentences
-          if (/[,;:]\s*$/.test(sentence)) delay *= 1.5; // Shorter pause after commas
-        }
-        
-        if (enableVariableSpeed) {
-          // Adjust speed based on content complexity
-          if (/\b(blockchain|cryptocurrency|staking|tokenization)\b/i.test(currentChunk)) {
-            delay *= 1.3; // Slower for complex terms
-          }
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
-        currentChunk = '';
-      }
-    }
-    
-    // Send any remaining content
-    if (currentChunk.trim()) {
-      res.write(currentChunk);
-    }
-  }
-};
-
-// Temporary implementation of error handling
-function withErrorHandling(handler) {
-  return async (req, res) => {
-    try {
-      return await handler(req, res);
-    } catch (error) {
-      console.error('🚨 [PRODUCTION] Error caught by error handler:', error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Internal server error', message: error.message });
-      }
-    }
-  };
-}
-
-// Temporary implementation of rate limiter
-const rateLimiter = {
-  soft: (req, res, next) => {
-    console.log('🔧 [PRODUCTION] Rate limiter - allowing request');
-    if (next) next();
-    return Promise.resolve();
-  }
-};
-
-// CORS configuration for Vercel
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-  'Access-Control-Max-Age': '86400'
-};
-
-// Security check function
-function checkSecurity(req) {
-  const publicEndpoints = ['/api/chat/stream', '/api/chat/stream-with-tools'];
-  const currentPath = req.url?.split('?')[0];
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const userLimit = rateLimitStore.get(ip);
   
-  if (publicEndpoints.includes(currentPath)) {
+  if (!userLimit) {
+    rateLimitStore.set(ip, {
+      count: 1,
+      resetTime: now + RATE_LIMIT.windowMs,
+      blocked: false
+    });
     return { allowed: true };
   }
   
-  const apiKey = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-api-key'];
-  if (!apiKey || apiKey !== process.env.SERVER_API_KEY) {
-    return { allowed: false, reason: 'Invalid API key' };
+  if (userLimit.blocked && now < userLimit.resetTime) {
+    return {
+      allowed: false,
+      retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
+    };
+  }
+  
+  if (now > userLimit.resetTime) {
+    userLimit.count = 1;
+    userLimit.resetTime = now + RATE_LIMIT.windowMs;
+    userLimit.blocked = false;
+    return { allowed: true };
+  }
+  
+  userLimit.count++;
+  
+  if (userLimit.count > RATE_LIMIT.maxRequests) {
+    userLimit.blocked = true;
+    userLimit.resetTime = now + RATE_LIMIT.blockDurationMs;
+    return {
+      allowed: false,
+      retryAfter: Math.ceil(RATE_LIMIT.blockDurationMs / 1000)
+    };
   }
   
   return { allowed: true };
 }
 
-// Simple in-memory cache for relevant context
-const contextCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-function getCachedContext(key) {
-  const item = contextCache.get(key);
-  if (!item) return null;
-  
-  if (Date.now() - item.timestamp > CACHE_TTL) {
-    contextCache.delete(key);
-    return null;
+// Cleanup
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of rateLimitStore.entries()) {
+    if (now > data.resetTime && !data.blocked) {
+      rateLimitStore.delete(ip);
+    }
   }
-  return item.value;
-}
+}, 60000);
 
-function setCachedContext(key, value) {
-  contextCache.set(key, { value, timestamp: Date.now() });
-}
-
-// Main stream handler function
-async function streamHandler(req, res) {
-  console.log('🚀 [PRODUCTION] Stream handler started');
+// ============================================================================
+// HANDLER PRINCIPAL
+// ============================================================================
+export default async function handler(req, res) {
+  const startTime = Date.now();
+  metrics.total++;
+  
+  // Headers de seguridad
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  if (req.method !== 'POST') {
+    metrics.errors++;
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
   
   try {
-    // Handle CORS preflight
-    if (req.method === 'OPTIONS') {
-      Object.entries(corsHeaders).forEach(([key, value]) => {
-        res.setHeader(key, value);
+    // ✅ FIX: Headers seguros con fallback
+    const headers = req.headers || {};
+    const clientIp = headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                     headers['x-real-ip'] || 
+                     'test-client';
+    
+    const rateLimitCheck = checkRateLimit(clientIp);
+    
+    if (!rateLimitCheck.allowed) {
+      console.warn(`⚠️ Rate limit: ${clientIp}`);
+      metrics.errors++;
+      res.setHeader('Retry-After', rateLimitCheck.retryAfter);
+      return res.status(429).json({
+        error: 'Too many requests',
+        retryAfter: rateLimitCheck.retryAfter
       });
-      return res.status(200).json({});
     }
-
-    // Apply soft rate limiting
-    await rateLimiter.soft(req, res);
-
-    // Set CORS headers
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      res.setHeader(key, value);
+    
+    console.log(`🚀 Request from ${clientIp}`);
+    
+    // Validación
+    const validationErrors = validateRequest(req.body);
+    
+    if (validationErrors.length > 0) {
+      console.error('❌ Validation:', validationErrors);
+      metrics.errors++;
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validationErrors
+      });
+    }
+    
+    // API Key - ✅ FIX: Soportar ambas variables
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
+    
+    if (!apiKey) {
+      console.error('❌ API key not configured');
+      console.error('💡 Expected GEMINI_API_KEY or GOOGLE_GEMINI_API_KEY in environment');
+      metrics.errors++;
+      return res.status(500).json({ error: 'API key not configured' });
+    }
+    
+    // Extraer mensaje
+    let messageContent = '';
+    
+    if (req.body.messages && Array.isArray(req.body.messages)) {
+      const lastMessage = req.body.messages[req.body.messages.length - 1];
+      messageContent = lastMessage?.parts?.[0]?.text || '';
+    } else if (req.body.message) {
+      messageContent = req.body.message;
+    } else if (Array.isArray(req.body)) {
+      messageContent = req.body[req.body.length - 1]?.content || '';
+    } else if (typeof req.body === 'string') {
+      messageContent = req.body;
+    }
+    
+    console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
+    
+    // Obtener contexto relevante de la base de conocimientos
+    console.log('🔍 Searching knowledge base...');
+    const relevantContext = await getRelevantContext(messageContent, { 
+      threshold: 0.25, // Optimizado con BM25
+      limit: 5 
     });
-
-    // Security check
-    const securityResult = checkSecurity(req);
-    if (!securityResult.allowed) {
-      console.log('🔒 [PRODUCTION] Security check failed:', securityResult.reason);
-      return res.status(401).json({ error: securityResult.reason });
-    }
-
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    const { message, conversationHistory = [], messages = [] } = req.body;
-
-    // Limit history to last 5 messages
-    let finalMessage;
-    let finalHistory;
-    if (messages && messages.length > 0) {
-      finalHistory = messages.slice(-5);
-      const lastMessage = messages[messages.length - 1];
-      finalMessage = lastMessage.content || lastMessage.parts?.[0]?.text || lastMessage.text;
-    } else {
-      finalMessage = message;
-      finalHistory = conversationHistory.slice(-5);
-    }
-
-    if (!finalMessage) {
-      return res.status(400).json({ error: 'Message required' });
-    }
-
-    // Check that Gemini API key is configured
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: 'Gemini API key not configured' });
-    }
-
-    console.log('🤖 [PRODUCTION] Initializing Gemini AI');
     
-    // Initialize Gemini
-    const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    // Construir system instruction con contexto
+    const systemInstruction = `Eres Nuvim AI 1.0, el asistente oficial de Nuxchain.
 
-    // Context retrieval logic
-    let relevantContext = '';
-    let searchMethod = 'skipped';
-    const cacheKey = finalMessage.trim().toLowerCase();
+FORMATO DE RESPUESTA OBLIGATORIO (PRODUCCIÓN):
+• Escribe ÚNICAMENTE en texto plano narrativo
+• PROHIBIDO usar asteriscos (*) en cualquier contexto
+• PROHIBIDO usar markdown (**, *, ##, ###, -, +, >)
+• PROHIBIDO hacer listas con viñetas, guiones o símbolos
+• Escribe TODO en párrafos narrativos fluidos y naturales
+• Separa ideas diferentes con saltos de línea dobles entre párrafos
+• Usa puntos y comas para estructurar las ideas dentro del párrafo
 
-    if (finalMessage.length < 15) {
-      searchMethod = 'short_message';
-    } else {
-      // Try cache first
-      const cached = getCachedContext(cacheKey);
-      if (cached) {
-        relevantContext = cached;
-        searchMethod = 'cache';
-      } else {
-        try {
-          const directSearchResults = getRelevantContext(finalMessage);
-          if (directSearchResults) {
-            relevantContext = directSearchResults;
-          }
-          searchMethod = 'direct_search';
-        } catch (error) {
-          console.error('Error retrieving context:', error.message);
-          searchMethod = 'error';
-        }
-        
-        // Cache the result if we have relevant context
-        if (relevantContext) {
-          setCachedContext(cacheKey, relevantContext);
-        }
+EJEMPLO CORRECTO DE RESPUESTA:
+"Nuxchain ofrece varias características importantes para la experiencia del usuario. La plataforma destaca por su alta escalabilidad, permitiendo procesar miles de transacciones por segundo sin comprometer el rendimiento. También implementa seguridad avanzada mediante protocolos criptográficos robustos que protegen cada operación.
+
+La eficiencia energética es otro punto clave, con un consumo optimizado comparado con otras blockchains tradicionales. Además, la plataforma facilita la interoperabilidad entre diferentes redes, permitiendo transferencias fluidas de activos digitales."
+
+EJEMPLO INCORRECTO (NUNCA HAGAS ESTO):
+"Nuxchain ofrece:
+* Escalabilidad
+* Seguridad avanzada  
+* Eficiencia energética"
+
+REGLAS ADICIONALES DE PRODUCCIÓN:
+• NO saludes en cada respuesta, solo si es el primer mensaje
+• Ve directo al punto principal de la pregunta
+• Usa lenguaje natural, profesional pero conversacional
+• Mantén párrafos cortos (máximo 2-3 oraciones por párrafo)
+• Si necesitas enumerar, hazlo en línea: "primero... segundo... tercero..."
+• Usa términos técnicos cuando sea apropiado, pero explícalos brevemente
+• Usa términos técnicos cuando sea apropiado, pero explícalos brevemente
+${relevantContext.context ? `
+
+CONTEXTO DE LA BASE DE CONOCIMIENTOS (SCORE: ${relevantContext.score?.toFixed(3) || 'N/A'}):
+${relevantContext.context}
+
+INSTRUCCIÓN: Usa SOLO este contexto oficial de Nuxchain para respuestas precisas. Si el contexto no cubre la pregunta, indícalo de forma breve y honesta.
+` : ''}
+
+RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto plano narrativo profesional.`;
+    
+    // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
+    const client = new GoogleGenAI({ apiKey });
+    
+    console.log('🤖 Generating...');
+    
+    // Generar stream - IMPORTANTE: generateContentStream retorna una Promise<AsyncGenerator>
+    const streamResponse = await client.models.generateContentStream({
+      model: "gemini-2.5-flash-lite",
+      contents: messageContent,
+      config: {
+        systemInstruction,
+        safetySettings: [
+          {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+          },
+        ],
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 2048,
       }
-    }
-
-    // Fallback context
-    const contextToUse = relevantContext || `Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation.`;
-
-    // Create prompt with Nuxchain context
-    const systemPrompt = `I'm an intelligent assistant for the Nuxchain platform. I'm here to help you with accurate and up-to-date information about the Nuxchain ecosystem.
-
-RELEVANT NUXCHAIN CONTEXT:
-${contextToUse}
-
-INSTRUCTIONS:
-- Always respond in English
-- Use information from the context when relevant
-- If you don't have specific information about something related to Nuxchain, clearly state it
-- Be helpful, friendly, and conversational
-- You can use emojis occasionally to make the conversation more pleasant
-- Focus on being helpful rather than introducing yourself repeatedly
-- If the user asks about topics not related to Nuxchain, you can help but keep the focus on how it might relate to the platform`;
-
-    // Prepare content with history and context
-    const contents = `${systemPrompt}\n\nUser: ${finalMessage}`;
-
-    // Configure headers for streaming
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    });
+    
+    // Timeout
+    const timeoutId = setTimeout(() => {
+      if (!res.headersSent) {
+        console.error('⏱️ Timeout');
+        metrics.errors++;
+        res.status(504).json({ error: 'Timeout' });
+      }
+    }, 30000);
+    
+    // Headers de streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.status(200);
     
-    // Extract streaming configuration
-    const { streamingConfig = {} } = req.body;
-    const semanticOptions = {
-      enableSemanticChunking: streamingConfig.enableSemanticChunking !== false,
-      enableContextualPauses: streamingConfig.enableContextualPauses !== false,
-      enableVariableSpeed: streamingConfig.enableVariableSpeed !== false,
-      clientInfo: {
-        userAgent: req.headers['user-agent'] || '',
-        language: req.headers['accept-language'] || 'en-US'
-      }
-    };
-
-    // Timeout control for Vercel
-    const requestStartTime = Date.now();
-    const MAX_EXECUTION_TIME = 15000; // 15 seconds
-
-    const timeoutDetector = setInterval(() => {
-      if (Date.now() - requestStartTime > MAX_EXECUTION_TIME && !res.writableEnded) {
-        if (!res.destroyed) {
-          res.write('\n⚠️ Execution time limit approaching.\n');
-        }
-        clearInterval(timeoutDetector);
-      }
-    }, 1000);
-
-    try {
-      // Generate content stream
-      const response = await ai.models.generateContentStream({
-        model: 'gemini-2.5-flash',
-        contents: contents
-      });
-
-      // Process and stream the response
-      let accumulatedText = '';
-      let streamStarted = false;
-
-      for await (const chunk of response) {
-        if (res.destroyed || res.writableEnded) break;
-
-        try {
-          console.log('=== CHUNK DEBUG ===');
-          console.log('Chunk type:', typeof chunk);
-          console.log('Chunk keys:', Object.keys(chunk));
-          console.log('Full chunk:', JSON.stringify(chunk, null, 2));
-          console.log('chunk.text type:', typeof chunk.text);
-          console.log('chunk.text value:', chunk.text);
-          console.log('chunk.text():', typeof chunk.text === 'function' ? chunk.text() : 'not a function');
-          console.log('==================');
-          
-          const text = chunk.text || '';
-          if (text) {
-            accumulatedText += text;
-            // Start streaming once we have sufficient content
-            if (!streamStarted && accumulatedText.length > 20) {
-              streamStarted = true;
-              await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
-              accumulatedText = '';
-            }
-          }
-        } catch (error) {
-          console.error('Error processing chunk:', error.message);
-        }
-      }
-
-      // Stream any remaining text
-      if (accumulatedText && !res.writableEnded) {
-        await semanticStreamingService.streamSemanticContent(res, accumulatedText, semanticOptions);
-      }
-
-      // Clean up
-      clearInterval(timeoutDetector);
-      if (!res.writableEnded) {
-        res.end();
-      }
-    } catch (error) {
-      clearInterval(timeoutDetector);
-      console.error('Gemini API error:', error.message || error);
-      if (!res.writableEnded) {
-        res.write(`\n❌ I apologize, but I encountered an error while processing your request. Please try again.\n`);
-        res.end();
-      }
+    let chunks = 0;
+    let totalChars = 0;
+    
+    // ✅ FIX: Ahora streamResponse es un AsyncGenerator, se puede iterar directamente
+    for await (const chunk of streamResponse) {
+      // Extraer el texto del chunk - ES UNA PROPIEDAD, NO UN MÉTODO
+      const chunkText = chunk.text;
+      if (!chunkText) continue;
+      
+      totalChars += chunkText.length;
+      chunks++;
+      
+      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
     }
+    
+    clearTimeout(timeoutId);
+    res.write('data: [DONE]\n\n');
+    res.end();
+    
+    const duration = Date.now() - startTime;
+    metrics.success++;
+    metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.success - 1) + duration) / metrics.success;
+    
+    console.log(`✅ Done: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
+    
+    if (metrics.total % 50 === 0) {
+      console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
+    }
+    
   } catch (error) {
-    console.error('Unexpected error in stream handler:', error);
-    if (!res.writableEnded) {
-      res.status(500).json({ error: 'Internal server error' });
+    metrics.errors++;
+    const duration = Date.now() - startTime;
+    
+    console.error('❌ Error:', error.message);
+    console.error('Stack:', error.stack);
+    
+    if (!res.headersSent) {
+      if (error.message?.includes('API key')) {
+        return res.status(500).json({ error: 'API configuration error' });
+      }
+      if (error.message?.includes('quota') || error.message?.includes('rate')) {
+        return res.status(429).json({ error: 'Service temporarily unavailable' });
+      }
+      
+      const errorId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.error(`🆔 Error ID: ${errorId}`);
+      
+      res.status(500).json({
+        error: 'Internal server error',
+        errorId
+      });
     }
+    
+    console.log(`❌ Failed after ${duration}ms`);
   }
 }
 
-// Apply error handling middleware and export the handler
-export default withErrorHandling(streamHandler);
+// Export config for Vercel
+export const config = {
+  maxDuration: 60
+};

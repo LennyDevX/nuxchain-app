@@ -1,23 +1,25 @@
-# Nuvos App - Web3 DApp
+# Nuxchain App - Web3 DApp
 
-Una aplicación Web3 moderna construida con las últimas versiones de React, Vite, TailwindCSS, Wagmi y Viem.
+Una plataforma Web3 avanzada para interacción con NFTs, staking, airdrops y servicios de IA integrados. La aplicación está diseñada para ofrecer una experiencia intuitiva y segura en el ecosistema blockchain.
 
 ## 🚀 Tecnologías Utilizadas
 
-- **React 18** - Biblioteca de interfaz de usuario
-- **Vite 7** - Herramienta de construcción rápida
+- **React** - Biblioteca de interfaz de usuario
+- **Vite** - Herramienta de construcción rápida
 - **TypeScript** - Tipado estático
 - **TailwindCSS** - Framework de CSS utilitario
 - **Wagmi** - Hooks de React para Ethereum
 - **Viem** - Biblioteca TypeScript para Ethereum
-- **TanStack Query** - Gestión de estado del servidor
+- **Google Gemini API** - Integración de inteligencia artificial
+- **WebSocket** - Streaming en tiempo real
+- **WalletConnect** - Conexión de wallets multiplataforma
 
 ## 🛠️ Instalación
 
 1. Clona el repositorio:
 ```bash
 git clone <tu-repositorio>
-cd nuvos-app
+cd nuxchain-app
 ```
 
 2. Instala las dependencias:
@@ -33,7 +35,7 @@ npm install
 
 Inicia el servidor de desarrollo:
 ```bash
-npm run dev
+npm run dev:full
 ```
 
 La aplicación estará disponible en `http://localhost:5173/`
@@ -48,11 +50,18 @@ npm run build
 ## 🔗 Funcionalidades
 
 - ✅ Conexión de wallet (MetaMask, WalletConnect, etc.)
-- ✅ Visualización de dirección de wallet
-- ✅ Visualización de balance ETH
+- ✅ Visualización de dirección de wallet y balance ETH
+- ✅ Navegación y gestión de NFTs
+- ✅ Marketplace de NFTs
+- ✅ Servicios de staking inteligente
+- ✅ Participación en airdrops
+- ✅ Chat con asistente AI (basado en Google Gemini)
+- ✅ Web scraping y análisis de contenido
+- ✅ Streaming semántico para respuestas más naturales
+- ✅ Servicios de embeddings y knowledge base
+- ✅ Integración con contratos inteligentes ERC-721 y ERC-20
 - ✅ Soporte para múltiples redes (Mainnet, Sepolia)
-- ✅ Interfaz moderna con TailwindCSS
-- ✅ TypeScript para mayor seguridad de tipos
+- ✅ Interfaz moderna con TailwindCSS y animaciones
 
 ## 🌐 Redes Soportadas
 
@@ -68,6 +77,16 @@ npm run build
 ## 🤝 Contribución
 
 Las contribuciones son bienvenidas. Por favor, abre un issue o envía un pull request.
+
+## 🧠 Servicios de IA Integrados
+
+La aplicación integra servicios avanzados de inteligencia artificial a través de la API de Google Gemini:
+
+- **Asistente de chat** con streaming en tiempo real
+- **Análisis de contenido** y extracción de información
+- **Servicios de embeddings** para búsquedas semánticas
+- **Contexto de URL** para análisis de páginas web
+- **Streaming semántico** con pausas contextuales
 
 ## 📄 Licencia
 

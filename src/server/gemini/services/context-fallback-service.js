@@ -181,12 +181,12 @@ class ContextFallbackService {
   }
 
   /**
-   * Clasifica el tipo de error
+   * Classifies the error type
    */
   classifyError(error) {
     const message = error.message.toLowerCase();
     
-    if (message.includes('timeout') || message.includes('tiempo')) {
+    if (message.includes('timeout') || message.includes('time')) {
       return 'timeout';
     }
     if (message.includes('memory') || message.includes('memoria')) {
@@ -272,13 +272,13 @@ class ContextFallbackService {
   }
 
   /**
-   * Fallback Nivel 3: Contexto Mínimo
+   * Level 3 Fallback: Minimal Context
    */
   async executeLevel3Fallback(messages, options) {
     try {
-      console.log('⚡ Fallback Nivel 3: Contexto mínimo');
+      console.log('⚡ Level 3 Fallback: Minimal context');
       
-      // Usar solo el último mensaje del usuario
+      // Use only the last user message
       const lastUserMessage = messages
         .slice()
         .reverse()
@@ -291,7 +291,7 @@ class ContextFallbackService {
       const minimalMessages = [
         {
           role: 'system',
-          parts: [{ text: 'Contexto limitado - respondiendo solo al último mensaje.' }]
+          parts: [{ text: 'Limited context - responding to last message only.' }]
         },
         lastUserMessage
       ];
@@ -383,7 +383,7 @@ class ContextFallbackService {
   }
 
   /**
-   * Optimización básica de mensajes
+   * Basic message optimization
    */
   async basicOptimization(messages) {
     if (messages.length <= UNIFIED_CONTEXT_CONFIG.limits.MAX_MESSAGES) {
@@ -402,18 +402,18 @@ class ContextFallbackService {
   }
 
   /**
-   * Crea un resumen de emergencia
+   * Creates an emergency summary
    */
   async createEmergencySummary(messages) {
     try {
-      // Extraer puntos clave de la conversación
+      // Extract key points from conversation
       const userMessages = messages.filter(msg => msg.role === 'user');
       const topics = [];
       
       userMessages.forEach(msg => {
         const text = msg.parts?.[0]?.text || msg.content || '';
         if (text.length > 20) {
-          // Extraer palabras clave simples
+          // Extract simple keywords
           const keywords = text
             .toLowerCase()
             .split(/\s+/)
@@ -426,11 +426,11 @@ class ContextFallbackService {
       const uniqueTopics = [...new Set(topics)].slice(0, 5);
       
       return uniqueTopics.length > 0 
-        ? `Temas principales: ${uniqueTopics.join(', ')}`
-        : 'Conversación general';
+        ? `Main topics: ${uniqueTopics.join(', ')}`
+        : 'General conversation';
         
     } catch (error) {
-      return 'Resumen no disponible';
+      return 'Summary unavailable';
     }
   }
 

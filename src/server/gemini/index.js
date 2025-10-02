@@ -15,6 +15,9 @@ import environmentConfig from '../../security/environment-config.js';
 const app = express();
 const port = env.port;
 
+// Logear entorno para diagnóstico local
+console.log('ENV DEBUG -> nodeEnv:', env.nodeEnv, 'isVercel:', env.isVercel, 'isEnvironmentValid:', env.isEnvironmentValid);
+
 // CORS Configuration basada en el entorno
 const corsOptions = getCorsConfig(env.nodeEnv);
 
@@ -40,8 +43,9 @@ if (env.isVercel) {
   // En Vercel, las rutas ya están reescritas, no necesitamos el prefijo /server
   app.use('/', routes);
 } else {
-  // En desarrollo local, usar el prefijo /server
+  // En desarrollo local, exponer ambas rutas para compatibilidad con distintas configuraciones del frontend
   app.use('/server', routes);
+  app.use('/', routes); // <-- permite que el frontend que llame a /api/... o a /server/... funcione sin cambios
 }
 
 // Middleware de manejo de errores (debe estar al final)

@@ -14,11 +14,16 @@ test/
 src/server/
 serverless/
 
-# Ignorar funciones individuales - solo usar la función unificada
-api/chat.js
-api/embeddings.js
-api/gemini-v2.js
-api/gemini/
-api/health.js
-api/scraper.js
-api/server/
+# IMPORTANTE: NO ignorar api/services/ ni api/chat/
+# Estos directorios contienen código necesario para las funciones serverless
+
+# Ignorar endpoint de tools ya eliminado
+api/chat/stream-with-tools.js
+
+# Ignorar tests
+test-*.js
+*.test.js
+*.spec.js
+
+# Ignorar archivos duplicados ya eliminados
+api/chat/knowledge-base.js

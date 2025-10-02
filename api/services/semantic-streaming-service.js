@@ -1,4 +1,4 @@
-/**
+/*
  * Advanced Semantic Streaming Service
  * Implements semantic chunking, contextual pauses, and variable speed
  */
@@ -43,7 +43,7 @@ class SemanticStreamingService {
       complexity: 'simple'
     };
 
-    // Determine overall complexity
+    // Determine general complexity
     const complexityScore = 
       (analysis.codeBlocks * 3) +
       (analysis.formulas * 2) +
@@ -60,7 +60,7 @@ class SemanticStreamingService {
   }
 
   /**
-   * Divides text into semantic chunks
+   * Splits text into semantic chunks
    */
   createSemanticChunks(text) {
     const chunks = [];
@@ -112,7 +112,7 @@ class SemanticStreamingService {
       }
     });
 
-    // Add final chunk
+    // Add last chunk
     if (currentChunk.trim()) {
       chunks.push({
         content: currentChunk.trim(),
@@ -204,11 +204,9 @@ class SemanticStreamingService {
       // Create semantic chunks
       const chunks = this.createSemanticChunks(text);
       
-      // Send start indicator
-      res.write('\n[STREAMING_START]\n');
       await this.delay(50);
 
-      // Process each chunk
+      // Process each chunk directly without visible metadata
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const nextChunk = chunks[i + 1];
@@ -217,17 +215,6 @@ class SemanticStreamingService {
         if (res.destroyed || res.writableEnded) {
           break;
         }
-
-        // Send chunk metadata
-        const chunkMetadata = {
-          type: chunk.type,
-          position: i + 1,
-          total: chunks.length,
-          complexity: analysis.complexity
-        };
-        
-        res.write(`\n[CHUNK_META:${JSON.stringify(chunkMetadata)}]\n`);
-        await this.delay(10);
 
         // Stream chunk content with variable speed
         await this.streamChunkContent(res, chunk, enableVariableSpeed);
@@ -239,21 +226,20 @@ class SemanticStreamingService {
         }
       }
 
-      // Finalization indicator
-      res.write('\n[STREAMING_END]\n');
+      // Finalize stream without visible tags
       res.end();
 
     } catch (error) {
       console.error('Error in semantic streaming:', error);
       if (!res.destroyed) {
-        res.write(`\n[ERROR:${error.message}]\n`);
+        res.write('\nAn error occurred while processing the response. Please try again.\n');
         res.end();
       }
     }
   }
 
   /**
-   * Streams chunk content with variable speed
+   * Stream chunk content with variable speed
    */
   async streamChunkContent(res, chunk, enableVariableSpeed) {
     const content = chunk.content;
@@ -271,7 +257,7 @@ class SemanticStreamingService {
       const char = content[i];
       res.write(char);
       
-      // Special pauses at punctuation
+      // Special pauses on punctuation
       if (/[.!?]/.test(char)) {
         await this.delay(timing.sentenceDelay * 0.3);
       } else if (/[,;:]/.test(char)) {
@@ -286,43 +272,75 @@ class SemanticStreamingService {
    * Traditional streaming as fallback
    */
   async streamTraditional(res, text, options) {
-    const chunkSize = options.chunkSize || 15;
-    const delayMs = options.delayMs || 20;
+    // Optimizations for improved performance
+    const chunkSize = options.chunkSize || 50; // Increased to send more data at once
+    const delayMs = options.fastMode ? 5 : (options.delayMs || 10); // Reduced delay or ultra-fast mode
 
-    for (let i = 0; i < text.length; i += chunkSize) {
-      if (res.destroyed || res.writableEnded) break;
-      
-      const chunk = text.slice(i, i + chunkSize);
-      res.write(chunk);
-      await this.delay(delayMs);
+    try {
+      // Send larger portions to improve speed
+      for (let i = 0; i < text.length; i += chunkSize) {
+        if (res.destroyed || res.writableEnded) break;
+        
+        const chunk = text.slice(i, i + chunkSize);
+        res.write(chunk);
+        
+        // Only add delay if not ultra-fast mode
+        if (!options.fastMode && i + chunkSize < text.length) {
+          await this.delay(delayMs);
+        }
+      }
+    } catch (error) {
+      console.error('Error in traditional streaming:', error);
+      // Try to send remaining text without delays
+      if (text.length > i && !res.writableEnded) {
+        res.write(text.slice(i));
+      }
+    } finally {
+      // Ensure stream closes correctly
+      if (!res.writableEnded) {
+        res.end();
+      }
     }
-    
-    res.end();
   }
 
   /**
-   * Utility for delays
+   * Helper for delays
    */
-  delay(ms) {
+  async delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
-   * Get service statistics
+   * ASEGURAR: Método para calcular delay óptimo
    */
-  getStats() {
-    return {
-      service: 'SemanticStreamingService',
-      version: '1.0.0',
-      features: {
-        semanticChunking: true,
-        contextualPauses: true,
-        variableSpeed: true,
-        contentAnalysis: true
-      },
-      supportedTypes: Object.keys(this.timings)
-    };
+  calculateOptimalDelay(chunk) {
+    // Sin delay para chunks pequeños
+    if (chunk.length < 10) return 0;
+    
+    // Delay más largo para fin de párrafo
+    if (chunk.endsWith('\n\n')) return 50;
+    
+    // Delay corto para fin de oración
+    if (chunk.match(/[.!?]\s*$/)) return 30;
+    
+    // Delay mínimo para el resto
+    return 10;
+  }
+  
+  /**
+   * ASEGURAR: Flush final del buffer
+   */
+  flush() {
+    const remaining = this.buffer;
+    this.buffer = '';
+    this.isInCodeBlock = false;
+    this.codeBlockBuffer = '';
+    
+    return remaining ? [remaining] : [];
   }
 }
 
+// Create and export an instance of the service
 export default new SemanticStreamingService();
+
+export { SemanticStreamingService };

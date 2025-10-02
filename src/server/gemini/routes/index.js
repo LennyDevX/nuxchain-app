@@ -5,10 +5,10 @@ import errorHandler from '../middlewares/error-handler.js'; // Add import
 
 const router = express.Router();
 
-// Ruta de prueba general para verificar que el servidor está funcionando
+// General test route to verify that the server is working
 router.get('/hello', (_, res) => {
   res.json({
-    message: 'Hola desde el servidor de Nuxchain-App!',
+    message: 'Hello from the Nuxchain-App server!',
     timestamp: new Date().toISOString()
   });
 });

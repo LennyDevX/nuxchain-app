@@ -73,44 +73,52 @@ export class StreamingService {
           const decoder = new TextDecoder('utf-8', { stream: true });
           const decodedChunk = decoder.decode(chunk, { stream: true });
           
-          const newAccumulated = accumulated + decodedChunk;
-          const lines = newAccumulated.split('\\n');
-          const remainingChunk = lines.pop() || '';
+          // ✅ TEXTO PLANO: El backend envía texto directo, sin formato SSE
+          // No necesitamos parsear JSON ni buscar "data:", solo usamos el texto
+          const fullResponse = decodedChunk;
           
-          let fullResponse = '';
-          for (const line of lines) {
-            if (line.trim()) {
-              fullResponse += line + '\\n';
-            }
-          }
-          
-          // Optimized update detection with better performance heuristics
+          // Optimized update detection
           const hasNaturalBreak = decodedChunk.includes('.') || 
-                                 decodedChunk.includes('\n') || 
+                                 decodedChunk.includes('\\n') || 
                                  decodedChunk.includes('!') || 
                                  decodedChunk.includes('?');
           
           const shouldUpdate = !isLowPerformance || 
                               hasNaturalBreak ||
-                              (fullResponse.length > 0 && fullResponse.length % 75 === 0) ||
-                              chunkIndex % 3 === 0; // Update every 3rd chunk for smoother flow
+                              (chunkIndex % 3 === 0);
           
           self.postMessage({
             type: 'CHUNK_PROCESSED',
             id,
             data: {
               fullResponse,
-              remainingChunk,
-              shouldUpdate,
-              chunkSize: decodedChunk.length,
-              chunkIndex
+              remainingChunk: '', // No hay acumulación necesaria
+              shouldUpdate
             }
           });
         } catch (error) {
           self.postMessage({
-            type: 'PROCESSING_ERROR',
+            type: 'ERROR',
             id,
-            error: { message: error.message, name: error.name }
+            error: error.message
+          });
+        }
+      }
+
+      function decodeTextChunk(data, id) {
+        try {
+          const decoder = new TextDecoder('utf-8');
+          const text = decoder.decode(data.chunk);
+          self.postMessage({
+            type: 'TEXT_DECODED',
+            id,
+            data: { text }
+          });
+        } catch (error) {
+          self.postMessage({
+            type: 'ERROR',
+            id,
+            error: error.message
           });
         }
       }
@@ -350,17 +358,10 @@ export class StreamingService {
   async processChunkMainThread(value, accumulatedChunk, isLowPerformance) {
     const decoder = new TextDecoder('utf-8', { stream: true });
     const chunk = decoder.decode(value, { stream: true });
-    accumulatedChunk += chunk;
     
-    const lines = accumulatedChunk.split('\n');
-    accumulatedChunk = lines.pop() || '';
-    
-    let processedContent = '';
-    for (const line of lines) {
-      if (line.trim()) {
-        processedContent += line + '\n';
-      }
-    }
+    // ✅ TEXTO PLANO: El backend envía texto directo, sin formato SSE
+    // No necesitamos parsear JSON ni buscar "data:", solo agregamos el texto
+    const processedContent = chunk;
     
     // Optimized update detection for main thread processing
     const hasNaturalBreak = chunk.includes('.') || 
@@ -377,7 +378,7 @@ export class StreamingService {
     
     return {
       processedContent,
-      remainingChunk: accumulatedChunk,
+      remainingChunk: '', // No hay acumulación necesaria con texto plano
       shouldUpdate
     };
   }

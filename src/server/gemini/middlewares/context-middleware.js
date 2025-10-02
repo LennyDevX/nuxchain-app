@@ -40,7 +40,7 @@ export async function contextMiddleware(req, res, next) {
         userId,
         {
           model: req.body.model || 'gemini-2.5-flash-lite',
-          temperature: req.body.temperature || 0.7,
+          temperature: req.body.temperature || 0.8,
           maxTokens: req.body.maxTokens || 1000,
           stream: req.body.stream || false
         }

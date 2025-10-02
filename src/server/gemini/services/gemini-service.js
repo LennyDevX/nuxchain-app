@@ -26,28 +26,60 @@ async function withTimeoutAndRetry(fn, { timeoutMs = 15000, maxRetries = 3, back
         new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout esperando respuesta de Gemini')), timeoutMs))
       ]);
     } catch (err) {
+      // Log inicial
       logError('Error en withTimeoutAndRetry', err, { attempt, maxRetries });
-      if (attempt >= maxRetries) throw err;
-      
-      // Reintentar en casos específicos
-      const shouldRetry = err.message && (
-        err.message.includes('Timeout') || 
-        err.message.includes('network') ||
-        err.message.includes('overloaded') ||
-        err.message.includes('UNAVAILABLE') ||
-        err.status === 503 ||
-        err.status === 429 ||
-        err.status === 500
-      );
-      
-      if (shouldRetry) {
-        const delay = backoffMs * Math.pow(2, attempt) + Math.random() * 1000; // Jitter
-        console.log(`Reintentando en ${delay}ms (intento ${attempt + 1}/${maxRetries + 1})`);
-        await new Promise(r => setTimeout(r, delay));
-        attempt++;
-      } else {
+
+      const msg = String(err?.message || '').toLowerCase();
+
+      // Detectar error de red específico del SDK (@google/genai)
+      const isFetchFailed = msg.includes('fetch failed') || msg.includes('failed to fetch');
+
+      // Si es fetch failed y estamos en último intento, lanzar error enriquecido
+      if (isFetchFailed && attempt >= maxRetries) {
+        const enhanced = new Error('NETWORK_ERROR: Failed to reach Gemini API. Check network, proxy, firewall, or GEMINI_API_KEY.');
+        enhanced.code = 'NETWORK_ERROR';
+        enhanced.original = err;
+        console.error('🔴 [Gemini Service] Network error detected (final attempt):', {
+          message: err.message,
+          shortStack: (err.stack || '').split('\n')[0],
+          geminiApiKeyPresent: Boolean(process.env.GEMINI_API_KEY),
+          nodeEnv: process.env.NODE_ENV
+        });
+        throw enhanced;
+      }
+
+      // Decidir si debe reintentar
+      const shouldRetry = msg.includes('timeout') ||
+                          msg.includes('network') ||
+                          msg.includes('overloaded') ||
+                          msg.includes('unavailable') ||
+                          isFetchFailed ||
+                          err?.status === 503 ||
+                          err?.status === 429 ||
+                          err?.status === 500;
+
+      if (!shouldRetry || attempt >= maxRetries) {
+        // Si es fetch failed pero no hay más intentos, enviar enhanced error
+        if (isFetchFailed) {
+          const enhanced = new Error('NETWORK_ERROR: Failed to reach Gemini API. Check network, proxy, firewall, or GEMINI_API_KEY.');
+          enhanced.code = 'NETWORK_ERROR';
+          enhanced.original = err;
+          console.error('🔴 [Gemini Service] Network error detected (no retry):', {
+            message: err.message,
+            shortStack: (err.stack || '').split('\n')[0],
+            geminiApiKeyPresent: Boolean(process.env.GEMINI_API_KEY),
+            nodeEnv: process.env.NODE_ENV
+          });
+          throw enhanced;
+        }
         throw err;
       }
+
+      // Esperar antes de reintentar (backoff + jitter)
+      const delay = backoffMs * Math.pow(2, attempt) + Math.floor(Math.random() * 1000);
+      console.log(`Reintentando en ${delay}ms (intento ${attempt + 1}/${maxRetries + 1})`);
+      await new Promise(r => setTimeout(r, delay));
+      attempt++;
     }
   }
 }
@@ -243,7 +275,7 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
       model: safeModelName,
       contents: contents,
       generationConfig: {
-        temperature: params.temperature || 0.9,
+        temperature: params.temperature || 0.8,
         maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024),
         topP: params.topP || 1,
         topK: params.topK || 1,
@@ -494,7 +526,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
   );
   
   const generationConfig = {
-    temperature: params.temperature || 0.7,
+    temperature: params.temperature || 0.8,
     topK: params.topK || 40,
     topP: params.topP || 0.95,
     maxOutputTokens: maxTokens,
@@ -721,7 +753,7 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   );
   
   const generationConfig = {
-    temperature: params.temperature || 0.7,
+    temperature: params.temperature || 0.8,
     topK: params.topK || 40,
     topP: params.topP || 0.95,
     maxOutputTokens: maxTokens,

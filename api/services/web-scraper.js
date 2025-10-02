@@ -1,20 +1,21 @@
-/**
- * Servicio de Web Scraping optimizado para Vercel
- * Extrae contenido de páginas web de manera eficiente
- */
+// Web Scraping Service optimized for Vercel
+// Efficiently extracts content from web pages
 
 class WebScraperService {
   constructor() {
-    // Configuración optimizada para Vercel
-    this.timeout = 10000; // 10 segundos para mayor velocidad
-    this.maxRetries = 2;
-    this.userAgent = 'Mozilla/5.0 (compatible; NuxchainBot/1.0)';
+    // Configuration optimized for Vercel
+    // OPTIMIZACIÓN: Timeout reducido para Vercel
+    // En producción (Vercel): 8 segundos máximo
+    // En desarrollo: 15 segundos
+    this.timeout = process.env.VERCEL ? 8000 : 15000; // 15 seconds for better reliability
+    this.maxRetries = process.env.VERCEL ? 1 : 2; // Menos reintentos en prod
+    this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NuxchainBot/1.0';
   }
 
   /**
-   * Detecta URLs en un texto
-   * @param {string} text - Texto a analizar
-   * @returns {Array} - Array de URLs encontradas
+   * Detects URLs in text
+   * @param {string} text - Text to analyze
+   * @returns {Array} - Array of found URLs
    */
   detectUrls(text) {
     const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
@@ -22,9 +23,9 @@ class WebScraperService {
   }
 
   /**
-   * Valida si una URL es válida
-   * @param {string} url - URL a validar
-   * @returns {boolean} - True si es válida
+   * Validates if a URL is valid
+   * @param {string} url - URL to validate
+   * @returns {boolean} - True if valid
    */
   isValidUrl(url) {
     try {
@@ -36,27 +37,42 @@ class WebScraperService {
   }
 
   /**
-   * Extrae contenido de una URL
-   * @param {string} url - URL a procesar
-   * @param {Object} options - Opciones adicionales
-   * @returns {Promise<Object>} - Contenido extraído
+   * Extracts domain from URL
+   * @param {string} url - URL to process
+   * @returns {string} - Extracted domain
+   */
+  extractDomain(url) {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  /**
+   * Extracts content from a URL
+   * @param {string} url - URL to process
+   * @param {Object} options - Additional options
+   * @returns {Promise<Object>} - Extracted content
    */
   async extractContent(url, options = {}) {
     try {
       if (!this.isValidUrl(url)) {
-        throw new Error('URL inválida');
+        throw new Error('Invalid URL');
       }
 
-      // Configurar timeout y headers
+      // Configure timeout and headers
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
+      console.log(`[WebScraper] Fetching URL: ${url} (timeout: ${this.timeout}ms)`);
+      
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'User-Agent': this.userAgent,
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
           'Accept-Encoding': 'gzip, deflate',
           'Cache-Control': 'no-cache'
         },
@@ -69,13 +85,21 @@ class WebScraperService {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('text/html')) {
+        throw new Error(`Content is not HTML: ${contentType}`);
+      }
+
       const html = await response.text();
+      console.log(`[WebScraper] HTML obtained: ${html.length} characters`);
+      
       const extractedData = this.parseHtml(html, url);
 
-      // Limitar contenido extraído a los primeros 3000 caracteres
+      // Limit extracted content to first 3000 characters
       let limitedContent = extractedData.content || '';
-      if (limitedContent.length > 3000) {
-        limitedContent = limitedContent.substring(0, 3000) + '...';
+      const maxLength = options.maxContentLength || 3000;
+      if (limitedContent.length > maxLength) {
+        limitedContent = limitedContent.substring(0, maxLength) + '...';
       }
 
       return {
@@ -92,8 +116,8 @@ class WebScraperService {
       };
 
     } catch (error) {
-      // Solo log de error crítico
-      console.error(`❌ [WebScraper] Error extrayendo contenido de ${url}:`, error.message);
+      // Critical error logging only
+      console.error(`❌ [WebScraper] Error extracting content from ${url}:`, error.message);
       return {
         success: false,
         url: url,
@@ -108,27 +132,27 @@ class WebScraperService {
   }
 
   /**
-   * Parsea HTML y extrae contenido relevante
-   * @param {string} html - HTML a parsear
-   * @param {string} url - URL original
-   * @returns {Object} - Datos extraídos
+   * Parses HTML and extracts relevant content
+   * @param {string} html - HTML to parse
+   * @param {string} url - Original URL
+   * @returns {Object} - Extracted data
    */
   parseHtml(html, url) {
-    // Extraer título
+    // Extract title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     let title = titleMatch ? titleMatch[1].trim() : '';
     
-    // Limpiar título
+    // Clean title
     title = title.replace(/\s+/g, ' ').trim();
 
-    // Extraer meta description
+    // Extract meta description
     const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
     const description = descMatch ? descMatch[1].trim() : '';
 
-    // Extraer contenido del body
+    // Extract content from body
     let content = '';
     
-    // Remover scripts, styles y otros elementos no deseados
+    // Remove scripts, styles and other unwanted elements
     let cleanHtml = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -137,7 +161,7 @@ class WebScraperService {
       .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
       .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, '');
 
-    // Extraer texto de elementos principales
+    // Extract text from main content elements
     const contentSelectors = [
       /<main[^>]*>([\s\S]*?)<\/main>/gi,
       /<article[^>]*>([\s\S]*?)<\/article>/gi,
@@ -153,7 +177,7 @@ class WebScraperService {
       }
     }
 
-    // Si no se encontró contenido específico, extraer del body completo
+    // If no specific content found, extract from full body
     if (!content.trim()) {
       const bodyMatch = cleanHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
       if (bodyMatch) {
@@ -161,17 +185,17 @@ class WebScraperService {
       }
     }
 
-    // Limpiar y formatear contenido
+    // Clean and format content
     content = this.cleanText(content);
     
-    // Combinar descripción si está disponible
+    // Combine description if available
     if (description && !content.includes(description)) {
       content = description + '\n\n' + content;
     }
 
     return {
-      title: title || 'Sin título',
-      content: content || 'Contenido no disponible',
+      title: title || 'No title',
+      content: content || 'Content not available',
       metadata: {
         description: description,
         hasContent: !!content.trim(),
@@ -181,47 +205,35 @@ class WebScraperService {
   }
 
   /**
-   * Extrae texto plano de HTML
-   * @param {string} html - HTML a procesar
-   * @returns {string} - Texto extraído
+   * Extracts plain text from HTML
+   * @param {string} html - HTML to process
+   * @returns {string} - Extracted text
    */
   extractTextFromHtml(html) {
     return html
-      .replace(/<[^>]+>/g, ' ') // Remover tags HTML
-      .replace(/&nbsp;/g, ' ') // Reemplazar entidades
+      .replace(/<[^>]+>/g, ' ') // Remove HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace entities
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
-      .replace(/\s+/g, ' ') // Normalizar espacios
+      .replace(/\s+/g, ' ') // Normalize spaces
       .trim();
   }
 
   /**
-   * Limpia y formatea texto
-   * @param {string} text - Texto a limpiar
-   * @returns {string} - Texto limpio
+   * Cleans text for better readability
+   * @param {string} text - Text to clean
+   * @returns {string} - Cleaned text
    */
   cleanText(text) {
     return text
-      .replace(/\s+/g, ' ') // Normalizar espacios
-      .replace(/\n\s*\n/g, '\n') // Remover líneas vacías múltiples
+      .replace(/[\n\r]+/g, '\n') // Normalize newlines
+      .replace(/\n\s+\n/g, '\n\n') // Remove empty lines with spaces
+      .replace(/\s{2,}/g, ' ') // Replace multiple spaces with single space
       .trim();
   }
-
-  /**
-   * Extrae dominio de una URL
-   * @param {string} url - URL
-   * @returns {string} - Dominio
-   */
-  extractDomain(url) {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return 'unknown';
-    }
-  }
-}
+};
 
 export default WebScraperService;

@@ -50,6 +50,11 @@ const knowledgeBase = [
     commands: ['Nuxchain claim rewards']
   },
   {
+    content: "El APY base en Nuxchain es de 0.01% por hora, lo que equivale a aproximadamente 87.6% APY anual sin lockup. Este es el rendimiento fundamental que un usuario puede esperar al depositar sus tokens POL en el contrato SmartStaking. El APY base se calcula de forma horaria y se acumula automáticamente, permitiendo a los usuarios ver sus recompensas crecer en tiempo real. Es importante notar que este es el rendimiento mínimo, y puede incrementarse significativamente al elegir períodos de lockup más largos.",
+    metadata: { type: "staking", category: "rewards", topic: "apy-base" },
+    commands: ['Nuxchain APY base', 'Nuxchain rendimiento base', 'Nuxchain tasa base', 'APY sin lockup']
+  },
+  {
     content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 ETH.",
     metadata: { type: "staking", category: "rewards", topic: "apy-tiers" },
     commands: ['Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates']

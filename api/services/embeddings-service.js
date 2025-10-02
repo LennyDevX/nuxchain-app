@@ -18,7 +18,9 @@ const SYNONYMS = {
   'marketplace': ['mercado', 'tienda', 'market', 'comercio'],
   'nft': ['nfts', 'token', 'coleccionable', 'coleccionables'],
   'staking': ['stake', 'apostar', 'depositar', 'bloquear'],
-  'recompensa': ['recompensas', 'reward', 'rewards', 'premio', 'premios'],
+  'recompensa': ['recompensas', 'reward', 'rewards', 'premio', 'premios', 'roi', 'apy', 'tasa', 'tasa de rendimiento'],
+  'apy': ['roi', 'rendimiento', 'tasa', 'porcentaje', 'recompensa', 'reward', 'rate', 'annual percentage yield'],
+  'base': ['basica', 'fundamental', 'inicial', 'estandar', 'basic', 'standard'],
   'pool': ['pools', 'fondo', 'fondos'],
   'contrato': ['smart contract', 'contract', 'contratos'],
   'wallet': ['billetera', 'monedero', 'cartera'],
@@ -28,7 +30,8 @@ const SYNONYMS = {
   'features': ['caracteristicas', 'funciones', 'capabilities', 'functions'],
   'marketplace': ['market', 'tienda', 'store', 'commerce'],
   'staking': ['stake', 'lock', 'deposit'],
-  'reward': ['recompensa', 'premio', 'incentive'],
+  'reward': ['recompensa', 'premio', 'incentive', 'roi', 'apy', 'rate'],
+  'apy': ['roi', 'rate', 'yield', 'percentage', 'recompensa', 'tasa'],
   'contract': ['contrato', 'smart contract'],
   'wallet': ['billetera', 'monedero']
 };
@@ -39,6 +42,11 @@ const KEYWORD_BOOST = {
   'staking': 2.0,
   'marketplace': 2.0,
   'nft': 2.0,
+  'apy': 2.2,
+  'roi': 2.2,
+  'tasa': 2.0,
+  'rendimiento': 2.0,
+  'recompensa': 1.8,
   'caracteristicas': 1.8,
   'features': 1.8,
   'funcionalidad': 1.8,
@@ -46,8 +54,7 @@ const KEYWORD_BOOST = {
   'polygon': 1.8,
   'contract': 1.5,
   'contrato': 1.5,
-  'reward': 1.5,
-  'recompensa': 1.5
+  'reward': 1.5
 };
 
 // Normalizar texto
@@ -365,7 +372,11 @@ export async function getRelevantContext(query, options = {}) {
     
     if (results.length === 0) {
       console.log('ℹ️ No relevant context found');
-      return '';
+      return {
+        context: '',
+        score: 0,
+        documentsFound: 0
+      };
     }
     
     // Construir contexto estructurado
@@ -377,14 +388,26 @@ export async function getRelevantContext(query, options = {}) {
     });
     
     const context = contextParts.join('\n\n---\n\n');
+    const avgScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
     
     console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
-    console.log(`📊 Average score: ${(results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(3)}`);
+    console.log(`📊 Average score: ${avgScore.toFixed(3)}`);
+    console.log(`🔍 Top result: "${results[0].content.substring(0, 100)}..."`);
     
-    return context;
+    return {
+      context,
+      score: avgScore,
+      documentsFound: results.length,
+      topScore: results[0].score
+    };
   } catch (error) {
     console.error('❌ Error getting relevant context:', error);
-    return '';
+    return {
+      context: '',
+      score: 0,
+      documentsFound: 0,
+      error: error.message
+    };
   }
 }
 

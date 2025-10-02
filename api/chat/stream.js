@@ -191,11 +191,34 @@ export default async function handler(req, res) {
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
     // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching knowledge base...');
-    const relevantContext = await getRelevantContext(messageContent, { 
+    console.log('🔍 Searching KB...');
+    const rawContext = await getRelevantContext(messageContent, { 
       threshold: 0.25, // Optimizado con BM25
       limit: 5 
     });
+    
+    // ✅ Normalizar: aceptar string u objeto { context, score }
+    let relevantContext = { context: '', score: 0 };
+    if (typeof rawContext === 'string') {
+      relevantContext.context = rawContext;
+    } else if (rawContext && typeof rawContext === 'object') {
+      relevantContext.context = rawContext.context || rawContext.text || '';
+      relevantContext.score = Number(rawContext.score) || 0;
+    }
+    
+    // ✅ Truncar contexto para evitar límites de tokens (max ~3000 chars)
+    const MAX_CONTEXT_LENGTH = 3000;
+    if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
+      relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
+      console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+    }
+    
+    // Log conciso para producción
+    if (relevantContext.context) {
+      console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+    } else {
+      console.log('⚠️ No KB context found');
+    }
     
     // Construir system instruction con contexto
     const systemInstruction = `Eres Nuvim AI 1.0, el asistente oficial de Nuxchain.
@@ -220,6 +243,14 @@ EJEMPLO INCORRECTO (NUNCA HAGAS ESTO):
 * Seguridad avanzada  
 * Eficiencia energética"
 
+REGLAS DE CONTENIDO OBLIGATORIAS:
+• USA EXCLUSIVAMENTE la información del contexto proporcionado abajo
+• Si el contexto contiene la respuesta, úsala de forma directa y precisa
+• NO inventes información que no está en el contexto
+• NO agregues detalles o datos que no aparecen en el contexto
+• Si el contexto no cubre la pregunta completamente, indícalo brevemente
+• Menciona datos específicos del contexto (números, porcentajes, nombres)
+
 REGLAS ADICIONALES DE PRODUCCIÓN:
 • NO saludes en cada respuesta, solo si es el primer mensaje
 • Ve directo al punto principal de la pregunta
@@ -227,16 +258,15 @@ REGLAS ADICIONALES DE PRODUCCIÓN:
 • Mantén párrafos cortos (máximo 2-3 oraciones por párrafo)
 • Si necesitas enumerar, hazlo en línea: "primero... segundo... tercero..."
 • Usa términos técnicos cuando sea apropiado, pero explícalos brevemente
-• Usa términos técnicos cuando sea apropiado, pero explícalos brevemente
 ${relevantContext.context ? `
 
 CONTEXTO DE LA BASE DE CONOCIMIENTOS (SCORE: ${relevantContext.score?.toFixed(3) || 'N/A'}):
 ${relevantContext.context}
 
-INSTRUCCIÓN: Usa SOLO este contexto oficial de Nuxchain para respuestas precisas. Si el contexto no cubre la pregunta, indícalo de forma breve y honesta.
+INSTRUCCIÓN CRÍTICA: Usa ÚNICAMENTE este contexto oficial de Nuxchain para respuestas precisas. No agregues información externa. Si el contexto no cubre la pregunta, sé honesto y di "No tengo información específica sobre eso en mi base de conocimientos actual".
 ` : ''}
 
-RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto plano narrativo profesional.`;
+RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto plano narrativo profesional basado en el contexto proporcionado.`;
     
     // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
     const client = new GoogleGenAI({ apiKey });
@@ -275,8 +305,9 @@ RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto p
       }
     }, 30000);
     
-    // Headers de streaming
-    res.setHeader('Content-Type', 'text/event-stream');
+    // Headers de streaming - TEXTO PLANO (sin SSE)
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.status(200);
@@ -284,7 +315,7 @@ RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto p
     let chunks = 0;
     let totalChars = 0;
     
-    // ✅ FIX: Ahora streamResponse es un AsyncGenerator, se puede iterar directamente
+    // ✅ STREAMING DIRECTO: Sin formato SSE, solo texto plano
     for await (const chunk of streamResponse) {
       // Extraer el texto del chunk - ES UNA PROPIEDAD, NO UN MÉTODO
       const chunkText = chunk.text;
@@ -293,11 +324,11 @@ RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto p
       totalChars += chunkText.length;
       chunks++;
       
-      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+      // Enviar texto plano directamente (sin JSON, sin "data:")
+      res.write(chunkText);
     }
     
     clearTimeout(timeoutId);
-    res.write('data: [DONE]\n\n');
     res.end();
     
     const duration = Date.now() - startTime;
@@ -315,7 +346,10 @@ RECORDATORIO FINAL: CERO asteriscos (*), CERO markdown (**, ##, -), SOLO texto p
     const duration = Date.now() - startTime;
     
     console.error('❌ Error:', error.message);
-    console.error('Stack:', error.stack);
+    // Solo mostrar stack en desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Stack:', error.stack);
+    }
     
     if (!res.headersSent) {
       if (error.message?.includes('API key')) {

@@ -11,10 +11,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server:install": "cd src/server && npm install"
+    "server:install": "cd src/server && npm install",
+    "subgraph:codegen": "cd subgraph && graph codegen",
+    "subgraph:build": "cd subgraph && graph build",
+    "subgraph:deploy": "cd subgraph && graph deploy nuxchain --node https://api.studio.thegraph.com/deploy/ --deploy-key 8ab5d9d6502496080fd20067e78dc73e --version-label v0.0.2",
+    "subgraph:auth": "graph auth"
   },
   "dependencies": {
+    "@apollo/client": "^3.11.0",
     "@google/genai": "^1.20.0",
+    "@graphprotocol/graph-ts": "^0.31.0",
     "@mozilla/readability": "^0.6.0",
     "@pinata/sdk": "^2.1.0",
     "@tanstack/react-query": "^5.85.9",
@@ -30,6 +36,7 @@
     "express-slow-down": "^3.0.0",
     "express-validator": "^7.2.1",
     "google-auth-library": "^10.3.0",
+    "graphql": "^16.9.0",
     "helmet": "^8.1.0",
     "jsdom": "^25.0.1",
     "react": "^19.1.1",
@@ -45,6 +52,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@graphprotocol/graph-cli": "^0.97.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",

@@ -7,6 +7,7 @@ import Airdrops from '../pages/Airdrops';
 import Chat from '../pages/Chat';
 import Tokenization from '../pages/Tokenization';
 import Labs from '../pages/Labs';
+import Profile from '../pages/Profile';
 
 function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ function AppRoutes() {
       <Route path="/create-my-nfts" element={<Tokenization />} />
       <Route path="/tokenization" element={<Tokenization />} />
       <Route path="/labs" element={<Labs />} />
+      <Route path="/profile/*" element={<Profile />} />
     </Routes>
   );
 }

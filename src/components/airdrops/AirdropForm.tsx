@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useConnect } from 'wagmi';
 import { injected } from 'wagmi/connectors';
-import { useAirdrops } from '../../hooks/airdrops/index.tsx';
+import { useAirdrops } from '../../hooks/airdrops/useAirdrops';
 import type { Address } from 'viem';
 
 // Manual validation functions

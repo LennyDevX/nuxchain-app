@@ -1,0 +1,188 @@
+"""
+User entity - represents a wallet address
+"""
+type User @entity(immutable: false) {
+  id: Bytes! # wallet address
+  deposits: [Deposit!]! @derivedFrom(field: "user")
+  withdrawals: [Withdrawal!]! @derivedFrom(field: "user")
+  compounds: [Compound!]! @derivedFrom(field: "user")
+  nftsMinted: [NFTMint!]! @derivedFrom(field: "creator")
+  nftsListed: [NFTList!]! @derivedFrom(field: "seller")
+  nftsSold: [NFTSale!]! @derivedFrom(field: "seller")
+  nftsPurchased: [NFTPurchase!]! @derivedFrom(field: "buyer")
+  offersMade: [OfferCreated!]! @derivedFrom(field: "buyer")
+  offersReceived: [OfferAccepted!]! @derivedFrom(field: "seller")
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  totalCompounded: BigInt!
+  nftCount: Int!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
+Staking Deposit event
+"""
+type Deposit @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  amount: BigInt!
+  lockupDuration: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Staking Withdrawal event
+"""
+type Withdrawal @entity(immutable: true) {
+  id: ID!
+  user: User!
+  amount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Staking Compound event
+"""
+type Compound @entity(immutable: true) {
+  id: ID!
+  user: User!
+  amount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+NFT Mint event
+"""
+type NFTMint @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  creator: User!
+  tokenURI: String!
+  category: String!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+NFT List event
+"""
+type NFTList @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  seller: User!
+  price: BigInt!
+  category: String!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+NFT Sale event (when token is sold)
+"""
+type NFTSale @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  seller: User!
+  buyer: User!
+  price: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+NFT Purchase event (same as sale, but from buyer perspective)
+"""
+type NFTPurchase @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  seller: User!
+  buyer: User!
+  price: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+NFT Unlist event
+"""
+type NFTUnlist @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Offer Created event
+"""
+type OfferCreated @entity(immutable: true) {
+  id: ID!
+  offerId: BigInt!
+  tokenId: BigInt!
+  buyer: User!
+  amount: BigInt!
+  expiresAt: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Offer Accepted event
+"""
+type OfferAccepted @entity(immutable: true) {
+  id: ID!
+  offerId: BigInt!
+  tokenId: BigInt!
+  seller: User!
+  buyer: User!
+  amount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Activity aggregate - combines all types of activities
+"""
+type Activity @entity(immutable: true) {
+  id: ID!
+  type: ActivityType!
+  user: Bytes!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+  # Polymorphic fields
+  amount: BigInt
+  tokenId: BigInt
+  lockupDuration: BigInt
+  category: String
+  buyer: Bytes
+  seller: Bytes
+  offerId: BigInt
+}
+
+enum ActivityType {
+  STAKING_DEPOSIT
+  STAKING_WITHDRAW
+  STAKING_COMPOUND
+  NFT_MINT
+  NFT_LIST
+  NFT_SALE
+  NFT_PURCHASE
+  NFT_UNLIST
+  OFFER_MADE
+  OFFER_ACCEPTED
+}

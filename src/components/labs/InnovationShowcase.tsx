@@ -44,7 +44,7 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
         </div>
         
         <div className="relative z-10 pt-4 border-t border-slate-700">
-          <button className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'bg-slate-800 hover:bg-slate-700'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}>
+          <button className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'btn-secondary'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}>
             {highlight ? 'Explore Demo' : 'More Information'}
             <ExternalLinkIcon className="ml-2 w-4 h-4" />
           </button>

@@ -1,5 +1,5 @@
 import { useAccount, useConnect, useDisconnect, useBalance, useSwitchChain } from 'wagmi'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { polygon } from 'wagmi/chains'
 import { useIsMobile } from '../../hooks/mobile'
 
@@ -10,6 +10,20 @@ function WalletConnect() {
   const { switchChain } = useSwitchChain()
   const [showDropdown, setShowDropdown] = useState(false)
   const isMobile = useIsMobile()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  // Cerrar el menú al hacer click fuera
+  useEffect(() => {
+    if (!showDropdown) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
   
   const isPolygonNetwork = chain?.id === polygon.id
   
@@ -31,53 +45,52 @@ function WalletConnect() {
           <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
           <span>{formatAddress(address)}</span>
         </button>
-        
         {showDropdown && (
           <>
             {/* Backdrop para móvil */}
             {isMobile && (
               <div 
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
                 onClick={() => setShowDropdown(false)}
               />
             )}
-            
-            <div className={`absolute z-50 overflow-hidden ${
-              isMobile 
-                ? 'fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl max-h-[80vh]'
-                : 'right-0 mt-2 w-80 bg-gray-200 rounded-xl shadow-xl border border-gray-100'
-            }`}>
-              <div className={`border-b border-gray-100 bg-gradient-to-r from-green-50 to-green-100 ${
+            <div
+              ref={dropdownRef}
+              className={`absolute z-50 overflow-hidden ${
+                isMobile
+                  ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl max-h-[80vh]'
+                  : 'right-0 mt-2 w-80 bg-black rounded-xl shadow-xl border border-gray-800'
+              }`}
+            >
+              <div className={`border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800 ${
                 isMobile ? 'p-6' : 'p-4'
               }`}>
                 {isMobile && (
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold text-black">Wallet Details</h3>
+                    <h3 className="text-lg font-bold text-white">Wallet Details</h3>
                     <button
                       onClick={() => setShowDropdown(false)}
-                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-300 transition-colors"
+                      className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
                     >
                       ✕
                     </button>
                   </div>
                 )}
-                
                 <div className="space-y-3">
                   <div>
-                    <p className={`font-semibold text-black ${
+                    <p className={`font-semibold text-white ${
                       isMobile ? 'text-base' : 'text-sm'
                     }`}>Wallet Address</p>
-                    <p className={`text-black break-all font-mono ${
+                    <p className={`text-white break-all font-mono ${
                       isMobile ? 'text-sm' : 'text-xs'
                     }`}>{address}</p>
                   </div>
-                  
-                  <div className="pt-2 border-t border-gray-200">
-                    <p className={`font-semibold text-black ${
+                  <div className="pt-2 border-t border-gray-700">
+                    <p className={`font-semibold text-white ${
                       isMobile ? 'text-base' : 'text-sm'
                     }`}>Network</p>
                     <div className="flex items-center justify-between mt-1">
-                      <p className={`text-black ${
+                      <p className={`text-white ${
                         isMobile ? 'text-sm' : 'text-sm'
                       }`}>{chain?.name || 'Unknown'}</p>
                       {!isPolygonNetwork && (
@@ -99,12 +112,11 @@ function WalletConnect() {
                       </div>
                     )}
                   </div>
-                  
-                  <div className="pt-2 border-t border-gray-200">
-                    <p className={`font-semibold text-black ${
+                  <div className="pt-2 border-t border-gray-700">
+                    <p className={`font-semibold text-white ${
                       isMobile ? 'text-base' : 'text-sm'
                     }`}>Balance</p>
-                    <p className={`font-bold text-purple-600 ${
+                    <p className={`font-bold text-purple-400 ${
                       isMobile ? 'text-xl' : 'text-lg'
                     }`}>
                       {balance ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}` : `0.0000 ${chain?.nativeCurrency?.symbol || 'ETH'}`}
@@ -112,13 +124,12 @@ function WalletConnect() {
                   </div>
                 </div>
               </div>
-              
               <button
                 onClick={() => {
                   disconnect()
                   setShowDropdown(false)
                 }}
-                className={`w-full text-left text-red-700 hover:bg-red-50 transition-all duration-200 font-medium ${
+                className={`w-full text-left text-red-400 hover:bg-red-900/30 transition-all duration-200 font-medium ${
                   isMobile ? 'px-6 py-4 text-base' : 'px-4 py-3 text-sm'
                 }`}
               >
@@ -139,43 +150,43 @@ function WalletConnect() {
       >
         Connect Wallet
       </button>
-      
       {showDropdown && (
         <>
           {/* Backdrop para móvil */}
           {isMobile && (
-            <div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            <div
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
               onClick={() => setShowDropdown(false)}
             />
           )}
-          
-          <div className={`absolute z-50 overflow-hidden ${
-            isMobile 
-              ? 'fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl'
-              : 'right-0 mt-2 w-56 bg-black/80 backdrop-blur-md rounded-lg shadow-lg border border-white/20'
-          }`}>
+          <div
+            ref={dropdownRef}
+            className={`absolute z-50 overflow-hidden ${
+              isMobile
+                ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl'
+                : 'right-0 mt-2 w-56 bg-black rounded-lg shadow-lg border border-gray-800'
+            }`}
+          >
             <div className={`border-b ${
-              isMobile 
-                ? 'p-6 border-gray-200 bg-gray-50'
-                : 'p-3 border-white/20'
+              isMobile
+                ? 'p-6 border-gray-800 bg-gray-900'
+                : 'p-3 border-gray-800 bg-gray-900'
             }`}>
               {isMobile && (
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-black">Connect Wallet</h3>
+                  <h3 className="text-lg font-bold text-white">Connect Wallet</h3>
                   <button
                     onClick={() => setShowDropdown(false)}
-                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-300 transition-colors"
+                    className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
                   >
                     ✕
                   </button>
                 </div>
               )}
               <p className={`font-medium ${
-                isMobile ? 'text-base text-gray-700' : 'text-sm text-white'
+                isMobile ? 'text-base text-white' : 'text-sm text-white'
               }`}>Select Wallet</p>
             </div>
-            
             <div className={isMobile ? 'p-4 space-y-3' : 'p-2'}>
               {connectors.map((connector) => (
                 <button
@@ -186,9 +197,9 @@ function WalletConnect() {
                   }}
                   disabled={isPending}
                   className={`w-full text-left rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isMobile 
-                      ? 'px-4 py-4 text-base text-gray-800 bg-gray-100 hover:bg-gray-200 border border-gray-200'
-                      : 'px-3 py-2 text-sm text-white/80 hover:bg-white/10'
+                    isMobile
+                      ? 'px-4 py-4 text-base text-white bg-gray-800 hover:bg-gray-700 border border-gray-700'
+                      : 'px-3 py-2 text-sm text-white/80 hover:bg-gray-700'
                   }`}
                 >
                   <div className={`flex items-center ${

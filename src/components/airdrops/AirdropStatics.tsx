@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useAirdrops } from '../../hooks/airdrops/index.tsx';
+import { useAirdrops } from '../../hooks/airdrops/useAirdrops';
 import { useIsMobile } from '../../hooks/mobile';
 
 interface StatCardProps {

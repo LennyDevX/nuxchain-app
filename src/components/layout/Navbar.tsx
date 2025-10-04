@@ -57,9 +57,16 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Wallet Connect */}
-          <div className="flex items-center">
-            <WalletConnect />
+          {/* Wallet Connect + Profile */}
+          <div className="flex items-center space-x-3">
+            <Link to="/profile" className="p-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center group" aria-label="Profile">
+              <svg className="w-7 h-7 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </Link>
+            <div className="flex items-center">
+              <WalletConnect />
+            </div>
           </div>
 
         </div>

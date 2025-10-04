@@ -64,7 +64,9 @@ async function embeddingsHealthHandler(req, res) {
       embeddingsService = await initializeKnowledgeBaseForVercel();
       healthCheck.checks.serviceInit = {
         status: 'ok',
-        message: 'Servicio inicializado correctamente',
+        message: `Servicio inicializado ${embeddingsService.hasApiKey ? 'con gemini-embedding-001' : 'en modo fallback (BM25)'}`,
+        model: 'gemini-embedding-001',
+        embeddingsEnabled: embeddingsService.hasApiKey,
         fallbackMode: embeddingsService.fallbackMode || false,
         fallbackReason: embeddingsService.fallbackReason || null,
         fallbackTimestamp: embeddingsService.fallbackTimestamp || null

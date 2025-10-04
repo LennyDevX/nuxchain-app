@@ -47,7 +47,7 @@ export const UNIFIED_CONTEXT_CONFIG = {
   models: {
     CONTEXT_MODEL: 'gemini-2.5-flash-lite',
     SUMMARY_MODEL: 'gemini-2.5-flash-lite',
-  EMBEDDING_MODEL: 'text-embedding-004',
+  EMBEDDING_MODEL: 'gemini-embedding-001',
   FALLBACK_MODEL: 'gemini-2.5-flash-lite',
     MAX_RETRIES: 3,
     TIMEOUT: 30000,

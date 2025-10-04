@@ -5,6 +5,11 @@ import { formatEther } from 'viem';
 import { formatPolValue } from '../../utils/formats/format';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 
+interface NFTAttribute {
+  trait_type: string;
+  value: string | number;
+}
+
 interface NFTData {
   tokenId: string;
   uniqueId: string;
@@ -13,7 +18,7 @@ interface NFTData {
   name: string;
   description: string;
   image: string;
-  attributes: any[];
+  attributes: NFTAttribute[];
   owner: string;
   creator: string;
   price: bigint;
@@ -43,6 +48,7 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
   const formattedPriceUSD = pricePOL > 0 && priceUSD ? `${priceUSD}` : null;
   return (
     <div className={`card-interactive overflow-hidden group ${isMobile ? 'text-sm' : ''}`}>
+      {/* NFT Image with improved spacing */}
       <div className="aspect-square bg-gradient-to-br from-purple-500/20 to-blue-500/20 relative overflow-hidden">
         {imageLoading ? (
           <div className="w-full h-full flex items-center justify-center">
@@ -67,75 +73,67 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
             loading="lazy"
           />
         )}
-        <div className={`absolute top-2 right-2 ${isMobile ? 'top-1 right-1' : 'top-3 right-3'}`}>
-          <span className={`bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full ${isMobile ? 'text-xs' : 'text-xs'}`}>
+        {/* Token ID Badge */}
+        <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-3 right-3'}`}>
+          <span className={`bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full font-bold border border-white/20 ${isMobile ? 'text-xs' : 'text-xs'}`}>
             #{nft.tokenId}
           </span>
         </div>
+        {/* For Sale Badge */}
         {nft.isForSale && (
-          <div className={`absolute top-2 left-2 ${isMobile ? 'top-1 left-1' : 'top-3 left-3'}`}>
-            <span className={`bg-gradient-to-r from-green-500 to-emerald-500 backdrop-blur-sm text-white px-2 py-1 rounded-full font-semibold shadow-lg border border-green-400/30 ${
-              isMobile ? 'text-xs' : 'text-xs px-3 py-1.5'
+          <div className={`absolute ${isMobile ? 'top-2 left-2' : 'top-3 left-3'}`}>
+            <span className={`bg-gradient-to-r from-green-500 to-emerald-500 backdrop-blur-sm text-white px-3 py-1.5 rounded-full font-semibold shadow-lg border border-green-400/30 ${
+              isMobile ? 'text-xs' : 'text-xs'
             } animate-pulse`}>
               🏷️ {isMobile ? 'SALE' : 'LISTED'}
             </span>
           </div>
         )}
       </div>
-      <div className={`space-y-2 ${isMobile ? 'p-3' : 'p-4 space-y-3'}`}>
+      
+      {/* Card Content with improved spacing */}
+      <div className={`${isMobile ? 'p-3 space-y-2' : 'p-5 space-y-4'}`}>
+        {/* Title and Description */}
         <div>
-          <h3 className={`font-semibold text-white mb-1 truncate ${isMobile ? 'text-sm' : 'text-lg'}`}>
+          <h3 className={`font-bold text-white mb-1 truncate group-hover:text-purple-400 transition-colors ${isMobile ? 'text-base' : 'text-xl'}`}>
             {nft.name || `NFT #${nft.tokenId}`}
           </h3>
           {!isMobile && (
-            <p className="text-sm text-white/60 line-clamp-2">
+            <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
               {nft.description || 'No description available'}
             </p>
           )}
         </div>
         
-        <div className={`space-y-1 ${isMobile ? '' : 'space-y-2'}`}>
-          {nft.isForSale && nft.price && (
-            <div className={`text-center ${isMobile ? 'mb-2' : 'text-right'}`}>
-              <p className={`text-white/60 ${isMobile ? 'text-xs mb-1' : 'text-xs mb-1'}`}>Price</p>
-              <div className={`space-y-1 ${isMobile ? '' : 'space-y-1'}`}>
-                <p className={`font-bold text-purple-400 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-                  {formattedPricePOL}
-                </p>
-                {formattedPriceUSD && (
-                  <p className={`font-medium text-green-400 ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                    {formattedPriceUSD}
-                  </p>
-                )}
-              </div>
+        {/* Price Section - Improved design */}
+        {nft.isForSale && nft.price && (
+          <div className={`bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg ${isMobile ? 'p-2' : 'p-4'}`}>
+            <p className={`text-gray-400 mb-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Current Price</p>
+            <div className="flex items-baseline gap-2">
+              <span className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                {formattedPricePOL}
+              </span>
             </div>
-          )}
-          {!isMobile && (
-            <>
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-white/60">
-                  <span className="bg-white/10 px-2 py-1 rounded-md">ID: {nft.tokenId}</span>
-                </div>
-              </div>
-              <div className="text-xs text-white/50">
-                <p>Owner: {nft.owner?.slice(0, 6)}...{nft.owner?.slice(-4)}</p>
-              </div>
-            </>
-          )}
-        </div>
+            {formattedPriceUSD && (
+              <p className={`font-medium text-green-400 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                ≈ {formattedPriceUSD}
+              </p>
+            )}
+          </div>
+        )}
         
-        {/* Attributes - Hidden on mobile for space */}
+        {/* Attributes - Better spacing */}
         {!isMobile && nft.attributes && nft.attributes.length > 0 && (
-          <div>
-            <p className="text-xs text-white/60 mb-2">Attributes:</p>
-            <div className="flex flex-wrap gap-1">
-              {nft.attributes.slice(0, 3).map((attr: any, index: number) => (
-                <span key={index} className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 text-white/90 text-xs px-2 py-1 rounded-md">
-                  <span className="text-white/60">{attr.trait_type}:</span> <span className="font-medium">{attr.value}</span>
+          <div className="space-y-2">
+            <p className="text-xs text-gray-400 font-semibold">Attributes</p>
+            <div className="flex flex-wrap gap-2">
+              {nft.attributes.slice(0, 3).map((attr: NFTAttribute, index: number) => (
+                <span key={index} className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 text-white/90 text-xs px-3 py-1.5 rounded-lg">
+                  <span className="text-gray-400">{attr.trait_type}:</span> <span className="font-semibold ml-1">{attr.value}</span>
                 </span>
               ))}
               {nft.attributes.length > 3 && (
-                <span className="bg-white/10 text-white/60 text-xs px-2 py-1 rounded-md">
+                <span className="bg-white/10 text-gray-400 text-xs px-3 py-1.5 rounded-lg font-medium">
                   +{nft.attributes.length - 3} more
                 </span>
               )}
@@ -143,10 +141,21 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
           </div>
         )}
         
-        <div className={`space-y-1 ${isMobile ? '' : 'space-y-2'}`}>
+        {/* Owner Info - Better design */}
+        {!isMobile && (
+          <div className="flex items-center justify-between py-2 border-t border-white/5">
+            <span className="text-xs text-gray-500">Owner</span>
+            <span className="text-xs text-white font-mono bg-white/5 px-2 py-1 rounded">
+              {nft.owner?.slice(0, 6)}...{nft.owner?.slice(-4)}
+            </span>
+          </div>
+        )}
+        
+        {/* Action Buttons - Improved spacing */}
+        <div className={`${isMobile ? 'space-y-1 pt-1' : 'space-y-2 pt-2'}`}>
           {nft.isForSale ? (
             <div className={`w-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 text-green-300 rounded-lg font-medium text-center relative overflow-hidden ${
-              isMobile ? 'py-2 px-2 text-xs' : 'py-2.5 px-4 text-sm'
+              isMobile ? 'py-2 px-2 text-xs' : 'py-3 px-4 text-sm'
             }`}>
               <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 animate-pulse"></div>
               <span className="relative z-10">{isMobile ? '🏪 LISTED' : '🏪 ACTIVE LISTING'}</span>
@@ -154,13 +163,13 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
           ) : (
             <button 
               onClick={handleListNFT}
-              className={`w-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/50 text-blue-300 hover:from-blue-500/40 hover:to-cyan-500/40 hover:border-blue-300 hover:text-blue-200 rounded-lg font-medium text-center transition-all duration-300 ${
+              className={`w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium text-center transition-all duration-300 ${
                 isMobile 
                   ? 'py-2 px-2 text-xs' 
-                  : 'py-2.5 px-4 text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25 transform'
+                  : 'py-3 px-4 text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 transform'
               }`}
             >
-              {isMobile ? '🚀 Sell' : '🚀 Sell NFT'}
+              {isMobile ? '🚀 Sell' : '🚀 List for Sale'}
             </button>
           )}
           {!isMobile && (

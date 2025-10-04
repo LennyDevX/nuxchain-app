@@ -5,7 +5,7 @@ import { polygon } from 'wagmi/chains'
 import SmartStakingABI from '../../abi/SmartStaking.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
-import StakingPeriodCarousel from '../ui/StakingPeriodCarousel'
+import StakingPeriodCarousel from './StakingPeriodCarousel'
 
 interface StakingFormProps {
   stakingContractAddress: string

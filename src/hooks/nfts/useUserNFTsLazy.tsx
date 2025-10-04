@@ -47,6 +47,15 @@ const DEFAULT_IMAGE = "/LogoNuvos.webp";
 const BATCH_SIZE = 10; // Load 10 NFTs per batch
 const INITIAL_LOAD_SIZE = 20; // Load first 20 NFTs immediately
 
+// Add a narrow contract-read interface for the methods we call
+type ContractRead = {
+	readonly read: {
+		tokenURI: (args: [bigint]) => Promise<string>;
+		ownerOf: (args: [bigint]) => Promise<string>;
+		getListedToken: (args: [bigint]) => Promise<[bigint, string, string, bigint, boolean, bigint, string]>;
+	};
+};
+
 export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyReturn {
   const { address: connectedAddress } = useAccount();
   const publicClient = usePublicClient();
@@ -107,7 +116,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
           likes: nft.likes || '0',
           category: nft.category || 'Art'
         })));
-        setAllTokenIds(cachedData.map((nft: any) => nft.tokenId));
+        setAllTokenIds(cachedData.map(nft => nft.tokenId));
         loadedCountRef.current = initialBatch.length;
         setHasMore(cachedData.length > INITIAL_LOAD_SIZE);
         setCacheStatus('cached data');
@@ -116,7 +125,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
         
         // Preload images for visible NFTs
         const imageUrls = initialBatch
-          .map((nft: any) => nft.image)
+          .map((nft: typeof cachedData[0]) => nft.image)
           .filter(Boolean);
         imageCache.preloadBatch(imageUrls, 3);
         
@@ -128,7 +137,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
         address: MARKETPLACE_ADDRESS as `0x${string}`,
         abi: MarketplaceABI.abi as Abi,
         client: publicClient,
-      });
+      }) as unknown as ContractRead; // cast to our narrow read-only shape
 
       // Get all token IDs for this user by iterating until we find no more tokens
       const allUserTokenIds: string[] = [];
@@ -143,7 +152,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
             allUserTokenIds.push(tokenId.toString());
           }
           consecutiveNotFound = 0; // Reset counter if token exists
-        } catch (err) {
+        } catch {
           // Token might not exist or be burned
           consecutiveNotFound++;
         }
@@ -185,7 +194,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
         .filter(Boolean);
       imageCache.preloadBatch(imageUrls, 3);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading initial NFTs:", err);
       setError("Error loading NFTs");
     } finally {
@@ -230,7 +239,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
         
         // Preload images for new batch
         const imageUrls = nextBatch
-          .map((nft: any) => nft.image)
+          .map((nft: typeof cachedData[0]) => nft.image)
           .filter(Boolean);
         imageCache.preloadBatch(imageUrls, 3);
         
@@ -249,7 +258,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
   }, [hasMore, loadingMore, allTokenIds, address]);
 
   // Helper function to load a batch of NFTs
-  const loadNFTBatch = async (contract: any, tokenIds: string[]): Promise<NFTData[]> => {
+  const loadNFTBatch = async (contract: ContractRead, tokenIds: string[]): Promise<NFTData[]> => {
     const results: NFTData[] = [];
     
     for (const tokenId of tokenIds) {
@@ -320,6 +329,7 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
   const refreshNFTs = useCallback(() => {
     const now = Date.now();
     if (now - lastFetchTimeRef.current > 1000) {
+      console.log("Cache cleared, forcing NFT refresh");
       nftCollectionCache.delete(`user_${address}_${MARKETPLACE_ADDRESS}`);
       setCacheStatus(null);
       setNfts([]);
@@ -328,9 +338,10 @@ export default function useUserNFTsLazy(userAddress?: string): UseUserNFTsLazyRe
       fetchingRef.current = false;
       loadedCountRef.current = 0;
       lastFetchTimeRef.current = now;
-      console.log("Cache cleared, forcing NFT refresh");
+      // Actually reload the data
+      loadInitialNFTs();
     }
-  }, [address]);
+  }, [address, loadInitialNFTs]);
 
   // Load initial NFTs on mount
   useEffect(() => {

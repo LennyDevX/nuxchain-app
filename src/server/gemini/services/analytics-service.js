@@ -509,7 +509,7 @@ class AnalyticsService {
     // Costos aproximados por token (en USD) - Solo modelos Gemini 2.5+
     const costs = {
       'gemini-2.5-flash-lite': 0.0000005, // Optimized cost for lite version
-      'text-embedding-004': 0.0000001
+      'gemini-embedding-001': 0.0000001
     };
     
     return costs[model] || 0.0000005; // Default cost for gemini-2.5-flash-lite

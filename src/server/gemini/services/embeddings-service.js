@@ -8,10 +8,11 @@ import env from '../config/environment.js';
 class EmbeddingsService {
   constructor() {
     this.indexes = new Map(); // nombreIndex -> { vectors: Float32Array[], meta: any[] }
-    this.defaultModel = 'text-embedding-004';
+    // CORRECTED: Use the official Gemini embedding model
+    this.defaultModel = 'gemini-embedding-001';
   }
 
-  async embedTexts(texts = [], model = 'text-embedding-004') {
+  async embedTexts(texts = [], model = 'gemini-embedding-001') {
     if (!process.env.GEMINI_API_KEY) throw new Error('API key no configurada');
     if (!Array.isArray(texts) || texts.length === 0) return [];
 
@@ -21,6 +22,7 @@ class EmbeddingsService {
       const embeddings = [];
       for (const text of texts) {
         const response = await ai.models.embedContent({
+          // UPDATED: Use text-embedding-004 instead of gemini-embedding-001
           model: model,
           contents: text
         });

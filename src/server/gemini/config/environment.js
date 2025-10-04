@@ -54,6 +54,9 @@ export default {
   nodeEnv: process.env.NODE_ENV || 'development',
   isEnvironmentValid: isValid,
   
+  // Embedding model configuration
+  embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
+  
   // Google Service Account Configuration
   googleServiceAccount: {
     projectId: process.env.GOOGLE_SERVICE_ACCOUNT_PROJECT_ID,
@@ -68,5 +71,4 @@ export default {
     universeDomain: process.env.GOOGLE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN
   },
   
-
 };

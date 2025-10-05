@@ -2,18 +2,24 @@ import React from 'react';
 import { useAccount } from 'wagmi';
 import { useUserRewards } from '../../hooks/rewards/useUserRewards';
 import LoadingSpinner from '../../ui/LoadingSpinner';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileRewards: React.FC = () => {
   const { isConnected } = useAccount();
   const { totalSales, totalEarned, pendingWithdrawal, withdrawn, isLoading } = useUserRewards();
+  const isMobile = useIsMobile();
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+        <h1 className={`font-bold text-gradient ${
+          isMobile ? 'text-2xl' : 'text-3xl'
+        }`}>
           Rewards for Sale
         </h1>
-        <p className="text-sm text-gray-400 mt-2">Ganancias recibidas por ventas de NFTs en el marketplace</p>
+        <p className={`text-gray-400 mt-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          Ganancias recibidas por ventas de NFTs en el marketplace
+        </p>
       </header>
 
       {isConnected ? (
@@ -25,25 +31,33 @@ const ProfileRewards: React.FC = () => {
               <p className="text-gray-400 mt-4">Loading rewards data...</p>
             </div>
           ) : (
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Total Sales</h3>
-                <p className="text-2xl font-bold text-white">{totalSales}</p>
+            <section className={`grid gap-4 ${
+              isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+            }`}>
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Sales</h3>
+                <p className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}>{totalSales}</p>
               </div>
 
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Total Earned</h3>
-                <p className="text-2xl font-bold text-green-400">{parseFloat(totalEarned).toFixed(4)} POL</p>
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Earned</h3>
+                <p className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                  {parseFloat(totalEarned).toFixed(isMobile ? 2 : 4)} POL
+                </p>
               </div>
 
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Pending</h3>
-                <p className="text-2xl font-bold text-yellow-400">{parseFloat(pendingWithdrawal).toFixed(4)} POL</p>
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Pending</h3>
+                <p className={`font-bold text-yellow-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                  {parseFloat(pendingWithdrawal).toFixed(isMobile ? 2 : 4)} POL
+                </p>
               </div>
 
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Withdrawn</h3>
-                <p className="text-2xl font-bold text-purple-400">{parseFloat(withdrawn).toFixed(4)} POL</p>
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Withdrawn</h3>
+                <p className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                  {parseFloat(withdrawn).toFixed(isMobile ? 2 : 4)} POL
+                </p>
               </div>
             </section>
           )}

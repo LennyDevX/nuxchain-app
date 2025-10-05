@@ -191,9 +191,9 @@ export default async function handler(req, res) {
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
     // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching KB...');
+    console.log('🔍 Searching KB with gemini-embedding-001...');
     const rawContext = await getRelevantContext(messageContent, { 
-      threshold: 0.25, // Optimizado con BM25
+      threshold: 0.3, // Threshold optimizado para embeddings (más bajo que BM25)
       limit: 5 
     });
     

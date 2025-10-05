@@ -1,12 +1,22 @@
-/**
- * Simple Test script to diagnose 500 Internal Server Error
- * in /api/chat/stream endpoint
- * ES Module compatible version
- */
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-// Set environment variables if not present
-process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'test-key';
-process.env.API_KEY = process.env.API_KEY || 'test-key';
+// ✅ Cargar .env desde la raíz del proyecto ANTES de usar variables
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const envPath = resolve(__dirname, '..', '.env');
+
+console.log('[TEST] Loading .env from:', envPath);
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.error('[TEST] Error loading .env:', result.error.message);
+  console.error('[TEST] ⚠️ Tests will run without real API key');
+} else {
+  console.log('[TEST] ✅ .env loaded successfully');
+  console.log('[TEST] 🔑 GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Available' : 'Missing');
+}
 
 // Mock Vercel request object - Vercel automatically parses JSON body
   const createMockRequest = (body = {}, method = 'POST', headers = {}) => ({
@@ -102,6 +112,14 @@ const createMockResponse = () => {
 async function runTest() {
   console.log('\n[TEST] Starting stream endpoint diagnosis...\n');
   
+  // Verificar API key
+  const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
+  console.log(`[TEST] API Key status: ${hasApiKey ? '✅ Available' : '⚠️ Missing'}`);
+  
+  if (!hasApiKey) {
+    console.warn('[TEST] ⚠️ Running without real API key - expect fallback to BM25');
+  }
+  
   try {
     // Apply module shims
     shimModules();
@@ -141,9 +159,18 @@ async function runTest() {
     console.log('[TEST] Executing stream handler...');
     await streamHandler(testRequest, testResponse);
     
-    console.log('\n[TEST] Test completed successfully!');
+    console.log('\n[TEST] Test completed!');
     console.log('[TEST] Status code:', testResponse.statusCode);
-    console.log('[TEST] Headers:', testResponse.headers);
+    
+    // Evaluar resultado
+    if (testResponse.statusCode === 200) {
+      console.log('[TEST] ✅ Stream succeeded');
+    } else if (testResponse.statusCode === 500 && !hasApiKey) {
+      console.log('[TEST] ⚠️ Stream failed due to missing API key (expected in test mode)');
+      console.log('[TEST] 💡 Set GEMINI_API_KEY in .env for full testing');
+    } else {
+      console.log('[TEST] ❌ Stream failed with unexpected error');
+    }
     
   } catch (error) {
     console.error('\n[TEST] Test failed with error:');

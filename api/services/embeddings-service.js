@@ -1,6 +1,8 @@
+import { GoogleGenAI } from '@google/genai';
+
 /**
- * Servicio de Embeddings para Vercel
- * Usa embeddings simulados + TF-IDF avanzado para igualar scores de producción
+ * Servicio de Embeddings para Vercel con Gemini API
+ * Usa gemini-embedding-001 para búsqueda semántica de alta calidad
  */
 
 // Stopwords en ES/EN
@@ -261,7 +263,138 @@ function applySemanticBoost(doc, query, baseScore) {
   return Math.min(1.0, baseScore + boostScore);
 }
 
-// Búsqueda de documentos similares
+// ✅ NUEVO: Cache de embeddings para optimizar requests
+const embeddingsCache = new Map();
+const CACHE_TTL = 3600000; // 1 hora
+
+// ✅ NUEVO: Rate limiting para embeddings API
+let embeddingCallCount = 0;
+let lastResetTime = Date.now();
+const EMBEDDING_RATE_LIMIT = {
+  maxCallsPerMinute: 50, // Conservador para free tier
+  resetIntervalMs: 60000
+};
+
+function checkEmbeddingRateLimit() {
+  const now = Date.now();
+  
+  // Reset counter cada minuto
+  if (now - lastResetTime > EMBEDDING_RATE_LIMIT.resetIntervalMs) {
+    embeddingCallCount = 0;
+    lastResetTime = now;
+  }
+  
+  if (embeddingCallCount >= EMBEDDING_RATE_LIMIT.maxCallsPerMinute) {
+    console.warn(`⚠️ Embedding rate limit reached (${embeddingCallCount}/${EMBEDDING_RATE_LIMIT.maxCallsPerMinute}) - switching to BM25`);
+    return false;
+  }
+  
+  return true;
+}
+
+// ✅ CORREGIDO: Usar GoogleGenAI correctamente según documentación oficial
+async function generateEmbedding(text) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    if (!generateEmbedding._warningShown) {
+      console.warn('⚠️ GEMINI_API_KEY not configured - using BM25 fallback');
+      console.warn('💡 Configure GEMINI_API_KEY in .env for better semantic search');
+      generateEmbedding._warningShown = true;
+    }
+    return null;
+  }
+  
+  // ✅ Verificar rate limit ANTES de hacer llamada
+  if (!checkEmbeddingRateLimit()) {
+    return null; // Fallback a BM25
+  }
+  
+  // Cache hit
+  const cacheKey = text.substring(0, 100);
+  const cached = embeddingsCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.embedding;
+  }
+  
+  try {
+    // ✅ CORREGIDO: Usar GoogleGenAI según documentación oficial
+    const ai = new GoogleGenAI({ apiKey });
+    
+    const truncatedText = text.length > 8000 ? text.substring(0, 8000) : text;
+    
+    // ✅ IMPORTANTE: embedContent (NO embeddings.embedContent)
+    const response = await ai.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: truncatedText
+    });
+    
+    // ✅ CORREGIDO: Acceder correctamente a los embeddings
+    const embedding = response.embeddings?.[0]?.values || response.embedding?.values;
+    
+    if (!embedding || !Array.isArray(embedding)) {
+      console.error('❌ Invalid embedding response:', response);
+      return null;
+    }
+    
+    // ✅ Incrementar contador solo si fue exitoso
+    embeddingCallCount++;
+    
+    // Cache result
+    embeddingsCache.set(cacheKey, {
+      embedding,
+      timestamp: Date.now()
+    });
+    
+    console.log(`✅ Generated embedding: ${embedding.length} dimensions`);
+    return embedding;
+  } catch (error) {
+    // ✅ MEJORADO: Detectar error de cuota y cambiar a BM25 automáticamente
+    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+      if (!generateEmbedding._quotaWarningShown) {
+        console.error('❌ Gemini Embeddings quota exceeded');
+        console.warn('⚠️ Switching to BM25 fallback for all future requests');
+        console.warn('💡 To use embeddings: upgrade to paid tier at https://aistudio.google.com/apikey');
+        generateEmbedding._quotaWarningShown = true;
+      }
+      // Marcar rate limit como alcanzado para evitar más llamadas
+      embeddingCallCount = EMBEDDING_RATE_LIMIT.maxCallsPerMinute;
+      return null;
+    }
+    
+    if (error.message?.includes('API key not valid')) {
+      console.error('❌ Invalid GEMINI_API_KEY - Check your .env file');
+      console.error('💡 Get a valid key from: https://aistudio.google.com/apikey');
+    } else {
+      console.error('❌ Error generating embedding:', error.message);
+      // Mostrar más detalles del error en desarrollo
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error details:', JSON.stringify(error, null, 2));
+      }
+    }
+    return null;
+  }
+}
+
+// ✅ NUEVO: Similitud coseno entre embeddings
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+  
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  
+  for (let i = 0; i < vecA.length; i++) {
+    dotProduct += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  
+  const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
+  return magnitude === 0 ? 0 : dotProduct / magnitude;
+}
+
+// ✅ MEJORADO: Búsqueda híbrida (Embeddings + BM25 fallback)
 export async function searchSimilar(indexName, query, limit = 5, options = {}) {
   try {
     const { knowledgeBase } = await import('./knowledge-base.js');
@@ -270,6 +403,92 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       console.warn('⚠️ Knowledge base is empty');
       return [];
     }
+    
+    console.log(`🔍 Searching with gemini-embedding-001 for: "${query.substring(0, 50)}..."`);
+    
+    // Intentar búsqueda con embeddings reales
+    const queryEmbedding = await generateEmbedding(query);
+    
+    if (queryEmbedding) {
+      console.log('✅ Using Gemini embeddings for search');
+      
+      // ✅ OPTIMIZACIÓN: Batch embeddings con Promise.allSettled para no fallar todo
+      const embeddingPromises = knowledgeBase.map(async (doc) => {
+        // Verificar cache primero
+        const cacheKey = doc.content.substring(0, 100);
+        const cached = precomputedEmbeddings.get(cacheKey);
+        
+        if (cached) {
+          return { doc, embedding: cached, fromCache: true };
+        }
+        
+        // Generar nuevo embedding
+        const docEmbedding = await generateEmbedding(doc.content);
+        
+        if (docEmbedding) {
+          // Guardar en cache persistente
+          precomputedEmbeddings.set(cacheKey, docEmbedding);
+        }
+        
+        return { doc, embedding: docEmbedding, fromCache: false };
+      });
+      
+      // ✅ NUEVO: Ejecutar en paralelo pero con límite
+      const BATCH_SIZE = 10; // Procesar 10 documentos a la vez
+      const results = [];
+      
+      for (let i = 0; i < embeddingPromises.length; i += BATCH_SIZE) {
+        const batch = embeddingPromises.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.allSettled(batch);
+        
+        for (const result of batchResults) {
+          if (result.status === 'fulfilled' && result.value.embedding) {
+            const { doc, embedding, fromCache } = result.value;
+            const similarity = cosineSimilarity(queryEmbedding, embedding);
+            const boostedScore = applySemanticBoost(doc, query, similarity);
+            
+            results.push({
+              content: doc.content,
+              metadata: doc.metadata,
+              score: boostedScore,
+              embeddingScore: similarity,
+              boost: boostedScore - similarity,
+              fromCache
+            });
+            
+            console.log(`${fromCache ? '💾' : '✅'} Processed: ${doc.metadata?.topic || 'unknown'} (${similarity.toFixed(3)})`);
+          }
+        }
+        
+        // Si alcanzamos rate limit, salir del loop
+        if (!checkEmbeddingRateLimit()) {
+          console.warn('⚠️ Rate limit reached during batch processing, using partial results');
+          break;
+        }
+      }
+      
+      // Si tenemos suficientes resultados con embeddings, usarlos
+      if (results.length >= 3) {
+        results.sort((a, b) => b.score - a.score);
+        
+        const threshold = options.threshold || 0.3;
+        const filtered = results
+          .filter(r => r.score >= threshold)
+          .slice(0, limit);
+        
+        const cacheHitRate = results.filter(r => r.fromCache).length / results.length;
+        console.log(`📚 Found ${filtered.length} documents with embeddings (threshold: ${threshold})`);
+        console.log(`💾 Cache hit rate: ${(cacheHitRate * 100).toFixed(1)}%`);
+        if (filtered.length > 0) {
+          console.log(`🎯 Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
+        }
+        
+        return filtered;
+      }
+    }
+    
+    // Fallback a BM25 si embeddings fallan o no hay suficientes resultados
+    console.log('⚠️ Falling back to BM25 algorithm');
     
     // Tokenizar query con expansión de sinónimos
     const queryTokens = tokenize(query, true);
@@ -281,20 +500,11 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       return [];
     }
     
-    console.log(`🔍 Query tokens (${queryTokens.length}): ${queryTokens.slice(0, 10).join(', ')}${queryTokens.length > 10 ? '...' : ''}`);
-    console.log(`📊 Bigrams (${queryBigrams.length}): ${queryBigrams.slice(0, 5).join(', ')}${queryBigrams.length > 5 ? `... (${queryBigrams.length - 5} more)` : ''}`);
-    
-    // Calcular IDF para toda la colección
     const idf = calculateIDF(knowledgeBase);
-    
-    // Calcular longitud promedio de documentos para BM25
     const avgDocLength = knowledgeBase.reduce((sum, doc) => {
       return sum + tokenize(doc.content).length;
     }, 0) / knowledgeBase.length;
     
-    console.log(`📏 Avg doc length: ${Math.round(avgDocLength)} tokens`);
-    
-    // Fase 1: Calcular BM25 scores
     const bm25Results = knowledgeBase.map(doc => {
       const docTokens = tokenize(doc.content);
       const docBigrams = extractBigrams(docTokens);
@@ -309,10 +519,8 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       };
     });
     
-    // Encontrar max score para normalización
     const maxRawScore = Math.max(...bm25Results.map(r => r.rawScore), 0.001);
     
-    // Fase 2: Normalizar y aplicar re-ranking semántico
     const results = bm25Results.map(({ doc, rawScore, docTokens }) => {
       const normalizedScore = normalizeBM25(rawScore, maxRawScore);
       const finalScore = applySemanticBoost(doc, query, normalizedScore);
@@ -326,34 +534,19 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       };
     });
     
-    // Ordenar por score final
     results.sort((a, b) => b.score - a.score);
     
-    // ✅ MEJORA: Threshold optimizado (aumentado de 0.20 a 0.25)
     const baseThreshold = options.threshold || 0.25;
     const maxScore = results[0]?.score || 0;
-    
-    // Threshold dinámico más restrictivo
     const dynamicThreshold = maxScore < 0.5 
-      ? Math.max(baseThreshold, maxScore * 0.7) // Exigir 70% del max
+      ? Math.max(baseThreshold, maxScore * 0.7)
       : baseThreshold;
-    
-    console.log(`🎯 BM25 algorithm | Threshold: ${dynamicThreshold.toFixed(3)} | Max score: ${maxScore.toFixed(3)}`);
     
     const filtered = results
       .filter(r => r.score >= dynamicThreshold)
       .slice(0, limit);
     
-    console.log(`📚 Found ${filtered.length} relevant documents (threshold: ${dynamicThreshold.toFixed(3)})`);
-    if (filtered.length > 0) {
-      console.log(`🎯 Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
-      console.log(`🚀 Boost applied: ${filtered.slice(0, 3).map(r => (r.boost >= 0 ? '+' : '') + r.boost.toFixed(3)).join(', ')}`);
-      
-      // Estadísticas de calidad
-      const highQuality = filtered.filter(r => r.score > 0.7).length;
-      const mediumQuality = filtered.filter(r => r.score > 0.5 && r.score <= 0.7).length;
-      console.log(`📊 Quality: ${highQuality} high (>0.7), ${mediumQuality} medium (0.5-0.7)`);
-    }
+    console.log(`📚 Found ${filtered.length} documents with BM25 (fallback mode)`);
     
     return filtered;
   } catch (error) {
@@ -362,11 +555,63 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
   }
 }
 
+// ✅ NUEVO: Función para pre-computar embeddings en background
+export async function precomputeKnowledgeBaseEmbeddings() {
+  try {
+    const { knowledgeBase } = await import('./knowledge-base.js');
+    
+    if (!process.env.GEMINI_API_KEY) {
+      console.log('⚠️ Skipping precomputation: No API key');
+      return { precomputed: 0 };
+    }
+    
+    console.log('🔄 Starting background embedding precomputation...');
+    
+    let precomputed = 0;
+    const BATCH_SIZE = 5; // Más conservador
+    const BATCH_DELAY = 2000; // 2 segundos entre batches
+    
+    for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
+      const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
+      
+      for (const doc of batch) {
+        const cacheKey = doc.content.substring(0, 100);
+        
+        // Solo generar si no está en cache
+        if (!precomputedEmbeddings.has(cacheKey)) {
+          const embedding = await generateEmbedding(doc.content);
+          
+          if (embedding) {
+            precomputedEmbeddings.set(cacheKey, embedding);
+            precomputed++;
+          }
+          
+          // Delay entre requests
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      
+      // Delay entre batches
+      if (i + BATCH_SIZE < knowledgeBase.length) {
+        console.log(`💤 Processed batch ${Math.floor(i / BATCH_SIZE) + 1}, waiting ${BATCH_DELAY}ms...`);
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+      }
+    }
+    
+    console.log(`✅ Precomputation complete: ${precomputed}/${knowledgeBase.length} embeddings`);
+    
+    return { precomputed, total: knowledgeBase.length };
+  } catch (error) {
+    console.error('❌ Error in precomputation:', error.message);
+    return { precomputed: 0, error: error.message };
+  }
+}
+
 // Obtener contexto relevante
 export async function getRelevantContext(query, options = {}) {
   try {
     const results = await searchSimilar('knowledge_base', query, 5, {
-      threshold: 0.25, // Optimizado de 0.20 a 0.25
+      threshold: 0.25,
       ...options
     });
     
@@ -375,7 +620,8 @@ export async function getRelevantContext(query, options = {}) {
       return {
         context: '',
         score: 0,
-        documentsFound: 0
+        documentsFound: 0,
+        usedEmbeddings: false
       };
     }
     
@@ -390,15 +636,20 @@ export async function getRelevantContext(query, options = {}) {
     const context = contextParts.join('\n\n---\n\n');
     const avgScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
     
+    // ✅ Detectar si se usaron embeddings o BM25
+    const usedEmbeddings = results.some(r => r.embeddingScore !== undefined);
+    
     console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
     console.log(`📊 Average score: ${avgScore.toFixed(3)}`);
+    console.log(`🔧 Method: ${usedEmbeddings ? 'Gemini Embeddings' : 'BM25 Fallback'}`);
     console.log(`🔍 Top result: "${results[0].content.substring(0, 100)}..."`);
     
     return {
       context,
       score: avgScore,
       documentsFound: results.length,
-      topScore: results[0].score
+      topScore: results[0].score,
+      usedEmbeddings // ✅ NUEVO: Indicar qué método se usó
     };
   } catch (error) {
     console.error('❌ Error getting relevant context:', error);
@@ -406,20 +657,43 @@ export async function getRelevantContext(query, options = {}) {
       context: '',
       score: 0,
       documentsFound: 0,
-      error: error.message
+      error: error.message,
+      usedEmbeddings: false
     };
   }
 }
 
-// Inicializar KB para Vercel (fallback sin embeddings reales)
-export async function initializeKnowledgeBaseForVercel() {
+// Inicializar KB para Vercel con pre-computación opcional
+export async function initializeKnowledgeBaseForVercel(precompute = false) {
   try {
     const { knowledgeBase } = await import('./knowledge-base.js');
+    const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
+    
     console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);
+    console.log(`🔑 Gemini API Key: ${hasApiKey ? 'Available' : 'Missing'}`);
+    console.log(`🤖 Embedding model: gemini-embedding-001`);
+    
+    if (!hasApiKey) {
+      console.warn('⚠️ Running in fallback mode (BM25) - Configure GEMINI_API_KEY for better results');
+    }
+    
+    // ✅ NUEVO: Pre-computar embeddings en background si se solicita
+    if (precompute && hasApiKey) {
+      // No await - ejecutar en background
+      precomputeKnowledgeBaseEmbeddings().catch(err => {
+        console.error('Background precomputation error:', err.message);
+      });
+    }
+    
     return {
-      fallbackMode: true,
-      fallbackReason: 'Using TF-IDF + Synonyms (Vercel optimized)',
-      documentsCount: knowledgeBase.length
+      fallbackMode: !hasApiKey,
+      fallbackReason: hasApiKey 
+        ? 'Using gemini-embedding-001 for semantic search' 
+        : 'GEMINI_API_KEY not configured - using BM25 fallback',
+      documentsCount: knowledgeBase.length,
+      embeddingModel: 'gemini-embedding-001',
+      hasApiKey,
+      precomputeStarted: precompute && hasApiKey
     };
   } catch (error) {
     console.error('❌ Error initializing KB:', error);

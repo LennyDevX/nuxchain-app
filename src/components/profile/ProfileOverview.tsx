@@ -5,6 +5,7 @@ import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGra
 import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
 import { apolloClient } from '../../lib/apollo-client';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileOverview: React.FC = () => {
   const { address, isConnected } = useAccount();
@@ -15,6 +16,8 @@ const ProfileOverview: React.FC = () => {
   const { data: balance } = useBalance({
     address: address,
   });
+
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (isConnected && address) {
@@ -40,26 +43,26 @@ const ProfileOverview: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-${isMobile ? '4' : '6'}`}>
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gradient`}>
           Profile Overview
         </h1>
-        <p className="text-sm text-gray-400 mt-2">Resumen de tu cuenta y actividad en Nuxchain</p>
+        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mt-2`}>Resumen de tu cuenta y actividad en Nuxchain</p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <section className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}`}>
         {/* Wallet Status Card */}
         <div className="card-stats">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={`flex items-center space-x-3 ${isMobile ? 'mb-2' : 'mb-3'}`}>
+            <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-purple-600/20 flex items-center justify-center`}>
+              <svg className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-purple-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-400">Wallet Status</h3>
-              <p className="text-lg font-bold text-white">
+              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400`}>Wallet Status</h3>
+              <p className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-white`}>
                 {isConnected ? 'Connected' : 'Not Connected'}
               </p>
             </div>
@@ -101,17 +104,16 @@ const ProfileOverview: React.FC = () => {
 
       {/* Activity Section */}
       <section className="card-content">
-        <div className="flex items-center justify-between mb-4">
+        <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'} mb-4`}>
           <div className="flex-1">
-            <h2 className="text-xl font-bold mb-1">Recent Activity</h2>
+            <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-1`}>Recent Activity</h2>
             <SubgraphSyncStatus className="text-xs" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className={`flex ${isMobile ? 'w-full' : ''} items-center gap-2`}>
             <button
               onClick={handleClearCacheAndRefresh}
               disabled={isClearing || activitiesLoading}
-              className="px-3 py-1 text-sm bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              title="Clear Apollo cache and fetch fresh data from v0.0.2"
+              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
             >
               <svg 
                 className={`w-4 h-4 ${isClearing ? 'animate-spin' : ''}`} 
@@ -126,12 +128,12 @@ const ProfileOverview: React.FC = () => {
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
                 />
               </svg>
-              Clear Cache
+              {!isMobile && 'Clear Cache'}
             </button>
             <button
               onClick={refreshActivities}
               disabled={activitiesLoading}
-              className="px-3 py-1 text-sm bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
             >
               <svg 
                 className={`w-4 h-4 ${activitiesLoading ? 'animate-spin' : ''}`} 

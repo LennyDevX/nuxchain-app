@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLinkIcon, GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from './CustomIcons';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface ProjectProps {
   title: string;
@@ -11,44 +12,58 @@ interface ProjectProps {
 }
 
 const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progress, category, highlight = false }) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <div className={`h-full ${highlight ? 'md:col-span-2 md:row-span-2' : ''}`}>
-      <div className={`card-unified h-full ${highlight ? 'border-purple-500/30' : ''}`}>
-
-        
+    <div className={`h-full ${!isMobile && highlight ? 'md:col-span-2 md:row-span-2' : ''}`}>
+      <div className={`card-unified h-full ${highlight ? 'border-purple-500/30' : ''} ${
+        isMobile ? 'p-4' : ''
+      }`}>
         <div className="relative z-10 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${highlight ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'}`}>
+          <div className={`flex items-center gap-3 ${isMobile ? 'mb-2' : 'mb-4'}`}>
+            <div className={`rounded-full flex items-center justify-center ${
+              highlight ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+            } ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}`}>
               {icon}
             </div>
-            <span className={`text-xs font-medium px-2 py-1 rounded-full ${highlight ? 'bg-purple-900/30 text-purple-300' : 'bg-blue-900/30 text-blue-300'}`}>
+            <span className={`font-medium px-2 py-1 rounded-full ${
+              highlight ? 'bg-purple-900/30 text-purple-300' : 'bg-blue-900/30 text-blue-300'
+            } ${isMobile ? 'text-xs' : 'text-xs'}`}>
               {category}
             </span>
           </div>
-          <h3 className="text-xl font-bold mb-2">{title}</h3>
-          <p className="text-slate-400 text-sm">{description}</p>
+          <h3 className={`font-bold mb-2 ${
+            isMobile ? 'text-sm' : 'text-xl'
+          }`}>{title}</h3>
+          {!isMobile && (
+            <p className="text-slate-400 text-sm">{description}</p>
+          )}
         </div>
         
         <div className="relative z-10">
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className={isMobile ? 'space-y-1' : 'space-y-2'}>
+              <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
                 <span className="text-slate-400">Progress</span>
                 <span className="font-medium">{progress}%</span>
               </div>
-              <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
+              <div className={`w-full bg-slate-700 rounded-full overflow-hidden ${
+                isMobile ? 'h-1.5' : 'h-2'
+              }`}>
                 <div className={`h-full rounded-full ${highlight ? 'bg-purple-500' : 'bg-blue-500'}`} style={{ width: `${progress}%` }}></div>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="relative z-10 pt-4 border-t border-slate-700">
-          <button className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'btn-secondary'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}>
-            {highlight ? 'Explore Demo' : 'More Information'}
-            <ExternalLinkIcon className="ml-2 w-4 h-4" />
-          </button>
-        </div>
+        {!isMobile && (
+          <div className="relative z-10 pt-4 border-t border-slate-700">
+            <button className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'btn-secondary'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}>
+              {highlight ? 'Explore Demo' : 'More Information'}
+              <ExternalLinkIcon className="ml-2 w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -57,6 +72,7 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
 const InnovationShowcase: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [visibleProjects, setVisibleProjects] = useState<number[]>([0, 1, 2, 3, 4, 5]);
+  const isMobile = useIsMobile();
 
   const projects: ProjectProps[] = [
     {
@@ -109,12 +125,14 @@ const InnovationShowcase: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className={`flex flex-wrap gap-2 justify-center ${isMobile ? 'px-4' : ''}`}>
         {categories.map((category) => (
           <button
             key={category}
             onClick={() => filterProjects(category)}
-            className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${activeFilter === category 
+            className={`px-4 py-2 rounded-full transition-all duration-300 ${
+              isMobile ? 'text-xs px-3 py-1.5' : 'text-sm'
+            } ${activeFilter === category 
               ? 'bg-purple-600 text-white font-medium' 
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
           >
@@ -123,8 +141,10 @@ const InnovationShowcase: React.FC = () => {
         ))}
       </div>
 
-      {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Projects Grid - 2x2 en mobile */}
+      <div className={`grid gap-6 ${
+        isMobile ? 'grid-cols-2 gap-4' : 'grid-cols-1 md:grid-cols-2'
+      }`}>
         {visibleProjects.map((index) => (
           <ProjectCard key={index} {...projects[index]} />
         ))}

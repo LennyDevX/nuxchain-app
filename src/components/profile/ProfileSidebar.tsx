@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAccount } from 'wagmi';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileSidebar: React.FC = () => {
   const location = useLocation();
@@ -8,6 +9,7 @@ const ProfileSidebar: React.FC = () => {
   const [username, setUsername] = useState('User');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
+  const isMobile = useIsMobile();
 
   // Load username from localStorage
   useEffect(() => {
@@ -41,8 +43,8 @@ const ProfileSidebar: React.FC = () => {
     { key: 'overview', label: 'Overview', to: '/profile', icon: '📊' },
     { key: 'nfts', label: 'NFTs', to: '/profile/nfts', icon: '🖼️' },
     { key: 'staking', label: 'Staking', to: '/profile/staking', icon: '💰' },
-    { key: 'rewards', label: 'Rewards for Sale', to: '/profile/rewards', icon: '💎' },
-    { key: 'ai-analysis', label: 'AI Analysis', to: '/profile/ai-analysis', icon: '🤖' }
+    { key: 'rewards', label: 'Rewards', to: '/profile/rewards', icon: '💎' },
+    { key: 'ai-analysis', label: 'AI', to: '/profile/ai-analysis', icon: '🤖' }
   ];
 
   const formatAddress = (addr: string) => {
@@ -53,6 +55,109 @@ const ProfileSidebar: React.FC = () => {
     return location.pathname === path;
   };
 
+  if (isMobile) {
+    return (
+      <div className="card-unified p-4">
+        {/* Mobile Header: Avatar + Username */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="relative w-12 h-12 flex-shrink-0">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-pulse opacity-75"></div>
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-xl">
+              {username.charAt(0).toUpperCase()}
+            </div>
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            {isEditingName ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={tempUsername}
+                  onChange={(e) => setTempUsername(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveUsername();
+                    if (e.key === 'Escape') handleCancelEdit();
+                  }}
+                  className="w-full bg-white/10 border border-purple-500/50 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-400"
+                  placeholder="Enter username"
+                  maxLength={20}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveUsername}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-medium"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="flex-1 bg-white/10 text-gray-300 px-3 py-1 rounded-lg text-xs font-medium"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-white font-bold text-base truncate">{username}</h4>
+                  <button
+                    onClick={handleStartEdit}
+                    className="flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity p-1"
+                  >
+                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 font-mono truncate">
+                  {isConnected && address ? formatAddress(address) : '@not_connected'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Navigation: Horizontal Scroll */}
+        <div className="relative">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+            {items.map((it) => (
+              <Link
+                key={it.key}
+                to={it.to}
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
+                  isActive(it.to)
+                    ? 'bg-purple-600/20 text-white border border-purple-500/30'
+                    : 'text-gray-300 hover:bg-white/5'
+                }`}
+              >
+                <span className="text-lg">{it.icon}</span>
+                <span className="text-sm font-medium">{it.label}</span>
+              </Link>
+            ))}
+          </div>
+          
+          {/* Scroll Indicators */}
+          <div className="flex justify-center gap-1.5 mt-3">
+            {items.map((it) => (
+              <Link
+                key={`indicator-${it.key}`}
+                to={it.to}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  isActive(it.to)
+                    ? 'bg-purple-400 w-4'
+                    : 'bg-gray-600'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop layout (existing code)
   return (
     <aside className="card-unified h-full">
       <div className="mb-6 text-center">

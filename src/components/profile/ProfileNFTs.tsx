@@ -4,6 +4,7 @@ import useUserNFTsLazy from '../../hooks/nfts/useUserNFTsLazy';
 import { ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import '../../styles/ai-analysis-animations.css';
 
 interface NFTData {
@@ -29,6 +30,7 @@ const ProfileNFTs: React.FC = () => {
   const { convertPOLToUSD } = usePOLPrice();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cachedNfts, setCachedNfts] = useState<NFTData[]>([]);
+  const isMobile = useIsMobile();
 
   // Cache NFTs to prevent flash during refresh
   useEffect(() => {
@@ -69,7 +71,7 @@ const ProfileNFTs: React.FC = () => {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold text-gradient">
             My NFTs
           </h1>
           <p className="text-sm text-gray-400 mt-2">
@@ -105,11 +107,11 @@ const ProfileNFTs: React.FC = () => {
           </button>
         </div>
       ) : shouldShowNfts ? (
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className={`grid gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
           {displayNfts.map((nft) => (
-            <div key={nft.uniqueId} className="card-interactive group overflow-hidden">
+            <div key={nft.uniqueId} className={`card-interactive group overflow-hidden ${isMobile ? 'text-xs' : ''}`}>
               {/* NFT Image */}
-              <div className="aspect-square rounded-t-lg overflow-hidden bg-gradient-to-br from-purple-900/20 to-blue-900/20 relative">
+              <div className={`aspect-square rounded-t-lg overflow-hidden bg-gradient-to-br from-purple-900/20 to-blue-900/20 relative ${isMobile ? '' : ''}`}>
                 <img
                   src={ipfsToHttp(nft.image)}
                   alt={nft.name}
@@ -119,69 +121,65 @@ const ProfileNFTs: React.FC = () => {
                   }}
                 />
                 {/* Token ID Badge */}
-                <div className="absolute top-3 right-3">
-                  <span className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold border border-white/20">
+                <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-3 right-3'}`}>
+                  <span className={`bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full font-bold border border-white/20 ${isMobile ? 'text-xs' : 'text-xs'}`}>
                     #{nft.tokenId}
                   </span>
                 </div>
                 {/* For Sale Badge */}
                 {nft.isForSale && (
-                  <div className="absolute top-3 left-3">
-                    <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-green-400/30 animate-pulse">
-                      🏷️ LISTED
+                  <div className={`absolute ${isMobile ? 'top-2 left-2' : 'top-3 left-3'}`}>
+                    <span className={`bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-1 rounded-full font-bold shadow-lg border border-green-400/30 animate-pulse ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                      {isMobile ? '🏷️' : '🏷️ LISTED'}
                     </span>
                   </div>
                 )}
               </div>
 
               {/* NFT Info */}
-              <div className="p-5 space-y-4">
-                {/* Title and Description */}
+              <div className={isMobile ? 'p-3 space-y-2' : 'p-5 space-y-4'}>
+                {/* Title */}
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-2 truncate group-hover:text-purple-400 transition-colors">
+                  <h3 className={`font-bold text-white truncate group-hover:text-purple-400 transition-colors ${isMobile ? 'text-sm mb-1' : 'text-xl mb-2'}`}>
                     {nft.name}
                   </h3>
-                  <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
-                    {nft.description || 'No description available'}
-                  </p>
+                  {!isMobile && (
+                    <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
+                      {nft.description || 'No description available'}
+                    </p>
+                  )}
                 </div>
 
                 {/* Price Section */}
                 {nft.isForSale && (
-                  <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg p-4">
-                    <p className="text-xs text-gray-400 mb-2">Current Price</p>
+                  <div className={`bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-lg ${isMobile ? 'p-2' : 'p-4'}`}>
+                    <p className={`text-gray-400 ${isMobile ? 'text-xs mb-1' : 'text-xs mb-2'}`}>Price</p>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                      <div className="flex items-baseline gap-1">
+                        <span className={`font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 ${isMobile ? 'text-base' : 'text-2xl'}`}>
                           {formatPOLPrice(nft.price)}
                         </span>
-                        <span className="text-sm font-semibold text-gray-400">POL</span>
+                        <span className={`font-semibold text-gray-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>POL</span>
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                         ≈ {convertPOLToUSD(Number(nft.price) / 1e18)}
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Owner Info */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Token ID</span>
-                  <span className="text-white font-mono bg-white/5 px-2 py-1 rounded">{nft.tokenId}</span>
-                </div>
-
                 {/* Action Button */}
-                <div className="pt-2">
+                <div className={isMobile ? 'pt-1' : 'pt-2'}>
                   {nft.isForSale ? (
-                    <div className="w-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 text-green-300 py-3 rounded-lg text-sm font-medium text-center">
-                      🏪 ACTIVE LISTING
+                    <div className={`w-full bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/50 text-green-300 rounded-lg font-medium text-center ${isMobile ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
+                      {isMobile ? '🏪 ACTIVE' : '🏪 ACTIVE LISTING'}
                     </div>
                   ) : (
                     <a
                       href="/marketplace"
-                      className="block w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white py-3 rounded-lg text-sm font-medium text-center transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25"
+                      className={`block w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-lg font-medium text-center transition-all ${isMobile ? 'py-2 text-xs' : 'py-3 text-sm hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25'}`}
                     >
-                      🚀 List for Sale
+                      {isMobile ? '🚀 List' : '🚀 List for Sale'}
                     </a>
                   )}
                 </div>

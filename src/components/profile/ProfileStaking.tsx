@@ -2,18 +2,75 @@ import React from 'react';
 import { useAccount } from 'wagmi';
 import { useUserStaking } from '../../hooks/staking/useUserStaking';
 import LoadingSpinner from '../../ui/LoadingSpinner';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useReadContract } from 'wagmi';
+import SmartStakingABI from '../../abi/SmartStaking.json';
+import { formatEther } from 'viem';
 
 const ProfileStaking: React.FC = () => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { totalStaked, pendingRewards, apy, activePositions, isLoading } = useUserStaking();
+  const isMobile = useIsMobile();
+
+  const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2;
+
+  // Get user deposits to check lockup periods
+  const { data: userDeposits } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
+    abi: SmartStakingABI.abi,
+    functionName: 'getUserDeposits',
+    args: [address],
+    query: { enabled: !!address }
+  });
+
+  // Calculate available to withdraw considering lockup periods
+  const calculateAvailableToWithdraw = () => {
+    if (!userDeposits || !Array.isArray(userDeposits)) return { amount: '0', isLocked: false, daysRemaining: 0 };
+
+    const now = Math.floor(Date.now() / 1000);
+    let availableAmount = 0n;
+    let hasLockedDeposits = false;
+    let minDaysRemaining = 0;
+
+    type Deposit = {
+      amount: bigint;
+      timestamp: number;
+      lockupDuration: number;
+    };
+
+    for (const deposit of userDeposits as Deposit[]) {
+      const lockupEnd = Number(deposit.timestamp) + Number(deposit.lockupDuration);
+      const isLocked = now < lockupEnd;
+
+      if (isLocked) {
+        hasLockedDeposits = true;
+        const daysLeft = Math.ceil((lockupEnd - now) / (60 * 60 * 24));
+        if (minDaysRemaining === 0 || daysLeft < minDaysRemaining) {
+          minDaysRemaining = daysLeft;
+        }
+      } else {
+        availableAmount += deposit.amount;
+      }
+    }
+
+    return {
+      amount: formatEther(availableAmount),
+      isLocked: hasLockedDeposits && availableAmount === 0n,
+      daysRemaining: minDaysRemaining
+    };
+  };
+
+  const withdrawalInfo = calculateAvailableToWithdraw();
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className={`font-bold text-gradient ${
+          isMobile ? 'text-2xl' : 'text-3xl'
+        }`}>
           My Staking
         </h1>
-        <p className="text-sm text-gray-400 mt-2">Gestiona tus posiciones de staking</p>
+        <p className={`text-gray-400 mt-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Gestiona tus posiciones de staking</p>
       </header>
 
       {isConnected ? (
@@ -25,23 +82,55 @@ const ProfileStaking: React.FC = () => {
               <p className="text-gray-400 mt-4">Loading staking data...</p>
             </div>
           ) : (
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Total Staked</h3>
-                <p className="text-2xl font-bold text-white">{parseFloat(totalStaked).toFixed(4)} POL</p>
-                <p className="text-xs text-gray-500 mt-1">{activePositions} position{activePositions !== 1 ? 's' : ''}</p>
+            <section className={`grid gap-4 ${
+              isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+            }`}>
+              {/* Total Staked */}
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Staked</h3>
+                <p className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                  {parseFloat(totalStaked).toFixed(isMobile ? 2 : 4)} POL
+                </p>
+                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                  {activePositions} position{activePositions !== 1 ? 's' : ''}
+                </p>
               </div>
 
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">Rewards Earned</h3>
-                <p className="text-2xl font-bold text-green-400">{parseFloat(pendingRewards).toFixed(4)} POL</p>
-                <p className="text-xs text-gray-500 mt-1">Claimable rewards</p>
+              {/* Rewards Earned */}
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Rewards</h3>
+                <p className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                  {parseFloat(pendingRewards).toFixed(isMobile ? 2 : 4)} POL
+                </p>
+                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Claimable</p>
               </div>
 
-              <div className="card-stats">
-                <h3 className="text-sm font-semibold text-gray-400 mb-2">APY</h3>
-                <p className="text-2xl font-bold text-purple-400">{apy}%</p>
-                <p className="text-xs text-gray-500 mt-1">Annual Percentage Yield</p>
+              {/* APY */}
+              <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>APY</h3>
+                <p className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>{apy}%</p>
+                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Annual Yield</p>
+              </div>
+
+              {/* Available to Withdraw - NEW */}
+              <div className={`card-stats ${isMobile ? 'p-3' : ''} ${
+                withdrawalInfo.isLocked ? 'border-orange-500/30' : 'border-green-500/30'
+              }`}>
+                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  Available
+                </h3>
+                <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} ${
+                  withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-400'
+                }`}>
+                  {withdrawalInfo.isLocked ? '🔒 Locked' : `${parseFloat(withdrawalInfo.amount).toFixed(isMobile ? 2 : 4)} POL`}
+                </p>
+                <p className={`mt-1 ${isMobile ? 'text-xs' : 'text-xs'} ${
+                  withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-500'
+                }`}>
+                  {withdrawalInfo.isLocked 
+                    ? `${withdrawalInfo.daysRemaining}d remaining` 
+                    : 'Ready now ✓'}
+                </p>
               </div>
             </section>
           )}

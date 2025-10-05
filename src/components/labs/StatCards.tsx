@@ -10,7 +10,7 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, color }) => {
-  const bgColor = color.replace('border', 'bg').replace('\/20', '\/10');
+  const bgColor = color.replace('border', 'bg').replace('/20', '/10');
   const textColor = `text-${color.split('-')[1]}-400`;
   
   return (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface WelcomeTutorialProps {
   onClose: () => void;
@@ -6,6 +7,7 @@ interface WelcomeTutorialProps {
 
 const AIAnalysisWelcome: React.FC<WelcomeTutorialProps> = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const isMobile = useIsMobile();
   
   const steps = [
     {
@@ -66,53 +68,53 @@ const AIAnalysisWelcome: React.FC<WelcomeTutorialProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="card-unified max-w-2xl w-full relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className={`card-unified ${isMobile ? 'w-full mx-4 my-8' : 'max-w-2xl w-full'} relative`}>
         {/* Close button */}
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          className={`absolute ${isMobile ? 'top-3 right-3' : 'top-4 right-4'} text-gray-400 hover:text-white transition-colors z-10`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Content */}
-        <div className="p-8">
+        <div className={isMobile ? 'p-6' : 'p-8'}>
           {/* Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 flex items-center justify-center text-5xl shadow-2xl">
+            <div className={`${isMobile ? 'w-16 h-16 text-4xl' : 'w-24 h-24 text-5xl'} rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 flex items-center justify-center shadow-2xl`}>
               {currentStepData.icon}
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-3xl font-bold text-gradient text-center mb-2">
+          <h2 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold text-gradient text-center mb-2`}>
             {currentStepData.title}
           </h2>
 
           {/* Description */}
-          <p className="text-purple-400 text-center mb-6 text-lg">
+          <p className={`text-purple-400 text-center mb-6 ${isMobile ? 'text-base' : 'text-lg'}`}>
             {currentStepData.description}
           </p>
 
           {/* Content */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-6 mb-8">
-            <p className="text-gray-300 leading-relaxed text-center">
+          <div className={`bg-white/5 border border-white/10 rounded-lg ${isMobile ? 'p-4 mb-6' : 'p-6 mb-8'}`}>
+            <p className={`text-gray-300 leading-relaxed text-center ${isMobile ? 'text-sm' : ''}`}>
               {currentStepData.content}
             </p>
           </div>
 
           {/* Progress dots */}
-          <div className="flex justify-center gap-2 mb-8">
+          <div className={`flex justify-center gap-2 ${isMobile ? 'mb-6' : 'mb-8'}`}>
             {steps.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentStep(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
+                className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} rounded-full transition-all ${
                   index === currentStep
-                    ? 'bg-purple-500 w-8'
+                    ? `bg-purple-500 ${isMobile ? 'w-6' : 'w-8'}`
                     : index < currentStep
                     ? 'bg-purple-500/50'
                     : 'bg-gray-600'
@@ -122,11 +124,11 @@ const AIAnalysisWelcome: React.FC<WelcomeTutorialProps> = ({ onClose }) => {
           </div>
 
           {/* Navigation buttons */}
-          <div className="flex justify-between items-center gap-4">
+          <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center gap-4'}`}>
             <button
               onClick={handlePrevious}
               disabled={currentStep === 0}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              className={`${isMobile ? 'w-full py-2.5 text-sm' : 'px-6 py-3'} rounded-lg font-medium transition-all ${
                 currentStep === 0
                   ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   : 'bg-white/10 text-white hover:bg-white/20'
@@ -135,19 +137,30 @@ const AIAnalysisWelcome: React.FC<WelcomeTutorialProps> = ({ onClose }) => {
               Previous
             </button>
 
-            <button
-              onClick={handleSkip}
-              className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
-            >
-              Skip Tutorial
-            </button>
+            {!isMobile && (
+              <button
+                onClick={handleSkip}
+                className="px-6 py-3 text-gray-400 hover:text-white transition-colors"
+              >
+                Skip Tutorial
+              </button>
+            )}
 
             <button
               onClick={handleNext}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-lg transition-all hover:scale-105"
+              className={`${isMobile ? 'w-full py-2.5 text-sm' : 'px-6 py-3'} bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-lg transition-all hover:scale-105`}
             >
               {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
             </button>
+
+            {isMobile && (
+              <button
+                onClick={handleSkip}
+                className="w-full py-2.5 text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Skip Tutorial
+              </button>
+            )}
           </div>
         </div>
       </div>

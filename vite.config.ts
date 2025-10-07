@@ -8,6 +8,9 @@ export default defineConfig({
       jsxRuntime: 'automatic'
     })
   ],
+  resolve: {
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
+  },
   server: {
     proxy: {
       // Proxy para rutas de API en desarrollo

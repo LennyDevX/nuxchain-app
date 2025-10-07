@@ -56,7 +56,7 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
             </div>
           ) : (
             <AnimatedAILogo 
-              size={isMobile ? "small" : "medium"} 
+              size={isMobile ? "small" : "small"} 
               className="flex-shrink-0" 
             />
           )}
@@ -67,7 +67,7 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
           } ${
             message.role === 'user'
               ? 'bg-gradient-to-r from-brand-purple-600 to-brand-purple-700 text-white shadow-lg border border-brand-purple-500/30'
-              : 'bg-white/10 text-white border border-white/20'
+              : 'bg-white/10 text-white border border-white/20 shadow-lg backdrop-blur-md'
           }`}>
             {message.role === 'assistant' ? (
               <div className="markdown-chat-container">

@@ -14,7 +14,7 @@ export const knowledgeBase = [
     metadata: { type: "general", category: "company", topic: "vision-mission" }
   },
   {
-    content: "Nuxchain differentiates itself by not having a traditional token or cryptocurrency. Instead, we focus on NFTs 2.0 - digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. This approach creates sustainable value through utility rather than speculation, driving a powerful economy guided by user sentiment and dedication. Commands: 'Nuxchain differentiation', 'Nuxchain no token', 'Nuxchain NFTs focus', 'Nuxchain user economy'.",
+    content: "Nuxchain differentiates itself by not having a traditional token or cryptocurrency. Instead, we focus on NFTs 2.0 - digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. This approach creates sustainable value through utility rather than speculation, driving a powerful economy guided by user sentiment and dedication. The platform uses POL (Polygon's native token) for all transactions and gas fees. Commands: 'Nuxchain differentiation', 'Nuxchain no token', 'Nuxchain NFTs focus', 'Nuxchain user economy', 'Nuxchain POL'.",
     metadata: { type: "general", category: "strategy", topic: "differentiation" }
   },
   {
@@ -58,35 +58,43 @@ export const knowledgeBase = [
     metadata: { type: "smart-contract", category: "staking", topic: "limits" }
   },
   {
-    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI of 0.01% with lockup bonuses. Maximum ROI cap is 125%. Lockup periods offer enhanced rates: No lockup: 0.01% per hour, 30 days: 0.012% per hour, 90 days: 0.016% per hour, 180 days: 0.02% per hour, 365 days: 0.03% per hour. Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 ETH for security. Commands: 'Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup'.",
+    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI of 0.01% with lockup bonuses. Maximum ROI cap is 125%. Lockup periods offer enhanced rates: No lockup: 0.01% per hour (87.6% APY), 30 days: 0.012% per hour (105.1% APY), 90 days: 0.016% per hour (140.2% APY), 180 days: 0.02% per hour (175.2% APY), 365 days: 0.03% per hour (262.8% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 POL for security. Commands: 'Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup'.",
     metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" }
   },
 
   // === STAKING INFORMATION ===
   {
-    content: "Nuxchain staking allows depositing POL tokens in the SmartStaking contract to earn automatic rewards. Rewards are calculated based on time held. Commands: 'Nuxchain staking', 'Nuxchain rewards'.",
+    content: "Nuxchain staking allows depositing POL tokens in the SmartStaking contract to earn automatic rewards. Rewards are calculated based on time held and lockup period selected. Commands: 'Nuxchain staking', 'Nuxchain rewards'.",
     metadata: { type: "staking", category: "guide", topic: "basics" }
   },
   {
-    content: "How to stake in Nuxchain: 1) Connect wallet, 2) Go to Staking section, 3) Enter amount (min 5 POL), 4) Confirm transaction. Rewards calculated automatically. Commands: 'Nuxchain how to stake'.",
+    content: "How to stake in Nuxchain: 1) Connect wallet with POL tokens, 2) Go to Staking section, 3) Enter amount (min 5 POL), 4) Select lockup period (0, 30, 90, 180, or 365 days), 5) Confirm transaction. Rewards calculated automatically based on your lockup period. Commands: 'Nuxchain how to stake'.",
     metadata: { type: "staking", category: "tutorial", topic: "how-to" }
   },
   {
-    content: "Claiming rewards in Nuxchain: Use claimRewards() to withdraw only rewards or withdrawAll() to withdraw capital + rewards. No penalties for early withdrawal. Commands: 'Nuxchain claim rewards'.",
+    content: "Claiming rewards in Nuxchain: Use claimRewards() to withdraw only rewards or withdrawAll() to withdraw capital + rewards. Funds are locked during the lockup period. After lockup expires, you can withdraw anytime without penalties. Commands: 'Nuxchain claim rewards'.",
     metadata: { type: "staking", category: "tutorial", topic: "claiming" }
   },
   {
-    content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 ETH. Commands: 'Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates'.",
+    content: "Nuxchain Lockup Periods Explained: When you stake POL tokens, you can choose a lockup period that determines your reward rate. No lockup (0 days): 0.01% per hour, withdraw anytime. 30 days lockup: 0.012% per hour, 20% higher rewards, funds locked for 30 days. 90 days lockup: 0.016% per hour, 60% higher rewards, funds locked for 90 days. 180 days lockup: 0.02% per hour, 100% higher rewards, funds locked for 180 days. 365 days lockup: 0.03% per hour, 200% higher rewards, funds locked for 365 days. The longer you lock your tokens, the higher your hourly rewards. All rewards are calculated and accumulated automatically every hour. Commands: 'Nuxchain lockup periods', 'Nuxchain staking periods', 'Nuxchain lock duration', 'Nuxchain lockup options'.",
+    metadata: { type: "staking", category: "rewards", topic: "lockup-periods" }
+  },
+  {
+    content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 POL. Commands: 'Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates'.",
     metadata: { type: "staking", category: "rewards", topic: "apy-tiers" }
   },
   {
-    content: "Staking risks in Nuxchain: Smart contract risk (mitigated by audits), impermanent loss (not applicable), market volatility of POL token. Platform has emergency functions for security. Commands: 'Nuxchain risks'.",
+    content: "Compound feature in Nuxchain SmartStaking: The compound() function allows you to reinvest your accumulated rewards back into staking without withdrawing. When you compound, your rewards are automatically converted into a new deposit, and you can choose a new lockup period for the compounded amount. This creates a powerful compounding effect: your original deposit continues earning at its rate, while your rewards start earning additional rewards. Example: If you have 100 POL staked with 10 POL in rewards, compounding creates a new 10 POL deposit, so you'll now be earning rewards on 110 POL total. You can compound as often as you like, and each compounded amount can have its own lockup period. Commands: 'Nuxchain compound', 'Nuxchain compounding', 'Nuxchain reinvest rewards'.",
+    metadata: { type: "staking", category: "advanced", topic: "compounding" }
+  },
+  {
+    content: "Staking risks in Nuxchain: Smart contract risk (mitigated by audits), lockup period restrictions (funds locked for chosen duration), market volatility of POL token. Platform has emergency functions for security. During lockup period, you cannot withdraw your principal amount until the period expires. Commands: 'Nuxchain risks'.",
     metadata: { type: "staking", category: "guide", topic: "risks" }
   },
 
   // === MARKETPLACE ===
   {
-    content: "Nuxchain NFT marketplace allows users to buy, sell and trade NFTs. Supports ERC-721 tokens with metadata display, filtering options, and advanced search. Features include: listing NFTs for sale, purchasing NFTs with POL tokens, viewing detailed NFT information with rarity and traits, marketplace statistics and analytics, collection browsing, and price history tracking. The marketplace integrates with Alchemy and Moralis APIs for comprehensive NFT data. Commands: 'Nuxchain marketplace', 'Nuxchain NFT', 'Nuxchain buy NFT', 'Nuxchain sell NFT'.",
+    content: "Nuxchain NFT marketplace allows users to buy, sell and trade NFTs using POL tokens. Supports ERC-721 tokens with metadata display, filtering options, and advanced search. Features include: listing NFTs for sale, purchasing NFTs with POL tokens, viewing detailed NFT information with rarity and traits, marketplace statistics and analytics, collection browsing, and price history tracking. The marketplace integrates with Alchemy and Moralis APIs for comprehensive NFT data. Commands: 'Nuxchain marketplace', 'Nuxchain NFT', 'Nuxchain buy NFT', 'Nuxchain sell NFT'.",
     metadata: { type: "marketplace", category: "nft", topic: "overview" }
   },
   {
@@ -105,17 +113,17 @@ export const knowledgeBase = [
 
   // === NFT INFORMATION ===
   {
-    content: "Nuxchain NFTs 2.0 represent a revolutionary approach to digital art and utility. Unlike traditional NFTs, our NFTs 2.0 create an exclusive ecosystem that avoids FOMO and liquidity exit losses, increasing perceived value through real utilities. They serve as digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. Commands: 'Nuxchain NFTs 2.0', 'Nuxchain digital art', 'Nuxchain NFT ecosystem'.",
+    content: "Nuxchain NFTs 2.0 represent a revolutionary approach to digital art and utility. Unlike traditional NFTs, our NFTs 2.0 create an exclusive ecosystem that avoids FOMO and liquidity exit losses, increasing perceived value through real utilities. They serve as digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. All NFT transactions use POL as the payment and gas token. Commands: 'Nuxchain NFTs 2.0', 'Nuxchain digital art', 'Nuxchain NFT ecosystem'.",
     metadata: { type: "nft", category: "concept", topic: "nfts-2.0" }
   },
   {
-    content: "NFT utility in Nuxchain includes: Governance voting rights, staking bonuses, exclusive access to features, marketplace fee discounts, participation in special airdrops, gamification rewards, and cross-platform benefits. These utilities make NFTs functional assets rather than just collectibles, providing ongoing value to holders and creating a sustainable ecosystem. Commands: 'Nuxchain NFT', 'Nuxchain NFT utility', 'Nuxchain NFT benefits'.",
+    content: "NFT utility in Nuxchain includes: Governance voting rights, staking bonuses (enhanced APY for NFT holders), exclusive access to features, marketplace fee discounts, participation in special airdrops, gamification rewards, and cross-platform benefits. NFT holders may receive enhanced staking rates on their POL deposits, reduced marketplace fees, and priority access to new features. These utilities make NFTs functional assets rather than just collectibles, providing ongoing value to holders and creating a sustainable ecosystem. Commands: 'Nuxchain NFT', 'Nuxchain NFT utility', 'Nuxchain NFT benefits'.",
     metadata: { type: "nft", category: "utility", topic: "benefits" }
   },
 
   // === AIRDROPS ===
   {
-    content: "Nuxchain airdrops reward early adopters and active users. Eligibility based on wallet activity, staking participation, platform engagement, and holding specific NFTs. Current upcoming airdrops include: NUVO Token Pre-Launch (Q2 2025) for early platform users with enhanced staking rewards, and Governance NFT airdrop for active community members with voting rights and exclusive access. Registration is required through the Airdrops Dashboard. Commands: 'Nuxchain airdrop', 'Nuxchain rewards', 'Nuxchain NUVO token', 'Nuxchain governance NFT'.",
+    content: "Nuxchain airdrops reward early adopters and active users with POL tokens and exclusive NFTs. Eligibility based on wallet activity, staking participation, platform engagement, and holding specific NFTs. Current upcoming airdrops include: POL Token rewards for early platform users with enhanced staking rewards, and Governance NFT airdrop for active community members with voting rights and exclusive access. Registration is required through the Airdrops Dashboard. Commands: 'Nuxchain airdrop', 'Nuxchain rewards', 'Nuxchain POL airdrop', 'Nuxchain governance NFT'.",
     metadata: { type: "airdrop", category: "rewards", topic: "eligibility" }
   },
   {
@@ -133,7 +141,7 @@ export const knowledgeBase = [
 
   // === TOKENIZATION TOOLS ===
   {
-    content: "Nuxchain provides comprehensive tokenization tools for creating and managing digital assets. Features include: ERC-20 token creation with customizable parameters, ERC-721 NFT minting with metadata management, batch minting capabilities, royalty settings for creators, and whitelist management for exclusive launches. The tokenization section offers step-by-step guides and templates for different token types. Integration with IPFS for decentralized metadata storage. Commands: 'Nuxchain tokenization', 'Nuxchain create token', 'Nuxchain mint NFT', 'Nuxchain whitelist'.",
+    content: "Nuxchain provides comprehensive tokenization tools for creating and managing digital assets. Features include: ERC-20 token creation with customizable parameters, ERC-721 NFT minting with metadata management, batch minting capabilities, royalty settings for creators, and whitelist management for exclusive launches. The tokenization section offers step-by-step guides and templates for different token types. Integration with IPFS for decentralized metadata storage. All tokenization transactions require POL for gas fees. Commands: 'Nuxchain tokenization', 'Nuxchain create token', 'Nuxchain mint NFT', 'Nuxchain whitelist'.",
     metadata: { type: "tokenization", category: "tools", topic: "overview" }
   },
   {
@@ -143,11 +151,11 @@ export const knowledgeBase = [
 
   // === TECHNICAL INFORMATION ===
   {
-    content: "Nuxchain platform supports wallets: MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet. Make sure to have POL for gas fees in transactions. The platform uses secure RPC endpoints and implements best practices for wallet security including transaction signing and approval flows. ENS (Ethereum Name Service) is supported for user-friendly addresses. Commands: 'Nuxchain wallets', 'Nuxchain ENS'.",
+    content: "Nuxchain platform supports wallets: MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet. Make sure to have POL tokens for gas fees in all transactions. The platform operates on Polygon network (Chain ID: 137) and uses POL as the native gas token. All staking deposits, marketplace purchases, and contract interactions require POL. The platform uses secure RPC endpoints and implements best practices for wallet security including transaction signing and approval flows. ENS (Ethereum Name Service) is supported for user-friendly addresses. Commands: 'Nuxchain wallets', 'Nuxchain ENS', 'Nuxchain POL'.",
     metadata: { type: "technical", category: "wallets", topic: "compatibility" }
   },
   {
-    content: "Gas fees in Nuxchain are optimized on Polygon network with average transaction costs under $0.01. Fees vary according to network congestion: ~1-30 gwei for normal transactions. The platform implements gas optimization techniques including batch transactions and efficient contract calls. Use tools like Polygon Gas Station to monitor current rates. Emergency functions may have higher gas costs due to additional security checks. Commands: 'Nuxchain gas fees', 'Nuxchain gas optimization'.",
+    content: "Gas fees in Nuxchain are paid in POL on Polygon network with average transaction costs under $0.01. Fees vary according to network congestion: ~1-30 gwei for normal transactions. The platform implements gas optimization techniques including batch transactions and efficient contract calls. Use tools like Polygon Gas Station to monitor current rates. Emergency functions may have higher gas costs due to additional security checks. Always ensure you have sufficient POL in your wallet for gas fees before attempting any transaction. Commands: 'Nuxchain gas fees', 'Nuxchain gas optimization', 'Nuxchain POL gas'.",
     metadata: { type: "technical", category: "transactions", topic: "gas-fees" }
   },
   {
@@ -165,16 +173,16 @@ export const knowledgeBase = [
 
   // === FAQ ===
   {
-    content: "What if my transaction fails in Nuxchain? Check: sufficient POL for gas, wallet connected, limits not exceeded, contract not paused. Try increasing gas limit. Common errors include 'insufficient funds', 'execution reverted', or 'user rejected transaction'. For persistent issues, check Polygonscan for detailed error messages. Commands: 'Nuxchain transaction fails', 'Nuxchain troubleshooting'.",
-    metadata: { type: "faq", category: "troubleshooting", topic: "transactions" }
+    content: "FAQ - Staking Rewards: Rewards are calculated automatically based on your staking amount, duration, and lockup period. Check your dashboard for real-time calculations. Rewards can be claimed after lockup period expires. APY varies by lockup tier: no lockup (87.6%), 30 days (105.1%), 90 days (140.2%), 180 days (175.2%), 365 days (262.8%). Compound rewards regularly for maximum returns by reinvesting your rewards into new deposits. During lockup period, you cannot withdraw principal but rewards continue to accumulate. Emergency withdrawal available when contract is paused. Commands: 'Nuxchain staking rewards', 'Nuxchain APY calculation', 'Nuxchain compound rewards'.",
+    metadata: { type: "faq", category: "staking", topic: "rewards" }
   },
   {
-    content: "How to maximize staking rewards in Nuxchain? 1) Stake larger amounts for better compound effects, 2) Use compound function regularly to reinvest rewards, 3) Keep funds staked longer for maximum ROI multiplier (up to 1.25x), 4) Monitor gas fees and compound during low-cost periods. The hourly ROI of 0.01% compounds over time for significant returns. Commands: 'Nuxchain maximize rewards', 'Nuxchain staking tips'.",
-    metadata: { type: "faq", category: "optimization", topic: "staking-rewards" }
+    content: "FAQ - POL Token: POL is Polygon's native token used for all transactions on Nuxchain. You need POL for: gas fees on all transactions, staking deposits to earn rewards, purchasing NFTs in the marketplace, paying marketplace fees. You can acquire POL from exchanges like Binance, Coinbase, or KuCoin, then bridge it to Polygon network. Always keep some POL in your wallet for gas fees. Minimum staking amount is 5 POL, maximum is 10,000 POL per deposit. Commands: 'Nuxchain POL', 'Nuxchain Polygon token', 'What is POL', 'How to get POL'.",
+    metadata: { type: "faq", category: "token", topic: "pol-usage" }
   },
   {
-    content: "How to buy and sell NFTs on Nuxchain marketplace? To buy: 1) Browse marketplace or use filters, 2) Click on desired NFT, 3) Review details and price, 4) Click 'Buy Now' and confirm transaction. To sell: 1) Go to your profile/NFTs section, 2) Select NFT to list, 3) Set price in POL, 4) Confirm listing transaction. You can also make offers on unlisted NFTs or accept offers on your NFTs. Commands: 'Nuxchain buy NFT', 'Nuxchain sell NFT', 'Nuxchain NFT offers'.",
-    metadata: { type: "faq", category: "tutorial", topic: "nft-trading" }
+    content: "FAQ - NFT Trading: To trade NFTs, connect your wallet and browse the marketplace. All NFT prices are listed in POL. You can buy instantly or make offers. Sellers can accept, reject, or counter offers. All transactions are secured by smart contracts and require POL for gas fees. Check NFT history and authenticity before purchasing. Use filters to find specific collections or price ranges. Marketplace fee is 2.5% paid in POL. Commands: 'Nuxchain NFT trading', 'Nuxchain marketplace help', 'Nuxchain NFT offers'.",
+    metadata: { type: "faq", category: "nft", topic: "trading" }
   },
   {
     content: "Can I cancel an offer in Nuxchain marketplace? Yes, you can cancel offers you've made using cancelOffer(). The deposited POL is automatically returned. Commands: 'Nuxchain cancel offer'.",
@@ -199,15 +207,11 @@ export const knowledgeBase = [
 
   // === TOKENIZATION ===
   {
-    content: "Asset tokenization in Nuxchain: NUVOS allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset. / Tokenización de activos en Nuxchain: NUVOS permite tokenizar activos del mundo real como inmuebles, arte, commodities. Cada token representa una fracción del activo subyacente. Commands: 'Nuxchain tokenization'.",
+    content: "Asset tokenization in Nuxchain: The platform allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset. All tokenization transactions use POL for gas fees. Commands: 'Nuxchain tokenization'.",
     metadata: { type: "tokenization", category: "assets", topic: "real-world-assets" }
   },
   {
-    content: "NUVOS token utility in Nuxchain: Governance (voting on proposals), staking (generando rewards), fees (transaction discounts), premium access to features. / Utilidad del token NUVOS en Nuxchain: Governance (votación en propuestas), staking (generar recompensas), fees (descuentos en transacciones), acceso premium a funcionalidades. Commands: 'Nuxchain token utility'.",
-    metadata: { type: "tokenization", category: "utility", topic: "token-use-cases" }
-  },
-  {
-    content: "NFT fractionalization in Nuxchain: High-value NFTs can be fractionalized into multiple ERC-20 tokens, enabling shared ownership and greater liquidity. / Fraccionamiento de NFTs en Nuxchain: Los NFTs de alto valor pueden fraccionarse en múltiples tokens ERC-20, permitiendo propiedad compartida y mayor liquidez. Commands: 'Nuxchain fractionalization'.",
+    content: "NFT fractionalization in Nuxchain: High-value NFTs can be fractionalized into multiple ERC-20 tokens, enabling shared ownership and greater liquidity. Transactions require POL for gas fees. Commands: 'Nuxchain fractionalization'.",
     metadata: { type: "tokenization", category: "nft", topic: "fractionalization" }
   },
 

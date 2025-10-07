@@ -1,5 +1,44 @@
+interface CacheEntry<T = unknown> {
+  value: T;
+  isCompressed: boolean;
+  expiresAt: number;
+  size: number;
+  accessCount: number;
+  createdAt: number;
+}
+
+interface CacheOptions {
+  maxSize?: number;
+  defaultTTL?: number;
+  compression?: boolean;
+  compressionThreshold?: number;
+}
+
+interface CacheStats {
+  size: number;
+  maxSize: number;
+  totalSize: number;
+  expiredCount: number;
+  hitRate: number;
+  memoryUsage: number;
+}
+
+interface PopularQuery {
+  key: string;
+  response: string;
+  ttl?: number;
+}
+
 export class EnhancedCacheManager {
-  constructor(options = {}) {
+  private maxSize: number;
+  private defaultTTL: number;
+  private cache: Map<string, CacheEntry>;
+  private accessTimes: Map<string, number>;
+  private cleanupInterval: NodeJS.Timeout;
+  private compressionEnabled: boolean;
+  private compressionThreshold: number;
+
+  constructor(options: CacheOptions = {}) {
     this.maxSize = options.maxSize || 100;
     this.defaultTTL = options.defaultTTL || 1800000; // 30 minutes
     this.cache = new Map();
@@ -9,14 +48,14 @@ export class EnhancedCacheManager {
     this.compressionThreshold = options.compressionThreshold || 1000; // Compress if > 1KB
   }
 
-  async set(key, value, ttl = this.defaultTTL) {
+  async set(key: string, value: string, ttl: number = this.defaultTTL): Promise<boolean> {
     // Remove oldest if at capacity
     if (this.cache.size >= this.maxSize) {
       this.evictLRU();
     }
 
     // Compress large values if compression is enabled
-    let processedValue = value;
+    let processedValue: string | Uint8Array = value;
     let isCompressed = false;
     
     if (this.compressionEnabled && typeof value === 'string' && value.length > this.compressionThreshold) {
@@ -30,7 +69,7 @@ export class EnhancedCacheManager {
     }
 
     const expiresAt = Date.now() + ttl;
-    const entry = {
+    const entry: CacheEntry<string | Uint8Array> = {
       value: processedValue,
       isCompressed,
       expiresAt,
@@ -45,7 +84,7 @@ export class EnhancedCacheManager {
     return true;
   }
 
-  async get(key) {
+  async get(key: string): Promise<string | null> {
     const entry = this.cache.get(key);
     
     if (!entry) {
@@ -63,7 +102,7 @@ export class EnhancedCacheManager {
     this.accessTimes.set(key, Date.now());
     
     // Decompress if needed
-    if (entry.isCompressed) {
+    if (entry.isCompressed && entry.value instanceof Uint8Array) {
       try {
         return await this.decompressData(entry.value);
       } catch (error) {
@@ -73,10 +112,10 @@ export class EnhancedCacheManager {
       }
     }
     
-    return entry.value;
+    return entry.value as string;
   }
 
-  has(key) {
+  has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
     
@@ -88,19 +127,19 @@ export class EnhancedCacheManager {
     return true;
   }
 
-  delete(key) {
+  delete(key: string): void {
     this.cache.delete(key);
     this.accessTimes.delete(key);
   }
 
-  clear() {
+  clear(): void {
     this.cache.clear();
     this.accessTimes.clear();
   }
 
   // LRU eviction
-  evictLRU() {
-    let oldestKey = null;
+  private evictLRU(): void {
+    let oldestKey: string | null = null;
     let oldestTime = Date.now();
 
     for (const [key, time] of this.accessTimes) {
@@ -116,12 +155,12 @@ export class EnhancedCacheManager {
   }
 
   // Cleanup expired entries
-  cleanup() {
+  cleanup(force = false): void {
     const now = Date.now();
-    const keysToDelete = [];
+    const keysToDelete: string[] = [];
 
     for (const [key, entry] of this.cache) {
-      if (now > entry.expiresAt) {
+      if (now > entry.expiresAt || force) {
         keysToDelete.push(key);
       }
     }
@@ -129,19 +168,22 @@ export class EnhancedCacheManager {
     keysToDelete.forEach(key => this.delete(key));
   }
 
-  calculateSize(value) {
+  private calculateSize(value: string | Uint8Array): number {
     if (typeof value === 'string') {
       return value.length * 2; // Rough estimate for UTF-16
+    }
+    if (value instanceof Uint8Array) {
+      return value.length;
     }
     return JSON.stringify(value).length * 2;
   }
 
-  getStats() {
+  getStats(): CacheStats {
     const now = Date.now();
     let totalSize = 0;
     let expiredCount = 0;
 
-    for (const [key, entry] of this.cache) {
+    for (const [, entry] of this.cache) {
       totalSize += entry.size;
       if (now > entry.expiresAt) {
         expiredCount++;
@@ -158,7 +200,7 @@ export class EnhancedCacheManager {
     };
   }
 
-  calculateHitRate() {
+  private calculateHitRate(): number {
     let totalAccess = 0;
     for (const entry of this.cache.values()) {
       totalAccess += entry.accessCount;
@@ -166,7 +208,7 @@ export class EnhancedCacheManager {
     return totalAccess / Math.max(this.cache.size, 1);
   }
 
-  estimateMemoryUsage() {
+  private estimateMemoryUsage(): number {
     let usage = 0;
     for (const entry of this.cache.values()) {
       usage += entry.size;
@@ -175,12 +217,12 @@ export class EnhancedCacheManager {
   }
 
   // Preload popular responses
-  preloadCache(popularQueries) {
-    return Promise.all(
+  async preloadCache(popularQueries: PopularQuery[]): Promise<void> {
+    await Promise.all(
       popularQueries.map(async query => {
         if (!this.has(query.key)) {
           // Simulate preloading - in real app, fetch from API
-          return new Promise(resolve => {
+          return new Promise<void>(resolve => {
             setTimeout(() => {
               this.set(query.key, query.response, query.ttl || this.defaultTTL);
               resolve();
@@ -192,7 +234,7 @@ export class EnhancedCacheManager {
   }
 
   // Simple compression using built-in compression
-  async compressData(data) {
+  private async compressData(data: string): Promise<Uint8Array | string> {
     if (typeof CompressionStream !== 'undefined') {
       const stream = new CompressionStream('gzip');
       const writer = stream.writable.getWriter();
@@ -201,7 +243,7 @@ export class EnhancedCacheManager {
       writer.write(new TextEncoder().encode(data));
       writer.close();
       
-      const chunks = [];
+      const chunks: Uint8Array[] = [];
       let done = false;
       
       while (!done) {
@@ -210,23 +252,31 @@ export class EnhancedCacheManager {
         if (value) chunks.push(value);
       }
       
-      return new Uint8Array(chunks.reduce((acc, chunk) => [...acc, ...chunk], []));
+      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      const result = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      return result;
     }
     
     // Fallback: simple string compression using LZ-like algorithm
     return this.simpleCompress(data);
   }
   
-  async decompressData(compressedData) {
+  private async decompressData(compressedData: Uint8Array): Promise<string> {
     if (typeof DecompressionStream !== 'undefined' && compressedData instanceof Uint8Array) {
       const stream = new DecompressionStream('gzip');
       const writer = stream.writable.getWriter();
       const reader = stream.readable.getReader();
       
-      writer.write(compressedData);
+      writer.write(new Uint8Array(compressedData.buffer as ArrayBuffer));
       writer.close();
       
-      const chunks = [];
+      const chunks: Uint8Array[] = [];
       let done = false;
       
       while (!done) {
@@ -235,25 +285,33 @@ export class EnhancedCacheManager {
         if (value) chunks.push(value);
       }
       
-      return new TextDecoder().decode(new Uint8Array(chunks.reduce((acc, chunk) => [...acc, ...chunk], [])));
+      const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+      const result = new Uint8Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+      }
+      
+      return new TextDecoder().decode(result);
     }
     
     // Fallback: simple decompression
-    return this.simpleDecompress(compressedData);
+    return this.simpleDecompress(new TextDecoder().decode(compressedData));
   }
   
-  simpleCompress(str) {
+  private simpleCompress(str: string): string {
     // Simple run-length encoding for repeated characters
     return str.replace(/(.)\1{2,}/g, (match, char) => `${char}${match.length}`);
   }
   
-  simpleDecompress(str) {
+  private simpleDecompress(str: string): string {
     // Reverse simple run-length encoding
-    return str.replace(/(.)([0-9]+)/g, (match, char, count) => char.repeat(parseInt(count)));
+    return str.replace(/(.)([0-9]+)/g, (_match, char, count) => char.repeat(parseInt(count)));
   }
   
   // Enhanced memory management
-  optimizeMemory() {
+  optimizeMemory(): void {
     const stats = this.getStats();
     
     // If memory usage is high, be more aggressive with cleanup
@@ -268,7 +326,7 @@ export class EnhancedCacheManager {
     }
   }
 
-  destroy() {
+  destroy(): void {
     clearInterval(this.cleanupInterval);
     this.clear();
   }

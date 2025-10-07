@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast'
-import ChatMessage from '../components/chat/ChatMessage'
+import ChatMessage from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
@@ -53,7 +53,7 @@ function Chat() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSendMessage(e as any)
+      handleSendMessage(e as React.FormEvent)
     }
   }
 

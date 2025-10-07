@@ -60,9 +60,9 @@ const TokenizationSection: React.FC = () => {
           {/* Right side - Image - Solo en desktop */}
           {!isMobile && (
             <div className="flex justify-center">
-              <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-lg animate-fade-in-right">
                 <img 
-                  src="/GiftBoxNFT.webp" 
+                  src="/tokenization.webp" 
                   alt="NFT Tokenization" 
                   className="w-96 h-96 object-contain mx-auto"
                 />

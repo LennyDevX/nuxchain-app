@@ -1,17 +1,42 @@
 import { debounce } from '../../../utils/performance/debounce';
+import type { ChatMessage } from './chatReducer';
 
 const STORAGE_KEY = 'nuvos_chat_conversations';
 const MAX_STORED_CONVERSATIONS = 10;
 
+export interface StoredConversation {
+  id: string;
+  timestamp: number;
+  messages: ChatMessage[];
+  preview: string;
+  title: string;
+}
+
+export interface ConversationStats {
+  total: number;
+  totalMessages: number;
+  oldestTimestamp: number | null;
+  newestTimestamp: number | null;
+}
+
+interface MinimalConversationData {
+  id: number;
+  timestamp: number;
+  messageCount: number;
+  preview: string;
+}
+
 export class ConversationManager {
+  private debouncedSaveConversation: (messages: ChatMessage[], conversationId: string) => void;
+
   constructor() {
-    this.saveConversationToStorage = debounce(this._saveConversation.bind(this), 2000);
+    this.debouncedSaveConversation = debounce(this._saveConversation.bind(this), 2000);
   }
 
-  _saveConversation(messages, conversationId) {
+  private _saveConversation(messages: ChatMessage[], conversationId: string): void {
     if (messages.length === 0) return;
 
-    const saveOperation = () => {
+    const saveOperation = (): void => {
       try {
         let stored = this.loadConversationsFromStorage();
         const existingIndex = stored.findIndex(c => c.id === conversationId);
@@ -23,12 +48,12 @@ export class ConversationManager {
           stored[existingIndex].preview = messages[0]?.text?.substring(0, 100) || 'Updated conversation';
         } else {
           // Add new conversation
-          const newConversation = {
+          const newConversation: StoredConversation = {
             id: conversationId || crypto.randomUUID(),
             timestamp: Date.now(),
             messages: messages.slice(),
             preview: messages[0]?.text?.substring(0, 100) || 'New conversation',
-            title: messages[0]?.text?.substring(0, 50) || 'New Chat' // Add a default title
+            title: messages[0]?.text?.substring(0, 50) || 'New Chat'
           };
 
           stored = [newConversation, ...stored];
@@ -42,16 +67,21 @@ export class ConversationManager {
       }
     };
 
-    if (window.requestIdleCallback) {
+    if ('requestIdleCallback' in window) {
       window.requestIdleCallback(saveOperation, { timeout: 2000 });
     } else {
       setTimeout(saveOperation, 100);
     }
   }
 
-  updateConversationTitle(conversationId, newTitle) {
+  // Expose a public method to save conversation using the debounced function
+  public saveConversation(messages: ChatMessage[], conversationId: string): void {
+    this.debouncedSaveConversation(messages, conversationId);
+  }
+
+  updateConversationTitle(conversationId: string, newTitle: string): boolean {
     try {
-      let stored = this.loadConversationsFromStorage();
+      const stored = this.loadConversationsFromStorage();
       const existingIndex = stored.findIndex(c => c.id === conversationId);
 
       if (existingIndex !== -1) {
@@ -66,9 +96,9 @@ export class ConversationManager {
     }
   }
 
-  _saveFallback(messages) {
+  private _saveFallback(messages: ChatMessage[]): void {
     try {
-      const minimalData = {
+      const minimalData: MinimalConversationData = {
         id: Date.now(),
         timestamp: Date.now(),
         messageCount: messages.length,
@@ -80,21 +110,22 @@ export class ConversationManager {
     }
   }
 
-  loadLastConversation() {
+  loadLastConversation(): StoredConversation | null {
     const conversations = this.loadConversationsFromStorage();
     return conversations[0] || null;
   }
 
-  loadConversationsFromStorage() {
+  loadConversationsFromStorage(): StoredConversation[] {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.warn('Failed to load conversations:', error);
       return [];
     }
   }
 
-  deleteConversation(conversationId) {
+  deleteConversation(conversationId: string): boolean {
     try {
       const stored = this.loadConversationsFromStorage();
       const filtered = stored.filter(conv => conv.id !== conversationId);
@@ -106,7 +137,7 @@ export class ConversationManager {
     }
   }
 
-  clearAllConversations() {
+  clearAllConversations(): boolean {
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(`${STORAGE_KEY}_minimal`);
@@ -117,7 +148,7 @@ export class ConversationManager {
     }
   }
 
-  getConversationStats() {
+  getConversationStats(): ConversationStats {
     const conversations = this.loadConversationsFromStorage();
     return {
       total: conversations.length,

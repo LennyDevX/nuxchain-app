@@ -1,5 +1,3 @@
-
-
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,8 +11,8 @@ const AirdropsInfo = () => {
         {/* Image Section - Hidden on mobile */}
         {!isMobile && (
           <div className="md:w-1/2 flex justify-center relative">
-            <div className="relative">
-              <img src="/NFTsImage.png" alt="NFT Airdrops" className="w-96 h-96 object-contain mx-auto" />
+            <div className="relative rounded-2xl overflow-hidden shadow-lg">
+              <img src="/Airdrops.webp" alt="NFT Airdrops" className="w-96 h-96 object-cover mx-auto" />
             </div>
           </div>
         )}

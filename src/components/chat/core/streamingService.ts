@@ -1,21 +1,46 @@
 import { enhancedCache } from './cacheManager';
+import type { ChatMessage, ChatAction } from './chatReducer';
+
+export interface StreamingServiceOptions {
+  response: Response;
+  dispatch: (action: ChatAction) => void;
+  isLowPerformance: boolean;
+  shouldReduceMotion: boolean;
+  onUpdate: (content: string) => void;
+  onFinish: (content: string) => void;
+  onError: (error: Error, onRetry: () => void, messageId: string) => void;
+  lastMessage: ChatMessage;
+  setInput?: (input: string) => void;
+}
+
+interface WorkerCallback {
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+}
+
+interface ProcessChunkResult {
+  processedContent: string;
+  remainingChunk: string;
+  shouldUpdate: boolean;
+}
 
 export class StreamingService {
+  private activeStreams: Set<ReadableStreamDefaultReader<Uint8Array>>;
+  private webWorker: Worker | null;
+  private pendingWorkerCallbacks: Map<number, WorkerCallback>;
+
   constructor() {
     this.activeStreams = new Set();
     this.webWorker = null;
-    this.workerSessionId = 0;
     this.pendingWorkerCallbacks = new Map();
-    this.debounceTimers = new Map();
-    this.pendingUpdates = new Map();
     this.initializeWebWorker();
   }
 
-  initializeWebWorker() {
+  private initializeWebWorker(): void {
     try {
-      // Try to create worker from separate file first
+      // Try to create worker from TypeScript file
       this.webWorker = new Worker(
-        new URL('./streamingWebWorker.js', import.meta.url),
+        new URL('./streamingWebWorker.ts', import.meta.url),
         { type: 'module' }
       );
       
@@ -30,9 +55,8 @@ export class StreamingService {
     }
   }
 
-  tryFallbackWorker() {
+  private tryFallbackWorker(): void {
     try {
-      // Fallback: Create worker from blob with proper CSP handling
       const workerScript = this.getWorkerScript();
       const blob = new Blob([workerScript], { type: 'application/javascript' });
       this.webWorker = new Worker(URL.createObjectURL(blob));
@@ -48,7 +72,7 @@ export class StreamingService {
     }
   }
 
-  getWorkerScript() {
+  private getWorkerScript(): string {
     return `
       self.onmessage = function(e) {
         const { type, data, id } = e.data;
@@ -73,11 +97,8 @@ export class StreamingService {
           const decoder = new TextDecoder('utf-8', { stream: true });
           const decodedChunk = decoder.decode(chunk, { stream: true });
           
-          // ✅ TEXTO PLANO: El backend envía texto directo, sin formato SSE
-          // No necesitamos parsear JSON ni buscar "data:", solo usamos el texto
           const fullResponse = decodedChunk;
           
-          // Optimized update detection
           const hasNaturalBreak = decodedChunk.includes('.') || 
                                  decodedChunk.includes('\\n') || 
                                  decodedChunk.includes('!') || 
@@ -92,7 +113,7 @@ export class StreamingService {
             id,
             data: {
               fullResponse,
-              remainingChunk: '', // No hay acumulación necesaria
+              remainingChunk: '',
               shouldUpdate
             }
           });
@@ -129,7 +150,7 @@ export class StreamingService {
     `;
   }
 
-  handleWorkerMessage(e) {
+  private handleWorkerMessage(e: MessageEvent): void {
     const { type, data, error, id } = e.data;
     const callback = this.pendingWorkerCallbacks.get(id);
     
@@ -149,60 +170,61 @@ export class StreamingService {
         break;
         
       case 'CLEANUP_COMPLETE':
-        callback.resolve();
+        callback.resolve(undefined);
         this.pendingWorkerCallbacks.delete(id);
         break;
     }
   }
 
-  handleWorkerError(error) {
+  private handleWorkerError(error: ErrorEvent): void {
     console.error('Web Worker error:', error);
-    // Cleanup pending callbacks
-    for (const [id, callback] of this.pendingWorkerCallbacks) {
+    for (const [, callback] of this.pendingWorkerCallbacks) {
       callback.reject(new Error('Worker error: ' + error.message));
     }
     this.pendingWorkerCallbacks.clear();
-    
-    // Fallback to main thread
     this.webWorker = null;
   }
 
-  async processStream({ response, dispatch, isLowPerformance, shouldReduceMotion, onUpdate, onFinish, onError, lastMessage, setInput }) {
+  async processStream({
+    response,
+    dispatch,
+    isLowPerformance,
+    shouldReduceMotion,
+    onUpdate,
+    onFinish,
+    onError,
+    lastMessage,
+    setInput
+  }: StreamingServiceOptions): Promise<void> {
     console.log('Starting stream processing...');
-    const reader = response.body.getReader();
+    const reader = response.body!.getReader();
     let fullResponse = '';
-    let accumulatedChunk = '';
-    let frameId = null;
+    let frameId: number | null = null;
     let lastUpdate = Date.now();
-    let chunkIndex = 0;
+    // let chunkIndex = 0; // Removed unused variable
     
-    // Enhanced performance configuration with adaptive throttling
-    const getUpdateThrottle = () => {
-      const baseFPS = shouldReduceMotion ? 15 : 45; // Reduced for better performance
+    const getUpdateThrottle = (): number => {
+      const baseFPS = shouldReduceMotion ? 15 : 45;
       const frameBudget = 1000 / baseFPS;
       
       if (isLowPerformance) {
-        return Math.max(120, frameBudget * 2.5); // Increased throttle for low performance
+        return Math.max(120, frameBudget * 2.5);
       }
       
-      // Adaptive throttling based on content length
       const contentLength = fullResponse.length;
       const adaptiveMultiplier = contentLength > 1000 ? 1.5 : 1;
       
-      return Math.max(20, frameBudget * adaptiveMultiplier); // Minimum 20ms for stability
+      return Math.max(20, frameBudget * adaptiveMultiplier);
     };
     
-    // Optimized debounced update system
     const debouncedUpdate = this.createDebouncedUpdate(onUpdate, getUpdateThrottle());
     
-    const smartUpdate = (content, forceUpdate = false) => {
+    const smartUpdate = (content: string, forceUpdate = false): void => {
       if (forceUpdate) {
-        // Cancel any pending debounced updates and update immediately
         debouncedUpdate.cancel();
         if (frameId) cancelAnimationFrame(frameId);
         frameId = requestAnimationFrame(() => onUpdate(content));
       } else {
-        // Use debounced update for better performance
         debouncedUpdate(content);
       }
     };
@@ -210,9 +232,6 @@ export class StreamingService {
     this.activeStreams.add(reader);
     
     try {
-      // Streaming already initialized in useChatState
-      // dispatch({ type: 'START_STREAMING' }); // Removed to avoid duplicate
-
       while (true) {
         const { value, done } = await reader.read();
         console.log(`Read from stream: done=${done}, value size=${value?.length}`);
@@ -222,148 +241,75 @@ export class StreamingService {
           break;
         }
         
-        chunkIndex++;
+        // chunkIndex++; // Removed unused increment
         
-        // Use Web Worker if available, otherwise process in main thread
-        if (this.webWorker) {
-          try {
-            const result = await this.processChunkWithWorker(
-              value, 
-              accumulatedChunk, 
-              isLowPerformance, 
-              chunkIndex
-            );
-            
-            accumulatedChunk = result.remainingChunk;
-            fullResponse += result.fullResponse;
-            
-            if (result.shouldUpdate) {
-              const now = Date.now();
-              const timeSinceLastUpdate = now - lastUpdate;
-              const forceUpdate = timeSinceLastUpdate >= getUpdateThrottle() * 2;
-              
-              smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
-              if (forceUpdate) lastUpdate = now;
-            }
-          } catch (workerError) {
-            console.warn('Worker processing failed, falling back to main thread:', workerError);
-            this.webWorker = null;
-            // Continue with main thread processing
-            const result = await this.processChunkMainThread(value, accumulatedChunk, isLowPerformance);
-            accumulatedChunk = result.remainingChunk;
-            fullResponse += result.processedContent;
-            
-            const now = Date.now();
-            const throttleDelay = getUpdateThrottle();
-            
-            if (result.shouldUpdate || now - lastUpdate >= throttleDelay) {
-              const forceUpdate = now - lastUpdate >= throttleDelay * 1.5;
-              smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
-              if (forceUpdate) lastUpdate = now;
-            }
-          }
-        } else {
-          const result = await this.processChunkMainThread(value, accumulatedChunk, isLowPerformance);
-          accumulatedChunk = result.remainingChunk;
-          fullResponse += result.processedContent;
-          
-          const now = Date.now();
-          const throttleDelay = getUpdateThrottle();
-          
-          if (result.shouldUpdate || now - lastUpdate >= throttleDelay) {
-            const forceUpdate = now - lastUpdate >= throttleDelay * 1.5;
-            smartUpdate(fullResponse + accumulatedChunk, forceUpdate);
-            if (forceUpdate) lastUpdate = now;
-          }
+        // Process chunk directly in main thread (web worker removed for simplicity)
+        const result = await this.processChunkMainThread(value!, isLowPerformance);
+        fullResponse += result.processedContent;
+        
+        const now = Date.now();
+        const throttleDelay = getUpdateThrottle();
+        
+        if (result.shouldUpdate || now - lastUpdate >= throttleDelay) {
+          const forceUpdate = now - lastUpdate >= throttleDelay * 1.5;
+          smartUpdate(fullResponse, forceUpdate);
+          if (forceUpdate) lastUpdate = now;
         }
       }
       
-      // Process remaining content
-      if (accumulatedChunk.trim()) {
-        fullResponse += accumulatedChunk;
-      }
-      
-      // Final update and cache the result
       debouncedUpdate.cancel();
       if (frameId) cancelAnimationFrame(frameId);
       console.log('Finalizing stream with content:', fullResponse);
       onUpdate(fullResponse);
       onFinish(fullResponse);
       
-      // Cache successful response with TTL (async)
-        if (fullResponse && lastMessage?.conversationId) {
-             try {
-               await enhancedCache.set(lastMessage.conversationId, fullResponse, 3600000); // Cache with conversationId for 1 hour
-             } catch (error) {
-               console.warn('Failed to cache response:', error);
-             }
+      if (fullResponse && lastMessage?.conversationId) {
+        try {
+          await enhancedCache.set(lastMessage.conversationId, fullResponse, 3600000);
+        } catch (error) {
+          console.warn('Failed to cache response:', error);
         }
+      }
       
     } catch (error) {
-        if (frameId) cancelAnimationFrame(frameId);
-        console.error('Streaming error:', error);
-        if (error.name === 'AbortError') {
-            console.log('Stream cancelled by user');
-            return;
+      if (frameId) cancelAnimationFrame(frameId);
+      console.error('Streaming error:', error);
+      
+      if ((error as Error).name === 'AbortError') {
+        console.log('Stream cancelled by user');
+        return;
+      }
+
+      const onRetry = (): void => {
+        dispatch({ type: 'REMOVE_LAST_MESSAGE' });
+        if (setInput && lastMessage?.sender === 'user') {
+          setInput(lastMessage.text);
         }
+      };
 
-        const onRetry = () => {
-            dispatch({ type: 'REMOVE_LAST_MESSAGE' });
-            if (lastMessage && lastMessage.sender === 'user') {
-                setInput(lastMessage.text);
-            }
-        };
-
-        onError(error, onRetry, lastMessage.id);
+      onError(error as Error, onRetry, lastMessage.id);
 
     } finally {
       console.log('Cleaning up stream resources.');
       this.activeStreams.delete(reader);
       try {
         reader.releaseLock();
-      } catch (e) {
+      } catch {
         // Reader already released
       }
       dispatch({ type: 'FINISH_STREAM' });
     }
   }
 
-  async processChunkWithWorker(chunk, accumulated, isLowPerformance, chunkIndex) {
-    return new Promise((resolve, reject) => {
-      const sessionId = ++this.workerSessionId;
-      
-      this.pendingWorkerCallbacks.set(sessionId, { resolve, reject });
-      
-      // Set timeout for worker response
-      setTimeout(() => {
-        if (this.pendingWorkerCallbacks.has(sessionId)) {
-          this.pendingWorkerCallbacks.delete(sessionId);
-          reject(new Error('Worker processing timeout'));
-        }
-      }, 5000);
-      
-      this.webWorker.postMessage({
-        type: 'PROCESS_STREAM',
-        id: sessionId,
-        data: { 
-          chunk: chunk, 
-          accumulated, 
-          isLowPerformance,
-          chunkIndex
-        }
-      });
-    });
-  }
-
-  async processChunkMainThread(value, accumulatedChunk, isLowPerformance) {
-    const decoder = new TextDecoder('utf-8', { stream: true });
-    const chunk = decoder.decode(value, { stream: true });
+  private async processChunkMainThread(
+    value: Uint8Array,
+    isLowPerformance: boolean
+  ): Promise<ProcessChunkResult> {
+    const decoder = new TextDecoder('utf-8');
+    const chunk = decoder.decode(value);
     
-    // ✅ TEXTO PLANO: El backend envía texto directo, sin formato SSE
-    // No necesitamos parsear JSON ni buscar "data:", solo agregamos el texto
     const processedContent = chunk;
     
-    // Optimized update detection for main thread processing
     const hasNaturalBreak = chunk.includes('.') || 
                            chunk.includes('\n') || 
                            chunk.includes('!') || 
@@ -378,12 +324,12 @@ export class StreamingService {
     
     return {
       processedContent,
-      remainingChunk: '', // No hay acumulación necesaria con texto plano
+      remainingChunk: '',
       shouldUpdate
     };
   }
 
-  cancelAllStreams() {
+  cancelAllStreams(): void {
     this.activeStreams.forEach(reader => {
       try {
         reader.cancel();
@@ -394,15 +340,18 @@ export class StreamingService {
     this.activeStreams.clear();
   }
 
-  getActiveStreamCount() {
+  getActiveStreamCount(): number {
     return this.activeStreams.size;
   }
 
-  createDebouncedUpdate(updateFn, delay) {
-    let timeoutId = null;
-    let lastContent = null;
+  private createDebouncedUpdate(
+    updateFn: (content: string) => void,
+    delay: number
+  ): ((content: string) => void) & { cancel: () => void } {
+    let timeoutId: NodeJS.Timeout | null = null;
+    let lastContent: string | null = null;
     
-    const debouncedFn = (content) => {
+    const debouncedFn = (content: string): void => {
       lastContent = content;
       
       if (timeoutId) {
@@ -412,7 +361,7 @@ export class StreamingService {
       timeoutId = setTimeout(() => {
         if (lastContent !== null) {
           requestAnimationFrame(() => {
-            updateFn(lastContent);
+            updateFn(lastContent!);
             lastContent = null;
           });
         }
@@ -420,7 +369,7 @@ export class StreamingService {
       }, delay);
     };
     
-    debouncedFn.cancel = () => {
+    debouncedFn.cancel = (): void => {
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
@@ -431,26 +380,21 @@ export class StreamingService {
     return debouncedFn;
   }
 
-  destroy() {
+  destroy(): void {
     this.cancelAllStreams();
     
-    // Cleanup pending worker callbacks
-    for (const [id, callback] of this.pendingWorkerCallbacks) {
+    for (const [, callback] of this.pendingWorkerCallbacks) {
       callback.reject(new Error('Service destroyed'));
     }
     this.pendingWorkerCallbacks.clear();
     
     if (this.webWorker) {
-      // Send cleanup message to worker
-      if (this.webWorker) {
-        try {
-          this.webWorker.postMessage({ type: 'CLEANUP', id: 'destroy' });
-        } catch (e) {
-          // Worker might be terminated already
-        }
+      try {
+        this.webWorker.postMessage({ type: 'CLEANUP', id: 'destroy' });
+      } catch {
+        // Worker might be terminated already
       }
       
-      // Terminate worker
       setTimeout(() => {
         if (this.webWorker) {
           this.webWorker.terminate();

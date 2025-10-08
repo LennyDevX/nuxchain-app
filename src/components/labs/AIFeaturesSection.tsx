@@ -7,36 +7,36 @@ const AIFeaturesSection: React.FC = () => {
 
   const features = [
     {
+      icon: <CpuIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
+      title: isMobile ? 'Nuvim Chat' : 'Nuvim AI Chat',
+      description: isMobile
+        ? 'Intelligent assistant for platform queries and help'
+        : 'Nuvim is an AI chat where users can ask questions, get help, and receive real-time recommendations about all Nuxchain features.',
+      color: 'from-purple-600 to-pink-600'
+    },
+    {
       icon: <BrainIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
-      title: isMobile ? 'AI Strategist' : 'NuxAI Strategist',
-      description: isMobile 
-        ? 'Smart recommendations to optimize your investments'
-        : 'Get smart recommendations and personalized strategies to optimize your investments in real-time',
-      color: 'from-purple-500 to-pink-500'
+      title: isMobile ? 'AI Strategist' : 'AI Strategist & Insights',
+      description: isMobile
+        ? 'Personalized staking recommendations'
+        : 'Advanced analysis that generates personalized staking strategies and recommended actions based on your profile.',
+      color: 'from-indigo-600 to-violet-600'
     },
     {
       icon: <BarChart3Icon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
-      title: isMobile ? 'Analytics' : 'Market Analytics',
-      description: isMobile 
-        ? 'Track trends and predict market movements'
-        : 'Advanced tools to track trends, analyze patterns, and predict market movements',
-      color: 'from-blue-500 to-cyan-500'
+      title: isMobile ? 'Staking Analytics' : 'Staking & NFT Analytics',
+      description: isMobile
+        ? 'Key staking and NFT metrics'
+        : 'Dashboards and metrics to help you understand performance, APY and the health of your positions and NFT collections.',
+      color: 'from-green-600 to-teal-600'
     },
     {
       icon: <ZapIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
-      title: isMobile ? 'Auto Trading' : 'Automated Trading',
-      description: isMobile 
-        ? 'Execute strategies automatically 24/7'
-        : 'Let AI execute your strategies automatically while you focus on what matters',
-      color: 'from-green-500 to-emerald-500'
-    },
-    {
-      icon: <CpuIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
-      title: isMobile ? 'Portfolio' : 'Portfolio Optimization',
-      description: isMobile 
-        ? 'Diversify and maximize returns'
-        : 'Intelligent diversification and risk management to maximize your returns',
-      color: 'from-amber-500 to-orange-500'
+      title: isMobile ? 'Speed & Automations' : 'Processing Speed & Automations',
+      description: isMobile
+        ? 'Fast responses and automations'
+        : 'Optimized processing and automations to accelerate common tasks (claims, compounding, KB searches).',
+      color: 'from-amber-600 to-red-600'
     }
   ];
 

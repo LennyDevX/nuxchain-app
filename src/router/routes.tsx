@@ -8,6 +8,8 @@ import Chat from '../pages/Chat';
 import Tokenization from '../pages/Tokenization';
 import Labs from '../pages/Labs';
 import Profile from '../pages/Profile';
+import Blog from '../pages/Blog';
+import CTAHub from '../pages/CTAHub';
 
 function AppRoutes() {
   return (
@@ -21,6 +23,8 @@ function AppRoutes() {
       <Route path="/create-my-nfts" element={<Tokenization />} />
       <Route path="/tokenization" element={<Tokenization />} />
       <Route path="/labs" element={<Labs />} />
+      <Route path="/blog" element={<Blog />} />
+      <Route path="/cta-hub" element={<CTAHub />} />
       <Route path="/profile/*" element={<Profile />} />
     </Routes>
   );

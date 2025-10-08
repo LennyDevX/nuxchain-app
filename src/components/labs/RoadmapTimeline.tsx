@@ -1,5 +1,6 @@
 import React from 'react';
-import { CheckIcon, CalendarIcon, CodeIcon, ZapIcon, GlobeIcon, DatabaseIcon, BarChart3Icon, CpuIcon } from './CustomIcons';
+// Removed unused ZapIcon and GlobeIcon to satisfy linter
+import { CheckIcon, CalendarIcon, CodeIcon, DatabaseIcon, BarChart3Icon, CpuIcon } from './CustomIcons';
 
 interface TimelineItemProps {
   title: string;
@@ -42,83 +43,102 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ title, description, icon, c
 };
 
 const RoadmapTimeline: React.FC = () => {
-  const roadmapItems: TimelineItemProps[] = [
+  // Fase 1: Completado
+  const completedItems: TimelineItemProps[] = [
     {
-      title: "NuxAI Strategist Launch",
-      description: "Our AI investment strategy assistant is available to all premium users.",
+      title: "Nuxchain Platform Beta",
+      description: "Operational platform with SmartStaking contract and NFT Marketplace in beta. Users can stake, trade NFTs, and interact with the ecosystem.",
       icon: <CpuIcon className="w-6 h-6" />,
       completed: true
     },
     {
-      title: "SmartStaking Optimization",
-      description: "Improvements to the APY calculation algorithm and lockup periods to maximize user earnings.",
+      title: "Profile Page & Dashboard",
+      description: "Personal profile page with user stats, NFT and staking overview, and rewards tracking.",
       icon: <DatabaseIcon className="w-6 h-6" />,
       completed: true
     },
     {
+      title: "AI Staking Analysis",
+      description: "Integrated AI-powered analysis to optimize staking strategies and provide personalized recommendations.",
+      icon: <BarChart3Icon className="w-6 h-6" />,
+      completed: true
+    }
+  ];
+
+  // Fase 2: Pendiente
+  const pendingItems: TimelineItemProps[] = [
+    {
       title: "NFT Analytics Dashboard",
-      description: "Complete platform for analyzing NFT collections, predicting trends, and optimizing investments.",
+      description: "Advanced dashboard for analyzing NFT collections, predicting trends, and optimizing investments.",
       icon: <BarChart3Icon className="w-6 h-6" />,
       completed: false
     },
     {
-      title: "Cross-Chain Bridge",
-      description: "Implementation of a secure bridge for transferring assets between different blockchain networks.",
-      icon: <GlobeIcon className="w-6 h-6" />,
-      completed: false
-    },
-    {
-      title: "Governance AI",
-      description: "Automated voting and proposal system to improve decentralized governance.",
+      title: "Governance DAO",
+      description: "Implementation of decentralized governance for proposals and voting by the community.",
       icon: <CodeIcon className="w-6 h-6" />,
       completed: false
     },
     {
-      title: "AI-Powered Trading Bot",
-      description: "Intelligent trading bot that learns from your behavior and executes orders automatically.",
-      icon: <ZapIcon className="w-6 h-6" />,
+      title: "Nuvim AI Integration",
+      description: "Deeper integration of Nuvim AI chat throughout the platform for contextual help and automation.",
+      icon: <CpuIcon className="w-6 h-6" />,
       completed: false
     }
   ];
 
+  // Fase 3: Futuro (visión)
   return (
     <div className="space-y-12">
       <div className="text-center max-w-3xl mx-auto">
-        <h2 
-          className="text-3xl font-bold mb-4"
-        >
+        <h2 className="text-3xl font-bold mb-4">
           Our Development Plan
         </h2>
-        <p 
-          className="text-slate-400"
-        >
+        <p className="text-slate-400">
           We show you our updated roadmap with the projects and improvements we have planned for the future. We are committed to innovation and continuous improvement of our platform.
         </p>
       </div>
 
+      {/* Fase 1: Completado */}
       <div className="pl-4">
-        {roadmapItems.map((item, index) => (
-          <TimelineItem key={index} {...item} />
+        <h3 className="text-xl font-bold mb-6 text-green-400">Phase 1: Completed</h3>
+        {completedItems.map((item, index) => (
+          <TimelineItem key={`completed-${index}`} {...item} />
         ))}
       </div>
 
+      {/* Fase 2: Pendiente */}
+      <div className="pl-4">
+        <h3 className="text-xl font-bold mb-6 text-yellow-400">Phase 2: In Progress / Pending</h3>
+        {pendingItems.map((item, index) => (
+          <TimelineItem key={`pending-${index}`} {...item} />
+        ))}
+      </div>
+
+      {/* Fase 3: Futuro */}
       <div className="mt-12 card-unified p-6">
-        <h3 className="text-xl font-bold mb-4">Our Long-Term Vision</h3>
+        <h3 className="text-xl font-bold mb-4">Phase 3: Long-Term Vision</h3>
         <p className="text-slate-400 mb-6">
-          In the future, we plan to expand our platform with more AI tools, integrate with more blockchains, and create a complete ecosystem that allows users to manage all their digital investments intelligently and securely.
+          Our vision for the future includes new experiences and innovations that connect the digital and physical world, expand blockchain utility, and gamify user engagement.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="card-content p-4">
-            <h4 className="font-medium mb-2">Multichain Integration</h4>
-            <p className="text-sm text-slate-400">Support for more than 10 different blockchains.</p>
+            <h4 className="font-medium mb-2">Physical NFT Clothing Brand</h4>
+            <p className="text-sm text-slate-400">
+              Launch of a clothing line delivering NFTs in physical format, each with unique benefits and utilities on the platform.
+            </p>
           </div>
           <div className="card-content p-4">
-            <h4 className="font-medium mb-2">AI Marketplace</h4>
-            <p className="text-sm text-slate-400">AI models and tools developed by the community.</p>
+            <h4 className="font-medium mb-2">New Smart Contracts</h4>
+            <p className="text-sm text-slate-400">
+              Development of innovative smart contracts to create new blockchain solutions and expand platform capabilities.
+            </p>
           </div>
           <div className="card-content p-4">
-            <h4 className="font-medium mb-2">Financial Education</h4>
-            <p className="text-sm text-slate-400">Learning platform with personalized AI.</p>
+            <h4 className="font-medium mb-2">Mini Game & Gamification</h4>
+            <p className="text-sm text-slate-400">
+              A mini game to gamify the user experience, connecting NFTs, staking, and small tasks for rewards and engagement.
+            </p>
           </div>
         </div>
       </div>

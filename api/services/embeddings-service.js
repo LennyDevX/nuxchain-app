@@ -47,8 +47,8 @@ const KEYWORD_BOOST = {
   'apy': 2.2,
   'roi': 2.2,
   'tasa': 2.0,
-  'rendimiento': 2.0,
-  'recompensa': 1.8,
+  'performance': 2.0,
+  'rewards': 1.8,
   'caracteristicas': 1.8,
   'features': 1.8,
   'funcionalidad': 1.8,
@@ -56,7 +56,11 @@ const KEYWORD_BOOST = {
   'polygon': 1.8,
   'contract': 1.5,
   'contrato': 1.5,
-  'reward': 1.5
+  'reward': 1.5,
+  'platform': 1.5,
+  'decentralized': 1.6,
+  'ecosystem': 1.6,
+  'blockchain': 1.6,
 };
 
 // Normalizar texto
@@ -237,7 +241,7 @@ function applySemanticBoost(doc, query, baseScore) {
   }
   
   // Boost 2: Términos clave del dominio (+0.15 cada uno)
-  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol'];
+  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuvim', 'chat', 'ecosystem', 'blockchain',];
   const queryTerms = queryLower.split(/\s+/);
   const matchedDomainTerms = domainTerms.filter(term => 
     docLower.includes(term) && queryTerms.some(qt => qt.includes(term) || term.includes(qt))

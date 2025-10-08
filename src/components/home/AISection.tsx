@@ -52,7 +52,7 @@ function AISection() {
               onClick={() => navigate('/chat')}
               className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary`}
             >
-              Chat with AI
+              Chat with Nuvimx
             </button>
           </div>
         </div>

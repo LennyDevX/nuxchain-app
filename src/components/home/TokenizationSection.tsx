@@ -64,7 +64,7 @@ const TokenizationSection: React.FC = () => {
                 <img 
                   src="/tokenization.webp" 
                   alt="NFT Tokenization" 
-                  className="w-96 h-96 object-contain mx-auto"
+                  className="w-92 h-92 object-contain mx-auto"
                 />
               </div>
             </div>

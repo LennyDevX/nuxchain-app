@@ -12,7 +12,7 @@ const AirdropsInfo = () => {
         {!isMobile && (
           <div className="md:w-1/2 flex justify-center relative">
             <div className="relative rounded-2xl overflow-hidden shadow-lg">
-              <img src="/Airdrops.webp" alt="NFT Airdrops" className="w-96 h-96 object-cover mx-auto" />
+              <img src="/Airdrops.webp" alt="NFT Airdrops" className="w-92 h-92 object-cover mx-auto" />
             </div>
           </div>
         )}

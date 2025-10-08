@@ -54,7 +54,7 @@ function NFTSection() {
             <img 
               src="/NeoHumanNFT.webp"
               alt="Nuxchain NFT" 
-              className="w-100 h-100 object-contain mx-auto"
+              className="w-92 h-92 object-contain mx-auto"
             />
           </div>
         </div>

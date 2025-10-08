@@ -7,7 +7,7 @@ import NFTCardMemo from '../components/marketplace/NFTCardMemo';
 import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import ConnectWallet from '../ui/ConnectWallet';
+import ConnectWallet from '../ui/ConnectWalletAlert';
 
 // Lazy load the BuyModal component
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));

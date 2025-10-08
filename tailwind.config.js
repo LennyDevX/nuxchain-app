@@ -129,6 +129,30 @@ export default {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(100%)' },
         },
+        'water-flow': {
+          '0%, 100%': { 
+            transform: 'rotate(0deg) translateX(0) translateY(0)',
+            borderRadius: '48% 52% 45% 55%'
+          },
+          '33%': { 
+            transform: 'rotate(120deg) translateX(10%) translateY(-5%)',
+            borderRadius: '52% 48% 55% 45%'
+          },
+          '66%': { 
+            transform: 'rotate(240deg) translateX(-10%) translateY(-5%)',
+            borderRadius: '45% 55% 48% 52%'
+          },
+        },
+        'liquid-shift': {
+          '0%, 100%': { 
+            transform: 'scale(1) translateY(0)',
+            opacity: '0.5'
+          },
+          '50%': { 
+            transform: 'scale(1.05) translateY(-3%)',
+            opacity: '0.7'
+          },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.5s ease-in-out',
@@ -140,6 +164,8 @@ export default {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'float': 'float 3s ease-in-out infinite',
         'shimmer': 'shimmer 2s ease-in-out infinite',
+        'water-flow': 'water-flow 15s ease-in-out infinite',
+        'liquid-shift': 'liquid-shift 8s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, #0a0a0a 0%, #5b21b6 50%, #dc2626 100%)',

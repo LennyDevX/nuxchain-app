@@ -1,16 +1,16 @@
 /* 
- * Estilos personalizados para Markdown en Chat
- * Mejora la legibilidad y organización visual de las respuestas
+ * Custom Markdown Styles for Chat
+ * Improves readability and visual organization of responses
  */
 
-/* === CONTENEDOR PRINCIPAL === */
+/* === MAIN CONTAINER === */
 .markdown-chat-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   line-height: 1.6;
   color: #f3f4f6;
 }
 
-/* === TÍTULOS === */
+/* === HEADINGS === */
 .markdown-chat-container h1 {
   font-size: 1.75rem !important;
   font-weight: 700 !important;
@@ -56,7 +56,7 @@
   line-height: 1.4 !important;
 }
 
-/* === PÁRRAFOS Y TEXTO === */
+/* === PARAGRAPHS AND TEXT === */
 .markdown-chat-container p {
   margin: 0.75rem 0 !important;
   line-height: 1.6 !important;
@@ -71,7 +71,7 @@
   margin-bottom: 0 !important;
 }
 
-/* === ÉNFASIS Y NEGRITAS === */
+/* === EMPHASIS AND BOLD === */
 .markdown-chat-container strong,
 .markdown-chat-container b {
   font-weight: 700 !important;
@@ -85,7 +85,7 @@
   color: #e5e7eb !important;
 }
 
-/* === LISTAS === */
+/* === LISTS === */
 .markdown-chat-container ul,
 .markdown-chat-container ol {
   margin: 1rem 0 !important;
@@ -121,7 +121,7 @@
   font-weight: 600 !important;
 }
 
-/* === CÓDIGO === */
+/* === CODE === */
 .markdown-chat-container code {
   background-color: rgba(0, 0, 0, 0.4) !important;
   color: #fbbf24 !important;
@@ -164,7 +164,7 @@
   font-style: italic !important;
 }
 
-/* === TABLAS === */
+/* === TABLES === */
 .markdown-chat-container table {
   width: 100% !important;
   border-collapse: collapse !important;
@@ -257,7 +257,7 @@
   }
 }
 
-/* === ANIMACIONES SUTILES === */
+/* === SUBTLE ANIMATIONS === */
 .markdown-chat-container {
   animation: fadeInContent 0.3s ease-out;
 }
@@ -273,7 +273,7 @@
   }
 }
 
-/* === MEJORAS ADICIONALES === */
+/* === ADDITIONAL IMPROVEMENTS === */
 .markdown-chat-container img {
   max-width: 100% !important;
   height: auto !important;

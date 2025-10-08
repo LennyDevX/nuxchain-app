@@ -34,11 +34,11 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
 
   const handleBuy = () => {
     if (!isConnected) {
-      setBuyError('Debes conectar tu wallet');
+      setBuyError('You must connect your wallet to purchase');
       return;
     }
     if (account && nft.owner && account.toLowerCase() === nft.owner.toLowerCase()) {
-      setBuyError('No puedes comprar tu propio NFT');
+      setBuyError('You cannot buy your own NFT');
       return;
     }
     setBuyError('');
@@ -53,7 +53,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="card-unified border border-white/10 rounded-2xl p-6 max-w-md w-full">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white">Comprar NFT</h3>
+          <h3 className="text-xl font-bold text-white">Buy NFT</h3>
           <button
             onClick={onClose}
             className="text-white/60 hover:text-white transition-colors"
@@ -91,14 +91,14 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
           <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 text-red-400">
               <AlertTriangleIcon />
-              <span>Debes conectar tu wallet para comprar</span>
+              <span>You must connect your wallet to purchase</span>
             </div>
           </div>
         ) : isOwner ? (
           <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-center gap-2 text-yellow-400">
               <AlertTriangleIcon />
-              <span>No puedes comprar tu propio NFT</span>
+              <span>You cannot buy your own NFT</span>
             </div>
           </div>
         ) : null}
@@ -117,14 +117,14 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
           >
-            Cancelar
+            Cancel
           </button>
           <button
             onClick={handleBuy}
             disabled={!isConnected || Boolean(isOwner)}
             className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Comprar
+            Buy
           </button>
         </div>
       </div>

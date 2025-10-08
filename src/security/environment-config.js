@@ -132,6 +132,13 @@ class EnvironmentConfig {
     this.isDevelopment = this.nodeEnv === 'development';
     this.isTest = this.nodeEnv === 'test';
     
+    // Mejor detección de Vercel (sólo considerarlo si hay indicio de producción)
+    this.isVercel = (
+      process.env.VERCEL === '1' ||
+      process.env.VERCEL_ENV === 'production' ||
+      (process.env.VERCEL_URL && this.isProduction)
+    );
+    
     // Validar variables requeridas en producción
     if (this.isProduction) {
       validateRequiredEnvVars();
@@ -148,11 +155,6 @@ class EnvironmentConfig {
     // APIs y servicios
     this.geminiApiKey = sanitizeEnvVar(process.env.GEMINI_API_KEY);
     this.serverApiKey = sanitizeEnvVar(process.env.SERVER_API_KEY);
-    
-    // Vercel detection
-    this.isVercel = process.env.VERCEL === '1' || 
-                   process.env.VERCEL_ENV !== undefined || 
-                   process.env.VERCEL_URL !== undefined;
     
     // URLs y dominios
     this.frontendUrl = sanitizeEnvVar(process.env.FRONTEND_URL, 'url') || 
@@ -311,6 +313,9 @@ try {
   console.error('❌ Error en configuración de environment:', error.message);
   if (environmentConfig.isProduction) {
     process.exit(1);
+  } else {
+    // En desarrollo no forzar exit, solo log para diagnóstico
+    console.warn('Configuración incompleta, pero continuando en modo desarrollo.');
   }
 }
 

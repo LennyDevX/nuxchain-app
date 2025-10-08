@@ -1,6 +1,6 @@
 /* Estilos para notificaciones de sobrecarga de API */
 
-/* Animaciones de entrada y salida para toast */
+/* Toast entry and exit animations */
 @keyframes slideInFromTop {
   0% {
     transform: translateY(-100%) scale(0.95);
@@ -45,7 +45,7 @@
   }
 }
 
-/* Animación de pulso para indicadores de carga */
+/* Pulse animation for loading indicators */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -55,7 +55,7 @@
   }
 }
 
-/* Animación de rotación para spinner */
+/* Rotation animation for spinner */
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -65,7 +65,7 @@
   }
 }
 
-/* Animación de rebote suave */
+/* Gentle bounce animation */
 @keyframes gentleBounce {
   0%, 20%, 50%, 80%, 100% {
     transform: translateY(0);
@@ -78,7 +78,7 @@
   }
 }
 
-/* Clases de animación para toast */
+/* Animation classes for toast */
 .animate-enter {
   animation: slideInFromTop 0.3s ease-out forwards;
 }
@@ -87,7 +87,7 @@
   animation: slideOutToTop 0.2s ease-in forwards;
 }
 
-/* Estilos específicos para notificaciones de sobrecarga */
+/* Specific styles for overload notifications */
 .api-overload-notification {
   backdrop-filter: blur(8px);
   border: 1px solid rgba(251, 191, 36, 0.3);
@@ -106,7 +106,7 @@
   transition: all 0.2s ease-out;
 }
 
-/* Indicador de progreso animado */
+/* Animated progress indicator */
 .progress-indicator {
   position: relative;
   overflow: hidden;
@@ -137,7 +137,7 @@
   }
 }
 
-/* Spinner personalizado */
+/* Custom spinner */
 .custom-spinner {
   width: 16px;
   height: 16px;
@@ -147,7 +147,7 @@
   animation: spin 1s linear infinite;
 }
 
-/* Efectos de hover para botones */
+/* Hover effects for buttons */
 .notification-button {
   transition: all 0.2s ease-out;
   position: relative;
@@ -199,7 +199,7 @@
   }
 }
 
-/* Modo oscuro */
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   .api-overload-notification {
     background: linear-gradient(135deg, 
@@ -209,7 +209,7 @@
   }
 }
 
-/* Accesibilidad */
+/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   .animate-enter,
   .animate-leave,
@@ -225,7 +225,7 @@
   }
 }
 
-/* Estados de focus para accesibilidad */
+/* Focus states for accessibility */
 .notification-button:focus {
   outline: 2px solid rgba(255, 255, 255, 0.8);
   outline-offset: 2px;
@@ -235,7 +235,7 @@
   outline: none;
 }
 
-/* Animación de latido para elementos importantes */
+/* Heartbeat animation for important elements */
 @keyframes heartbeat {
   0% {
     transform: scale(1);
@@ -258,12 +258,12 @@
   animation: heartbeat 1.5s ease-in-out infinite;
 }
 
-/* Efecto de brillo para texto importante */
+/* Glow effect for important text */
 .text-glow {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-/* Gradiente animado para fondos */
+/* Animated gradient for backgrounds */
 @keyframes gradientShift {
   0% {
     background-position: 0% 50%;

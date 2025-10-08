@@ -47,15 +47,18 @@ function NFTSection() {
         </div>
         
         {/* Imagen NFT - Derecha - Solo en desktop */}
-        {!isMobile && (
-          <div className="relative">
+      {/* Imagen NFT - Derecha - Solo en desktop */}
+      {!isMobile && (
+        <div className="flex justify-center">
+          <div className="relative rounded-2xl overflow-hidden shadow-lg animate-fade-in-right">
             <img 
-              src="/nft-cryptara.png"
+              src="/NeoHumanNFT.webp"
               alt="Nuxchain NFT" 
-              className="w-96 h-96 object-contain mx-auto"
+              className="w-92 h-92 object-contain mx-auto"
             />
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );

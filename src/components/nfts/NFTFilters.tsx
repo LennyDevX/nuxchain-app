@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import MobileFriendlySelect from '../ui/MobileFriendlySelect';
 
 // Hook to detect mobile devices
 const useIsMobile = () => {
@@ -25,9 +26,11 @@ interface NFTFiltersProps {
   onCategoryChange: (category: string) => void;
   filter: string;
   onFilterChange: (filter: string) => void;
-  availableCategories?: string[];
+  availableCategories: string[];
   onCreateNFT: () => void;
   isLoading?: boolean;
+  sortBy?: string;
+  onSortChange?: (sort: string) => void;
 }
 
 export default function NFTFilters({
@@ -39,15 +42,25 @@ export default function NFTFilters({
   onFilterChange,
   availableCategories = [],
   onCreateNFT,
-  isLoading = false
+  isLoading = false,
+  sortBy = 'date',
+  onSortChange,
 }: NFTFiltersProps) {
   const isMobile = useIsMobile();
-  const [filtersExpanded, setFiltersExpanded] = useState(!isMobile); // Desktop expanded by default, mobile collapsed
+  const [filtersExpanded, setFiltersExpanded] = useState(false); // Desktop expanded by default, mobile collapsed
+
+  // Sort options for NFTs
+  const SORT_OPTIONS = [
+    { value: 'date', label: 'Recently Created' },
+    { value: 'name', label: 'Name A-Z' },
+    { value: 'price', label: 'Price Low-High' },
+    { value: 'price-desc', label: 'Price High-Low' },
+  ];
   
   // Update filters expanded state when screen size changes
-  useEffect(() => {
-    setFiltersExpanded(!isMobile);
-  }, [isMobile]);
+  // useEffect(() => {
+  //   setFiltersExpanded(!isMobile);
+  // }, [isMobile]);
   
   const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all';
   
@@ -125,6 +138,33 @@ export default function NFTFilters({
           </span>
         </div>
         
+        {/* Filter Toggle Button - Desktop */} 
+        {!isMobile && (
+          <button
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className={`px-4 py-3 rounded-xl border transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-105 ${
+              filtersExpanded || hasActiveFilters
+                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/20'
+                : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
+            }`}
+          >
+            <svg 
+              className={`w-4 h-4 transition-transform duration-300 ${
+                filtersExpanded ? 'rotate-180' : 'rotate-0'
+              }`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            <span className="text-sm font-medium">Filters</span>
+            {hasActiveFilters && (
+              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
+            )}
+          </button>
+        )}
+
         {/* Filter Toggle Button - Only visible on mobile */}
         {isMobile && (
           <button
@@ -207,27 +247,19 @@ export default function NFTFilters({
             <label className="block text-sm font-medium text-white/80 mb-2">
               Category
             </label>
-            <select
+            <MobileFriendlySelect
               value={selectedCategory}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm [&>option]:bg-gray-800 [&>option]:text-white"
-            >
-              <option value="all" className="bg-gray-800 text-white">All Categories</option>
-              {availableCategories.map(category => (
-                <option key={category} value={category} className="bg-gray-800 text-white">
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </option>
-              ))}
-              {availableCategories.length === 0 && (
-                <>
-                  <option value="art" className="bg-gray-800 text-white">Art</option>
-                  <option value="photography" className="bg-gray-800 text-white">Photography</option>
-                  <option value="music" className="bg-gray-800 text-white">Music</option>
-                  <option value="video" className="bg-gray-800 text-white">Video</option>
-                  <option value="collectibles" className="bg-gray-800 text-white">Collectibles</option>
-                </>
-              )}
-            </select>
+              onChange={onCategoryChange}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                ...availableCategories.map(category => ({
+                  value: category,
+                  label: category.charAt(0).toUpperCase() + category.slice(1)
+                }))
+              ]}
+              label="Category"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
+            />
           </div>
           
           {/* Status Filter */}
@@ -235,16 +267,34 @@ export default function NFTFilters({
             <label className="block text-sm font-medium text-white/80 mb-2">
               Status
             </label>
-            <select
+            <MobileFriendlySelect
               value={filter}
-              onChange={(e) => onFilterChange(e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm [&>option]:bg-gray-800 [&>option]:text-white"
-            >
-              <option value="all" className="bg-gray-800 text-white">All NFTs</option>
-              <option value="listed" className="bg-gray-800 text-white">For Sale</option>
-              <option value="unlisted" className="bg-gray-800 text-white">Not Listed</option>
-            </select>
+              onChange={onFilterChange}
+              options={[
+                { value: 'all', label: 'All NFTs' },
+                { value: 'listed', label: 'For Sale' },
+                { value: 'unlisted', label: 'Not Listed' }
+              ]}
+              label="Status"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
+            />
           </div>
+
+          {/* Sort Options */}
+          {onSortChange && (
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-2">
+                Sort by
+              </label>
+              <MobileFriendlySelect
+                value={sortBy}
+                onChange={onSortChange}
+                options={SORT_OPTIONS.map(option => ({ value: option.value, label: option.label }))}
+                label="Sort by"
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
+              />
+            </div>
+          )}
 
           {/* Clear Filters */}
           {hasActiveFilters && (

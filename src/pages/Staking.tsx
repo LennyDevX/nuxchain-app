@@ -3,7 +3,7 @@ import { memo, useMemo, lazy, Suspense } from 'react'
 import SmartStakingABI from '../abi/SmartStaking.json'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
-import ConnectWallet from '../ui/ConnectWallet'
+import ConnectWallet from '../ui/ConnectWalletAlert'
 import { useIsMobile } from '../hooks/mobile'
 
 // Lazy load components for better performance

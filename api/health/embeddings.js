@@ -1,5 +1,7 @@
+import { getRelevantContext } from '../services/knowledge-base.js';
 import { initializeKnowledgeBaseForVercel } from '../services/embeddings-service.js';
-import { getRelevantContext } from '../chat/knowledge-base.js';
+import { withErrorHandling } from '../middlewares/error-handler.js';
+import rateLimiter from '../middlewares/rate-limiter.js';
 
 // Configuración CORS para Vercel
 const corsHeaders = {
@@ -12,8 +14,9 @@ const corsHeaders = {
 /**
  * Endpoint de salud para el servicio de embeddings
  * GET /api/health/embeddings
+ * Proporciona información sobre el estado del servicio de embeddings y su funcionamiento.
  */
-export default async function handler(req, res) {
+async function embeddingsHealthHandler(req, res) {
   // Manejar preflight CORS
   if (req.method === 'OPTIONS') {
     Object.entries(corsHeaders).forEach(([key, value]) => {
@@ -21,6 +24,14 @@ export default async function handler(req, res) {
     });
     return res.status(200).json({});
   }
+  
+  // Aplicar rate limiting
+  await new Promise((resolve, reject) => {
+    rateLimiter.soft(req, res, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
 
   // Aplicar headers CORS
   Object.entries(corsHeaders).forEach(([key, value]) => {
@@ -53,7 +64,9 @@ export default async function handler(req, res) {
       embeddingsService = await initializeKnowledgeBaseForVercel();
       healthCheck.checks.serviceInit = {
         status: 'ok',
-        message: 'Servicio inicializado correctamente',
+        message: `Servicio inicializado ${embeddingsService.hasApiKey ? 'con gemini-embedding-001' : 'en modo fallback (BM25)'}`,
+        model: 'gemini-embedding-001',
+        embeddingsEnabled: embeddingsService.hasApiKey,
         fallbackMode: embeddingsService.fallbackMode || false,
         fallbackReason: embeddingsService.fallbackReason || null,
         fallbackTimestamp: embeddingsService.fallbackTimestamp || null
@@ -73,11 +86,15 @@ export default async function handler(req, res) {
         const searchResults = await embeddingsService.search('knowledge_base', testQuery, 2, {
           threshold: 0.3
         });
-        
+        // Filtrar solo inglés
+        const englishResults = searchResults.filter(r =>
+          (r.meta?.language || '').toLowerCase() === 'en' ||
+          /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(r.content)
+        );
         healthCheck.checks.embeddingsSearch = {
-          status: searchResults && searchResults.length > 0 ? 'ok' : 'warning',
-          message: `Búsqueda de prueba: ${searchResults?.length || 0} resultados`,
-          resultsCount: searchResults?.length || 0,
+          status: englishResults && englishResults.length > 0 ? 'ok' : 'warning',
+          message: `Búsqueda de prueba (solo inglés): ${englishResults?.length || 0} resultados`,
+          resultsCount: englishResults?.length || 0,
           testQuery,
           fallbackUsed: embeddingsService.fallbackMode || false
         };
@@ -89,15 +106,21 @@ export default async function handler(req, res) {
         };
       }
     }
-
     // 4. Probar sistema de fallback
     try {
       const fallbackResults = getRelevantContext('Nuxchain staking');
+      // Filtrar solo inglés
+      const englishFallback = Array.isArray(fallbackResults)
+        ? fallbackResults.filter(doc =>
+            (doc.metadata?.language || '').toLowerCase() === 'en' ||
+            /^[a-zA-Z0-9\s.,;:'"?!\-()]+$/.test(doc.content)
+          )
+        : fallbackResults;
       healthCheck.checks.fallbackSystem = {
-        status: fallbackResults ? 'ok' : 'warning',
-        message: fallbackResults ? 'Sistema de fallback funcional' : 'Sistema de fallback sin resultados',
-        hasResults: !!fallbackResults,
-        contextLength: fallbackResults?.length || 0
+        status: englishFallback && englishFallback.length > 0 ? 'ok' : 'warning',
+        message: englishFallback ? 'Sistema de fallback funcional (solo inglés)' : 'Sistema de fallback sin resultados',
+        hasResults: !!englishFallback,
+        contextLength: englishFallback?.length || 0
       };
     } catch (error) {
       healthCheck.checks.fallbackSystem = {
@@ -149,16 +172,23 @@ export default async function handler(req, res) {
     return res.status(statusCode).json(healthCheck);
 
   } catch (error) {
-    console.error('Error en health check de embeddings:', error);
+    // Log detallado del error
+    console.error('Error en health check de embeddings:', {
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : 'Oculto en producción'
+    });
     
     healthCheck.status = 'error';
     healthCheck.checks.general = {
       status: 'error',
-      message: `Error crítico en health check: ${error.message}`,
-      error: error.message
+      message: `Error crítico en health check: ${process.env.NODE_ENV === 'development' ? error.message : 'Error interno'}`,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     };
     healthCheck.recommendations.push('Error crítico - revisar logs del servidor');
 
     return res.status(503).json(healthCheck);
   }
 }
+
+// Exportar el handler con el middleware de manejo de errores
+export default withErrorHandling(embeddingsHealthHandler);

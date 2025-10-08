@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { Address } from 'viem'
 import { useAccount } from 'wagmi'
 import { useAirdropFactory, type AirdropInfo } from './useAirdropFactory.tsx'
@@ -26,7 +26,7 @@ export function useAirdrops() {
   const selectedAirdropHook = useAirdrop(selectedAirdrop || '0x0000000000000000000000000000000000000000')
 
   // Función para obtener estadísticas detalladas de todos los airdrops activos
-  const loadAirdropsWithStats = () => {
+  const loadAirdropsWithStats = useCallback(() => {
     if (!activeAirdropsQuery.data || !userAddress) {
       setAirdropsWithStats([])
       return
@@ -58,12 +58,12 @@ export function useAirdrops() {
       console.error('Error loading airdrops with stats:', error)
       setAirdropsWithStats([])
     }
-  }
+  }, [activeAirdropsQuery.data, userAddress])
 
   // Cargar estadísticas cuando cambien los datos
   useEffect(() => {
     loadAirdropsWithStats()
-  }, [activeAirdropsQuery.data, userAddress])
+  }, [loadAirdropsWithStats])
 
   // Función para registrarse en un airdrop específico
   const registerForAirdrop = async (airdropAddress: Address) => {

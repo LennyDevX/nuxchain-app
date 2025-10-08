@@ -7,3 +7,99 @@
 @import "./cards.css";
 @import "./text.css";
 @import "./backgrounds.css";
+@import "./ai-analysis.css";
+
+/* Estilos adicionales para markdown en el chat */
+.wmde-markdown {
+  color: inherit !important;
+  background: transparent !important;
+}
+
+.wmde-markdown p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.wmde-markdown strong {
+  font-weight: 700;
+  color: rgb(216, 180, 254); /* purple-300 */
+}
+
+.wmde-markdown em {
+  font-style: italic;
+  color: rgb(251, 207, 232); /* pink-200 */
+}
+
+.wmde-markdown code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  color: rgb(249, 168, 212); /* pink-300 */
+}
+
+.wmde-markdown pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.wmde-markdown pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.wmde-markdown ul,
+.wmde-markdown ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.wmde-markdown li {
+  margin: 0.25rem 0;
+}
+
+.wmde-markdown h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: rgb(216, 180, 254); /* purple-300 */
+}
+
+.wmde-markdown h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: rgb(249, 168, 212); /* pink-300 */
+}
+
+.wmde-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5rem 0;
+}
+
+.wmde-markdown th,
+.wmde-markdown td {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 0.75rem;
+}
+
+.wmde-markdown th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.wmde-markdown a {
+  color: rgb(96, 165, 250); /* blue-400 */
+  text-decoration: underline;
+}
+
+.wmde-markdown a:hover {
+  color: rgb(147, 197, 253); /* blue-300 */
+}

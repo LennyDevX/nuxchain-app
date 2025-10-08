@@ -1,5 +1,6 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import { useNavigate } from 'react-router-dom'
+import AnimatedAILogo from '../../ui/AnimatedAILogo' // add import
 
 function AISection() {
   const isMobile = useIsMobile()
@@ -11,12 +12,9 @@ function AISection() {
         {/* Imagen AI - Izquierda - Solo en desktop */}
         {!isMobile && (
           <div className="flex justify-center">
-            <div className="relative">
-              <img 
-                 src="/NuvosBotAI2.webp" 
-                 alt="Nuvos Bot AI" 
-                 className="w-96 h-96 object-contain mx-auto"
-               />
+            <div className="relative rounded-full overflow-hidden flex items-center justify-center">
+              {/* Replaced static image with AnimatedAILogo */}
+              <AnimatedAILogo className="w-54 h-54" />
             </div>
           </div>
         )}
@@ -54,7 +52,7 @@ function AISection() {
               onClick={() => navigate('/chat')}
               className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary`}
             >
-              Chat with AI
+              Chat with Nuvimx
             </button>
           </div>
         </div>

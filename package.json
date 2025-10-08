@@ -1,20 +1,26 @@
 {
   "name": "nuxchain-app",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "nodemon src/server/index.js",
-    "dev:server": "nodemon src/server/index.js",
+    "dev:api": "nodemon src/server/gemini/index.js",
+    "dev:server": "nodemon src/server/gemini/index.js",
     "dev:full": "concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server:install": "cd src/server && npm install"
+    "server:install": "cd src/server && npm install",
+    "subgraph:codegen": "cd subgraph && graph codegen",
+    "subgraph:build": "cd subgraph && graph build",
+    "subgraph:deploy": "cd subgraph && graph deploy nuxchain --node https://api.studio.thegraph.com/deploy/ --deploy-key 8ab5d9d6502496080fd20067e78dc73e --version-label v0.0.2",
+    "subgraph:auth": "graph auth"
   },
   "dependencies": {
+    "@apollo/client": "^3.14.0",
     "@google/genai": "^1.20.0",
+    "@graphprotocol/graph-ts": "^0.38.1",
     "@mozilla/readability": "^0.6.0",
     "@pinata/sdk": "^2.1.0",
     "@tanstack/react-query": "^5.85.9",
@@ -30,6 +36,7 @@
     "express-slow-down": "^3.0.0",
     "express-validator": "^7.2.1",
     "google-auth-library": "^10.3.0",
+    "graphql": "^16.9.0",
     "helmet": "^8.1.0",
     "jsdom": "^25.0.1",
     "react": "^19.1.1",
@@ -41,10 +48,12 @@
     "viem": "^2.37.2",
     "wagmi": "^2.16.9",
     "winston": "^3.17.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "framer-motion": "^11.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@graphprotocol/graph-cli": "^0.97.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
@@ -56,12 +65,12 @@
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "firebase": "^11.10.0",
+    "firebase": "^12.3.0",
     "globals": "^16.3.0",
     "nodemon": "^3.0.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
-    "typescript": "~5.8.3",
+    "typescript": "~5.9.2",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
   },

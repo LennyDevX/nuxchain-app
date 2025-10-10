@@ -142,15 +142,23 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
     
     // Si hay URLs o se especifica skipNuxchainContext, no agregar contexto de Nuxchain
     if (hasUrls || options.skipNuxchainContext) {
-      console.log(`🔍 Saltando contexto de Nuxchain - URLs detectadas: ${hasUrls}, skipNuxchainContext: ${options.skipNuxchainContext}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔍 Saltando contexto de Nuxchain', { hasUrls, skip: options.skipNuxchainContext });
+      }
       return '';
     }
-    
-    console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Buscando en base de conocimientos', {
+        queryPreview: typeof query === 'string' ? `${query.slice(0, 60)}${query.length > 60 ? '…' : ''}` : typeof query
+      });
+    }
     
     // Verificar que el índice esté inicializado
     const indexStats = embeddingsService.getIndexStats('knowledge_base');
-    console.log(`📊 Estadísticas del índice: ${indexStats.size} documentos`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📊 Estadísticas del índice', { documents: indexStats.size });
+    }
     
     if (indexStats.size === 0) {
       console.warn('⚠️ Base de conocimientos no inicializada');
@@ -161,22 +169,32 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
     const searchResults = await embeddingsService.searchSimilar('knowledge_base', query, 5, {
       threshold: 0.5  // Reducir threshold para obtener más resultados
     });
-    
-    console.log(`🔎 Resultados de búsqueda: ${searchResults.length}`);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔎 Resultados de búsqueda', { count: searchResults.length });
+    }
     
     if (searchResults && searchResults.length > 0) {
       const relevantInfo = searchResults
         .map(result => result.content || result.text)
         .join('\n\n');
       
-      console.log(`📚 Encontrados ${searchResults.length} documentos relevantes para: "${query}"`);
-      console.log(`🎯 Scores: ${searchResults.map(r => r.score.toFixed(3)).join(', ')}`);
-      console.log(`📝 Categorías: ${searchResults.map(r => r.meta?.type || 'unknown').join(', ')}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📚 Documentos relevantes encontrados', {
+          count: searchResults.length,
+          scores: searchResults
+            .map(r => (typeof r.score === 'number' ? Number(r.score.toFixed(3)) : undefined))
+            .filter(score => typeof score === 'number' && !Number.isNaN(score)),
+          categories: searchResults.map(r => r.meta?.type || 'unknown')
+        });
+      }
       
       return `Información relevante de Nuxchain:\n${relevantInfo}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
     }
     
-    console.log(`❌ No se encontró información relevante para: "${query}"`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('❌ No se encontró información relevante');
+    }
     return '';
   } catch (error) {
     console.error('❌ Error al consultar base de conocimientos:', error.message);

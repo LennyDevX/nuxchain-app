@@ -3,8 +3,6 @@ import dotenv from 'dotenv';
 // Cargar variables de entorno
 dotenv.config();
 
-console.log('DEBUG: GEMINI_API_KEY en environment.js:', process.env.GEMINI_API_KEY);
-
 // Validar variables de entorno críticas
 function validateEnvironment() {
   const requiredVars = {

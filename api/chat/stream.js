@@ -1,6 +1,44 @@
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 import { getRelevantContext } from '../services/embeddings-service.js';
 
+const DEFAULT_DEV_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000'
+];
+
+const configuredOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+function resolveAllowedOrigin(requestOrigin) {
+  const origin = requestOrigin?.trim();
+
+  if (configuredOrigins.length > 0) {
+    if (!origin) {
+      return configuredOrigins[0];
+    }
+    return configuredOrigins.includes(origin) ? origin : null;
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (!origin) {
+      return DEFAULT_DEV_ORIGINS[0];
+    }
+    if (
+      DEFAULT_DEV_ORIGINS.includes(origin) ||
+      origin.startsWith('http://localhost') ||
+      origin.startsWith('http://127.0.0.1')
+    ) {
+      return origin;
+    }
+  }
+
+  return origin ? null : undefined;
+}
+
 // ============================================================================
 // RATE LIMITING
 // ============================================================================
@@ -111,28 +149,41 @@ setInterval(() => {
 export default async function handler(req, res) {
   const startTime = Date.now();
   metrics.total++;
-  
+
+  const requestOrigin = req.headers?.origin;
+  const allowedOrigin = resolveAllowedOrigin(requestOrigin);
+
+  if (allowedOrigin === null) {
+    metrics.errors++;
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('❌ Origin rejected', { origin: requestOrigin });
+    }
+    if (req.method === 'OPTIONS') {
+      return res.status(403).end();
+    }
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
   // Headers de seguridad
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  }
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-  
+
   if (req.method !== 'POST') {
     metrics.errors++;
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
   try {
-    // ✅ FIX: Headers seguros con fallback
     const headers = req.headers || {};
     const clientIp = headers['x-forwarded-for']?.split(',')[0]?.trim() || 
                      headers['x-real-ip'] || 
@@ -141,7 +192,9 @@ export default async function handler(req, res) {
     const rateLimitCheck = checkRateLimit(clientIp);
     
     if (!rateLimitCheck.allowed) {
-      console.warn(`⚠️ Rate limit: ${clientIp}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ Rate limit exceeded', { clientIp });
+      }
       metrics.errors++;
       res.setHeader('Retry-After', rateLimitCheck.retryAfter);
       return res.status(429).json({
@@ -150,7 +203,9 @@ export default async function handler(req, res) {
       });
     }
     
-    console.log(`🚀 Request from ${clientIp}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🚀 Incoming request', { clientIp });
+    }
     
     // Validación
     const validationErrors = validateRequest(req.body);
@@ -188,10 +243,17 @@ export default async function handler(req, res) {
       messageContent = req.body;
     }
     
-    console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
+    if (process.env.NODE_ENV !== 'production') {
+      const preview = typeof messageContent === 'string'
+        ? `${messageContent.substring(0, 50)}${messageContent.length > 50 ? '…' : ''}`
+        : '[non-string]';
+      console.log('📝 Message preview', { preview });
+    }
     
     // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching KB with gemini-embedding-001...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Searching KB with gemini-embedding-001...');
+    }
     const rawContext = await getRelevantContext(messageContent, { 
       threshold: 0.3, // Threshold optimizado para embeddings (más bajo que BM25)
       limit: 5 
@@ -210,14 +272,21 @@ export default async function handler(req, res) {
     const MAX_CONTEXT_LENGTH = 3000;
     if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
       relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
-      console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+      }
     }
     
     // Log conciso para producción
-    if (relevantContext.context) {
-      console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
-    } else {
-      console.log('⚠️ No KB context found');
+    if (process.env.NODE_ENV !== 'production') {
+      if (relevantContext.context) {
+        console.log('✅ KB found', {
+          length: relevantContext.context.length,
+          score: Number.isFinite(relevantContext.score) ? Number(relevantContext.score.toFixed(3)) : undefined
+        });
+      } else {
+        console.log('⚠️ No KB context found');
+      }
     }
     
     // Construir system instruction con contexto
@@ -312,7 +381,9 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
     // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
     const client = new GoogleGenAI({ apiKey });
     
-    console.log('🤖 Generating...');
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🤖 Generating...');
+    }
     
     // Generar stream - IMPORTANTE: generateContentStream retorna una Promise<AsyncGenerator>
     const streamResponse = await client.models.generateContentStream({
@@ -362,7 +433,9 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
       // Extraer el texto del chunk correctamente según la API de Gemini
       const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!chunkText) {
-        console.warn('⚠️ Empty chunk received, skipping...');
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('⚠️ Empty chunk received, skipping...');
+        }
         continue;
       }
       
@@ -375,45 +448,50 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
     
     clearTimeout(timeoutId);
     res.end();
-    
     const duration = Date.now() - startTime;
     metrics.success++;
     metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.success - 1) + duration) / metrics.success;
     
-    console.log(`✅ Done: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
-    
-    if (metrics.total % 50 === 0) {
-      console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`✅ Done: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
+      if (metrics.total % 50 === 0) {
+        console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
+      }
     }
     
   } catch (error) {
     metrics.errors++;
     const duration = Date.now() - startTime;
-    
-    console.error('❌ Error:', error.message);
-    // Solo mostrar stack en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+
+    console.error('❌ Error:', error?.message || error);
+    if (process.env.NODE_ENV !== 'production' && error?.stack) {
       console.error('Stack:', error.stack);
     }
-    
+
+    const message = (error?.message || '').toLowerCase();
+    const errorId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('🆔 Error ID:', errorId);
+    }
+
     if (!res.headersSent) {
-      if (error.message?.includes('API key')) {
+      if (message.includes('api key')) {
         return res.status(500).json({ error: 'API configuration error' });
       }
-      if (error.message?.includes('quota') || error.message?.includes('rate')) {
+
+      if (message.includes('quota') || message.includes('rate limit')) {
         return res.status(429).json({ error: 'Service temporarily unavailable' });
       }
-      
-      const errorId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      console.error(`🆔 Error ID: ${errorId}`);
-      
+
       res.status(500).json({
         error: 'Internal server error',
         errorId
       });
     }
-    
-    console.log(`❌ Failed after ${duration}ms`);
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`❌ Failed after ${duration}ms`);
+    }
   }
 }
 

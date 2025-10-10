@@ -5,37 +5,40 @@ function auth(req, res, next) {
   if (env.nodeEnv === 'development' && !env.isVercel) {
     return next();
   }
-  
-  // En producción (Vercel), verificar API key solo para endpoints sensibles
-  const sensitiveEndpoints = ['/batch/', '/analytics/', '/admin/'];
-  const isSensitiveEndpoint = sensitiveEndpoints.some(endpoint => req.path.includes(endpoint));
-  
-  // Para endpoints públicos como /stream, permitir acceso sin API key
-  if (!isSensitiveEndpoint) {
+
+  const publicEndpoints = [
+    /^\/health$/,
+    /^\/hello$/,
+    /^\/check-api$/
+  ];
+
+  const isPublic = publicEndpoints.some(pattern => pattern.test(req.path));
+  if (isPublic) {
     return next();
   }
-  
-  // Para endpoints sensibles, verificar API key
+
   const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
-  
+
   if (!env.serverApiKey) {
     console.warn('⚠️ SERVER_API_KEY no está configurada');
-    return next(); // Permitir en caso de configuración faltante
+    return res.status(503).json({
+      error: 'Service unavailable',
+      message: 'API configuration missing'
+    });
   }
-  
+
   if (!apiKey || apiKey !== env.serverApiKey) {
-    console.log('Auth middleware - Unauthorized access attempt', { 
-      hasApiKey: !!apiKey, 
+    console.warn('Auth middleware - Unauthorized access attempt', {
+      hasApiKey: Boolean(apiKey),
       environment: env.nodeEnv,
-      isVercel: env.isVercel,
       endpoint: req.path
     });
     return res.status(401).json({
       error: 'Unauthorized',
-      message: 'API key requerida para este endpoint'
+      message: 'Valid API key requerida para este endpoint'
     });
   }
-  
+
   next();
 }
 

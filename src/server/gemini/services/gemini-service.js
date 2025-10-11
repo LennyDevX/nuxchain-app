@@ -1,3 +1,4 @@
+
 import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, urlContextFunctionDeclaration, allFunctionDeclarations } from '../config/ai-config.js';
 import { incrementTokenCount, logError, logInfo } from '../middlewares/logger.js';
 import env from '../config/environment.js';
@@ -990,4 +991,3 @@ export async function processGeminiStreamRequestWithTools(contents, model = DEFA
     }
   }
 }
-

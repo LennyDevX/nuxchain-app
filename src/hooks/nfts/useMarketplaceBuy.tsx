@@ -4,7 +4,7 @@ import { getContract, isAddress, parseEther, type Abi } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
 import toast from 'react-hot-toast';
 
-const CONTRACT_ADDRESS = (import.meta as any).env.VITE_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = (import.meta as ImportMeta).env.VITE_MARKETPLACE_ADDRESS;
 
 interface BuyNFTParams {
   tokenId: string | number | bigint;
@@ -77,7 +77,10 @@ export default function useMarketplaceBuy() {
       });
 
       // Check if token is for sale
-      const listedToken = await contract.read.getListedToken([parsedTokenId]) as any[];
+      // Define the expected structure of the listed token
+      type ListedToken = [bigint, string, bigint, boolean];
+
+      const listedToken = await contract.read.getListedToken([parsedTokenId]) as ListedToken;
       if (!listedToken || listedToken.length < 4 || !listedToken[3]) { // Check if token exists and is for sale (isForSale is at index 3)
         throw new Error('This NFT is not for sale');
       }
@@ -121,9 +124,12 @@ export default function useMarketplaceBuy() {
         throw new Error('Transaction failed');
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error buying NFT:', err);
-      const errorMessage = err?.message || 'Failed to buy NFT';
+      let errorMessage = 'Failed to buy NFT';
+      if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+        errorMessage = (err as { message: string }).message;
+      }
       setError(errorMessage);
       toast.error(errorMessage);
       setLoading(false);

@@ -44,8 +44,32 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
   // Format price for display with POL and USD
   const pricePOL = nft.price ? Number(formatEther(nft.price)) : 0;
   const priceUSD = convertPOLToUSD(pricePOL);
-    const formattedPricePOL = pricePOL > 0 ? `${formatPolValue(pricePOL)} POL` : null;
+  const formattedPricePOL = pricePOL > 0 ? `${formatPolValue(pricePOL)} POL` : null;
   const formattedPriceUSD = pricePOL > 0 && priceUSD ? `${priceUSD}` : null;
+
+  // Format attribute value with special handling for wallets and dates
+  const formatAttributeValue = (traitType: string, value: string | number): string => {
+    const lowerTraitType = traitType.toLowerCase();
+    const valueStr = String(value);
+    
+    // Truncate wallet addresses
+    if (lowerTraitType.includes('creator') || lowerTraitType.includes('wallet') || lowerTraitType.includes('address')) {
+      if (valueStr.startsWith('0x') && valueStr.length === 42) {
+        return `${valueStr.slice(0, 6)}...${valueStr.slice(-4)}`;
+      }
+    }
+    
+    // Format dates
+    if (lowerTraitType.includes('created') || lowerTraitType.includes('date') || lowerTraitType.includes('time')) {
+      // Try to parse as timestamp or date string
+      const date = new Date(isNaN(Number(valueStr)) ? valueStr : Number(valueStr) * 1000);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+    
+    return valueStr;
+  };
   return (
     <div className={`card-interactive overflow-hidden group ${isMobile ? 'text-sm' : ''}`}>
       {/* NFT Image with improved spacing */}
@@ -122,19 +146,35 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
           </div>
         )}
         
-        {/* Attributes - Better spacing */}
+        {/* Attributes - Better spacing and formatting */}
         {!isMobile && nft.attributes && nft.attributes.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs text-gray-400 font-semibold">Attributes</p>
             <div className="flex flex-wrap gap-2">
-              {nft.attributes.slice(0, 3).map((attr: NFTAttribute, index: number) => (
-                <span key={index} className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-400/30 text-white/90 text-xs px-3 py-1.5 rounded-lg">
-                  <span className="text-gray-400">{attr.trait_type}:</span> <span className="font-semibold ml-1">{attr.value}</span>
-                </span>
-              ))}
-              {nft.attributes.length > 3 && (
+              {nft.attributes.slice(0, 4).map((attr: NFTAttribute, index: number) => {
+                const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
+                                     attr.trait_type.toLowerCase().includes('created');
+                const formattedValue = formatAttributeValue(attr.trait_type, attr.value);
+                
+                return (
+                  <span 
+                    key={index} 
+                    className={`${
+                      isSpecialAttr 
+                        ? 'bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-purple-400/50' 
+                        : 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-400/30'
+                    } border text-white/90 text-xs px-3 py-1.5 rounded-lg`}
+                  >
+                    <span className="text-gray-400">{attr.trait_type}:</span>{' '}
+                    <span className={`font-semibold ml-1 ${isSpecialAttr ? 'font-mono text-purple-300' : ''}`}>
+                      {formattedValue}
+                    </span>
+                  </span>
+                );
+              })}
+              {nft.attributes.length > 4 && (
                 <span className="bg-white/10 text-gray-400 text-xs px-3 py-1.5 rounded-lg font-medium">
-                  +{nft.attributes.length - 3} more
+                  +{nft.attributes.length - 4} more
                 </span>
               )}
             </div>

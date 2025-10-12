@@ -22,7 +22,7 @@ if (result.error) {
   console.log('✅ .env loaded successfully');
 }
 
-import { getRelevantContext } from './services/embeddings-service.js';
+import { getRelevantContext } from '../services/embeddings-service.js';
 
 // Preguntas de test específicas - AJUSTADAS
 const TEST_QUERIES = [

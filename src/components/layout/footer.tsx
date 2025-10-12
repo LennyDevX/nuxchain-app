@@ -4,7 +4,8 @@ const Footer: React.FC = () => {
   return (
     <footer className="relative bg-gradient-to-b from-gray-900/50 to-black border-t border-gray-800/50 mt-20">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
@@ -36,13 +37,26 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
+          {/* Resources */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-white">Resources</h4>
+            <ul className="space-y-2">
+              <li><a href="/blog" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</a></li>
+              <li><a href="/dev-hub" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</a>
+                <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              </li>
+              <li><a href="/labs" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</a>
+                <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              </li>
+            </ul>
+          </div>
+
           {/* AI & Tools */}
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
               <li>
                 <a href="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuvim AI 🤖</a>
-                
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Market Analysis</span>
@@ -50,7 +64,7 @@ const Footer: React.FC = () => {
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Smart Recommendations</span>
-                <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+                <span className="px-2 py-0.5  bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
             </ul>
           </div>

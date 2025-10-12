@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 // Removed unused ZapIcon and GlobeIcon to satisfy linter
 import { CheckIcon, CalendarIcon, CodeIcon, DatabaseIcon, BarChart3Icon, CpuIcon } from './CustomIcons';
 
@@ -43,6 +44,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ title, description, icon, c
 };
 
 const RoadmapTimeline: React.FC = () => {
+  const navigate = useNavigate();
+  
   // Fase 1: Completado
   const completedItems: TimelineItemProps[] = [
     {
@@ -87,7 +90,6 @@ const RoadmapTimeline: React.FC = () => {
     }
   ];
 
-  // Fase 3: Futuro (visión)
   return (
     <div className="space-y-12">
       <div className="text-center max-w-3xl mx-auto">
@@ -115,31 +117,19 @@ const RoadmapTimeline: React.FC = () => {
         ))}
       </div>
 
-      {/* Fase 3: Futuro */}
-      <div className="mt-12 card-unified p-6">
-        <h3 className="text-xl font-bold mb-4">Phase 3: Long-Term Vision</h3>
-        <p className="text-slate-400 mb-6">
-          Our vision for the future includes new experiences and innovations that connect the digital and physical world, expand blockchain utility, and gamify user engagement.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="card-content p-4">
-            <h4 className="font-medium mb-2">Physical NFT Clothing Brand</h4>
-            <p className="text-sm text-slate-400">
-              Launch of a clothing line delivering NFTs in physical format, each with unique benefits and utilities on the platform.
-            </p>
-          </div>
-          <div className="card-content p-4">
-            <h4 className="font-medium mb-2">New Smart Contracts</h4>
-            <p className="text-sm text-slate-400">
-              Development of innovative smart contracts to create new blockchain solutions and expand platform capabilities.
-            </p>
-          </div>
-          <div className="card-content p-4">
-            <h4 className="font-medium mb-2">Mini Game & Gamification</h4>
-            <p className="text-sm text-slate-400">
-              A mini game to gamify the user experience, connecting NFTs, staking, and small tasks for rewards and engagement.
-            </p>
-          </div>
+      {/* CTA para ver roadmap completo */}
+      <div className="mt-12 text-center">
+        <div className="card-unified p-8">
+          <h3 className="text-2xl font-bold mb-4">Want to see our complete vision?</h3>
+          <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
+            Explore our detailed roadmap with all phases, including our long-term vision, upcoming features, and strategic milestones.
+          </p>
+          <button 
+            onClick={() => navigate('/roadmap')}
+            className="btn-primary px-8 py-3 text-lg"
+          >
+            View Complete Roadmap
+          </button>
         </div>
       </div>
     </div>

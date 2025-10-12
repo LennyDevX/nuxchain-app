@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
-import HeroSection from '../components/ctaHub/HeroSection';
-import ToolsGrid from '../components/ctaHub/ToolsGrid';
-import BenefitsSection from '../components/ctaHub/BenefitsSection';
-import NuxchainKitSection from '../components/ctaHub/NuxchainKitSection';
-import CTASection from '../components/ctaHub/CTASection';
-import UseCasesSection from '../components/ctaHub/UseCasesSection';
+import HeroSection from '../components/devHub/HeroSection';
+import ToolsGrid from '../components/devHub/ToolsGrid';
+import BenefitsSection from '../components/devHub/BenefitsSection';
+import NuxchainKitSection from '../components/devHub/NuxchainKitSection';
+import CTASection from '../components/devHub/CTASection';
+import UseCasesSection from '../components/devHub/UseCasesSection';
 
 function CTAHub() {
   useEffect(() => {

@@ -15,7 +15,7 @@ const envPath = resolve(__dirname, '..', '.env');
 console.log('🔍 Loading .env from:', envPath);
 dotenv.config({ path: envPath });
 
-import { initializeKnowledgeBaseForVercel, getRelevantContext } from './services/embeddings-service.js';
+import { initializeKnowledgeBaseForVercel, getRelevantContext } from '../services/embeddings-service.js';
 
 const colors = {
   reset: '\x1b[0m',

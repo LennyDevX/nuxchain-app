@@ -131,7 +131,7 @@ async function runTest() {
     let streamHandler;
     try {
       // First try ES module import
-      const module = await import('./chat/stream.js');
+      const module = await import('../chat/stream.js');
       streamHandler = module.default || module;
       console.log('[TEST] Successfully imported stream handler');
     } catch (importError) {
@@ -139,7 +139,7 @@ async function runTest() {
       
       // Try CommonJS require as fallback
       try {
-        const module = require('./chat/stream.js');
+        const module = require('../chat/stream.js');
         streamHandler = module.default || module;
         console.log('[TEST] Successfully required stream handler');
       } catch (requireError) {

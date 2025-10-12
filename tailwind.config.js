@@ -153,6 +153,10 @@ export default {
             opacity: '0.7'
           },
         },
+        'progress': {
+          '0%': { width: '0%' },
+          '100%': { width: 'var(--progress-width)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.5s ease-in-out',
@@ -166,6 +170,7 @@ export default {
         'shimmer': 'shimmer 2s ease-in-out infinite',
         'water-flow': 'water-flow 15s ease-in-out infinite',
         'liquid-shift': 'liquid-shift 8s ease-in-out infinite',
+        'progress': 'progress 1.5s ease-out forwards',
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, #0a0a0a 0%, #5b21b6 50%, #dc2626 100%)',

@@ -23,14 +23,6 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
     hash: listHash,
   });
 
-  // Reset form when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      setListingPrice('');
-      setCategory('art');
-    }
-  }, [isOpen]);
-
   // Handle successful listing
   useEffect(() => {
     if (isListSuccess) {

@@ -94,7 +94,7 @@ function Chat() {
                       onChange={setMessage}
                       onKeyPress={handleKeyPress}
                       disabled={isLoading || isStreaming}
-                      placeholder="Ask Nuvim"
+                      placeholder="Ask Nuxbee"
                     />
                   </div>
                   <div className="flex-shrink-0 p-2">

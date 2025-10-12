@@ -26,7 +26,7 @@ function HeroSection() {
             Explore Labs
           </Link>
           <Link to="/chat" className="btn-secondary px-8 py-4 text-lg">
-            Talk to Nuvim AI
+            Talk to Nuxbee AI
           </Link>
         </div>
       </div>

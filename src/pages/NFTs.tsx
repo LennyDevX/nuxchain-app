@@ -1,4 +1,9 @@
 import { useState, useEffect, useMemo, memo } from 'react';
+
+interface NFTAttribute {
+  trait_type: string;
+  value: string | number;
+}
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import InfiniteScrollNFTGrid from '../components/nfts/InfiniteScrollNFTGrid';
@@ -48,24 +53,38 @@ function NFTs() {
     }
   }, [listError]);
 
-  // Filter NFTs based on search term, category, and status
+  // Filter NFTs based on search term, category, and status - optimized with early returns
   const filteredNFTs = useMemo(() => {
-    let filtered = userNFTs.filter(nft => {
-      const matchesSearch = searchTerm === '' || 
-        nft.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        nft.description.toLowerCase().includes(searchTerm.toLowerCase());
+    // Early return if no NFTs
+    if (userNFTs.length === 0) return [];
+    
+    const searchLower = searchTerm.toLowerCase();
+    const categoryLower = selectedCategory.toLowerCase();
+    
+    const filtered = userNFTs.filter(nft => {
+      // Status filter first (cheapest check)
+      if (filter !== 'all') {
+        if (filter === 'listed' && !nft.isForSale) return false;
+        if (filter === 'unlisted' && nft.isForSale) return false;
+      }
       
-      const matchesCategory = selectedCategory === 'all' || 
-        (nft.attributes?.some((attr: any) => 
+      // Search filter
+      if (searchTerm !== '') {
+        const matchesSearch = nft.name.toLowerCase().includes(searchLower) ||
+          nft.description.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      
+      // Category filter (most expensive)
+      if (selectedCategory !== 'all') {
+        const matchesCategory = nft.attributes?.some((attr: NFTAttribute) => 
           attr.trait_type === 'category' && 
-          attr.value.toString().toLowerCase() === selectedCategory.toLowerCase()
-        ));
+          attr.value.toString().toLowerCase() === categoryLower
+        );
+        if (!matchesCategory) return false;
+      }
       
-      const matchesStatus = filter === 'all' ||
-        (filter === 'listed' && nft.isForSale) ||
-        (filter === 'unlisted' && !nft.isForSale);
-      
-      return matchesSearch && matchesCategory && matchesStatus;
+      return true;
     });
 
     // Sort NFTs based on selected sort option
@@ -88,7 +107,7 @@ function NFTs() {
   const availableCategories = useMemo(() => {
     const cats = new Set<string>();
     userNFTs.forEach(nft => {
-      nft.attributes?.forEach((attr: any) => {
+      nft.attributes?.forEach((attr: NFTAttribute) => {
         if (attr.trait_type === 'category' || attr.trait_type === 'Category') {
           cats.add(attr.value.toString());
         }

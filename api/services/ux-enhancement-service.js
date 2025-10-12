@@ -166,7 +166,7 @@ class APIUXEnhancementService {
    * NUEVO: Construir system prompt optimizado
    */
   buildSystemPrompt({ context, intent, conversationLength }) {
-    const basePrompt = `Eres Nuvim AI 1.0, el asistente inteligente oficial de Nuxchain.
+    const basePrompt = `You are Nuxbee AI 1.0, the official intelligent assistant of Nuxchain. You will soon have your own dedicated platform with advanced features.
 
 CONTEXTO RELEVANTE:
 ${context}

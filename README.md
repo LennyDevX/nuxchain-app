@@ -4,7 +4,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18.0-61dafb.svg)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.1-646cff.svg)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-38bdf8.svg)](https://tailwindcss.com/)
+[![Express](https://img.shields.io/badge/Express-5-000000.svg)](https://expressjs.com/)
+[![Viem](https://img.shields.io/badge/Viem-2.38-000000.svg)](https://viem.sh/)
 
 ---
 
@@ -47,7 +51,7 @@ Nuxchain is a comprehensive Web3 platform that combines DeFi, NFTs, and AI-power
 - ✅ **Airdrop Participation** - Easy access to token distributions
 
 ### AI-Powered Services
-- ✅ **AI Chat Assistant** - Powered by Google Gemini
+- ✅ **Nuxbee 1.0 AI Assistant** - Advanced AI assistant powered by Google Gemini with its own dedicated platform for advanced features
 - ✅ **Content Analysis** - Web scraping and intelligent parsing
 - ✅ **Semantic Streaming** - Natural, context-aware responses
 - ✅ **Embeddings & Knowledge Base** - Advanced search capabilities
@@ -65,17 +69,18 @@ Nuxchain is a comprehensive Web3 platform that combines DeFi, NFTs, and AI-power
 ## 🚀 Tech Stack
 
 ### Frontend
-- **[React 18](https://reactjs.org/)** - UI library
-- **[Vite](https://vitejs.dev/)** - Fast build tool
+- **[React 19](https://reactjs.org/)** - UI library
+- **[Vite 7.1](https://vitejs.dev/)** - Fast build tool
 - **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[TailwindCSS](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[TailwindCSS 4.0](https://tailwindcss.com/)** - Utility-first CSS framework
 
 ### Web3 Integration
 - **[Wagmi](https://wagmi.sh/)** - React hooks for Ethereum
-- **[Viem](https://viem.sh/)** - TypeScript Ethereum library
+- **[Viem 2.38](https://viem.sh/)** - TypeScript Ethereum library
 - **[WalletConnect](https://walletconnect.com/)** - Multi-platform wallet connection
 
 ### AI & Backend
+- **[Express 5](https://expressjs.com/)** - Backend framework
 - **[Google Gemini API](https://ai.google.dev/)** - AI integration
 - **WebSocket** - Real-time streaming
 - **Smart Contracts** - Solidity-based ERC standards
@@ -161,12 +166,12 @@ Nuxchain is evolving with an ambitious roadmap spanning 2024-2027. We're current
 - Nuxchain Beta Platform
 - Dashboard & Profile Page
 - AI-Powered Staking Analysis
-- Nuvim AI 1.0
+- Nuxbee AI 1.0 - Advanced AI assistant with dedicated platform
 
 **Phase 2: Advanced Features & Governance** 🔄 (In Progress)
 - NFT Analytics Dashboard
 - DAO Governance System
-- Nuvim AI 2.0 Integration
+- Nuxbee AI 2.0 Integration - Enhanced platform with advanced capabilities
 - Smart Contract Updates
 
 **Phase 3: Innovation & Expansion** 📅 (Planned)
@@ -181,7 +186,7 @@ Nuxchain is evolving with an ambitious roadmap spanning 2024-2027. We're current
 | Milestone | Timeline | Status |
 |-----------|----------|--------|
 | NFT Analytics Dashboard | Q4 2025 | 🔄 In Progress |
-| Nuvim AI Chat Platform | Q1 2026 | 📅 Upcoming |
+| Nuxbee AI Platform | Q1 2026 | 📅 Upcoming |
 | Physical NFT Clothing Brand | Q2 2026 | 📅 Planned |
 | Staking Pools v2.0 | Q3 2026 | 📅 Planned |
 | DAO Governance | Q4 2026 | 📅 Planned |

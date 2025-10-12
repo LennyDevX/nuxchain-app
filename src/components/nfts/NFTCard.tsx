@@ -95,6 +95,7 @@ function NFTCard({ nft, onListNFT, isMobile = false }: NFTCardProps) {
             alt={nft.name || `NFT #${nft.tokenId}`}
             className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
             loading="lazy"
+            decoding="async"
           />
         )}
         {/* Token ID Badge */}

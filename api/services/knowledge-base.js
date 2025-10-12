@@ -1,7 +1,7 @@
 const knowledgeBase = [
   // === GENERAL INFORMATION ===
   {
-    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuvim AI 1.0), and tokenization tools.",
+    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), and tokenization tools.",
     metadata: { type: "general", category: "platform", topic: "overview" },
     commands: ['Nuxchain', 'Nuxchain platform', 'Nuxchain general']
   },
@@ -131,21 +131,21 @@ const knowledgeBase = [
     commands: ['Nuxchain airdrop announcements']
   },
 
-  // === NUVIM AI 1.0 ===
+  // === NUXBEE AI 1.0 ===
   {
-    content: "Nuvim AI 1.0 is Nuxchain's intelligent assistant powered by advanced language models. Provides real-time information about the ecosystem, helps with transactions, answers questions, and offers personalized recommendations.",
-    metadata: { type: "ai", category: "nuvim", topic: "overview" },
-    commands: ['Nuvim AI', 'AI assistant']
+    content: "Nuxbee AI 1.0 is Nuxchain's advanced intelligent assistant powered by cutting-edge language models. Provides real-time information about the ecosystem, helps with transactions, answers questions, and offers personalized recommendations. Nuxbee will have its own dedicated platform where users can access advanced features and capabilities beyond the basic chat interface.",
+    metadata: { type: "ai", category: "nuxbee", topic: "overview" },
+    commands: ['Nuxbee AI', 'AI assistant', 'Nuxbee platform']
   },
   {
-    content: "Nuvim AI capabilities: Natural language processing, multimodal input (text and images), web content analysis, real-time data integration, personalized responses, transaction assistance, and ecosystem guidance. Available 24/7 in multiple languages.",
+    content: "Nuxbee AI capabilities: Natural language processing, multimodal input (text and images), web content analysis, real-time data integration, personalized responses, transaction assistance, and ecosystem guidance. Available 24/7 in multiple languages. The upcoming Nuxbee platform will offer advanced tools, automation features, and comprehensive AI-powered analysis for power users.",
     metadata: { type: "ai", category: "capabilities", topic: "features" },
-    commands: ['AI capabilities', 'what can Nuvim do']
+    commands: ['AI capabilities', 'what can Nuxbee do', 'Nuxbee features']
   },
   {
-    content: "How to use Nuvim AI: 1) Navigate to Chat page, 2) Type your question or upload image, 3) AI processes and provides contextual response, 4) Follow up with additional questions, 5) Use suggested commands for quick actions. No registration required beyond wallet connection.",
+    content: "How to use Nuxbee AI: 1) Navigate to Chat page, 2) Type your question or upload image, 3) AI processes and provides contextual response, 4) Follow up with additional questions, 5) Use suggested commands for quick actions. No registration required beyond wallet connection. Advanced users can access the dedicated Nuxbee platform for more sophisticated features and tools.",
     metadata: { type: "ai", category: "guide", topic: "usage" },
-    commands: ['how to use AI', 'AI guide']
+    commands: ['how to use AI', 'AI guide', 'how to use Nuxbee']
   },
 
   // === TOKENIZATION TOOLS ===
@@ -282,7 +282,7 @@ const knowledgeBase = [
 
   // === TECHNICAL ARCHITECTURE ===
   {
-    content: "Nuxchain App is built with modern technologies: React 18 for user interface with advanced hooks and concurrent features, Vite 7 as build tool for fast development and hot module replacement, TypeScript for static typing and better developer experience, TailwindCSS for utility styles and responsive design, Wagmi v2 for optimized React hooks for Ethereum, Viem v2 as TypeScript library for blockchain interactions, and TanStack Query for server state management and caching.",
+    content: "Nuxchain App is built with modern technologies: React 19 for user interface with advanced hooks and concurrent features, Vite 7.1 as build tool for fast development and hot module replacement, TypeScript 5.0 for static typing and better developer experience, TailwindCSS 4.0 for utility styles and responsive design, Wagmi v2 for optimized React hooks for Ethereum, Viem 2.38 as TypeScript library for blockchain interactions, Express 5 for backend services, and TanStack Query for server state management and caching.",
     metadata: { type: "technical", category: "architecture", topic: "tech-stack" },
     commands: ['Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain React', 'Nuxchain Vite']
   },
@@ -299,7 +299,7 @@ const knowledgeBase = [
 
   // === PAGE FUNCTIONALITIES ===
   {
-    content: "Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuvim AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion.",
+    content: "Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuxbee AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Nuxbee will have its own dedicated platform for advanced features.",
     metadata: { type: "technical", category: "pages", topic: "home" },
     commands: ['Nuxchain home page', 'Nuxchain landing']
   },
@@ -314,9 +314,9 @@ const knowledgeBase = [
     commands: ['Nuxchain marketplace page', 'Nuxchain NFT marketplace']
   },
   {
-    content: "Nuxchain Chat page with Nuvim AI: Real-time chat interface with streaming, multimodal support (text and images), automatic URL processing with web scraping, embedding system for persistent context, welcome screen with suggestions, input area with autocomplete, and complete integration with Google Gemini AI. Optimized for fast responses and relevant context.",
+    content: "Nuxchain Chat page with Nuxbee AI: Real-time chat interface with streaming, multimodal support (text and images), automatic URL processing with web scraping, embedding system for persistent context, welcome screen with suggestions, input area with autocomplete, and complete integration with Google Gemini AI. Optimized for fast responses and relevant context. Nuxbee will have its own dedicated platform for advanced features.",
     metadata: { type: "technical", category: "pages", topic: "chat" },
-    commands: ['Nuxchain chat page', 'Nuxchain Nuvim AI interface']
+    commands: ['Nuxchain chat page', 'Nuxchain Nuxbee AI interface', 'Nuxbee chat']
   },
   {
     content: "Nuxchain NFTs page: Infinite grid of user's NFTs, filters by collection and status, personal NFT statistics, listing modal for sale, management of received offers, transaction history, and wallet integration to show owned NFTs. Design optimized for personal collection management.",
@@ -351,9 +351,9 @@ const knowledgeBase = [
     commands: ['Nuxchain IPFS', 'Nuxchain decentralized storage']
   },
   {
-    content: "Nuxchain Google Gemini AI integration: Natural language processing for Nuvim AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem.",
+    content: "Nuxchain Google Gemini AI integration: Natural language processing for Nuxbee AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem. Powers the Nuxbee AI assistant and its upcoming dedicated platform.",
     metadata: { type: "technical", category: "integrations", topic: "gemini-ai" },
-    commands: ['Nuxchain Gemini AI', 'Nuxchain AI integration']
+    commands: ['Nuxchain Gemini AI', 'Nuxchain AI integration', 'Nuxbee integration']
   },
 
   // === WEB3 AUTHENTICATION ===
@@ -459,6 +459,97 @@ const knowledgeBase = [
     content: "Nuxchain platform limits: Minimum staking 100 NUVOS, maximum 1,000,000 NUVOS per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
     metadata: { type: "faq", category: "general", topic: "limits" },
     commands: ['platform limits', 'Nuxchain restrictions']
+  },
+
+  // === NUXCHAIN LABS - AI INNOVATION HUB ===
+  {
+    content: "Nuxchain Labs is the innovation hub where cutting-edge AI technology meets blockchain. Labs explores the limits of blockchain with artificial intelligence to optimize staking strategies, NFTs, and maximize earnings. The platform features AI-powered tools including Nuxbee AI Chat for intelligent assistance with its own dedicated platform for advanced features, AI Strategist for personalized staking recommendations, comprehensive Staking & NFT Analytics dashboards, and high-speed processing with automations for claims, compounding, and knowledge base searches. Labs showcases innovative projects currently in development that will revolutionize the blockchain ecosystem.",
+    metadata: { type: "labs", category: "innovation", topic: "overview" },
+    commands: ['Nuxchain Labs', 'Labs innovation', 'AI innovation hub', 'Nuxchain AI technology', 'Nuxbee platform']
+  },
+  {
+    content: "Nuxchain Labs AI Features: 1) Nuxbee AI Chat - Advanced intelligent assistant where users can ask questions, get help, and receive real-time recommendations about all Nuxchain features. Nuxbee will have its own dedicated platform for advanced capabilities. 2) AI Strategist & Insights - Advanced analysis that generates personalized staking strategies and recommended actions based on user profile and market conditions. 3) Staking & NFT Analytics - Comprehensive dashboards and metrics to understand performance, APY, and health of positions and NFT collections. 4) Processing Speed & Automations - Optimized processing and automations to accelerate common tasks like claims, compounding, and knowledge base searches. All features are powered by Google Gemini AI with real-time data integration.",
+    metadata: { type: "labs", category: "ai-features", topic: "capabilities" },
+    commands: ['Labs AI features', 'Nuxbee Chat', 'AI Strategist', 'Labs analytics', 'Labs automations', 'Nuxbee platform']
+  },
+  {
+    content: "Nuxchain Labs Innovation Projects: 1) NuxAI Strategist (90% complete) - Intelligent assistant that analyzes market and recommends personalized investment strategies. 2) SmartStaking Optimizer (85% complete) - Tool that calculates best staking and lockup periods according to risk profile. 3) NFT Analytics Dashboard (70% complete) - Platform that analyzes NFT collections, predicts market trends, and identifies investment opportunities. 4) Blockchain Governance AI (60% complete) - Automated voting and proposal system for decentralized governance. 5) Nuxchain Game (30% complete) - Blockchain-based game combining play-to-earn mechanics with strategic gameplay. 6) CryptoInfluence Marketing Hub (45% complete) - Platform connecting influencers with crypto projects for monetization and audience engagement.",
+    metadata: { type: "labs", category: "projects", topic: "innovation-showcase" },
+    commands: ['Labs projects', 'NuxAI Strategist', 'SmartStaking Optimizer', 'NFT Analytics', 'Blockchain Governance AI', 'Nuxchain Game', 'CryptoInfluence']
+  },
+  {
+    content: "Nuxchain Labs Impact Metrics: The AI technology has delivered measurable results - 42% profitability optimization with users reporting higher earnings using AI recommendations, 500,000+ investment simulations analyzed monthly, 98% recommendation accuracy with high user satisfaction rate, and 12 predictive models providing advanced analysis tools. Labs demonstrates real impact on investors' performance through cutting-edge AI and blockchain integration.",
+    metadata: { type: "labs", category: "metrics", topic: "impact" },
+    commands: ['Labs impact', 'Labs metrics', 'Labs results', 'AI performance']
+  },
+
+  // === DEVELOPER HUB - WEB3 INFRASTRUCTURE ===
+  {
+    content: "Nuxchain Developer Hub (DevHub) is a comprehensive Web3 infrastructure platform for developers, startups, and product builders. DevHub provides production-ready tools and APIs to build Web3 solutions faster than ever. The hub offers complete developer toolkits including Staking Infrastructure, NFT Marketplace solutions, Token Creation Suite, and Nuvim AI Assistant integration. All tools are designed to be integration-ready with minimal code required, allowing developers to focus on building innovative applications rather than reinventing blockchain infrastructure.",
+    metadata: { type: "devhub", category: "platform", topic: "overview" },
+    commands: ['Developer Hub', 'DevHub', 'Nuxchain developers', 'Web3 infrastructure', 'developer tools']
+  },
+  {
+    content: "DevHub Staking Infrastructure: Deploy secure staking contracts with flexible lock periods and auto-compound rewards for your community. Features include: Pre-audited smart contracts ready to deploy on any EVM chain, flexible reward distribution mechanisms with customizable parameters, built-in admin dashboard for managing staking pools and monitoring metrics, automatic reward calculation and distribution system, support for multiple lock periods with bonus multipliers, and integration-ready APIs for frontend applications. Tech stack: Solidity, Hardhat, OpenZeppelin, Polygon. Offers custom APY configuration, multi-token support, and real-time analytics dashboard.",
+    metadata: { type: "devhub", category: "tools", topic: "staking-infrastructure" },
+    commands: ['DevHub staking', 'staking infrastructure', 'deploy staking contracts', 'staking API']
+  },
+  {
+    content: "DevHub NFT Marketplace: Launch your own NFT marketplace with customizable royalties, auctions, and decentralized trading. Features include: Complete marketplace infrastructure with buy, sell, and auction functionality, lazy minting technology to reduce gas costs for creators, automatic royalty distribution to original creators on secondary sales, support for ERC-721 and ERC-1155 standards, IPFS integration for decentralized metadata storage, and customizable marketplace fees and commission structures. Tech stack: ERC-721, ERC-1155, IPFS, The Graph. Offers lazy minting (zero gas), royalty management, and auction & fixed price options.",
+    metadata: { type: "devhub", category: "tools", topic: "nft-marketplace" },
+    commands: ['DevHub NFT', 'NFT marketplace', 'deploy marketplace', 'NFT infrastructure']
+  },
+  {
+    content: "DevHub Token Creation Suite: Create and manage digital assets with no-code tokenization platform for any use case. Features include: No-code token creation wizard for ERC-20 and ERC-721 tokens, configurable token economics (supply, decimals, burnable, mintable), built-in vesting schedules and token locks for team allocations, airdrop tools for community distribution campaigns, token gating features for exclusive access control, and comprehensive token analytics and holder tracking. Tech stack: ERC-20, ERC-721, Vesting, Merkle Trees. Supports ERC-20/721 standards, instant deployment, and token utility builder.",
+    metadata: { type: "devhub", category: "tools", topic: "token-creation" },
+    commands: ['DevHub tokens', 'token creation', 'create ERC-20', 'tokenization tools']
+  },
+  {
+    content: "DevHub Nuxbee AI Integration: Integrate AI-powered chat for customer support, community engagement, and user onboarding. Features include: Embeddable AI chat widget for your dApp or website, train on your project documentation and smart contract details, automatic response to common Web3 questions (gas, wallets, transactions), real-time blockchain data integration for transaction status, customizable personality and tone to match your brand, and analytics dashboard to track user interactions and improve responses. Tech stack: Gemini AI, RAG, Vector DB, WebSocket. Offers context-aware responses, custom knowledge base, and multi-language support. Powered by Nuxbee AI technology.",
+    metadata: { type: "devhub", category: "tools", topic: "ai-integration" },
+    commands: ['DevHub AI', 'Nuxbee integration', 'AI chat widget', 'AI assistant API', 'Nuxbee API']
+  },
+  {
+    content: "Nuxchain Kit - Coming Soon: A comprehensive developer toolkit and API platform launching soon. Nuxchain Kit will provide RESTful API with simple HTTP endpoints for all core functionality, SDK Libraries for JavaScript, TypeScript, and Python, secure authentication with API keys and OAuth 2.0 support, real-time webhooks for event notifications on blockchain activities, sandbox environment to test integrations on testnets, and comprehensive interactive API documentation and guides. Developers will be able to: deploy staking contracts with custom parameters via API, create and manage NFT collections programmatically, integrate marketplace functionality into dApps, query blockchain data with simplified GraphQL endpoints, automate token distributions and airdrops, and access AI-powered analytics and insights. Join the waitlist for early access and exclusive developer benefits.",
+    metadata: { type: "devhub", category: "nuxchain-kit", topic: "api-platform" },
+    commands: ['Nuxchain Kit', 'API platform', 'developer API', 'SDK', 'DevHub waitlist']
+  },
+
+  // === ROADMAP - DEVELOPMENT TIMELINE ===
+  {
+    content: "Nuxchain Roadmap 2024-2027: Comprehensive development timeline spanning three major phases with 31% current completion. The roadmap includes 4 achieved milestones and 9 upcoming goals across multiple categories including Launch, Technology, Features, Innovation, Gaming, DeFi, Governance, and Business. Timeline covers 2024-2027 with detailed quarterly milestones and progress tracking. The platform is currently in Phase 2 (Advanced Features & Governance) with active development on NFT Analytics Dashboard, DAO Governance System, Nuxbee AI Platform 2.0 Integration, and Smart Contract Updates.",
+    metadata: { type: "roadmap", category: "overview", topic: "timeline" },
+    commands: ['Nuxchain roadmap', 'roadmap timeline', 'development phases', 'roadmap 2024-2027']
+  },
+  {
+    content: "Roadmap Phase 1 - Foundation & Core Features (Completed): Establishing fundamental infrastructure and core functionalities. Achievements include: 1) Nuxchain Platform Beta - Fully operational platform with SmartStaking contract and NFT Marketplace where users can stake tokens, trade NFTs, and interact seamlessly with the ecosystem. 2) Profile Page & Dashboard - Personalized user profiles with comprehensive stats, NFT collections, staking overview, and real-time rewards tracking. 3) AI Staking Analysis - Advanced AI-powered analysis engine that optimizes staking strategies and provides personalized recommendations based on market conditions. 4) Nuxbee AI 1.0 - Initial release of Nuxbee AI assistant with advanced features and capabilities for user assistance and ecosystem guidance, with plans for a dedicated platform.",
+    metadata: { type: "roadmap", category: "phase-1", topic: "completed" },
+    commands: ['Phase 1', 'roadmap phase 1', 'completed milestones', 'foundation phase']
+  },
+  {
+    content: "Roadmap Phase 2 - Advanced Features & Governance (In Progress): Expanding capabilities with advanced analytics, community governance, and enhanced AI integration. Current development includes: 1) NFT Analytics Dashboard (Q4 2025) - Comprehensive analytics platform for NFT collections with trend prediction, market analysis, and investment optimization tools powered by AI. 2) Governance DAO (Q4 2026) - Decentralized autonomous organization enabling community-driven governance to vote on proposals, submit ideas, and shape the future of Nuxchain. 3) Nuxbee AI Platform 2.0 (Q1 2026) - Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, intelligent recommendations, and sophisticated tools for power users. 4) Smart Contract Updates - Continuous updates and optimizations for better performance and security.",
+    metadata: { type: "roadmap", category: "phase-2", topic: "in-progress" },
+    commands: ['Phase 2', 'roadmap phase 2', 'current development', 'in progress', 'Nuxbee platform']
+  },
+  {
+    content: "Roadmap Phase 3 - Innovation & Expansion (Planned): Pioneering new frontiers with physical-digital integration, gamification, and revolutionary blockchain solutions. Planned features include: 1) Physical NFT Clothing Brand (Q2 2026) - Revolutionary clothing line where each physical item comes with a unique NFT, unlocking exclusive benefits, utilities, and experiences on the platform. 2) New Smart Contracts (Q1 2025) - Development of innovative smart contract solutions to expand blockchain capabilities, create new DeFi products, and enhance platform functionality. 3) Mini Game & Gamification (Q2-Q3 2027) - Interactive gaming experience that gamifies user engagement, connecting NFTs, staking, and daily tasks for rewards and enhanced platform interaction. 4) Advanced Security Features - Enhanced security protocols, multi-signature wallets, and advanced encryption to protect user assets and ensure platform integrity.",
+    metadata: { type: "roadmap", category: "phase-3", topic: "planned" },
+    commands: ['Phase 3', 'roadmap phase 3', 'future plans', 'innovation expansion']
+  },
+  {
+    content: "Roadmap Key Milestones Achieved: 1) Project Inception (Q4 2024) - Started development of Nuxchain platform with initial architecture and core features. 2) Smart Contracts v1.0 (Q1 2025) - Development of innovative smart contract solutions to expand blockchain capabilities. 3) AI Integration (Q2 2025) - Successfully integrated AI-powered staking analysis and recommendations. 4) Beta Platform Launch (Q3 2025) - Internal beta launch of Nuxchain platform with core staking and marketplace features. These milestones represent 31% completion of the overall roadmap with strong foundation for future development.",
+    metadata: { type: "roadmap", category: "milestones", topic: "achieved" },
+    commands: ['achieved milestones', 'completed roadmap', 'roadmap progress']
+  },
+  {
+    content: "Roadmap Upcoming Milestones: 1) NFT Analytics (Q4 2025) - Release of comprehensive NFT analytics and prediction dashboard. 2) Nuxbee AI Platform (Q1 2026) - Launch of dedicated Nuxbee AI platform with advanced AI-powered capabilities, generative AI features, comprehensive toolset hub, and sophisticated automation tools for power users. 3) Physical Branding NFTs (Q2 2026) - Launch of physical NFT clothing brand with digital integration. 4) Staking Pools v2.0 (Q3 2026) - Advanced staking pools with dynamic rewards and flexible lock periods. 5) DAO Governance (Q4 2026) - Transition to fully decentralized platform with community governance. 6) Global Web Launch (Q1 2027) - Official public launch and expansion to new markets. 7) Gaming Platform (Q2-Q3 2027) - Release of gamification features and mini-game ecosystem. 8) Mobile Apps (Q4 2027) - Native mobile applications for iOS and Android. 9) Enterprise Solutions (Q4 2027) - Enterprise-grade blockchain solutions for institutional clients.",
+    metadata: { type: "roadmap", category: "milestones", topic: "upcoming" },
+    commands: ['upcoming milestones', 'future roadmap', 'planned features', 'roadmap goals', 'Nuxbee platform launch']
+  },
+  {
+    content: "Roadmap Progress Statistics: Overall roadmap completion is 31% with 4 milestones achieved out of 13 total milestones. The development spans 3 major phases over a 2024-2027 timeline. Current focus is on Phase 2 with 4 features in active development. The roadmap covers 9 different categories: Launch, Technology, Features, Innovation, Gaming, DeFi, Governance, and Business. Progress is tracked through detailed quarterly milestones with transparent status updates. The platform maintains a balance between innovation and stability, ensuring each phase builds upon previous achievements while introducing groundbreaking new features.",
+    metadata: { type: "roadmap", category: "progress", topic: "statistics" },
+    commands: ['roadmap progress', 'completion percentage', 'roadmap stats', 'development status']
   }
 ];
 
@@ -479,6 +570,9 @@ function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
     staking: queryLower.includes('staking') || queryLower.includes('apy') || queryLower.includes('lockup'),
     nft: queryLower.includes('nft') || queryLower.includes('marketplace') || queryLower.includes('collection'),
     airdrop: queryLower.includes('airdrop') || queryLower.includes('reward'),
+    labs: queryLower.includes('labs') || queryLower.includes('innovation') || queryLower.includes('ai features'),
+    devhub: queryLower.includes('devhub') || queryLower.includes('developer') || queryLower.includes('api') || queryLower.includes('infrastructure'),
+    roadmap: queryLower.includes('roadmap') || queryLower.includes('milestone') || queryLower.includes('phase'),
     general: !queryWords.length || (queryWords.length === 1 && queryWords[0].length < 5)
   };
   
@@ -515,6 +609,12 @@ function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
       } else if (categories.nft && ['nft', 'marketplace'].includes(item.metadata?.type)) {
         score += 0.2;
       } else if (categories.airdrop && ['airdrops'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.labs && ['labs'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.devhub && ['devhub'].includes(item.metadata?.type)) {
+        score += 0.2;
+      } else if (categories.roadmap && ['roadmap'].includes(item.metadata?.type)) {
         score += 0.2;
       } else if (categories.general && ['general'].includes(item.metadata?.type)) {
         score += 0.1;

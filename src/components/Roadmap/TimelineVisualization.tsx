@@ -28,7 +28,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
         { title: 'Nuxchain Platform Beta', icon: <CpuIcon className="w-5 h-5" />, completed: true },
         { title: 'Profile Page & Dashboard', icon: <DatabaseIcon className="w-5 h-5" />, completed: true },
         { title: 'AI Staking Analysis', icon: <BarChart3Icon className="w-5 h-5" />, completed: true },
-        { title: 'Nuvim AI 1.0', icon: <ZapIcon className="w-5 h-5" />, completed: true },
+        { title: 'Nuxbee AI 1.0', icon: <ZapIcon className="w-5 h-5" />, completed: true },
       ]
     },
     {
@@ -39,7 +39,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
       items: [
         { title: 'NFT Analytics Dashboard', icon: <BarChart3Icon className="w-5 h-5" />, completed: false },
         { title: 'Governance DAO', icon: <CodeIcon className="w-5 h-5" />, completed: false },
-        { title: 'Nuvim AI Integration', icon: <CpuIcon className="w-5 h-5" />, completed: false },
+        { title: 'Nuxbee AI Platform 2.0', icon: <CpuIcon className="w-5 h-5" />, completed: false },
       ]
     },
     {

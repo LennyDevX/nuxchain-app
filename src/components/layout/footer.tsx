@@ -56,7 +56,7 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuvim AI 🤖</a>
+                <a href="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI 🤖</a>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Market Analysis</span>

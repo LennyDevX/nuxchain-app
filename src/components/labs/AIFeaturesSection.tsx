@@ -8,10 +8,10 @@ const AIFeaturesSection: React.FC = () => {
   const features = [
     {
       icon: <CpuIcon className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />,
-      title: isMobile ? 'Nuvim Chat' : 'Nuvim AI Chat',
+      title: isMobile ? 'Nuxbee Chat' : 'Nuxbee AI Chat',
       description: isMobile
-        ? 'Intelligent assistant for platform queries and help'
-        : 'Nuvim is an AI chat where users can ask questions, get help, and receive real-time recommendations about all Nuxchain features.',
+        ? 'Advanced AI assistant with dedicated platform'
+        : 'Nuxbee is an advanced AI assistant where users can ask questions, get help, and receive real-time recommendations. Will have its own dedicated platform for advanced features.',
       color: 'from-purple-600 to-pink-600'
     },
     {

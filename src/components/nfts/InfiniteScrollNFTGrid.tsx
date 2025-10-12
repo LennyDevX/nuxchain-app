@@ -5,6 +5,11 @@ import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 import LoadingSpinner from '../../ui/LoadingSpinner';
 
+interface NFTAttribute {
+  trait_type: string;
+  value: string | number;
+}
+
 interface NFTData {
   tokenId: string;
   uniqueId: string;
@@ -13,7 +18,7 @@ interface NFTData {
   name: string;
   description: string;
   image: string;
-  attributes: any[];
+  attributes: NFTAttribute[];
   owner: string;
   creator: string;
   price: bigint;
@@ -69,7 +74,7 @@ export default function InfiniteScrollNFTGrid({
 
     observerRef.current = new IntersectionObserver(handleObserver, {
       threshold: 0.1,
-      rootMargin: '100px' // Start loading 100px before the element is visible
+      rootMargin: '200px' // Start loading 200px before the element is visible for smoother experience
     });
 
     observerRef.current.observe(element);

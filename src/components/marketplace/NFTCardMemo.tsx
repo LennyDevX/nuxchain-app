@@ -42,6 +42,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
             alt={nft.name || `NFT #${nft.tokenId || index + 1}`}
             className="w-full h-full object-cover"
             loading="lazy"
+            decoding="async"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

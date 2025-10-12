@@ -457,9 +457,9 @@ export default function useMarketplace(): UseMarketplaceReturn {
     fetchMarketplaceData();
   }, [fetchMarketplaceData, invalidateMarketplaceCache]);
 
-  // Initial data fetch
+  // Initial data fetch (async to avoid setState cascade warning)
   useEffect(() => {
-    fetchMarketplaceData();
+    Promise.resolve().then(() => fetchMarketplaceData());
   }, [fetchMarketplaceData]);
 
   return {

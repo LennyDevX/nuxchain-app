@@ -63,8 +63,8 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
       category: 'Features'
     },
     {
-      title: 'Nuvim Chat',
-      description: 'Advanced AI-powered chat platform with generative AI capabilities. A comprehensive toolset hub for users powered by artificial intelligence.',
+      title: 'Nuxbee AI Platform',
+      description: 'Advanced AI-powered platform with generative AI capabilities. A comprehensive toolset hub for users with sophisticated features and automation tools.',
       date: 'Q1 2026',
       icon: <CpuIcon className="w-6 h-6" />,
       status: 'upcoming',

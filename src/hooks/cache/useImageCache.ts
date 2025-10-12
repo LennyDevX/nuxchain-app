@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { imageCache } from '../../utils/cache/ImageCache';
 
 interface UseImageCacheResult {
@@ -15,6 +15,8 @@ export function useImageCache(url: string | null | undefined): UseImageCacheResu
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const previousUrlRef = useRef<string | null | undefined>(undefined);
+  const isInitialMount = useRef(true);
 
   const loadImage = useCallback(async (imageUrl: string) => {
     try {
@@ -56,23 +58,36 @@ export function useImageCache(url: string | null | undefined): UseImageCacheResu
   }, [url, loadImage]);
 
   useEffect(() => {
+    // Skip if URL hasn't changed
+    if (!isInitialMount.current && previousUrlRef.current === url) {
+      return;
+    }
+
+    isInitialMount.current = false;
+    previousUrlRef.current = url;
+
+    // Reset state when URL is cleared (async to avoid cascade)
     if (!url) {
-      setImageUrl(null);
-      setIsLoading(false);
-      setError(null);
+      Promise.resolve().then(() => {
+        setImageUrl(null);
+        setIsLoading(false);
+        setError(null);
+      });
       return;
     }
 
-    // Check if image is already cached
+    // Check if image is already cached - update state async
     if (imageCache.isCached(url)) {
-      setImageUrl(url);
-      setIsLoading(false);
-      setError(null);
+      Promise.resolve().then(() => {
+        setImageUrl(url);
+        setIsLoading(false);
+        setError(null);
+      });
       return;
     }
 
-    // Load the image
-    loadImage(url);
+    // Load the image (async to avoid cascade warning)
+    Promise.resolve().then(() => loadImage(url));
   }, [url, loadImage]);
 
   return {

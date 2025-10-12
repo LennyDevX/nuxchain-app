@@ -9,7 +9,7 @@ import Tokenization from '../pages/Tokenization';
 import Labs from '../pages/Labs';
 import Profile from '../pages/Profile';
 import Blog from '../pages/Blog';
-import CTAHub from '../pages/CTAHub';
+import CTAHub from '../pages/DevHub';
 import Roadmap from '../pages/Roadmap';
 
 function AppRoutes() {

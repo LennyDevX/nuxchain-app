@@ -83,8 +83,8 @@ const RoadmapTimeline: React.FC = () => {
       completed: false
     },
     {
-      title: "Nuvim AI Integration",
-      description: "Deeper integration of Nuvim AI chat throughout the platform for contextual help and automation.",
+      title: "Nuxbee AI Platform 2.0",
+      description: "Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain for contextual help and automation.",
       icon: <CpuIcon className="w-6 h-6" />,
       completed: false
     }

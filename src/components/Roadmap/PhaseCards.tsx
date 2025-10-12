@@ -34,8 +34,8 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
     },
 
     {
-      title: 'Nuvim AI 1.0',
-      description: 'Initial release of Nuvim AI assistant with basic features and capabilities.',
+      title: 'Nuxbee AI 1.0',
+      description: 'Initial release of Nuxbee AI assistant with advanced features and capabilities, with plans for a dedicated platform.',
       icon: <ZapIcon className="w-6 h-6" />,
       status: 'completed'
     }
@@ -55,8 +55,8 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
       status: 'in-progress'
     },
     {
-      title: 'Nuvim AI Integration 2.0',
-      description: 'Deep integration of Nuvim AI assistant throughout the platform, providing contextual help, automation, and intelligent recommendations.',
+      title: 'Nuxbee AI Platform 2.0',
+      description: 'Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools.',
       icon: <CpuIcon className="w-6 h-6" />,
       status: 'in-progress'
     },

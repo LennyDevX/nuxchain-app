@@ -83,7 +83,7 @@ const createMockResponse = () => {
           generateContentStream: () => ({
             stream: {
               async *[Symbol.asyncIterator]() {
-                yield { text: 'Hello! I am Nuvim AI 1.0, your intelligent Nuxchain assistant. I am here to help you with any questions about our blockchain ecosystem.' };
+                yield { text: 'Hello! I am Nuxbee AI 1.0, your intelligent Nuxbee assistant. I am here to help you with any questions about our blockchain ecosystem.' };
                 yield { text: 'How can I assist you today?' };
               }
             }

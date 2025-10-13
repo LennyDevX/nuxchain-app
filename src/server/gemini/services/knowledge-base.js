@@ -6,7 +6,7 @@
 export const knowledgeBase = [
   // === GENERAL INFORMATION ===
   {
-    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuvim AI 1.0), and tokenization tools. Commands: 'Nuxchain', 'Nuxchain platform', 'Nuxchain general'.",
+    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuxbee AI 1.0), and tokenization tools. Commands: 'Nuxchain', 'Nuxchain platform', 'Nuxchain general'.",
     metadata: { type: "general", category: "platform", topic: "overview" }
   },
   {
@@ -32,7 +32,7 @@ export const knowledgeBase = [
     metadata: { type: "ecosystem", category: "protocol", topic: "smart-contracts" }
   },
   {
-    content: "Nux-AI is the AI hub and fundamental part of the Nuxchain core, where we develop AI-based tools and services to optimize user experience. This includes Nuvim AI 1.0 chatbot, AI-powered analytics, automated trading strategies, and intelligent contract interactions. The AI system learns from user behavior to provide personalized recommendations and enhanced platform functionality. Commands: 'Nux-AI', 'Nuxchain AI hub', 'Nuvim AI', 'Nuxchain artificial intelligence'.",
+    content: "Nux-AI is the AI hub and fundamental part of the Nuxchain core, where we develop AI-based tools and services to optimize user experience. This includes Nuxbee AI 1.0 chatbot, AI-powered analytics, automated trading strategies, and intelligent contract interactions. The AI system learns from user behavior to provide personalized recommendations and enhanced platform functionality. Commands: 'Nux-AI', 'Nuxchain AI hub', 'Nuxbee AI', 'Nuxchain artificial intelligence'.",
     metadata: { type: "ecosystem", category: "ai", topic: "hub" }
   },
   {
@@ -44,8 +44,8 @@ export const knowledgeBase = [
     metadata: { type: "ecosystem", category: "vault", topic: "security-treasury" }
   },
   {
-    content: "Nuvim AI 1.0 is the first stable version of the AI chat integrated into Nuxchain platform. It provides complete platform integration, allowing users to ask questions about staking, marketplace, NFTs, airdrops, and all platform features. The AI uses Gemini models and supports multimodal interactions including text and images. Commands: 'Nuvim AI', 'Nuxchain AI', 'Nuxchain chat'.",
-    metadata: { type: "general", category: "ai", topic: "nuvim-ai" }
+    content: "Nuxbee AI 1.0 is the first stable version of the AI chat integrated into Nuxchain platform. It provides complete platform integration, allowing users to ask questions about staking, marketplace, NFTs, airdrops, and all platform features. The AI uses Gemini models and supports multimodal interactions including text and images. Commands: 'Nuxbee AI', 'Nuxchain AI', 'Nuxchain chat'.",
+    metadata: { type: "general", category: "ai", topic: "Nuxbees-ai" }
   },
 
   // === SMART STAKING CONTRACT ===
@@ -269,7 +269,7 @@ export const knowledgeBase = [
 
   // === FUNCIONALIDADES DE PÁGINAS ===
   {
-    content: "Página Home de Nuxchain: Sección hero con introducción a la plataforma, sección de IA destacando Nuvim AI 1.0, información sobre staking con estadísticas en tiempo real, preview del marketplace NFT, sección de airdrops con próximos eventos, información de tokenización, sección de beneficios del ecosistema, y footer con enlaces importantes. Diseño responsive y optimizado para conversión. / Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuvim AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Commands: 'Nuxchain home page', 'Nuxchain landing'.",
+    content: "Página Home de Nuxchain: Sección hero con introducción a la plataforma, sección de IA destacando Nuxbee AI 1.0, información sobre staking con estadísticas en tiempo real, preview del marketplace NFT, sección de airdrops con próximos eventos, información de tokenización, sección de beneficios del ecosistema, y footer con enlaces importantes. Diseño responsive y optimizado para conversión. / Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuxbee AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Commands: 'Nuxchain home page', 'Nuxchain landing'.",
     metadata: { type: "technical", category: "pages", topic: "home" }
   },
   {
@@ -281,7 +281,7 @@ export const knowledgeBase = [
     metadata: { type: "technical", category: "pages", topic: "marketplace" }
   },
   {
-    content: "Página de Chat con Nuvim AI: Interfaz de chat en tiempo real con streaming, soporte multimodal (texto e imágenes), procesamiento automático de URLs con web scraping, sistema de embeddings para contexto persistente, welcome screen con sugerencias, área de input con autocompletado, y integración completa con Google Gemini AI. Optimizado para respuestas rápidas y contexto relevante. / Nuxchain Chat page with Nuvim AI: Real-time chat interface with streaming, multimodal support (text and images), automatic URL processing with web scraping, embedding system for persistent context, welcome screen with suggestions, input area with autocomplete, and complete integration with Google Gemini AI. Optimized for fast responses and relevant context. Commands: 'Nuxchain chat page', 'Nuxchain Nuvim AI interface'.",
+    content: "Página de Chat con Nuxbee AI: Interfaz de chat en tiempo real con streaming, soporte multimodal (texto e imágenes), procesamiento automático de URLs con web scraping, sistema de embeddings para contexto persistente, welcome screen con sugerencias, área de input con autocompletado, y integración completa con Google Gemini AI. Optimizado para respuestas rápidas y contexto relevante. / Nuxchain Chat page with Nuxbee AI: Real-time chat interface with streaming, multimodal support (text and images), automatic URL processing with web scraping, embedding system for persistent context, welcome screen with suggestions, input area with autocomplete, and complete integration with Google Gemini AI. Optimized for fast responses and relevant context. Commands: 'Nuxchain chat page', 'Nuxchain Nuxbee AI interface'.",
     metadata: { type: "technical", category: "pages", topic: "chat" }
   },
   {
@@ -311,7 +311,7 @@ export const knowledgeBase = [
     metadata: { type: "technical", category: "integrations", topic: "ipfs" }
   },
   {
-    content: "Integración con Google Gemini AI en Nuxchain: Procesamiento de lenguaje natural para Nuvim AI 1.0, análisis de contenido web, generación de respuestas contextuales, soporte multimodal para texto e imágenes, streaming de respuestas en tiempo real, y sistema de embeddings para memoria persistente. Optimizado para respuestas rápidas y precisas sobre el ecosistema Nuxchain. / Nuxchain Google Gemini AI integration: Natural language processing for Nuvim AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem. Commands: 'Nuxchain Gemini AI', 'Nuxchain AI integration'.",
+    content: "Integración con Google Gemini AI en Nuxchain: Procesamiento de lenguaje natural para Nuxbee AI 1.0, análisis de contenido web, generación de respuestas contextuales, soporte multimodal para texto e imágenes, streaming de respuestas en tiempo real, y sistema de embeddings para memoria persistente. Optimizado para respuestas rápidas y precisas sobre el ecosistema Nuxchain. / Nuxchain Google Gemini AI integration: Natural language processing for Nuxbee AI 1.0, web content analysis, contextual response generation, multimodal support for text and images, real-time response streaming, and embedding system for persistent memory. Optimized for fast and accurate responses about the Nuxchain ecosystem. Commands: 'Nuxchain Gemini AI', 'Nuxchain AI integration'.",
     metadata: { type: "technical", category: "integrations", topic: "gemini-ai" }
   },
 

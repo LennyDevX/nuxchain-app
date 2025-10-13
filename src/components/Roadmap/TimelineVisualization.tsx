@@ -29,6 +29,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
         { title: 'Profile Page & Dashboard', icon: <DatabaseIcon className="w-5 h-5" />, completed: true },
         { title: 'AI Staking Analysis', icon: <BarChart3Icon className="w-5 h-5" />, completed: true },
         { title: 'Nuxbee AI 1.0', icon: <ZapIcon className="w-5 h-5" />, completed: true },
+        { title: 'Roadmap Visualization', icon: <BarChart3Icon className="w-5 h-5" />, completed: true },
       ]
     },
     {
@@ -40,6 +41,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
         { title: 'NFT Analytics Dashboard', icon: <BarChart3Icon className="w-5 h-5" />, completed: false },
         { title: 'Governance DAO', icon: <CodeIcon className="w-5 h-5" />, completed: false },
         { title: 'Nuxbee AI Platform 2.0', icon: <CpuIcon className="w-5 h-5" />, completed: false },
+        { title: 'Update Smart Contracts', icon: <CodeIcon className="w-5 h-5" />, completed: false },
       ]
     },
     {
@@ -51,6 +53,7 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
         { title: 'Physical NFT Clothing Brand', icon: <GlobeIcon className="w-5 h-5" />, completed: false },
         { title: 'New Smart Contracts', icon: <CodeIcon className="w-5 h-5" />, completed: false },
         { title: 'Mini Game & Gamification', icon: <ZapIcon className="w-5 h-5" />, completed: false },
+        { title: 'Advanced Security Features', icon: <GlobeIcon className="w-5 h-5" />, completed: false },
       ]
     }
   ];
@@ -146,9 +149,9 @@ const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({ isMobile 
                 <div className="flex items-center gap-2 mt-4 text-sm text-slate-500">
                   <CalendarIcon className="w-4 h-4" />
                   <span>
-                    {phase.status === 'completed' ? 'Completed Q2 2025' : 
-                     phase.status === 'in-progress' ? 'Q3-Q4 2025' : 
-                     'Q2-Q3 2026'}
+                    {phase.status === 'completed' ? 'Completed Q3 2025' : 
+                     phase.status === 'in-progress' ? 'Q4 2025 - Q1 2026' : 
+                     'Q2 2026 - Q4 2027'}
                   </span>
                 </div>
               </div>

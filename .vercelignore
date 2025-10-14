@@ -14,16 +14,24 @@ test/
 src/server/
 serverless/
 
-# IMPORTANTE: NO ignorar api/services/ ni api/chat/
-# Estos directorios contienen código necesario para las funciones serverless
+# IMPORTANTE: Carpetas con _ no se detectan como funciones
+# api/_config, api/_middlewares, api/_services son módulos auxiliares
 
 # Ignorar endpoint de tools ya eliminado
 api/chat/stream-with-tools.js
 
-# Ignorar tests
+# Ignorar tests - NO deployar como funciones serverless
+api/test/
+api/_test/
+api/test/**
+api/_test/**
+test/
 test-*.js
 *.test.js
 *.spec.js
 
 # Ignorar archivos duplicados ya eliminados
 api/chat/knowledge-base.js
+
+# Scripts de corrección
+fix-vercel-functions.ps1

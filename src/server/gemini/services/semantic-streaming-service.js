@@ -17,13 +17,13 @@ class SemanticStreamingService {
     };
     
     this.timings = {
-      // Timing configurations for different content types
-      simple: { chunkDelay: 15, sentenceDelay: 50 },
-      complex: { chunkDelay: 25, sentenceDelay: 150 },
-      code: { chunkDelay: 30, sentenceDelay: 100 },
-      formula: { chunkDelay: 40, sentenceDelay: 200 },
-      list: { chunkDelay: 20, sentenceDelay: 80 },
-      header: { chunkDelay: 10, sentenceDelay: 120 }
+      // Timing configurations for different content types (optimized for speed)
+      simple: { chunkDelay: 5, sentenceDelay: 15 },
+      complex: { chunkDelay: 8, sentenceDelay: 30 },
+      code: { chunkDelay: 10, sentenceDelay: 25 },
+      formula: { chunkDelay: 12, sentenceDelay: 40 },
+      list: { chunkDelay: 6, sentenceDelay: 20 },
+      header: { chunkDelay: 4, sentenceDelay: 25 }
     };
   }
 
@@ -153,24 +153,24 @@ class SemanticStreamingService {
   calculateContextualPause(chunk, nextChunk) {
     let basePause = chunk.timing.sentenceDelay;
 
-    // Additional pauses based on transitions
+    // Additional pauses based on transitions (reduced for faster streaming)
     if (chunk.type === 'complex' && nextChunk?.type !== 'complex') {
-      basePause += 100; // Pause after complex concepts
+      basePause += 20; // Pause after complex concepts
     }
     
     if (chunk.type === 'code' && nextChunk?.type !== 'code') {
-      basePause += 80; // Pause after code
+      basePause += 15; // Pause after code
     }
 
     if (chunk.type === 'formula') {
-      basePause += 150; // Extra pause for formulas
+      basePause += 25; // Extra pause for formulas
     }
 
     if (chunk.content.includes('\n\n')) {
-      basePause += 200; // Pause for paragraphs
+      basePause += 30; // Pause for paragraphs
     }
 
-    return Math.min(basePause, 500); // Maximum 500ms
+    return Math.min(basePause, 100); // Maximum 100ms (was 500ms)
   }
 
   /**
@@ -204,11 +204,9 @@ class SemanticStreamingService {
       // Create semantic chunks
       const chunks = this.createSemanticChunks(text);
       
-      // Send start indicator
-      res.write('\n[STREAMING_START]\n');
-      await this.delay(50);
+      await this.delay(20);
 
-      // Process each chunk
+      // Process each chunk directly without visible metadata
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         const nextChunk = chunks[i + 1];
@@ -217,17 +215,6 @@ class SemanticStreamingService {
         if (res.destroyed || res.writableEnded) {
           break;
         }
-
-        // Send chunk metadata
-        const chunkMetadata = {
-          type: chunk.type,
-          position: i + 1,
-          total: chunks.length,
-          complexity: analysis.complexity
-        };
-        
-        res.write(`\n[CHUNK_META:${JSON.stringify(chunkMetadata)}]\n`);
-        await this.delay(10);
 
         // Stream chunk content with variable speed
         await this.streamChunkContent(res, chunk, enableVariableSpeed);
@@ -239,14 +226,13 @@ class SemanticStreamingService {
         }
       }
 
-      // Finalization indicator
-      res.write('\n[STREAMING_END]\n');
+      // Finalize stream without visible tags
       res.end();
 
     } catch (error) {
       console.error('Error in semantic streaming:', error);
       if (!res.destroyed) {
-        res.write(`\n[ERROR:${error.message}]\n`);
+        res.write('\nAn error occurred while processing the response. Please try again.\n');
         res.end();
       }
     }

@@ -61,6 +61,7 @@ class SemanticStreamingService {
 
   /**
    * Splits text into semantic chunks
+   * ✅ IMPROVED: Preserve markdown formatting (headers, lists, line breaks)
    */
   createSemanticChunks(text) {
     const chunks = [];
@@ -68,79 +69,66 @@ class SemanticStreamingService {
     let currentType = 'simple';
     let position = 0;
 
-    // Process code blocks first
-    const codeBlocks = [];
-    text = text.replace(this.patterns.codeBlocks, (match, offset) => {
-      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-      codeBlocks.push({ content: match, offset, type: 'code' });
-      return placeholder;
-    });
-
-    // Split by sentences
-    const sentences = text.split(this.patterns.sentences);
+    // ✅ Split by paragraphs first to preserve markdown structure
+    const paragraphs = text.split(/\n\n+/);
     
-    sentences.forEach((sentence, index) => {
-      if (!sentence.trim()) return;
-
-      // Restore code blocks
-      let processedSentence = sentence;
-      codeBlocks.forEach((block, blockIndex) => {
-        processedSentence = processedSentence.replace(
-          `__CODE_BLOCK_${blockIndex}__`,
-          block.content
-        );
-      });
+    paragraphs.forEach((paragraph, index) => {
+      if (!paragraph.trim()) return;
 
       // Determine content type
-      const sentenceType = this.determineSentenceType(processedSentence);
+      const paragraphType = this.determineSentenceType(paragraph);
       
-      // If type changes or chunk is too long, create new chunk
-      if (sentenceType !== currentType || currentChunk.length > 200) {
-        if (currentChunk.trim()) {
-          chunks.push({
-            content: currentChunk.trim(),
-            type: currentType,
-            position: position,
-            timing: this.timings[currentType] || this.timings.simple
-          });
-          position += currentChunk.length;
-        }
-        currentChunk = processedSentence;
-        currentType = sentenceType;
-      } else {
-        currentChunk += ' ' + processedSentence;
+      // Each paragraph becomes a chunk (preserves markdown)
+      chunks.push({
+        content: paragraph,
+        type: paragraphType,
+        position: position,
+        timing: this.timings[paragraphType] || this.timings.simple
+      });
+      
+      position += paragraph.length;
+      
+      // Add paragraph separator back (unless last paragraph)
+      if (index < paragraphs.length - 1) {
+        chunks.push({
+          content: '\n\n',
+          type: 'separator',
+          position: position,
+          timing: { chunkDelay: 5, sentenceDelay: 20 }
+        });
+        position += 2;
       }
     });
-
-    // Add last chunk
-    if (currentChunk.trim()) {
-      chunks.push({
-        content: currentChunk.trim(),
-        type: currentType,
-        position: position,
-        timing: this.timings[currentType] || this.timings.simple
-      });
-    }
 
     return chunks;
   }
 
   /**
-   * Determines the type of a sentence
+   * Determines the type of a sentence/paragraph
+   * ✅ IMPROVED: Better detection for markdown elements
    */
   determineSentenceType(sentence) {
-    if (this.patterns.codeBlocks.test(sentence) || this.patterns.inlineCode.test(sentence)) {
+    // Check for code blocks (highest priority)
+    if (this.patterns.codeBlocks.test(sentence) || sentence.includes('```')) {
       return 'code';
     }
+    // Check for inline code
+    if (this.patterns.inlineCode.test(sentence) || /`[^`]+`/.test(sentence)) {
+      return 'code';
+    }
+    // Check for formulas
     if (this.patterns.formulas.test(sentence)) {
       return 'formula';
     }
-    if (this.patterns.headers.test(sentence)) {
+    // Check for headers (markdown)
+    if (/^#{1,6}\s+/.test(sentence) || this.patterns.headers.test(sentence)) {
       return 'header';
     }
-    if (this.patterns.lists.test(sentence)) {
+    // Check for lists (markdown)
+    if (/^\s*[-*+]\s+/m.test(sentence) || /^\s*\d+\.\s+/m.test(sentence)) {
       return 'list';
     }
+    // Check for complex concepts
     if (this.patterns.complexConcepts.test(sentence)) {
       return 'complex';
     }
@@ -240,30 +228,45 @@ class SemanticStreamingService {
 
   /**
    * Stream chunk content with variable speed
+   * ✅ IMPROVED: Preserve markdown formatting by streaming word-by-word instead of char-by-char
    */
   async streamChunkContent(res, chunk, enableVariableSpeed) {
     const content = chunk.content;
     const timing = chunk.timing;
     
     if (!enableVariableSpeed) {
+      // Send entire content at once to preserve markdown
       res.write(content);
+      await this.delay(timing.sentenceDelay);
       return;
     }
 
-    // Character-by-character streaming with adaptive timing
-    for (let i = 0; i < content.length; i++) {
+    // ✅ WORD-BY-WORD streaming with markdown preservation
+    // Split by whitespace but preserve markdown special characters
+    const tokens = content.split(/(\s+|[.!?,;:\n]+)/);
+    
+    for (let i = 0; i < tokens.length; i++) {
       if (res.destroyed || res.writableEnded) break;
       
-      const char = content[i];
-      res.write(char);
+      const token = tokens[i];
+      if (!token) continue;
       
-      // Special pauses on punctuation
-      if (/[.!?]/.test(char)) {
-        await this.delay(timing.sentenceDelay * 0.3);
-      } else if (/[,;:]/.test(char)) {
+      // Send the token (word + whitespace)
+      res.write(token);
+      
+      // Adaptive timing based on token type
+      if (/^\n+$/.test(token)) {
+        // Line breaks: short pause to preserve formatting
+        await this.delay(5);
+      } else if (/[.!?]$/.test(token)) {
+        // End of sentence: longer pause
+        await this.delay(timing.sentenceDelay * 0.2);
+      } else if (/[,;:]$/.test(token)) {
+        // Mid-sentence punctuation: short pause
+        await this.delay(timing.chunkDelay * 0.3);
+      } else if (token.trim().length > 0) {
+        // Regular word: minimal pause
         await this.delay(timing.chunkDelay * 0.5);
-      } else {
-        await this.delay(timing.chunkDelay);
       }
     }
   }

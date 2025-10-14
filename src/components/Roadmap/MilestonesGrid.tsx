@@ -52,6 +52,15 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
       status: 'achieved',
       category: 'Launch'
     },
+
+    {
+      title: 'Roadmap Visualization',
+      description: 'Comprehensive roadmap interface with interactive components showing development phases, milestones, and timeline visualization.',
+      date: 'Q3 2025',
+      icon: <BarChart3Icon className="w-6 h-6" />,
+      status: 'achieved',
+      category: 'Features'
+    },
     
     // Upcoming Milestones
     {
@@ -283,7 +292,7 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
             </div>
             <div className="text-center">
               <div className={`font-bold text-blue-400 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-                2
+                3
               </div>
               <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Phases</div>
             </div>

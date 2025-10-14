@@ -1,6 +1,8 @@
 
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 import { getRelevantContext } from '../services/embeddings-service.js';
+import semanticStreamingService from '../services/semantic-streaming-service.js';
+import { buildSystemInstructionWithContext } from '../config/system-instruction.js';
 
 // ============================================================================
 // RATE LIMITING
@@ -194,8 +196,8 @@ export default async function handler(req, res) {
     // Obtener contexto relevante de la base de conocimientos
     console.log('🔍 Searching KB with gemini-embedding-001...');
     const rawContext = await getRelevantContext(messageContent, { 
-      threshold: 0.3, // Threshold optimizado para embeddings (más bajo que BM25)
-      limit: 5 
+      threshold: 0.25, // Threshold optimizado (0.25 para BM25, 0.3 para embeddings se aplica internamente)
+      // limit se determina automáticamente según el tipo de consulta (5 normal, 8 para roadmap)
     });
     
     // ✅ Normalizar: aceptar string u objeto { context, score }
@@ -207,8 +209,8 @@ export default async function handler(req, res) {
       relevantContext.score = Number(rawContext.score) || 0;
     }
     
-    // ✅ Truncar contexto para evitar límites de tokens (max ~3000 chars)
-    const MAX_CONTEXT_LENGTH = 3000;
+    // ✅ Truncar contexto para evitar límites de tokens (aumentado a 8000 chars para roadmap completo)
+    const MAX_CONTEXT_LENGTH = 8000;
     if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
       relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
       console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
@@ -221,96 +223,11 @@ export default async function handler(req, res) {
       console.log('⚠️ No KB context found');
     }
     
-    // Construir system instruction con contexto
-    const systemInstruction = `You are Nuxbee, an advanced AI assistant for the Nuxchain platform, a comprehensive Web3 ecosystem. Your role is to provide accurate, helpful, and context-aware information about blockchain, DeFi, NFTs, and the Nuxchain platform. You will soon have your own dedicated platform with advanced features and sophisticated tools for power users.
-
-## Core Capabilities:
-- Answer questions about Nuxchain features, staking, NFTs, and airdrops
-- Provide blockchain and Web3 education
-- Help users navigate the platform
-- Analyze web content when URLs are provided
-- Offer personalized recommendations based on user context
-
-## Response Guidelines:
-1. **Be Concise**: Provide clear, direct answers without unnecessary elaboration
-2. **Be Accurate**: Only provide information you're confident about
-3. **Be Helpful**: Anticipate follow-up questions and offer relevant suggestions
-4. **Be Professional**: Maintain a friendly but professional tone
-5. **Use Context**: Reference the knowledge base and conversation history
-
-## When You Don't Know:
-- Admit when you don't have information
-- Suggest where users might find the answer
-- Offer to help with related topics
-
-## Special Instructions:
-- For technical questions, provide step-by-step guidance
-- For blockchain concepts, explain in accessible terms
-- For platform features, reference specific pages or sections
-- Always prioritize user security and best practices
-- Mention the upcoming Nuxbee platform when discussing advanced features
-
-You are Nuxbee AI 1.0, the official assistant of Nuxchain.
-
-REGLAS CRÍTICAS DE FORMATO (OBLIGATORIO):
-• Usa **Markdown** para dar formato a tus respuestas
-• Usa **negritas** (**texto**) para términos importantes
-• Usa *cursivas* (*texto*) para énfasis
-• Usa listas con viñetas (- item) para enumerar puntos
-• Usa listas numeradas (1. item) para pasos secuenciales
-• Usa ## para títulos de secciones cuando sea apropiado
-• Usa \`código\` para términos técnicos o nombres de funciones
-• Usa bloques de código con \`\`\` para código más largo
-• Separa párrafos con doble salto de línea
-
-EJEMPLOS DE FORMATO CORRECTO:
-
-Pregunta: "¿Qué es Nuxchain?"
-Respuesta CORRECTA:
-"**Nuxchain** es una plataforma descentralizada integral que combina:
-
-- **Staking**: Deposita tokens POL y gana recompensas automáticas
-- **Marketplace de NFTs**: Compra, vende e intercambia NFTs
-- **Airdrops**: Participa en distribuciones de tokens y NFTs exclusivos
-- **Tokenización**: Herramientas para crear tus propios activos digitales
-
-Remember: You are Nuxbee, representing Nuxchain. Be knowledgeable, trustworthy, and user-focused.
-| 30 días | **105.1%** | 0.012% |
-| 90 días | **140.2%** | 0.016% |
-| 180 días | **175.2%** | 0.02% |
-| 365 días | **262.8%** | 0.03% |
-
-## 3. Compounding de Recompensas
-
-Las recompensas se calculan **cada hora** y puedes:
-- Reclamarlas después de que expire tu período de bloqueo
-- Usar la función \`compound()\` para reinvertir automáticamente
-- Maximizar tus ganancias a largo plazo
-
-💡 **Tip**: Cuanto más largo sea tu período de lockup, mayores serán tus recompensas por hora."
-
-REGLAS DE CONTENIDO:
-• Usa ÚNICAMENTE información del contexto proporcionado
-• Sé preciso con números, porcentajes y datos técnicos
-• Si el contexto no tiene la información, di "No tengo información específica sobre eso"
-• NO inventes datos que no están en el contexto
-• Menciona términos técnicos cuando sea apropiado pero explícalos brevemente
-
-ESTILO DE COMUNICACIÓN:
-• Natural y conversacional
-• Profesional pero amigable
-• Usa emojis ocasionalmente para hacer las respuestas más visuales (💡, 📊, ✅, ⚠️)
-• Estructura las respuestas para fácil escaneo visual
-• No saludes en cada respuesta a menos que sea el primer mensaje
-${relevantContext.context ? `
-
-CONTEXTO DE LA BASE DE CONOCIMIENTOS (SCORE: ${relevantContext.score?.toFixed(3) || 'N/A'}):
-${relevantContext.context}
-
-INSTRUCCIÓN CRÍTICA: Usa este contexto como fuente única de verdad. No agregues información externa.
-` : ''}
-
-RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para hacer las respuestas visualmente atractivas y fáciles de leer.`;
+    // Construir system instruction con contexto usando función compartida
+    const systemInstruction = buildSystemInstructionWithContext(
+      relevantContext.context || '',
+      relevantContext.score || 0
+    );
     
     // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
     const client = new GoogleGenAI({ apiKey });
@@ -333,10 +250,10 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
             threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
           },
         ],
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
+        temperature: 0.3, // ✅ Reducido para ser más determinista y evitar que invente información
+        topK: 20, // ✅ Reducido para ser más conservador
+        topP: 0.85, // ✅ Reducido para ser más enfocado
+        maxOutputTokens: 1024, // ✅ Reducido para respuestas más concisas (2-3 párrafos ~800 tokens)
       }
     });
     
@@ -349,35 +266,42 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
       }
     }, 30000);
     
-    // Headers de streaming - TEXTO PLANO (sin SSE)
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    // Headers de streaming - Configurados por semantic streaming service
     res.status(200);
     
     let chunks = 0;
     let totalChars = 0;
+    let fullResponse = '';
     
-    // ✅ STREAMING DIRECTO: Sin formato SSE, solo texto plano
+    // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
+    console.log('📥 Collecting response from Gemini...');
     for await (const chunk of streamResponse) {
-      // ✅ FIX: chunk.text es una PROPIEDAD, no un método
-      // Extraer el texto del chunk correctamente según la API de Gemini
       const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!chunkText) {
         console.warn('⚠️ Empty chunk received, skipping...');
         continue;
       }
       
+      fullResponse += chunkText;
       totalChars += chunkText.length;
       chunks++;
-      
-      // Enviar texto plano directamente (sin JSON, sin "data:")
-      res.write(chunkText);
     }
     
+    console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+    
+    // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
+    console.log('🎯 Starting semantic streaming...');
+    await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+      enableSemanticChunking: true,
+      enableContextualPauses: true,
+      enableVariableSpeed: true,
+      clientInfo: {
+        ip: clientIp,
+        userAgent: headers['user-agent']
+      }
+    });
+    
     clearTimeout(timeoutId);
-    res.end();
     
     const duration = Date.now() - startTime;
     metrics.success++;

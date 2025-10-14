@@ -20,7 +20,10 @@ serverless/
 # Ignorar endpoint de tools ya eliminado
 api/chat/stream-with-tools.js
 
-# Ignorar tests
+# Ignorar tests - NO deployar como funciones serverless
+api/test/
+api/test/**
+test/
 test-*.js
 *.test.js
 *.spec.js

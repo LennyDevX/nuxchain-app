@@ -5,7 +5,7 @@ import env from './config/environment.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
 import websocketHandler from './middlewares/websocket-handler.js';
-import { initializeKnowledgeBaseOnStartup } from './services/embeddings-service.js';
+import { initializeKnowledgeBaseForVercel } from './services/embeddings-service.js';
 import { getCorsConfig, applySecurityHeaders } from '../../security/cors-policies.js';
 import { setupSecurityMiddlewares } from '../../security/security-middleware.js';
 import { setupSecureWebSocketServer } from '../../security/websocket-security.js';
@@ -59,8 +59,12 @@ async function startServer() {
   try {
     // Inicializar base de conocimientos antes de que el servidor esté listo
     console.log('🔄 Inicializando base de conocimientos...');
-    await initializeKnowledgeBaseOnStartup();
+    const initResult = await initializeKnowledgeBaseForVercel(true); // true = precomputar embeddings
     console.log('✅ Base de conocimientos lista para usar');
+    
+    if (initResult.precomputeStarted) {
+      console.log('🚀 Precomputing embeddings in background...');
+    }
   } catch (error) {
     console.error('❌ Error en inicialización de base de conocimientos:', error);
     // Continuar con el servidor aunque falle la inicialización

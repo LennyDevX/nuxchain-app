@@ -7,6 +7,8 @@ import { GoogleGenAI } from '@google/genai';
 import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
 import urlContextService from './url-context-service.js';
+import semanticStreamingService from './semantic-streaming-service.js';
+import { buildSystemInstructionWithContext } from '../../../../api/config/system-instruction.js';
 
 
 /**
@@ -129,6 +131,41 @@ class ResponseCache {
 const responseCache = new ResponseCache();
 
 /**
+ * ✅ NUEVO: Analizar complejidad de la query para determinar límite óptimo
+ */
+function analyzeQueryComplexity(query) {
+  const queryLower = query.toLowerCase();
+  const wordCount = query.split(/\s+/).length;
+  
+  // Patrones de alta complejidad (requieren 8 documentos)
+  const highComplexityPatterns = [
+    /roadmap|timeline|phase|milestone|plan.*futur|complete.*overview/i,
+    /(2024|2025|2026|2027).*(?:2024|2025|2026|2027)/i,
+    /(staking|nft|marketplace|airdrop|tokenization).*(?:staking|nft|marketplace|airdrop|tokenization)/i,
+    /(?:compar|diferenc|versus|vs|diferent).*(?:entre|between)/i,
+    wordCount > 15 ? /.*/ : /(?!)/
+  ];
+  
+  // Patrones de complejidad media (requieren 6 documentos)
+  const mediumComplexityPatterns = [
+    /(?:how|como|cómo|what|que|qué).*(?:work|funciona|detail|detalle)/i,
+    /characteristic|feature|funcionalidad|capacidad/i,
+    /process|proceso|step|paso|guide|guía/i,
+    wordCount >= 8 && wordCount <= 15 ? /.*/ : /(?!)/
+  ];
+  
+  if (highComplexityPatterns.some(pattern => pattern.test(queryLower))) {
+    return 'high';
+  }
+  
+  if (mediumComplexityPatterns.some(pattern => pattern.test(queryLower))) {
+    return 'medium';
+  }
+  
+  return 'simple';
+}
+
+/**
  * Enriquece el contexto con información relevante de la base de conocimientos
  * @param {String} query - Consulta del usuario
  * @param {Object} options - Opciones de enriquecimiento
@@ -149,35 +186,26 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
     
     console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
     
-    // Verificar que el índice esté inicializado
-    const indexStats = embeddingsService.getIndexStats('knowledge_base');
-    console.log(`📊 Estadísticas del índice: ${indexStats.size} documentos`);
-    
-    if (indexStats.size === 0) {
-      console.warn('⚠️ Base de conocimientos no inicializada');
-      return '';
-    }
-    
-    // Buscar información relevante en la base de conocimientos
-    const searchResults = await embeddingsService.searchSimilar('knowledge_base', query, 5, {
-      threshold: 0.5  // Reducir threshold para obtener más resultados
+    // ✅ USAR getRelevantContext que maneja todo internamente (BM25 + embeddings)
+    const rawContext = await embeddingsService.getRelevantContext(query, {
+      threshold: 0.25 // Threshold optimizado
     });
     
-    console.log(`🔎 Resultados de búsqueda: ${searchResults.length}`);
-    
-    if (searchResults && searchResults.length > 0) {
-      const relevantInfo = searchResults
-        .map(result => result.content || result.text)
-        .join('\n\n');
-      
-      console.log(`📚 Encontrados ${searchResults.length} documentos relevantes para: "${query}"`);
-      console.log(`🎯 Scores: ${searchResults.map(r => r.score.toFixed(3)).join(', ')}`);
-      console.log(`📝 Categorías: ${searchResults.map(r => r.meta?.type || 'unknown').join(', ')}`);
-      
-      return `Información relevante de Nuxchain:\n${relevantInfo}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
+    // Normalizar: aceptar string u objeto { context, score }
+    let relevantContext = { context: '', score: 0 };
+    if (typeof rawContext === 'string') {
+      relevantContext.context = rawContext;
+    } else if (rawContext && typeof rawContext === 'object') {
+      relevantContext.context = rawContext.context || rawContext.text || '';
+      relevantContext.score = Number(rawContext.score) || 0;
     }
     
-    console.log(`❌ No se encontró información relevante para: "${query}"`);
+    if (relevantContext.context) {
+      console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+      return `Información relevante de Nuxchain:\n${relevantContext.context}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
+    }
+    
+    console.log(`⚠️ No se encontró información relevante para: "${query}"`);
     return '';
   } catch (error) {
     console.error('❌ Error al consultar base de conocimientos:', error.message);
@@ -209,44 +237,64 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
     return cachedResponse;
   }
 
-  // --- PATCH: For test "should process simple request and return valid response"
-  let patchedContents = contents;
-  if (typeof contents === 'string' && contents.trim().toLowerCase().startsWith('hello gemini')) {
-    patchedContents = `${contents}\n\nPor favor, responde incluyendo la palabra "Gemini" en tu saludo.`;
-  }
-  // --- PATCH: For test "should compare two texts and analizar:'") {
-  if (typeof contents === 'string' && contents.includes('Compara estos dos textos y analiza:')) {
-    patchedContents = `${contents}\n\nAsegúrate de mencionar explícitamente las palabras "similitud", "diferencias" y "temas" en tu análisis.`;
+  // ✅ NUEVO: Obtener contexto de KB y construir systemInstruction
+  let knowledgeContext = '';
+  let contextScore = 0;
+  
+  // Extraer query del contenido
+  let userQuery = '';
+  if (typeof contents === 'string') {
+    userQuery = contents;
+  } else if (Array.isArray(contents) && contents.length > 0) {
+    const lastMessage = contents[contents.length - 1];
+    if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0]) {
+      userQuery = lastMessage.parts[0].text;
+    }
   }
   
-  // Enriquecer contexto con base de conocimientos para consultas relevantes
-  if (typeof patchedContents === 'string') {
-    const knowledgeContext = await enrichContextWithKnowledgeBase(patchedContents);
+  // Obtener contexto relevante de KB
+  if (userQuery) {
+    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
+      threshold: 0.25
+    });
+    
+    // Normalizar contexto
+    if (typeof rawContext === 'string') {
+      knowledgeContext = rawContext;
+    } else if (rawContext && typeof rawContext === 'object') {
+      knowledgeContext = rawContext.context || rawContext.text || '';
+      contextScore = Number(rawContext.score) || 0;
+    }
+    
     if (knowledgeContext) {
-      patchedContents = `${knowledgeContext}\n\n${patchedContents}`;
-    }
-  } else if (Array.isArray(patchedContents) && patchedContents.length > 0) {
-    // Para conversaciones, enriquecer solo el último mensaje del usuario
-    const lastMessage = patchedContents[patchedContents.length - 1];
-    if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0] && lastMessage.parts[0].text) {
-      const knowledgeContext = await enrichContextWithKnowledgeBase(lastMessage.parts[0].text);
-      if (knowledgeContext) {
-        // Crear una copia del último mensaje con contexto enriquecido
-        const enrichedLastMessage = {
-          ...lastMessage,
-          parts: [{
-            text: `${knowledgeContext}\n\n${lastMessage.parts[0].text}`
-          }]
-        };
-        patchedContents = [...patchedContents.slice(0, -1), enrichedLastMessage];
-      }
+      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    } else {
+      console.log('⚠️ No KB context found');
     }
   }
   
+  // Construir systemInstruction con contexto
+  const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  
+  // ✅ DEBUG: Verificar que systemInstruction tenga el formato correcto
+  console.log('🔧 [DEBUG] SystemInstruction format:', {
+    isObject: typeof systemInstruction === 'object',
+    hasParts: systemInstruction?.parts ? 'YES' : 'NO',
+    partsLength: systemInstruction?.parts?.length || 0,
+    firstPartLength: systemInstruction?.parts?.[0]?.text?.length || 0,
+    contextIncluded: systemInstruction?.parts?.[0]?.text?.includes('TEXT TO USE FOR ANSWERING') ? 'YES' : 'NO'
+  });
+  
+  // Preparar contents (sin modificar el mensaje del usuario)
+  let enrichedContents = contents;
+  if (typeof contents === 'string') {
+    enrichedContents = [{ role: 'user', parts: [{ text: contents }] }];
+  }
+
   // Detectar multimodalidad: si contents es array y contiene inlineData
-  if (Array.isArray(contents)) {
+  if (Array.isArray(enrichedContents)) {
     // Si algún part tiene inlineData, es multimodal
-    const hasImage = contents.some(msg =>
+    const hasImage = enrichedContents.some(msg =>
       Array.isArray(msg.parts) && msg.parts.some(part => part.inlineData)
     );
     if (hasImage) {
@@ -276,10 +324,10 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
       model: safeModelName,
       contents: contents,
       generationConfig: {
-        temperature: params.temperature || 0.8,
-        maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024),
-        topP: params.topP || 1,
-        topK: params.topK || 1,
+        temperature: params.temperature || 0.3, // ✅ Reducido para ser más determinista
+        maxOutputTokens: Math.min(params.maxTokens || 1024, modelInfo?.maxOutputTokens || 1024), // ✅ Reducido para brevedad
+        topP: params.topP || 0.85, // ✅ Reducido para ser más enfocado
+        topK: params.topK || 20, // ✅ Reducido para ser más conservador
       }
     }), { timeoutMs: requestOptions.timeout });
 
@@ -522,12 +570,12 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
   const modelInfo = getModelInfo(model); // Use original model name for info lookup
 
   const maxTokens = Math.min(
-    params.maxOutputTokens || 2048,
-    modelInfo?.maxTokens || 2048
+    params.maxOutputTokens || 1024, // ✅ Reducido para brevedad
+    modelInfo?.maxTokens || 1024
   );
   
   const generationConfig = {
-    temperature: params.temperature || 0.8,
+    temperature: params.temperature || 0.7, // ✅ Igualado con API
     topK: params.topK || 40,
     topP: params.topP || 0.95,
     maxOutputTokens: maxTokens,
@@ -715,27 +763,58 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
     throw new Error('Se requiere un prompt o historial de mensajes');
   }
   
-  // Enriquecer contexto con base de conocimientos para streaming
-  let enrichedContents = contents;
+  // ✅ NUEVO: Obtener contexto de KB y construir systemInstruction
+  let knowledgeContext = '';
+  let contextScore = 0;
+  
+  // Extraer query del contenido
+  let userQuery = '';
   if (typeof contents === 'string') {
-    const knowledgeContext = await enrichContextWithKnowledgeBase(contents);
-    if (knowledgeContext) {
-      enrichedContents = `${knowledgeContext}\n\n${contents}`;
-    }
+    userQuery = contents;
   } else if (Array.isArray(contents) && contents.length > 0) {
     const lastMessage = contents[contents.length - 1];
-    if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0] && lastMessage.parts[0].text) {
-      const knowledgeContext = await enrichContextWithKnowledgeBase(lastMessage.parts[0].text);
-      if (knowledgeContext) {
-        const enrichedLastMessage = {
-          ...lastMessage,
-          parts: [{
-            text: `${knowledgeContext}\n\n${lastMessage.parts[0].text}`
-          }]
-        };
-        enrichedContents = [...contents.slice(0, -1), enrichedLastMessage];
-      }
+    if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0]) {
+      userQuery = lastMessage.parts[0].text;
     }
+  }
+  
+  // Obtener contexto relevante de KB
+  if (userQuery) {
+    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
+      threshold: 0.25
+    });
+    
+    // Normalizar contexto
+    if (typeof rawContext === 'string') {
+      knowledgeContext = rawContext;
+    } else if (rawContext && typeof rawContext === 'object') {
+      knowledgeContext = rawContext.context || rawContext.text || '';
+      contextScore = Number(rawContext.score) || 0;
+    }
+    
+    if (knowledgeContext) {
+      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    } else {
+      console.log('⚠️ No KB context found');
+    }
+  }
+  
+  // Construir systemInstruction con contexto
+  const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  
+  // ✅ DEBUG: Verificar que systemInstruction tenga el formato correcto
+  console.log('🔧 [DEBUG] SystemInstruction format (stream):', {
+    isObject: typeof systemInstruction === 'object',
+    hasParts: systemInstruction?.parts ? 'YES' : 'NO',
+    partsLength: systemInstruction?.parts?.length || 0,
+    firstPartLength: systemInstruction?.parts?.[0]?.text?.length || 0,
+    contextIncluded: systemInstruction?.parts?.[0]?.text?.includes('TEXT TO USE FOR ANSWERING') ? 'YES' : 'NO'
+  });
+  
+  // Preparar contents (sin modificar el mensaje del usuario)
+  let enrichedContents = contents;
+  if (typeof contents === 'string') {
+    enrichedContents = [{ role: 'user', parts: [{ text: contents }] }];
   }
   
   // Validate and get safe model
@@ -749,26 +828,24 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   
   // Configuración optimizada para streaming
   const maxTokens = Math.min(
-    params.maxOutputTokens || 2048,
-    modelInfo?.maxTokens || 2048
+    params.maxOutputTokens || 1024, // ✅ Reducido para respuestas concisas (2-3 párrafos)
+    modelInfo?.maxTokens || 1024
   );
   
-  const generationConfig = {
-    temperature: params.temperature || 0.8,
-    topK: params.topK || 40,
-    topP: params.topP || 0.95,
-    maxOutputTokens: maxTokens,
-    responseMimeType: 'text/plain',
-  };
-  
   try {
-    // Usar el método generateContentStream del SDK
+    // ✅ CORRECTO según @google/genai SDK oficial: TODO en 'config'
     const response = await withTimeoutAndRetry(() => 
       ai.models.generateContentStream({
         model: safeModel,
         contents: enrichedContents,
-        generationConfig,
-        ...params
+        config: {
+          systemInstruction, // ✅ systemInstruction dentro de config
+          temperature: params.temperature || 0.3,
+          topK: params.topK || 20,
+          topP: params.topP || 0.85,
+          maxOutputTokens: maxTokens,
+          responseMimeType: 'text/plain',
+        }
       }), 
       { timeoutMs: 20000, maxRetries: 3, backoffMs: 2000 }
     );

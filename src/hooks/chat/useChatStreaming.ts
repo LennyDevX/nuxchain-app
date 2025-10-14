@@ -149,12 +149,12 @@ export function useChatStreaming(): UseChatStreamingReturn {
       console.log('🔍 [FRONTEND] Selected endpoint:', endpoint);
       console.log('🔍 [FRONTEND] - URLs detected:', detectedUrls.length);
       
-      // FIXED: Tipo específico en lugar de any
+      //Tipo específico en lugar de any
       const requestBody: RequestBody = {
         messages: conversationHistory,
         model: 'gemini-2.5-flash-lite',
-        temperature: 0.6,
-        maxTokens: 4096,
+        temperature: 0.3,
+        maxTokens: 1024,
         stream: true
       };
       

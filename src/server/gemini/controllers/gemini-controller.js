@@ -12,11 +12,12 @@ import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
 import { getMetrics } from '../middlewares/logger.js';
-import embeddingsService from '../services/embeddings-service.js';
+import embeddingsService, { getRelevantContext } from '../services/embeddings-service.js';
 import contextCacheService from '../services/context-cache-service.js';
 import analyticsService from '../services/analytics-service.js';
 import batchService from '../services/batch-service.js';
 import WebScraperService from '../services/web-scraper.js';
+import semanticStreamingService from '../services/semantic-streaming-service.js';
 
 // Create instance of simple web scraper
 const webScraperService = new WebScraperService();
@@ -121,27 +122,9 @@ export async function generateContent(req, res, next = null) {
       });
     }
 
-    // Enriquecer contexto con base de conocimiento
-    let enrichedContext = '';
-    const userQuery = prompt || (messages && messages.length > 0 ? messages[messages.length - 1].text || messages[messages.length - 1].content : '');
-    
-    if (userQuery) {
-      try {
-        const searchResults = await embeddingsService.search('knowledge_base', userQuery, 3);
-        if (searchResults && searchResults.length > 0) {
-          const relevantInfo = searchResults
-            .filter(result => result.score > 0.7) // Solo usar resultados con alta similitud
-            .map(result => result.content)
-            .join('\n\n');
-          
-          if (relevantInfo) {
-            enrichedContext = `Información relevante de Nuxchain:\n${relevantInfo}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
-          }
-        }
-      } catch (error) {
-        console.warn('Error al consultar base de conocimientos:', error.message);
-      }
-    }
+    // ✅ CRÍTICO: NO modificar el contenido del usuario aquí
+    // La búsqueda de KB y el systemInstruction se manejan automáticamente en processGeminiStreamRequest/processGeminiRequest
+    // Esto asegura que el contexto de KB se pase como systemInstruction, NO como parte del mensaje del usuario
 
     // Validación de tamaño de imagen (configurable)
     if (image && typeof image === 'string') {
@@ -161,9 +144,8 @@ export async function generateContent(req, res, next = null) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg.image || lastMsg.text) {
         const parts = [];
-        // Combinar contexto enriquecido con el texto del usuario
-        const finalText = enrichedContext ? `${enrichedContext}\n\n${lastMsg.text || ''}` : lastMsg.text;
-        if (finalText) parts.push({ text: finalText });
+        // ✅ NO modificar el texto del usuario - enviarlo tal cual
+        if (lastMsg.text) parts.push({ text: lastMsg.text });
         if (lastMsg.image) {
           // Extrae el mimeType si está presente, si no usa png por defecto
           const mimeMatch = lastMsg.image.match(/^data:(image\/\w+);base64,/);
@@ -182,16 +164,16 @@ export async function generateContent(req, res, next = null) {
       }
     } else if (image) {
       // Si viene imagen directa en el body
-      const finalPrompt = enrichedContext ? `${enrichedContext}\n\n${prompt || ''}` : prompt;
+      // ✅ NO modificar el prompt - enviarlo tal cual
       contents = [
         { role: 'user', parts: [
-          ...(finalPrompt ? [{ text: finalPrompt }] : []),
+          ...(prompt ? [{ text: prompt }] : []),
           { inlineData: { mimeType: 'image/png', data: image.replace(/^data:image\/\w+;base64,/, '') } }
         ]}
       ];
     } else {
-      // Para prompts simples, agregar contexto enriquecido
-      contents = enrichedContext ? `${enrichedContext}\n\n${prompt || ''}` : prompt;
+      // ✅ Para prompts simples, enviar sin modificar
+      contents = prompt;
     }
 
     // Parámetros adaptativos basados en el tipo de contenido
@@ -232,48 +214,34 @@ export async function generateContent(req, res, next = null) {
         // Obtener stream nativo de Gemini
         const geminiStream = await processGeminiStreamRequest(contents, model, params);
         
-        // Escribir directamente al response iterando sobre el stream
-        let aborted = false;
-        const onAbort = () => { aborted = true; };
+        // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
+        console.log('📥 Collecting response from Gemini...');
+        let fullResponse = '';
+        let chunkCount = 0;
         
-        // FIXED: Improved event handling for Vercel compatibility
-        try {
-          req.on('close', onAbort);
-          if (req.on && typeof req.on === 'function') {
-            req.on('aborted', onAbort);
+        for await (const chunk of geminiStream) {
+          const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
+          if (text) {
+            fullResponse += text;
+            chunkCount++;
           }
-        } catch (eventError) {
-          console.warn('Could not attach request events:', eventError.message);
         }
-
-        try {
-          for await (const chunk of geminiStream) {
-            if (aborted || res.destroyed || res.writableEnded) break;
-            const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
-            if (!text) continue;
-            if (!res.write(text)) {
-              await new Promise((resolve) => {
-                res.once('drain', resolve);
-                res.once('error', resolve);
-                res.once('close', resolve);
-              });
-            }
+        
+        console.log(`✅ Collected ${chunkCount} chunks (${fullResponse.length} chars) from Gemini`);
+        
+        // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
+        console.log('🎯 Starting semantic streaming...');
+        await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+          enableSemanticChunking: true,
+          enableContextualPauses: true,
+          enableVariableSpeed: true,
+          clientInfo: {
+            userAgent,
+            isMobile
           }
-          analyticsService.endRequest(requestMetrics);
-          if (!res.writableEnded) res.end();
-        } catch (error) {
-          console.error('Error durante el streaming directo:', error);
-          analyticsService.failRequest(requestMetrics, error);
-          if (!res.headersSent) {
-            res.status(500).end('Stream error: ' + (error.message || 'Error desconocido'));
-          } else {
-            try { res.end('Stream error: ' + (error.message || 'Error desconocido')); } catch (_) {}
-          }
-        } finally {
-          // FIXED: Removed req.off() calls as they don't exist in Vercel environment
-          // The cleanup is handled by res.on('close') and res.on('finish') events instead
-        }
-
+        });
+        
+        analyticsService.endRequest(requestMetrics);
         return;
 
       } catch (streamError) {

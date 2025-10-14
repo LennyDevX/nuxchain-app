@@ -1,15 +1,6 @@
-import { getRelevantContext } from '../services/knowledge-base.js';
-import { initializeKnowledgeBaseForVercel } from '../services/embeddings-service.js';
-import { withErrorHandling } from '../middlewares/error-handler.js';
-import rateLimiter from '../middlewares/rate-limiter.js';
-
-// Configuración CORS para Vercel
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-  'Access-Control-Max-Age': '86400',
-};
+import { getRelevantContext } from '../_services/knowledge-base.js';
+import { initializeKnowledgeBaseForVercel } from '../_services/embeddings-service.js';
+import { withSecurity } from '../_middlewares/serverless-security.js';
 
 /**
  * Endpoint de salud para el servicio de embeddings
@@ -17,27 +8,7 @@ const corsHeaders = {
  * Proporciona información sobre el estado del servicio de embeddings y su funcionamiento.
  */
 async function embeddingsHealthHandler(req, res) {
-  // Manejar preflight CORS
-  if (req.method === 'OPTIONS') {
-    Object.entries(corsHeaders).forEach(([key, value]) => {
-      res.setHeader(key, value);
-    });
-    return res.status(200).json({});
-  }
-  
-  // Aplicar rate limiting
-  await new Promise((resolve, reject) => {
-    rateLimiter.soft(req, res, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-
-  // Aplicar headers CORS
-  Object.entries(corsHeaders).forEach(([key, value]) => {
-    res.setHeader(key, value);
-  });
-
+  // Solo GET permitido
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -190,5 +161,14 @@ async function embeddingsHealthHandler(req, res) {
   }
 }
 
-// Exportar el handler con el middleware de manejo de errores
-export default withErrorHandling(embeddingsHealthHandler);
+// ============================================================================
+// EXPORT CON SEGURIDAD CENTRALIZADA
+// ============================================================================
+// El wrapper withSecurity aplica automáticamente:
+// - CORS headers
+// - Security headers
+// - Rate limiting (soft para health checks)
+// - Attack detection
+// - Timeout protection
+// - Error handling
+export default withSecurity(embeddingsHealthHandler);

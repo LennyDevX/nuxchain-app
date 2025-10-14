@@ -42,16 +42,16 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Phases</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-blue-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>12+</div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Features</div>
+            <div className={`font-bold text-blue-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>14</div>
+            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Milestones</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>6</div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Completed</div>
+            <div className={`font-bold text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>5</div>
+            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Achieved</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-amber-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>2024</div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Launch Year</div>
+            <div className={`font-bold text-amber-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>36%</div>
+            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Progress</div>
           </div>
         </div>
       </div>

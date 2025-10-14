@@ -1,17 +1,12 @@
-
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { getRelevantContext } from '../services/embeddings-service.js';
+import { getRelevantContext } from '../_services/embeddings-service.js';
+import semanticStreamingService from '../_services/semantic-streaming-service.js';
+import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
+import { withSecurity } from '../_middlewares/serverless-security.js';
 
 // ============================================================================
-// RATE LIMITING
+// MÉTRICAS Y VALIDACIÓN
 // ============================================================================
-const rateLimitStore = new Map();
-const RATE_LIMIT = {
-  windowMs: 60000,
-  maxRequests: 30,
-  blockDurationMs: 300000
-};
-
 const metrics = {
   total: 0,
   success: 0,
@@ -19,6 +14,9 @@ const metrics = {
   avgResponseTime: 0
 };
 
+/**
+ * Valida la estructura y contenido del mensaje
+ */
 function validateRequest(body) {
   const errors = [];
   
@@ -45,119 +43,38 @@ function validateRequest(body) {
   }
   
   if (messageContent.length > 10000) {
-    errors.push('Message exceeds maximum length');
-  }
-  
-  if (/<script|javascript:|onerror=/i.test(messageContent)) {
-    errors.push('Potentially malicious content detected');
+    errors.push('Message exceeds maximum length (10000 chars)');
   }
   
   return errors;
 }
 
-function checkRateLimit(ip) {
-  const now = Date.now();
-  const userLimit = rateLimitStore.get(ip);
-  
-  if (!userLimit) {
-    rateLimitStore.set(ip, {
-      count: 1,
-      resetTime: now + RATE_LIMIT.windowMs,
-      blocked: false
-    });
-    return { allowed: true };
-  }
-  
-  if (userLimit.blocked && now < userLimit.resetTime) {
-    return {
-      allowed: false,
-      retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
-    };
-  }
-  
-  if (now > userLimit.resetTime) {
-    userLimit.count = 1;
-    userLimit.resetTime = now + RATE_LIMIT.windowMs;
-    userLimit.blocked = false;
-    return { allowed: true };
-  }
-  
-  userLimit.count++;
-  
-  if (userLimit.count > RATE_LIMIT.maxRequests) {
-    userLimit.blocked = true;
-    userLimit.resetTime = now + RATE_LIMIT.blockDurationMs;
-    return {
-      allowed: false,
-      retryAfter: Math.ceil(RATE_LIMIT.blockDurationMs / 1000)
-    };
-  }
-  
-  return { allowed: true };
-}
-
-// Cleanup
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, data] of rateLimitStore.entries()) {
-    if (now > data.resetTime && !data.blocked) {
-      rateLimitStore.delete(ip);
-    }
-  }
-}, 60000);
-
 // ============================================================================
-// HANDLER PRINCIPAL
+// HANDLER PRINCIPAL (SIN SEGURIDAD MANUAL)
 // ============================================================================
-export default async function handler(req, res) {
+async function streamHandler(req, res) {
   const startTime = Date.now();
   metrics.total++;
   
-  // Headers de seguridad
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
+  // Solo POST permitido
   if (req.method !== 'POST') {
     metrics.errors++;
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
   try {
-    // ✅ FIX: Headers seguros con fallback
     const headers = req.headers || {};
     const clientIp = headers['x-forwarded-for']?.split(',')[0]?.trim() || 
                      headers['x-real-ip'] || 
-                     'test-client';
+                     'unknown';
     
-    const rateLimitCheck = checkRateLimit(clientIp);
+    console.log(`🚀 Chat stream request from ${clientIp}`);
     
-    if (!rateLimitCheck.allowed) {
-      console.warn(`⚠️ Rate limit: ${clientIp}`);
-      metrics.errors++;
-      res.setHeader('Retry-After', rateLimitCheck.retryAfter);
-      return res.status(429).json({
-        error: 'Too many requests',
-        retryAfter: rateLimitCheck.retryAfter
-      });
-    }
-    
-    console.log(`🚀 Request from ${clientIp}`);
-    
-    // Validación
+    // Validación de mensaje
     const validationErrors = validateRequest(req.body);
     
     if (validationErrors.length > 0) {
-      console.error('❌ Validation:', validationErrors);
+      console.error('❌ Validation errors:', validationErrors);
       metrics.errors++;
       return res.status(400).json({
         error: 'Validation failed',
@@ -165,7 +82,7 @@ export default async function handler(req, res) {
       });
     }
     
-    // API Key - ✅ FIX: Soportar ambas variables
+    // API Key
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -192,13 +109,12 @@ export default async function handler(req, res) {
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
     // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching KB with gemini-embedding-001...');
+    console.log('🔍 Searching knowledge base...');
     const rawContext = await getRelevantContext(messageContent, { 
-      threshold: 0.3, // Threshold optimizado para embeddings (más bajo que BM25)
-      limit: 5 
+      threshold: 0.25,
     });
     
-    // ✅ Normalizar: aceptar string u objeto { context, score }
+    // Normalizar contexto
     let relevantContext = { context: '', score: 0 };
     if (typeof rawContext === 'string') {
       relevantContext.context = rawContext;
@@ -207,14 +123,13 @@ export default async function handler(req, res) {
       relevantContext.score = Number(rawContext.score) || 0;
     }
     
-    // ✅ Truncar contexto para evitar límites de tokens (max ~3000 chars)
-    const MAX_CONTEXT_LENGTH = 3000;
+    // Truncar contexto para evitar límites de tokens
+    const MAX_CONTEXT_LENGTH = 8000;
     if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
       relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
       console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
     }
     
-    // Log conciso para producción
     if (relevantContext.context) {
       console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
     } else {
@@ -222,102 +137,17 @@ export default async function handler(req, res) {
     }
     
     // Construir system instruction con contexto
-    const systemInstruction = `You are Nuxbee, an advanced AI assistant for the Nuxchain platform, a comprehensive Web3 ecosystem. Your role is to provide accurate, helpful, and context-aware information about blockchain, DeFi, NFTs, and the Nuxchain platform. You will soon have your own dedicated platform with advanced features and sophisticated tools for power users.
-
-## Core Capabilities:
-- Answer questions about Nuxchain features, staking, NFTs, and airdrops
-- Provide blockchain and Web3 education
-- Help users navigate the platform
-- Analyze web content when URLs are provided
-- Offer personalized recommendations based on user context
-
-## Response Guidelines:
-1. **Be Concise**: Provide clear, direct answers without unnecessary elaboration
-2. **Be Accurate**: Only provide information you're confident about
-3. **Be Helpful**: Anticipate follow-up questions and offer relevant suggestions
-4. **Be Professional**: Maintain a friendly but professional tone
-5. **Use Context**: Reference the knowledge base and conversation history
-
-## When You Don't Know:
-- Admit when you don't have information
-- Suggest where users might find the answer
-- Offer to help with related topics
-
-## Special Instructions:
-- For technical questions, provide step-by-step guidance
-- For blockchain concepts, explain in accessible terms
-- For platform features, reference specific pages or sections
-- Always prioritize user security and best practices
-- Mention the upcoming Nuxbee platform when discussing advanced features
-
-You are Nuxbee AI 1.0, the official assistant of Nuxchain.
-
-REGLAS CRÍTICAS DE FORMATO (OBLIGATORIO):
-• Usa **Markdown** para dar formato a tus respuestas
-• Usa **negritas** (**texto**) para términos importantes
-• Usa *cursivas* (*texto*) para énfasis
-• Usa listas con viñetas (- item) para enumerar puntos
-• Usa listas numeradas (1. item) para pasos secuenciales
-• Usa ## para títulos de secciones cuando sea apropiado
-• Usa \`código\` para términos técnicos o nombres de funciones
-• Usa bloques de código con \`\`\` para código más largo
-• Separa párrafos con doble salto de línea
-
-EJEMPLOS DE FORMATO CORRECTO:
-
-Pregunta: "¿Qué es Nuxchain?"
-Respuesta CORRECTA:
-"**Nuxchain** es una plataforma descentralizada integral que combina:
-
-- **Staking**: Deposita tokens POL y gana recompensas automáticas
-- **Marketplace de NFTs**: Compra, vende e intercambia NFTs
-- **Airdrops**: Participa en distribuciones de tokens y NFTs exclusivos
-- **Tokenización**: Herramientas para crear tus propios activos digitales
-
-Remember: You are Nuxbee, representing Nuxchain. Be knowledgeable, trustworthy, and user-focused.
-| 30 días | **105.1%** | 0.012% |
-| 90 días | **140.2%** | 0.016% |
-| 180 días | **175.2%** | 0.02% |
-| 365 días | **262.8%** | 0.03% |
-
-## 3. Compounding de Recompensas
-
-Las recompensas se calculan **cada hora** y puedes:
-- Reclamarlas después de que expire tu período de bloqueo
-- Usar la función \`compound()\` para reinvertir automáticamente
-- Maximizar tus ganancias a largo plazo
-
-💡 **Tip**: Cuanto más largo sea tu período de lockup, mayores serán tus recompensas por hora."
-
-REGLAS DE CONTENIDO:
-• Usa ÚNICAMENTE información del contexto proporcionado
-• Sé preciso con números, porcentajes y datos técnicos
-• Si el contexto no tiene la información, di "No tengo información específica sobre eso"
-• NO inventes datos que no están en el contexto
-• Menciona términos técnicos cuando sea apropiado pero explícalos brevemente
-
-ESTILO DE COMUNICACIÓN:
-• Natural y conversacional
-• Profesional pero amigable
-• Usa emojis ocasionalmente para hacer las respuestas más visuales (💡, 📊, ✅, ⚠️)
-• Estructura las respuestas para fácil escaneo visual
-• No saludes en cada respuesta a menos que sea el primer mensaje
-${relevantContext.context ? `
-
-CONTEXTO DE LA BASE DE CONOCIMIENTOS (SCORE: ${relevantContext.score?.toFixed(3) || 'N/A'}):
-${relevantContext.context}
-
-INSTRUCCIÓN CRÍTICA: Usa este contexto como fuente única de verdad. No agregues información externa.
-` : ''}
-
-RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para hacer las respuestas visualmente atractivas y fáciles de leer.`;
+    const systemInstruction = buildSystemInstructionWithContext(
+      relevantContext.context || '',
+      relevantContext.score || 0
+    );
     
-    // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
+    // Inicializar Gemini
     const client = new GoogleGenAI({ apiKey });
     
-    console.log('🤖 Generating...');
+    console.log('🤖 Generating response...');
     
-    // Generar stream - IMPORTANTE: generateContentStream retorna una Promise<AsyncGenerator>
+    // Generar stream
     const streamResponse = await client.models.generateContentStream({
       model: "gemini-2.5-flash-lite",
       contents: messageContent,
@@ -333,58 +163,65 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
             threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
           },
         ],
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 2048,
+        temperature: 0.3,
+        topK: 20,
+        topP: 0.85,
+        maxOutputTokens: 1024,
       }
     });
     
     // Timeout
     const timeoutId = setTimeout(() => {
       if (!res.headersSent) {
-        console.error('⏱️ Timeout');
+        console.error('⏱️ Request timeout');
         metrics.errors++;
-        res.status(504).json({ error: 'Timeout' });
+        res.status(504).json({ error: 'Request timeout' });
       }
-    }, 30000);
+    }, 25000); // 25s para serverless (Vercel límite: 30s)
     
-    // Headers de streaming - TEXTO PLANO (sin SSE)
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.setHeader('Transfer-Encoding', 'chunked');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
     res.status(200);
     
     let chunks = 0;
     let totalChars = 0;
+    let fullResponse = '';
     
-    // ✅ STREAMING DIRECTO: Sin formato SSE, solo texto plano
+    // Recolectar respuesta completa del stream
+    console.log('📥 Collecting response from Gemini...');
     for await (const chunk of streamResponse) {
-      // ✅ FIX: chunk.text es una PROPIEDAD, no un método
-      // Extraer el texto del chunk correctamente según la API de Gemini
       const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!chunkText) {
         console.warn('⚠️ Empty chunk received, skipping...');
         continue;
       }
       
+      fullResponse += chunkText;
       totalChars += chunkText.length;
       chunks++;
-      
-      // Enviar texto plano directamente (sin JSON, sin "data:")
-      res.write(chunkText);
     }
     
+    console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+    
+    // Streaming semántico: procesar la respuesta completa
+    console.log('🎯 Starting semantic streaming...');
+    await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+      enableSemanticChunking: true,
+      enableContextualPauses: true,
+      enableVariableSpeed: true,
+      clientInfo: {
+        ip: clientIp,
+        userAgent: headers['user-agent']
+      }
+    });
+    
     clearTimeout(timeoutId);
-    res.end();
     
     const duration = Date.now() - startTime;
     metrics.success++;
     metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.success - 1) + duration) / metrics.success;
     
-    console.log(`✅ Done: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
+    console.log(`✅ Stream completed: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
     
+    // Log de métricas cada 50 requests
     if (metrics.total % 50 === 0) {
       console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
     }
@@ -393,8 +230,7 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
     metrics.errors++;
     const duration = Date.now() - startTime;
     
-    console.error('❌ Error:', error.message);
-    // Solo mostrar stack en desarrollo
+    console.error('❌ Stream error:', error.message);
     if (process.env.NODE_ENV === 'development') {
       console.error('Stack:', error.stack);
     }
@@ -412,15 +248,29 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
       
       res.status(500).json({
         error: 'Internal server error',
-        errorId
+        errorId,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message })
       });
     }
     
-    console.log(`❌ Failed after ${duration}ms`);
+    console.log(`❌ Request failed after ${duration}ms`);
   }
 }
 
-// Export config for Vercel
+// ============================================================================
+// EXPORT CON SEGURIDAD CENTRALIZADA
+// ============================================================================
+// El wrapper withSecurity aplica automáticamente:
+// - CORS headers
+// - Security headers (CSP, X-Frame-Options, etc.)
+// - Rate limiting
+// - Attack detection (XSS, SQL Injection, etc.)
+// - API Key validation (si se configura)
+// - Timeout protection
+// - Error handling
+export default withSecurity(streamHandler);
+
+// Configuración de Vercel
 export const config = {
   maxDuration: 60
 };

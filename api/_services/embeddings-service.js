@@ -241,7 +241,7 @@ function applySemanticBoost(doc, query, baseScore) {
   }
   
   // Boost 2: Términos clave del dominio (+0.15 cada uno)
-  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuvim', 'chat', 'ecosystem', 'blockchain',];
+  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'chat', 'ecosystem', 'blockchain',];
   const queryTerms = queryLower.split(/\s+/);
   const matchedDomainTerms = domainTerms.filter(term => 
     docLower.includes(term) && queryTerms.some(qt => qt.includes(term) || term.includes(qt))

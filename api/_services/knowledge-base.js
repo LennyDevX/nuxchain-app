@@ -82,14 +82,9 @@ const knowledgeBase = [
     commands: ['Nuxchain marketplace', 'Nuxchain NFT', 'Nuxchain buy NFT', 'Nuxchain sell NFT']
   },
   {
-    content: "Nuxchain marketplace features advanced filtering and search capabilities. Users can filter NFTs by: collection, price range, rarity, traits/attributes, listing status (for sale, sold, not listed), and creation date. The marketplace dashboard shows real-time statistics including total volume, floor prices, trending collections, and recent sales. Caching system ensures fast loading of NFT metadata and images.",
+    content: "Nuxchain marketplace features advanced filtering and search capabilities. Users can filter NFTs by: collection, price range, rarity, traits/attributes, listing status (for sale, sold, not listed), and creation date. The marketplace dashboard shows real-time statistics including total volume, floor prices, trending collections, and recent sales. Caching system ensures fast loading of NFT metadata and images. Future marketplace enhancements (Q1 2026) include advanced search and filtering system, bulk listing/delisting capabilities, auction system implementation, offer/bid management, collection verification badges, and improved image loading and caching.",
     metadata: { type: "marketplace", category: "nft", topic: "features" },
     commands: ['Nuxchain marketplace filters', 'Nuxchain NFT search', 'Nuxchain marketplace stats']
-  },
-  {
-    content: "Nuxchain marketplace roadmap includes exciting updates: NFT Marketplace Preview in June 2025, and Marketplace Contracts v2.0 in July 2025 with enhanced features like auction systems, royalty management, and cross-chain compatibility. The marketplace will support multiple blockchain networks and advanced trading mechanisms.",
-    metadata: { type: "marketplace", category: "nft", topic: "roadmap" },
-    commands: ['Nuxchain marketplace roadmap', 'Nuxchain marketplace v2', 'Nuxchain marketplace future']
   },
   {
     content: "Nuxchain marketplace offers system includes: createOffer(), acceptOffer(), rejectOffer(), cancelOffer(). Offers have expiration date and require POL deposit.",
@@ -182,12 +177,12 @@ const knowledgeBase = [
     commands: ['Nuxchain APIs', 'Nuxchain integrations', 'Nuxchain IPFS', 'Nuxchain Alchemy']
   },
   {
-    content: "Asset tokenization in Nuxchain: NUVOS allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset.",
+    content: "Asset tokenization in Nuxchain: NFTs allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset.",
     metadata: { type: "tokenization", category: "assets", topic: "real-world-assets" },
     commands: ['Nuxchain tokenization']
   },
   {
-    content: "NUVOS token utility in Nuxchain: Governance (voting on proposals), staking (generating rewards), fees (transaction discounts), premium access to features.",
+    content: "NFTs token utility in Nuxchain: Governance (voting on proposals), staking (generating rewards), fees (transaction discounts), premium access to features.",
     metadata: { type: "tokenization", category: "utility", topic: "token-use-cases" },
     commands: ['Nuxchain token utility']
   },
@@ -216,24 +211,99 @@ const knowledgeBase = [
 
   // === ROADMAP ===
   {
-    content: "Nuxchain roadmap spans from 2024 to 2025 with major milestones: Foundation Phase (Q1 2024) - Smart Staking Contract v1 deployment, Development Phase (Q2-Q3 2024) - Alpha v1.0 Platform Release, Launch Phase (Q4 2024) - Beta Platform Launch, Initial Phase (Q1 2025) - Smart Staking 1.0 launch, Innovation Phase (Q2 2025) - NFT Dashboard and Gemini AI Chatbot integration. Future plans include marketplace v2.0, governance token launch, and cross-chain expansion.",
-    metadata: { type: "general", category: "roadmap", topic: "timeline" },
-    commands: ['Nuxchain roadmap', 'Nuxchain timeline', 'Nuxchain future plans']
+    content: "Nuxchain Roadmap Overview: Nuxchain has a comprehensive development roadmap spanning from Q4 2024 to Q4 2027, organized in 3 strategic phases. Current Progress: 36% complete with 5 achieved milestones out of 14 total. Phase 1 (Foundation & Core Features) is completed, Phase 2 (Advanced Features & Governance) is in progress from Q4 2025 to Q1 2026, and Phase 3 (Innovation & Expansion) is planned from Q2 2026 to Q4 2027. The roadmap includes 29 total GitHub issues covering categories like NFT & Analytics, AI & Chat Platform, Gaming & Gamification, Mobile Development, Governance & DAO, Physical NFT Brand, Smart Contracts, Platform & Infrastructure, Security, Documentation, UI/UX, Testing, and Analytics.",
+    metadata: { type: "general", category: "roadmap", topic: "overview" },
+    commands: ['Nuxchain roadmap', 'Nuxchain timeline', 'Nuxchain future plans', 'roadmap overview', 'Nuxchain phases']
   },
   {
-    content: "Q1 2024 Nuxchain: Launch of Smart Staking v2.0, integration with more wallets, marketplace UI/UX improvements.",
-    metadata: { type: "roadmap", category: "q1-2024", topic: "upcoming-features" },
-    commands: ['Nuxchain roadmap Q1 2024']
+    content: "Nuxchain Roadmap Timeline 2024-2027: The complete timeline spans 3+ years with major milestones. 2024: Q4 - Project Inception and Beta Platform Launch. 2025: Q1 - Smart Contracts v1.0, Q2 - AI Integration, Q3 - Beta Platform Launch and Roadmap Visualization (COMPLETED), Q4 - NFT Analytics Dashboard (IN PROGRESS). 2026: Q1 - Nuxbee AI Platform 2.0 (IN PROGRESS), Q2 - Physical NFT Clothing Brand and Advanced Security, Q3 - Staking Pools v2.0, Q4 - DAO Governance. 2027: Q1 - Web Platform Public Launch and Global Expansion, Q2-Q3 - Gaming Platform and Gamification, Q4 - Mobile Apps (iOS/Android) and Enterprise Solutions. Total of 14 milestones with 5 already achieved.",
+    metadata: { type: "general", category: "roadmap", topic: "timeline-complete" },
+    commands: ['Nuxchain roadmap timeline', 'Nuxchain 2024 2025 2026 2027', 'roadmap years', 'Nuxchain complete roadmap']
   },
   {
-    content: "Q2 2024 Nuxchain: Implementation of decentralized governance, mobile app launch, Layer 2 solutions integration.",
-    metadata: { type: "roadmap", category: "q2-2024", topic: "governance-mobile" },
-    commands: ['Nuxchain roadmap Q2 2024']
+    content: "Nuxchain Phase 1: Foundation & Core Features (COMPLETED - Q4 2024 to Q3 2025). This phase established the fundamental infrastructure of the Nuxchain ecosystem. Completed features: 1) Nuxchain Platform Beta - Fully operational platform with SmartStaking contract and NFT Marketplace, users can stake tokens and trade NFTs. 2) Profile Page & Dashboard - Personalized user profiles with comprehensive stats, NFT collections, staking overview, and real-time rewards tracking. 3) AI Staking Analysis - Advanced AI-powered analysis engine that optimizes staking strategies and provides personalized recommendations based on market conditions. 4) Nuxbee AI 1.0 - Initial release of Nuxbee AI assistant with advanced features and capabilities. 5) Roadmap Visualization - Interactive roadmap interface with comprehensive components showing development phases, milestones, and timeline visualization. All Phase 1 features are now live and operational.",
+    metadata: { type: "roadmap", category: "phase-1", topic: "completed" },
+    commands: ['Nuxchain Phase 1', 'Nuxchain foundation', 'Phase 1 completed', 'Nuxchain core features']
   },
   {
-    content: "Q3-Q4 2024 Nuxchain: Multi-chain expansion, strategic partnerships, advanced DeFi functionalities, real asset tokenization.",
-    metadata: { type: "roadmap", category: "h2-2024", topic: "expansion-defi" },
-    commands: ['Nuxchain roadmap H2 2024']
+    content: "Nuxchain Phase 2: Advanced Features & Governance (IN PROGRESS - Q4 2025 to Q1 2026). This phase expands capabilities with advanced analytics, community governance, and enhanced AI integration. Current features in development: 1) NFT Analytics Dashboard (IN PROGRESS, Q4 2025) - Comprehensive analytics platform for NFT collections with trend prediction, market analysis, and AI-powered investment optimization tools. Real-time NFT collection tracking and price trend visualization are already implemented. 2) Governance DAO (IN PROGRESS, Q4 2026) - Decentralized autonomous organization enabling community-driven governance. Planning phase for governance token is complete. Will include proposal creation, voting mechanism, delegation, treasury management, and execution automation. 3) Nuxbee AI Platform 2.0 (IN PROGRESS, Q1 2026) - Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools. Already has real-time chat, AI-powered responses, context-aware conversations, and code generation. 4) Update Smart Contracts (IN PROGRESS, Q3-Q4 2025) - Update and optimize existing smart contracts for better performance, security, and gas efficiency. Security audit completed, gas optimization achieved, upgraded to latest Solidity version.",
+    metadata: { type: "roadmap", category: "phase-2", topic: "in-progress" },
+    commands: ['Nuxchain Phase 2', 'Phase 2 in progress', 'Nuxchain advanced features', 'Nuxchain governance']
+  },
+  {
+    content: "Nuxchain Phase 3: Innovation & Expansion (PLANNED - Q2 2026 to Q4 2027). This phase pioneers new frontiers with physical-digital integration, gamification, and revolutionary blockchain solutions. Planned features: 1) Physical NFT Clothing Brand (Q2 2026) - Revolutionary clothing line where each physical item comes with a unique NFT, unlocking exclusive benefits, utilities, and experiences on the platform. Includes e-commerce integration, QR code/NFC chip integration, and authenticity verification. 2) New Smart Contracts (Q1-Q2 2026) - Development of innovative smart contract solutions including yield farming contracts, liquidity pools, token swap functionality, lending/borrowing protocol, and oracle integration. 3) Mini Game & Gamification (Q2-Q3 2027) - Interactive gaming experience that gamifies user engagement, connecting NFTs, staking, and daily tasks for rewards. Includes daily quest system, achievement/badge system, leaderboard, NFT integration in games, and reward distribution. 4) Advanced Security Features (Q2 2026) - Enhanced security protocols, multi-signature wallets, 2FA/MFA authentication, hardware wallet support, and advanced encryption to protect user assets.",
+    metadata: { type: "roadmap", category: "phase-3", topic: "planned" },
+    commands: ['Nuxchain Phase 3', 'Phase 3 planned', 'Nuxchain innovation', 'Nuxchain expansion', 'Nuxchain future']
+  },
+  {
+    content: "Nuxchain Achieved Milestones (5 completed as of Q3 2025): 1) Project Inception (Q4 2024) - Started development of Nuxchain platform with initial architecture and core features. 2) Smart Contracts v1.0 (Q1 2025) - Development of innovative smart contract solutions to expand blockchain capabilities and create new DeFi products. 3) AI Integration (Q2 2025) - Successfully integrated AI-powered staking analysis and recommendations. 4) Beta Platform Launch (Q3 2025) - Internal beta launch of Nuxchain platform with core staking and marketplace features. 5) Roadmap Visualization (Q3 2025) - Comprehensive roadmap interface with interactive components showing development phases, milestones, and timeline visualization. These milestones represent 36% completion of the overall roadmap.",
+    metadata: { type: "roadmap", category: "milestones", topic: "achieved" },
+    commands: ['Nuxchain achievements', 'Nuxchain completed milestones', 'Nuxchain achieved', 'what has been completed']
+  },
+  {
+    content: "Nuxchain Upcoming Milestones (9 planned from Q4 2025 to Q4 2027): 1) NFT Analytics (Q4 2025) - Release of comprehensive NFT analytics and prediction dashboard. 2) Nuxbee AI Platform (Q1 2026) - Advanced AI-powered platform with generative AI capabilities and comprehensive toolset hub. 3) Physical Branding NFTs (Q2 2026) - Launch of physical NFT clothing brand with digital integration. 4) Staking Pools v2.0 (Q3 2026) - Advanced staking pools with dynamic rewards and flexible lock periods. 5) DAO Governance (Q4 2026) - Launch of decentralized autonomous organization with full community governance. 6) Global Expansion & Web Launch (Q1 2027) - Official public launch of web platform with expansion to new markets and partnerships. 7) Gaming Platform (Q2-Q3 2027) - Release of gamification features and mini-game ecosystem. 8) Mobile App Launch (Q4 2027) - Release of native mobile applications for iOS and Android platforms. 9) Enterprise Solutions (Q4 2027) - Launch of enterprise-grade blockchain solutions for institutional clients.",
+    metadata: { type: "roadmap", category: "milestones", topic: "upcoming" },
+    commands: ['Nuxchain upcoming', 'Nuxchain future milestones', 'what is coming', 'Nuxchain next features']
+  },
+  {
+    content: "Nuxchain 2025 Roadmap Details: Q1 2025 - Smart Contracts v1.0 deployment and development of innovative smart contract solutions (COMPLETED). Q2 2025 - AI Integration with AI-powered staking analysis and recommendations (COMPLETED). Q3 2025 - Beta Platform Launch with core staking and marketplace features, plus Roadmap Visualization with interactive components (COMPLETED). Q4 2025 - NFT Analytics Dashboard development with trend prediction, market analysis, and AI-powered investment optimization tools (IN PROGRESS). Also continuing Smart Contract Updates & Optimization with security audits and gas optimization (IN PROGRESS). By end of 2025, Nuxchain will have completed Phase 1 entirely and be well into Phase 2 development.",
+    metadata: { type: "roadmap", category: "year-2025", topic: "detailed" },
+    commands: ['Nuxchain 2025', 'roadmap 2025', 'Nuxchain this year', '2025 plans']
+  },
+  {
+    content: "Nuxchain 2026 Roadmap Details: Q1 2026 - Nuxbee AI Platform 2.0 launch with advanced features and deep Nuxchain integration (IN PROGRESS), NFT Marketplace Enhancements with advanced filtering and bulk operations, Developer Documentation Portal creation, Mobile-First Responsive Redesign. Q2 2026 - Physical NFT Clothing Brand Launch with e-commerce integration and NFC/QR verification, AI Staking Optimizer Enhancement with advanced risk assessment, Advanced Security Features with multi-signature wallets and 2FA/MFA, Community & Support Platform with forums and knowledge base, Advanced Analytics Dashboard. Q3 2026 - Staking Pools v2.0 with dynamic rewards and flexible lock periods, Physical NFT Utilities & Benefits for exclusive holder perks. Q4 2026 - DAO Governance System launch with community-driven governance, proposal creation, voting mechanisms, and treasury management. 2026 is the year of innovation and security enhancement for Nuxchain.",
+    metadata: { type: "roadmap", category: "year-2026", topic: "detailed" },
+    commands: ['Nuxchain 2026', 'roadmap 2026', '2026 plans', 'Nuxchain next year']
+  },
+  {
+    content: "Nuxchain 2027 Roadmap Details: Q1 2027 - Web Platform Public Launch with full functionality, performance optimization (Lighthouse score 90+), SEO optimization, multi-language support, and legal compliance (GDPR). Global Expansion & Partnerships with multi-currency support, regional payment methods, localization for key markets, and cross-chain bridge implementation. Governance Dashboard UI for DAO participation. Q2-Q3 2027 - Gaming Platform Development with mini-game engine, daily quest system, achievement/badge system, leaderboard, NFT integration in games, and multiplayer capabilities. Gamification Rewards System with daily login rewards, task completion tracking, streak bonuses, referral rewards, and seasonal events. Q4 2027 - iOS Mobile App Development and Android Mobile App Development with full platform functionality, wallet integration, push notifications, biometric authentication, and offline mode capabilities. Enterprise Solutions Platform launch with white-label solutions, custom smart contract deployment, and enterprise API access. 2027 marks the global expansion and mobile accessibility of Nuxchain.",
+    metadata: { type: "roadmap", category: "year-2027", topic: "detailed" },
+    commands: ['Nuxchain 2027', 'roadmap 2027', '2027 plans', 'Nuxchain long term']
+  },
+  {
+    content: "Nuxchain GitHub Issues Summary: The roadmap is tracked through 29 GitHub issues organized by priority. Critical Priority (5 issues): Platform Beta Features Phase 1 (COMPLETED), DAO Governance System (IN PROGRESS), Smart Contract Updates & Optimization (IN PROGRESS), Web Platform Public Launch, Advanced Security Features. High Priority (11 issues): Roadmap Visualization & UI Components (COMPLETED), NFT Analytics Dashboard (IN PROGRESS), Nuxbee AI Platform v2.0 (IN PROGRESS), Gaming Platform Development, iOS Mobile App Development, Android Mobile App Development, Staking Pools v2.0, Global Expansion & Partnerships, Monitoring & Observability, Automated Testing Infrastructure, Legacy System Migration (IN PROGRESS). Medium Priority (12 issues): NFT Marketplace Enhancements, AI Staking Optimizer Enhancement, Gamification Rewards System, Governance Dashboard UI, Physical NFT Clothing Brand Launch, New DeFi Smart Contracts, Enterprise Solutions Platform, Developer Documentation Portal, Community & Support Platform, Design System & Component Library, Mobile-First Responsive Redesign, Advanced Analytics Dashboard. Low Priority (1 issue): Physical NFT Utilities & Benefits.",
+    metadata: { type: "roadmap", category: "github-issues", topic: "summary" },
+    commands: ['Nuxchain issues', 'GitHub roadmap', 'roadmap priorities', 'Nuxchain development status']
+  },
+  {
+    content: "Nuxchain Roadmap Progress Statistics: Total Milestones: 14 (5 achieved, 9 upcoming). Total Features: 13 (5 in Phase 1, 4 in Phase 2, 4 in Phase 3). Total GitHub Issues: 29 (2 completed, 5 in progress, 22 planned). Overall Progress: 36% complete. Phase 1 Status: 100% completed (5/5 features). Phase 2 Status: In Progress (4/4 features active, 0% to 50% completion range). Phase 3 Status: Planned (4/4 features, 0% completion). Timeline: 3 years, 3 months (Q4 2024 to Q4 2027). Current Position: Q4 2025, transitioning from Phase 1 to Phase 2. Categories Covered: 13 major categories including NFT & Analytics, AI & Chat, Gaming, Mobile, Governance, Physical NFT, Smart Contracts, Platform Infrastructure, Security, Documentation, UI/UX, Testing, and Analytics.",
+    metadata: { type: "roadmap", category: "statistics", topic: "progress" },
+    commands: ['Nuxchain progress', 'roadmap statistics', 'how much completed', 'Nuxchain percentage']
+  },
+  {
+    content: "Nuxchain Mobile Development Plans (Q4 2027): iOS Mobile App Development - React Native or Swift implementation with wallet integration (MetaMask, WalletConnect), push notifications, biometric authentication, offline mode capabilities, App Store compliance, deep linking support, and QR code scanning. Requires iOS 14+ support, TestFlight beta testing, and performance optimization for mobile devices. Android Mobile App Development - React Native or Kotlin implementation with wallet integration, push notifications (FCM), biometric authentication, offline mode capabilities, Google Play compliance, deep linking support, and QR code scanning. Requires Android 8.0+ support, Google Play beta testing, and performance optimization for various devices. Both mobile apps will have full platform functionality including staking, NFT marketplace access, profile management, and AI chat integration.",
+    metadata: { type: "roadmap", category: "mobile", topic: "development" },
+    commands: ['Nuxchain mobile', 'mobile app', 'iOS Android', 'Nuxchain mobile plans']
+  },
+  {
+    content: "Nuxchain Gaming & Gamification Plans (Q2-Q3 2027): Gaming Platform Development - Release of gamification features and mini-game ecosystem that connects NFTs, staking, and daily tasks for rewards. Features include mini-game engine development using Phaser.js or similar, daily quest system, achievement/badge system, leaderboard functionality, NFT integration in games, reward distribution system via smart contracts, game state persistence, multiplayer capabilities, and anti-cheat mechanisms. Mobile-optimized controls for accessibility. Gamification Rewards System - Comprehensive rewards system that incentivizes user engagement through daily login rewards, task completion tracking, streak bonuses, referral rewards, social sharing incentives, and seasonal events and challenges. This creates a fun and engaging experience that rewards active participation in the Nuxchain ecosystem.",
+    metadata: { type: "roadmap", category: "gaming", topic: "gamification" },
+    commands: ['Nuxchain gaming', 'gamification', 'games', 'Nuxchain mini games', 'rewards system']
+  },
+  {
+    content: "Nuxchain DAO Governance Plans (Q4 2026): Launch of decentralized autonomous organization with community governance to transition to a fully decentralized platform. Features include governance token implementation (planning phase complete), proposal creation system for community suggestions, on-chain voting mechanism, delegation functionality to allow token holders to delegate voting power, timelock for proposal execution to ensure security, treasury management for community funds, quorum requirements for vote validity, vote weight calculation based on token holdings, proposal discussion forum for community debate, and execution automation for approved proposals. Technical requirements include smart contracts using Governor pattern, token voting power calculation, Snapshot integration for off-chain voting, multi-sig wallet for treasury, and governance dashboard UI. This empowers the Nuxchain community to shape the platform's future direction.",
+    metadata: { type: "roadmap", category: "governance", topic: "dao" },
+    commands: ['Nuxchain DAO', 'governance', 'community governance', 'Nuxchain voting', 'decentralized governance']
+  },
+  {
+    content: "Nuxchain Physical NFT Brand Plans (Q2 2026): Launch of physical NFT clothing brand with digital integration where each physical item comes with a unique NFT. Features include e-commerce integration with Shopify/WooCommerce, NFT minting for physical items, QR code/NFC chip integration for authenticity, authenticity verification system, exclusive holder benefits, redemption system for physical products, inventory management, shipping integration, and returns/exchange policy. Technical requirements include smart contracts for physical NFT claims, NFC/QR verification system, and supply chain tracking. Physical NFT Utilities & Benefits (Q3 2026) include exclusive event access, discount system for holders, early access to new drops, community perks, and staking bonuses for holders. This creates a revolutionary bridge between physical fashion and digital ownership.",
+    metadata: { type: "roadmap", category: "physical-nft", topic: "brand" },
+    commands: ['Nuxchain physical NFT', 'NFT clothing', 'physical brand', 'Nuxchain merchandise', 'NFT utilities']
+  },
+  {
+    content: "Nuxchain Enterprise Solutions Plans (Q4 2027): Launch of enterprise-grade blockchain solutions for institutional clients. Features include white-label solution for businesses to deploy their own branded platforms, custom smart contract deployment tailored to specific business needs, enterprise API access for integration with existing systems, SLA guarantees for uptime and performance, dedicated support for enterprise customers, advanced analytics and reporting for business intelligence, compliance tools for regulatory requirements, and bulk operations support for high-volume transactions. This opens Nuxchain technology to institutional adoption and B2B markets, creating new revenue streams and expanding the ecosystem's reach.",
+    metadata: { type: "roadmap", category: "enterprise", topic: "solutions" },
+    commands: ['Nuxchain enterprise', 'business solutions', 'institutional', 'white label', 'B2B']
+  },
+  {
+    content: "Nuxchain Security & Infrastructure Plans (Q2 2026 and ongoing): Advanced Security Features include multi-signature wallet implementation for enhanced security, 2FA/MFA authentication for user accounts, hardware wallet support (Ledger, Trezor) for cold storage, session management improvements, rate limiting and DDoS protection, encrypted data storage for sensitive information, security audit completion by third-party firms, bug bounty program launch to incentivize security researchers, penetration testing for vulnerability assessment, and incident response plan for security events. Technical requirements include multi-sig smart contracts, OAuth 2.0 / JWT implementation, Redis for session management, WAF (Web Application Firewall), and regular security audits. Monitoring & Observability (Q4 2025) includes application performance monitoring (APM), error tracking and alerting, log aggregation, uptime monitoring, smart contract event monitoring, user analytics, and custom dashboards for real-time platform health visibility.",
+    metadata: { type: "roadmap", category: "security", topic: "infrastructure" },
+    commands: ['Nuxchain security', 'security features', 'infrastructure', 'monitoring', 'Nuxchain safety']
+  },
+  {
+    content: "Nuxchain Testing & Quality Assurance Plans (Q3 2025): Automated Testing Infrastructure implementation includes unit test coverage (80%+ target), integration tests for component interactions, E2E tests using Playwright or Cypress for full user flow testing, smart contract tests using Hardhat for blockchain code verification, performance testing for load and stress scenarios, CI/CD pipeline integration for automated testing on every commit, and automated visual regression testing to catch UI changes. This ensures high code quality, reduces bugs, and accelerates development velocity. Design System & Component Library (Q4 2025) includes design tokens (colors, typography, spacing), component library using Storybook for documentation, accessibility compliance (WCAG 2.1 AA standards), dark/light theme support, responsive design patterns, animation guidelines, and icon library for consistent UI/UX across the platform.",
+    metadata: { type: "roadmap", category: "testing", topic: "quality-assurance" },
+    commands: ['Nuxchain testing', 'quality assurance', 'automated testing', 'CI/CD', 'test coverage']
   },
 
   // === FAQ ===
@@ -456,7 +526,7 @@ const knowledgeBase = [
     commands: ['royalty issues', 'incorrect royalties']
   },
   {
-    content: "Nuxchain platform limits: Minimum staking 100 NUVOS, maximum 1,000,000 NUVOS per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
+    content: "Nuxchain platform limits: Minimum staking 100 NFTs, maximum 1,000,000 NFTs per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
     metadata: { type: "faq", category: "general", topic: "limits" },
     commands: ['platform limits', 'Nuxchain restrictions']
   },
@@ -485,7 +555,7 @@ const knowledgeBase = [
 
   // === DEVELOPER HUB - WEB3 INFRASTRUCTURE ===
   {
-    content: "Nuxchain Developer Hub (DevHub) is a comprehensive Web3 infrastructure platform for developers, startups, and product builders. DevHub provides production-ready tools and APIs to build Web3 solutions faster than ever. The hub offers complete developer toolkits including Staking Infrastructure, NFT Marketplace solutions, Token Creation Suite, and Nuvim AI Assistant integration. All tools are designed to be integration-ready with minimal code required, allowing developers to focus on building innovative applications rather than reinventing blockchain infrastructure.",
+    content: "Nuxchain Developer Hub (DevHub) is a comprehensive Web3 infrastructure platform for developers, startups, and product builders. DevHub provides production-ready tools and APIs to build Web3 solutions faster than ever. The hub offers complete developer toolkits including Staking Infrastructure, NFT Marketplace solutions, Token Creation Suite, and Nuxbee AI Assistant integration. All tools are designed to be integration-ready with minimal code required, allowing developers to focus on building innovative applications rather than reinventing blockchain infrastructure.",
     metadata: { type: "devhub", category: "platform", topic: "overview" },
     commands: ['Developer Hub', 'DevHub', 'Nuxchain developers', 'Web3 infrastructure', 'developer tools']
   },

@@ -1,8 +1,8 @@
-# Guía de Streaming Mejorado - Nuvos Cloud
+# Guía de Streaming Mejorado - Nuxbee
 
 ## Descripción General
 
-El sistema de streaming mejorado de Nuvos Cloud implementa funcionalidades avanzadas para proporcionar una experiencia de chat en tiempo real fluida y optimizada. Incluye streaming semántico, WebSocket support, indicadores de progreso, syntax highlighting y más.
+El sistema de streaming mejorado de Nuxbee implementa funcionalidades avanzadas para proporcionar una experiencia de chat en tiempo real fluida y optimizada. Incluye streaming semántico, WebSocket support, indicadores de progreso, syntax highlighting y más.
 
 ## Características Implementadas
 

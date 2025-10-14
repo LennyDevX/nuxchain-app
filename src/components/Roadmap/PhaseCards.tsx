@@ -32,11 +32,16 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
       icon: <BarChart3Icon className="w-6 h-6" />,
       status: 'completed'
     },
-
     {
       title: 'Nuxbee AI 1.0',
       description: 'Initial release of Nuxbee AI assistant with advanced features and capabilities, with plans for a dedicated platform.',
       icon: <ZapIcon className="w-6 h-6" />,
+      status: 'completed'
+    },
+    {
+      title: 'Roadmap Visualization',
+      description: 'Interactive roadmap interface with comprehensive components showing development phases, milestones, and timeline visualization.',
+      icon: <BarChart3Icon className="w-6 h-6" />,
       status: 'completed'
     }
   ];

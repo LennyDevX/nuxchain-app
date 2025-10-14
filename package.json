@@ -15,7 +15,8 @@
     "subgraph:codegen": "cd subgraph && graph codegen",
     "subgraph:build": "cd subgraph && graph build",
     "subgraph:deploy": "cd subgraph && graph deploy nuxchain --node https://api.studio.thegraph.com/deploy/ --deploy-key 8ab5d9d6502496080fd20067e78dc73e --version-label v0.0.2",
-    "subgraph:auth": "graph auth"
+    "subgraph:auth": "graph auth",
+    "test:system-instruction": "node test/test-system-instruction-fix.js"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",

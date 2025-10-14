@@ -177,12 +177,12 @@ const knowledgeBase = [
     commands: ['Nuxchain APIs', 'Nuxchain integrations', 'Nuxchain IPFS', 'Nuxchain Alchemy']
   },
   {
-    content: "Asset tokenization in Nuxchain: NUVOS allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset.",
+    content: "Asset tokenization in Nuxchain: NFTs allows tokenizing real-world assets like real estate, art, commodities. Each token represents a fraction of the underlying asset.",
     metadata: { type: "tokenization", category: "assets", topic: "real-world-assets" },
     commands: ['Nuxchain tokenization']
   },
   {
-    content: "NUVOS token utility in Nuxchain: Governance (voting on proposals), staking (generating rewards), fees (transaction discounts), premium access to features.",
+    content: "NFTs token utility in Nuxchain: Governance (voting on proposals), staking (generating rewards), fees (transaction discounts), premium access to features.",
     metadata: { type: "tokenization", category: "utility", topic: "token-use-cases" },
     commands: ['Nuxchain token utility']
   },
@@ -526,7 +526,7 @@ const knowledgeBase = [
     commands: ['royalty issues', 'incorrect royalties']
   },
   {
-    content: "Nuxchain platform limits: Minimum staking 100 NUVOS, maximum 1,000,000 NUVOS per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
+    content: "Nuxchain platform limits: Minimum staking 100 NFTs, maximum 1,000,000 NFTs per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
     metadata: { type: "faq", category: "general", topic: "limits" },
     commands: ['platform limits', 'Nuxchain restrictions']
   },

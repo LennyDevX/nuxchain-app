@@ -1,7 +1,7 @@
 import { debounce } from '../../../utils/performance/debounce';
 import type { ChatMessage } from './chatReducer';
 
-const STORAGE_KEY = 'nuvos_chat_conversations';
+const STORAGE_KEY = 'nuxbee_chat_conversations';
 const MAX_STORED_CONVERSATIONS = 10;
 
 export interface StoredConversation {

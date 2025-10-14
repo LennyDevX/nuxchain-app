@@ -8,7 +8,7 @@ import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
 import urlContextService from './url-context-service.js';
 import semanticStreamingService from './semantic-streaming-service.js';
-import { buildSystemInstructionWithContext } from '../../../../api/config/system-instruction.js';
+import { buildSystemInstructionWithContext } from '../../../../api/_config/system-instruction.js';
 
 
 /**

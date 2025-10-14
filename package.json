@@ -16,11 +16,16 @@
     "subgraph:build": "cd subgraph && graph build",
     "subgraph:deploy": "cd subgraph && graph deploy nuxchain --node https://api.studio.thegraph.com/deploy/ --deploy-key 8ab5d9d6502496080fd20067e78dc73e --version-label v0.0.2",
     "subgraph:auth": "graph auth",
-    "test:system-instruction": "node test/test-system-instruction-fix.js"
+    "test:system-instruction": "node test/test-system-instruction-fix.js",
+    "test:static": "node api/test/static-validation.test.js",
+    "test:chat": "node api/test/integration/chat-stream.test.js",
+    "test:pre-deploy": "node api/test/pre-deploy.js",
+    "test:all": "npm run test:pre-deploy",
+    "test": "npm run test:all"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
-    "@google/genai": "^1.20.0",
+    "@google/genai": "^1.24.0",
     "@graphprotocol/graph-ts": "^0.38.1",
     "@mozilla/readability": "^0.6.0",
     "@pinata/sdk": "^2.1.0",

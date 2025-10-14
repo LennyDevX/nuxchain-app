@@ -1,19 +1,12 @@
-
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { getRelevantContext } from '../services/embeddings-service.js';
-import semanticStreamingService from '../services/semantic-streaming-service.js';
-import { buildSystemInstructionWithContext } from '../config/system-instruction.js';
+import { getRelevantContext } from '../_services/embeddings-service.js';
+import semanticStreamingService from '../_services/semantic-streaming-service.js';
+import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
+import { withSecurity } from '../_middlewares/serverless-security.js';
 
 // ============================================================================
-// RATE LIMITING
+// MÉTRICAS Y VALIDACIÓN
 // ============================================================================
-const rateLimitStore = new Map();
-const RATE_LIMIT = {
-  windowMs: 60000,
-  maxRequests: 30,
-  blockDurationMs: 300000
-};
-
 const metrics = {
   total: 0,
   success: 0,
@@ -21,6 +14,9 @@ const metrics = {
   avgResponseTime: 0
 };
 
+/**
+ * Valida la estructura y contenido del mensaje
+ */
 function validateRequest(body) {
   const errors = [];
   
@@ -47,119 +43,38 @@ function validateRequest(body) {
   }
   
   if (messageContent.length > 10000) {
-    errors.push('Message exceeds maximum length');
-  }
-  
-  if (/<script|javascript:|onerror=/i.test(messageContent)) {
-    errors.push('Potentially malicious content detected');
+    errors.push('Message exceeds maximum length (10000 chars)');
   }
   
   return errors;
 }
 
-function checkRateLimit(ip) {
-  const now = Date.now();
-  const userLimit = rateLimitStore.get(ip);
-  
-  if (!userLimit) {
-    rateLimitStore.set(ip, {
-      count: 1,
-      resetTime: now + RATE_LIMIT.windowMs,
-      blocked: false
-    });
-    return { allowed: true };
-  }
-  
-  if (userLimit.blocked && now < userLimit.resetTime) {
-    return {
-      allowed: false,
-      retryAfter: Math.ceil((userLimit.resetTime - now) / 1000)
-    };
-  }
-  
-  if (now > userLimit.resetTime) {
-    userLimit.count = 1;
-    userLimit.resetTime = now + RATE_LIMIT.windowMs;
-    userLimit.blocked = false;
-    return { allowed: true };
-  }
-  
-  userLimit.count++;
-  
-  if (userLimit.count > RATE_LIMIT.maxRequests) {
-    userLimit.blocked = true;
-    userLimit.resetTime = now + RATE_LIMIT.blockDurationMs;
-    return {
-      allowed: false,
-      retryAfter: Math.ceil(RATE_LIMIT.blockDurationMs / 1000)
-    };
-  }
-  
-  return { allowed: true };
-}
-
-// Cleanup
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, data] of rateLimitStore.entries()) {
-    if (now > data.resetTime && !data.blocked) {
-      rateLimitStore.delete(ip);
-    }
-  }
-}, 60000);
-
 // ============================================================================
-// HANDLER PRINCIPAL
+// HANDLER PRINCIPAL (SIN SEGURIDAD MANUAL)
 // ============================================================================
-export default async function handler(req, res) {
+async function streamHandler(req, res) {
   const startTime = Date.now();
   metrics.total++;
   
-  // Headers de seguridad
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
+  // Solo POST permitido
   if (req.method !== 'POST') {
     metrics.errors++;
     return res.status(405).json({ error: 'Method not allowed' });
   }
   
   try {
-    // ✅ FIX: Headers seguros con fallback
     const headers = req.headers || {};
     const clientIp = headers['x-forwarded-for']?.split(',')[0]?.trim() || 
                      headers['x-real-ip'] || 
-                     'test-client';
+                     'unknown';
     
-    const rateLimitCheck = checkRateLimit(clientIp);
+    console.log(`🚀 Chat stream request from ${clientIp}`);
     
-    if (!rateLimitCheck.allowed) {
-      console.warn(`⚠️ Rate limit: ${clientIp}`);
-      metrics.errors++;
-      res.setHeader('Retry-After', rateLimitCheck.retryAfter);
-      return res.status(429).json({
-        error: 'Too many requests',
-        retryAfter: rateLimitCheck.retryAfter
-      });
-    }
-    
-    console.log(`🚀 Request from ${clientIp}`);
-    
-    // Validación
+    // Validación de mensaje
     const validationErrors = validateRequest(req.body);
     
     if (validationErrors.length > 0) {
-      console.error('❌ Validation:', validationErrors);
+      console.error('❌ Validation errors:', validationErrors);
       metrics.errors++;
       return res.status(400).json({
         error: 'Validation failed',
@@ -167,7 +82,7 @@ export default async function handler(req, res) {
       });
     }
     
-    // API Key - ✅ FIX: Soportar ambas variables
+    // API Key
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
     
     if (!apiKey) {
@@ -194,13 +109,12 @@ export default async function handler(req, res) {
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
     // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching KB with gemini-embedding-001...');
+    console.log('🔍 Searching knowledge base...');
     const rawContext = await getRelevantContext(messageContent, { 
-      threshold: 0.25, // Threshold optimizado (0.25 para BM25, 0.3 para embeddings se aplica internamente)
-      // limit se determina automáticamente según el tipo de consulta (5 normal, 8 para roadmap)
+      threshold: 0.25,
     });
     
-    // ✅ Normalizar: aceptar string u objeto { context, score }
+    // Normalizar contexto
     let relevantContext = { context: '', score: 0 };
     if (typeof rawContext === 'string') {
       relevantContext.context = rawContext;
@@ -209,32 +123,31 @@ export default async function handler(req, res) {
       relevantContext.score = Number(rawContext.score) || 0;
     }
     
-    // ✅ Truncar contexto para evitar límites de tokens (aumentado a 8000 chars para roadmap completo)
+    // Truncar contexto para evitar límites de tokens
     const MAX_CONTEXT_LENGTH = 8000;
     if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
       relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
       console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
     }
     
-    // Log conciso para producción
     if (relevantContext.context) {
       console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
     } else {
       console.log('⚠️ No KB context found');
     }
     
-    // Construir system instruction con contexto usando función compartida
+    // Construir system instruction con contexto
     const systemInstruction = buildSystemInstructionWithContext(
       relevantContext.context || '',
       relevantContext.score || 0
     );
     
-    // Inicializar Gemini - ✅ FIX: Usar GoogleGenAI correctamente según documentación oficial
+    // Inicializar Gemini
     const client = new GoogleGenAI({ apiKey });
     
-    console.log('🤖 Generating...');
+    console.log('🤖 Generating response...');
     
-    // Generar stream - IMPORTANTE: generateContentStream retorna una Promise<AsyncGenerator>
+    // Generar stream
     const streamResponse = await client.models.generateContentStream({
       model: "gemini-2.5-flash-lite",
       contents: messageContent,
@@ -250,30 +163,29 @@ export default async function handler(req, res) {
             threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
           },
         ],
-        temperature: 0.3, // ✅ Reducido para ser más determinista y evitar que invente información
-        topK: 20, // ✅ Reducido para ser más conservador
-        topP: 0.85, // ✅ Reducido para ser más enfocado
-        maxOutputTokens: 1024, // ✅ Reducido para respuestas más concisas (2-3 párrafos ~800 tokens)
+        temperature: 0.3,
+        topK: 20,
+        topP: 0.85,
+        maxOutputTokens: 1024,
       }
     });
     
     // Timeout
     const timeoutId = setTimeout(() => {
       if (!res.headersSent) {
-        console.error('⏱️ Timeout');
+        console.error('⏱️ Request timeout');
         metrics.errors++;
-        res.status(504).json({ error: 'Timeout' });
+        res.status(504).json({ error: 'Request timeout' });
       }
-    }, 30000);
+    }, 25000); // 25s para serverless (Vercel límite: 30s)
     
-    // Headers de streaming - Configurados por semantic streaming service
     res.status(200);
     
     let chunks = 0;
     let totalChars = 0;
     let fullResponse = '';
     
-    // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
+    // Recolectar respuesta completa del stream
     console.log('📥 Collecting response from Gemini...');
     for await (const chunk of streamResponse) {
       const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -289,7 +201,7 @@ export default async function handler(req, res) {
     
     console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
     
-    // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
+    // Streaming semántico: procesar la respuesta completa
     console.log('🎯 Starting semantic streaming...');
     await semanticStreamingService.streamSemanticContent(res, fullResponse, {
       enableSemanticChunking: true,
@@ -307,8 +219,9 @@ export default async function handler(req, res) {
     metrics.success++;
     metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.success - 1) + duration) / metrics.success;
     
-    console.log(`✅ Done: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
+    console.log(`✅ Stream completed: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
     
+    // Log de métricas cada 50 requests
     if (metrics.total % 50 === 0) {
       console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
     }
@@ -317,8 +230,7 @@ export default async function handler(req, res) {
     metrics.errors++;
     const duration = Date.now() - startTime;
     
-    console.error('❌ Error:', error.message);
-    // Solo mostrar stack en desarrollo
+    console.error('❌ Stream error:', error.message);
     if (process.env.NODE_ENV === 'development') {
       console.error('Stack:', error.stack);
     }
@@ -336,15 +248,29 @@ export default async function handler(req, res) {
       
       res.status(500).json({
         error: 'Internal server error',
-        errorId
+        errorId,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message })
       });
     }
     
-    console.log(`❌ Failed after ${duration}ms`);
+    console.log(`❌ Request failed after ${duration}ms`);
   }
 }
 
-// Export config for Vercel
+// ============================================================================
+// EXPORT CON SEGURIDAD CENTRALIZADA
+// ============================================================================
+// El wrapper withSecurity aplica automáticamente:
+// - CORS headers
+// - Security headers (CSP, X-Frame-Options, etc.)
+// - Rate limiting
+// - Attack detection (XSS, SQL Injection, etc.)
+// - API Key validation (si se configura)
+// - Timeout protection
+// - Error handling
+export default withSecurity(streamHandler);
+
+// Configuración de Vercel
 export const config = {
   maxDuration: 60
 };

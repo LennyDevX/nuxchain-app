@@ -158,43 +158,55 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
   const renderMilestone = (milestone: Milestone, index: number) => (
     <div 
       key={index} 
-      className="card-unified p-6 hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+      className={`card-unified transition-all duration-300 relative overflow-hidden group ${
+        isMobile ? 'p-4 hover:scale-105' : 'p-6 hover:scale-105'
+      }`}
     >
       {/* Status Indicator */}
-      <div className="absolute top-4 right-4">
+      <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-4 right-4'}`}>
         {milestone.status === 'achieved' ? (
-          <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-            <CheckIcon className="w-5 h-5 text-green-400" />
+          <div className={`rounded-full bg-green-500/20 flex items-center justify-center ${
+            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
+            <CheckIcon className={`text-green-400 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-            <CalendarIcon className="w-5 h-5 text-slate-400" />
+          <div className={`rounded-full bg-slate-700 flex items-center justify-center ${
+            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
+            <CalendarIcon className={`text-slate-400 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
           </div>
         )}
       </div>
 
       {/* Icon */}
-      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
+      <div className={`rounded-xl flex items-center justify-center ${
+        isMobile ? 'w-10 h-10 mb-2' : 'w-14 h-14 mb-4'
+      } ${
         milestone.status === 'achieved' ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400'
       }`}>
-        {milestone.icon}
+        {isMobile ? (
+          milestone.icon
+        ) : (
+          milestone.icon
+        )}
       </div>
 
       {/* Content */}
-      <h4 className={`font-bold mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
+      <h4 className={`font-bold ${isMobile ? 'text-sm mb-1' : 'text-lg mb-2'}`}>
         {milestone.title}
       </h4>
-      <p className={`text-slate-400 mb-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+      <p className={`text-slate-400 ${isMobile ? 'text-xs leading-tight mb-2' : 'text-sm mb-4'}`}>
         {milestone.description}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <CalendarIcon className="w-4 h-4" />
-          <span className={isMobile ? 'text-xs' : 'text-sm'}>{milestone.date}</span>
+      <div className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'}`}>
+        <div className={`flex items-center gap-2 text-slate-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <CalendarIcon className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
+          <span>{milestone.date}</span>
         </div>
-        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getCategoryColor(milestone.category)}`}>
+        <span className={`px-2 py-1 text-xs font-medium rounded-full border w-fit ${getCategoryColor(milestone.category)}`}>
           {milestone.category}
         </span>
       </div>
@@ -205,31 +217,35 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
   );
 
   return (
-    <div className="space-y-12">
+    <div className={`${isMobile ? 'space-y-8' : 'space-y-12'}`}>
       <div className="text-center max-w-3xl mx-auto">
-        <h2 className={`font-bold mb-4 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+        <h2 className={`font-bold ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-3xl'}`}>
           Key Milestones
         </h2>
-        <p className={`text-slate-400 ${isMobile ? 'text-sm' : 'text-base'}`}>
+        <p className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
           Track our progress through major achievements and upcoming goals that define our journey.
         </p>
       </div>
 
       {/* Achieved Milestones */}
       <div>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-            <CheckIcon className="w-6 h-6 text-green-400" />
+        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+          <div className={`rounded-full bg-green-500/20 flex items-center justify-center ${
+            isMobile ? 'w-8 h-8' : 'w-10 h-10'
+          }`}>
+            <CheckIcon className={`text-green-400 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
           </div>
-          <h3 className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <h3 className={`font-bold text-green-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
             Achieved Milestones
           </h3>
-          <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-900/30 text-green-400 animate-pulse">
+          <span className={`px-3 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-400 animate-pulse ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}>
             {achievedMilestones.length}
           </span>
         </div>
-        <div className={`grid gap-6 ${
-          isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        <div className={`grid gap-3 ${
+          isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
           {achievedMilestones.map((milestone, index) => renderMilestone(milestone, index))}
         </div>
@@ -237,19 +253,23 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
 
       {/* Upcoming Milestones */}
       <div>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <CalendarIcon className="w-6 h-6 text-purple-400" />
+        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+          <div className={`rounded-full bg-purple-500/20 flex items-center justify-center ${
+            isMobile ? 'w-8 h-8' : 'w-10 h-10'
+          }`}>
+            <CalendarIcon className={`text-purple-400 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
           </div>
-          <h3 className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <h3 className={`font-bold text-purple-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
             Upcoming Milestones
           </h3>
-          <span className="px-3 py-1 text-sm font-medium rounded-full bg-purple-900/30 text-purple-400">
+          <span className={`px-3 py-1 text-xs font-medium rounded-full bg-purple-900/30 text-purple-400 ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}>
             {upcomingMilestones.length}
           </span>
         </div>
-        <div className={`grid gap-6 ${
-          isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        <div className={`grid gap-3 ${
+          isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
           {upcomingMilestones.map((milestone, index) => renderMilestone(milestone, index))}
         </div>
@@ -257,47 +277,49 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
 
       {/* Progress Stats */}
       <div className=" bg-transparent p-8">
-        <h3 className={`font-bold mb-6 text-center ${isMobile ? 'text-lg' : 'text-xl'}`}>
+        <h3 className={`font-bold text-center ${isMobile ? 'mb-4 text-base' : 'mb-6 text-xl'}`}>
           Overall Progress
         </h3>
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-slate-400">Roadmap Completion</span>
-            <span className="font-bold text-green-400">
+          <div className={`flex items-center justify-between ${isMobile ? 'mb-2' : 'mb-3'}`}>
+            <span className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Roadmap Completion</span>
+            <span className={`font-bold text-green-400 ${isMobile ? 'text-sm' : 'text-base'}`}>
               {Math.round((achievedMilestones.length / milestones.length) * 100)}%
             </span>
           </div>
-          <div className="h-4 w-full bg-slate-800 rounded-full overflow-hidden relative">
+          <div className={`w-full bg-slate-800 rounded-full overflow-hidden relative ${
+            isMobile ? 'h-2' : 'h-4'
+          }`}>
             <div 
-              className="h-full bg-gradient-to-r from-green-500 to-purple-500 rounded-full transition-all duration-1000 ease-out animate-progress"
+              className="bg-gradient-to-r from-green-500 to-purple-500 rounded-full transition-all duration-1000 ease-out animate-progress"
               style={{ width: `${(achievedMilestones.length / milestones.length) * 100}%` }}
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
             </div>
           </div>
-          <div className={`grid gap-4 mt-6 ${
+          <div className={`grid gap-2 mt-4 ${
             isMobile ? 'grid-cols-2' : 'grid-cols-4'
           }`}>
             <div className="text-center">
-              <div className={`font-bold text-green-400 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+              <div className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                 {achievedMilestones.length}
               </div>
               <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Achieved</div>
             </div>
             <div className="text-center">
-              <div className={`font-bold text-purple-400 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+              <div className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                 {upcomingMilestones.length}
               </div>
               <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Upcoming</div>
             </div>
             <div className="text-center">
-              <div className={`font-bold text-blue-400 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+              <div className={`font-bold text-blue-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                 3
               </div>
               <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Phases</div>
             </div>
             <div className="text-center">
-              <div className={`font-bold text-amber-400 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+              <div className={`font-bold text-amber-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                 2024-2027
               </div>
               <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Timeline</div>

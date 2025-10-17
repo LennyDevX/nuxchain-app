@@ -83,12 +83,13 @@ setInterval(() => {
 // ATTACK DETECTION
 // ============================================================================
 function detectAttack(req) {
+  // Patrones más específicos para evitar falsos positivos
   const suspiciousPatterns = [
-    /(\<script\>|\<\/script\>)/gi,
-    /(union|select|insert|delete|update|drop|create|alter)/gi,
-    /(\.\.\/|\.\.\\)/g,
-    /(\${|<%|%>)/g,
-    /(eval\(|exec\(|system\()/gi
+    /(\<script\>|\<\/script\>)/gi,  // Script tags
+    /(\bUNION\s+SELECT\b|\bSELECT\s+.*\s+FROM\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bDROP\s+TABLE\b)/gi,  // SQL inyection específicos
+    /(\.\.\/|\.\.\\)/g,  // Path traversal
+    /(\$\{|<%|%>)/g,  // Template injection
+    /(eval\(|exec\(|system\(|passthru\()/gi  // Code execution
   ];
   
   const checkString = JSON.stringify(req.body || {}) + 
@@ -97,6 +98,7 @@ function detectAttack(req) {
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(checkString)) {
+      console.warn(`⚠️ Pattern detected: ${pattern.toString()}`);
       return {
         detected: true,
         pattern: pattern.toString()

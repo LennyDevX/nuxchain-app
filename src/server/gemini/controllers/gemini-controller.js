@@ -11,6 +11,7 @@ import {
 import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
+import { formatResponseForMarkdown } from '../utils/markdown-formatter.js';
 import { getMetrics } from '../middlewares/logger.js';
 import embeddingsService, { getRelevantContext } from '../services/embeddings-service.js';
 import contextCacheService from '../services/context-cache-service.js';
@@ -229,9 +230,17 @@ export async function generateContent(req, res, next = null) {
         
         console.log(`✅ Collected ${chunkCount} chunks (${fullResponse.length} chars) from Gemini`);
         
+        // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
+        // This guarantees that both local dev and production responses have proper markdown structure
+        const formattedResponse = formatResponseForMarkdown(fullResponse);
+        
+        if (formattedResponse !== fullResponse) {
+          console.log(`📝 Markdown formatting applied: ${fullResponse.length} → ${formattedResponse.length} chars`);
+        }
+        
         // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
         console.log('🎯 Starting semantic streaming...');
-        await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+        await semanticStreamingService.streamSemanticContent(res, formattedResponse, {
           enableSemanticChunking: true,
           enableContextualPauses: true,
           enableVariableSpeed: true,

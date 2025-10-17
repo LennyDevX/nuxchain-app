@@ -117,28 +117,32 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
     features: Feature[],
     accentColor: string
   ) => (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <div className={`inline-flex items-center gap-3 mb-4`}>
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-${accentColor}-500/20 border-2 border-${accentColor}-500/50`}>
-            <span className={`font-bold text-xl text-${accentColor}-400`}>{phaseNumber}</span>
+    <div className={`${isMobile ? 'space-y-3' : 'space-y-6'}`}>
+      <div className={`text-center ${isMobile ? 'mb-4' : 'mb-8'}`}>
+        <div className={`inline-flex items-center ${isMobile ? 'gap-2 mb-2 flex-col' : 'gap-3 mb-4'}`}>
+          <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full flex items-center justify-center bg-${accentColor}-500/20 border-2 border-${accentColor}-500/50`}>
+            <span className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'} text-${accentColor}-400`}>{phaseNumber}</span>
           </div>
-          <h3 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+          <h3 className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
             Phase {phaseNumber}: {title}
           </h3>
         </div>
-        <p className={`text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm' : 'text-base'}`}>
+        <p className={`text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-xs leading-tight' : 'text-base'}`}>
           {description}
         </p>
       </div>
 
-      <div className={`grid gap-6 ${
-        isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+      <div className={`grid gap-3 ${
+        isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
       }`}>
         {features.map((feature, index) => (
-          <div key={index} className="card-unified p-6 hover:scale-105 transition-transform duration-300">
-            <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+          <div key={index} className={`card-unified transition-transform duration-300 ${
+            isMobile ? 'p-4 hover:scale-105' : 'p-6 hover:scale-105'
+          }`}>
+            <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-start gap-4'}`}>
+              <div className={`rounded-lg flex items-center justify-center flex-shrink-0 ${
+                isMobile ? 'w-10 h-10' : 'w-12 h-12'
+              } ${
                 feature.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                 feature.status === 'in-progress' ? 'bg-yellow-500/20 text-yellow-400' :
                 'bg-purple-500/20 text-purple-400'
@@ -146,18 +150,18 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
                 {feature.icon}
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
+                <div className={`flex ${isMobile ? 'flex-col items-center' : 'items-center'} gap-1 mb-2`}>
+                  <h4 className={`font-semibold ${isMobile ? 'text-sm' : 'text-lg'}`}>
                     {feature.title}
                   </h4>
                   {feature.status === 'completed' && (
-                    <CheckIcon className="w-5 h-5 text-green-400" />
+                    <CheckIcon className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-green-400`} />
                   )}
                 </div>
-                <p className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'} mb-3`}>
+                <p className={`text-slate-400 ${isMobile ? 'text-xs leading-tight' : 'text-sm'} ${isMobile ? 'mb-2' : 'mb-3'}`}>
                   {feature.description}
                 </p>
-                <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(feature.status)}`}>
+                <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(feature.status)}`}>
                   {feature.status === 'completed' ? 'Completed' :
                    feature.status === 'in-progress' ? 'In Progress' :
                    'Planned'}
@@ -171,12 +175,12 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
   );
 
   return (
-    <div className="space-y-16">
+    <div className={`${isMobile ? 'space-y-8' : 'space-y-16'}`}>
       <div className="text-center max-w-3xl mx-auto">
-        <h2 className={`font-bold mb-4 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+        <h2 className={`font-bold ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-3xl'}`}>
           Detailed Phase Breakdown
         </h2>
-        <p className={`text-slate-400 ${isMobile ? 'text-sm' : 'text-base'}`}>
+        <p className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
           Explore each phase in detail with comprehensive feature descriptions and current status.
         </p>
       </div>

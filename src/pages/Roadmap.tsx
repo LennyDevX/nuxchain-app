@@ -54,12 +54,22 @@ const RoadmapPage: React.FC = () => {
                 <div className={`flex gap-4 justify-center ${
                   isMobile ? 'flex-col' : 'flex-row'
                 }`}>
-                  <button className="btn-primary px-8 py-3">
+                  <a 
+                    href="https://discord.gg/szZP2JcSq4" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-primary px-8 py-3 inline-block text-center"
+                  >
                     Join Community
-                  </button>
-                  <button className="btn-secondary px-8 py-3">
+                  </a>
+                  <a 
+                    href="https://github.com/users/LennyDevX/projects/4" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-secondary px-8 py-3 inline-block text-center"
+                  >
                     View Documentation
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

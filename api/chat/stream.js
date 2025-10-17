@@ -1,7 +1,9 @@
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 import { getRelevantContext } from '../_services/embeddings-service.js';
+import { formatResponseForMarkdown } from '../_services/markdown-formatter.js';
 import semanticStreamingService from '../_services/semantic-streaming-service.js';
 import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
+import { needsKnowledgeBase } from '../_services/query-classifier.js';
 import { withSecurity } from '../_middlewares/serverless-security.js';
 
 // ============================================================================
@@ -108,32 +110,40 @@ async function streamHandler(req, res) {
     
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
-    // Obtener contexto relevante de la base de conocimientos
-    console.log('🔍 Searching knowledge base...');
-    const rawContext = await getRelevantContext(messageContent, { 
-      threshold: 0.25,
-    });
+    // Determinar si la query necesita buscar en la base de conocimientos
+    const shouldSearchKB = needsKnowledgeBase(messageContent);
     
-    // Normalizar contexto
     let relevantContext = { context: '', score: 0 };
-    if (typeof rawContext === 'string') {
-      relevantContext.context = rawContext;
-    } else if (rawContext && typeof rawContext === 'object') {
-      relevantContext.context = rawContext.context || rawContext.text || '';
-      relevantContext.score = Number(rawContext.score) || 0;
-    }
     
-    // Truncar contexto para evitar límites de tokens
-    const MAX_CONTEXT_LENGTH = 8000;
-    if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-      relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
-      console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
-    }
-    
-    if (relevantContext.context) {
-      console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+    if (shouldSearchKB) {
+      // Obtener contexto relevante de la base de conocimientos
+      console.log('🔍 Searching knowledge base...');
+      const rawContext = await getRelevantContext(messageContent, { 
+        threshold: 0.25,
+      });
+      
+      // Normalizar contexto
+      if (typeof rawContext === 'string') {
+        relevantContext.context = rawContext;
+      } else if (rawContext && typeof rawContext === 'object') {
+        relevantContext.context = rawContext.context || rawContext.text || '';
+        relevantContext.score = Number(rawContext.score) || 0;
+      }
+      
+      // Truncar contexto para evitar límites de tokens
+      const MAX_CONTEXT_LENGTH = 8000;
+      if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
+        relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
+        console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+      }
+      
+      if (relevantContext.context) {
+        console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+      } else {
+        console.log('⚠️ No KB context found');
+      }
     } else {
-      console.log('⚠️ No KB context found');
+      console.log('⏭️ Skipping KB search - generic/general question');
     }
     
     // Construir system instruction con contexto
@@ -201,9 +211,17 @@ async function streamHandler(req, res) {
     
     console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
     
+    // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
+    // This guarantees that both local dev and production responses have proper markdown structure
+    const formattedResponse = formatResponseForMarkdown(fullResponse);
+    
+    if (formattedResponse !== fullResponse) {
+      console.log(`📝 Markdown formatting applied: ${fullResponse.length} → ${formattedResponse.length} chars`);
+    }
+    
     // Streaming semántico: procesar la respuesta completa
     console.log('🎯 Starting semantic streaming...');
-    await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+    await semanticStreamingService.streamSemanticContent(res, formattedResponse, {
       enableSemanticChunking: true,
       enableContextualPauses: true,
       enableVariableSpeed: true,

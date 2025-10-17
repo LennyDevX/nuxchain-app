@@ -162,18 +162,19 @@ export default function InfiniteScrollNFTGrid({
       )}
 
       {/* NFT Grid */}
-      <div className={`grid gap-4 ${
+      <div className={`grid gap-3 sm:gap-4 ${
         isMobile 
-          ? 'grid-cols-2' // 2x2 grid for mobile
+          ? 'grid-cols-2' // 2x2 grid for mobile with smaller gap
           : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
       }`}>
         {nfts.map((nft) => (
-          <NFTCard
-            key={nft.uniqueId || nft.tokenId}
-            nft={nft}
-            onListNFT={onListNFT}
-            isMobile={isMobile}
-          />
+          <div key={nft.uniqueId || nft.tokenId} className="flex items-stretch">
+            <NFTCard
+              nft={nft}
+              onListNFT={onListNFT}
+              isMobile={isMobile}
+            />
+          </div>
         ))}
       </div>
 

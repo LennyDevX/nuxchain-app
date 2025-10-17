@@ -6,6 +6,7 @@ import contextCacheService from './context-cache-service.js';
 import { GoogleGenAI } from '@google/genai';
 import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
+import { needsKnowledgeBase } from './query-classifier.js';
 import urlContextService from './url-context-service.js';
 import semanticStreamingService from './semantic-streaming-service.js';
 import { buildSystemInstructionWithContext } from '../../../../api/_config/system-instruction.js';
@@ -184,12 +185,19 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
       return '';
     }
     
+    // Determinar si la query necesita buscar en la base de conocimientos
+    const shouldSearchKB = needsKnowledgeBase(query);
+    
+    if (!shouldSearchKB) {
+      console.log(`⏭️ Skipping KB search - generic/general question: "${query}"`);
+      return '';
+    }
+    
     console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
     
     // ✅ USAR getRelevantContext que maneja todo internamente (BM25 + embeddings)
-    const rawContext = await embeddingsService.getRelevantContext(query, {
-      threshold: 0.25 // Threshold optimizado
-    });
+    // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+    const rawContext = await embeddingsService.getRelevantContext(query);
     
     // Normalizar: aceptar string u objeto { context, score }
     let relevantContext = { context: '', score: 0 };
@@ -254,22 +262,28 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
   
   // Obtener contexto relevante de KB
   if (userQuery) {
-    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
-      threshold: 0.25
-    });
+    // Determinar si la query necesita buscar en la base de conocimientos
+    const shouldSearchKB = needsKnowledgeBase(userQuery);
     
-    // Normalizar contexto
-    if (typeof rawContext === 'string') {
-      knowledgeContext = rawContext;
-    } else if (rawContext && typeof rawContext === 'object') {
-      knowledgeContext = rawContext.context || rawContext.text || '';
-      contextScore = Number(rawContext.score) || 0;
-    }
-    
-    if (knowledgeContext) {
-      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    if (shouldSearchKB) {
+      // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+      const rawContext = await embeddingsService.getRelevantContext(userQuery);
+      
+      // Normalizar contexto
+      if (typeof rawContext === 'string') {
+        knowledgeContext = rawContext;
+      } else if (rawContext && typeof rawContext === 'object') {
+        knowledgeContext = rawContext.context || rawContext.text || '';
+        contextScore = Number(rawContext.score) || 0;
+      }
+      
+      if (knowledgeContext) {
+        console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+      } else {
+        console.log('⚠️ No KB context found');
+      }
     } else {
-      console.log('⚠️ No KB context found');
+      console.log('⏭️ Skipping KB search - generic/general question');
     }
   }
   
@@ -780,22 +794,28 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   
   // Obtener contexto relevante de KB
   if (userQuery) {
-    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
-      threshold: 0.25
-    });
+    // Determinar si la query necesita buscar en la base de conocimientos
+    const shouldSearchKB = needsKnowledgeBase(userQuery);
     
-    // Normalizar contexto
-    if (typeof rawContext === 'string') {
-      knowledgeContext = rawContext;
-    } else if (rawContext && typeof rawContext === 'object') {
-      knowledgeContext = rawContext.context || rawContext.text || '';
-      contextScore = Number(rawContext.score) || 0;
-    }
-    
-    if (knowledgeContext) {
-      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    if (shouldSearchKB) {
+      // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+      const rawContext = await embeddingsService.getRelevantContext(userQuery);
+      
+      // Normalizar contexto
+      if (typeof rawContext === 'string') {
+        knowledgeContext = rawContext;
+      } else if (rawContext && typeof rawContext === 'object') {
+        knowledgeContext = rawContext.context || rawContext.text || '';
+        contextScore = Number(rawContext.score) || 0;
+      }
+      
+      if (knowledgeContext) {
+        console.log(`✅ KB found (stream): ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+      } else {
+        console.log('⚠️ No KB context found (stream)');
+      }
     } else {
-      console.log('⚠️ No KB context found');
+      console.log('⏭️ Skipping KB search (stream) - generic/general question');
     }
   }
   

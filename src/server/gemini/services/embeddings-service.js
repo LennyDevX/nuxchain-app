@@ -200,7 +200,7 @@ function cosineSimilarityTFIDF(queryTokens, docTokens, idf) {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-// BM25 Score - Superior para recuperación de texto
+// ✅ BM25 Score - Configuración estándar y probada
 // Formula: IDF(q) * (f(q,D) * (k1 + 1)) / (f(q,D) + k1 * (1 - b + b * |D|/avgDl))
 function bm25Score(queryTokens, docTokens, idf, avgDocLength, k1 = 1.5, b = 0.75) {
   const docLength = docTokens.length;
@@ -229,7 +229,7 @@ function normalizeBM25(score, maxScore) {
   return Math.min(1.0, score / maxScore);
 }
 
-// Re-ranking con boost semántico
+// ✅ Re-ranking con boost semántico - Configuración simple y funcional
 function applySemanticBoost(doc, query, baseScore) {
   let boostScore = 0;
   const docLower = doc.content.toLowerCase();
@@ -241,7 +241,7 @@ function applySemanticBoost(doc, query, baseScore) {
   }
   
   // Boost 2: Términos clave del dominio (+0.15 cada uno)
-  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'chat', 'ecosystem', 'blockchain',];
+  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'airdrop', 'blockchain', 'ecosystem'];
   const queryTerms = queryLower.split(/\s+/);
   const matchedDomainTerms = domainTerms.filter(term => 
     docLower.includes(term) && queryTerms.some(qt => qt.includes(term) || term.includes(qt))
@@ -306,11 +306,11 @@ function cleanupEmbeddingsCache() {
 // ✅ Limpieza automática cada 10 minutos
 setInterval(cleanupEmbeddingsCache, 600000);
 
-// ✅ NUEVO: Rate limiting para embeddings API
+// ✅ Rate limiting para embeddings API
 let embeddingCallCount = 0;
 let lastResetTime = Date.now();
 const EMBEDDING_RATE_LIMIT = {
-  maxCallsPerMinute: 50, // Conservador para free tier
+  maxCallsPerMinute: 50, // Límite estándar de Google para tier gratuito
   resetIntervalMs: 60000
 };
 
@@ -321,12 +321,10 @@ function checkEmbeddingRateLimit() {
   if (now - lastResetTime > EMBEDDING_RATE_LIMIT.resetIntervalMs) {
     embeddingCallCount = 0;
     lastResetTime = now;
-    // ✅ Reset warning flag al resetear contador
     checkEmbeddingRateLimit._warningShown = false;
   }
   
   if (embeddingCallCount >= EMBEDDING_RATE_LIMIT.maxCallsPerMinute) {
-    // ✅ Solo mostrar warning una vez por período
     if (!checkEmbeddingRateLimit._warningShown) {
       console.warn(`⚠️ Embedding rate limit reached (${embeddingCallCount}/${EMBEDDING_RATE_LIMIT.maxCallsPerMinute}) - switching to BM25`);
       checkEmbeddingRateLimit._warningShown = true;
@@ -525,13 +523,14 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       if (results.length >= 3) {
         results.sort((a, b) => b.score - a.score);
         
-        const threshold = options.threshold || 0.3;
+        // ✅ Threshold simple y funcional (Google recomienda valores permisivos para RAG)
+        const threshold = options.threshold || 0.25;
         const filtered = results
           .filter(r => r.score >= threshold)
           .slice(0, limit);
         
         const cacheHitRate = results.filter(r => r.fromCache).length / results.length;
-        console.log(`📚 Found ${filtered.length} documents with embeddings (threshold: ${threshold})`);
+        console.log(`📚 Found ${filtered.length} documents with embeddings (threshold: ${threshold.toFixed(2)})`);
         console.log(`💾 Cache hit rate: ${(cacheHitRate * 100).toFixed(1)}%`);
         if (filtered.length > 0) {
           console.log(`🎯 Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
@@ -688,73 +687,26 @@ export async function precomputeKnowledgeBaseEmbeddings() {
   }
 }
 
-// ✅ NUEVO: Analizar complejidad de la query para determinar límite óptimo
-function analyzeQueryComplexity(query) {
-  const queryLower = query.toLowerCase();
-  const wordCount = query.split(/\s+/).length;
-  
-  // Patrones de alta complejidad (requieren 8 documentos)
-  const highComplexityPatterns = [
-    // Roadmap y planificación
-    /roadmap|timeline|phase|milestone|plan.*futur|complete.*overview/i,
-    // Años múltiples
-    /(2024|2025|2026|2027).*(?:2024|2025|2026|2027)/i,
-    // Features múltiples
-    /(staking|nft|marketplace|airdrop|tokenization).*(?:staking|nft|marketplace|airdrop|tokenization)/i,
-    // Comparaciones
-    /(?:compar|diferenc|versus|vs|diferent).*(?:entre|between)/i,
-    // Queries largas (>15 palabras sugiere complejidad)
-    wordCount > 15 ? /.*/ : /(?!)/
-  ];
-  
-  // Patrones de complejidad media (requieren 6 documentos)
-  const mediumComplexityPatterns = [
-    // Features individuales con detalles
-    /(?:how|como|cómo|what|que|qué).*(?:work|funciona|detail|detalle)/i,
-    // Múltiples características
-    /characteristic|feature|funcionalidad|capacidad/i,
-    // Procesos
-    /process|proceso|step|paso|guide|guía/i,
-    // Queries medianas (8-15 palabras)
-    wordCount >= 8 && wordCount <= 15 ? /.*/ : /(?!)/
-  ];
-  
-  // Detectar complejidad alta
-  if (highComplexityPatterns.some(pattern => pattern.test(queryLower))) {
-    return 'high';
-  }
-  
-  // Detectar complejidad media
-  if (mediumComplexityPatterns.some(pattern => pattern.test(queryLower))) {
-    return 'medium';
-  }
-  
-  // Por defecto: complejidad simple (5 documentos)
-  return 'simple';
-}
-
-// Obtener contexto relevante
+// ✅ Obtener contexto relevante - Configuración simple y funcional
 export async function getRelevantContext(query, options = {}) {
   try {
-    // ✅ OPTIMIZADO: Sistema de límites inteligente basado en complejidad de query
-    const queryComplexity = analyzeQueryComplexity(query);
-    const defaultLimit = queryComplexity === 'high' ? 8 : queryComplexity === 'medium' ? 6 : 5;
+    // ✅ SIMPLIFICADO: Límite fijo de 5 documentos (recomendación de Google para RAG)
+    const limit = options.limit || 5;
     
-    // ✅ Threshold dinámico: más estricto con más documentos para mantener calidad
-    const dynamicThreshold = defaultLimit >= 8 ? 0.3 : defaultLimit >= 6 ? 0.27 : 0.25;
+    // ✅ SIMPLIFICADO: Threshold fijo de 0.25 (permisivo para encontrar contexto relevante)
+    const threshold = options.threshold || 0.25;
     
-    const results = await searchSimilar('knowledge_base', query, options.limit || defaultLimit, {
-      threshold: options.threshold || dynamicThreshold,
+    const results = await searchSimilar('knowledge_base', query, limit, {
+      threshold,
       ...options
     });
     
     if (results.length === 0) {
-      console.log(`ℹ️ No relevant context found (complexity: ${queryComplexity}, limit: ${defaultLimit}, threshold: ${dynamicThreshold})`);
+      console.log(`ℹ️ No relevant context found (limit: ${limit}, threshold: ${threshold})`);
       return {
         context: '',
         score: 0,
         documentsFound: 0,
-        queryComplexity,
         usedEmbeddings: false
       };
     }
@@ -774,20 +726,15 @@ export async function getRelevantContext(query, options = {}) {
     const usedEmbeddings = results.some(r => r.embeddingScore !== undefined);
     
     console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
-    console.log(`📊 Query complexity: ${queryComplexity} | Limit: ${defaultLimit} | Threshold: ${dynamicThreshold}`);
-    console.log(`📈 Average score: ${avgScore.toFixed(3)} | Top score: ${results[0].score.toFixed(3)}`);
+    console.log(`📊 Average score: ${avgScore.toFixed(3)} | Top score: ${results[0].score.toFixed(3)}`);
     console.log(`🔧 Method: ${usedEmbeddings ? 'Gemini Embeddings' : 'BM25 Fallback'}`);
-    console.log(`🔍 Top result: "${results[0].content.substring(0, 100)}..."`);
     
     return {
       context,
       score: avgScore,
       documentsFound: results.length,
       topScore: results[0].score,
-      queryComplexity,
-      searchLimit: defaultLimit,
-      threshold: dynamicThreshold,
-      usedEmbeddings // ✅ NUEVO: Indicar qué método se usó
+      usedEmbeddings
     };
   } catch (error) {
     console.error('❌ Error getting relevant context:', error);

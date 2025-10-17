@@ -611,16 +611,22 @@ export async function precomputeKnowledgeBaseEmbeddings() {
   }
 }
 
-// Obtener contexto relevante
+// ✅ Obtener contexto relevante - Configuración simple y funcional
 export async function getRelevantContext(query, options = {}) {
   try {
-    const results = await searchSimilar('knowledge_base', query, 5, {
-      threshold: 0.25,
+    // ✅ SIMPLIFICADO: Límite fijo de 5 documentos (recomendación de Google para RAG)
+    const limit = options.limit || 5;
+    
+    // ✅ SIMPLIFICADO: Threshold fijo de 0.25 (permisivo para encontrar contexto relevante)
+    const threshold = options.threshold || 0.25;
+    
+    const results = await searchSimilar('knowledge_base', query, limit, {
+      threshold,
       ...options
     });
     
     if (results.length === 0) {
-      console.log('ℹ️ No relevant context found');
+      console.log(`ℹ️ No relevant context found (limit: ${limit}, threshold: ${threshold})`);
       return {
         context: '',
         score: 0,
@@ -644,16 +650,15 @@ export async function getRelevantContext(query, options = {}) {
     const usedEmbeddings = results.some(r => r.embeddingScore !== undefined);
     
     console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
-    console.log(`📊 Average score: ${avgScore.toFixed(3)}`);
+    console.log(`📊 Average score: ${avgScore.toFixed(3)} | Top score: ${results[0].score.toFixed(3)}`);
     console.log(`🔧 Method: ${usedEmbeddings ? 'Gemini Embeddings' : 'BM25 Fallback'}`);
-    console.log(`🔍 Top result: "${results[0].content.substring(0, 100)}..."`);
     
     return {
       context,
       score: avgScore,
       documentsFound: results.length,
       topScore: results[0].score,
-      usedEmbeddings // ✅ NUEVO: Indicar qué método se usó
+      usedEmbeddings
     };
   } catch (error) {
     console.error('❌ Error getting relevant context:', error);

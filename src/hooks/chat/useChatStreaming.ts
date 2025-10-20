@@ -64,6 +64,7 @@ interface UseChatStreamingReturn {
   clearMessages: () => void;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
+  pauseStream: () => void;
 }
 
 // NUEVO: Definir interfaces para tipos específicos
@@ -334,6 +335,14 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, [sendMessage]);
 
+  const pauseStream = useCallback(() => {
+    if (streamingServiceRef.current) {
+      streamingServiceRef.current.cancelAllStreams();
+      dispatch({ type: 'FINISH_STREAM' });
+      console.log('Stream paused by user');
+    }
+  }, []);
+
   // Convert internal state to external format
   const messages: Message[] = state.messages.map((msg: ChatMessage) => ({
     id: msg.id,
@@ -352,7 +361,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     sendMessage,
     clearMessages,
     retryLastMessage,
-    isUsingUrlContext
+    isUsingUrlContext,
+    pauseStream
   };
 }
 

@@ -526,7 +526,7 @@ const knowledgeBase = [
     commands: ['royalty issues', 'incorrect royalties']
   },
   {
-    content: "Nuxchain platform limits: Minimum staking 5 POL, maximum 1,000,000 POL per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
+    content: "Nuxchain platform limits: Minimum staking 100 NFTs, maximum 1,000,000 NFTs per transaction. NFT maximum 50 MB per file, supported formats: JPG, PNG, GIF, MP4, MP3. Offers maximum 7 days duration. Recommended gas limit: 300,000 for staking, 150,000 for NFT transfers.",
     metadata: { type: "faq", category: "general", topic: "limits" },
     commands: ['platform limits', 'Nuxchain restrictions']
   },
@@ -620,6 +620,60 @@ const knowledgeBase = [
     content: "Roadmap Progress Statistics: Overall roadmap completion is 31% with 4 milestones achieved out of 13 total milestones. The development spans 3 major phases over a 2024-2027 timeline. Current focus is on Phase 2 with 4 features in active development. The roadmap covers 9 different categories: Launch, Technology, Features, Innovation, Gaming, DeFi, Governance, and Business. Progress is tracked through detailed quarterly milestones with transparent status updates. The platform maintains a balance between innovation and stability, ensuring each phase builds upon previous achievements while introducing groundbreaking new features.",
     metadata: { type: "roadmap", category: "progress", topic: "statistics" },
     commands: ['roadmap progress', 'completion percentage', 'roadmap stats', 'development status']
+  },
+
+  // === NFT MARKETPLACE ===
+  {
+    content: "Nuxchain NFT Marketplace Overview: The NFT Marketplace is a core feature of the Nuxchain platform enabling users to buy, sell, and trade NFTs seamlessly. The marketplace is built on the Polygon network using smart contracts for secure transactions. Features include browsing and filtering NFTs by collection, price range, rarity, and attributes. All prices are displayed in POL tokens. The marketplace supports multiple NFT collections including Nuxchain-native collections and integrated external collections. Average transaction time is 10-30 seconds on Polygon network.",
+    metadata: { type: "marketplace", category: "nft", topic: "overview" },
+    commands: ['Nuxchain marketplace', 'NFT marketplace', 'NFT trading', 'marketplace features']
+  },
+  {
+    content: "How to Buy NFTs on Nuxchain Marketplace: 1) Connect your wallet (MetaMask, Trust Wallet, or WalletConnect) to the platform. 2) Navigate to the Marketplace section. 3) Browse or search for NFTs by collection or filter by price and attributes. 4) Click on an NFT to view details including rarity score, transaction history, and current bids. 5) Click 'Buy Now' if listed at fixed price. 6) Approve the transaction in your wallet and confirm purchase. 7) NFT will appear in your wallet and profile after transaction is confirmed (10-30 seconds on Polygon). Marketplace fee is 2.5% paid in POL. Ensure your wallet has sufficient POL for the purchase price plus gas fees.",
+    metadata: { type: "marketplace", category: "nft", topic: "buying-guide" },
+    commands: ['how to buy NFT', 'buy NFT marketplace', 'NFT purchase tutorial']
+  },
+  {
+    content: "How to Sell NFTs on Nuxchain Marketplace: 1) Connect your wallet and navigate to your Profile/Dashboard. 2) Select 'My NFTs' to view your collection. 3) Choose the NFT you want to sell and click 'List for Sale'. 4) Enter your desired price in POL tokens. 5) Set listing duration (7, 30, or 90 days). 6) Review details and confirm transaction in your wallet. 7) NFT is now listed on the marketplace and visible to buyers. You can cancel listing anytime before it sells. After 24 hours of listing, you can also create collection offers for buyers to bid on multiple NFTs at once. Transaction appears in your profile history.",
+    metadata: { type: "marketplace", category: "nft", topic: "selling-guide" },
+    commands: ['how to sell NFT', 'sell NFT marketplace', 'NFT listing tutorial']
+  },
+  {
+    content: "NFT Marketplace Advanced Features: 1) Make Offers - Buyers can make offers below asking price, sellers can accept/reject/counter. 2) Collection Filters - Filter by collection, price range, rarity score, attributes, and listing status. 3) Analytics - View floor price, trading volume, rarity rankings, and price history for each collection. 4) Bidding System - For valuable NFTs, bidding wars can occur over 24-48 hours. 5) Favorites - Save NFTs to your favorites list for future reference. 6) Bulk Operations - Coming soon: list/delist multiple NFTs at once, batch transfers. 7) Transaction History - View all buy/sell transactions for transparent trading record. 8) Verification - NFT authenticity verified through blockchain immutability.",
+    metadata: { type: "marketplace", category: "nft", topic: "advanced-features" },
+    commands: ['marketplace features', 'NFT offers', 'NFT bidding', 'marketplace analytics']
+  },
+  {
+    content: "Nuxchain Marketplace Fees & Economics: Marketplace Fee: 2.5% of transaction value paid in POL by seller. Creator Royalties: Variable by collection (typically 2-5%), paid to original creator on secondary sales. Gas Fees: Paid by buyer or seller depending on transaction type, typically 0.1-0.5 POL per transaction. Price Suggestions: Marketplace provides AI-powered price suggestions based on similar NFT sales. Bulk Discounts: Coming soon - reduce fees for high-volume traders. Fee Distribution: 70% to Nuxchain treasury, 30% to community governance. Total cost to buyer: NFT price + 2.5% marketplace fee + creator royalties + gas fees. Estimate before confirming transactions.",
+    metadata: { type: "marketplace", category: "nft", topic: "fees-economics" },
+    commands: ['marketplace fees', 'NFT fees', 'royalties', 'gas fees']
+  },
+  {
+    content: "Nuxchain Marketplace Popular Collections: Nuxchain Genesis Collection - Original 10,000 NFTs with governance utility and staking bonuses. Prime Collection - 5,000 limited edition NFTs with exclusive benefits and marketplace features. Founder's Collection - 1,000 ultra-rare founder NFTs with lifetime benefits. Community Drops - Regular limited drops from community artists and projects. Marketplace also features integrated collections from partner projects. New collections can be created through governance proposals. Floor prices range from 10 POL to 5,000+ POL depending on collection and rarity.",
+    metadata: { type: "marketplace", category: "nft", topic: "collections" },
+    commands: ['Nuxchain collections', 'NFT collections', 'popular NFTs', 'genesis NFT']
+  },
+
+  // === AIRDROPS ===
+  {
+    content: "Nuxchain Airdrops Complete Guide: Airdrops are periodic distributions of tokens or NFTs to community members. Nuxchain runs multiple airdrops throughout the year to reward community participation and loyalty. Airdrop eligibility is based on various criteria including staking amount, NFT holdings, community participation, wallet age, and snapshot time. To participate: 1) Connect your eligible wallet to Nuxchain. 2) Check your eligibility status on the Airdrops page. 3) Ensure wallet remains connected during snapshot time (usually 24 hours). 4) After snapshot, tokens are automatically distributed to eligible wallets. 5) View airdrop history in your dashboard. Announcements are made on Discord, Twitter, and the platform.",
+    metadata: { type: "airdrops", category: "airdrops", topic: "overview" },
+    commands: ['Nuxchain airdrops', 'airdrop guide', 'airdrop participation', 'airdrop eligibility']
+  },
+  {
+    content: "Nuxchain Airdrop Eligibility Requirements: Requirements vary by airdrop but commonly include: 1) Staking Requirement - Minimum 50 POL staked during snapshot period (higher stakes = higher rewards). 2) NFT Ownership - Hold at least one Nuxchain NFT (some airdrops require specific collections). 3) Community Participation - Active in Discord or governance voting (verified by activity logs). 4) Wallet Age - Account must exist for minimum 30 days prior to snapshot. 5) Geographic - Available in most regions except restricted jurisdictions. 6) KYC Requirements - Some airdrops may require basic verification. 7) Previous Participation - Past airdrops may increase future allocation. Higher eligibility scores result in larger airdrop amounts. Allocation amounts typically range from 100 to 10,000 tokens depending on tier and airdrop size.",
+    metadata: { type: "airdrops", category: "airdrops", topic: "eligibility" },
+    commands: ['airdrop eligibility', 'airdrop requirements', 'how to qualify airdrop', 'airdrop conditions']
+  },
+  {
+    content: "Nuxchain Historical Airdrops: Airdrop #1 (Q4 2024) - Genesis Airdrop: 50,000 tokens distributed to 1,000 early supporters. Average: 50 tokens per wallet. Airdrop #2 (Q1 2025) - Staking Rewards Airdrop: 100,000 tokens to active stakers. Average: 150 tokens per wallet. Airdrop #3 (Q2 2025) - Community Airdrop: 75,000 tokens to Discord members. Average: 100 tokens per wallet. Airdrop #4 (Q3 2025) - NFT Holder Airdrop: 50,000 tokens to NFT owners. Average: 200 tokens per wallet. Total Distributed: 275,000 tokens across all airdrops. Snapshot Distribution: Airdrops taken at random times to prevent gaming. All distributions verified via blockchain and transparent in contract events.",
+    metadata: { type: "airdrops", category: "airdrops", topic: "history" },
+    commands: ['airdrop history', 'past airdrops', 'airdrop distributions', 'airdrop statistics']
+  },
+  {
+    content: "Upcoming Nuxchain Airdrops (Q4 2025-Q1 2026): Q4 2025 - Milestone Airdrop: 100,000 tokens for users who complete specific milestones (staking, marketplace trades, AI chat usage). Q1 2026 - Platform Launch Bonus: 150,000 tokens for all active platform users. Features governance participation as eligibility criterion. Estimated allocation: 200-500 tokens per wallet depending on engagement level. All upcoming airdrops will be announced 2 weeks in advance with full eligibility criteria. Community governance will help decide airdrop mechanics and distribution methods. Historical data shows Nuxchain commits 500,000+ tokens annually to airdrops. Holders are encouraged to stake and participate in governance to maximize airdrop rewards.",
+    metadata: { type: "airdrops", category: "airdrops", topic: "upcoming" },
+    commands: ['upcoming airdrops', 'future airdrops', 'next airdrop', 'Q4 2025 airdrop']
   }
 ];
 

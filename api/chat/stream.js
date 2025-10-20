@@ -3,7 +3,7 @@ import { getRelevantContext } from '../_services/embeddings-service.js';
 import { formatResponseForMarkdown } from '../_services/markdown-formatter.js';
 import semanticStreamingService from '../_services/semantic-streaming-service.js';
 import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
-import { needsKnowledgeBase } from '../_services/query-classifier.js';
+import { needsKnowledgeBase, updateConversationContext } from '../_services/query-classifier.js';
 import { withSecurity } from '../_middlewares/serverless-security.js';
 
 // ============================================================================
@@ -110,16 +110,18 @@ async function streamHandler(req, res) {
     
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
-    // Determinar si la query necesita buscar en la base de conocimientos
-    const shouldSearchKB = needsKnowledgeBase(messageContent);
+    // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
+    const classificationResult = needsKnowledgeBase(messageContent, { includeContext: true, debugMode: true });
     
     let relevantContext = { context: '', score: 0 };
     
-    if (shouldSearchKB) {
+    if (classificationResult.needsKB) {
+      console.log(`✅ KB Classification approved | Score: ${classificationResult.score.toFixed(2)}`);
+      
       // Obtener contexto relevante de la base de conocimientos
       console.log('🔍 Searching knowledge base...');
       const rawContext = await getRelevantContext(messageContent, { 
-        threshold: 0.25,
+        threshold: 0.15,
       });
       
       // Normalizar contexto
@@ -130,20 +132,23 @@ async function streamHandler(req, res) {
         relevantContext.score = Number(rawContext.score) || 0;
       }
       
-      // Truncar contexto para evitar límites de tokens
-      const MAX_CONTEXT_LENGTH = 8000;
-      if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-        relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
-        console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
-      }
-      
-      if (relevantContext.context) {
-        console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
-      } else {
-        console.log('⚠️ No KB context found');
-      }
+      // Actualizar contexto de conversación
+      updateConversationContext(true, ['nuxchain', 'platform']);
     } else {
-      console.log('⏭️ Skipping KB search - generic/general question');
+      console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason}`);
+    }
+    
+    // Truncar contexto para evitar límites de tokens
+    const MAX_CONTEXT_LENGTH = 8000;
+    if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
+      relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
+      console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+    }
+    
+    if (relevantContext.context) {
+      console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+    } else {
+      console.log('⚠️ No KB context found');
     }
     
     // Construir system instruction con contexto

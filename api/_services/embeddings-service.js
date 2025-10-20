@@ -241,20 +241,47 @@ function applySemanticBoost(doc, query, baseScore) {
   }
   
   // Boost 2: Términos clave del dominio (+0.15 cada uno)
-  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'chat', 'ecosystem', 'blockchain',];
+  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'chat', 'ecosystem', 'blockchain'];
   const queryTerms = queryLower.split(/\s+/);
   const matchedDomainTerms = domainTerms.filter(term => 
     docLower.includes(term) && queryTerms.some(qt => qt.includes(term) || term.includes(qt))
   );
   boostScore += matchedDomainTerms.length * 0.15;
   
-  // Boost 3: Densidad de información (términos únicos / total)
+  // ✅ NUEVO Boost 3: Match de NÚMEROS específicos (+0.25)
+  const numberPattern = /\b(\d+(\.\d+)?)\b/g;
+  const queryNumbers = (queryLower.match(numberPattern) || []).map(n => parseFloat(n));
+  const docNumbers = (docLower.match(numberPattern) || []).map(n => parseFloat(n));
+  
+  for (const qNum of queryNumbers) {
+    if (docNumbers.some(dNum => Math.abs(dNum - qNum) < 0.01)) {
+      boostScore += 0.25; // Alto boost por match exacto de números
+    }
+  }
+  
+  // ✅ NUEVO Boost 4: Match de PORCENTAJES y APY/ROI (+0.20)
+  const financeTerms = ['apy', 'roi', '%', 'percent', 'porcentaje', 'tasa', 'rate', 'rendimiento'];
+  const hasFinanceQuery = financeTerms.some(term => queryLower.includes(term));
+  const hasFinanceDoc = financeTerms.some(term => docLower.includes(term));
+  if (hasFinanceQuery && hasFinanceDoc) {
+    boostScore += 0.20;
+  }
+  
+  // ✅ NUEVO Boost 5: Match de LÍMITES (min/max) (+0.20)
+  const limitTerms = ['minimo', 'mínimo', 'minimum', 'min', 'maximo', 'máximo', 'maximum', 'max', 'limite', 'limit'];
+  const hasLimitQuery = limitTerms.some(term => queryLower.includes(term));
+  const hasLimitDoc = limitTerms.some(term => docLower.includes(term));
+  if (hasLimitQuery && hasLimitDoc) {
+    boostScore += 0.20;
+  }
+  
+  // Boost 6: Densidad de información (términos únicos / total)
   const uniqueTerms = new Set(tokenize(doc.content));
   const totalWords = doc.content.split(/\s+/).length;
   const density = totalWords > 0 ? uniqueTerms.size / totalWords : 0;
-  boostScore += Math.min(0.2, density * 0.4);
+  boostScore += Math.min(0.15, density * 0.3);
   
-  // Boost 4: Boost por términos con KEYWORD_BOOST
+  // Boost 7: Boost por términos con KEYWORD_BOOST
   const docTokens = tokenize(doc.content);
   let keywordBoostScore = 0;
   for (const token of docTokens) {
@@ -262,7 +289,7 @@ function applySemanticBoost(doc, query, baseScore) {
       keywordBoostScore += (KEYWORD_BOOST[token] - 1) * 0.1;
     }
   }
-  boostScore += Math.min(0.25, keywordBoostScore);
+  boostScore += Math.min(0.20, keywordBoostScore);
   
   return Math.min(1.0, baseScore + boostScore);
 }
@@ -475,7 +502,8 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       if (results.length >= 3) {
         results.sort((a, b) => b.score - a.score);
         
-        const threshold = options.threshold || 0.3;
+        // ✅ MEJORADO: Threshold más bajo para embeddings
+        const threshold = options.threshold || 0.15; // Bajado de 0.3 a 0.15
         const filtered = results
           .filter(r => r.score >= threshold)
           .slice(0, limit);
@@ -490,7 +518,6 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
         return filtered;
       }
     }
-    
     // Fallback a BM25 si embeddings fallan o no hay suficientes resultados
     console.log('⚠️ Falling back to BM25 algorithm');
     
@@ -540,10 +567,11 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
     
     results.sort((a, b) => b.score - a.score);
     
-    const baseThreshold = options.threshold || 0.25;
+    // ✅ MEJORADO: Threshold más bajo para BM25
+    const baseThreshold = options.threshold || 0.15; // Bajado de 0.25 a 0.15
     const maxScore = results[0]?.score || 0;
     const dynamicThreshold = maxScore < 0.5 
-      ? Math.max(baseThreshold, maxScore * 0.7)
+      ? Math.max(baseThreshold, maxScore * 0.6) // Más permisivo: 60% del max (era 70%)
       : baseThreshold;
     
     const filtered = results
@@ -551,6 +579,7 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       .slice(0, limit);
     
     console.log(`📚 Found ${filtered.length} documents with BM25 (fallback mode)`);
+    console.log(`🎯 Threshold: ${dynamicThreshold.toFixed(3)} | Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
     
     return filtered;
   } catch (error) {
@@ -560,53 +589,146 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
 }
 
 // ✅ NUEVO: Función para pre-computar embeddings en background
+// ✅ BATCH API OPTIMIZATION: Enhanced pre-compute strategy for Vercel
+// Strategy: Batch 50 docs into single embedContent call + intelligent delays
+async function batchEmbedMultipleTexts(texts) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Truncate long texts
+    const truncatedTexts = texts.map(text => 
+      text.length > 8000 ? text.substring(0, 8000) : text
+    );
+
+    // embedContent accepts multiple contents
+    const response = await ai.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: truncatedTexts
+    });
+
+    // Return array of embeddings
+    if (response.embeddings && Array.isArray(response.embeddings)) {
+      return response.embeddings.map(e => e.values || e);
+    }
+    
+    return null;
+  } catch (error) {
+    if (error.status === 429 || error.status === 503) {
+      return null;
+    }
+    return null;
+  }
+}
+
+// ✅ SMART BATCHING with adaptive delays for Vercel
+async function precomputeWithSmartBatching(knowledgeBase) {
+  let precomputed = 0;
+  let skipped = 0;
+  let failed = 0;
+  
+  // ✅ STRATEGY: Batch 40-50 docs per API call (not individual requests)
+  const BATCH_SIZE = 50;
+  const BATCH_DELAY_BASE = 2000;
+  const totalBatches = Math.ceil(knowledgeBase.length / BATCH_SIZE);
+  
+  for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
+    const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    
+    // Collect all texts in batch
+    const batchTexts = batch.map(doc => {
+      const cacheKey = doc.content.substring(0, 100);
+      if (precomputedEmbeddings.has(cacheKey)) {
+        skipped++;
+        return null;
+      }
+      return doc.content;
+    }).filter(Boolean);
+    
+    if (batchTexts.length === 0) {
+      continue;
+    }
+    
+    // Process entire batch with single API call
+    const embeddings = await batchEmbedMultipleTexts(batchTexts);
+    
+    if (embeddings && embeddings.length === batchTexts.length) {
+      let batchPrecomputed = 0;
+      let textIndex = 0;
+      
+      for (const doc of batch) {
+        const cacheKey = doc.content.substring(0, 100);
+        if (!precomputedEmbeddings.has(cacheKey)) {
+          const embedding = embeddings[textIndex];
+          if (embedding && Array.isArray(embedding)) {
+            precomputedEmbeddings.set(cacheKey, embedding);
+            batchPrecomputed++;
+            textIndex++;
+          }
+        }
+      }
+      
+      precomputed += batchPrecomputed;
+      embeddingCallCount++;
+      
+      let delayMs = BATCH_DELAY_BASE;
+      if (embeddingCallCount > 40) {
+        delayMs = 4000;
+      }
+      if (embeddingCallCount > 45) {
+        delayMs = 5000;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    } else {
+      failed += batchTexts.length;
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+  
+  return { precomputed, skipped, failed };
+}
+
+// ✅ OPTIMIZED: Exponential backoff with retry logic (kept for searchSimilar)
+async function generateEmbeddingWithRetry(text, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const embedding = await generateEmbedding(text);
+      if (embedding) return embedding;
+    } catch (error) {
+      // Exponential backoff: 500ms, 1s, 2s, etc.
+      const delayMs = Math.min(500 * Math.pow(2, attempt) + Math.random() * 1000, 5000);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  return null;
+}
+
 export async function precomputeKnowledgeBaseEmbeddings() {
   try {
     const { knowledgeBase } = await import('./knowledge-base.js');
     
     if (!process.env.GEMINI_API_KEY) {
-      console.log('⚠️ Skipping precomputation: No API key');
       return { precomputed: 0 };
     }
     
-    console.log('🔄 Starting background embedding precomputation...');
+    // Use optimized smart batching strategy
+    const { precomputed, skipped, failed } = await precomputeWithSmartBatching(knowledgeBase);
     
-    let precomputed = 0;
-    const BATCH_SIZE = 5; // Más conservador
-    const BATCH_DELAY = 2000; // 2 segundos entre batches
+    const total = precomputed + skipped;
+    const percentage = ((total / knowledgeBase.length) * 100).toFixed(1);
     
-    for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
-      const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
-      
-      for (const doc of batch) {
-        const cacheKey = doc.content.substring(0, 100);
-        
-        // Solo generar si no está en cache
-        if (!precomputedEmbeddings.has(cacheKey)) {
-          const embedding = await generateEmbedding(doc.content);
-          
-          if (embedding) {
-            precomputedEmbeddings.set(cacheKey, embedding);
-            precomputed++;
-          }
-          
-          // Delay entre requests
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-      }
-      
-      // Delay entre batches
-      if (i + BATCH_SIZE < knowledgeBase.length) {
-        console.log(`💤 Processed batch ${Math.floor(i / BATCH_SIZE) + 1}, waiting ${BATCH_DELAY}ms...`);
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-      }
+    console.log(`✅ Pre-computation done: ${total}/${knowledgeBase.length} (${percentage}%)`);
+    if (failed > 0) {
+      console.log(`  ⚠️ ${failed} fallback to BM25`);
     }
     
-    console.log(`✅ Precomputation complete: ${precomputed}/${knowledgeBase.length} embeddings`);
-    
-    return { precomputed, total: knowledgeBase.length };
+    return { precomputed, skipped, failed, total: knowledgeBase.length };
   } catch (error) {
-    console.error('❌ Error in precomputation:', error.message);
+    console.error('Pre-computation error:', error.message);
     return { precomputed: 0, error: error.message };
   }
 }
@@ -617,8 +739,8 @@ export async function getRelevantContext(query, options = {}) {
     // ✅ SIMPLIFICADO: Límite fijo de 5 documentos (recomendación de Google para RAG)
     const limit = options.limit || 5;
     
-    // ✅ SIMPLIFICADO: Threshold fijo de 0.25 (permisivo para encontrar contexto relevante)
-    const threshold = options.threshold || 0.25;
+    // ✅ MEJORADO: Threshold más bajo de 0.15 (más permisivo para encontrar contexto)
+    const threshold = options.threshold || 0.15;
     
     const results = await searchSimilar('knowledge_base', query, limit, {
       threshold,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import { registerForWaitlist } from '../../services/waitlist-service';
+import { registerForWaitlist } from '../../forms/waitlist-service';
 import { db } from '../firebase/config'; 
 
 function NuxchainKitSection() {

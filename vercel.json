@@ -1,6 +1,10 @@
 {
   "version": 2,
   "functions": {
+    "api/chat/stream.ts": {
+      "maxDuration": 60,
+      "memory": 1536
+    },
     "api/chat/stream.js": {
       "maxDuration": 60,
       "memory": 1536

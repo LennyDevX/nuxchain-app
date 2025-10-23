@@ -1,12 +1,51 @@
 /**
+ * ✅ TypeScript Migration: Serverless Security Middleware
  * Seguridad para Funciones Serverless - NuxChain App (Vercel Compatible)
  * Versión ligera optimizada para api/ serverless
  */
 
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+interface CorsHeaders {
+  'Access-Control-Allow-Origin': string;
+  'Access-Control-Allow-Methods': string;
+  'Access-Control-Allow-Headers': string;
+  'Access-Control-Max-Age': string;
+}
+
+interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  retryAfter?: number;
+}
+
+interface RateLimitRecord {
+  count: number;
+  resetTime: number;
+}
+
+interface AttackDetectionResult {
+  detected: boolean;
+  pattern?: string;
+}
+
+interface InputValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+type SecurityHandler = (
+  req: VercelRequest,
+  res: VercelResponse
+) => Promise<void | VercelResponse>;
+
 // ============================================================================
 // CORS CONFIGURATION
 // ============================================================================
-const CORS_HEADERS = {
+const CORS_HEADERS: CorsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-Requested-With',
@@ -16,7 +55,7 @@ const CORS_HEADERS = {
 // ============================================================================
 // SECURITY HEADERS
 // ============================================================================
-function applySecurityHeaders(res) {
+function applySecurityHeaders(res: VercelResponse): void {
   // CORS
   Object.entries(CORS_HEADERS).forEach(([key, value]) => {
     res.setHeader(key, value);
@@ -33,11 +72,14 @@ function applySecurityHeaders(res) {
 // ============================================================================
 // RATE LIMITING (Simple in-memory)
 // ============================================================================
-const rateLimitStore = new Map();
+const rateLimitStore = new Map<string, RateLimitRecord>();
 
-function checkRateLimit(req) {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-             req.headers['x-real-ip'] || 
+function checkRateLimit(req: VercelRequest): RateLimitResult {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  const realIp = req.headers['x-real-ip'];
+  
+  const ip = (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : '') ||
+             (typeof realIp === 'string' ? realIp : '') ||
              'unknown';
   
   const now = Date.now();
@@ -49,7 +91,7 @@ function checkRateLimit(req) {
     return { allowed: true, remaining: maxRequests - 1 };
   }
   
-  const record = rateLimitStore.get(ip);
+  const record = rateLimitStore.get(ip)!;
   
   if (now > record.resetTime) {
     record.count = 1;
@@ -82,11 +124,11 @@ setInterval(() => {
 // ============================================================================
 // ATTACK DETECTION
 // ============================================================================
-function detectAttack(req) {
+function detectAttack(req: VercelRequest): AttackDetectionResult {
   // Patrones más específicos para evitar falsos positivos
   const suspiciousPatterns = [
-    /(\<script\>|\<\/script\>)/gi,  // Script tags
-    /(\bUNION\s+SELECT\b|\bSELECT\s+.*\s+FROM\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bDROP\s+TABLE\b)/gi,  // SQL inyection específicos
+    /(<script>|<\/script>)/gi,  // Script tags
+    /(\bUNION\s+SELECT\b|\bSELECT\s+.*\s+FROM\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bDROP\s+TABLE\b)/gi,  // SQL injection específicos
     /(\.\.\/|\.\.\\)/g,  // Path traversal
     /(\$\{|<%|%>)/g,  // Template injection
     /(eval\(|exec\(|system\(|passthru\()/gi  // Code execution
@@ -112,9 +154,13 @@ function detectAttack(req) {
 // ============================================================================
 // INPUT VALIDATION
 // ============================================================================
-function validateInput(req) {
+function validateInput(req: VercelRequest): InputValidationResult {
   // Validar tamaño del body
-  const contentLength = parseInt(req.headers['content-length'] || '0');
+  const contentLengthHeader = req.headers['content-length'];
+  const contentLength = parseInt(
+    typeof contentLengthHeader === 'string' ? contentLengthHeader : '0'
+  );
+  
   if (contentLength > 2 * 1024 * 1024) { // 2MB
     return {
       valid: false,
@@ -123,7 +169,9 @@ function validateInput(req) {
   }
   
   // Validar User-Agent
-  const userAgent = req.headers['user-agent'];
+  const userAgentHeader = req.headers['user-agent'];
+  const userAgent = typeof userAgentHeader === 'string' ? userAgentHeader : '';
+  
   if (!userAgent || userAgent.length > 500) {
     return {
       valid: false,
@@ -137,8 +185,8 @@ function validateInput(req) {
 // ============================================================================
 // WRAPPER PRINCIPAL
 // ============================================================================
-export function withSecurity(handler) {
-  return async (req, res) => {
+export function withSecurity(handler: SecurityHandler): SecurityHandler {
+  return async (req: VercelRequest, res: VercelResponse) => {
     try {
       // 1. Aplicar headers de seguridad
       applySecurityHeaders(res);
@@ -151,7 +199,7 @@ export function withSecurity(handler) {
       // 3. Rate limiting
       const rateLimitResult = checkRateLimit(req);
       if (!rateLimitResult.allowed) {
-        res.setHeader('Retry-After', rateLimitResult.retryAfter);
+        res.setHeader('Retry-After', String(rateLimitResult.retryAfter));
         return res.status(429).json({
           error: 'Demasiadas solicitudes',
           retryAfter: rateLimitResult.retryAfter
@@ -159,7 +207,7 @@ export function withSecurity(handler) {
       }
       
       // Agregar headers de rate limit
-      res.setHeader('X-RateLimit-Remaining', rateLimitResult.remaining);
+      res.setHeader('X-RateLimit-Remaining', String(rateLimitResult.remaining));
       
       // 4. Validación de input
       const inputValidation = validateInput(req);
@@ -199,12 +247,15 @@ export function withSecurity(handler) {
     } catch (error) {
       console.error('❌ Error en withSecurity:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
       if (!res.headersSent) {
         const isDev = process.env.NODE_ENV === 'development';
         res.status(500).json({
           error: 'Error interno del servidor',
-          message: isDev ? error.message : 'Error interno',
-          ...(isDev && { stack: error.stack })
+          message: isDev ? errorMessage : 'Error interno',
+          ...(isDev && errorStack && { stack: errorStack })
         });
       }
     }

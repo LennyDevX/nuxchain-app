@@ -1,9 +1,63 @@
 import { GoogleGenAI } from '@google/genai';
+import type { KnowledgeBaseContext } from '../types/index.js';
 
 /**
  * Servicio de Embeddings para Vercel con Gemini API
  * Usa gemini-embedding-001 para búsqueda semántica de alta calidad
  */
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface Document {
+  content: string;
+  metadata?: {
+    type?: string;
+    topic?: string;
+    [key: string]: unknown;
+  };
+}
+
+interface SearchResult {
+  content: string;
+  metadata?: Document['metadata'];
+  score: number;
+  embeddingScore?: number;
+  bm25Score?: number;
+  boost: number;
+  fromCache?: boolean;
+}
+
+interface EmbeddingCacheEntry {
+  embedding: number[];
+  timestamp: number;
+}
+
+interface SearchOptions {
+  threshold?: number;
+  limit?: number;
+  [key: string]: unknown;
+}
+
+interface PrecomputeResult {
+  precomputed: number;
+  skipped?: number;
+  failed?: number;
+  total?: number;
+  error?: string;
+}
+
+interface ContextResult extends KnowledgeBaseContext {
+  documentsFound: number;
+  topScore?: number;
+  usedEmbeddings: boolean;
+  error?: string;
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 
 // Stopwords en ES/EN
 const STOPWORDS = new Set([
@@ -14,18 +68,18 @@ const STOPWORDS = new Set([
 ]);
 
 // Sinónimos multilingües
-const SYNONYMS = {
+const SYNONYMS: Record<string, string[]> = {
   // Español
   'caracteristicas': ['features', 'funciones', 'capacidades', 'servicios', 'funcionalidades'],
-  'marketplace': ['mercado', 'tienda', 'market', 'comercio'],
+  'marketplace_es': ['mercado', 'tienda', 'market', 'comercio'],
   'nft': ['nfts', 'token', 'coleccionable', 'coleccionables'],
-  'staking': ['stake', 'apostar', 'depositar', 'bloquear'],
+  'staking_es': ['stake', 'apostar', 'depositar', 'bloquear'],
   'recompensa': ['recompensas', 'reward', 'rewards', 'premio', 'premios', 'roi', 'apy', 'tasa', 'tasa de rendimiento'],
-  'apy': ['roi', 'rendimiento', 'tasa', 'porcentaje', 'recompensa', 'reward', 'rate', 'annual percentage yield'],
+  'apy_es': ['roi', 'rendimiento', 'tasa', 'porcentaje', 'recompensa', 'reward', 'rate', 'annual percentage yield'],
   'base': ['basica', 'fundamental', 'inicial', 'estandar', 'basic', 'standard'],
   'pool': ['pools', 'fondo', 'fondos'],
   'contrato': ['smart contract', 'contract', 'contratos'],
-  'wallet': ['billetera', 'monedero', 'cartera'],
+  'wallet_es': ['billetera', 'monedero', 'cartera'],
   'blockchain': ['cadena', 'red', 'network'],
   
   // Inglés
@@ -39,7 +93,7 @@ const SYNONYMS = {
 };
 
 // Pesos para términos clave (boost)
-const KEYWORD_BOOST = {
+const KEYWORD_BOOST: Record<string, number> = {
   'nuxchain': 2.5,
   'staking': 2.0,
   'marketplace': 2.0,
@@ -63,8 +117,11 @@ const KEYWORD_BOOST = {
   'blockchain': 1.6,
 };
 
-// Normalizar texto
-function normalizeText(text) {
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function normalizeText(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
@@ -74,18 +131,16 @@ function normalizeText(text) {
     .trim();
 }
 
-// Tokenizar y expandir sinónimos
-function tokenize(text, expandSynonyms = false) {
+function tokenize(text: string, expandSynonyms = false): string[] {
   const normalized = normalizeText(text);
   let tokens = normalized
     .split(/\s+/)
     .filter(token => token.length > 2 && !STOPWORDS.has(token));
   
-  // ⚠️ AJUSTE: Verificar que términos clave no se pierdan
+  // Verificar que términos clave no se pierdan
   const keywordsToKeep = ['caracteristicas', 'funcionalidades', 'features', 'capacidades', 'servicios'];
   const normalizedKeywords = keywordsToKeep.map(k => normalizeText(k));
   
-  // Agregar keywords que se hayan perdido
   const textTokens = normalized.split(/\s+/);
   normalizedKeywords.forEach(keyword => {
     if (textTokens.includes(keyword) && !tokens.includes(keyword)) {
@@ -110,18 +165,16 @@ function tokenize(text, expandSynonyms = false) {
   return tokens;
 }
 
-// Extraer bigrams para mejor matching
-function extractBigrams(tokens) {
-  const bigrams = [];
+function extractBigrams(tokens: string[]): string[] {
+  const bigrams: string[] = [];
   for (let i = 0; i < tokens.length - 1; i++) {
     bigrams.push(`${tokens[i]}_${tokens[i + 1]}`);
   }
   return bigrams;
 }
 
-// Calcular TF (Term Frequency)
-function calculateTF(tokens) {
-  const tf = new Map();
+function calculateTF(tokens: string[]): Map<string, number> {
+  const tf = new Map<string, number>();
   const total = tokens.length;
   
   for (const token of tokens) {
@@ -129,7 +182,6 @@ function calculateTF(tokens) {
   }
   
   for (const [token, count] of tf) {
-    // Aplicar boost si es keyword
     const boost = KEYWORD_BOOST[token] || 1.0;
     tf.set(token, (count / total) * boost);
   }
@@ -137,21 +189,22 @@ function calculateTF(tokens) {
   return tf;
 }
 
-// ✅ CACHE GLOBAL DE IDF
-let idfCache = null;
+// ============================================================================
+// IDF CACHE
+// ============================================================================
+
+let idfCache: Map<string, number> | null = null;
 let lastKnowledgeBaseLength = 0;
 
-// Calcular IDF (Inverse Document Frequency)
-function calculateIDF(documents) {
-  // Cache hit: si la KB no cambió, reusar IDF
+function calculateIDF(documents: Document[]): Map<string, number> {
   if (idfCache && documents.length === lastKnowledgeBaseLength) {
     return idfCache;
   }
   
-  const idf = new Map();
+  const idf = new Map<string, number>();
   const numDocs = documents.length;
   
-  const docFreq = new Map();
+  const docFreq = new Map<string, number>();
   for (const doc of documents) {
     const tokens = tokenize(doc.content);
     const bigrams = extractBigrams(tokens);
@@ -163,11 +216,9 @@ function calculateIDF(documents) {
   }
   
   for (const [token, freq] of docFreq) {
-    // IDF mejorado con smoothing
     idf.set(token, Math.log((numDocs + 1) / (freq + 1)) + 1.5);
   }
   
-  // Actualizar cache
   idfCache = idf;
   lastKnowledgeBaseLength = numDocs;
   
@@ -176,33 +227,18 @@ function calculateIDF(documents) {
   return idf;
 }
 
-// Similitud coseno con TF-IDF (legacy - para comparación)
-function cosineSimilarityTFIDF(queryTokens, docTokens, idf) {
-  const queryTF = calculateTF(queryTokens);
-  const docTF = calculateTF(docTokens);
-  
-  const allTerms = new Set([...queryTokens, ...docTokens]);
-  const queryVector = [];
-  const docVector = [];
-  
-  for (const term of allTerms) {
-    const idfValue = idf.get(term) || 1.0;
-    queryVector.push((queryTF.get(term) || 0) * idfValue);
-    docVector.push((docTF.get(term) || 0) * idfValue);
-  }
-  
-  const dotProduct = queryVector.reduce((sum, a, i) => sum + a * docVector[i], 0);
-  const magnitudeA = Math.sqrt(queryVector.reduce((sum, a) => sum + a * a, 0));
-  const magnitudeB = Math.sqrt(docVector.reduce((sum, b) => sum + b * b, 0));
-  
-  if (magnitudeA === 0 || magnitudeB === 0) return 0;
-  
-  return dotProduct / (magnitudeA * magnitudeB);
-}
+// ============================================================================
+// BM25 ALGORITHM
+// ============================================================================
 
-// BM25 Score - Superior para recuperación de texto
-// Formula: IDF(q) * (f(q,D) * (k1 + 1)) / (f(q,D) + k1 * (1 - b + b * |D|/avgDl))
-function bm25Score(queryTokens, docTokens, idf, avgDocLength, k1 = 1.5, b = 0.75) {
+function bm25Score(
+  queryTokens: string[], 
+  docTokens: string[], 
+  idf: Map<string, number>, 
+  avgDocLength: number, 
+  k1 = 1.5, 
+  b = 0.75
+): number {
   const docLength = docTokens.length;
   const docTF = calculateTF(docTokens);
   
@@ -223,14 +259,16 @@ function bm25Score(queryTokens, docTokens, idf, avgDocLength, k1 = 1.5, b = 0.75
   return score;
 }
 
-// Normalizar BM25 score a rango [0, 1] similar a cosine similarity
-function normalizeBM25(score, maxScore) {
+function normalizeBM25(score: number, maxScore: number): number {
   if (maxScore === 0) return 0;
   return Math.min(1.0, score / maxScore);
 }
 
-// Re-ranking con boost semántico
-function applySemanticBoost(doc, query, baseScore) {
+// ============================================================================
+// SEMANTIC BOOST
+// ============================================================================
+
+function applySemanticBoost(doc: Document, query: string, baseScore: number): number {
   let boostScore = 0;
   const docLower = doc.content.toLowerCase();
   const queryLower = query.toLowerCase();
@@ -248,18 +286,18 @@ function applySemanticBoost(doc, query, baseScore) {
   );
   boostScore += matchedDomainTerms.length * 0.15;
   
-  // ✅ NUEVO Boost 3: Match de NÚMEROS específicos (+0.25)
+  // Boost 3: Match de NÚMEROS específicos (+0.25)
   const numberPattern = /\b(\d+(\.\d+)?)\b/g;
   const queryNumbers = (queryLower.match(numberPattern) || []).map(n => parseFloat(n));
   const docNumbers = (docLower.match(numberPattern) || []).map(n => parseFloat(n));
   
   for (const qNum of queryNumbers) {
     if (docNumbers.some(dNum => Math.abs(dNum - qNum) < 0.01)) {
-      boostScore += 0.25; // Alto boost por match exacto de números
+      boostScore += 0.25;
     }
   }
   
-  // ✅ NUEVO Boost 4: Match de PORCENTAJES y APY/ROI (+0.20)
+  // Boost 4: Match de PORCENTAJES y APY/ROI (+0.20)
   const financeTerms = ['apy', 'roi', '%', 'percent', 'porcentaje', 'tasa', 'rate', 'rendimiento'];
   const hasFinanceQuery = financeTerms.some(term => queryLower.includes(term));
   const hasFinanceDoc = financeTerms.some(term => docLower.includes(term));
@@ -267,7 +305,7 @@ function applySemanticBoost(doc, query, baseScore) {
     boostScore += 0.20;
   }
   
-  // ✅ NUEVO Boost 5: Match de LÍMITES (min/max) (+0.20)
+  // Boost 5: Match de LÍMITES (min/max) (+0.20)
   const limitTerms = ['minimo', 'mínimo', 'minimum', 'min', 'maximo', 'máximo', 'maximum', 'max', 'limite', 'limit'];
   const hasLimitQuery = limitTerms.some(term => queryLower.includes(term));
   const hasLimitDoc = limitTerms.some(term => docLower.includes(term));
@@ -275,13 +313,13 @@ function applySemanticBoost(doc, query, baseScore) {
     boostScore += 0.20;
   }
   
-  // Boost 6: Densidad de información (términos únicos / total)
+  // Boost 6: Densidad de información
   const uniqueTerms = new Set(tokenize(doc.content));
   const totalWords = doc.content.split(/\s+/).length;
   const density = totalWords > 0 ? uniqueTerms.size / totalWords : 0;
   boostScore += Math.min(0.15, density * 0.3);
   
-  // Boost 7: Boost por términos con KEYWORD_BOOST
+  // Boost 7: Keywords con KEYWORD_BOOST
   const docTokens = tokenize(doc.content);
   let keywordBoostScore = 0;
   for (const token of docTokens) {
@@ -294,22 +332,24 @@ function applySemanticBoost(doc, query, baseScore) {
   return Math.min(1.0, baseScore + boostScore);
 }
 
-// ✅ NUEVO: Cache de embeddings para optimizar requests
-const embeddingsCache = new Map();
+// ============================================================================
+// EMBEDDINGS
+// ============================================================================
+
+const embeddingsCache = new Map<string, EmbeddingCacheEntry>();
+const precomputedEmbeddings = new Map<string, number[]>();
 const CACHE_TTL = 3600000; // 1 hora
 
-// ✅ NUEVO: Rate limiting para embeddings API
 let embeddingCallCount = 0;
 let lastResetTime = Date.now();
 const EMBEDDING_RATE_LIMIT = {
-  maxCallsPerMinute: 50, // Conservador para free tier
+  maxCallsPerMinute: 50,
   resetIntervalMs: 60000
 };
 
-function checkEmbeddingRateLimit() {
+function checkEmbeddingRateLimit(): boolean {
   const now = Date.now();
   
-  // Reset counter cada minuto
   if (now - lastResetTime > EMBEDDING_RATE_LIMIT.resetIntervalMs) {
     embeddingCallCount = 0;
     lastResetTime = now;
@@ -323,25 +363,22 @@ function checkEmbeddingRateLimit() {
   return true;
 }
 
-// ✅ CORREGIDO: Usar GoogleGenAI correctamente según documentación oficial
-async function generateEmbedding(text) {
+async function generateEmbedding(text: string): Promise<number[] | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
-    if (!generateEmbedding._warningShown) {
+    if (!(generateEmbedding as unknown as { _warningShown?: boolean })._warningShown) {
       console.warn('⚠️ GEMINI_API_KEY not configured - using BM25 fallback');
       console.warn('💡 Configure GEMINI_API_KEY in .env for better semantic search');
-      generateEmbedding._warningShown = true;
+      (generateEmbedding as unknown as { _warningShown: boolean })._warningShown = true;
     }
     return null;
   }
   
-  // ✅ Verificar rate limit ANTES de hacer llamada
   if (!checkEmbeddingRateLimit()) {
-    return null; // Fallback a BM25
+    return null;
   }
   
-  // Cache hit
   const cacheKey = text.substring(0, 100);
   const cached = embeddingsCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -349,29 +386,24 @@ async function generateEmbedding(text) {
   }
   
   try {
-    // ✅ CORREGIDO: Usar GoogleGenAI según documentación oficial
     const ai = new GoogleGenAI({ apiKey });
-    
     const truncatedText = text.length > 8000 ? text.substring(0, 8000) : text;
     
-    // ✅ IMPORTANTE: embedContent (NO embeddings.embedContent)
     const response = await ai.models.embedContent({
       model: 'gemini-embedding-001',
       contents: truncatedText
     });
     
-    // ✅ CORREGIDO: Acceder correctamente a los embeddings
-    const embedding = response.embeddings?.[0]?.values || response.embedding?.values;
+    const embedding = (response as { embeddings?: Array<{ values: number[] }>; embedding?: { values: number[] } }).embeddings?.[0]?.values || 
+                     (response as { embedding?: { values: number[] } }).embedding?.values;
     
     if (!embedding || !Array.isArray(embedding)) {
       console.error('❌ Invalid embedding response:', response);
       return null;
     }
     
-    // ✅ Incrementar contador solo si fue exitoso
     embeddingCallCount++;
     
-    // Cache result
     embeddingsCache.set(cacheKey, {
       embedding,
       timestamp: Date.now()
@@ -380,25 +412,24 @@ async function generateEmbedding(text) {
     console.log(`✅ Generated embedding: ${embedding.length} dimensions`);
     return embedding;
   } catch (error) {
-    // ✅ MEJORADO: Detectar error de cuota y cambiar a BM25 automáticamente
-    if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
-      if (!generateEmbedding._quotaWarningShown) {
+    const err = error as Error & { message?: string };
+    
+    if (err.message?.includes('quota') || err.message?.includes('RESOURCE_EXHAUSTED')) {
+      if (!(generateEmbedding as unknown as { _quotaWarningShown?: boolean })._quotaWarningShown) {
         console.error('❌ Gemini Embeddings quota exceeded');
         console.warn('⚠️ Switching to BM25 fallback for all future requests');
         console.warn('💡 To use embeddings: upgrade to paid tier at https://aistudio.google.com/apikey');
-        generateEmbedding._quotaWarningShown = true;
+        (generateEmbedding as unknown as { _quotaWarningShown: boolean })._quotaWarningShown = true;
       }
-      // Marcar rate limit como alcanzado para evitar más llamadas
       embeddingCallCount = EMBEDDING_RATE_LIMIT.maxCallsPerMinute;
       return null;
     }
     
-    if (error.message?.includes('API key not valid')) {
+    if (err.message?.includes('API key not valid')) {
       console.error('❌ Invalid GEMINI_API_KEY - Check your .env file');
       console.error('💡 Get a valid key from: https://aistudio.google.com/apikey');
     } else {
-      console.error('❌ Error generating embedding:', error.message);
-      // Mostrar más detalles del error en desarrollo
+      console.error('❌ Error generating embedding:', err.message);
       if (process.env.NODE_ENV === 'development') {
         console.error('Error details:', JSON.stringify(error, null, 2));
       }
@@ -407,8 +438,7 @@ async function generateEmbedding(text) {
   }
 }
 
-// ✅ NUEVO: Similitud coseno entre embeddings
-function cosineSimilarity(vecA, vecB) {
+function cosineSimilarity(vecA: number[], vecB: number[]): number {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   
   let dotProduct = 0;
@@ -425,10 +455,18 @@ function cosineSimilarity(vecA, vecB) {
   return magnitude === 0 ? 0 : dotProduct / magnitude;
 }
 
-// ✅ MEJORADO: Búsqueda híbrida (Embeddings + BM25 fallback)
-export async function searchSimilar(indexName, query, limit = 5, options = {}) {
+// ============================================================================
+// SEARCH FUNCTIONS
+// ============================================================================
+
+export async function searchSimilar(
+  indexName: string, 
+  query: string, 
+  limit = 5, 
+  options: SearchOptions = {}
+): Promise<SearchResult[]> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js');
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
     
     if (!knowledgeBase || knowledgeBase.length === 0) {
       console.warn('⚠️ Knowledge base is empty');
@@ -437,15 +475,12 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
     
     console.log(`🔍 Searching with gemini-embedding-001 for: "${query.substring(0, 50)}..."`);
     
-    // Intentar búsqueda con embeddings reales
     const queryEmbedding = await generateEmbedding(query);
     
     if (queryEmbedding) {
       console.log('✅ Using Gemini embeddings for search');
       
-      // ✅ OPTIMIZACIÓN: Batch embeddings con Promise.allSettled para no fallar todo
       const embeddingPromises = knowledgeBase.map(async (doc) => {
-        // Verificar cache primero
         const cacheKey = doc.content.substring(0, 100);
         const cached = precomputedEmbeddings.get(cacheKey);
         
@@ -453,20 +488,17 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
           return { doc, embedding: cached, fromCache: true };
         }
         
-        // Generar nuevo embedding
         const docEmbedding = await generateEmbedding(doc.content);
         
         if (docEmbedding) {
-          // Guardar en cache persistente
           precomputedEmbeddings.set(cacheKey, docEmbedding);
         }
         
         return { doc, embedding: docEmbedding, fromCache: false };
       });
       
-      // ✅ NUEVO: Ejecutar en paralelo pero con límite
-      const BATCH_SIZE = 10; // Procesar 10 documentos a la vez
-      const results = [];
+      const BATCH_SIZE = 10;
+      const results: SearchResult[] = [];
       
       for (let i = 0; i < embeddingPromises.length; i += BATCH_SIZE) {
         const batch = embeddingPromises.slice(i, i + BATCH_SIZE);
@@ -491,19 +523,16 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
           }
         }
         
-        // Si alcanzamos rate limit, salir del loop
         if (!checkEmbeddingRateLimit()) {
           console.warn('⚠️ Rate limit reached during batch processing, using partial results');
           break;
         }
       }
       
-      // Si tenemos suficientes resultados con embeddings, usarlos
       if (results.length >= 3) {
         results.sort((a, b) => b.score - a.score);
         
-        // ✅ MEJORADO: Threshold más bajo para embeddings
-        const threshold = options.threshold || 0.15; // Bajado de 0.3 a 0.15
+        const threshold = options.threshold || 0.15;
         const filtered = results
           .filter(r => r.score >= threshold)
           .slice(0, limit);
@@ -518,10 +547,9 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
         return filtered;
       }
     }
-    // Fallback a BM25 si embeddings fallan o no hay suficientes resultados
+    
     console.log('⚠️ Falling back to BM25 algorithm');
     
-    // Tokenizar query con expansión de sinónimos
     const queryTokens = tokenize(query, true);
     const queryBigrams = extractBigrams(queryTokens);
     const allQueryTerms = [...queryTokens, ...queryBigrams];
@@ -552,7 +580,7 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
     
     const maxRawScore = Math.max(...bm25Results.map(r => r.rawScore), 0.001);
     
-    const results = bm25Results.map(({ doc, rawScore, docTokens }) => {
+    const results = bm25Results.map(({ doc, rawScore }) => {
       const normalizedScore = normalizeBM25(rawScore, maxRawScore);
       const finalScore = applySemanticBoost(doc, query, normalizedScore);
       
@@ -567,11 +595,10 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
     
     results.sort((a, b) => b.score - a.score);
     
-    // ✅ MEJORADO: Threshold más bajo para BM25
-    const baseThreshold = options.threshold || 0.15; // Bajado de 0.25 a 0.15
+    const baseThreshold = options.threshold || 0.15;
     const maxScore = results[0]?.score || 0;
     const dynamicThreshold = maxScore < 0.5 
-      ? Math.max(baseThreshold, maxScore * 0.6) // Más permisivo: 60% del max (era 70%)
+      ? Math.max(baseThreshold, maxScore * 0.6)
       : baseThreshold;
     
     const filtered = results
@@ -588,57 +615,52 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
   }
 }
 
-// ✅ NUEVO: Función para pre-computar embeddings en background
-// ✅ BATCH API OPTIMIZATION: Enhanced pre-compute strategy for Vercel
-// Strategy: Batch 50 docs into single embedContent call + intelligent delays
-async function batchEmbedMultipleTexts(texts) {
+// ============================================================================
+// PRECOMPUTE FUNCTIONS
+// ============================================================================
+
+async function batchEmbedMultipleTexts(texts: string[]): Promise<number[][] | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
   try {
     const ai = new GoogleGenAI({ apiKey });
     
-    // Truncate long texts
     const truncatedTexts = texts.map(text => 
       text.length > 8000 ? text.substring(0, 8000) : text
     );
 
-    // embedContent accepts multiple contents
     const response = await ai.models.embedContent({
       model: 'gemini-embedding-001',
       contents: truncatedTexts
     });
 
-    // Return array of embeddings
-    if (response.embeddings && Array.isArray(response.embeddings)) {
-      return response.embeddings.map(e => e.values || e);
+    if ((response as { embeddings?: Array<{ values: number[] }> }).embeddings && 
+        Array.isArray((response as { embeddings: Array<{ values: number[] }> }).embeddings)) {
+      return (response as { embeddings: Array<{ values: number[] }> }).embeddings.map(e => e.values || e);
     }
     
     return null;
   } catch (error) {
-    if (error.status === 429 || error.status === 503) {
+    const err = error as { status?: number };
+    if (err.status === 429 || err.status === 503) {
       return null;
     }
     return null;
   }
 }
 
-// ✅ SMART BATCHING with adaptive delays for Vercel
-async function precomputeWithSmartBatching(knowledgeBase) {
+async function precomputeWithSmartBatching(knowledgeBase: Document[]): Promise<PrecomputeResult> {
   let precomputed = 0;
   let skipped = 0;
   let failed = 0;
   
-  // ✅ STRATEGY: Batch 40-50 docs per API call (not individual requests)
   const BATCH_SIZE = 50;
   const BATCH_DELAY_BASE = 2000;
-  const totalBatches = Math.ceil(knowledgeBase.length / BATCH_SIZE);
   
   for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
     const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
-    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
     
-    // Collect all texts in batch
     const batchTexts = batch.map(doc => {
       const cacheKey = doc.content.substring(0, 100);
       if (precomputedEmbeddings.has(cacheKey)) {
@@ -646,17 +668,15 @@ async function precomputeWithSmartBatching(knowledgeBase) {
         return null;
       }
       return doc.content;
-    }).filter(Boolean);
+    }).filter((text): text is string => text !== null);
     
     if (batchTexts.length === 0) {
       continue;
     }
     
-    // Process entire batch with single API call
     const embeddings = await batchEmbedMultipleTexts(batchTexts);
     
     if (embeddings && embeddings.length === batchTexts.length) {
-      let batchPrecomputed = 0;
       let textIndex = 0;
       
       for (const doc of batch) {
@@ -665,13 +685,12 @@ async function precomputeWithSmartBatching(knowledgeBase) {
           const embedding = embeddings[textIndex];
           if (embedding && Array.isArray(embedding)) {
             precomputedEmbeddings.set(cacheKey, embedding);
-            batchPrecomputed++;
+            precomputed++;
             textIndex++;
           }
         }
       }
       
-      precomputed += batchPrecomputed;
       embeddingCallCount++;
       
       let delayMs = BATCH_DELAY_BASE;
@@ -692,54 +711,39 @@ async function precomputeWithSmartBatching(knowledgeBase) {
   return { precomputed, skipped, failed };
 }
 
-// ✅ OPTIMIZED: Exponential backoff with retry logic (kept for searchSimilar)
-async function generateEmbeddingWithRetry(text, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      const embedding = await generateEmbedding(text);
-      if (embedding) return embedding;
-    } catch (error) {
-      // Exponential backoff: 500ms, 1s, 2s, etc.
-      const delayMs = Math.min(500 * Math.pow(2, attempt) + Math.random() * 1000, 5000);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-  }
-  return null;
-}
-
-export async function precomputeKnowledgeBaseEmbeddings() {
+export async function precomputeKnowledgeBaseEmbeddings(): Promise<PrecomputeResult> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js');
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
     
     if (!process.env.GEMINI_API_KEY) {
       return { precomputed: 0 };
     }
     
-    // Use optimized smart batching strategy
     const { precomputed, skipped, failed } = await precomputeWithSmartBatching(knowledgeBase);
     
-    const total = precomputed + skipped;
+    const total = precomputed + (skipped || 0);
     const percentage = ((total / knowledgeBase.length) * 100).toFixed(1);
     
     console.log(`✅ Pre-computation done: ${total}/${knowledgeBase.length} (${percentage}%)`);
-    if (failed > 0) {
+    if (failed && failed > 0) {
       console.log(`  ⚠️ ${failed} fallback to BM25`);
     }
     
     return { precomputed, skipped, failed, total: knowledgeBase.length };
   } catch (error) {
-    console.error('Pre-computation error:', error.message);
-    return { precomputed: 0, error: error.message };
+    const err = error as Error;
+    console.error('Pre-computation error:', err.message);
+    return { precomputed: 0, error: err.message };
   }
 }
 
-// ✅ Obtener contexto relevante - Configuración simple y funcional
-export async function getRelevantContext(query, options = {}) {
+// ============================================================================
+// PUBLIC API
+// ============================================================================
+
+export async function getRelevantContext(query: string, options: SearchOptions = {}): Promise<ContextResult> {
   try {
-    // ✅ SIMPLIFICADO: Límite fijo de 5 documentos (recomendación de Google para RAG)
     const limit = options.limit || 5;
-    
-    // ✅ MEJORADO: Threshold más bajo de 0.15 (más permisivo para encontrar contexto)
     const threshold = options.threshold || 0.15;
     
     const results = await searchSimilar('knowledge_base', query, limit, {
@@ -757,7 +761,6 @@ export async function getRelevantContext(query, options = {}) {
       };
     }
     
-    // Construir contexto estructurado
     const contextParts = results.map((r, i) => {
       const source = r.metadata?.type || 'general';
       const topic = r.metadata?.topic || '';
@@ -767,8 +770,6 @@ export async function getRelevantContext(query, options = {}) {
     
     const context = contextParts.join('\n\n---\n\n');
     const avgScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
-    
-    // ✅ Detectar si se usaron embeddings o BM25
     const usedEmbeddings = results.some(r => r.embeddingScore !== undefined);
     
     console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
@@ -783,21 +784,28 @@ export async function getRelevantContext(query, options = {}) {
       usedEmbeddings
     };
   } catch (error) {
-    console.error('❌ Error getting relevant context:', error);
+    const err = error as Error;
+    console.error('❌ Error getting relevant context:', err);
     return {
       context: '',
       score: 0,
       documentsFound: 0,
-      error: error.message,
+      error: err.message,
       usedEmbeddings: false
     };
   }
 }
 
-// Inicializar KB para Vercel con pre-computación opcional
-export async function initializeKnowledgeBaseForVercel(precompute = false) {
+export async function initializeKnowledgeBaseForVercel(precompute = false): Promise<{
+  fallbackMode: boolean;
+  fallbackReason: string;
+  documentsCount: number;
+  embeddingModel: string;
+  hasApiKey: boolean;
+  precomputeStarted?: boolean;
+}> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js');
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
     const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
     
     console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);
@@ -808,9 +816,7 @@ export async function initializeKnowledgeBaseForVercel(precompute = false) {
       console.warn('⚠️ Running in fallback mode (BM25) - Configure GEMINI_API_KEY for better results');
     }
     
-    // ✅ NUEVO: Pre-computar embeddings en background si se solicita
     if (precompute && hasApiKey) {
-      // No await - ejecutar en background
       precomputeKnowledgeBaseEmbeddings().catch(err => {
         console.error('Background precomputation error:', err.message);
       });
@@ -827,11 +833,14 @@ export async function initializeKnowledgeBaseForVercel(precompute = false) {
       precomputeStarted: precompute && hasApiKey
     };
   } catch (error) {
-    console.error('❌ Error initializing KB:', error);
+    const err = error as Error;
+    console.error('❌ Error initializing KB:', err);
     return {
       fallbackMode: true,
       fallbackReason: 'Error loading KB',
-      documentsCount: 0
+      documentsCount: 0,
+      embeddingModel: 'gemini-embedding-001',
+      hasApiKey: false
     };
   }
 }

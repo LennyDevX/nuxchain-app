@@ -1,4 +1,4 @@
-// Middleware de rate limiting para Vercel API
+import { VercelRequest, VercelResponse } from '@vercel/node';
 
 /**
  * Simple in-memory rate limiter para Vercel
@@ -6,7 +6,20 @@
  * como Redis o una base de datos externa para sincronizar los límites.
  */
 
+interface RateLimiterOptions {
+  maxRequests?: number;
+  windowMs?: number;
+  message?: string;
+}
+
+interface RateLimitMiddleware {
+  (req: VercelRequest, res: VercelResponse, next: () => void): Promise<void>;
+}
+
 class RateLimiter {
+  private requests: Map<string, number[]>;
+  private readonly EXPIRE_TIME: number;
+
   constructor() {
     // Almacén en memoria para rastrear solicitudes por IP
     this.requests = new Map();
@@ -16,12 +29,16 @@ class RateLimiter {
 
   /**
    * Obtiene el identificador único para el cliente
-   * @param {Request} req - La solicitud HTTP
-   * @returns {string} - Identificador único (IP + User-Agent hasheado)
+   * @param req - La solicitud HTTP
+   * @returns Identificador único (IP + User-Agent hasheado)
    */
-  getClientIdentifier(req) {
+  getClientIdentifier(req: VercelRequest): string {
     // Obtener IP del cliente
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const ip = (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor) || 
+               (req.socket?.remoteAddress) || 
+               'unknown';
+    
     // Obtener User-Agent para mayor granularidad
     const userAgent = req.headers['user-agent'] || 'unknown';
     
@@ -40,18 +57,15 @@ class RateLimiter {
 
   /**
    * Crea el middleware de rate limiting
-   * @param {Object} options - Opciones de configuración
-   * @param {number} options.maxRequests - Número máximo de solicitudes permitidas
-   * @param {string} options.windowMs - Ventana de tiempo en milisegundos
-   * @param {string} options.message - Mensaje de error personalizado
-   * @returns {Function} - Middleware de Express
+   * @param options - Opciones de configuración
+   * @returns Middleware de Express
    */
-  createMiddleware(options = {}) {
+  createMiddleware(options: RateLimiterOptions = {}): RateLimitMiddleware {
     const maxRequests = options.maxRequests || 30; // 30 solicitudes por defecto
     const windowMs = options.windowMs || 60000; // 1 minuto por defecto
     const message = options.message || 'Has excedido el límite de solicitudes. Por favor, intenta de nuevo más tarde.';
     
-    return async (req, res, next) => {
+    return async (req: VercelRequest, res: VercelResponse, next: () => void): Promise<void> => {
       try {
         const clientId = this.getClientIdentifier(req);
         const now = Date.now();
@@ -69,11 +83,12 @@ class RateLimiter {
         if (clientRequests.length >= maxRequests) {
           const timeUntilReset = Math.ceil((windowMs - (now - clientRequests[0])) / 1000);
           
-          return res.status(429).json({
+          res.status(429).json({
             error: message,
             retryAfter: timeUntilReset,
             details: `Has realizado ${maxRequests} solicitudes en los últimos ${Math.floor(windowMs / 1000)} segundos.`
           });
+          return;
         }
         
         // Agregar la solicitud actual
@@ -85,9 +100,9 @@ class RateLimiter {
         const resetTime = Math.ceil((windowMs - (now - clientRequests[0])) / 1000);
         
         // Agregar encabezados de rate limiting
-        res.setHeader('X-RateLimit-Limit', maxRequests);
-        res.setHeader('X-RateLimit-Remaining', remainingRequests);
-        res.setHeader('X-RateLimit-Reset', resetTime);
+        res.setHeader('X-RateLimit-Limit', maxRequests.toString());
+        res.setHeader('X-RateLimit-Remaining', remainingRequests.toString());
+        res.setHeader('X-RateLimit-Reset', resetTime.toString());
         
         // Continuar con la solicitud
         next();
@@ -102,7 +117,7 @@ class RateLimiter {
   /**
    * Limpia las solicitudes expiradas para liberar memoria
    */
-  cleanupExpiredRequests() {
+  cleanupExpiredRequests(): void {
     const now = Date.now();
     
     for (const [clientId, timestamps] of this.requests.entries()) {
@@ -143,7 +158,8 @@ export const soft = rateLimiterInstance.createMiddleware({
 });
 
 // Middleware personalizado
-export const custom = (options) => rateLimiterInstance.createMiddleware(options);
+export const custom = (options: RateLimiterOptions): RateLimitMiddleware => 
+  rateLimiterInstance.createMiddleware(options);
 
 // Instancia del rate limiter para uso avanzado
 export const instance = rateLimiterInstance;

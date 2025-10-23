@@ -1,30 +1,10 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { PLATFORM_BENEFITS } from '../../constants/benefits';
 
 function BenefitsSection() {
   const isMobile = useIsMobile();
-
-  const benefits = [
-    {
-      title: 'Rapid Deployment',
-      description: 'Launch your Web3 project in hours, not months. Pre-built smart contracts ready to customize.',
-      icon: '⚡'
-    },
-    {
-      title: 'Enterprise Security',
-      description: 'Audited smart contracts and battle-tested infrastructure for peace of mind.',
-      icon: '🛡️'
-    },
-    {
-      title: 'Full Control',
-      description: 'Own your infrastructure. No vendor lock-in. Deploy on any EVM-compatible chain.',
-      icon: '🎯'
-    },
-    {
-      title: 'Scalable Architecture',
-      description: 'Built to scale from MVP to millions of users without architectural changes.',
-      icon: '📈'
-    }
-  ];
+  // ✅ React 19 Best Practice: Use centralized constants
+  const benefits = PLATFORM_BENEFITS;
 
   return (
     <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>

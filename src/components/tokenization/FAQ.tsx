@@ -1,4 +1,7 @@
-export default function FAQ() {
+import { memo } from 'react';
+
+// ✅ React 19 Best Practice: Memoize static content component
+function FAQ() {
   return (
     <div className="space-y-6">
       {/* FAQ */}
@@ -64,3 +67,6 @@ export default function FAQ() {
     </div>
   );
 }
+
+// ✅ React 19 Best Practice: Export memoized component
+export default memo(FAQ);

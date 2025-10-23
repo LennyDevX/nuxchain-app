@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { CheckIcon, CodeIcon, DatabaseIcon, BarChart3Icon, CpuIcon, ZapIcon, GlobeIcon, LockIcon } from '../labs/CustomIcons';
 
 interface PhaseCardsProps {
@@ -215,4 +215,5 @@ const PhaseCards: React.FC<PhaseCardsProps> = ({ isMobile }) => {
   );
 };
 
-export default PhaseCards;
+// ✅ React 19 Best Practice: Memoize component to prevent unnecessary re-renders
+export default memo(PhaseCards);

@@ -1,35 +1,41 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo, useMemo } from 'react';
 import Benefits from './Benefits';
 import FAQ from './FAQ';
 import TechnicalDetails from './TechnicalDetails';
 
-export default function InfoCarousel() {
+// ✅ React 19 Best Practice: Memoize child components to prevent unnecessary re-renders
+const MemoizedBenefits = memo(Benefits);
+const MemoizedFAQ = memo(FAQ);
+const MemoizedTechnicalDetails = memo(TechnicalDetails);
+
+function InfoCarousel() {
   const [activeTab, setActiveTab] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
-  const tabs = [
+  // ✅ React 19 Best Practice: useMemo for tabs array to prevent recreation
+  const tabs = useMemo(() => [
     {
       id: 0,
       title: 'Why Create NFTs?',
       icon: '🌟',
-      component: <Benefits />
+      component: <MemoizedBenefits />
     },
     {
       id: 1,
       title: 'FAQ',
       icon: '❓',
-      component: <FAQ />
+      component: <MemoizedFAQ />
     },
     {
       id: 2,
       title: 'Technical Details',
       icon: '🔧',
-      component: <TechnicalDetails />
+      component: <MemoizedTechnicalDetails />
     }
-  ];
+  ], []);
 
   // Touch/swipe handlers for mobile
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -118,3 +124,6 @@ export default function InfoCarousel() {
     </div>
   );
 }
+
+// ✅ React 19 Best Practice: Export memoized component
+export default memo(InfoCarousel);

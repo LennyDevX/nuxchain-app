@@ -1,4 +1,7 @@
-export default function TechnicalDetails() {
+import { memo } from 'react';
+
+// ✅ React 19 Best Practice: Memoize static content component
+function TechnicalDetails() {
   return (
     <div className="space-y-6">
       {/* Technical Details */}
@@ -56,3 +59,6 @@ export default function TechnicalDetails() {
     </div>
   );
 }
+
+// ✅ React 19 Best Practice: Export memoized component
+export default memo(TechnicalDetails);

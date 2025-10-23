@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import type { KnowledgeBaseContext } from '../types/index.js';
+import type { KnowledgeBaseContext } from '../types/index';
 
 /**
  * Servicio de Embeddings para Vercel con Gemini API

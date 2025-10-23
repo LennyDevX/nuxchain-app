@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "ES2022",
     "lib": ["ES2022"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -12,25 +12,23 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["node"],
+    "types": ["node", "@vercel/node"],
     "allowJs": true,
     "checkJs": false,
     "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "outDir": "./dist",
-    "rootDir": "./",
     "baseUrl": "./",
     "paths": {
       "@/*": ["./api/*"]
     }
   },
   "include": [
-    "api/**/*"
+    "api/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "api/test/**/*"
+    "build",
+    "api/test/**/*",
+    "api/**/*.js"
   ]
 }

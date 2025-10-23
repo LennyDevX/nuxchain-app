@@ -1,15 +1,15 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { getRelevantContext } from '../_services/embeddings-service.js';
-import { formatResponseForMarkdown } from '../_services/markdown-formatter.js';
-import semanticStreamingService from '../_services/semantic-streaming-service.js';
-import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
-import { needsKnowledgeBase, updateConversationContext } from '../_services/query-classifier.js';
-import { withSecurity } from '../_middlewares/serverless-security.js';
+import { getRelevantContext } from '../_services/embeddings-service';
+import { formatResponseForMarkdown } from '../_services/markdown-formatter';
+import semanticStreamingService from '../_services/semantic-streaming-service';
+import { buildSystemInstructionWithContext } from '../_config/system-instruction';
+import { needsKnowledgeBase, updateConversationContext } from '../_services/query-classifier';
+import { withSecurity } from '../_middlewares/serverless-security';
 import type { 
   ChatMessage, 
   KnowledgeBaseContext 
-} from '../types/index.js';
+} from '../types/index';
 
 // ============================================================================
 // TIPOS

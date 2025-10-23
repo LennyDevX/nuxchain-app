@@ -62,7 +62,9 @@ Nuxchain is a comprehensive Web3 platform that combines DeFi, NFTs, and AI-power
 - ✅ **Multi-Network Support** - Ethereum Mainnet & Sepolia Testnet
 - ✅ **Modern UI/UX** - TailwindCSS with smooth animations
 - ✅ **Real-time Updates** - WebSocket integration
-- ✅ **Type Safety** - Full TypeScript implementation
+- ✅ **Type Safety** - Full TypeScript implementation (2,000+ lines migrated)
+- ✅ **Performance Monitoring** - Lighthouse CI integration
+- ✅ **Serverless Architecture** - Vercel edge functions with TypeScript
 
 ---
 
@@ -146,6 +148,53 @@ npm run build
 ```bash
 npm run preview
 ```
+
+### 🔍 Performance Audits
+
+Run Lighthouse CI to audit performance, accessibility, and SEO:
+
+```bash
+# Windows with Microsoft Edge (Recommended)
+npm run lighthouse:edge
+
+# Windows with Chrome/Edge (manual)
+npm run lighthouse:local:windows
+
+# Linux/Mac
+npm run lighthouse:local
+```
+
+The audit generates HTML reports in `.lighthouseci/` with performance insights.
+See `doc/LIGHTHOUSE_CI_EDGE_GUIDE.md` for detailed instructions.
+
+### 🧪 Testing
+
+```bash
+# API tests
+npm run test:production
+
+# Comprehensive tests
+npm run test:comprehensive
+
+# TypeScript validation
+npx tsc -p tsconfig.api.json --noEmit
+```
+
+### 📊 Recent Improvements
+
+#### TypeScript Migration (Phase 1 Complete)
+- ✅ **2,000+ lines** migrated to TypeScript
+- ✅ **Core API** fully type-safe (stream, embeddings, middlewares)
+- ✅ **0 TypeScript errors** in production code
+- ✅ Full IntelliSense support in API development
+
+#### Lighthouse CI Integration
+- ✅ **Automated performance audits** on every PR
+- ✅ **Web Vitals tracking** (LCP, CLS, TBT, FCP)
+- ✅ **Resource budgets** enforced (scripts, images, CSS)
+- ✅ **Accessibility & SEO** monitoring
+
+See `doc/MIGRATION_COMPLETE_SUMMARY.md` for details.
 
 ### Linting & Formatting
 

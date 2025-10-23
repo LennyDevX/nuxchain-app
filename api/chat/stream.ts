@@ -1,3 +1,4 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 import { getRelevantContext } from '../_services/embeddings-service.js';
 import { formatResponseForMarkdown } from '../_services/markdown-formatter.js';
@@ -5,11 +6,48 @@ import semanticStreamingService from '../_services/semantic-streaming-service.js
 import { buildSystemInstructionWithContext } from '../_config/system-instruction.js';
 import { needsKnowledgeBase, updateConversationContext } from '../_services/query-classifier.js';
 import { withSecurity } from '../_middlewares/serverless-security.js';
+import type { 
+  ChatMessage, 
+  KnowledgeBaseContext 
+} from '../types/index.js';
+
+// ============================================================================
+// TIPOS
+// ============================================================================
+interface RequestMetrics {
+  total: number;
+  success: number;
+  errors: number;
+  avgResponseTime: number;
+}
+
+interface ClassificationResult {
+  needsKB: boolean;
+  score: number;
+  reason?: string;
+}
+
+interface StreamConfig {
+  enableSemanticChunking?: boolean;
+  enableContextualPauses?: boolean;
+  enableVariableSpeed?: boolean;
+  clientInfo?: {
+    ip: string;
+    userAgent?: string;
+  };
+}
+
+// Tipo para el body que puede venir en diferentes formatos
+type ChatRequestBody = 
+  | { messages: ChatMessage[]; message?: never }
+  | { message: string; messages?: never }
+  | ChatMessage[]
+  | string;
 
 // ============================================================================
 // MÉTRICAS Y VALIDACIÓN
 // ============================================================================
-const metrics = {
+const metrics: RequestMetrics = {
   total: 0,
   success: 0,
   errors: 0,
@@ -19,25 +57,21 @@ const metrics = {
 /**
  * Valida la estructura y contenido del mensaje
  */
-function validateRequest(body) {
-  const errors = [];
+function validateRequest(body: unknown): string[] {
+  const errors: string[] = [];
   
-  if (!body || typeof body !== 'object') {
+  if (!body) {
     errors.push('Invalid request body');
     return errors;
   }
   
   let messageContent = '';
   
-  if (body.messages && Array.isArray(body.messages)) {
-    const lastMessage = body.messages[body.messages.length - 1];
-    messageContent = lastMessage?.parts?.[0]?.text || '';
-  } else if (body.message) {
-    messageContent = body.message;
-  } else if (Array.isArray(body)) {
-    messageContent = body[body.length - 1]?.content || '';
-  } else if (typeof body === 'string') {
+  if (typeof body === 'string') {
     messageContent = body;
+  } else if (typeof body === 'object') {
+    const typedBody = body as ChatRequestBody;
+    messageContent = extractMessage(typedBody);
   }
   
   if (!messageContent || typeof messageContent !== 'string') {
@@ -51,24 +85,70 @@ function validateRequest(body) {
   return errors;
 }
 
+/**
+ * Extrae el mensaje del request body que puede venir en diferentes formatos
+ */
+function extractMessage(body: ChatRequestBody): string {
+  if (typeof body === 'string') {
+    return body;
+  }
+  
+  if (Array.isArray(body)) {
+    const lastMessage = body[body.length - 1];
+    return (lastMessage as ChatMessage)?.content || '';
+  }
+  
+  if ('messages' in body && Array.isArray(body.messages)) {
+    const lastMessage = body.messages[body.messages.length - 1];
+    return lastMessage?.parts?.[0]?.text || lastMessage?.content || '';
+  }
+  
+  if ('message' in body && typeof body.message === 'string') {
+    return body.message;
+  }
+  
+  return '';
+}
+
+/**
+ * Obtiene la IP del cliente desde los headers
+ */
+function getClientIp(req: VercelRequest): string {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  
+  if (typeof forwardedFor === 'string') {
+    return forwardedFor.split(',')[0]?.trim() || 'unknown';
+  }
+  
+  if (Array.isArray(forwardedFor)) {
+    return forwardedFor[0]?.split(',')[0]?.trim() || 'unknown';
+  }
+  
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string') {
+    return realIp;
+  }
+  
+  return 'unknown';
+}
+
 // ============================================================================
 // HANDLER PRINCIPAL (SIN SEGURIDAD MANUAL)
 // ============================================================================
-async function streamHandler(req, res) {
+async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<void> {
   const startTime = Date.now();
   metrics.total++;
   
   // Solo POST permitido
   if (req.method !== 'POST') {
     metrics.errors++;
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
   
   try {
     const headers = req.headers || {};
-    const clientIp = headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-                     headers['x-real-ip'] || 
-                     'unknown';
+    const clientIp = getClientIp(req);
     
     console.log(`🚀 Chat stream request from ${clientIp}`);
     
@@ -78,10 +158,11 @@ async function streamHandler(req, res) {
     if (validationErrors.length > 0) {
       console.error('❌ Validation errors:', validationErrors);
       metrics.errors++;
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Validation failed',
         details: validationErrors
       });
+      return;
     }
     
     // API Key
@@ -91,29 +172,22 @@ async function streamHandler(req, res) {
       console.error('❌ API key not configured');
       console.error('💡 Expected GEMINI_API_KEY or GOOGLE_GEMINI_API_KEY in environment');
       metrics.errors++;
-      return res.status(500).json({ error: 'API key not configured' });
+      res.status(500).json({ error: 'API key not configured' });
+      return;
     }
     
     // Extraer mensaje
-    let messageContent = '';
-    
-    if (req.body.messages && Array.isArray(req.body.messages)) {
-      const lastMessage = req.body.messages[req.body.messages.length - 1];
-      messageContent = lastMessage?.parts?.[0]?.text || '';
-    } else if (req.body.message) {
-      messageContent = req.body.message;
-    } else if (Array.isArray(req.body)) {
-      messageContent = req.body[req.body.length - 1]?.content || '';
-    } else if (typeof req.body === 'string') {
-      messageContent = req.body;
-    }
+    const messageContent = extractMessage(req.body as ChatRequestBody);
     
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
     
     // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
-    const classificationResult = needsKnowledgeBase(messageContent, { includeContext: true, debugMode: true });
+    const classificationResult = needsKnowledgeBase(messageContent, { 
+      includeContext: true, 
+      debugMode: true 
+    }) as ClassificationResult;
     
-    let relevantContext = { context: '', score: 0 };
+    let relevantContext: KnowledgeBaseContext = { context: '', score: 0 };
     
     if (classificationResult.needsKB) {
       console.log(`✅ KB Classification approved | Score: ${classificationResult.score.toFixed(2)}`);
@@ -126,22 +200,27 @@ async function streamHandler(req, res) {
       
       // Normalizar contexto
       if (typeof rawContext === 'string') {
-        relevantContext.context = rawContext;
+        relevantContext = { context: rawContext, score: 0 };
       } else if (rawContext && typeof rawContext === 'object') {
-        relevantContext.context = rawContext.context || rawContext.text || '';
-        relevantContext.score = Number(rawContext.score) || 0;
+        const typedContext = rawContext as KnowledgeBaseContext;
+        const ctx = typedContext.context || '';
+        const score = Number(typedContext.score) || 0;
+        relevantContext = { context: ctx, score };
       }
       
       // Actualizar contexto de conversación
       updateConversationContext(true, ['nuxchain', 'platform']);
     } else {
-      console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason}`);
+      console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason || 'unknown'}`);
     }
     
     // Truncar contexto para evitar límites de tokens
     const MAX_CONTEXT_LENGTH = 8000;
     if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-      relevantContext.context = relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...';
+      relevantContext = {
+        ...relevantContext,
+        context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
+      };
       console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
     }
     
@@ -226,15 +305,18 @@ async function streamHandler(req, res) {
     
     // Streaming semántico: procesar la respuesta completa
     console.log('🎯 Starting semantic streaming...');
-    await semanticStreamingService.streamSemanticContent(res, formattedResponse, {
+    
+    const streamConfig: StreamConfig = {
       enableSemanticChunking: true,
       enableContextualPauses: true,
       enableVariableSpeed: true,
       clientInfo: {
         ip: clientIp,
-        userAgent: headers['user-agent']
+        userAgent: headers['user-agent'] as string | undefined
       }
-    });
+    };
+    
+    await semanticStreamingService.streamSemanticContent(res, formattedResponse, streamConfig);
     
     clearTimeout(timeoutId);
     
@@ -253,17 +335,20 @@ async function streamHandler(req, res) {
     metrics.errors++;
     const duration = Date.now() - startTime;
     
-    console.error('❌ Stream error:', error.message);
+    const err = error as Error;
+    console.error('❌ Stream error:', err.message);
     if (process.env.NODE_ENV === 'development') {
-      console.error('Stack:', error.stack);
+      console.error('Stack:', err.stack);
     }
     
     if (!res.headersSent) {
-      if (error.message?.includes('API key')) {
-        return res.status(500).json({ error: 'API configuration error' });
+      if (err.message?.includes('API key')) {
+        res.status(500).json({ error: 'API configuration error' });
+        return;
       }
-      if (error.message?.includes('quota') || error.message?.includes('rate')) {
-        return res.status(429).json({ error: 'Service temporarily unavailable' });
+      if (err.message?.includes('quota') || err.message?.includes('rate')) {
+        res.status(429).json({ error: 'Service temporarily unavailable' });
+        return;
       }
       
       const errorId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -272,7 +357,7 @@ async function streamHandler(req, res) {
       res.status(500).json({
         error: 'Internal server error',
         errorId,
-        ...(process.env.NODE_ENV === 'development' && { details: error.message })
+        ...(process.env.NODE_ENV === 'development' && { details: err.message })
       });
     }
     

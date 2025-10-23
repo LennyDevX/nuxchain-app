@@ -29,12 +29,33 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          wagmi: ['wagmi', '@tanstack/react-query']
+        manualChunks(id) {
+          // Vendor libraries
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'react';
+            if (id.includes('wagmi') || id.includes('@tanstack')) return 'wagmi';
+            if (id.includes('metamask-sdk')) return 'metamask';
+            if (id.includes('reown') || id.includes('appkit')) return 'appkit';
+            if (id.includes('ethers') || id.includes('viem')) return 'web3-utils';
+            return 'vendor';
+          }
+          // Pages - each page gets its own chunk
+          if (id.includes('/pages/')) {
+            const match = id.match(/pages\/([^/]+)\.tsx?/);
+            if (match) return `page-${match[1]}`;
+          }
+          // Chat components - separate chunk for better loading
+          if (id.includes('/components/chat/')) {
+            return 'chat-components';
+          }
+          // Other components
+          if (id.includes('/components/')) {
+            return 'components';
+          }
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1200, // Allow larger chunks but warn at 1.2MB
   },
   esbuild: {
     jsx: 'automatic'

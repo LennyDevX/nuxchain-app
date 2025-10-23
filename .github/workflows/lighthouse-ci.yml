@@ -1,0 +1,88 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches:
+      - main
+      - test
+      - develop
+  pull_request:
+    branches:
+      - main
+      - test
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.15.x
+          lhci autorun --config=./lighthouserc.cjs
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+      
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 30
+      
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Leer resultados de Lighthouse
+            const manifestPath = '.lighthouseci/manifest.json';
+            if (!fs.existsSync(manifestPath)) {
+              console.log('No manifest found');
+              return;
+            }
+            
+            const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+            const results = manifest[0];
+            
+            // Crear comentario con métricas
+            const comment = `
+            ## 🔍 Lighthouse CI Results
+            
+            | Category | Score |
+            |----------|-------|
+            | Performance | ${(results.summary.performance * 100).toFixed(0)}% |
+            | Accessibility | ${(results.summary.accessibility * 100).toFixed(0)}% |
+            | Best Practices | ${(results.summary['best-practices'] * 100).toFixed(0)}% |
+            | SEO | ${(results.summary.seo * 100).toFixed(0)}% |
+            
+            [View full report](${results.url})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

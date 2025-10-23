@@ -1,10 +1,12 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
+
 /**
  * Middleware de Manejo de Errores Consistente
  * Aplica un manejo uniforme de errores para todos los endpoints de la API
  */
 
 // Logger simplificado para Vercel
-function logError(context, error, metadata = {}) {
+function logError(context: string, error: Error, metadata: Record<string, unknown> = {}): void {
   // En Vercel, los logs se gestionan automáticamente
   console.error(`${context}:`, error.message);
   if (process.env.NODE_ENV === 'development') {
@@ -15,7 +17,7 @@ function logError(context, error, metadata = {}) {
 
 // Contador simplificado de errores
 let errorCount = 0;
-function incrementErrorCount() {
+function incrementErrorCount(): void {
   errorCount++;
   if (errorCount % 100 === 0) {
     console.warn(`⚠️  Se han registrado ${errorCount} errores recientemente`);
@@ -23,22 +25,50 @@ function incrementErrorCount() {
 }
 
 // Clase base para errores personalizados
-class ApiError extends Error {
-  constructor(message, statusCode, errorType, details = {}) {
+export class ApiError extends Error {
+  statusCode: number;
+  errorType: string;
+  details: Record<string, unknown>;
+  timestamp: string;
+
+  constructor(
+    message: string, 
+    statusCode: number, 
+    errorType: string, 
+    details: Record<string, unknown> = {}
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.errorType = errorType;
     this.details = details;
     this.timestamp = new Date().toISOString();
+    
+    // Mantener el stack trace correcto
+    Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
 
+interface ErrorResponse {
+  error: string;
+  message: string;
+  timestamp: string;
+  [key: string]: unknown;
+}
+
+interface ErrorHeaders {
+  'Content-Type': string;
+  'Cache-Control': string;
+  'X-Error-Type': string;
+  'X-Request-ID': string;
+}
+
 // Middleware de manejo de errores para Vercel
-function errorHandler(error, res) {
+export function errorHandler(error: Error | ApiError, res: VercelResponse): void {
   incrementErrorCount();
   
   // Normalizar error
-  let normalizedError = error;
+  let normalizedError: ApiError;
+  
   if (!(error instanceof ApiError)) {
     // Determinar tipo de error
     let statusCode = 500;
@@ -82,6 +112,8 @@ function errorHandler(error, res) {
       errorType,
       process.env.NODE_ENV === 'development' ? { stack: error.stack } : {}
     );
+  } else {
+    normalizedError = error;
   }
   
   // Loguear error
@@ -92,7 +124,7 @@ function errorHandler(error, res) {
   );
   
   // Preparar respuesta
-  const errorResponse = {
+  const errorResponse: ErrorResponse = {
     error: normalizedError.errorType,
     message: normalizedError.message,
     timestamp: normalizedError.timestamp,
@@ -100,7 +132,7 @@ function errorHandler(error, res) {
   };
   
   // Agregar encabezados de seguridad
-  const headers = {
+  const headers: ErrorHeaders = {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     'X-Error-Type': normalizedError.errorType,
@@ -120,24 +152,26 @@ function errorHandler(error, res) {
   }
 }
 
+// Handler type para endpoints de Vercel
+type VercelHandler = (req: VercelRequest, res: VercelResponse) => Promise<void> | void;
+
 // Wrapper para endpoints de Vercel
-function withErrorHandling(handler) {
-  return async (req, res) => {
+export function withErrorHandling(handler: VercelHandler): VercelHandler {
+  return async (req: VercelRequest, res: VercelResponse): Promise<void> => {
     try {
       // Manejar preflight CORS
       if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.status(200).end();
+        return;
       }
       
       // Ejecutar handler principal
       await handler(req, res);
     } catch (error) {
       // Manejar error
-      errorHandler(error, res);
+      errorHandler(error as Error, res);
     }
   };
 }
-
-export { ApiError, errorHandler, withErrorHandling };
 
 export default errorHandler;

@@ -5,10 +5,6 @@
       "maxDuration": 60,
       "memory": 1536
     },
-    "api/chat/stream.js": {
-      "maxDuration": 60,
-      "memory": 1536
-    },
     "api/health/embeddings.js": {
       "maxDuration": 30,
       "memory": 512
@@ -43,8 +39,6 @@
       ]
     }
   ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
   },

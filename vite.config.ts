@@ -9,7 +9,17 @@ export default defineConfig({
     })
   ],
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json']
+    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
+  },
+  // Exclude subgraph AssemblyScript code from browser bundle
+  optimizeDeps: {
+    exclude: [
+      '@graphprotocol/graph-ts',
+      '@graphprotocol/graph-cli',
+      'subgraph'
+    ],
+    // Prevent scanning subgraph directory during dependency optimization
+    include: [],
   },
   server: {
     proxy: {
@@ -27,35 +37,46 @@ export default defineConfig({
     }
   },
   build: {
+    target: 'esnext',
+    minify: 'esbuild', // Changed from terser to esbuild for better Vercel compatibility
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor libraries
+          // Skip subgraph code completely
+          if (id.includes('subgraph')) {
+            return undefined; // Don't include in any chunk
+          }
+          
+          // CRITICAL: Separate Reown AppKit from main wagmi bundle to prevent
+          // Activity class initialization error. Reown AppKit comes as transitive
+          // dependency from wagmi/connectors but has its own Activity class.
+          if (id.includes('@reown/appkit') || id.includes('@walletconnect')) {
+            return 'walletconnect';
+          }
+          
+          // Simplified chunking strategy to prevent initialization order issues
           if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'react';
-            if (id.includes('wagmi') || id.includes('@tanstack')) return 'wagmi';
-            if (id.includes('metamask-sdk')) return 'metamask';
-            if (id.includes('reown') || id.includes('appkit')) return 'appkit';
-            if (id.includes('ethers') || id.includes('viem')) return 'web3-utils';
+            // React ecosystem - React, wagmi, and react-query MUST be together
+            // because wagmi uses React.createContext and needs React to be initialized first
+            if (id.includes('react') || 
+                id.includes('wagmi') || 
+                id.includes('@tanstack/react-query') ||
+                id.includes('react-dom') || 
+                id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            
+            // UI animation libraries
+            if (id.includes('framer-motion')) return 'ui-animations';
+            
+            // Everything else (viem, web3 utils, etc)
             return 'vendor';
-          }
-          // Pages - each page gets its own chunk
-          if (id.includes('/pages/')) {
-            const match = id.match(/pages\/([^/]+)\.tsx?/);
-            if (match) return `page-${match[1]}`;
-          }
-          // Chat components - separate chunk for better loading
-          if (id.includes('/components/chat/')) {
-            return 'chat-components';
-          }
-          // Other components
-          if (id.includes('/components/')) {
-            return 'components';
           }
         }
       }
     },
-    chunkSizeWarningLimit: 1200, // Allow larger chunks but warn at 1.2MB
+    chunkSizeWarningLimit: 2000, // Allow larger chunks
   },
   esbuild: {
     jsx: 'automatic'

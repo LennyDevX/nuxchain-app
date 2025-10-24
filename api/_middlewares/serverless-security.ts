@@ -111,16 +111,6 @@ function checkRateLimit(req: VercelRequest): RateLimitResult {
   return { allowed: true, remaining: maxRequests - record.count };
 }
 
-// Cleanup viejo cada 5 minutos
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimitStore.entries()) {
-    if (now > record.resetTime) {
-      rateLimitStore.delete(ip);
-    }
-  }
-}, 300000);
-
 // ============================================================================
 // ATTACK DETECTION
 // ============================================================================

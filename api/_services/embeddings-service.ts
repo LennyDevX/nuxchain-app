@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import type { KnowledgeBaseContext } from '../types/index';
 
 /**
  * Servicio de Embeddings para Vercel con Gemini API
@@ -48,11 +47,14 @@ interface PrecomputeResult {
   error?: string;
 }
 
-interface ContextResult extends KnowledgeBaseContext {
+interface ContextResult {
+  context: string;
+  score: number;
   documentsFound: number;
   topScore?: number;
   usedEmbeddings: boolean;
   error?: string;
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
@@ -637,7 +639,8 @@ async function batchEmbedMultipleTexts(texts: string[]): Promise<number[][] | nu
 
     if ((response as { embeddings?: Array<{ values: number[] }> }).embeddings && 
         Array.isArray((response as { embeddings: Array<{ values: number[] }> }).embeddings)) {
-      return (response as { embeddings: Array<{ values: number[] }> }).embeddings.map(e => e.values || e);
+      // Extraer solo los arrays de valores, no los objetos completos
+      return (response as { embeddings: Array<{ values: number[] }> }).embeddings.map(e => e.values);
     }
     
     return null;

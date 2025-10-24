@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [
     react({
-      jsxRuntime: 'automatic'
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
     })
   ],
   resolve: {
@@ -18,8 +19,16 @@ export default defineConfig({
       '@graphprotocol/graph-cli',
       'subgraph'
     ],
-    // Prevent scanning subgraph directory during dependency optimization
-    include: [],
+    // CRITICAL: Force React to be pre-bundled and loaded first
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'scheduler'
+    ],
+    // Force Vite to run optimizeDeps even if node_modules changes
+    force: true
   },
   server: {
     proxy: {
@@ -38,47 +47,24 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    minify: 'esbuild', // Changed from terser to esbuild for better Vercel compatibility
+    minify: 'esbuild',
     sourcemap: true,
+    // Disable modulePreload to prevent parallel loading that causes race conditions
+    modulePreload: false,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Skip subgraph code completely
-          if (id.includes('subgraph')) {
-            return undefined; // Don't include in any chunk
-          }
-          
-          // CRITICAL: Separate Reown AppKit from main wagmi bundle to prevent
-          // Activity class initialization error. Reown AppKit comes as transitive
-          // dependency from wagmi/connectors but has its own Activity class.
-          if (id.includes('@reown/appkit') || id.includes('@walletconnect')) {
-            return 'walletconnect';
-          }
-          
-          // Simplified chunking strategy to prevent initialization order issues
-          if (id.includes('node_modules')) {
-            // React ecosystem - React, wagmi, and react-query MUST be together
-            // because wagmi uses React.createContext and needs React to be initialized first
-            if (id.includes('react') || 
-                id.includes('wagmi') || 
-                id.includes('@tanstack/react-query') ||
-                id.includes('react-dom') || 
-                id.includes('react-router')) {
-              return 'react-vendor';
-            }
-            
-            // UI animation libraries
-            if (id.includes('framer-motion')) return 'ui-animations';
-            
-            // Everything else (viem, web3 utils, etc)
-            return 'vendor';
-          }
-        }
+        preserveModules: false,
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        // NO CODE SPLITTING AT ALL - bundle everything together
+        // This guarantees execution order and prevents React initialization issues
+        manualChunks: undefined
       }
     },
-    chunkSizeWarningLimit: 2000, // Allow larger chunks
+    chunkSizeWarningLimit: 3000,
   },
   esbuild: {
-    jsx: 'automatic'
+    jsx: 'automatic',
   }
 })

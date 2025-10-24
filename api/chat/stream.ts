@@ -1,15 +1,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { getRelevantContext } from '../_services/embeddings-service';
-import { formatResponseForMarkdown } from '../_services/markdown-formatter';
-import semanticStreamingService from '../_services/semantic-streaming-service';
-import { buildSystemInstructionWithContext } from '../_config/system-instruction';
-import { needsKnowledgeBase, updateConversationContext } from '../_services/query-classifier';
-import { withSecurity } from '../_middlewares/serverless-security';
+
+import { withSecurity } from '../_middlewares/serverless-security.js';
 import type { 
   ChatMessage, 
   KnowledgeBaseContext 
-} from '../types/index';
+} from '../types/index.js';
 
 // ============================================================================
 // TIPOS
@@ -166,7 +162,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     }
     
     // API Key
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     
     if (!apiKey) {
       console.error('❌ API key not configured');
@@ -180,6 +176,38 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     const messageContent = extractMessage(req.body as ChatRequestBody);
     
     console.log(`📝 Message: ${messageContent.substring(0, 50)}...`);
+    
+    // Lazy import de servicios para evitar FUNCTION_INVOCATION_FAILED
+    console.log('📦 Loading services...');
+    let needsKnowledgeBase, updateConversationContext, getRelevantContext;
+    let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
+    
+    try {
+      const modules = await Promise.all([
+        import('../_services/query-classifier.js').catch(e => { console.error('Error loading query-classifier:', e.message); throw e; }),
+        import('../_services/embeddings-service.js').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
+        import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
+        import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
+        import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; })
+      ]);
+      
+      needsKnowledgeBase = modules[0].needsKnowledgeBase;
+      updateConversationContext = modules[0].updateConversationContext;
+      getRelevantContext = modules[1].getRelevantContext;
+      buildSystemInstructionWithContext = modules[2].buildSystemInstructionWithContext;
+      formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
+      semanticStreamingService = modules[4].default;
+      
+      console.log('✅ All services loaded successfully');
+    } catch (importError) {
+      console.error('❌ Failed to load services:', importError);
+      metrics.errors++;
+      res.status(500).json({ 
+        error: 'Failed to initialize services',
+        message: importError instanceof Error ? importError.message : 'Unknown import error'
+      });
+      return;
+    }
     
     // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
     const classificationResult = needsKnowledgeBase(messageContent, { 
@@ -337,17 +365,33 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     const err = error as Error;
     console.error('❌ Stream error:', err.message);
+    console.error('Error name:', err.name);
+    console.error('Error stack:', err.stack);
+    
     if (process.env.NODE_ENV === 'development') {
-      console.error('Stack:', err.stack);
+      console.error('Full error:', error);
     }
     
     if (!res.headersSent) {
-      if (err.message?.includes('API key')) {
-        res.status(500).json({ error: 'API configuration error' });
+      if (err.message?.includes('API key') || err.message?.includes('401')) {
+        console.error('🔑 API Key error detected');
+        res.status(500).json({ 
+          error: 'API configuration error',
+          message: 'Invalid or missing API key'
+        });
         return;
       }
-      if (err.message?.includes('quota') || err.message?.includes('rate')) {
+      if (err.message?.includes('quota') || err.message?.includes('rate') || err.message?.includes('429')) {
+        console.error('⏱️ Rate limit error detected');
         res.status(429).json({ error: 'Service temporarily unavailable' });
+        return;
+      }
+      if (err.message?.includes('model') || err.message?.includes('not found')) {
+        console.error('🤖 Model error detected');
+        res.status(500).json({ 
+          error: 'Model error',
+          message: 'The specified model is not available'
+        });
         return;
       }
       
@@ -357,7 +401,8 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       res.status(500).json({
         error: 'Internal server error',
         errorId,
-        ...(process.env.NODE_ENV === 'development' && { details: err.message })
+        message: err.message || 'Unknown error occurred',
+        ...(process.env.NODE_ENV === 'development' && { details: err.stack })
       });
     }
     

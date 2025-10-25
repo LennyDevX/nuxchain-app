@@ -4,7 +4,13 @@ interface RoadmapHeroProps {
   isMobile: boolean;
 }
 
+import milestonesDefault, { getCounts, getProgressPercentage } from './milestonesData';
+
 const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
+  const milestones = milestonesDefault;
+  const { achieved } = getCounts(milestones);
+  const total = milestones.length;
+  const progress = getProgressPercentage(milestones);
   return (
     <section className={`relative overflow-hidden ${
       isMobile ? 'py-12 px-4' : 'py-20 px-4 sm:px-6 lg:px-8'
@@ -42,15 +48,15 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Phases</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-blue-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>14</div>
+            <div className={`font-bold text-blue-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{total}</div>
             <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Milestones</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>5</div>
+              <div className={`font-bold text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{achieved.length}</div>
             <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Achieved</div>
           </div>
           <div className="card-content p-4">
-            <div className={`font-bold text-amber-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>36%</div>
+            <div className={`font-bold text-amber-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{progress}%</div>
             <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Progress</div>
           </div>
         </div>

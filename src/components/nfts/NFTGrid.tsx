@@ -39,7 +39,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
     const gap = isMobile ? 16 : 24;
     const columnsCount = Math.max(1, Math.floor((containerWidth + gap) / (minCardWidth + gap)));
     const cardWidth = (containerWidth - (gap * (columnsCount - 1))) / columnsCount;
-    const cardHeight = cardWidth * 1.33; // Updated aspect ratio 3:4
+    const cardHeight = cardWidth * 1.5; // Updated aspect ratio 3:4.5
     
     return {
       columnsCount,

@@ -2,8 +2,6 @@ import React from 'react';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import RoadmapHero from '../components/Roadmap/RoadmapHero';
-import TimelineVisualization from '../components/Roadmap/TimelineVisualization';
-import PhaseCards from '../components/Roadmap/PhaseCards';
 import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
@@ -20,16 +18,6 @@ const RoadmapPage: React.FC = () => {
       }`}>
         <div className={isMobile ? 'space-y-12' : 'space-y-20'}>
           
-          {/* Timeline Visualization */}
-          <section>
-            <TimelineVisualization isMobile={isMobile} />
-          </section>
-
-          {/* Phase Cards - Detailed View */}
-          <section>
-            <PhaseCards isMobile={isMobile} />
-          </section>
-
           {/* Milestones Grid */}
           <section>
             <MilestonesGrid isMobile={isMobile} />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrainIcon, BarChart3Icon, ZapIcon, CpuIcon } from './CustomIcons';
+import { BrainIcon, BarChart3Icon, ZapIcon, CpuIcon } from '../ui/CustomIcons';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const AIFeaturesSection: React.FC = () => {

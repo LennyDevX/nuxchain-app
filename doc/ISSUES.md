@@ -3,12 +3,19 @@
 ## 📋 Overview
 This document contains all GitHub issues needed to complete the Nuxchain roadmap (2024-2027). Issues are organized by category and priority for easy assignment to developers.
 
-**Current Progress:** 8 Completed / 6 In Progress / 22 Planned
+**Current Progress:** 5 Completed / 8 In Progress / 24 Planned
 **Phase 1 Status:** ✅ Completed (All Phase 1 features)
-**Phase 2 Status:** 🔄 In Progress (6 features active)
+**Phase 2 Status:** 🔄 In Progress (8 features active)
 **Phase 3 Status:** 📋 Planned (All Phase 3 features)
 
 ---
+
+## ⚡ Quick Status Snapshot
+
+- Completed (5): #28 Roadmap Visualization & UI Components, #29 Platform Beta Features, #30 Initial Staking Smart Contract, #31 Initial Marketplace Smart Contract, #32 Refactor Styles components
+- In Progress (8): #1 NFT Analytics Dashboard, #3 Nuxbee AI Platform (v2.0), #9 DAO Governance System, #13 Smart Contract Updates & Optimization, #27 Legacy System Migration, #33 Transcribe the local server to TypeScript, #35 Mobile UX 2.0, #36 Performance System 2.0
+- Planned (24): remaining issues listed below
+
 
 ## 🎯 Category: NFT & Analytics
 
@@ -87,50 +94,6 @@ Develop an advanced AI-powered platform (formerly Nuxbee AI Chat) with generativ
 - Database schema for chat history
 - Redis for session management
 - Token usage tracking and billing
-
----
-
-### Issue #33: Transcribe the local server to TypeScript
-**Priority:** High  
-**Status:** In Progress  
-**Timeline:** Q4 2025  
-**Labels:** `refactor`, `typescript`, `server`, `phase-2`
-
-**Description:**  
-Transcribe the existing local server codebase from JavaScript to TypeScript for improved maintainability and type safety.
-
-**Acceptance Criteria:**
-- [ ] All server-side JavaScript files converted to TypeScript
-- [ ] Type definitions added for all modules
-- [ ] No regressions in server functionality
-- [ ] Automated tests pass after transcription
-
-**Technical Requirements:**
-- TypeScript compiler configuration
-- Update build scripts
-- Review and refactor existing JavaScript code to TypeScript
-
----
-
-### Issue #34: Transcribe the Vercel server to Typescript
-**Priority:** High  
-**Status:** Planned  
-**Timeline:** Q4 2025  
-**Labels:** `refactor`, `typescript`, `serverless`, `phase-2`
-
-**Description:**  
-Transcribe the existing Vercel serverless functions from JavaScript to TypeScript for improved maintainability and type safety.
-
-**Acceptance Criteria:**
-- [ ] All serverless JavaScript files converted to TypeScript
-- [ ] Type definitions added for all modules
-- [ ] No regressions in serverless function functionality
-- [ ] Automated tests pass after transcription
-
-**Technical Requirements:**
-- TypeScript compiler configuration for Vercel
-- Update Vercel build scripts
-- Review and refactor existing JavaScript code to TypeScript
 
 ---
 
@@ -553,6 +516,63 @@ Implement comprehensive monitoring and observability for platform health and per
 
 ---
 
+### Issue #33: Transcribe the API server to TypeScript
+**Priority:** High  
+**Status:** In Progress  
+**Timeline:** Q4 2025  
+**Labels:** `refactor`, `typescript`, `server`, `api`, `phase-2`
+
+**Description:**  
+Convert the local API/server codebase from JavaScript to TypeScript. This focuses on the server folder(s) that power the local development server, API routes, and any edge/serverless functions used during development. The goal is improved maintainability, stronger typing, and better developer DX.
+
+**Acceptance Criteria:**
+- [ ] All server-side JavaScript files under `/server` and local API routes converted to TypeScript (.ts/.tsx as appropriate)
+- [ ] Type definitions added for public modules and shared shapes (requests, responses, DB models)
+- [ ] Updated build scripts and tsconfig for server targets; local dev and production builds succeed
+- [ ] Automated tests updated/passing (unit/integration for API routes)
+- [ ] No runtime regressions in the local server and CI (smoke tests pass)
+
+**Technical Requirements / Notes:**
+- Create a `tsconfig.server.json` (or extend existing) tuned for Node/server target
+- Add type declarations for any third-party libs without types (or pin @types)
+- Update eslint/linters and build tooling for TypeScript on the server side
+- Add CI step to compile the server and run server-side tests
+- Provide a migration checklist per folder to make the conversion incremental and reviewable
+
+**Suggested migration plan:**
+1. Add tsconfig and minimal type setup; enable `allowJs` for incremental conversion
+2. Convert small, low-risk modules first (utilities, helpers)
+3. Convert API route handlers and server entry points
+4. Fix types and add interfaces for shared DTOs
+5. Run tests and fix regressions; finalise by disabling `allowJs` if desired
+
+---
+
+### Issue #36: Performance System 2.0
+**Priority:** High  
+**Status:** In Progress  
+**Timeline:** Q1 2026  
+**Labels:** `performance`, `infrastructure`, `phase-2`
+
+**Description:**  
+Platform-wide performance initiative to reduce load times, improve responsiveness, and ensure scalability through code and infrastructure improvements.
+
+**Acceptance Criteria:**
+- [ ] Establish performance budgets for core pages
+- [ ] Implement lazy-loading and critical CSS strategies
+- [ ] Optimize API endpoints and reduce payload sizes
+- [ ] Improve caching and CDN configuration
+- [ ] Lighthouse score targets (90+) for key pages
+- [ ] Automated performance monitoring in CI
+
+**Technical Requirements:**
+- Audit and optimize front-end bundles
+- Backend endpoint profiling and optimization
+- CDN & caching strategy updates
+- Add performance regression tests in CI
+
+---
+
 ## 📚 Category: Documentation & Developer Experience
 
 ### Issue #21: Developer Documentation Portal
@@ -636,6 +656,30 @@ Optimize entire platform for mobile-first experience.
 
 ---
 
+### Issue #35: Mobile UX 2.0
+**Priority:** High  
+**Status:** In Progress  
+**Timeline:** Q4 2025  
+**Labels:** `ui`, `mobile`, `ux`, `phase-2`
+
+**Description:**  
+Large-scale review and overhaul of the mobile experience across the web app, focusing on navigation, accessibility, touch interactions, and performance for mobile devices.
+
+**Acceptance Criteria:**
+- [ ] Navigation optimized for one-handed use
+- [ ] Improved touch targets and gestures
+- [ ] Responsive component variants for all major screens
+- [ ] Accessibility improvements (contrast, screen reader support)
+- [ ] Mobile-specific performance budgets and metrics
+- [ ] Usability validation with a small user panel
+
+**Technical Requirements:**
+- Update layout system and responsive tokens
+- Mobile-first breakpoints and CSS variables
+- Device testing matrix (iOS/Android, different sizes)
+
+---
+
 ## 🧪 Category: Testing & Quality Assurance
 
 ### Issue #25: Automated Testing Infrastructure
@@ -684,7 +728,7 @@ Build comprehensive analytics dashboard for platform metrics and user insights.
 
 ### Issue #27: Legacy System Migration
 **Priority:** High  
-**Status:** In Progress  
+**Status:** Completed  
 **Timeline:** Q3-Q4 2025  
 **Labels:** `migration`, `infrastructure`, `phase-2`, `critical`
 
@@ -801,6 +845,7 @@ Refactor existing styling components for better maintainability and performance.
 
 ---
 
+
 ## 🎯 Priority Matrix
 
 ### Critical Priority (Must Have)
@@ -855,7 +900,7 @@ Refactor existing styling components for better maintainability and performance.
 - Issue #1: NFT Analytics Dashboard - 🔄 IN PROGRESS
 - Issue #13: Smart Contract Updates & Optimization - 🔄 IN PROGRESS
 - Issue #27: Legacy System Migration - 🔄 IN PROGRESS
-- Issue #33: Transcribe the local server to TypeScript - 🔄 IN PROGRESS
+- Issue #33: Transcribe the API server to TypeScript - 🔄 IN PROGRESS
 - Issue #20: Monitoring & Observability
 - Issue #23: Design System & Component Library
 - Issue #25: Automated Testing Infrastructure
@@ -969,9 +1014,9 @@ For questions about these issues:
 
 ---
 
-**Last Updated:** October 14, 2025  
-**Document Version:** 2.1  
-**Total Issues:** 35  
-**Completed Issues:** 5 (Issues #28, #29, #30, #31, #32)  
-**In Progress Issues:** 6 (Issues #1, #3, #9, #13, #27, #33)  
+**Last Updated:** October 25, 2025  
+**Document Version:** 2.2  
+**Total Issues:** 37  
+**Completed Issues:** 5 (see checked items throughout the doc)  
+**In Progress Issues:** 8 (Issues #1, #3, #9, #13, #27, #33, #35, #36)  
 **Planned Issues:** 24

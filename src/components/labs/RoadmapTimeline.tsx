@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 // Removed unused ZapIcon and GlobeIcon to satisfy linter
-import { CheckIcon, CalendarIcon, CodeIcon, DatabaseIcon, BarChart3Icon, CpuIcon } from './CustomIcons';
+import { CheckIcon, CalendarIcon, CodeIcon, DatabaseIcon, BarChart3Icon, CpuIcon } from '../ui/CustomIcons';
 
 interface TimelineItemProps {
   title: string;

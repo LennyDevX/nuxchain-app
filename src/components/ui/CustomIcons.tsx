@@ -1,3 +1,22 @@
+// AI icon
+export const AIIcon: React.FC<CustomIconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="2" y="7" width="20" height="10" rx="5" />
+    <circle cx="7" cy="12" r="2" />
+    <circle cx="17" cy="12" r="2" />
+    <path d="M12 12h.01" />
+    <path d="M12 7v10" />
+  </svg>
+);
 import React from 'react';
 
 interface CustomIconProps {
@@ -259,4 +278,4 @@ export const CpuIcon: React.FC<CustomIconProps> = ({ className }) => (
   </svg>
 );
 
-export default { BrainIcon, BarChart3Icon, LockIcon, LineChartIcon, MaximizeIcon, ZapIcon, ExternalLinkIcon, GithubIcon, GlobeIcon, CodeIcon, CheckIcon, CalendarIcon, DatabaseIcon, CpuIcon };
+export default { BrainIcon, BarChart3Icon, LockIcon, LineChartIcon, MaximizeIcon, ZapIcon, ExternalLinkIcon, GithubIcon, GlobeIcon, CodeIcon, CheckIcon, CalendarIcon, DatabaseIcon, CpuIcon, AIIcon };

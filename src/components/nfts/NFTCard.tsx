@@ -4,6 +4,7 @@ import { formatEther } from 'viem';
 
 import { formatPolValue } from '../../utils/formats/format';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import NFTCardMobile from './NFTCardMobile';
 
 interface NFTAttribute {
   trait_type: string;
@@ -33,7 +34,17 @@ interface NFTCardProps {
   isMobile?: boolean;
 }
 
-function NFTCard({ nft, onListNFT }: NFTCardProps) {
+function NFTCard({ nft, onListNFT, isMobile }: NFTCardProps) {
+  // Use mobile version if on mobile device
+  if (isMobile) {
+    return <NFTCardMobile nft={nft} onListNFT={onListNFT} />;
+  }
+
+  return <NFTCardDesktop nft={nft} onListNFT={onListNFT} />;
+}
+
+// Desktop version with flip animation
+function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -110,7 +121,7 @@ function NFTCard({ nft, onListNFT }: NFTCardProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      style={{ perspective: '1500px', aspectRatio: '3/4' }}
+      style={{ perspective: '1500px', aspectRatio: '3/4.5' }}
     >
       <div 
         className="relative w-full h-full transition-all duration-700"

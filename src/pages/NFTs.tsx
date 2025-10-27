@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useMemo, memo } from 'react';
 
 interface NFTAttribute {
   trait_type: string;
@@ -10,7 +10,7 @@ import InfiniteScrollNFTGrid from '../components/nfts/InfiniteScrollNFTGrid';
 import NFTFilters from '../components/nfts/NFTFilters';
 import NFTStats from '../components/nfts/NFTStats';
 import ListingModal from '../components/nfts/ListingModal';
-import useUserNFTsLazy from '../hooks/nfts/useUserNFTsLazy';
+import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
@@ -23,18 +23,39 @@ function NFTs() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
+  // ✅ React Query hook - replaces 40+ lines of manual state management
   const { 
     nfts: userNFTs, 
     loading, 
     loadingMore, 
     error, 
     hasMore, 
-    refreshNFTs: refetch, 
+    refreshNFTs, 
     loadMoreNFTs,
     totalCount,
     loadedCount 
-  } = useUserNFTsLazy();
-  const { error: listError } = useListNFT();
+  } = useMarketplaceNFTs({
+    userOnly: true, // Show only user's NFTs
+    enabled: isConnected
+  });
+  
+  // Debug: Log NFTs data (only on significant changes to reduce noise)
+  if (!loading && userNFTs.length > 0) {
+    console.log(
+      `%c🎨 NFTs Page%c\n` +
+      `├─ Hook: useReactQueryNFTs (userOnly: true)\n` +
+      `├─ Status: ${error ? '❌ Error' : '✅ Loaded'}\n` +
+      `├─ Total: ${totalCount} NFTs\n` +
+      `├─ Loaded: ${loadedCount} NFTs\n` +
+      `├─ Has More: ${hasMore ? '📖' : '🏁'}\n` +
+      `└─ Connected: ${isConnected ? '✅' : '❌'}`,
+      'color: #ff69b4; font-weight: bold;',
+      'color: #ffffff;'
+    );
+  }
+  
+  // Remove unused listError
+  useListNFT();
   
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,15 +64,7 @@ function NFTs() {
   const [listingTokenId, setListingTokenId] = useState<string | null>(null);
   const [showListingModal, setShowListingModal] = useState(false);
   
-  // Calculate stats from NFTs - memoized for performance
-  // Remove unused nftStats declaration since it's not being used anywhere
-
-  // Handle listing errors
-  useEffect(() => {
-    if (listError) {
-      console.error('Listing error:', listError);
-    }
-  }, [listError]);
+  // Remove unused effect - listError is handled by the ListingModal component
 
   // Filter NFTs based on search term, category, and status - optimized with early returns
   const filteredNFTs = useMemo(() => {
@@ -204,7 +217,7 @@ function NFTs() {
           onSuccess={() => {
             setShowListingModal(false);
             setListingTokenId(null);
-            refetch(); // Refresh NFTs after listing
+            refreshNFTs(); // Refresh NFTs after listing
           }}
           tokenId={listingTokenId}
         />

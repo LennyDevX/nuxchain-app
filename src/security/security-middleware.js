@@ -74,12 +74,15 @@ export const apiKeyAuth = (req, res, next) => {
   
   // Permitir acceso sin API key a endpoints públicos
   const publicEndpoints = [
-    '/api/health', 
+    '/api/health',
+    '/nfts',
+    '/api/nfts',
     '/api/gemini/models',
     '/api/chat/stream',
     '/api/gemini/stream',
     '/hello',
     '/server/hello',
+    '/server/nfts',
     '/server/gemini/health',
     '/server/gemini/hello',
     '/server/gemini/stream',

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useBalance } from 'wagmi';
-import useUserNFTsLazy from '../../hooks/nfts/useUserNFTsLazy';
+import { useMarketplaceNFTs } from '../../hooks/nfts/useReactQueryNFTs';
 import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGraph';
 import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
@@ -9,7 +9,10 @@ import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileOverview: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { nfts, refreshNFTs } = useUserNFTsLazy(address);
+  const { nfts, refreshNFTs } = useMarketplaceNFTs({
+    userOnly: true,
+    enabled: isConnected && !!address
+  });
   const { activities, isLoading: activitiesLoading, refreshActivities } = useRecentActivities(10);
   const [isClearing, setIsClearing] = useState(false);
   

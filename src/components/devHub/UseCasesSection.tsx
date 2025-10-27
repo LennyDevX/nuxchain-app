@@ -1,5 +1,5 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import { USE_CASES } from '../../constants/benefits';
+import { USE_CASES } from '../nfts/benefits';
 
 function UseCasesSection() {
   const isMobile = useIsMobile();

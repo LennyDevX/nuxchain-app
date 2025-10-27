@@ -13,6 +13,22 @@ export type Milestone = {
 export const milestones: Milestone[] = [
   // Achieved Milestones
   {
+    title: 'Labs & Dev Hub',
+    description: 'Spaces to experiment and develop new tools for the ecosystem — a sandbox for integrations, rapid prototyping, and developer collaboration.',
+    date: 'Q2 2025',
+    icon: <GlobeIcon className="w-6 h-6" />,
+    status: 'achieved',
+    category: 'Innovation'
+  },
+  {
+    title: 'Developer Tooling Suite',
+    description: 'A collection of SDKs, CLIs, and libraries aimed to accelerate building services and platforms on Web3, improving developer productivity and reliability.',
+    date: 'Q2 2025',
+    icon: <CpuIcon className="w-6 h-6" />,
+    status: 'achieved',
+    category: 'Technology'
+  },
+  {
     title: 'Project Inception',
     description: 'Started development of Nuxchain platform with initial architecture and core features.',
     date: 'Q4 2024',

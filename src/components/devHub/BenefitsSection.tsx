@@ -1,5 +1,5 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import { PLATFORM_BENEFITS } from '../../constants/benefits';
+import { PLATFORM_BENEFITS } from '../nfts/benefits';
 
 function BenefitsSection() {
   const isMobile = useIsMobile();

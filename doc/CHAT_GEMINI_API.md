@@ -838,3 +838,15 @@ async function chatWithNuxbee(message) {
 **Última actualización:** Octubre 22, 2025  
 **Autor:** Nuxchain Development Team  
 **Status:** ✅ Producción
+
+
+ Plan de Migración (3 pasos):
+Instalar React Query (ya lo tienes en package.json)
+Reemplazar endpoint con cursor pagination
+Actualizar componentes a usar useMarketplaceNFTs()
+¿Quieres que implemente esto completo? Los archivos a actualizar son:
+
+src/server/gemini/routes/nft-routes.js (cursor pagination)
+src/hooks/nfts/useMarketplaceNFTs.ts (React Query hook)
+NFTs.tsx (usar nuevo hook)
+Eliminar useUserNFTsLazy.tsx (reemplazado)

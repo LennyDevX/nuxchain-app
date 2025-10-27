@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useAccount } from 'wagmi';
-import useMarketplace, { type MarketplaceNFT } from '../hooks/nfts/useMarketplace';
+import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
+import type { NFTData } from '../hooks/nfts/useReactQueryNFTs';
+import type { MarketplaceNFT } from '../types/marketplace';
 import MarketplaceFilters from '../components/marketplace/MarketplaceFilters';
-import MarketplaceStatsModule from '../components/marketplace/MarketplaceStatsModule';
 import NFTCardMemo from '../components/marketplace/NFTCardMemo';
 import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -12,58 +13,189 @@ import ConnectWallet from '../ui/ConnectWalletAlert';
 // Lazy load the BuyModal component
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));
 
+// ✅ Adapter function: NFTData → MarketplaceNFT
+function convertToMarketplaceNFT(nft: NFTData): MarketplaceNFT {
+  const priceInEth = Number(nft.price) / 1e18;
+  return {
+    tokenId: nft.tokenId,
+    name: nft.name,
+    description: nft.description,
+    image: nft.image,
+    price: nft.price.toString(),
+    priceInEth,
+    seller: nft.creator,
+    owner: nft.owner,
+    isForSale: nft.isForSale,
+    listedTimestamp: 0, // Not available in NFTData
+    category: nft.category,
+    tokenURI: nft.tokenURI,
+    attributes: nft.attributes.map(attr => ({
+      trait_type: attr.trait_type,
+      value: String(attr.value) // Convert number to string
+    })),
+    metadata: null,
+    uniqueId: nft.uniqueId,
+    contract: nft.contract,
+    creator: nft.creator,
+    likes: nft.likes
+  };
+}
+
 function Marketplace() {
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
+  
+  // ✅ React Query hook for marketplace NFTs
   const {
-    filteredNFTs,
+    nfts: allNFTs,
     loading,
     error,
-    refreshData,
-    filterByCategory,
-    filterByPriceRange,
-    searchByName,
-    sortBy,
-    currentFilters
-  } = useMarketplace();
+    refreshNFTs
+  } = useMarketplaceNFTs({
+    userOnly: false,
+    isForSale: true, // Only show listed NFTs
+    enabled: isConnected
+  });
+  
   usePOLPrice();
+
+  // Debug: Improved logging for Marketplace
+  if (!loading && allNFTs.length > 0) {
+    console.log(
+      `%c🏪 Marketplace%c\n` +
+      `├─ Hook: useReactQueryNFTs (isForSale: true)\n` +
+      `├─ Status: ${error ? '❌ Error' : '✅ Loaded'}\n` +
+      `├─ Available: ${allNFTs.length} NFTs`,
+      'color: #00d4ff; font-weight: bold;',
+      'color: #ffffff;'
+    );
+  }
 
   const [refreshing, setRefreshing] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<MarketplaceNFT | null>(null);
+  const [currentCategory, setCurrentCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<'price' | 'name' | 'date'>('date');
 
+  // ✅ Convert to MarketplaceNFT format for compatibility
+  const marketplaceNFTs = useMemo(() => 
+    allNFTs.map(convertToMarketplaceNFT),
+    [allNFTs]
+  );
+
+  // ✅ Client-side filtering with useMemo
+  const filteredNFTs = useMemo(() => {
+    let filtered = [...marketplaceNFTs];
+
+    // Filter by category
+    if (currentCategory !== 'all') {
+      filtered = filtered.filter(nft => 
+        nft.category.toLowerCase() === currentCategory.toLowerCase()
+      );
+    }
+
+    // Filter by price range
+    filtered = filtered.filter(nft => {
+      const priceInEth = nft.priceInEth;
+      return priceInEth >= priceRange.min && priceInEth <= priceRange.max;
+    });
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(nft =>
+        nft.name.toLowerCase().includes(query) ||
+        nft.description.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortField === 'price') {
+        return b.priceInEth - a.priceInEth;
+      } else if (sortField === 'name') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.listedTimestamp - a.listedTimestamp;
+      }
+    });
+
+    return filtered;
+  }, [marketplaceNFTs, currentCategory, priceRange, searchQuery, sortField]);
+
+  // Enhanced logging after filtering
+  if (!loading && filteredNFTs.length > 0) {
+    console.log(
+      `%c🔍 Marketplace Filters%c\n` +
+      `├─ Filtered: ${filteredNFTs.length}/${allNFTs.length} NFTs\n` +
+      `├─ Category: ${currentCategory}\n` +
+      `├─ Price Range: ${priceRange.min} - ${priceRange.max} ETH\n` +
+      `├─ Search: ${searchQuery || '(none)'}\n` +
+      `└─ Sort: ${sortField}`,
+      'color: #ffa500; font-weight: bold;',
+      'color: #ffffff;'
+    );
+  }
+
+  // Categories with counts
+  const categories = useMemo(() => [
+    { name: "Art", count: marketplaceNFTs.filter(nft => nft.category.toLowerCase() === 'art').length, icon: "🎨" },
+    { name: "Video", count: marketplaceNFTs.filter(nft => nft.category.toLowerCase() === 'video').length, icon: "🎬" },
+    { name: "Music", count: marketplaceNFTs.filter(nft => nft.category.toLowerCase() === 'music').length, icon: "🎵" },
+    { name: "Collectibles", count: marketplaceNFTs.filter(nft => nft.category.toLowerCase() === 'collectibles').length, icon: "🏆" },
+    { name: "Photography", count: marketplaceNFTs.filter(nft => nft.category.toLowerCase() === 'photography').length, icon: "📸" }
+  ], [marketplaceNFTs]);
+
+  // Handlers
   const handleBuyNFT = useCallback((nft: MarketplaceNFT) => {
     setSelectedNFT(nft);
     setShowBuyModal(true);
   }, []);
 
   const handleBuy = useCallback((nft: MarketplaceNFT) => {
-    // Aquí iría la lógica de compra
     console.log('Comprando NFT:', nft);
     setShowBuyModal(false);
     setSelectedNFT(null);
-    // Refresh data after successful purchase
-    refreshData();
-  }, [refreshData]);
+    refreshNFTs();
+  }, [refreshNFTs]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refreshData();
+    await refreshNFTs();
     setRefreshing(false);
-  }, [refreshData]);
+  }, [refreshNFTs]);
 
   const handleCloseModal = useCallback(() => {
     setShowBuyModal(false);
     setSelectedNFT(null);
   }, []);
 
-  const categories = useMemo(() => [
-    { name: "Art", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'art').length, icon: "🎨" },
-    { name: "Video", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'video').length, icon: "🎬" },
-    { name: "Music", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'music').length, icon: "🎵" },
-    { name: "Collectibles", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'collectibles').length, icon: "🏆" },
-    { name: "Photography", count: filteredNFTs.filter(nft => nft.category.toLowerCase() === 'photography').length, icon: "📸" }
-  ], [filteredNFTs]);
+  // Wrapper functions for MarketplaceFilters
+  const handleCategoryChange = useCallback((category: string) => {
+    setCurrentCategory(category);
+  }, []);
+
+  const handlePriceRangeChange = useCallback((min: number, max: number) => {
+    setPriceRange({ min, max });
+  }, []);
+
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const handleSortChange = useCallback((field: 'price' | 'name' | 'date') => {
+    setSortField(field);
+  }, []);
+
+  // Current filters object for MarketplaceFilters component
+  const currentFilters = {
+    category: currentCategory,
+    priceRange,
+    searchQuery,
+    sortBy: sortField
+  };
 
   if (!isConnected) {
     return <ConnectWallet pageName="Marketplace" />;
@@ -91,10 +223,33 @@ function Marketplace() {
           </div>
         )}
 
-        {/* Stats */}
-        <div className={isMobile ? 'mb-6' : 'mb-8'}>
-          <MarketplaceStatsModule />
-        </div>
+        {/* Stats - Calculated from filteredNFTs */}
+        {filteredNFTs.length > 0 && (
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-2 mb-4' : 'grid-cols-4 mb-6'}`}>
+            <div className="card-unified p-4">
+              <p className="text-gray-400 text-xs mb-1">Total Listed</p>
+              <p className="text-2xl font-bold text-white">{filteredNFTs.length}</p>
+            </div>
+            <div className="card-unified p-4">
+              <p className="text-gray-400 text-xs mb-1">Floor Price</p>
+              <p className="text-2xl font-bold text-purple-400">
+                {Math.min(...filteredNFTs.map(nft => nft.priceInEth)).toFixed(2)} POL
+              </p>
+            </div>
+            <div className="card-unified p-4">
+              <p className="text-gray-400 text-xs mb-1">Avg Price</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {(filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length).toFixed(2)} POL
+              </p>
+            </div>
+            <div className="card-unified p-4">
+              <p className="text-gray-400 text-xs mb-1">Total Value</p>
+              <p className="text-2xl font-bold text-green-400">
+                {filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0).toFixed(2)} POL
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Security Notice */}
         
@@ -107,10 +262,10 @@ function Marketplace() {
               <h3 className={`font-semibold text-white ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`}>Filters</h3>
               <MarketplaceFilters
                 categories={categories}
-                onCategoryChange={filterByCategory}
-                onPriceRangeChange={filterByPriceRange}
-                onSearchChange={searchByName}
-                onSortChange={sortBy}
+                onCategoryChange={handleCategoryChange}
+                onPriceRangeChange={handlePriceRangeChange}
+                onSearchChange={handleSearchChange}
+                onSortChange={handleSortChange}
                 currentFilters={currentFilters}
                 className=""
                 isLoading={loading}

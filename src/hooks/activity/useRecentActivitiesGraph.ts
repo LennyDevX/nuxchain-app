@@ -161,8 +161,15 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
     setError(null);
 
     try {
-      console.log('🔍 [The Graph] Fetching activities for:', address);
-      console.log('📊 Max activities:', maxActivities);
+      console.log(
+        `%c📊 useRecentActivitiesGraph%c\n` +
+        `├─ Hook: GraphQL Query (The Graph)\n` +
+        `├─ Address: ${address?.slice(0, 10)}...\n` +
+        `├─ Max Activities: ${maxActivities}\n` +
+        `└─ Status: Fetching...`,
+        'color: #4169e1; font-weight: bold;',
+        'color: #ffffff;'
+      );
 
       const startTime = performance.now();
 
@@ -191,7 +198,13 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         return;
       }
 
-      console.log(`✅ [The Graph] Fetched ${data.activities.length} activities in ${duration}ms`);
+      console.log(
+        `%c✅ useRecentActivitiesGraph Query%c\n` +
+        `├─ Fetched: ${data.activities.length} raw activities\n` +
+        `└─ Time: ${duration}ms`,
+        'color: #20b2aa; font-weight: bold;',
+        'color: #ffffff;'
+      );
 
       // Transform GraphQL data to Activity format
       const transformedActivities: Activity[] = data.activities.map((activity) => {
@@ -265,9 +278,17 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
 
       setActivities(finalActivities);
 
-      console.log(`✅ [The Graph] Deduplicated: ${data.activities.length} → ${deduplicatedActivities.length} → ${finalActivities.length} activities (removed repeated NFT listings)`);
-
-      console.log('✅ [The Graph] Activities processed and set:', transformedActivities.length);
+      console.log(
+        `%c🔍 useRecentActivitiesGraph Processing%c\n` +
+        `├─ Raw: ${data.activities.length} activities\n` +
+        `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
+        `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
+        `├─ NFT Activities: ${nftActivitiesMap.size}\n` +
+        `├─ Staking Activities: ${nonNftActivities.length}\n` +
+        `└─ Final Result: ${finalActivities.length} activities sorted by date`,
+        'color: #ff8c00; font-weight: bold;',
+        'color: #ffffff;'
+      );
     } catch (err) {
       console.error('❌ [The Graph] Error fetching activities:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch activities from The Graph');

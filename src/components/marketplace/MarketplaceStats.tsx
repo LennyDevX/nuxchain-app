@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import type { MarketplaceStats } from '../../hooks/nfts/useMarketplace';
+import type { MarketplaceStats } from '../../types/marketplace';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 

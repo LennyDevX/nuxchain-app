@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
@@ -7,6 +7,7 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 import Home from '../pages/Home';
 
 // Lazy-loaded pages - code splitting for better performance
+// ⚡ OPTIMIZATION: Preload critical pages (NFTs, Marketplace, Profile)
 const Staking = lazy(() => import('../pages/Staking'));
 const NFTs = lazy(() => import('../pages/NFTs'));
 const Marketplace = lazy(() => import('../pages/Marketplace'));
@@ -20,6 +21,19 @@ const CTAHub = lazy(() => import('../pages/DevHub'));
 const Roadmap = lazy(() => import('../pages/Roadmap'));
 
 function AppRoutes() {
+  // ⚡ Preload critical pages after initial render (low priority)
+  useEffect(() => {
+    // Wait 2 seconds after initial load, then preload most visited pages
+    const preloadTimer = setTimeout(() => {
+      // Preload in order of importance
+      import('../pages/Marketplace'); // Most visited
+      import('../pages/NFTs'); // Second most visited
+      import('../pages/Profile'); // Common after connecting wallet
+    }, 2000);
+
+    return () => clearTimeout(preloadTimer);
+  }, []);
+
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <Routes>

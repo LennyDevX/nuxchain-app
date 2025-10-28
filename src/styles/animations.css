@@ -1,4 +1,12 @@
-/* Enhanced Animations */
+/* ============================================================================
+   CONSOLIDATED ANIMATIONS
+   Todas las animaciones del proyecto en un único archivo
+   ============================================================================ */
+
+/* ========================================
+   GRADIENT ANIMATIONS
+   ======================================== */
+
 @keyframes gradient-shift {
   0%, 100% {
     background-position: 0% 50%;
@@ -20,6 +28,10 @@
   }
 }
 
+/* ========================================
+   GLOW & SHIMMER ANIMATIONS
+   ======================================== */
+
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
@@ -28,6 +40,52 @@
     box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
   }
 }
+
+@keyframes score-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes badge-shimmer {
+  0% {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
+  }
+}
+
+/* ========================================
+   TRANSFORM ANIMATIONS
+   ======================================== */
 
 @keyframes float {
   0%, 100% {
@@ -49,7 +107,41 @@
   }
 }
 
-/* Pulse animation for enhanced background effects */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smooth-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   PULSE & INSIGHT ANIMATIONS
+   ======================================== */
+
 @keyframes pulse {
   0%, 100% {
     opacity: 0.1;
@@ -61,12 +153,138 @@
   }
 }
 
+@keyframes insight-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes score-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes priority-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* ========================================
+   ROTATION & SPIN ANIMATIONS
+   ======================================== */
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Utility Animation Classes */
+/* ========================================
+   PROGRESS & DRAWING ANIMATIONS
+   ======================================== */
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: var(--progress-width);
+  }
+}
+
+@keyframes progress-grow {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ========================================
+   ENTRANCE & AI ANIMATIONS
+   ======================================== */
+
+@keyframes stat-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ai-thinking {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes celebration {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========================================
+   UTILITY ANIMATION CLASSES
+   ======================================== */
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -77,4 +295,112 @@
 
 .animate-fade-in-left {
   animation: fade-in-left 1s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.animate-score-shimmer {
+  animation: score-shimmer 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-insight-pulse {
+  animation: insight-pulse 2s ease-in-out infinite;
+}
+
+.animate-score-pulse {
+  animation: score-pulse 2s ease-in-out infinite;
+}
+
+.animate-ai-thinking {
+  animation: ai-thinking 1.5s ease-in-out infinite;
+}
+
+.animate-stat-entrance {
+  animation: stat-entrance 0.5s ease-out forwards;
+}
+
+.animate-float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-priority-pulse {
+  animation: priority-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-chart-line {
+  stroke-dasharray: 1000;
+  animation: draw-line 2s ease-out forwards;
+}
+
+.animate-smooth-rotate {
+  animation: smooth-rotate 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-celebration {
+  animation: celebration 0.6s ease-in-out;
+}
+
+.animate-progress-grow {
+  animation: progress-grow 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.shimmer-effect {
+  background: linear-gradient(
+    90deg,
+    rgba(139, 92, 246, 0.1) 0%,
+    rgba(139, 92, 246, 0.3) 50%,
+    rgba(139, 92, 246, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   STAGGERED ANIMATIONS (for lists/grids)
+   ======================================== */
+
+.stat-card-enter:nth-child(1) { animation-delay: 0.1s; }
+.stat-card-enter:nth-child(2) { animation-delay: 0.2s; }
+.stat-card-enter:nth-child(3) { animation-delay: 0.3s; }
+.stat-card-enter:nth-child(4) { animation-delay: 0.4s; }
+.stat-card-enter:nth-child(5) { animation-delay: 0.5s; }
+
+.recommendation-card:nth-child(1) { animation-delay: 0ms; }
+.recommendation-card:nth-child(2) { animation-delay: 100ms; }
+.recommendation-card:nth-child(3) { animation-delay: 200ms; }
+.recommendation-card:nth-child(4) { animation-delay: 300ms; }
+.recommendation-card:nth-child(5) { animation-delay: 400ms; }
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .animate-stat-entrance {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  .animate-float {
+    animation: none;
+  }
 }

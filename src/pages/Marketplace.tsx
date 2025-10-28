@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useCallback, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import type { NFTData } from '../hooks/nfts/useReactQueryNFTs';
@@ -9,6 +9,7 @@ import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
+import { nftLogger } from '../utils/nftLogger';
 
 // Lazy load the BuyModal component
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));
@@ -59,17 +60,19 @@ function Marketplace() {
   
   usePOLPrice();
 
-  // Debug: Improved logging for Marketplace
-  if (!loading && allNFTs.length > 0) {
-    console.log(
-      `%c🏪 Marketplace%c\n` +
-      `├─ Hook: useReactQueryNFTs (isForSale: true)\n` +
-      `├─ Status: ${error ? '❌ Error' : '✅ Loaded'}\n` +
-      `├─ Available: ${allNFTs.length} NFTs`,
-      'color: #00d4ff; font-weight: bold;',
-      'color: #ffffff;'
-    );
-  }
+  // ✅ FIXED: Log only when data changes (inside useEffect)
+  useEffect(() => {
+    if (!loading && allNFTs.length > 0) {
+      nftLogger.logPageState({
+        page: 'Marketplace',
+        total: allNFTs.length,
+        loaded: allNFTs.length,
+        hasMore: false,
+        isConnected,
+        error
+      });
+    }
+  }, [loading, allNFTs.length, isConnected, error]);
 
   const [refreshing, setRefreshing] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
@@ -254,27 +257,22 @@ function Marketplace() {
         {/* Security Notice */}
         
 
-        {/* Main Layout: Sidebar + Content */}
-        <div className={`flex flex-col gap-6 ${isMobile ? '' : 'lg:flex-row lg:gap-8'}`}>
-          {/* Sidebar - Filters */}
-          <div className={`${isMobile ? 'w-full' : 'lg:w-80'} flex-shrink-0`}>
-            <div className={`card-unified ${isMobile ? 'p-4' : 'p-6'} ${isMobile ? '' : 'sticky top-8'}`}>
-              <h3 className={`font-semibold text-white ${isMobile ? 'text-base mb-4' : 'text-lg mb-6'}`}>Filters</h3>
-              <MarketplaceFilters
-                categories={categories}
-                onCategoryChange={handleCategoryChange}
-                onPriceRangeChange={handlePriceRangeChange}
-                onSearchChange={handleSearchChange}
-                onSortChange={handleSortChange}
-                currentFilters={currentFilters}
-                className=""
-                isLoading={loading}
-              />
-            </div>
-          </div>
+        {/* Filters Section - Full Width */}
+        <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
+          <MarketplaceFilters
+            categories={categories}
+            onCategoryChange={handleCategoryChange}
+            onPriceRangeChange={handlePriceRangeChange}
+            onSearchChange={handleSearchChange}
+            onSortChange={handleSortChange}
+            currentFilters={currentFilters}
+            className=""
+            isLoading={loading}
+          />
+        </div>
 
-          {/* Main Content - NFT Grid */}
-          <div className="flex-1">
+        {/* Main Content - NFT Grid */}
+        <div>
             <div className={`mb-4 flex justify-between items-center ${isMobile ? 'flex-col gap-3 sm:flex-row' : ''}`}>
               <h2 className={`font-semibold text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
                 {filteredNFTs.length} NFTs
@@ -313,7 +311,6 @@ function Marketplace() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Buy Modal */}
       <Suspense fallback={

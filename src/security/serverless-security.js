@@ -50,6 +50,8 @@ export const validateApiKey = (req, res, next) => {
     '/api/gemini',
     '/api/server/gemini',
     '/api/chat',
+    '/api/chat/stream',
+    '/api/chat/stream-with-tools',
     '/api/embeddings',
     '/api/scraper'
   ];

@@ -1,8 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient } from 'wagmi';
 import { getContract, type Abi } from 'viem';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import MarketplaceABI from '../../abi/Marketplace.json';
 import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
+import { nftLogger } from '../../utils/nftLogger';
 
 const MARKETPLACE_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
 
@@ -71,6 +73,15 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
   const { address } = useAccount();
   const publicClient = usePublicClient();
 
+  // ========================================
+  // 📊 OFFLINE STATE
+  // ========================================
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // ✅ FIXED: Usar state con useMemo para evitar setState loop
+  const [offlineCachedData, setOfflineCachedData] = useState<NFTData[] | null>(null);
+  const cachedNfts = useRef<NFTData[]>([]);
+
   const query = useInfiniteQuery<
     NFTPage, 
     Error, 
@@ -93,15 +104,15 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
       const startTokenId = offset + 1;
       const endTokenId = startTokenId + limit;
 
-      console.log(
-        `%c� useReactQueryNFTs%c\n` +
-        `├─ Filter: userOnly=${userOnly}, isForSale=${isForSale}, category=${category || 'any'}\n` +
-        `├─ Scanning: tokens #${startTokenId}-${endTokenId - 1} (${limit} total)\n` +
-        `├─ Page: ${pageParam ? 'next' : 'first'}\n` +
-        `└─ Address: ${address?.slice(0, 10)}...`,
-        'color: #ff1493; font-weight: bold;',
-        'color: #ffffff;'
-      );
+      nftLogger.logFetchStart({
+        hook: 'useReactQueryNFTs',
+        userOnly,
+        isForSale,
+        category,
+        startToken: startTokenId,
+        endToken: endTokenId,
+        address
+      });
 
       const contract = getContract({
         address: MARKETPLACE_ADDRESS as `0x${string}`,
@@ -197,15 +208,14 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
       const results = await Promise.all(tokenPromises);
       const validNFTs = results.filter((nft): nft is NFTData => nft !== null);
 
-      console.log(
-        `%c✅ useReactQueryNFTs Result%c\n` +
-        `├─ Valid: ${validNFTs.length}/${limit} tokens\n` +
-        `├─ Filter: ${category ? category : 'no category filter'}\n` +
-        `├─ For Sale Only: ${isForSale === true ? '✅' : isForSale === false ? '❌' : '⚪'}\n` +
-        `└─ User Only: ${userOnly ? '✅ (by owner)' : '❌'}`,
-        'color: #32cd32; font-weight: bold;',
-        'color: #ffffff;'
-      );
+      nftLogger.logFetchResult({
+        hook: 'useReactQueryNFTs',
+        valid: validNFTs.length,
+        total: limit,
+        category,
+        isForSale,
+        userOnly
+      });
 
       const nextCursor = validNFTs.length === limit 
         ? Buffer.from((offset + limit).toString()).toString('base64')
@@ -246,9 +256,88 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
   const loadMore = query.fetchNextPage;
   const refresh = query.refetch;
 
+  // ========================================
+  // 🚀 FEATURE 1: PREFETCHING ON SCROLL
+  // ========================================
+  const handleScroll = useCallback((element: HTMLElement) => {
+    if (!query.hasNextPage || query.isFetchingNextPage) return;
+
+    const scrollPercent = 
+      (element.scrollHeight - element.scrollTop) / element.scrollHeight;
+
+    // Prefetch when user scrolls to 20% from bottom
+    if (scrollPercent < 0.2) {
+      query.fetchNextPage().catch(() => {
+        // Silent fail on prefetch
+      });
+    }
+  }, [query]);
+
+  // ========================================
+  // 🟢 FEATURE 2: OFFLINE DETECTION & CACHED DATA
+  // ========================================
+  // ✅ FIXED: Actualizar cache con state pero solo cuando cambia length (evita loop)
+  useEffect(() => {
+    if (nfts.length > 0 && nfts.length !== offlineCachedData?.length) {
+      cachedNfts.current = nfts;
+      setOfflineCachedData(nfts);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nfts.length]); // Solo depende de length para evitar loop infinito
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      // Refetch cuando vuelve la conexión
+      query.refetch().catch(() => {
+        // Silent fail
+      });
+    };
+
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Set initial online status asynchronously
+    Promise.resolve().then(() => {
+      setIsOnline(navigator.onLine);
+    });
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [query]);
+
+  // ========================================
+  // 📱 FEATURE 3: CROSS-TAB SYNC
+  // ========================================
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'marketplace_nfts_invalidate') {
+        // Otra pestaña invalidó el cache
+        query.refetch().catch(() => {
+          // Silent fail
+        });
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [query]);
+
+  // Notificar a otras pestañas cuando se refresca
+  const refreshWithSync = useCallback(async () => {
+    await refresh();
+    // Notificar a otras pestañas
+    localStorage.setItem('marketplace_nfts_invalidate', Date.now().toString());
+  }, [refresh]);
+
   return {
     // Data
-    nfts,
+    nfts: isOnline ? nfts : (offlineCachedData || nfts),
     totalCount,
     loadedCount,
     
@@ -258,9 +347,14 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
     error,
     hasMore,
     
+    // Network states
+    isOnline,
+    offlineCachedData,
+    
     // Actions
     loadMoreNFTs: loadMore,
-    refreshNFTs: refresh,
+    refreshNFTs: refreshWithSync,
+    onScroll: handleScroll,  // ✅ Usar en componente con: onScroll={(e) => onScroll(e.currentTarget)}
     
     // Raw React Query state (for advanced usage)
     query

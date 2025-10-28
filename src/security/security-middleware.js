@@ -95,7 +95,10 @@ export const apiKeyAuth = (req, res, next) => {
     '/server/chat/stream-with-tools',
     '/server/api/chat/stream',
     '/server/api/chat/stream-with-tools',
-    '/server/embeddings'
+    '/server/embeddings',
+    '/chat/stream',
+    '/chat/stream-with-tools',
+    '/gemini/stream'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público

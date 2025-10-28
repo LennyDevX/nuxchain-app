@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
+import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
 // Define API endpoints directly since the import is not available
 const API_ENDPOINTS = {
   gemini: {
@@ -8,7 +9,6 @@ const API_ENDPOINTS = {
     streamWithTools: '/api/chat/stream-with-tools'
   }
 } as const;
-import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotification';
 
 // Function to detect URLs in text - FIXED
 const detectUrls = (text: string): string[] => {

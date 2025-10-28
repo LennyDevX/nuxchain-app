@@ -4,6 +4,7 @@ import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import type { NFTData } from '../hooks/nfts/useReactQueryNFTs';
 import type { MarketplaceNFT } from '../types/marketplace';
 import MarketplaceFilters from '../components/marketplace/MarketplaceFilters';
+import MarketplaceStats from '../components/marketplace/MarketplaceStats';
 import NFTCardMemo from '../components/marketplace/NFTCardMemo';
 import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
@@ -228,30 +229,16 @@ function Marketplace() {
 
         {/* Stats - Calculated from filteredNFTs */}
         {filteredNFTs.length > 0 && (
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-2 mb-4' : 'grid-cols-4 mb-6'}`}>
-            <div className="card-unified p-4">
-              <p className="text-gray-400 text-xs mb-1">Total Listed</p>
-              <p className="text-2xl font-bold text-white">{filteredNFTs.length}</p>
-            </div>
-            <div className="card-unified p-4">
-              <p className="text-gray-400 text-xs mb-1">Floor Price</p>
-              <p className="text-2xl font-bold text-purple-400">
-                {Math.min(...filteredNFTs.map(nft => nft.priceInEth)).toFixed(2)} POL
-              </p>
-            </div>
-            <div className="card-unified p-4">
-              <p className="text-gray-400 text-xs mb-1">Avg Price</p>
-              <p className="text-2xl font-bold text-blue-400">
-                {(filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length).toFixed(2)} POL
-              </p>
-            </div>
-            <div className="card-unified p-4">
-              <p className="text-gray-400 text-xs mb-1">Total Value</p>
-              <p className="text-2xl font-bold text-green-400">
-                {filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0).toFixed(2)} POL
-              </p>
-            </div>
-          </div>
+          <MarketplaceStats
+            stats={{
+              totalListedNFTs: filteredNFTs.length,
+              floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
+              totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
+              averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
+            }}
+            loading={loading}
+            className={`${isMobile ? 'mb-4' : 'mb-6'}`}
+          />
         )}
 
         {/* Security Notice */}

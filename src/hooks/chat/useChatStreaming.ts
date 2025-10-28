@@ -168,7 +168,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
       
       console.log('🔍 [FRONTEND] Complete request body:', JSON.stringify(requestBody, null, 2));
       
-      // Make streaming request
+      // Make streaming request to backend
+      // ✅ No API Key header needed - backend handles Gemini authentication internally
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {

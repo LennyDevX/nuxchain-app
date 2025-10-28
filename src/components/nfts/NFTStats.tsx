@@ -17,7 +17,6 @@ interface NFTStatsProps {
 function StatCardSkeleton() {
   return (
     <div className="card-stats">
-      <div className="animate-pulse">
         <div className="flex items-center justify-between mb-2">
           <div className="w-6 h-6 bg-white/10 rounded"></div>
           <div className="w-12 h-3 bg-white/10 rounded"></div>
@@ -25,7 +24,6 @@ function StatCardSkeleton() {
         <div className="w-20 h-6 bg-white/10 rounded mb-1"></div>
         <div className="w-16 h-3 bg-white/10 rounded"></div>
       </div>
-    </div>
   );
 }
 
@@ -109,7 +107,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
 
       {/* Total NFTs - Third card spanning full width on mobile */}
       <div className={`card-stats ${isMobile ? 'col-span-2' : ''}`}>
-        <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-2'}`}>
+  <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-2'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-base'}`}>Total Collection</h3>
           <div className={`bg-purple-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-8 h-8'}`}>
             <svg className={`text-purple-400 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

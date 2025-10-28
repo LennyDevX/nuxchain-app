@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MobileFriendlySelect from '../ui/MobileFriendlySelect';
+import ModernSelect from '../ui/ModernSelect';
 
 // Hook to detect mobile devices
 const useIsMobile = () => {
@@ -47,271 +47,275 @@ export default function NFTFilters({
   onSortChange,
 }: NFTFiltersProps) {
   const isMobile = useIsMobile();
-  const [filtersExpanded, setFiltersExpanded] = useState(false); // Desktop expanded by default, mobile collapsed
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Sort options for NFTs
   const SORT_OPTIONS = [
-    { value: 'date', label: 'Recently Created' },
-    { value: 'name', label: 'Name A-Z' },
-    { value: 'price', label: 'Price Low-High' },
-    { value: 'price-desc', label: 'Price High-Low' },
+    { value: 'date', label: 'Recently Created', icon: '🆕' },
+    { value: 'name', label: 'Name A-Z', icon: '🔤' },
+    { value: 'price', label: 'Price Low-High', icon: '💰' },
+    { value: 'price-desc', label: 'Price High-Low', icon: '💎' },
   ];
-  
-  // Update filters expanded state when screen size changes
-  // useEffect(() => {
-  //   setFiltersExpanded(!isMobile);
-  // }, [isMobile]);
-  
+
+  // Category options
+  const CATEGORY_OPTIONS = [
+    { value: 'all', label: 'All Categories', icon: '📂' },
+    ...availableCategories.map(cat => ({
+      value: cat,
+      label: cat.charAt(0).toUpperCase() + cat.slice(1),
+      icon: getCategoryIcon(cat)
+    }))
+  ];
+
+  // Status filter options
+  const STATUS_OPTIONS = [
+    { value: 'all', label: 'All NFTs', icon: '🎨' },
+    { value: 'listed', label: 'For Sale', icon: '💸' },
+    { value: 'unlisted', label: 'Not Listed', icon: '🔒' }
+  ];
+
   const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all';
-  
-  const formatCategoryName = (category: string) => {
-    const categoryNames: { [key: string]: string } = {
-      'all': 'All Categories',
-      'art': 'Art',
-      'photography': 'Photography',
-      'music': 'Music',
-      'video': 'Video',
-      'collectibles': 'Collectibles'
+
+  // Helper function to get category icons
+  function getCategoryIcon(category: string): string {
+    const icons: { [key: string]: string } = {
+      'art': '🎨',
+      'photography': '📸',
+      'music': '🎵',
+      'video': '🎬',
+      'collectibles': '🏆',
+      'gaming': '🎮',
+      'metaverse': '🌐'
     };
-    return categoryNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
-  };
-  
-  const formatFilterName = (filterValue: string) => {
-    const filterNames: { [key: string]: string } = {
-      'all': 'All NFTs',
-      'listed': 'For Sale',
-      'unlisted': 'Not Listed'
-    };
-    return filterNames[filterValue] || filterValue;
-  };
+    return icons[category] || '📁';
+  }
 
   // Show skeleton while loading
   if (isLoading) {
     return (
-      <div className="space-y-4 mb-6 md:mb-8">
-        <div className="animate-pulse">
-          {/* Search Bar and Actions Skeleton */}
-          <div className="flex gap-2 mb-4">
-            <div className="flex-1 h-12 bg-white/10 rounded-xl"></div>
-            {isMobile && (
-              <div className="w-20 h-12 bg-white/10 rounded-xl"></div>
-            )}
-            {/* Create NFT Button Skeleton */}
-            <div className="w-24 h-12 bg-purple-500/20 rounded-xl"></div>
-          </div>
-          
-          {/* Filters Container Skeleton */}
-          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-            <div className="space-y-4">
-              {/* Category Skeleton */}
-              <div>
-                <div className="w-16 h-4 bg-white/10 rounded mb-2"></div>
-                <div className="w-full h-10 bg-white/10 rounded-lg"></div>
-              </div>
-              
-              {/* Status Filter Skeleton */}
-              <div>
-                <div className="w-12 h-4 bg-white/10 rounded mb-2"></div>
-                <div className="w-full h-10 bg-white/10 rounded-lg"></div>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-3 mb-6 animate-pulse">
+        {/* Search and Create Skeleton */}
+        <div className="flex gap-2">
+          <div className="flex-1 h-11 bg-white/5 rounded-lg border border-white/10"></div>
+          <div className="w-28 h-11 bg-purple-500/10 rounded-lg border border-purple-500/20"></div>
         </div>
+        
+        {/* Filters Skeleton (Desktop) */}
+        {!isMobile && (
+          <div className="grid grid-cols-3 gap-2">
+            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 mb-6 md:mb-8">
-      {/* Search Bar and Actions - Always Visible */}
+    <div className="space-y-3 mb-6">
+      {/* Top Bar: Search + Create Button */}
       <div className="flex gap-2">
-        <div className="flex-1 relative">
+        {/* Search Input */}
+        <div className="flex-1 relative group">
           <input
             type="text"
             placeholder="Search NFTs..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+            className="
+              w-full h-11 pl-10 pr-4
+              bg-white/5 backdrop-blur-md
+              border border-white/10
+              rounded-lg
+              text-sm text-white placeholder-white/40
+              transition-all duration-300
+              focus:outline-none focus:bg-white/10 focus:border-purple-500/50
+              focus:ring-2 focus:ring-purple-500/20
+              hover:border-white/20
+            "
           />
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40">
-            🔍
-          </span>
-        </div>
-        
-        {/* Filter Toggle Button - Desktop */} 
-        {!isMobile && (
-          <button
-            onClick={() => setFiltersExpanded(!filtersExpanded)}
-            className={`px-4 py-3 rounded-xl border transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-105 ${
-              filtersExpanded || hasActiveFilters
-                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/20'
-                : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
-            }`}
+          <svg 
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-purple-400 transition-colors" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
           >
-            <svg 
-              className={`w-4 h-4 transition-transform duration-300 ${
-                filtersExpanded ? 'rotate-180' : 'rotate-0'
-              }`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        {/* Mobile Filter Toggle */}
+        {isMobile && (
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className={`
+              h-11 px-4 flex items-center gap-2
+              rounded-lg border font-medium text-sm
+              transition-all duration-300
+              ${hasActiveFilters || isFilterOpen
+                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10'
+                : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:border-white/20'
+              }
+            `}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
-            <span className="text-sm font-medium">Filters</span>
             {hasActiveFilters && (
-              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
+              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
             )}
           </button>
         )}
 
-        {/* Filter Toggle Button - Only visible on mobile */}
-        {isMobile && (
-          <button
-            onClick={() => setFiltersExpanded(!filtersExpanded)}
-            className={`px-4 py-3 rounded-xl border transition-all duration-300 ease-in-out flex items-center gap-2 transform hover:scale-105 ${
-              filtersExpanded || hasActiveFilters
-                ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/20'
-                : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:border-white/30'
-            }`}
-          >
-            <svg 
-              className={`w-4 h-4 transition-transform duration-300 ${
-                filtersExpanded ? 'rotate-180' : 'rotate-0'
-              }`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            <span className="text-sm font-medium">Filters</span>
-            {hasActiveFilters && (
-              <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
-            )}
-          </button>
-        )}
-        
         {/* Create NFT Button */}
         <button 
           onClick={onCreateNFT}
-          className="btn-primary rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 px-4 py-3 shadow-lg hover:shadow-xl"
+          className="
+            h-11 px-4 flex items-center gap-2
+            bg-gradient-to-r from-purple-500 to-purple-600
+            hover:from-purple-600 hover:to-purple-700
+            text-white font-semibold text-sm
+            rounded-lg
+            shadow-lg shadow-purple-500/25
+            transition-all duration-300
+            hover:scale-105 hover:shadow-xl hover:shadow-purple-500/30
+          "
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          <span className="hidden sm:inline">Create NFT</span>
-          <span className="sm:hidden">Create</span>
+          <span className="hidden sm:inline">Create</span>
         </button>
       </div>
 
-      {/* Active Filters Preview - Compact (only on mobile when collapsed) */}
-      {hasActiveFilters && !filtersExpanded && isMobile && (
-        <div className="flex flex-wrap gap-2 animate-fadeIn">
-          {selectedCategory !== 'all' && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all duration-200 hover:bg-purple-500/30">
-              {formatCategoryName(selectedCategory)}
-              <button
-                onClick={() => onCategoryChange('all')}
-                className="ml-1 text-purple-300 hover:text-white transition-colors duration-200"
-              >
-                ×
-              </button>
-            </span>
-          )}
-          {filter !== 'all' && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30 transition-all duration-200 hover:bg-blue-500/30">
-              {formatFilterName(filter)}
-              <button
-                onClick={() => onFilterChange('all')}
-                className="ml-1 text-blue-300 hover:text-white transition-colors duration-200"
-              >
-                ×
-              </button>
-            </span>
+      {/* Filter Pills (Desktop) */}
+      {!isMobile && (
+        <div className="grid grid-cols-3 gap-2">
+          <ModernSelect
+            value={selectedCategory}
+            onChange={onCategoryChange}
+            options={CATEGORY_OPTIONS}
+            placeholder="Category"
+          />
+          
+          <ModernSelect
+            value={filter}
+            onChange={onFilterChange}
+            options={STATUS_OPTIONS}
+            placeholder="Status"
+          />
+          
+          {onSortChange && (
+            <ModernSelect
+              value={sortBy}
+              onChange={onSortChange}
+              options={SORT_OPTIONS}
+              placeholder="Sort by"
+            />
           )}
         </div>
       )}
 
-      {/* Expanded Filters */}
-      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-        filtersExpanded 
-          ? 'max-h-screen opacity-100 transform translate-y-0' 
-          : 'max-h-0 opacity-0 transform -translate-y-4'
-      }`}>
-        <div className={`space-y-4 p-4 bg-white/5 rounded-xl border border-white/10 transition-all duration-300 ${
-          filtersExpanded ? 'shadow-lg shadow-black/20' : ''
-        }`}>
-          {/* Categories */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
-              Category
-            </label>
-            <MobileFriendlySelect
-              value={selectedCategory}
-              onChange={onCategoryChange}
-              options={[
-                { value: 'all', label: 'All Categories' },
-                ...availableCategories.map(category => ({
-                  value: category,
-                  label: category.charAt(0).toUpperCase() + category.slice(1)
-                }))
-              ]}
-              label="Category"
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
-            />
-          </div>
-          
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-2">
-              Status
-            </label>
-            <MobileFriendlySelect
-              value={filter}
-              onChange={onFilterChange}
-              options={[
-                { value: 'all', label: 'All NFTs' },
-                { value: 'listed', label: 'For Sale' },
-                { value: 'unlisted', label: 'Not Listed' }
-              ]}
-              label="Status"
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
-            />
-          </div>
-
-          {/* Sort Options */}
-          {onSortChange && (
-            <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">
-                Sort by
-              </label>
-              <MobileFriendlySelect
-                value={sortBy}
-                onChange={onSortChange}
-                options={SORT_OPTIONS.map(option => ({ value: option.value, label: option.label }))}
-                label="Sort by"
-                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm touch-manipulation"
-              />
-            </div>
+      {/* Active Filters Tags (Mobile - Collapsed) */}
+      {isMobile && hasActiveFilters && !isFilterOpen && (
+        <div className="flex flex-wrap gap-2">
+          {selectedCategory !== 'all' && (
+            <button
+              onClick={() => onCategoryChange('all')}
+              className="
+                inline-flex items-center gap-1.5 px-3 py-1.5
+                bg-purple-500/15 border border-purple-500/30
+                rounded-full text-xs font-medium text-purple-300
+                hover:bg-purple-500/25 transition-colors
+              "
+            >
+              <span>{getCategoryIcon(selectedCategory)}</span>
+              <span>{selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <div className="pt-2 border-t border-white/10">
-              <button
-                onClick={() => {
-                  onCategoryChange('all');
-                  onFilterChange('all');
-                }}
-                className="w-full px-4 py-2 text-sm text-white/60 hover:text-white transition-all duration-300 transform hover:scale-105 border border-white/20 rounded-lg hover:bg-white/5"
-              >
-                Clear all filters
-              </button>
-            </div>
+          {filter !== 'all' && (
+            <button
+              onClick={() => onFilterChange('all')}
+              className="
+                inline-flex items-center gap-1.5 px-3 py-1.5
+                bg-blue-500/15 border border-blue-500/30
+                rounded-full text-xs font-medium text-blue-300
+                hover:bg-blue-500/25 transition-colors
+              "
+            >
+              <span>{STATUS_OPTIONS.find(s => s.value === filter)?.icon}</span>
+              <span>{STATUS_OPTIONS.find(s => s.value === filter)?.label}</span>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           )}
         </div>
-      </div>
+      )}
+
+      {/* Mobile Expanded Filters */}
+      {isMobile && (
+        <div
+          className={`
+            grid gap-2 overflow-hidden
+            transition-all duration-300 ease-out
+            ${isFilterOpen
+              ? 'grid-rows-[1fr] opacity-100'
+              : 'grid-rows-[0fr] opacity-0'
+            }
+          `}
+        >
+          <div className="min-h-0">
+            <div className="space-y-2 pb-2">
+              <ModernSelect
+                value={selectedCategory}
+                onChange={onCategoryChange}
+                options={CATEGORY_OPTIONS}
+                placeholder="Category"
+              />
+              
+              <ModernSelect
+                value={filter}
+                onChange={onFilterChange}
+                options={STATUS_OPTIONS}
+                placeholder="Status"
+              />
+              
+              {onSortChange && (
+                <ModernSelect
+                  value={sortBy}
+                  onChange={onSortChange}
+                  options={SORT_OPTIONS}
+                  placeholder="Sort by"
+                />
+              )}
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <button
+                  onClick={() => {
+                    onCategoryChange('all');
+                    onFilterChange('all');
+                  }}
+                  className="
+                    w-full h-9 px-4
+                    text-xs font-medium text-white/60
+                    border border-white/10 rounded-lg
+                    hover:bg-white/5 hover:text-white/80
+                    transition-all duration-200
+                  "
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

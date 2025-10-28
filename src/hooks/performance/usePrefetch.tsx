@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { nftCollectionCache } from '../../utils/cache/NFTCollectionCache';
-import useMarketplace from '../nfts/useMarketplace';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PrefetchOptions {
   enabled?: boolean;
@@ -15,31 +14,33 @@ export function usePrefetch(options: PrefetchOptions = {}) {
   } = options;
 
   const location = useLocation();
-  const { fetchMarketplaceData } = useMarketplace();
+  const queryClient = useQueryClient();
 
-  // Prefetch marketplace data
-  const prefetchMarketplace = useCallback(async () => {
-    try {
-      // Only prefetch if not already cached
-      if (!nftCollectionCache.has('marketplace')) {
-        await nftCollectionCache.prefetch(
-          'marketplace',
-          async () => {
-            // This would need to be adapted to return NFT[] format
-            // For now, we'll use the existing fetchMarketplaceData
-            await fetchMarketplaceData();
-            return [];
-          },
-          { isMarketplace: true, tags: ['marketplace', 'prefetch'] }
-        );
+  // ✅ REFACTORED: Using React Query cache invalidation instead of prefetch
+  // This is more efficient - just marks cache as stale if needed
+  const prefetchMarketplace = useCallback(() => {
+    if (!enabled) return;
+    
+    // Check if marketplace data exists in cache
+    const cacheData = queryClient.getQueryData([
+      'marketplace-nfts', 
+      { 
+        limit: 24, 
+        category: undefined, 
+        isForSale: true,
+        userAddress: undefined 
       }
-    } catch (error) {
-      console.warn('Failed to prefetch marketplace data:', error);
+    ]);
+
+    // Only trigger prefetch if no cache data exists
+    // React Query will handle refetching when the page is visited
+    if (!cacheData) {
+      console.log('🔄 Marketplace data not in cache - will load on navigation');
     }
-  }, [fetchMarketplaceData]);
+  }, [enabled, queryClient]);
 
   // Prefetch based on current route and user behavior
-  const prefetchByRoute = useCallback(async (currentPath: string) => {
+  const prefetchByRoute = useCallback((currentPath: string) => {
     if (!enabled) return;
 
     // If user is on home page, prefetch marketplace

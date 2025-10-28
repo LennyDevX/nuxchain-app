@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 
 interface NFTAttribute {
   trait_type: string;
@@ -14,6 +14,7 @@ import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
+import { nftLogger } from '../utils/nftLogger';
 
 
 
@@ -39,20 +40,19 @@ function NFTs() {
     enabled: isConnected
   });
   
-  // Debug: Log NFTs data (only on significant changes to reduce noise)
-  if (!loading && userNFTs.length > 0) {
-    console.log(
-      `%c🎨 NFTs Page%c\n` +
-      `├─ Hook: useReactQueryNFTs (userOnly: true)\n` +
-      `├─ Status: ${error ? '❌ Error' : '✅ Loaded'}\n` +
-      `├─ Total: ${totalCount} NFTs\n` +
-      `├─ Loaded: ${loadedCount} NFTs\n` +
-      `├─ Has More: ${hasMore ? '📖' : '🏁'}\n` +
-      `└─ Connected: ${isConnected ? '✅' : '❌'}`,
-      'color: #ff69b4; font-weight: bold;',
-      'color: #ffffff;'
-    );
-  }
+  // ✅ FIXED: Log only when data changes (inside useEffect)
+  useEffect(() => {
+    if (!loading && userNFTs.length > 0) {
+      nftLogger.logPageState({
+        page: 'NFTs',
+        total: totalCount,
+        loaded: loadedCount,
+        hasMore,
+        isConnected,
+        error
+      });
+    }
+  }, [loading, userNFTs.length, totalCount, loadedCount, hasMore, isConnected, error]);
   
   // Remove unused listError
   useListNFT();
@@ -101,7 +101,7 @@ function NFTs() {
     });
 
     // Sort NFTs based on selected sort option
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.name.localeCompare(b.name);
@@ -114,6 +114,21 @@ function NFTs() {
           return Number(b.tokenId) - Number(a.tokenId);
       }
     });
+
+    // ✅ Log filter results (only when filters change)
+    nftLogger.logFilter({
+      page: 'NFTs',
+      originalCount: userNFTs.length,
+      filteredCount: sorted.length,
+      filters: {
+        search: searchTerm,
+        category: selectedCategory,
+        status: filter,
+        sortBy
+      }
+    });
+
+    return sorted;
   }, [userNFTs, searchTerm, selectedCategory, filter, sortBy]);
 
   // Get unique categories from NFTs for dynamic filtering

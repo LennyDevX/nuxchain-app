@@ -1,8 +1,23 @@
+interface CacheEntry {
+  image: HTMLImageElement;
+  timestamp: number;
+  size: number;
+}
+
 class ImageCache {
-  private cache: Map<string, HTMLImageElement> = new Map();
+  private cache: Map<string, CacheEntry> = new Map();
   private loadingPromises: Map<string, Promise<HTMLImageElement>> = new Map();
   private maxCacheSize: number = 100; // Maximum number of cached images
+  private maxMemoryBytes: number = 52428800; // 50MB in bytes
+  private currentMemoryUsage: number = 0;
   private accessOrder: string[] = []; // Track access order for LRU eviction
+  private ttlMs: number = 60 * 60 * 1000; // 1 hour TTL
+  private cleanupInterval: NodeJS.Timeout | null = null;
+
+  constructor() {
+    // Cleanup expired entries every 10 minutes
+    this.cleanupInterval = setInterval(() => this.cleanupExpired(), 10 * 60 * 1000);
+  }
 
   /**
    * Preload an image and store it in cache
@@ -10,8 +25,9 @@ class ImageCache {
   async preloadImage(url: string): Promise<HTMLImageElement> {
     // Return cached image if available
     if (this.cache.has(url)) {
+      const entry = this.cache.get(url)!;
       this.updateAccessOrder(url);
-      return this.cache.get(url)!;
+      return entry.image;
     }
 
     // Return existing loading promise if image is already being loaded
@@ -48,8 +64,16 @@ class ImageCache {
    */
   getCachedImage(url: string): HTMLImageElement | null {
     if (this.cache.has(url)) {
+      const entry = this.cache.get(url)!;
+      // Check if entry has expired
+      if (Date.now() - entry.timestamp > this.ttlMs) {
+        this.cache.delete(url);
+        this.removeFromAccessOrder(url);
+        this.currentMemoryUsage -= entry.size;
+        return null;
+      }
       this.updateAccessOrder(url);
-      return this.cache.get(url)!;
+      return entry.image;
     }
     return null;
   }
@@ -69,23 +93,47 @@ class ImageCache {
   }
 
   /**
-   * Add image to cache with LRU eviction
+   * Add image to cache with LRU eviction and memory limits
    */
   private addToCache(url: string, img: HTMLImageElement): void {
-    // Remove from cache if already exists (to update position)
+    // Estimate image size (roughly: width * height * 4 bytes for RGBA)
+    const estimatedSize = Math.max(
+      img.width * img.height * 4,
+      100 * 1024 // At least 100KB
+    );
+
+    // Remove from cache if already exists
     if (this.cache.has(url)) {
+      const oldEntry = this.cache.get(url)!;
+      this.currentMemoryUsage -= oldEntry.size;
       this.cache.delete(url);
       this.removeFromAccessOrder(url);
     }
 
-    // Evict least recently used items if cache is full
-    while (this.cache.size >= this.maxCacheSize && this.accessOrder.length > 0) {
+    // Evict entries if memory limit exceeded
+    while (this.currentMemoryUsage + estimatedSize > this.maxMemoryBytes && this.cache.size > 0) {
       const lruUrl = this.accessOrder.shift()!;
+      const lruEntry = this.cache.get(lruUrl)!;
+      this.currentMemoryUsage -= lruEntry.size;
+      this.cache.delete(lruUrl);
+    }
+
+    // Evict by count if still too many entries
+    while (this.cache.size >= this.maxCacheSize && this.cache.size > 0) {
+      const lruUrl = this.accessOrder.shift()!;
+      const lruEntry = this.cache.get(lruUrl)!;
+      this.currentMemoryUsage -= lruEntry.size;
       this.cache.delete(lruUrl);
     }
 
     // Add new image to cache
-    this.cache.set(url, img);
+    const entry: CacheEntry = {
+      image: img,
+      timestamp: Date.now(),
+      size: estimatedSize
+    };
+    this.cache.set(url, entry);
+    this.currentMemoryUsage += estimatedSize;
     this.accessOrder.push(url);
   }
 
@@ -108,22 +156,71 @@ class ImageCache {
   }
 
   /**
-   * Clear all cached images
+   * Clear all cached images and cleanup interval
    */
   clear(): void {
     this.cache.clear();
     this.loadingPromises.clear();
     this.accessOrder = [];
+    this.currentMemoryUsage = 0;
+  }
+
+  /**
+   * Cleanup expired entries
+   */
+  private cleanupExpired(): void {
+    const now = Date.now();
+    const expiredUrls: string[] = [];
+
+    for (const [url, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > this.ttlMs) {
+        expiredUrls.push(url);
+      }
+    }
+
+    for (const url of expiredUrls) {
+      const entry = this.cache.get(url)!;
+      this.currentMemoryUsage -= entry.size;
+      this.cache.delete(url);
+      this.removeFromAccessOrder(url);
+    }
+
+    if (expiredUrls.length > 0) {
+      console.log(`[ImageCache] Cleaned up ${expiredUrls.length} expired entries`);
+    }
+  }
+
+  /**
+   * Destroy cache and cleanup interval
+   */
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.clear();
   }
 
   /**
    * Get cache statistics
    */
-  getStats(): { size: number; maxSize: number; loadingCount: number } {
+  getStats(): { 
+    size: number;
+    maxSize: number;
+    loadingCount: number;
+    memoryUsage: number;
+    maxMemory: number;
+    memoryPercent: number;
+    ttlMs: number;
+  } {
     return {
       size: this.cache.size,
       maxSize: this.maxCacheSize,
-      loadingCount: this.loadingPromises.size
+      loadingCount: this.loadingPromises.size,
+      memoryUsage: this.currentMemoryUsage,
+      maxMemory: this.maxMemoryBytes,
+      memoryPercent: (this.currentMemoryUsage / this.maxMemoryBytes) * 100,
+      ttlMs: this.ttlMs
     };
   }
 

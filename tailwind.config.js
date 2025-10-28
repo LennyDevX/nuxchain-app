@@ -173,7 +173,7 @@ export default {
         'progress': 'progress 1.5s ease-out forwards',
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, #0a0a0a 0%, #5b21b6 50%, #dc2626 100%)',
+        'gradient-primary': 'linear-gradient(135deg, #0a0a0a 0%, #440b9fff 50%, #820606ff 100%)',
         'gradient-secondary': 'linear-gradient(45deg, #8b5cf6 0%, #ef4444 50%, #ffffff 100%)',
         'gradient-accent': 'linear-gradient(90deg, #1a1a1a 0%, #5b21b6 25%, #8b5cf6 50%, #ef4444 75%, #dc2626 100%)',
         'gradient-radial': 'radial-gradient(circle, #5b21b6 0%, #0a0a0a 70%)',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarIcon, ZapIcon, BarChart3Icon, GlobeIcon, CpuIcon, AIIcon, LineChartIcon } from '../ui/CustomIcons';
+import { ZapIcon, BarChart3Icon, GlobeIcon, CpuIcon, AIIcon, LineChartIcon } from '../ui/CustomIcons';
 
 export type Milestone = {
   title: string;
@@ -79,14 +79,6 @@ export const milestones: Milestone[] = [
     category: 'Features'
   },
   {
-    title: 'Governance DAO',
-    description: 'Decentralized autonomous organization enabling community-driven governance. Vote on proposals, submit ideas, and shape the future of Nuxchain.',
-    date: 'Q4 2025',
-    icon: <CalendarIcon className="w-6 h-6" />,
-    status: 'in-progress',
-    category: 'Governance'
-  },
-  {
     title: 'Nuxbee AI Platform 2.0',
     description: 'Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools.',
     date: 'Q1 2026',
@@ -118,6 +110,14 @@ export const milestones: Milestone[] = [
     status: 'in-progress',
     category: 'Technology'
   },
+  {
+    title: 'DAO Governance',
+    description: 'Decentralized autonomous organization enabling community-driven governance. Vote on proposals, submit ideas, and shape the future of Nuxchain with full on-chain voting mechanisms.',
+    date: 'Q4 2026',
+    icon: <GlobeIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Governance'
+  },
   
   // Upcoming Milestones
   {
@@ -138,19 +138,27 @@ export const milestones: Milestone[] = [
   },
   {
     title: 'Staking Pools v2.0',
-    description: 'Advanced staking pools with dynamic rewards and flexible lock periods.',
+    description: 'Advanced gamified staking pools with NFT integration, dynamic rewards, flexible lock periods, and play-to-earn mechanics. Stake your NFTs to earn rewards while participating in the DeFi gaming ecosystem.',
     date: 'Q3 2026',
     icon: <BarChart3Icon className="w-6 h-6" />,
     status: 'upcoming',
     category: 'DeFi'
   },
   {
-    title: 'DAO Governance',
-    description: 'Launch of decentralized autonomous organization. Transition to a fully decentralized platform with community governance.',
-    date: 'Q4 2026',
-    icon: <GlobeIcon className="w-6 h-6" />,
+    title: 'Marketplace 2.0',
+    description: 'Next-generation marketplace with integrated gamification and staking mechanics. Trade NFTs while earning rewards through our new DeFi gaming system. Combine trading, staking, and gaming for enhanced earning potential.',
+    date: 'Q3 2026',
+    icon: <ZapIcon className="w-6 h-6" />,
     status: 'upcoming',
-    category: 'Governance'
+    category: 'DeFi'
+  },
+  {
+    title: 'Nuxchain Kit',
+    description: 'Comprehensive SDK and developer toolkit for building blockchain applications with Nuxchain technology. Empower developers to create custom ecosystems and dApps with our modular, open-source components and utilities.',
+    date: 'Q4 2026',
+    icon: <CpuIcon className="w-6 h-6" />,
+    status: 'upcoming',
+    category: 'Technology'
   },
   {
     title: 'Global Expansion & Web Launch',

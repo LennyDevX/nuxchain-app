@@ -34,20 +34,20 @@ function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
   }
 
   return (
-    <div className="card-stats">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-white/60 text-xs font-medium truncate">{title}</span>
-        <span className="text-lg">{icon}</span>
+    <div className="card-stats group hover:bg-white/8 transition-all duration-300">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{title}</span>
+        <span className="text-xl group-hover:scale-110 transition-transform duration-300">{icon}</span>
       </div>
       
-      <div className="mb-1">
-        <h3 className="text-xl font-bold text-white truncate">
+      <div className="mb-2">
+        <h3 className="text-2xl font-bold text-white truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
           {typeof value === 'number' ? value.toLocaleString() : value}
         </h3>
       </div>
       
       {subtitle && (
-        <div className="text-white/40 text-xs truncate">
+        <div className="text-white/50 text-sm truncate font-medium">
           {subtitle}
         </div>
       )}
@@ -70,13 +70,17 @@ export default function MarketplaceStats({ stats, loading = false, className = '
   }, []);
 
   const formattedStats = useMemo(() => {
+    const floorPriceUSD = polPrice ? convertPOLToUSD(stats.floorPrice) : '$0.00';
+    const totalMarketValueUSD = polPrice ? convertPOLToUSD(stats.totalMarketValue) : '$0.00';
+    const averagePriceUSD = polPrice ? convertPOLToUSD(stats.averagePrice) : '$0.00';
+    
     return {
       floorPrice: formatPolValue(stats.floorPrice),
       totalMarketValue: formatPolValue(stats.totalMarketValue),
       averagePrice: formatPolValue(stats.averagePrice),
-      floorPriceUSD: polPrice ? convertPOLToUSD(stats.floorPrice) : 'Loading USD...',
-      totalMarketValueUSD: polPrice ? convertPOLToUSD(stats.totalMarketValue) : 'Loading USD...',
-      averagePriceUSD: polPrice ? convertPOLToUSD(stats.averagePrice) : 'Loading USD...'
+      floorPriceUSD,
+      totalMarketValueUSD,
+      averagePriceUSD
     };
   }, [stats.floorPrice, stats.totalMarketValue, stats.averagePrice, polPrice, convertPOLToUSD, formatPolValue]);
 

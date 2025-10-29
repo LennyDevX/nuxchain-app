@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, memo, useMemo } from 'react';
+import { useState, useRef, useEffect, memo, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Benefits from './Benefits';
 import FAQ from './FAQ';
@@ -12,7 +12,8 @@ const MemoizedTechnicalDetails = memo(TechnicalDetails);
 function InfoCarousel() {
   const [activeTab, setActiveTab] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const dragTimeRef = useRef(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartTimeRef = useRef<number>(0);
 
   // ✅ React 19 Best Practice: useMemo for tabs array to prevent recreation
   const tabs = useMemo(() => [
@@ -36,29 +37,32 @@ function InfoCarousel() {
     }
   ], []);
 
-  // Touch/swipe handlers for mobile only
-  const handleTouchStart = () => {
-    dragTimeRef.current = Date.now();
-  };
+  // Proper swipe detection with threshold
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartTimeRef.current = Date.now();
+  }, []);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touch = e.changedTouches[0];
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchDuration = Date.now() - touchStartTimeRef.current;
     
-    // Simple swipe detection based on touch position
-    if (e.touches.length === 0 && e.changedTouches.length > 0) {
-      const element = carouselRef.current;
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const midpoint = rect.left + rect.width / 2;
-        
-        if (touch.clientX < midpoint && activeTab < tabs.length - 1) {
-          setActiveTab(activeTab + 1);
-        } else if (touch.clientX > midpoint && activeTab > 0) {
-          setActiveTab(activeTab - 1);
-        }
+    // Minimum swipe distance (30px) and maximum duration (500ms) to detect a valid swipe
+    const swipeDistance = touchStartXRef.current - touchEndX;
+    const minSwipeDistance = 30;
+    const maxSwipeDuration = 500;
+    
+    // Detectar swipe válido solo si es un gesto rápido y con distancia mínima
+    if (Math.abs(swipeDistance) > minSwipeDistance && touchDuration < maxSwipeDuration) {
+      if (swipeDistance > 0 && activeTab < tabs.length - 1) {
+        // Swipe izquierda → siguiente slide
+        setActiveTab(activeTab + 1);
+      } else if (swipeDistance < 0 && activeTab > 0) {
+        // Swipe derecha → slide anterior
+        setActiveTab(activeTab - 1);
       }
     }
-  };
+  }, [activeTab, tabs.length]);
 
   // Add keyboard navigation support
   useEffect(() => {
@@ -76,13 +80,17 @@ function InfoCarousel() {
 
   return (
     <div className="w-full">
-      {/* Tab Content with Touch/Swipe Support - Keyboard nav on desktop */}
+      {/* Tab Content with Native Touch/Swipe Support */}
       <div 
         ref={carouselRef}
-        className="relative min-h-[320px] sm:min-h-[360px] md:min-h-[400px] overflow-hidden pb-6 sm:pb-7 md:pb-8 transition-all duration-300"
+        className="relative min-h-[320px] sm:min-h-[360px] md:min-h-[400px] overflow-hidden pb-12 sm:pb-14 md:pb-8 transition-all duration-300 touch-pan-y select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        style={{ userSelect: 'none' }}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none'
+        }}
       >
         {/* Carousel slides with smooth transition */}
         <motion.div 
@@ -97,9 +105,9 @@ function InfoCarousel() {
           ))}
         </motion.div>
 
-        {/* Navigation Dots with improved styling */}
+        {/* Navigation Dots with improved styling and spacing */}
         <motion.div 
-          className="absolute bottom-2 sm:bottom-2.5 md:bottom-3 left-1/2 -translate-x-1/2 flex justify-center items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/10"
+          className="absolute bottom-3 sm:bottom-4 md:bottom-3 left-1/2 -translate-x-1/2 flex justify-center items-center gap-3 px-4 py-2 rounded-full bg-black/30 backdrop-blur-md border border-white/10"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -121,8 +129,6 @@ function InfoCarousel() {
           ))}
         </motion.div>
       </div>
-
-      
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import TimeCounter from '../components/airdrops/TimeCounter';
-import AirdropForm from '../components/airdrops/AirdropForm';
+import AirdropForm from '../components/forms/AirdropForm';
 import Statistics from '../components/airdrops/AirdropStatics';
 import HeroSection from '../components/airdrops/HeroSection';
 

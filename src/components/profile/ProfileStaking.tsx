@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useUserStaking } from '../../hooks/staking/useUserStaking';
 import LoadingSpinner from '../../ui/LoadingSpinner';
@@ -9,7 +9,7 @@ import { formatEther } from 'viem';
 
 const ProfileStaking: React.FC = () => {
   const { isConnected, address } = useAccount();
-  const { totalStaked, pendingRewards, apy, activePositions, isLoading } = useUserStaking();
+  const { totalStaked, pendingRewards, activePositions, isLoading } = useUserStaking();
   const isMobile = useIsMobile();
 
   const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2;
@@ -22,6 +22,49 @@ const ProfileStaking: React.FC = () => {
     args: [address],
     query: { enabled: !!address }
   });
+
+  // Calculate estimated APY based on pending rewards and total staked
+  const estimatedAPY = useMemo(() => {
+    try {
+      const staked = parseFloat(totalStaked) || 0;
+      const rewards = parseFloat(pendingRewards) || 0;
+      
+      // If there are active positions but no rewards yet, show default APY based on lockup
+      if (staked === 0) return '0.00';
+      
+      // Check if there are deposits to determine the APY
+      const deposits = (userDeposits as typeof userDeposits) || [];
+      if (deposits && Array.isArray(deposits) && deposits.length > 0) {
+        const lastDeposit = deposits[0];
+        if (lastDeposit && 'lockupDuration' in lastDeposit) {
+          const lockupDays = Number(lastDeposit.lockupDuration) / (24 * 60 * 60);
+          
+          // Return estimated APY based on lockup period
+          const apyMap: { [key: number]: string } = {
+            0: '87.60',     // Flexible
+            30: '105.12',   // 30 days
+            90: '140.16',   // 90 days
+            180: '175.20',  // 180 days
+            365: '262.80'   // 365 days
+          };
+          
+          return apyMap[lockupDays] || '87.60';
+        }
+      }
+      
+      // If we have actual rewards, calculate from them
+      if (rewards > 0) {
+        const dailyRate = (rewards / staked) * 100;
+        const annualAPY = dailyRate * 365;
+        return Math.min(annualAPY, 262.80).toFixed(2);
+      }
+      
+      // Default to flexible rate if nothing else applies
+      return '87.60';
+    } catch {
+      return '0.00';
+    }
+  }, [totalStaked, pendingRewards, userDeposits]);
 
   // Calculate available to withdraw considering lockup periods
   const calculateAvailableToWithdraw = () => {
@@ -100,7 +143,7 @@ const ProfileStaking: React.FC = () => {
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
                 <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Rewards</h3>
                 <p className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
-                  {parseFloat(pendingRewards).toFixed(isMobile ? 2 : 4)} POL
+                  {parseFloat(pendingRewards).toFixed(6)} POL
                 </p>
                 <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Claimable</p>
               </div>
@@ -108,11 +151,11 @@ const ProfileStaking: React.FC = () => {
               {/* APY */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
                 <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>APY</h3>
-                <p className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>{apy}%</p>
+                <p className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>{estimatedAPY}%</p>
                 <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Annual Yield</p>
               </div>
 
-              {/* Available to Withdraw - NEW */}
+              {/* Available to Withdraw */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''} ${
                 withdrawalInfo.isLocked ? 'border-orange-500/30' : 'border-green-500/30'
               }`}>
@@ -135,33 +178,28 @@ const ProfileStaking: React.FC = () => {
             </section>
           )}
 
-          {/* Active Positions */}
-          <section className="card-content">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Active Positions</h2>
-              <a href="/staking" className="btn-secondary text-sm">
-                Start Staking
-              </a>
-            </div>
-            
-            {activePositions > 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 text-center">
-                  You have {activePositions} active staking position{activePositions !== 1 ? 's' : ''}. 
-                  Visit the <a href="/staking" className="text-purple-400 hover:underline">Staking page</a> to manage them.
+          {/* Active Positions - Minimalist CTA */}
+          <section className="card-content border border-white/5 hover:border-purple-500/20 transition-all duration-300">
+            <div className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-3">Manage Your Staking</h2>
+                <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-400`}>
+                  {activePositions > 0 
+                    ? `View and manage your ${activePositions} active position${activePositions !== 1 ? 's' : ''}`
+                    : 'Ready to start earning? Visit the staking dashboard'}
                 </p>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto rounded-full bg-blue-600/20 flex items-center justify-center mb-4">
-                  <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">No Active Positions</h3>
-                <p className="text-gray-400 text-sm">Start staking to earn rewards</p>
-              </div>
-            )}
+
+              <a
+                href="/staking"
+                className="w-full md:w-96 py-4 px-8 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-lg shadow-lg hover:shadow-purple-500/50 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Go to Staking Dashboard
+              </a>
+            </div>
           </section>
         </>
       ) : (

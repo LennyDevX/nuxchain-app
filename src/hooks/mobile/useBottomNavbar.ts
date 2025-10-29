@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useIsMobile } from './useIsMobile';
 import { useScrollDirection } from './useScrollDirection';
 
@@ -14,49 +14,42 @@ export interface UseBottomNavbarReturn {
 
 /**
  * Hook para manejar la visibilidad del navbar inferior en móviles
- * Se oculta al hacer scroll hacia abajo y aparece al hacer scroll hacia arriba o detenerse
- * Incluye funcionalidad de doble toque para mostrar/ocultar manualmente
+ * Se oculta al hacer scroll hacia abajo y permanece oculto hasta scroll hacia arriba
  * @param hideThreshold - Umbral de scroll para ocultar (default: 100)
- * @returns objeto con estado de visibilidad y información del scroll
+ * @returns objeto con estado de visibilidad e información del scroll
  */
 export const useBottomNavbar = (hideThreshold: number = 100): UseBottomNavbarReturn => {
-  const [isVisible, setIsVisible] = useState<boolean>(true);
   const [lastTap, setLastTap] = useState<number>(0);
   const [manuallyHidden, setManuallyHidden] = useState<boolean>(false);
+  const [hiddenByScroll, setHiddenByScroll] = useState<boolean>(false);
   const isMobile = useIsMobile();
-  const { scrollDirection, scrollY, isScrolling } = useScrollDirection();
+  const { scrollDirection, scrollY } = useScrollDirection();
   const isAtTop = scrollY < 50;
-  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Calcular visibilidad final
+  const isVisible = !manuallyHidden && !hiddenByScroll;
+
+  // Detectar si estamos al final de la página
+  const isAtBottom = useCallback(() => {
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    const currentScroll = window.scrollY;
+    return scrollHeight - (currentScroll + clientHeight) < 50;
+  }, []);
 
   // Funciones para controlar la visibilidad manualmente
   const showNavbar = useCallback(() => {
-    setIsVisible(true);
     setManuallyHidden(false);
-    
-    // Limpiar timeout anterior
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-    }
+    setHiddenByScroll(false);
   }, []);
 
   const hideNavbar = useCallback(() => {
-    setIsVisible(false);
     setManuallyHidden(true);
-    
-    // Limpiar timeout
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = null;
-    }
   }, []);
 
   const toggleNavbar = useCallback(() => {
-    if (isVisible) {
-      hideNavbar();
-    } else {
-      showNavbar();
-    }
-  }, [isVisible, showNavbar, hideNavbar]);
+    setManuallyHidden(prev => !prev);
+  }, []);
 
   // Manejo de doble tap
   const handleTouchStart = useCallback(() => {
@@ -65,11 +58,9 @@ export const useBottomNavbar = (hideThreshold: number = 100): UseBottomNavbarRet
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     
-    // Detectar doble tap (menos de 300ms entre taps)
     if (tapLength < 300 && tapLength > 0) {
-      // Doble tap detectado - toggle navbar
       toggleNavbar();
-      setLastTap(0); // Reset para evitar triple tap
+      setLastTap(0);
       return;
     }
     
@@ -87,45 +78,38 @@ export const useBottomNavbar = (hideThreshold: number = 100): UseBottomNavbarRet
     };
   }, [isMobile, handleTouchStart]);
 
+  // Manejar scroll para ocultar/mostrar navbar
   useEffect(() => {
-    if (!isMobile) {
-      setIsVisible(false);
-      return;
-    }
+    if (!isMobile || manuallyHidden) return;
 
-    // Si está oculto manualmente, no cambiar por scroll
-    if (manuallyHidden) {
-      return;
-    }
+    // Determinar el nuevo estado de hidden
+    let newHiddenState = hiddenByScroll;
 
-    // Siempre visible en la parte superior
+    // Si está en la parte superior, mostrar
     if (isAtTop) {
-      setIsVisible(true);
-      return;
+      newHiddenState = false;
+    }
+    // Si está al final, mantener oculto
+    else if (isAtBottom()) {
+      newHiddenState = true;
+    }
+    // Scroll hacia abajo después del umbral: ocultar
+    else if (scrollDirection === 'down' && scrollY > hideThreshold) {
+      newHiddenState = true;
+    }
+    // Scroll hacia arriba: mostrar
+    else if (scrollDirection === 'up') {
+      newHiddenState = false;
     }
 
-    // Ocultar al hacer scroll hacia abajo después del umbral
-    if (scrollDirection === 'down' && scrollY > hideThreshold) {
-      setIsVisible(false);
+    // Solo actualizar si cambió (usando microtask para evitar cascading renders)
+    if (newHiddenState !== hiddenByScroll) {
+      queueMicrotask(() => setHiddenByScroll(newHiddenState));
     }
-    
-    // Mostrar al hacer scroll hacia arriba o cuando se detiene el scroll
-    else if (scrollDirection === 'up' || (!isScrolling && scrollDirection === 'idle')) {
-      setIsVisible(true);
-    }
-  }, [isMobile, scrollDirection, scrollY, isScrolling, isAtTop, hideThreshold, manuallyHidden]);
-
-  // Cleanup timeout al desmontar
-  useEffect(() => {
-    return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-      }
-    };
-  }, []);
+  }, [isMobile, scrollDirection, scrollY, isAtTop, hideThreshold, manuallyHidden, hiddenByScroll, isAtBottom]);
 
   return {
-    isVisible,
+    isVisible: isMobile ? isVisible : false,
     isMobile,
     scrollY,
     isAtTop,

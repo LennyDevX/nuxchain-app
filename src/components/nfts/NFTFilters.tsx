@@ -123,6 +123,7 @@ export default function NFTFilters({
             placeholder="Search NFTs..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
+            aria-label="Search NFTs by name or description"
             className="
               w-full h-11 pl-10 pr-4
               bg-white/5 backdrop-blur-md
@@ -149,6 +150,8 @@ export default function NFTFilters({
         {isMobile && (
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
+            aria-label={isFilterOpen ? 'Close filters menu' : 'Open filters menu'}
+            aria-expanded={isFilterOpen}
             className={`
               h-11 px-4 flex items-center gap-2
               rounded-lg border font-medium text-sm
@@ -171,6 +174,7 @@ export default function NFTFilters({
         {/* Create NFT Button */}
         <button 
           onClick={onCreateNFT}
+          aria-label="Create new NFT"
           className="
             h-11 px-4 flex items-center gap-2
             bg-gradient-to-r from-purple-500 to-purple-600
@@ -223,6 +227,7 @@ export default function NFTFilters({
           {selectedCategory !== 'all' && (
             <button
               onClick={() => onCategoryChange('all')}
+              aria-label={`Remove ${selectedCategory} category filter`}
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-purple-500/15 border border-purple-500/30
@@ -240,6 +245,7 @@ export default function NFTFilters({
           {filter !== 'all' && (
             <button
               onClick={() => onFilterChange('all')}
+              aria-label={`Remove ${STATUS_OPTIONS.find(s => s.value === filter)?.label} status filter`}
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-blue-500/15 border border-blue-500/30
@@ -301,6 +307,7 @@ export default function NFTFilters({
                     onCategoryChange('all');
                     onFilterChange('all');
                   }}
+                  aria-label="Clear all active filters"
                   className="
                     w-full h-9 px-4
                     text-xs font-medium text-white/60

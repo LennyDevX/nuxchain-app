@@ -116,6 +116,9 @@ const ProfileOverview: React.FC = () => {
             <button
               onClick={handleClearCacheAndRefresh}
               disabled={isClearing || activitiesLoading}
+              aria-label={isClearing ? 'Clearing cache...' : 'Clear Apollo cache and refresh data'}
+              aria-busy={isClearing}
+              aria-disabled={isClearing || activitiesLoading}
               className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
             >
               <svg 
@@ -136,6 +139,9 @@ const ProfileOverview: React.FC = () => {
             <button
               onClick={refreshActivities}
               disabled={activitiesLoading}
+              aria-label={activitiesLoading ? 'Refreshing activities...' : 'Refresh recent activities'}
+              aria-busy={activitiesLoading}
+              aria-disabled={activitiesLoading}
               className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
             >
               <svg 

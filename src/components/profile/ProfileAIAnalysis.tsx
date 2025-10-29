@@ -15,7 +15,9 @@ const ProfileAIAnalysis: React.FC = () => {
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem('ai-analysis-tutorial-seen');
     if (!hasSeenTutorial) {
-      setShowWelcome(true);
+      // Use setTimeout to defer state update
+      const timer = setTimeout(() => setShowWelcome(true), 0);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -103,6 +105,8 @@ const ProfileAIAnalysis: React.FC = () => {
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
+          aria-label={isRefreshing ? 'Refreshing AI analysis' : 'Refresh AI analysis'}
+          aria-busy={isRefreshing}
           className={`btn-primary ${isMobile ? 'w-full px-4 py-2 text-sm' : 'px-4 py-2'} rounded-lg flex items-center justify-center gap-2 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <span className={isRefreshing ? 'animate-spin inline-block' : ''}>🔄</span>
@@ -200,7 +204,7 @@ const ProfileAIAnalysis: React.FC = () => {
       </div>
 
       {/* Score Breakdown */}
-      <div className={`card-unified p-${isMobile ? '4' : '6'}`}>
+      <div className={`card-unified p-${isMobile ? '4' : '6'}`} role="region" aria-label="Score breakdown details">
         <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white mb-${isMobile ? '4' : '6'} flex items-center gap-2`}>
           <span>📊</span> Score Breakdown
         </h3>
@@ -224,7 +228,14 @@ const ProfileAIAnalysis: React.FC = () => {
                   <span className={`text-gray-300 font-medium ${isMobile ? 'text-sm' : ''}`}>{label}</span>
                   <span className={`text-white font-bold ${isMobile ? 'text-sm' : ''}`}>{value.toFixed(1)} / {maxValue}</span>
                 </div>
-                <div className={`w-full bg-gray-700/30 rounded-full ${isMobile ? 'h-2' : 'h-3'} overflow-hidden`}>
+                <div 
+                  className={`w-full bg-gray-700/30 rounded-full ${isMobile ? 'h-2' : 'h-3'} overflow-hidden`}
+                  role="progressbar"
+                  aria-valuenow={Math.round(value)}
+                  aria-valuemin={0}
+                  aria-valuemax={maxValue}
+                  aria-label={`${label} progress: ${value.toFixed(1)} out of ${maxValue}`}
+                >
                   <div
                     className={`h-full ${getProgressColor(value)} transition-all duration-1000 ease-out rounded-full`}
                     style={{ width: `${percentage}%` }}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import MarketplaceABI from '../../abi/Marketplace.json';
+import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
 interface ListingModalProps {
   isOpen: boolean;
@@ -16,6 +17,10 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
   const [listingPrice, setListingPrice] = useState('');
   const [category, setCategory] = useState('art');
   const { isConnected } = useAccount();
+
+  // 🎯 Accessibility: Focus trap and keyboard navigation
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+  const handleBackdropClick = useModalBackdrop(onClose);
 
   // Contract interaction hooks
   const { writeContract: writeListContract, data: listHash, isPending: isListPending, error: listError } = useWriteContract();
@@ -72,15 +77,25 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 max-w-md w-full">
-        <h3 className="text-2xl font-bold text-white mb-6">List NFT for Sale</h3>
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="listing-modal-title"
+      aria-describedby="listing-modal-description"
+    >
+      <div ref={modalRef} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 max-w-md w-full">
+        <h3 id="listing-modal-title" className="text-2xl font-bold text-white mb-6">List NFT for Sale</h3>
         
-        <div className="mb-6">
-          <label className="block text-white font-medium mb-2">Category *</label>
+        <div id="listing-modal-description" className="mb-6">
+          <label htmlFor="category-select" className="block text-white font-medium mb-2">Category *</label>
           <select
+            id="category-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            aria-label="Select NFT category"
+            aria-required="true"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [&>option]:bg-gray-800 [&>option]:text-white"
             required
           >
@@ -93,18 +108,23 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
         </div>
         
         <div className="mb-6">
-          <label className="block text-white font-medium mb-2">Price (POL) *</label>
+          <label htmlFor="listing-price-input" className="block text-white font-medium mb-2">Price (POL) *</label>
           <input
+            id="listing-price-input"
             type="number"
             step="50"
             min="50"
             value={listingPrice}
             onChange={(e) => setListingPrice(e.target.value)}
+            aria-label="Enter listing price in POL"
+            aria-required="true"
+            aria-describedby="price-hint"
+            aria-invalid={listingPrice !== '' && parseFloat(listingPrice) < 50}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             placeholder="50"
             required
           />
-          <p className="text-white/60 text-sm mt-1">
+          <p id="price-hint" className="text-white/60 text-sm mt-1">
             💰 Minimum price: 50 POL
           </p>
         </div>
@@ -113,6 +133,8 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
           <button
             onClick={handleCancel}
             disabled={isListPending || isListConfirming}
+            aria-label="Cancel listing"
+            aria-disabled={isListPending || isListConfirming}
             className="flex-1 bg-gray-600/20 border border-gray-600 text-gray-300 hover:bg-gray-600/30 py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
@@ -120,6 +142,9 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
           <button
             onClick={handleConfirmListing}
             disabled={isListPending || isListConfirming || !listingPrice || parseFloat(listingPrice) < 50}
+            aria-label={isListPending ? 'Listing NFT in progress' : isListConfirming ? 'Confirming transaction' : 'List NFT for sale'}
+            aria-busy={isListPending || isListConfirming}
+            aria-disabled={isListPending || isListConfirming || !listingPrice || parseFloat(listingPrice) < 50}
             className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed hover:scale-105 transform"
           >
             {isListPending ? (

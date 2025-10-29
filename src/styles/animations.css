@@ -393,7 +393,8 @@
    RESPONSIVE ADJUSTMENTS
    ======================================== */
 
-@media (max-width: 768px) {
+/* Mobile: Disable complex animations for performance */
+@media (max-width: 767px) {
   .animate-stat-entrance {
     animation: none;
     opacity: 1;

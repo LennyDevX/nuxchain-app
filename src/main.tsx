@@ -4,10 +4,39 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { registerSW } from 'virtual:pwa-register'
 
 import './styles/index.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
+
+// ✅ Register Service Worker for PWA functionality
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      console.log('🔄 New content available, please refresh.');
+      // Optional: Show toast notification to user
+      if (confirm('New version available! Reload to update?')) {
+        window.location.reload();
+      }
+    },
+    onOfflineReady() {
+      console.log('✅ App ready to work offline');
+    },
+    onRegistered(registration: ServiceWorkerRegistration | undefined) {
+      console.log('✅ Service Worker registered:', registration);
+      
+      // Check for updates every hour
+      setInterval(() => {
+        registration?.update();
+      }, 60 * 60 * 1000);
+    },
+    onRegisterError(error: Error) {
+      console.error('❌ Service Worker registration failed:', error);
+    },
+  });
+}
 
 // ✅ Configure QueryClient with optimal defaults for performance
 const queryClient = new QueryClient({

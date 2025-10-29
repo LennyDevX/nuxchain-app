@@ -5,8 +5,8 @@
 
 import dotenv from 'dotenv';
 
-// Cargar variables de entorno
-dotenv.config();
+// Cargar variables de entorno (silenciosamente)
+dotenv.config({ silent: true });
 
 /**
  * Valida que las variables de entorno requeridas estén presentes
@@ -20,29 +20,10 @@ function validateRequiredEnvVars() {
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
-    throw new Error(`Variables de entorno requeridas faltantes: ${missing.join(', ')}`);
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 }
 
-/**
- * Valida la configuración de Google Service Account
- */
-function validateGoogleServiceAccount() {
-  const requiredGoogleVars = [
-    'GOOGLE_SERVICE_ACCOUNT_PROJECT_ID',
-    'GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY',
-    'GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL'
-  ];
-  
-  const missingGoogle = requiredGoogleVars.filter(key => !process.env[key]);
-  
-  if (missingGoogle.length > 0) {
-    console.warn(`Variables de Google Service Account faltantes: ${missingGoogle.join(', ')}`);
-    return false;
-  }
-  
-  return true;
-}
 
 /**
  * Sanitiza y valida las variables de entorno
@@ -163,9 +144,6 @@ class EnvironmentConfig {
     this.apiUrl = sanitizeEnvVar(process.env.API_URL, 'url') || 
                  (this.isProduction ? 'https://nuxchain-app.vercel.app/api' : 'http://localhost:3002/server');
     
-    // Google Service Account
-    this.googleServiceAccount = this.initializeGoogleConfig();
-    
     // Configuración de seguridad
     this.security = securityConfig[this.nodeEnv] || securityConfig.development;
     
@@ -183,27 +161,6 @@ class EnvironmentConfig {
     
     // Configuración de WebSocket
     this.websocket = this.initializeWebSocketConfig();
-  }
-  
-  initializeGoogleConfig() {
-    const hasValidConfig = validateGoogleServiceAccount();
-    
-    if (!hasValidConfig) {
-      return null;
-    }
-    
-    return {
-      projectId: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_PROJECT_ID),
-      privateKeyId: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY_ID),
-      privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      clientEmail: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL, 'email'),
-      clientId: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID),
-      authUri: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_AUTH_URI, 'url'),
-      tokenUri: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_TOKEN_URI, 'url'),
-      authProviderX509CertUrl: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_AUTH_PROVIDER_X509_CERT_URL, 'url'),
-      clientX509CertUrl: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_X509_CERT_URL, 'url'),
-      universeDomain: sanitizeEnvVar(process.env.GOOGLE_SERVICE_ACCOUNT_UNIVERSE_DOMAIN) || 'googleapis.com'
-    };
   }
   
   initializeDatabaseConfig() {

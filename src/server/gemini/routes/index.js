@@ -1,7 +1,7 @@
 import express from 'express';
 import geminiRoutes from './gemini-routes.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
-import errorHandler from '../middlewares/error-handler.js'; // Add import
+import errorHandler from '../middlewares/error-handler.js';
 
 const router = express.Router();
 

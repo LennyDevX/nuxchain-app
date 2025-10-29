@@ -1,41 +1,36 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useAccount } from 'wagmi';
-import useUserNFTsLazy from '../../hooks/nfts/useUserNFTsLazy';
+import { useMarketplaceNFTs, type NFTData } from '../../hooks/nfts/useReactQueryNFTs';
 import { ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import '../../styles/ai-analysis-animations.css';
 
-interface NFTData {
-  tokenId: string;
-  uniqueId: string;
-  tokenURI: string | null;
-  contract: `0x${string}`;
-  name: string;
-  description: string;
-  image: string;
-  attributes: Array<{ trait_type: string; value: string }>;
-  owner: string;
-  creator: string;
-  price: bigint;
-  isForSale: boolean;
-  likes: string;
-  category: string;
-}
-
 const ProfileNFTs: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { nfts, loading, error, refreshNFTs, totalCount } = useUserNFTsLazy(address);
+  const { nfts, loading, error, refreshNFTs, totalCount } = useMarketplaceNFTs({
+    userOnly: true,
+    enabled: isConnected && !!address
+  });
   const { convertPOLToUSD } = usePOLPrice();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cachedNfts, setCachedNfts] = useState<NFTData[]>([]);
   const isMobile = useIsMobile();
+  const prevNftsRef = useRef<NFTData[]>([]);
 
-  // Cache NFTs to prevent flash during refresh
+  // Cache NFTs to prevent flash during refresh - FIXED: Use ref to track previous value
   useEffect(() => {
     if (nfts && nfts.length > 0) {
-      setCachedNfts(nfts);
+      // Only update if NFTs actually changed (check by length and first tokenId)
+      const nftsChanged = 
+        prevNftsRef.current.length !== nfts.length ||
+        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId);
+      
+      if (nftsChanged) {
+        setCachedNfts(nfts);
+        prevNftsRef.current = nfts;
+      }
     }
   }, [nfts]);
 

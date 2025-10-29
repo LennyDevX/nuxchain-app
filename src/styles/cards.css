@@ -133,3 +133,178 @@
 .rotate-y-180 {
   transform: rotateY(180deg);
 }
+
+/* NFT Card 3D Flip */
+.nft-card-container {
+  perspective: 1500px;
+  cursor: pointer;
+  /* Let the parent/grid control the height. Use min-height so card doesn't collapse. */
+  height: 100%;
+  min-height: 360px;
+  display: block;
+}
+
+.nft-card-container.mobile {
+  min-height: 320px;
+}
+
+.nft-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.nft-card-container:hover .nft-card-inner:not(.flipped) {
+  transform: scale(1.02) translateY(-5px);
+}
+
+.nft-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.nft-card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem;
+  overflow: hidden;
+  /* Make each face a flex column so content (title/description/footer) can distribute space naturally.
+     min-height: 0 is required so children with overflow can size correctly inside flex containers. */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.nft-card-front {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nft-card-back {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  transform: rotateY(180deg);
+}
+
+/* NFT Image Prominence */
+.nft-image-container {
+  position: relative;
+  /* Make the image area responsive to the available card height instead of a fixed px value.
+     This prevents the card image from overflowing a grid cell with a smaller row height. */
+  height: clamp(160px, 40%, 320px);
+  max-height: 60%;
+  min-height: 140px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
+  flex: 0 0 auto;
+}
+
+.nft-image-container.mobile {
+  height: clamp(140px, 36%, 260px);
+}
+
+.nft-image-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.nft-card-container:hover .nft-image-container::before {
+  opacity: 1;
+}
+
+.nft-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+}
+
+.nft-card-container:hover .nft-image {
+  transform: scale(1.08);
+}
+
+/* Content area inside the card (title, description, price, actions).
+   Make it a flexible column so buttons always remain visible at the bottom and
+   the description can take available space without pushing content out of the card. */
+.nft-card-content {
+  padding: 1.25rem; /* 20px */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-height: 0; /* allow children to scroll when needed */
+}
+
+.nft-card-content .nft-card-header {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.nft-card-content .nft-card-footer {
+  flex: 0 0 auto;
+}
+
+/* NFT Card Badges */
+.nft-badge {
+  position: absolute;
+  backdrop-filter: blur(12px);
+  border-radius: 9999px;
+  font-weight: 700;
+  z-index: 2;
+  animation: fadeInScale 0.5s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Flip Indicator */
+.flip-indicator {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  z-index: 2;
+  transition: all 0.3s ease;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  }
+}
+
+.nft-card-container:hover .flip-indicator {
+  background: rgba(139, 92, 246, 0.5);
+  transform: scale(1.05);
+}

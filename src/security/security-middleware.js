@@ -74,12 +74,15 @@ export const apiKeyAuth = (req, res, next) => {
   
   // Permitir acceso sin API key a endpoints públicos
   const publicEndpoints = [
-    '/api/health', 
+    '/api/health',
+    '/nfts',
+    '/api/nfts',
     '/api/gemini/models',
     '/api/chat/stream',
     '/api/gemini/stream',
     '/hello',
     '/server/hello',
+    '/server/nfts',
     '/server/gemini/health',
     '/server/gemini/hello',
     '/server/gemini/stream',
@@ -92,7 +95,10 @@ export const apiKeyAuth = (req, res, next) => {
     '/server/chat/stream-with-tools',
     '/server/api/chat/stream',
     '/server/api/chat/stream-with-tools',
-    '/server/embeddings'
+    '/server/embeddings',
+    '/chat/stream',
+    '/chat/stream-with-tools',
+    '/gemini/stream'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público

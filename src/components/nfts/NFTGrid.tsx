@@ -34,17 +34,19 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
   // Calculate grid dimensions based on screen size
   const gridConfig = useMemo(() => {
     const containerWidth = typeof window !== 'undefined' ? window.innerWidth - 64 : 1200; // Account for padding
-    const minCardWidth = 280;
-    const gap = 24;
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 640 : false;
+    const minCardWidth = isMobile ? 260 : 280;
+    const gap = isMobile ? 16 : 24;
     const columnsCount = Math.max(1, Math.floor((containerWidth + gap) / (minCardWidth + gap)));
     const cardWidth = (containerWidth - (gap * (columnsCount - 1))) / columnsCount;
-    const cardHeight = cardWidth * 1.4; // Aspect ratio for NFT cards
+    const cardHeight = cardWidth * 1.5; // Updated aspect ratio 3:4.5
     
     return {
       columnsCount,
       cardWidth,
       cardHeight,
-      containerWidth
+      containerWidth,
+      isMobile
     };
   }, []);
 
@@ -139,15 +141,20 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
     );
   }
 
-  // For smaller collections, use regular grid
+  // For smaller collections, use regular grid but keep consistent card heights
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
       {nfts.map((nft) => (
-        <NFTCard
+        <div
           key={nft.uniqueId || nft.tokenId}
-          nft={nft}
-          onListNFT={onListNFT}
-        />
+          className="flex items-stretch"
+        >
+          <NFTCard
+            nft={nft}
+            onListNFT={onListNFT}
+            isMobile={gridConfig.isMobile}
+          />
+        </div>
       ))}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
+import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
 // Define API endpoints directly since the import is not available
 const API_ENDPOINTS = {
   gemini: {
@@ -8,7 +9,6 @@ const API_ENDPOINTS = {
     streamWithTools: '/api/chat/stream-with-tools'
   }
 } as const;
-import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotification';
 
 // Function to detect URLs in text - FIXED
 const detectUrls = (text: string): string[] => {
@@ -64,6 +64,7 @@ interface UseChatStreamingReturn {
   clearMessages: () => void;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
+  pauseStream: () => void;
 }
 
 // NUEVO: Definir interfaces para tipos específicos
@@ -167,7 +168,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
       
       console.log('🔍 [FRONTEND] Complete request body:', JSON.stringify(requestBody, null, 2));
       
-      // Make streaming request
+      // Make streaming request to backend
+      // ✅ No API Key header needed - backend handles Gemini authentication internally
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -334,6 +336,14 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, [sendMessage]);
 
+  const pauseStream = useCallback(() => {
+    if (streamingServiceRef.current) {
+      streamingServiceRef.current.cancelAllStreams();
+      dispatch({ type: 'FINISH_STREAM' });
+      console.log('Stream paused by user');
+    }
+  }, []);
+
   // Convert internal state to external format
   const messages: Message[] = state.messages.map((msg: ChatMessage) => ({
     id: msg.id,
@@ -352,7 +362,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     sendMessage,
     clearMessages,
     retryLastMessage,
-    isUsingUrlContext
+    isUsingUrlContext,
+    pauseStream
   };
 }
 

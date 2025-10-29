@@ -34,6 +34,7 @@ const Footer: React.FC = () => {
               <li><a href="/marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</a></li>
               <li><a href="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</a></li>
               <li><a href="/airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</a></li>
+              <li><a href="/roadmap" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Roadmap</a></li>
             </ul>
           </div>
 

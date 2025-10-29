@@ -53,7 +53,7 @@ const LabsPage: React.FC = () => {
 
       {/* Main Content */}
       <div className={`max-w-7xl mx-auto ${
-        isMobile ? 'px-4 py-8' : 'px-4 sm:px-6 lg:px-8 py-16'
+        isMobile ? 'px-4 py-8 pb-32' : 'px-4 sm:px-6 lg:px-8 py-16'
       }`}>
         <div className={isMobile ? 'space-y-12' : 'space-y-20'}>
           {/* AI Features Section */}
@@ -195,29 +195,31 @@ const LabsPage: React.FC = () => {
           </section>
 
           {/* CTA Section */}
-          <section>
+          <section className={isMobile ? 'sticky bottom-20 z-40' : ''}>
             <div className={`card-unified text-center relative overflow-hidden ${
-              isMobile ? 'p-6' : 'p-8'
+              isMobile ? 'p-4 rounded-2xl' : 'p-8'
             }`}>
               <div className="relative z-10">
-                <h2 className={`font-bold mb-4 ${
-                  isMobile ? 'text-xl' : 'text-3xl'
-                }`}>
+                <h2 className={`font-bold ${isMobile ? 'mb-2 text-base' : 'mb-4 text-3xl'}`}>
                   {isMobile ? 'Try our AI tools?' : 'Want to try our AI tools?'}
                 </h2>
                 <p className={`text-slate-400 max-w-2xl mx-auto ${
-                  isMobile ? 'text-sm mb-6' : 'mb-8'
+                  isMobile ? 'text-xs mb-4 leading-tight' : 'text-base mb-8'
                 }`}>
                   {isMobile 
-                    ? 'Join innovators and optimize your strategies with AI.'
+                    ? 'join us!'
                     : 'Join our community of innovators and discover how our technology can help you optimize your investment strategies.'
                   }
                 </p>
-                <button className={`bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                  isMobile ? 'w-full px-6 py-3 text-base' : 'px-8 py-6 text-lg'
-                }`}>
-                  {isMobile ? 'Get Started' : 'Get Started Now'}
-                </button>
+                <a 
+                  href="https://discord.gg/szZP2JcSq4" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={`inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    isMobile ? 'w-full px-4 py-2 text-sm font-semibold' : 'px-8 py-6 text-lg'
+                  }`}>
+                  {isMobile ? 'Start Now' : 'Get Started Now'}
+                </a>
               </div>
             </div>
           </section>

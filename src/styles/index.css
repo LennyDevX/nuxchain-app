@@ -1,15 +1,31 @@
 @import "tailwindcss";
 
-/* Modular CSS Imports */
+/* ============================================================================
+   MODULAR CSS IMPORTS - OPTIMIZED & CONSOLIDATED
+   ============================================================================ */
+
+/* Core Styles */
 @import "./globals.css";
+
+/* Animations - CONSOLIDATED (includes ai-analysis-animations) */
 @import "./animations.css";
+
+/* Component Utilities - NEW (consolidated from multiple files) */
+@import "./components.css";
+
+/* Feature-Specific Styles */
 @import "./buttons.css";
 @import "./cards.css";
 @import "./text.css";
-@import "./backgrounds.css";
 @import "./ai-analysis.css";
 
-/* Estilos adicionales para markdown en el chat */
+/* Background gradients - consider using Tailwind instead */
+@import "./backgrounds.css";
+
+/* ============================================================================
+   MARKDOWN STYLING FOR CHAT
+   ============================================================================ */
+
 .wmde-markdown {
   color: inherit !important;
   background: transparent !important;
@@ -103,3 +119,4 @@
 .wmde-markdown a:hover {
   color: rgb(147, 197, 253); /* blue-300 */
 }
+

@@ -32,6 +32,7 @@ body {
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;
+  
 }
 
 ::-webkit-scrollbar-track {
@@ -45,6 +46,71 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-purple);
+}
+
+/* Custom scrollbar for attributes list */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a855f7 rgba(255, 255, 255, 0.08);
+  scroll-behavior: smooth;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #ec4899 100%);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9333ea 0%, #db2777 100%);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #7e22ce 0%, #be185d 100%);
+}
+
+/* Mobile optimized scrollbar */
+@media (max-width: 640px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    margin: 2px 0;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+  }
+}
+
+/* Touch-friendly scrolling for mobile */
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Better scrollbar visibility on dark backgrounds */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #f472b6 100%);
 }
 
 /* Hide scrollbar for mobile tabs */

@@ -16,7 +16,9 @@ const app = express();
 const port = env.port;
 
 // Logear entorno para diagnóstico local
-console.log('ENV DEBUG -> nodeEnv:', env.nodeEnv, 'isVercel:', env.isVercel, 'isEnvironmentValid:', env.isEnvironmentValid);
+if (env.nodeEnv === 'development') {
+  console.log(`\n📋 Environment: ${env.nodeEnv} | Vercel: ${env.isVercel} | Valid: ${env.isEnvironmentValid}\n`);
+}
 
 // CORS Configuration basada en el entorno
 const corsOptions = getCorsConfig(env.nodeEnv);
@@ -35,7 +37,8 @@ app.use((req, res, next) => {
 // Configurar todos los middlewares de seguridad avanzados
 setupSecurityMiddlewares(app);
 
-// Cambia el límite de JSON a 2MB (ya configurado en security middleware)
+console.log('✅ Security middlewares configured');
+
 app.use(express.json({ limit: '2mb' }));
 
 // Rutas API - ajustado para Vercel
@@ -57,17 +60,15 @@ const server = createServer(app);
 // Función asíncrona para inicializar el servidor
 async function startServer() {
   try {
-    // Inicializar base de conocimientos antes de que el servidor esté listo
-    console.log('🔄 Inicializando base de conocimientos...');
-    const initResult = await initializeKnowledgeBaseForVercel(true); // true = precomputar embeddings
-    console.log('✅ Base de conocimientos lista para usar');
+    console.log('⏳ Initializing knowledge base...');
+    const initResult = await initializeKnowledgeBaseForVercel(true);
+    console.log('✅ Knowledge base initialized');
     
     if (initResult.precomputeStarted) {
-      console.log('🚀 Precomputing embeddings in background...');
+      console.log('� Pre-computing embeddings in background...');
     }
   } catch (error) {
-    console.error('❌ Error en inicialización de base de conocimientos:', error);
-    // Continuar con el servidor aunque falle la inicialización
+    console.error('❌ Knowledge base initialization failed:', error.message);
   }
 }
 
@@ -83,53 +84,41 @@ if (environmentConfig.isProduction) {
 
 // Verificar el entorno de ejecución
 if (env.isVercel) {
-  // En Vercel, inicializar la base de conocimientos inmediatamente
   console.log('Running on Vercel - Initializing knowledge base...');
   startServer().then(() => {
-    console.log('✅ Vercel: Knowledge base initialized and ready');
+    console.log('✅ Knowledge base ready');
   }).catch(error => {
-    console.error('❌ Vercel: Error initializing knowledge base:', error);
+    console.error('❌ Initialization error:', error.message);
   });
-  console.log('Note: WebSocket functionality may be limited in serverless environment');
 } else {
   // En desarrollo, inicializar primero y luego arrancar el servidor
   startServer().then(() => {
     server.listen(port, () => {
-      console.log(`Server running on http://localhost:${port}`);
-      console.log(`WebSocket server available at ws://localhost:${port}/ws/streaming`);
-      console.log('Enhanced streaming features enabled:');
-      console.log('  ✓ Semantic chunking');
-      console.log('  ✓ Contextual pauses');
-      console.log('  ✓ Variable speed streaming');
-      console.log('  ✓ WebSocket support');
-      console.log('  ✓ Syntax highlighting');
-      console.log('  ✓ Progress indicators');
-      console.log('  ✓ Typing indicators');
-      console.log('  ✓ Adaptive compression');
+      console.log(`\n🚀 Server running on http://localhost:${port}`);
+      console.log(`📡 WebSocket available at ws://localhost:${port}/ws/streaming\n`);
+      console.log('✓ Semantic chunking');
+      console.log('✓ Contextual pauses');
+      console.log('✓ Variable speed streaming');
+      console.log('✓ WebSocket support\n');
     });
   }).catch(error => {
-    console.error('❌ Error durante la inicialización:', error);
-    // Arrancar el servidor de todas formas
-    server.listen(port, () => {
-      console.log(`Server running on http://localhost:${port} (with initialization errors)`);
-    });
+    console.error('❌ Startup error:', error.message);
+    process.exit(1);
   });
   
   // Manejo de cierre graceful
   process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully...');
+    console.log('\n🛑 SIGTERM received, shutting down...');
     websocketHandler.cleanup();
     server.close(() => {
-      console.log('Server closed');
       process.exit(0);
     });
   });
   
   process.on('SIGINT', () => {
-    console.log('SIGINT received, shutting down gracefully...');
+    console.log('\n🛑 SIGINT received, shutting down...');
     websocketHandler.cleanup();
     server.close(() => {
-      console.log('Server closed');
       process.exit(0);
     });
   });

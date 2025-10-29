@@ -6,9 +6,11 @@ import contextCacheService from './context-cache-service.js';
 import { GoogleGenAI } from '@google/genai';
 import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
+import { needsKnowledgeBase, updateConversationContext, needsKnowledgeBaseSimple } from './query-classifier.js';
 import urlContextService from './url-context-service.js';
 import semanticStreamingService from './semantic-streaming-service.js';
 import { buildSystemInstructionWithContext } from '../../../../api/_config/system-instruction.js';
+import chatLogger from '../utils/chat-logger.js';
 
 
 /**
@@ -184,12 +186,20 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
       return '';
     }
     
-    console.log(`🔍 Buscando en base de conocimientos: "${query}"`);
+    // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
+    const classificationResult = needsKnowledgeBase(query, { includeContext: true, debugMode: true });
+    
+    if (!classificationResult.needsKB) {
+      console.log(`⏭️ Skipping KB search - Reason: ${classificationResult.reason}`);
+      console.log(`   Classification Score: ${classificationResult.score.toFixed(2)} | Context Available: ${classificationResult.hasNuxchainContext}`);
+      return '';
+    }
+    
+    console.log(`✅ KB Search Approved - Score: ${classificationResult.score.toFixed(2)} | IsCapability: ${classificationResult.isCapabilityQuestion}`);
     
     // ✅ USAR getRelevantContext que maneja todo internamente (BM25 + embeddings)
-    const rawContext = await embeddingsService.getRelevantContext(query, {
-      threshold: 0.25 // Threshold optimizado
-    });
+    // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+    const rawContext = await embeddingsService.getRelevantContext(query);
     
     // Normalizar: aceptar string u objeto { context, score }
     let relevantContext = { context: '', score: 0 };
@@ -202,6 +212,10 @@ export async function enrichContextWithKnowledgeBase(query, options = {}) {
     
     if (relevantContext.context) {
       console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
+      
+      // Actualizar contexto de conversación para próximas queries
+      updateConversationContext(true, ['nuxchain', 'platform']);
+      
       return `Información relevante de Nuxchain:\n${relevantContext.context}\n\nBasándote en esta información específica de Nuxchain, responde a la siguiente consulta de manera precisa y detallada:`;
     }
     
@@ -254,36 +268,48 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
   
   // Obtener contexto relevante de KB
   if (userQuery) {
-    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
-      threshold: 0.25
-    });
+    // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
+    const classificationResult = needsKnowledgeBase(userQuery, { includeContext: true, debugMode: true });
     
-    // Normalizar contexto
-    if (typeof rawContext === 'string') {
-      knowledgeContext = rawContext;
-    } else if (rawContext && typeof rawContext === 'object') {
-      knowledgeContext = rawContext.context || rawContext.text || '';
-      contextScore = Number(rawContext.score) || 0;
-    }
-    
-    if (knowledgeContext) {
-      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    if (classificationResult.needsKB) {
+      console.log(`✅ KB Classification approved | Score: ${classificationResult.score.toFixed(2)}`);
+      
+      // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+      const rawContext = await embeddingsService.getRelevantContext(userQuery);
+      
+      // Normalizar contexto
+      if (typeof rawContext === 'string') {
+        knowledgeContext = rawContext;
+      } else if (rawContext && typeof rawContext === 'object') {
+        knowledgeContext = rawContext.context || rawContext.text || '';
+        contextScore = Number(rawContext.score) || 0;
+      }
+      
+      if (knowledgeContext) {
+        console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+      } else {
+        console.log('⚠️ No KB context found');
+      }
+      
+      // Actualizar contexto de conversación
+      updateConversationContext(true, ['nuxchain', 'platform']);
     } else {
-      console.log('⚠️ No KB context found');
+      console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason}`);
     }
   }
   
   // Construir systemInstruction con contexto
   const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore);
   
-  // ✅ DEBUG: Verificar que systemInstruction tenga el formato correcto
-  console.log('🔧 [DEBUG] SystemInstruction format:', {
-    isObject: typeof systemInstruction === 'object',
-    hasParts: systemInstruction?.parts ? 'YES' : 'NO',
-    partsLength: systemInstruction?.parts?.length || 0,
-    firstPartLength: systemInstruction?.parts?.[0]?.text?.length || 0,
-    contextIncluded: systemInstruction?.parts?.[0]?.text?.includes('TEXT TO USE FOR ANSWERING') ? 'YES' : 'NO'
-  });
+  // ✅ Log contexto de KB con chat logger profesional
+  if (knowledgeContext) {
+    chatLogger.logContext({
+      context: rawContext.context,
+      score: rawContext.score,
+      documentsFound: rawContext.documentsFound,
+      usedEmbeddings: rawContext.usedEmbeddings
+    });
+  }
   
   // Preparar contents (sin modificar el mensaje del usuario)
   let enrichedContents = contents;
@@ -766,7 +792,6 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   // ✅ NUEVO: Obtener contexto de KB y construir systemInstruction
   let knowledgeContext = '';
   let contextScore = 0;
-  
   // Extraer query del contenido
   let userQuery = '';
   if (typeof contents === 'string') {
@@ -780,22 +805,33 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   
   // Obtener contexto relevante de KB
   if (userQuery) {
-    const rawContext = await embeddingsService.getRelevantContext(userQuery, {
-      threshold: 0.25
-    });
+    // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
+    const classificationResult = needsKnowledgeBase(userQuery, { includeContext: true, debugMode: true });
     
-    // Normalizar contexto
-    if (typeof rawContext === 'string') {
-      knowledgeContext = rawContext;
-    } else if (rawContext && typeof rawContext === 'object') {
-      knowledgeContext = rawContext.context || rawContext.text || '';
-      contextScore = Number(rawContext.score) || 0;
-    }
-    
-    if (knowledgeContext) {
-      console.log(`✅ KB found: ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+    if (classificationResult.needsKB) {
+      console.log(`✅ KB Classification approved (stream) | Score: ${classificationResult.score.toFixed(2)}`);
+      
+      // ✅ Sin threshold hardcoded - usa threshold dinámico basado en complejidad
+      const rawContext = await embeddingsService.getRelevantContext(userQuery);
+      
+      // Normalizar contexto
+      if (typeof rawContext === 'string') {
+        knowledgeContext = rawContext;
+      } else if (rawContext && typeof rawContext === 'object') {
+        knowledgeContext = rawContext.context || rawContext.text || '';
+        contextScore = Number(rawContext.score) || 0;
+      }
+      
+      if (knowledgeContext) {
+        console.log(`✅ KB found (stream): ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+      } else {
+        console.log('⚠️ No KB context found (stream)');
+      }
+      
+      // Actualizar contexto de conversación
+      updateConversationContext(true, ['nuxchain', 'platform']);
     } else {
-      console.log('⚠️ No KB context found');
+      console.log(`⏭️ Skipping KB (stream) - Reason: ${classificationResult.reason}`);
     }
   }
   

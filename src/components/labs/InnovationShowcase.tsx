@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLinkIcon, GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from './CustomIcons';
+import { ExternalLinkIcon, GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from '../ui/CustomIcons';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface ProjectProps {

@@ -36,19 +36,24 @@ export default function InputTextArea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onKeyPress={onKeyPress}
-      placeholder={isMobile ? "Ask Nuxbee" : placeholder}
+      placeholder={isMobile ? "Ask Nuxbee..." : placeholder}
       disabled={disabled}
-      className={`w-full bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 focus:bg-white/8 resize-none backdrop-blur-md overflow-hidden ${
-        isMobile ? 'px-3 pt-4 min-h-[40px] max-h-[100px] text-sm' : 'px-4 py-3 min-h-[52px] max-h-[120px] text-sm'
+      aria-label="Chat input - Ask questions about blockchain and Web3"
+      aria-disabled={disabled}
+      className={`w-full bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/30 focus:bg-white/8 resize-none backdrop-blur-md overflow-hidden ${
+        isMobile 
+          ? 'px-4 py-4 min-h-[48px] max-h-[100px] text-base' 
+          : 'px-4 py-4 min-h-[52px] max-h-[120px] text-sm'
       } ${
-        isMobile ? 'leading-normal' : 'leading-relaxed'
+        isMobile ? 'leading-snug' : 'leading-relaxed'
       } ${
         optimizationConfig.reduceAnimations 
           ? 'transition-colors duration-150' 
           : 'transition-all duration-300'
       } hover:bg-white/7 hover:border-white/15`}
       style={{
-        fontSize: getOptimizedFontSize(14, isMobile) + 'px'
+        fontSize: getOptimizedFontSize(isMobile ? 15 : 14, isMobile) + 'px',
+        lineHeight: isMobile ? '1.5' : '1.6'
       }}
       rows={1}
     />

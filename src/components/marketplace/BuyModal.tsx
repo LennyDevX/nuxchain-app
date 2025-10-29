@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAccount } from 'wagmi';
-import type { MarketplaceNFT } from '../../hooks/nfts/useMarketplace';
+import type { MarketplaceNFT } from '../../types/marketplace';
 
 // SVG Icons
 const XIcon = () => (

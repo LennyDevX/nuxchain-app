@@ -1,28 +1,10 @@
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { USE_CASES } from '../nfts/benefits';
 
 function UseCasesSection() {
   const isMobile = useIsMobile();
-
-  const useCases = [
-    {
-      icon: '🏢',
-      title: 'Startups',
-      description: 'Launch your tokenized platform faster with pre-built infrastructure. Focus on product-market fit, not blockchain complexity.',
-      examples: ['DeFi protocols', 'Gaming platforms', 'Social tokens']
-    },
-    {
-      icon: '🤝',
-      title: 'DAOs',
-      description: 'Manage community assets, distribute rewards, and govern transparently with battle-tested smart contracts.',
-      examples: ['Treasury management', 'Governance voting', 'Member rewards']
-    },
-    {
-      icon: '👨‍💻',
-      title: 'Developers',
-      description: 'Build custom Web3 solutions on top of our infrastructure. Full API access and comprehensive documentation.',
-      examples: ['Custom dApps', 'Integration services', 'White-label solutions']
-    }
-  ];
+  // ✅ React 19 Best Practice: Use centralized constants
+  const useCases = USE_CASES;
 
   return (
     <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12 pb-20' : 'py-20 pb-32'}`}>

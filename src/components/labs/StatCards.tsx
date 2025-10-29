@@ -1,5 +1,5 @@
 import React from 'react';
-import { ZapIcon, BarChart3Icon, CheckIcon, CalendarIcon, BrainIcon, DatabaseIcon, LockIcon, CpuIcon } from './CustomIcons';
+import { ZapIcon, BarChart3Icon, CheckIcon, CalendarIcon, BrainIcon, DatabaseIcon, LockIcon, CpuIcon } from '../ui/CustomIcons';
 
 interface StatCardProps {
   title: string;

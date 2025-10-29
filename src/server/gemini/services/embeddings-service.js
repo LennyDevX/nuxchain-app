@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import chatLogger from '../utils/chat-logger.js';
 
 /**
  * Servicio de Embeddings para Vercel con Gemini API
@@ -200,7 +201,7 @@ function cosineSimilarityTFIDF(queryTokens, docTokens, idf) {
   return dotProduct / (magnitudeA * magnitudeB);
 }
 
-// BM25 Score - Superior para recuperación de texto
+// ✅ BM25 Score - Configuración estándar y probada
 // Formula: IDF(q) * (f(q,D) * (k1 + 1)) / (f(q,D) + k1 * (1 - b + b * |D|/avgDl))
 function bm25Score(queryTokens, docTokens, idf, avgDocLength, k1 = 1.5, b = 0.75) {
   const docLength = docTokens.length;
@@ -229,7 +230,7 @@ function normalizeBM25(score, maxScore) {
   return Math.min(1.0, score / maxScore);
 }
 
-// Re-ranking con boost semántico
+// ✅ Re-ranking con boost semántico - Configuración simple y funcional
 function applySemanticBoost(doc, query, baseScore) {
   let boostScore = 0;
   const docLower = doc.content.toLowerCase();
@@ -241,7 +242,7 @@ function applySemanticBoost(doc, query, baseScore) {
   }
   
   // Boost 2: Términos clave del dominio (+0.15 cada uno)
-  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'chat', 'ecosystem', 'blockchain',];
+  const domainTerms = ['nuxchain', 'staking', 'marketplace', 'nft', 'polygon', 'pol', 'nuxbee', 'airdrop', 'blockchain', 'ecosystem'];
   const queryTerms = queryLower.split(/\s+/);
   const matchedDomainTerms = domainTerms.filter(term => 
     docLower.includes(term) && queryTerms.some(qt => qt.includes(term) || term.includes(qt))
@@ -306,11 +307,11 @@ function cleanupEmbeddingsCache() {
 // ✅ Limpieza automática cada 10 minutos
 setInterval(cleanupEmbeddingsCache, 600000);
 
-// ✅ NUEVO: Rate limiting para embeddings API
+// ✅ Rate limiting para embeddings API
 let embeddingCallCount = 0;
 let lastResetTime = Date.now();
 const EMBEDDING_RATE_LIMIT = {
-  maxCallsPerMinute: 50, // Conservador para free tier
+  maxCallsPerMinute: 50, // Límite estándar de Google para tier gratuito
   resetIntervalMs: 60000
 };
 
@@ -321,12 +322,10 @@ function checkEmbeddingRateLimit() {
   if (now - lastResetTime > EMBEDDING_RATE_LIMIT.resetIntervalMs) {
     embeddingCallCount = 0;
     lastResetTime = now;
-    // ✅ Reset warning flag al resetear contador
     checkEmbeddingRateLimit._warningShown = false;
   }
   
   if (embeddingCallCount >= EMBEDDING_RATE_LIMIT.maxCallsPerMinute) {
-    // ✅ Solo mostrar warning una vez por período
     if (!checkEmbeddingRateLimit._warningShown) {
       console.warn(`⚠️ Embedding rate limit reached (${embeddingCallCount}/${EMBEDDING_RATE_LIMIT.maxCallsPerMinute}) - switching to BM25`);
       checkEmbeddingRateLimit._warningShown = true;
@@ -400,9 +399,7 @@ async function generateEmbedding(text) {
     // ✅ MEJORADO: Detectar error de cuota y cambiar a BM25 automáticamente
     if (error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
       if (!generateEmbedding._quotaWarningShown) {
-        console.error('❌ Gemini Embeddings quota exceeded');
-        console.warn('⚠️ Switching to BM25 fallback for all future requests');
-        console.warn('💡 To use embeddings: upgrade to paid tier at https://aistudio.google.com/apikey');
+        console.warn('⚠️  Embeddings quota exceeded - Using BM25 fallback');
         generateEmbedding._quotaWarningShown = true;
       }
       // Marcar rate limit como alcanzado para evitar más llamadas
@@ -411,14 +408,14 @@ async function generateEmbedding(text) {
     }
     
     if (error.message?.includes('API key not valid')) {
-      console.error('❌ Invalid GEMINI_API_KEY - Check your .env file');
-      console.error('💡 Get a valid key from: https://aistudio.google.com/apikey');
-    } else {
-      console.error('❌ Error generating embedding:', error.message);
-      // Mostrar más detalles del error en desarrollo
+      console.error('❌ Invalid GEMINI_API_KEY');
+    } else if (error.status === 503) {
+      // Silenciar errores 503 (overloaded) en la precomputation en background
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error details:', JSON.stringify(error, null, 2));
+        // Solo en dev, mostrar mensaje silenciosamente
       }
+    } else {
+      console.error('❌ Embedding error:', error.message);
     }
     return null;
   }
@@ -525,13 +522,14 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
       if (results.length >= 3) {
         results.sort((a, b) => b.score - a.score);
         
-        const threshold = options.threshold || 0.3;
+        // ✅ Threshold simple y funcional (Google recomienda valores permisivos para RAG)
+        const threshold = options.threshold || 0.25;
         const filtered = results
           .filter(r => r.score >= threshold)
           .slice(0, limit);
         
         const cacheHitRate = results.filter(r => r.fromCache).length / results.length;
-        console.log(`📚 Found ${filtered.length} documents with embeddings (threshold: ${threshold})`);
+        console.log(`📚 Found ${filtered.length} documents with embeddings (threshold: ${threshold.toFixed(2)})`);
         console.log(`💾 Cache hit rate: ${(cacheHitRate * 100).toFixed(1)}%`);
         if (filtered.length > 0) {
           console.log(`🎯 Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
@@ -609,152 +607,191 @@ export async function searchSimilar(indexName, query, limit = 5, options = {}) {
   }
 }
 
-// ✅ NUEVO: Función para pre-computar embeddings en background
+// ✅ BATCH API OPTIMIZATION: Enhanced pre-compute strategy
+// Strategy: Batch 50 docs into single embedContent call + intelligent delays
+async function batchEmbedMultipleTexts(texts) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Truncate long texts
+    const truncatedTexts = texts.map(text => 
+      text.length > 8000 ? text.substring(0, 8000) : text
+    );
+
+    // embedContent accepts multiple contents
+    const response = await ai.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: truncatedTexts
+    });
+
+    // Return array of embeddings
+    if (response.embeddings && Array.isArray(response.embeddings)) {
+      return response.embeddings.map(e => e.values || e);
+    }
+    
+    return null;
+  } catch (error) {
+    if (error.status === 429 || error.status === 503) {
+      // Rate limit or overload - return null to trigger fallback
+      return null;
+    }
+    console.error('Batch embedding error:', error.message);
+    return null;
+  }
+}
+
+// ✅ SMART BATCHING with adaptive delays
+async function precomputeWithSmartBatching(knowledgeBase) {
+  let precomputed = 0;
+  let skipped = 0;
+  let failed = 0;
+  
+  // ✅ STRATEGY: Batch 40-50 docs per API call (not individual requests)
+  // This respects the batch quota much better than individual calls
+  const BATCH_SIZE = 50; // Embed 50 docs per single API call
+  const BATCH_DELAY_BASE = 2000; // 2 seconds between batches (safe margin)
+  const totalBatches = Math.ceil(knowledgeBase.length / BATCH_SIZE);
+  
+  console.log(`📦 Pre-computing with batch strategy: ${totalBatches} batches of ${BATCH_SIZE} docs`);
+  
+  for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
+    const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
+    const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    
+    // Collect all texts in batch
+    const batchTexts = batch.map(doc => {
+      const cacheKey = doc.content.substring(0, 100);
+      if (precomputedEmbeddings.has(cacheKey)) {
+        skipped++;
+        return null; // Skip already cached
+      }
+      return doc.content;
+    }).filter(Boolean);
+    
+    if (batchTexts.length === 0) {
+      // All docs in batch were cached
+      if (batchNum % 5 === 0 || batchNum === totalBatches) {
+        const percentage = ((batchNum / totalBatches) * 100).toFixed(0);
+        console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed}`);
+      }
+      continue;
+    }
+    
+    // Process entire batch with single API call
+    const embeddings = await batchEmbedMultipleTexts(batchTexts);
+    
+    if (embeddings && embeddings.length === batchTexts.length) {
+      // Success: cache all embeddings from this batch
+      let batchPrecomputed = 0;
+      let textIndex = 0;
+      
+      for (const doc of batch) {
+        const cacheKey = doc.content.substring(0, 100);
+        if (!precomputedEmbeddings.has(cacheKey)) {
+          // Find corresponding embedding (account for skipped cached docs)
+          const embedding = embeddings[textIndex];
+          if (embedding && Array.isArray(embedding)) {
+            precomputedEmbeddings.set(cacheKey, embedding);
+            batchPrecomputed++;
+            textIndex++;
+          }
+        }
+      }
+      
+      precomputed += batchPrecomputed;
+      embeddingCallCount++; // Count as one API call
+      
+      // Adaptive delay: if rate limit approaching, increase delay
+      let delayMs = BATCH_DELAY_BASE;
+      if (embeddingCallCount > 40) {
+        delayMs = 4000; // Increase delay if approaching rate limit
+      }
+      if (embeddingCallCount > 45) {
+        delayMs = 5000; // Even more conservative
+      }
+      
+      // Log progress less frequently  
+      if (batchNum % 5 === 0 || batchNum === totalBatches) {
+        const percentage = ((batchNum / totalBatches) * 100).toFixed(0);
+        console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed} | 📊 API calls: ${embeddingCallCount}/50`);
+      }
+      
+      // Wait before next batch
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    } else {
+      // Batch failed: mark all as failed and use BM25 fallback
+      failed += batchTexts.length;
+      
+      if (batchNum % 5 === 0 || batchNum === totalBatches) {
+        const percentage = ((batchNum / totalBatches) * 100).toFixed(0);
+        console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed} (batch failed)`);
+      }
+      
+      // Longer delay after failure
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+  
+  return { precomputed, skipped, failed };
+}
+
 export async function precomputeKnowledgeBaseEmbeddings() {
   try {
     const { knowledgeBase } = await import('./knowledge-base.js');
     
     if (!process.env.GEMINI_API_KEY) {
-      console.log('⚠️ Skipping precomputation: No API key');
       return { precomputed: 0 };
     }
     
-    console.log('🔄 Starting background embedding precomputation...');
+    console.log('🔄 Pre-computing embeddings in background (using batch API)...');
     
-    // ✅ Activar modo silencioso para generateEmbedding
+    // ✅ Enable silent mode to avoid log spam
     generateEmbedding._silentMode = true;
     
-    let precomputed = 0;
-    let skipped = 0;
-    let failed = 0;
-    const BATCH_SIZE = 5; // Más conservador
-    const REQUEST_DELAY = 1500; // ✅ FIX: 1.5s entre requests = 40 requests/min (bajo límite de 50/min)
-    const totalBatches = Math.ceil(knowledgeBase.length / BATCH_SIZE);
+    // Use optimized smart batching strategy
+    const { precomputed, skipped, failed } = await precomputeWithSmartBatching(knowledgeBase);
     
-    for (let i = 0; i < knowledgeBase.length; i += BATCH_SIZE) {
-      const batch = knowledgeBase.slice(i, i + BATCH_SIZE);
-      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
-      
-      for (const doc of batch) {
-        const cacheKey = doc.content.substring(0, 100);
-        
-        // Solo generar si no está en cache
-        if (!precomputedEmbeddings.has(cacheKey)) {
-          const embedding = await generateEmbedding(doc.content);
-          
-          if (embedding) {
-            precomputedEmbeddings.set(cacheKey, embedding);
-            precomputed++;
-          } else {
-            failed++;
-          }
-          
-          // ✅ Delay entre requests para respetar rate limit (1.5s = 40 req/min)
-          await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
-        } else {
-          skipped++;
-        }
-      }
-      
-      // Log de progreso cada 5 batches
-      if (batchNum % 5 === 0 || batchNum === totalBatches) {
-        const progress = ((batchNum / totalBatches) * 100).toFixed(0);
-        console.log(`� Progress: ${progress}% (${batchNum}/${totalBatches} batches) | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed}`);
-      }
-      
-      // Delay entre batches no necesario con REQUEST_DELAY ya aplicado
-      // Tiempo total: 115 docs * 1.5s = ~3 minutos para completar todos los embeddings
-    }
-    
-    // ✅ Desactivar modo silencioso
+    // ✅ Disable silent mode
     generateEmbedding._silentMode = false;
     
     const total = precomputed + skipped;
     const percentage = ((total / knowledgeBase.length) * 100).toFixed(1);
     
-    console.log(`✅ Precomputation complete: ${total}/${knowledgeBase.length} embeddings (${percentage}%)`);
-    if (skipped > 0) {
-      console.log(`   ⏭️  ${skipped} already cached`);
-    }
+    console.log(`✅ Pre-computation done: ${total}/${knowledgeBase.length} (${percentage}%)`);
     if (failed > 0) {
-      console.log(`   ⚠️  ${failed} failed (using BM25 fallback)`);
+      console.log(`  ⚠️ ${failed} fallback to BM25`);
     }
     
     return { precomputed, skipped, failed, total: knowledgeBase.length };
   } catch (error) {
     generateEmbedding._silentMode = false;
-    console.error('❌ Error in precomputation:', error.message);
+    console.error('Pre-computation error:', error.message);
     return { precomputed: 0, error: error.message };
   }
 }
 
-// ✅ NUEVO: Analizar complejidad de la query para determinar límite óptimo
-function analyzeQueryComplexity(query) {
-  const queryLower = query.toLowerCase();
-  const wordCount = query.split(/\s+/).length;
-  
-  // Patrones de alta complejidad (requieren 8 documentos)
-  const highComplexityPatterns = [
-    // Roadmap y planificación
-    /roadmap|timeline|phase|milestone|plan.*futur|complete.*overview/i,
-    // Años múltiples
-    /(2024|2025|2026|2027).*(?:2024|2025|2026|2027)/i,
-    // Features múltiples
-    /(staking|nft|marketplace|airdrop|tokenization).*(?:staking|nft|marketplace|airdrop|tokenization)/i,
-    // Comparaciones
-    /(?:compar|diferenc|versus|vs|diferent).*(?:entre|between)/i,
-    // Queries largas (>15 palabras sugiere complejidad)
-    wordCount > 15 ? /.*/ : /(?!)/
-  ];
-  
-  // Patrones de complejidad media (requieren 6 documentos)
-  const mediumComplexityPatterns = [
-    // Features individuales con detalles
-    /(?:how|como|cómo|what|que|qué).*(?:work|funciona|detail|detalle)/i,
-    // Múltiples características
-    /characteristic|feature|funcionalidad|capacidad/i,
-    // Procesos
-    /process|proceso|step|paso|guide|guía/i,
-    // Queries medianas (8-15 palabras)
-    wordCount >= 8 && wordCount <= 15 ? /.*/ : /(?!)/
-  ];
-  
-  // Detectar complejidad alta
-  if (highComplexityPatterns.some(pattern => pattern.test(queryLower))) {
-    return 'high';
-  }
-  
-  // Detectar complejidad media
-  if (mediumComplexityPatterns.some(pattern => pattern.test(queryLower))) {
-    return 'medium';
-  }
-  
-  // Por defecto: complejidad simple (5 documentos)
-  return 'simple';
-}
-
-// Obtener contexto relevante
+// ✅ Obtener contexto relevante - Configuración simple y funcional
 export async function getRelevantContext(query, options = {}) {
   try {
-    // ✅ OPTIMIZADO: Sistema de límites inteligente basado en complejidad de query
-    const queryComplexity = analyzeQueryComplexity(query);
-    const defaultLimit = queryComplexity === 'high' ? 8 : queryComplexity === 'medium' ? 6 : 5;
+    // ✅ SIMPLIFICADO: Límite fijo de 5 documentos (recomendación de Google para RAG)
+    const limit = options.limit || 5;
     
-    // ✅ Threshold dinámico: más estricto con más documentos para mantener calidad
-    const dynamicThreshold = defaultLimit >= 8 ? 0.3 : defaultLimit >= 6 ? 0.27 : 0.25;
+    // ✅ SIMPLIFICADO: Threshold fijo de 0.25 (permisivo para encontrar contexto relevante)
+    const threshold = options.threshold || 0.25;
     
-    const results = await searchSimilar('knowledge_base', query, options.limit || defaultLimit, {
-      threshold: options.threshold || dynamicThreshold,
+    const results = await searchSimilar('knowledge_base', query, limit, {
+      threshold,
       ...options
     });
     
     if (results.length === 0) {
-      console.log(`ℹ️ No relevant context found (complexity: ${queryComplexity}, limit: ${defaultLimit}, threshold: ${dynamicThreshold})`);
       return {
         context: '',
         score: 0,
         documentsFound: 0,
-        queryComplexity,
         usedEmbeddings: false
       };
     }
@@ -773,24 +810,18 @@ export async function getRelevantContext(query, options = {}) {
     // ✅ Detectar si se usaron embeddings o BM25
     const usedEmbeddings = results.some(r => r.embeddingScore !== undefined);
     
-    console.log(`✅ Context built from ${results.length} documents (${context.length} chars)`);
-    console.log(`📊 Query complexity: ${queryComplexity} | Limit: ${defaultLimit} | Threshold: ${dynamicThreshold}`);
-    console.log(`📈 Average score: ${avgScore.toFixed(3)} | Top score: ${results[0].score.toFixed(3)}`);
-    console.log(`🔧 Method: ${usedEmbeddings ? 'Gemini Embeddings' : 'BM25 Fallback'}`);
-    console.log(`🔍 Top result: "${results[0].content.substring(0, 100)}..."`);
+    // Log using professional chat logger
+    chatLogger.logKBSearch(query, results);
     
     return {
       context,
       score: avgScore,
       documentsFound: results.length,
       topScore: results[0].score,
-      queryComplexity,
-      searchLimit: defaultLimit,
-      threshold: dynamicThreshold,
-      usedEmbeddings // ✅ NUEVO: Indicar qué método se usó
+      usedEmbeddings
     };
   } catch (error) {
-    console.error('❌ Error getting relevant context:', error);
+    chatLogger.logError(error, 'Knowledge Base Search');
     return {
       context: '',
       score: 0,

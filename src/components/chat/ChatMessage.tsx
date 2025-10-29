@@ -1,6 +1,5 @@
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import MessageItem from './MessageItem'
-import { debounce } from '../../utils/performance/debounce'
 
 interface Message {
   id: string
@@ -9,8 +8,19 @@ interface Message {
   timestamp: Date
 }
 
+// Message interface from ChatReducer
+interface ChatMessageFromReducer {
+  id: string
+  text: string
+  sender: 'user' | 'assistant'
+  timestamp: string
+  conversationId?: string
+  isStreaming?: boolean
+  error?: string
+}
+
 interface ChatMessageProps {
-  messages: Message[]
+  messages: (Message | ChatMessageFromReducer)[]
   isLoading: boolean
   shouldAutoScroll?: boolean
 }
@@ -19,7 +29,6 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
-  const [lastMessageCount, setLastMessageCount] = useState(0)
   const [isNearBottomCached, setIsNearBottomCached] = useState(true)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const lastScrollPositionRef = useRef(0)
@@ -37,20 +46,9 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
   const checkIsNearBottom = useCallback(() => {
     if (!containerRef.current) return true
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current
-    const threshold = 150 // Increased threshold for better UX
+    const threshold = 150
     return scrollHeight - scrollTop - clientHeight < threshold
   }, [])
-
-  // Debounced scroll position update
-  const updateScrollPosition = useMemo(
-    () => debounce(() => {
-      const isNear = checkIsNearBottom()
-      if (isNear !== isNearBottomCached) {
-        setIsNearBottomCached(isNear)
-      }
-    }, 100),
-    [checkIsNearBottom, isNearBottomCached]
-  )
 
   // Optimized scroll detection with throttling
   useEffect(() => {
@@ -65,12 +63,16 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
         lastScrollPositionRef.current = currentScrollTop
         
         setIsUserScrolling(true)
-        updateScrollPosition()
+        
+        const isNear = checkIsNearBottom()
+        if (isNear !== isNearBottomCached) {
+          setIsNearBottomCached(isNear)
+        }
         
         clearTimeout(scrollTimeoutRef.current)
         scrollTimeoutRef.current = setTimeout(() => {
           setIsUserScrolling(false)
-        }, 1500) // Increased timeout for better UX
+        }, 1500)
       }
     }
 
@@ -80,41 +82,65 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
       container.removeEventListener('scroll', handleScroll)
       clearTimeout(scrollTimeoutRef.current)
     }
-  }, [updateScrollPosition])
+  }, [checkIsNearBottom, isNearBottomCached])
+
+  // Track message count with a ref to avoid dependency issues
+  const messageCountRef = useRef(messages.length)
 
   // Optimized auto-scroll with better conditions
   useEffect(() => {
     if (!shouldAutoScroll) return
     
     const newMessageCount = messages.length
-    const hasNewMessage = newMessageCount > lastMessageCount
+    const lastCount = messageCountRef.current
+    const hasNewMessage = newMessageCount > lastCount
     
     if (hasNewMessage) {
-      // Enhanced auto-scroll conditions:
-      // 1. First message always scrolls
-      // 2. User near bottom and not actively scrolling
-      // 3. Loading state (streaming) should always scroll if near bottom
       const shouldScroll = newMessageCount === 1 || 
         (!isUserScrolling && isNearBottomCached) ||
         (isLoading && isNearBottomCached)
       
       if (shouldScroll) {
-        // Use requestAnimationFrame for smoother scrolling
         requestAnimationFrame(() => {
-          setTimeout(scrollToBottom, 50) // Reduced delay for better responsiveness
+          setTimeout(scrollToBottom, 50)
         })
       }
     }
     
-    setLastMessageCount(newMessageCount)
-  }, [messages, shouldAutoScroll, isUserScrolling, isNearBottomCached, isLoading, lastMessageCount, scrollToBottom])
+    messageCountRef.current = newMessageCount
+  }, [messages.length, shouldAutoScroll, isUserScrolling, isNearBottomCached, isLoading, scrollToBottom])
 
   return (
     <div className="relative">
       <div ref={containerRef} className="px-6 py-4 space-y-6">
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
-        ))}
+        {messages.map((message) => {
+          // Map from ChatMessageFromReducer interface to Message interface
+          let mappedMessage: Message;
+          
+          if ('text' in message) {
+            // It's from the reducer (ChatMessageFromReducer)
+            mappedMessage = {
+              id: message.id,
+              role: message.sender === 'user' ? 'user' : 'assistant',
+              content: message.text || '',
+              timestamp: typeof message.timestamp === 'string' 
+                ? new Date(message.timestamp) 
+                : new Date()
+            };
+          } else {
+            // It's already a Message
+            mappedMessage = {
+              id: message.id,
+              role: message.role,
+              content: message.content || '',
+              timestamp: typeof message.timestamp === 'string' 
+                ? new Date(message.timestamp) 
+                : message.timestamp
+            };
+          }
+          
+          return <MessageItem key={message.id} message={mappedMessage} />
+        })}
         
         {/* Loading indicator */}
         {isLoading && (

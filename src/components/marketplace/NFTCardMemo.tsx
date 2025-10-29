@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react';
-import type { MarketplaceNFT } from '../../hooks/nfts/useMarketplace';
+import type { MarketplaceNFT } from '../../types/marketplace';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';

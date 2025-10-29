@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import ChatMessage from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
+import PauseButton from '../components/chat/PauseButton'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
@@ -13,7 +14,7 @@ import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimiza
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
-  const { messages, isLoading, isStreaming, sendMessage, isUsingUrlContext } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext } = useChatStreaming()
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
@@ -75,20 +76,20 @@ function Chat() {
         <div className={`fixed left-0 right-0 border-t border-white/10 bg-brand-black-600/50 backdrop-blur-glass z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`} style={{
           transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
         }}>
-          <div className="max-w-4xl mx-auto">
-            <div className={`${isMobile ? 'px-4 py-4' : 'px-6 py-4'}`}>
+          <div className="max-w-4xl mx-auto w-full">
+            <div className={`${isMobile ? 'px-3 py-3 safe-area-inset-bottom' : 'px-6 py-4'}`}>
               <form onSubmit={handleSendMessage} className="relative">
                 {/* URL analysis indicator */}
                 {isUsingUrlContext && (
-                  <div className="mb-3 flex items-center justify-center">
+                  <div className="mb-2 flex items-center justify-center">
                     <div className="px-3 py-1.5 border border-blue-500/30 rounded-lg bg-blue-900/20 flex items-center space-x-2 text-blue-400 animate-pulse">
-                      <span className="text-xs font-medium">Analyzing URL content...</span>
+                      <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs'}`}>Analyzing URL content...</span>
                     </div>
                   </div>
                 )}
               
-                <div className="flex items-end space-x-3">
-                  <div className="flex-1">
+                <div className="flex items-end space-x-2">
+                  <div className="flex-1 min-w-0">
                     <InputTextArea
                       value={message}
                       onChange={setMessage}
@@ -97,7 +98,12 @@ function Chat() {
                       placeholder="Ask Nuxbee"
                     />
                   </div>
-                  <div className="flex-shrink-0 p-2">
+                  {isStreaming && (
+                    <div className="flex-shrink-0 flex items-center justify-center pb-1">
+                      <PauseButton onClick={() => pauseStream()} />
+                    </div>
+                  )}
+                  <div className="flex-shrink-0 flex items-center justify-center pb-1">
                     <SendMessageButton
                       disabled={!message.trim() || isLoading || isStreaming}
                       isLoading={isLoading || isStreaming}

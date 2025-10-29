@@ -2,8 +2,6 @@ import React from 'react';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import RoadmapHero from '../components/Roadmap/RoadmapHero';
-import TimelineVisualization from '../components/Roadmap/TimelineVisualization';
-import PhaseCards from '../components/Roadmap/PhaseCards';
 import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
@@ -20,16 +18,6 @@ const RoadmapPage: React.FC = () => {
       }`}>
         <div className={isMobile ? 'space-y-12' : 'space-y-20'}>
           
-          {/* Timeline Visualization */}
-          <section>
-            <TimelineVisualization isMobile={isMobile} />
-          </section>
-
-          {/* Phase Cards - Detailed View */}
-          <section>
-            <PhaseCards isMobile={isMobile} />
-          </section>
-
           {/* Milestones Grid */}
           <section>
             <MilestonesGrid isMobile={isMobile} />
@@ -54,12 +42,22 @@ const RoadmapPage: React.FC = () => {
                 <div className={`flex gap-4 justify-center ${
                   isMobile ? 'flex-col' : 'flex-row'
                 }`}>
-                  <button className="btn-primary px-8 py-3">
+                  <a 
+                    href="https://discord.gg/szZP2JcSq4" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-primary px-8 py-3 inline-block text-center"
+                  >
                     Join Community
-                  </button>
-                  <button className="btn-secondary px-8 py-3">
+                  </a>
+                  <a 
+                    href="https://github.com/users/LennyDevX/projects/4" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="btn-secondary px-8 py-3 inline-block text-center"
+                  >
                     View Documentation
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

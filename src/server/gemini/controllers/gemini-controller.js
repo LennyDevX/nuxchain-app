@@ -11,9 +11,11 @@ import {
 import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
+import { formatResponseForMarkdown } from '../utils/markdown-formatter.js';
 import { getMetrics } from '../middlewares/logger.js';
 import embeddingsService, { getRelevantContext } from '../services/embeddings-service.js';
 import contextCacheService from '../services/context-cache-service.js';
+import chatLogger from '../utils/chat-logger.js';
 import analyticsService from '../services/analytics-service.js';
 import batchService from '../services/batch-service.js';
 import WebScraperService from '../services/web-scraper.js';
@@ -107,15 +109,33 @@ function optimizeMessages(messages, maxMessages = 20) {
  * POST /api/gemini/generate
  */
 export async function generateContent(req, res, next = null) {
-  // Iniciar tracking de analytics
-  const requestMetrics = analyticsService.startRequest('generate_content', req.body.model || 'default');
+  const metricsStart = Date.now();
+  chatLogger.reset();
   
   try {
     const { prompt, model, messages, temperature, maxTokens, stream, image } = req.body;
+    
+    // Get the actual query for logging
+    const queryText = prompt || messages?.[messages.length - 1]?.text || messages?.[messages.length - 1]?.parts?.[0]?.text || '';
+    
+    chatLogger.logSystemInfo({
+      kbEnabled: true,
+      embeddingsEnabled: true
+    });
+    
+    chatLogger.logQueryAnalysis(queryText, {
+      needsKB: true,
+      confidence: 0.8
+    });
+    
+    // Iniciar tracking de analytics
+    const requestMetrics = analyticsService.startRequest('generate_content', req.body.model || 'default');
+    
     // Validación de entrada
     const validationErrors = validateInput(req.body);
     if (validationErrors.length > 0) {
       analyticsService.failRequest(requestMetrics, new Error('Validation failed'));
+      chatLogger.logError(new Error('Validation failed'), 'Input validation');
       return res.status(400).json({ 
         error: 'Datos de entrada inválidos', 
         details: validationErrors 
@@ -211,27 +231,40 @@ export async function generateContent(req, res, next = null) {
           flushInterval: isMobile ? 30 : 50
         };
         
+        // Log response generation start
+        chatLogger.logResponseStart(model || 'gemini-2.5-flash', {
+          temperature: params.temperature,
+          maxTokens: params.maxOutputTokens,
+          streaming: true
+        });
+        
         // Obtener stream nativo de Gemini
         const geminiStream = await processGeminiStreamRequest(contents, model, params);
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
-        console.log('📥 Collecting response from Gemini...');
         let fullResponse = '';
         let chunkCount = 0;
+        const responseStartTime = Date.now();
         
         for await (const chunk of geminiStream) {
           const text = chunk?.candidates?.[0]?.content?.parts?.[0]?.text || chunk?.text || '';
           if (text) {
             fullResponse += text;
             chunkCount++;
+            chatLogger.logResponseProgress(chunkCount, fullResponse.length);
           }
         }
         
-        console.log(`✅ Collected ${chunkCount} chunks (${fullResponse.length} chars) from Gemini`);
+        // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
+        // This guarantees that both local dev and production responses have proper markdown structure
+        const formattedResponse = formatResponseForMarkdown(fullResponse);
+        
+        // Log response completion
+        const responseDuration = Date.now() - responseStartTime;
+        chatLogger.logResponseComplete(formattedResponse.length, responseDuration);
         
         // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
-        console.log('🎯 Starting semantic streaming...');
-        await semanticStreamingService.streamSemanticContent(res, fullResponse, {
+        await semanticStreamingService.streamSemanticContent(res, formattedResponse, {
           enableSemanticChunking: true,
           enableContextualPauses: true,
           enableVariableSpeed: true,
@@ -241,12 +274,20 @@ export async function generateContent(req, res, next = null) {
           }
         });
         
+        // Log final summary
+        chatLogger.logSummary({
+          queryType: 'streaming',
+          kbUsed: true,
+          responseLength: formattedResponse.length,
+          status: '✅ Success'
+        });
+        
         analyticsService.endRequest(requestMetrics);
         return;
 
       } catch (streamError) {
         // Mejor manejo de errores en streaming
-        console.error('Stream setup error:', streamError);
+        chatLogger.logError(streamError, 'Stream generation');
         analyticsService.failRequest(requestMetrics, streamError);
         
         // Determinar el tipo de error y respuesta apropiada

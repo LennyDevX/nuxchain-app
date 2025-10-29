@@ -6,6 +6,7 @@
 
 /* Core Styles */
 @import "./globals.css";
+@import "./breakpoints.css";  /* Centralized responsive breakpoints */
 
 /* Animations - CONSOLIDATED (includes ai-analysis-animations) */
 @import "./animations.css";

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ModernSelect from '../ui/ModernSelect';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useDebounce } from '../../hooks/performance/useDebounce';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 
 interface MarketplaceFiltersProps {
   categories: { name: string; count: number; icon: string; }[];
@@ -34,7 +36,10 @@ export default function MarketplaceFilters({
   className = '',
   isLoading = false
 }: MarketplaceFiltersProps) {
-  const [searchQuery, setSearchQuery] = useState(currentFilters.searchQuery);
+  // 🎯 Estado local con debounce para búsqueda
+  const [searchInput, setSearchInput] = useState(currentFilters.searchQuery);
+  const debouncedSearch = useDebounce(searchInput, 300);
+  
   const [priceMin, setPriceMin] = useState(currentFilters.priceRange.min.toString());
   const [priceMax, setPriceMax] = useState(
     currentFilters.priceRange.max === Infinity ? '' : currentFilters.priceRange.max.toString()
@@ -42,11 +47,28 @@ export default function MarketplaceFilters({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const isMobile = useIsMobile();
+  
+  // 📳 Haptic feedback
+  const triggerHaptic = useTapFeedback();
+
+  // 🔄 Efecto para aplicar búsqueda debounced
+  useEffect(() => {
+    onSearchChange(debouncedSearch);
+  }, [debouncedSearch, onSearchChange]);
+
+  // 🎨 Memoizar opciones de categoría
+  const categoryOptions = useMemo(() => [
+    { value: 'all', label: 'All Categories', icon: '🎨' },
+    ...categories.map(cat => ({
+      value: cat.name,
+      label: `${cat.name.charAt(0).toUpperCase() + cat.name.slice(1)} (${cat.count})`,
+      icon: cat.icon
+    }))
+  ], [categories]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSearchQuery(value);
-    onSearchChange(value);
+    setSearchInput(value);
   };
 
   const handlePriceFilter = () => {
@@ -54,15 +76,22 @@ export default function MarketplaceFilters({
     const max = priceMax ? parseFloat(priceMax) : Infinity;
     onPriceRangeChange(min, max);
     setIsPriceOpen(false);
+    triggerHaptic('medium'); // 📳 Feedback al aplicar filtro
   };
 
   const clearFilters = () => {
-    setSearchQuery('');
+    setSearchInput('');
     setPriceMin('0');
     setPriceMax('');
     onSearchChange('');
     onCategoryChange('all');
     onPriceRangeChange(0, Infinity);
+    triggerHaptic('light'); // 📳 Feedback al limpiar
+  };
+
+  const handleFilterToggle = () => {
+    setIsFilterOpen(!isFilterOpen);
+    triggerHaptic('light'); // 📳 Feedback al toggle
   };
 
   const hasActiveFilters = 
@@ -74,16 +103,6 @@ export default function MarketplaceFilters({
   const hasPriceFilter = 
     currentFilters.priceRange.min > 0 || 
     currentFilters.priceRange.max !== Infinity;
-
-  // Category options with icons
-  const CATEGORY_OPTIONS = [
-    { value: 'all', label: 'All Categories', icon: '🎨' },
-    ...categories.map(cat => ({
-      value: cat.name,
-      label: `${cat.name.charAt(0).toUpperCase() + cat.name.slice(1)} (${cat.count})`,
-      icon: cat.icon
-    }))
-  ];
 
   // Show skeleton while loading
   if (isLoading) {
@@ -115,8 +134,9 @@ export default function MarketplaceFilters({
           <input
             type="text"
             placeholder="Search marketplace..."
-            value={searchQuery}
+            value={searchInput}
             onChange={handleSearchChange}
+            aria-label="Search marketplace by NFT name or description"
             className="
               w-full h-11 pl-10 pr-4
               bg-white/5 backdrop-blur-md
@@ -142,7 +162,9 @@ export default function MarketplaceFilters({
         {/* Mobile Filter Toggle */}
         {isMobile && (
           <button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            onClick={handleFilterToggle}
+            aria-label={isFilterOpen ? 'Close filters menu' : 'Open filters menu'}
+            aria-expanded={isFilterOpen}
             className={`
               h-11 px-4 flex items-center gap-2
               rounded-lg border font-medium text-sm
@@ -169,7 +191,7 @@ export default function MarketplaceFilters({
           <ModernSelect
             value={currentFilters.category}
             onChange={onCategoryChange}
-            options={CATEGORY_OPTIONS}
+            options={categoryOptions}
             placeholder="Category"
           />
           
@@ -184,6 +206,9 @@ export default function MarketplaceFilters({
           <div className="relative">
             <button
               onClick={() => setIsPriceOpen(!isPriceOpen)}
+              aria-label={hasPriceFilter ? `Price filter active: ${currentFilters.priceRange.min} to ${currentFilters.priceRange.max === Infinity ? 'unlimited' : currentFilters.priceRange.max} POL` : 'Set price range filter'}
+              aria-expanded={isPriceOpen}
+              aria-haspopup="true"
               className={`
                 w-full h-11 px-4 
                 bg-white/5 backdrop-blur-md
@@ -250,12 +275,14 @@ export default function MarketplaceFilters({
                       onPriceRangeChange(0, Infinity);
                       setIsPriceOpen(false);
                     }}
+                    aria-label="Clear price range filter"
                     className="flex-1 px-3 py-2 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-colors"
                   >
                     Clear
                   </button>
                   <button
                     onClick={handlePriceFilter}
+                    aria-label="Apply price range filter"
                     className="flex-1 px-3 py-2 text-xs font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
                   >
                     Apply
@@ -273,6 +300,7 @@ export default function MarketplaceFilters({
           {currentFilters.category !== 'all' && (
             <button
               onClick={() => onCategoryChange('all')}
+              aria-label={`Remove ${currentFilters.category} category filter`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/15 border border-purple-500/30 rounded-full text-xs font-medium text-purple-300 hover:bg-purple-500/25 transition-colors"
             >
               <span>{categories.find(c => c.name === currentFilters.category)?.icon || '📁'}</span>
@@ -285,6 +313,7 @@ export default function MarketplaceFilters({
           {hasPriceFilter && (
             <button
               onClick={() => onPriceRangeChange(0, Infinity)}
+              aria-label={`Remove price filter: ${currentFilters.priceRange.min} to ${currentFilters.priceRange.max === Infinity ? 'unlimited' : currentFilters.priceRange.max} POL`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 border border-green-500/30 rounded-full text-xs font-medium text-green-300 hover:bg-green-500/25 transition-colors"
             >
               <span>💵</span>
@@ -307,7 +336,7 @@ export default function MarketplaceFilters({
               <ModernSelect
                 value={currentFilters.category}
                 onChange={onCategoryChange}
-                options={CATEGORY_OPTIONS}
+                options={categoryOptions}
                 placeholder="Category"
               />
               
@@ -338,6 +367,7 @@ export default function MarketplaceFilters({
                 </div>
                 <button
                   onClick={handlePriceFilter}
+                  aria-label="Apply price range filter"
                   className="w-full px-3 py-2 text-xs font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
                 >
                   Apply Price Filter
@@ -347,6 +377,7 @@ export default function MarketplaceFilters({
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
+                  aria-label="Clear all active filters"
                   className="w-full h-9 px-4 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-all duration-200"
                 >
                   Clear all filters

@@ -108,11 +108,20 @@ const LabsPage: React.FC = () => {
             <div className={`grid gap-4 ${
               isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
             }`}>
-              <div className={`card-stats border-green-500/20 ${isMobile ? 'p-3' : ''}`}>
+              <div 
+                className={`card-stats border-green-500/20 ${isMobile ? 'p-3' : ''}`}
+                role="region"
+                aria-label="Profitability optimization metric showing 42% improvement"
+              >
                 <div>
-                  <h3 className={`font-bold text-green-400 ${
-                    isMobile ? 'text-xl' : 'text-3xl'
-                  }`}>+42%</h3>
+                  <h3 
+                    className={`font-bold text-green-400 ${
+                      isMobile ? 'text-xl' : 'text-3xl'
+                    }`}
+                    aria-live="polite"
+                  >
+                    +42%
+                  </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
@@ -129,11 +138,20 @@ const LabsPage: React.FC = () => {
                 )}
               </div>
               
-              <div className={`card-stats border-blue-500/20 ${isMobile ? 'p-3' : ''}`}>
+              <div 
+                className={`card-stats border-blue-500/20 ${isMobile ? 'p-3' : ''}`}
+                role="region"
+                aria-label="Investment simulations metric showing over 500 thousand scenarios analyzed"
+              >
                 <div>
-                  <h3 className={`font-bold text-blue-400 ${
-                    isMobile ? 'text-xl' : 'text-3xl'
-                  }`}>500k+</h3>
+                  <h3 
+                    className={`font-bold text-blue-400 ${
+                      isMobile ? 'text-xl' : 'text-3xl'
+                    }`}
+                    aria-live="polite"
+                  >
+                    500k+
+                  </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
@@ -150,11 +168,20 @@ const LabsPage: React.FC = () => {
                 )}
               </div>
               
-              <div className={`card-stats border-purple-500/20 ${isMobile ? 'p-3' : ''}`}>
+              <div 
+                className={`card-stats border-purple-500/20 ${isMobile ? 'p-3' : ''}`}
+                role="region"
+                aria-label="Recommendation accuracy metric showing 98 percent success rate"
+              >
                 <div>
-                  <h3 className={`font-bold text-purple-400 ${
-                    isMobile ? 'text-xl' : 'text-3xl'
-                  }`}>98%</h3>
+                  <h3 
+                    className={`font-bold text-purple-400 ${
+                      isMobile ? 'text-xl' : 'text-3xl'
+                    }`}
+                    aria-live="polite"
+                  >
+                    98%
+                  </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
@@ -171,11 +198,20 @@ const LabsPage: React.FC = () => {
                 )}
               </div>
               
-              <div className={`card-stats border-amber-500/20 ${isMobile ? 'p-3' : ''}`}>
+              <div 
+                className={`card-stats border-amber-500/20 ${isMobile ? 'p-3' : ''}`}
+                role="region"
+                aria-label="Predictive models metric showing 12 advanced analysis tools"
+              >
                 <div>
-                  <h3 className={`font-bold text-amber-400 ${
-                    isMobile ? 'text-xl' : 'text-3xl'
-                  }`}>12</h3>
+                  <h3 
+                    className={`font-bold text-amber-400 ${
+                      isMobile ? 'text-xl' : 'text-3xl'
+                    }`}
+                    aria-live="polite"
+                  >
+                    12
+                  </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>

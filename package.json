@@ -69,6 +69,7 @@
     "@types/node": "^24.9.1",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/serviceworker": "^0.0.161",
     "@vercel/analytics": "^1.5.0",
     "@vercel/node": "^5.4.1",
     "@vercel/speed-insights": "^1.2.0",
@@ -86,7 +87,9 @@
     "terser": "^5.44.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vite": "^7.1.12"
+    "vite": "^7.1.12",
+    "vite-plugin-pwa": "^1.1.0",
+    "workbox-window": "^7.3.0"
   },
   "overrides": {
     "axios": "^1.13.1"

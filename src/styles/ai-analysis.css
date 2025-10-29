@@ -147,7 +147,8 @@
    RESPONSIVE UTILITIES
    ======================================== */
 
-@media (max-width: 768px) {
+/* Mobile (below md breakpoint) */
+@media (max-width: 767px) {
   .score-circle-container {
     transform: scale(0.8);
   }
@@ -163,6 +164,7 @@
   }
 }
 
+/* Tablet and up (md breakpoint) */
 @media (min-width: 768px) {
   .ai-recommendations-grid {
     display: grid;

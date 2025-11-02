@@ -1,29 +1,44 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useReducedMotion } from '../../hooks/mobile';
 import { NFT_BENEFITS } from '../nfts/benefits';
 
 function Benefits() {
-  const benefits = NFT_BENEFITS;
+  const allBenefits = NFT_BENEFITS;
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  
+  // ✅ Detectar preferencia de reducción de animaciones
+  const shouldReduceMotion = useReducedMotion();
+
+  // 🎬 Batch animations optimization: only animate visible items
+  // Show all items - browsers handle animation caching efficiently
+  const visibleBenefits = useMemo(() => {
+    return allBenefits;
+  }, [allBenefits]);
+
+  const benefits = visibleBenefits;
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.06,
-        delayChildren: 0.1,
+        staggerChildren: shouldReduceMotion ? 0 : 0.06,
+        delayChildren: shouldReduceMotion ? 0 : 0.1,
       },
     },
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 12 },
+    hidden: { 
+      opacity: 0, 
+      y: shouldReduceMotion ? 0 : 12 
+    },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.35,
+        duration: shouldReduceMotion ? 0 : 0.35,
         ease: 'easeOut',
       },
     },
@@ -34,9 +49,9 @@ function Benefits() {
       <div className="p-2.5 sm:p-3 md:p-4 flex-1 flex flex-col">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -15 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
           className="mb-3 sm:mb-4 md:mb-5 text-center"
         >
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">
@@ -54,7 +69,7 @@ function Benefits() {
           animate="visible"
           className="space-y-0 flex-1 overflow-y-auto pr-2 scrollbar-hide"
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="popLayout">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}

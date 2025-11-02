@@ -1,5 +1,6 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useReducedMotion } from '../../hooks/mobile';
 
 interface FAQItem {
   icon: string;
@@ -48,25 +49,38 @@ const faqItems: FAQItem[] = [
 ];
 
 function FAQ() {
+  const allFaqItems = faqItems;
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  
+  // ✅ Detectar preferencia de reducción de animaciones
+  const shouldReduceMotion = useReducedMotion();
+
+  // 🎬 Batch animations optimization: render all items
+  // Browsers handle animation caching efficiently
+  const visibleFaqItems = useMemo(() => {
+    return allFaqItems;
+  }, [allFaqItems]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.1,
+        staggerChildren: shouldReduceMotion ? 0 : 0.05,
+        delayChildren: shouldReduceMotion ? 0 : 0.1,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: -8 },
+    hidden: { 
+      opacity: 0, 
+      y: shouldReduceMotion ? 0 : -8 
+    },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.3 },
+      transition: { duration: shouldReduceMotion ? 0 : 0.3 },
     },
   };
 
@@ -95,7 +109,7 @@ function FAQ() {
           animate="visible"
           className="space-y-0 flex-1 overflow-y-auto pr-2 scrollbar-hide"
         >
-          {faqItems.map((item, index) => (
+          {visibleFaqItems.map((item, index) => (
         <motion.div
           key={index}
           variants={itemVariants}

@@ -4,7 +4,7 @@ function BenefitsSection() {
   const isMobile = useIsMobile()
   
   return (
-    <div className={`${isMobile ? 'py-12' : 'py-24'}`}>
+    <div className={`${isMobile ? 'py-12' : 'py-24'} relative z-10`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`text-center ${isMobile ? 'mb-8' : 'mb-20'} animate-fade-in`}>
           <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6`}>

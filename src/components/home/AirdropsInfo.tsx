@@ -6,7 +6,7 @@ const AirdropsInfo = () => {
   const navigate = useNavigate();
 
   return (
-    <section className={`${isMobile ? 'py-12 px-4' : 'py-20'}`}>
+    <section className={`${isMobile ? 'py-12 px-4' : 'py-20'} relative z-10`}>
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'flex flex-col items-center text-center' : 'flex flex-col md:flex-row items-center justify-between'} gap-12`}>
         {/* Image Section - Hidden on mobile */}
         {!isMobile && (

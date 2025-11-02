@@ -3,6 +3,8 @@ import type { MarketplaceNFT } from '../../types/marketplace';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
+import { generateImageSrcSet, IMAGE_SIZES } from '../../utils/images/imageOptimization';
 
 interface NFTCardProps {
   nft: MarketplaceNFT;
@@ -14,10 +16,14 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
   const { convertPOLToUSD, polPrice } = usePOLPrice();
   const { imageUrl, isLoading: imageLoading, error: imageError } = useImageCache(nft.image);
   const isMobile = useIsMobile();
+  
+  // ✅ Haptic feedback
+  const triggerHaptic = useTapFeedback();
 
   const handleBuyClick = useCallback(() => {
+    triggerHaptic('medium'); // ✅ Haptic feedback when clicking buy
     onBuy(nft);
-  }, [nft, onBuy]);
+  }, [nft, onBuy, triggerHaptic]);
 
   return (
     <div className="group card-interactive overflow-hidden h-full">
@@ -39,10 +45,12 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
         ) : (
           <img 
             src={imageUrl} 
+            srcSet={generateImageSrcSet(imageUrl)}
             alt={nft.name || `NFT #${nft.tokenId || index + 1}`}
             className="w-full h-full object-cover"
             loading="lazy"
             decoding="async"
+            sizes={IMAGE_SIZES.nft.mobile}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -102,7 +110,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
             {/* Botón de compra ancho y centrado */}
             <button 
               onClick={handleBuyClick}
-              className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 text-sm"
+              className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 text-sm active:scale-95 transition-transform"
             >
               Buy Now
             </button>
@@ -120,7 +128,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
             </div>
             <button 
               onClick={handleBuyClick}
-              className="px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25 flex-shrink-0"
+              className="px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25 flex-shrink-0 active:scale-95 transition-transform"
             >
               Buy Now
             </button>

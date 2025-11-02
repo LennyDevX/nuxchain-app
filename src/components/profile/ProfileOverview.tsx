@@ -6,6 +6,7 @@ import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
 import { apolloClient } from '../../lib/apollo-client';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 
 const ProfileOverview: React.FC = () => {
   const { address, isConnected } = useAccount();
@@ -15,6 +16,9 @@ const ProfileOverview: React.FC = () => {
   });
   const { activities, isLoading: activitiesLoading, refreshActivities } = useRecentActivities(10);
   const [isClearing, setIsClearing] = useState(false);
+  
+  // ✅ Haptic feedback
+  const triggerHaptic = useTapFeedback();
   
   const { data: balance } = useBalance({
     address: address,
@@ -114,12 +118,15 @@ const ProfileOverview: React.FC = () => {
           </div>
           <div className={`flex ${isMobile ? 'w-full' : ''} items-center gap-2`}>
             <button
-              onClick={handleClearCacheAndRefresh}
+              onClick={() => {
+                triggerHaptic('medium'); // ✅ Haptic feedback
+                handleClearCacheAndRefresh();
+              }}
               disabled={isClearing || activitiesLoading}
               aria-label={isClearing ? 'Clearing cache...' : 'Clear Apollo cache and refresh data'}
               aria-busy={isClearing}
               aria-disabled={isClearing || activitiesLoading}
-              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 rounded-lg text-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 transition-transform`}
             >
               <svg 
                 className={`w-4 h-4 ${isClearing ? 'animate-spin' : ''}`} 
@@ -137,12 +144,15 @@ const ProfileOverview: React.FC = () => {
               {!isMobile && 'Clear Cache'}
             </button>
             <button
-              onClick={refreshActivities}
+              onClick={() => {
+                triggerHaptic('light'); // ✅ Haptic feedback
+                refreshActivities();
+              }}
               disabled={activitiesLoading}
               aria-label={activitiesLoading ? 'Refreshing activities...' : 'Refresh recent activities'}
               aria-busy={activitiesLoading}
               aria-disabled={activitiesLoading}
-              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-3 py-1 text-sm'} bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-purple-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 transition-transform`}
             >
               <svg 
                 className={`w-4 h-4 ${activitiesLoading ? 'animate-spin' : ''}`} 

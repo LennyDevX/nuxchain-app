@@ -11,7 +11,7 @@ const TokenizationSection: React.FC = () => {
   };
 
   return (
-    <section className={`relative ${isMobile ? 'py-12' : 'py-20'} px-4 overflow-hidden`}>
+    <section className={`relative z-10 ${isMobile ? 'py-12' : 'py-20'} px-4 overflow-hidden`}>
       <div className="max-w-7xl mx-auto">
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'lg:grid-cols-2 gap-12'} items-center`}>
           {/* Left side - Content */}

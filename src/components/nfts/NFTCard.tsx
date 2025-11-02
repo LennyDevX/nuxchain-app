@@ -256,124 +256,115 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
         </div>
 
 
-        {/* BACK SIDE - Detailed Info with Beautiful Layout */}
+        {/* BACK SIDE - Professional Minimalist Layout */}
         <div 
           className="absolute w-full h-full top-0 left-0 rounded-2xl"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900/40 via-gray-900 to-black border border-purple-500/30 shadow-2xl h-full w-full flex flex-col">
-            {/* Decorative Background Pattern */}
-            <div className="absolute inset-0 opacity-5">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-950 via-gray-900 to-black border border-purple-500/20 shadow-2xl h-full w-full flex flex-col">
+            {/* Subtle Background Pattern */}
+            <div className="absolute inset-0 opacity-20">
               <div className="absolute inset-0" style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                backgroundSize: '32px 32px'
+                backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.5) 1px, transparent 1px)',
+                backgroundSize: '40px 40px'
               }}></div>
             </div>
 
-            {/* Fixed Header */}
-            <div className="relative p-3 sm:p-4 border-b border-white/10 bg-black/20 backdrop-blur-sm flex-shrink-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm sm:text-base font-bold text-white truncate">NFT Details</h3>
-                    <p className="text-[9px] sm:text-[10px] text-purple-300">#{nft.tokenId}</p>
-                  </div>
+            {/* Fixed Header - Minimalist */}
+            <div className="relative p-4 sm:p-5 border-b border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-white truncate">{nft.name || `NFT #${nft.tokenId}`}</h3>
+                  <p className="text-xs sm:text-sm text-purple-300/80 mt-0.5">Token ID: <span className="font-mono">{nft.tokenId}</span></p>
                 </div>
                 <button 
                   onClick={handleFlip}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation flex-shrink-0 ml-2"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation flex-shrink-0"
                 >
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
 
-            {/* Scrollable Content */}
+            {/* Scrollable Content - Organized in Clean Sections */}
             <div className="relative flex-1 overflow-y-auto custom-scrollbar">
-              <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                {/* NFT Title & Description Card - Compact */}
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-2.5 sm:p-3">
-                  <h4 className="text-xs sm:text-sm font-bold text-white mb-1 line-clamp-1">
-                    {nft.name || `NFT #${nft.tokenId}`}
-                  </h4>
-                  <p className="text-[10px] sm:text-xs text-gray-300 leading-snug line-clamp-2">
-                    {nft.description || 'No description available for this NFT.'}
-                  </p>
-                </div>
+              <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
+                {/* Description Section */}
+                {nft.description && (
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4">
+                    <h4 className="text-xs sm:text-sm font-semibold text-gray-300 mb-2">About</h4>
+                    <p className="text-sm sm:text-base text-white leading-relaxed">
+                      {nft.description}
+                    </p>
+                  </div>
+                )}
 
-                {/* Price Info (if listed) - Compact */}
+                {/* Price Section - Only if listed */}
                 {nft.isForSale && nft.price && (
-                  <div className="bg-gradient-to-r from-emerald-600/20 to-green-600/20 border border-emerald-500/40 rounded-lg p-2.5 sm:p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-[10px] sm:text-xs text-emerald-300 font-semibold">Price</span>
-                      </div>
+                  <div className="bg-gradient-to-br from-emerald-600/15 via-emerald-600/10 to-transparent border border-emerald-500/30 rounded-xl p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-xs sm:text-sm font-semibold text-emerald-300">Current Price</span>
                     </div>
-                    <div className="flex items-baseline gap-1.5">
-                      <p className="text-base sm:text-lg font-bold text-white truncate">
-                        {formattedPricePOL}
-                      </p>
+                    <div className="space-y-1">
+                      <p className="text-2xl sm:text-3xl font-bold text-white">{formattedPricePOL}</p>
                       {formattedPriceUSD && (
-                        <p className="text-[10px] sm:text-xs text-emerald-400 font-medium truncate">
-                          ≈ {formattedPriceUSD}
-                        </p>
+                        <p className="text-sm sm:text-base text-emerald-400 font-medium">≈ {formattedPriceUSD}</p>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Owner Info Cards - More Compact */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-gradient-to-br from-purple-600/20 to-purple-600/5 border border-purple-500/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      <span className="text-[9px] sm:text-[10px] text-purple-300 font-semibold">Creator</span>
+                {/* Addresses Section - Creator & Owner */}
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4">
+                  <h4 className="text-xs sm:text-sm font-semibold text-gray-300 mb-3">Details</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <p className="text-xs sm:text-sm text-purple-300 font-medium">Creator</p>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white font-mono bg-purple-600/15 px-3 py-2 rounded-lg truncate">
+                        {nft.creator}
+                      </p>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] text-white font-mono bg-purple-600/20 px-1.5 py-0.5 rounded truncate">
-                      {nft.creator?.slice(0, 5)}...{nft.creator?.slice(-3)}
-                    </p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-blue-600/20 to-blue-600/5 border border-blue-500/30 rounded-lg p-2">
-                    <div className="flex items-center gap-1 mb-1">
-                      <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span className="text-[9px] sm:text-[10px] text-blue-300 font-semibold">Owner</span>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <p className="text-xs sm:text-sm text-blue-300 font-medium">Owner</p>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white font-mono bg-blue-600/15 px-3 py-2 rounded-lg truncate">
+                        {nft.owner}
+                      </p>
                     </div>
-                    <p className="text-[9px] sm:text-[10px] text-white font-mono bg-blue-600/20 px-1.5 py-0.5 rounded truncate">
-                      {nft.owner?.slice(0, 5)}...{nft.owner?.slice(-3)}
-                    </p>
                   </div>
                 </div>
 
-                {/* Attributes Section - Optimized Grid */}
+                {/* Attributes Section */}
                 {nft.attributes && nft.attributes.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                      <h5 className="text-[10px] sm:text-xs font-bold text-white">Attributes</h5>
-                      <span className="ml-auto text-[9px] sm:text-[10px] text-purple-400 bg-purple-600/20 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                  <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <h4 className="text-xs sm:text-sm font-semibold text-gray-300">Attributes</h4>
+                      </div>
+                      <span className="text-xs sm:text-sm text-purple-300 bg-purple-600/20 px-2.5 py-1 rounded-full font-medium">
                         {nft.attributes.length}
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {nft.attributes.map((attr: NFTAttribute, index: number) => {
                         const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
                                              attr.trait_type.toLowerCase().includes('created');
@@ -384,12 +375,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                             key={index} 
                             className={`${
                               isSpecialAttr 
-                                ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50' 
-                                : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20'
-                            } border rounded-md p-1.5 sm:p-2 transition-all duration-200 hover:scale-105 active:scale-95 hover:border-purple-400/50 touch-manipulation`}
+                                ? 'bg-gradient-to-br from-purple-600/20 to-pink-600/10 border-purple-400/40' 
+                                : 'bg-white/5 border-white/10'
+                            } border rounded-lg p-2.5 sm:p-3 transition-all duration-200 hover:border-purple-400/50 hover:bg-white/10 touch-manipulation`}
                           >
-                            <p className="text-[9px] sm:text-[10px] text-gray-400 mb-0.5 truncate">{attr.trait_type}</p>
-                            <p className={`text-[10px] sm:text-xs font-bold text-white truncate ${isSpecialAttr ? 'font-mono text-purple-300' : ''}`}>
+                            <p className="text-[9px] sm:text-xs text-gray-400 mb-1 truncate">{attr.trait_type}</p>
+                            <p className={`text-xs sm:text-sm font-bold truncate ${isSpecialAttr ? 'text-purple-300' : 'text-white'}`}>
                               {formattedValue}
                             </p>
                           </div>
@@ -401,16 +392,27 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
               </div>
             </div>
 
-            {/* Fixed Footer Button */}
-            <div className="relative p-3 sm:p-4 border-t border-white/10 bg-black/20 backdrop-blur-sm flex-shrink-0">
+            {/* Fixed Footer - Action Buttons */}
+            <div className="relative p-4 sm:p-5 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0 space-y-2">
+              {!nft.isForSale && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:from-purple-700 active:to-pink-700 border border-purple-400/50 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2 touch-manipulation"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  List for Sale
+                </button>
+              )}
               <button
                 onClick={handleFlip}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:from-purple-700 active:to-pink-700 border border-purple-400/50 rounded-lg px-3 py-2 sm:py-2.5 text-xs sm:text-sm text-white font-semibold transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-1.5 touch-manipulation"
+                className="w-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 touch-manipulation"
               >
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                 </svg>
-                Back to NFT
+                Back to View
               </button>
             </div>
           </div>

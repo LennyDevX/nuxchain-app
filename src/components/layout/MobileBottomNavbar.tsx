@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useBottomNavbar } from '../../hooks/mobile';
 import { useChatNavbar } from '../../hooks/mobile/useChatNavbar';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 import WalletConnect from '../web3/WalletConnect';
 
 // Iconos SVG
@@ -49,6 +50,9 @@ const MobileBottomNavbar: React.FC = () => {
   const chatNavbar = useChatNavbar();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
+  // ✅ Haptic feedback
+  const triggerHaptic = useTapFeedback();
+  
   // Usar el hook apropiado según la página
   const { isVisible, isMobile } = isInChat ? chatNavbar : bottomNavbar;
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
@@ -85,11 +89,14 @@ const MobileBottomNavbar: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={isInChat ? hideNavbar : undefined}
-                className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 ${
+                onClick={() => {
+                  triggerHaptic('light'); // ✅ Haptic feedback
+                  if (isInChat) hideNavbar?.();
+                }}
+                className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${
                   active
                     ? 'bg-pink-500/20 scale-105 shadow-lg shadow-pink-500/20'
-                    : 'hover:bg-white/5 active:scale-95'
+                    : 'hover:bg-white/5'
                 }`}
               >
                 <div className={`p-1 rounded-lg transition-all duration-200 ${
@@ -110,7 +117,10 @@ const MobileBottomNavbar: React.FC = () => {
           
           {/* Botón de menú hamburguesa */}
           <button
-            onClick={() => setIsMenuOpen(true)}
+            onClick={() => {
+              triggerHaptic('light'); // ✅ Haptic feedback
+              setIsMenuOpen(true);
+            }}
             className="flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 hover:bg-white/5 active:scale-95 relative"
           >
             <div className="p-1 rounded-lg transition-all duration-200">

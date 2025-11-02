@@ -2,6 +2,7 @@ import React from 'react';
 import { useAccount } from 'wagmi';
 import type { MarketplaceNFT } from '../../types/marketplace';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 
 // SVG Icons
 const XIcon = () => (
@@ -31,6 +32,9 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
   const { address: account, isConnected } = useAccount();
   const [buyError, setBuyError] = React.useState<string>('');
   
+  // ✅ Haptic feedback
+  const triggerHaptic = useTapFeedback();
+  
   // 🎯 Accessibility: Focus trap and keyboard navigation
   const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
   const handleBackdropClick = useModalBackdrop(onClose);
@@ -40,13 +44,16 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
   const handleBuy = () => {
     if (!isConnected) {
       setBuyError('You must connect your wallet to purchase');
+      triggerHaptic('error'); // ✅ Haptic feedback for error
       return;
     }
     if (account && nft.owner && account.toLowerCase() === nft.owner.toLowerCase()) {
       setBuyError('You cannot buy your own NFT');
+      triggerHaptic('error'); // ✅ Haptic feedback for error
       return;
     }
     setBuyError('');
+    triggerHaptic('success'); // ✅ Haptic feedback for success
     onBuy(nft);
     onSuccess?.(nft);
     onClose();
@@ -127,9 +134,12 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
 
         <div className="flex gap-3">
           <button
-            onClick={onClose}
+            onClick={() => {
+              triggerHaptic('light'); // ✅ Haptic feedback
+              onClose();
+            }}
             aria-label="Cancel purchase"
-            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors active:scale-95 transition-transform"
           >
             Cancel
           </button>
@@ -138,7 +148,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
             disabled={!isConnected || Boolean(isOwner)}
             aria-label={!isConnected ? 'Connect wallet to buy' : isOwner ? 'Cannot buy your own NFT' : `Buy ${nft.name || 'NFT'} for ${nft.priceInEth || '0.10'} POL`}
             aria-disabled={!isConnected || Boolean(isOwner)}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
           >
             Buy
           </button>

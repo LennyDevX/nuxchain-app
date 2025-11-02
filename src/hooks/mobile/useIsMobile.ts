@@ -18,8 +18,10 @@ const MAX_CACHE_SIZE = 100;
  * @returns boolean - true si es móvil, false si es desktop
  */
 export const useIsMobile = (): boolean => {
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const [isMobile, setIsMobile] = useState<boolean>(
+    () => window.innerWidth <= 768
+  );
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -54,8 +56,10 @@ export const useIsMobile = (): boolean => {
 
       // ✅ Limitar tamaño de cache
       if (isMobileCache.size > MAX_CACHE_SIZE) {
-        const firstKey = isMobileCache.keys().next().value;
-        isMobileCache.delete(firstKey);
+        const firstKey = isMobileCache.keys().next().value as number | undefined;
+        if (firstKey !== undefined) {
+          isMobileCache.delete(firstKey);
+        }
       }
 
       setIsMobile(result);

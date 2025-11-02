@@ -6,7 +6,24 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { registerSW } from 'virtual:pwa-register'
 
+// ✅ Disable Lit dev mode for production performance
+// This prevents "Lit is in dev mode" warning in console
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  // Disable Lit dev mode warnings in production
+  try {
+    // Access global Lit state if available
+    const litModule = (globalThis as Record<string, unknown>).__litModule;
+    if (litModule && typeof litModule === 'object' && 'setIsDevMode' in litModule) {
+      (litModule as Record<string, unknown>).setIsDevMode?.(false);
+    }
+  } catch {
+    // Silently fail if Lit module not accessible
+  }
+}
+
 import './styles/index.css'
+import './styles/spacing.css'
+import './styles/responsive-grid.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
 

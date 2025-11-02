@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 function StakingSection() {
   const [stakingAmount, setStakingAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState('30');
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   // Staking calculator logic
   const getMultiplier = () => {
@@ -29,7 +31,7 @@ function StakingSection() {
   };
   
   return (
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Calculadora de Staking - Izquierda */}
         <div className="order-2 lg:order-1">

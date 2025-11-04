@@ -1,8 +1,7 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
 // The Graph Studio endpoint for nuxchain subgraph
-const SUBGRAPH_URL = 'https://api.studio.thegraph.com/query/122195/nuxchain/v0.0.2';
-
+const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain-subgraph/0.0.2"
 // Create Apollo Client instance
 export const apolloClient = new ApolloClient({
   link: new HttpLink({

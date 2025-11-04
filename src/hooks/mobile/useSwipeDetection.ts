@@ -14,6 +14,7 @@ interface SwipeDetectionResult {
   handleTouchEnd: (e: React.TouchEvent) => void;
   direction: SwipeDirection;
   distance: number;
+  isHandling: boolean;
 }
 
 /**
@@ -42,17 +43,21 @@ export function useSwipeDetection(
   const [touchStartY, setTouchStartY] = useState(0);
   const [direction, setDirection] = useState<SwipeDirection>(null);
   const [distance, setDistance] = useState(0);
+  const [isHandling, setIsHandling] = useState(false); // ✅ Cooldown state
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // ✅ Prevenir swipes simultáneos
+    if (isHandling) return;
+    
     setTouchStart(e.targetTouches[0].clientX);
     setTouchStartY(e.targetTouches[0].clientY);
     setDirection(null);
     setDistance(0);
-  }, []);
+  }, [isHandling]);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      if (!touchStart || !touchStartY) return;
+      if (!touchStart || !touchStartY || isHandling) return;
 
       const endX = e.changedTouches[0].clientX;
       const endY = e.changedTouches[0].clientY;
@@ -67,30 +72,40 @@ export function useSwipeDetection(
         // Swipe horizontal
         if (touchStart - endX > minDistance) {
           setDirection('LEFT');
+          setIsHandling(true); // ✅ Activar cooldown
           handlers.onSwipeLeft?.();
         } else if (endX - touchStart > minDistance) {
           setDirection('RIGHT');
+          setIsHandling(true); // ✅ Activar cooldown
           handlers.onSwipeRight?.();
         }
       } else if (distanceY > minDistance) {
         // Swipe vertical
         if (touchStartY - endY > minDistance) {
           setDirection('UP');
+          setIsHandling(true); // ✅ Activar cooldown
           handlers.onSwipeUp?.();
         } else if (endY - touchStartY > minDistance) {
           setDirection('DOWN');
+          setIsHandling(true); // ✅ Activar cooldown
           handlers.onSwipeDown?.();
         }
       }
+
+      // ✅ Cooldown de 300ms entre swipes
+      if (isHandling) {
+        setTimeout(() => setIsHandling(false), 300);
+      }
     },
-    [touchStart, touchStartY, minDistance, handlers]
+    [touchStart, touchStartY, minDistance, handlers, isHandling]
   );
 
   return {
     handleTouchStart,
     handleTouchEnd,
     direction,
-    distance
+    distance,
+    isHandling
   };
 }
 

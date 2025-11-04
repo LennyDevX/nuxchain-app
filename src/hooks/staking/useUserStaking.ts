@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
-import SmartStakingABI from '../../abi/SmartStaking.json';
+import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json';
 
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2;
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
 
 interface DepositData {
   amount: bigint;
@@ -29,7 +29,7 @@ export function useUserStaking(): UserStakingData {
 
   const contractConfig = {
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
+    abi: EnhancedSmartStakingABI.abi,
   };
 
   // Get total deposit

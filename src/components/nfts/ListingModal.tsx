@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
 interface ListingModalProps {
@@ -11,7 +11,7 @@ interface ListingModalProps {
   onSuccess: () => void;
 }
 
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
 
 export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: ListingModalProps) {
   const [listingPrice, setListingPrice] = useState('');
@@ -58,7 +58,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
     try {
       await writeListContract({
         address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi,
+        abi: GameifiedMarketplaceABI.abi,
         functionName: 'listTokenForSale',
         args: [BigInt(tokenId), parseEther(listingPrice), category],
       });

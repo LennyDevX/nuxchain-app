@@ -11,6 +11,36 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
+    icon: '⚡',
+    question: 'What are Skill NFTs?',
+    answer: 'Skill NFTs are special NFTs with built-in staking abilities and power-ups. Instead of just being static digital art, they have actual skills that boost your staking rewards, automate compounding, reduce lock times, or minimize withdrawal fees. These skills make your NFTs more valuable and exponentially increase staking yields.',
+    category: 'Skills'
+  },
+  {
+    icon: '🎯',
+    question: 'How do Skills work?',
+    answer: 'Each Skill NFT can have up to 5 different skills from 7 types: 📈 Stake Boost I/II/III (+5/+10/+20% ROI), 🔄 Auto Compound (reinvests rewards every 24h), � Lock Reducer (-25% lock time), 💰 Fee Reducer I (-10% withdrawal fee), or 💸 Fee Reducer II (-25% withdrawal fee). Each skill has an Effect Value (1-100) and Rarity (1★-5★). You need minimum 200 POL staked to create Skill NFTs.',
+    category: 'Skills'
+  },
+  {
+    icon: '💵',
+    question: 'What does it cost to add Skills?',
+    answer: 'First skill is FREE! Additional skills cost POL tokens based on rarity: Common (1★) = 25 POL, Uncommon (2★) = 40 POL, Rare (3★) = 60 POL, Epic (4★) = 80 POL, Legendary (5★) = 100 POL. Example: NFT with 3 skills (first free + 2 paid) = ~90 POL total. Costs are paid from your staked POL balance.',
+    category: 'Skills'
+  },
+  {
+    icon: '📈',
+    question: 'Do Skills increase NFT value?',
+    answer: 'Absolutely! Skill NFTs are worth significantly more than standard NFTs. The more skills and higher rarities you add, the more valuable your NFT becomes. Buyers specifically seek out Skill NFTs for their utility and rarity. Your resale potential increases dramatically.',
+    category: 'Skills'
+  },
+  {
+    icon: '🏆',
+    question: 'Can I change Skills after minting?',
+    answer: 'No, skills are immutable once minted. This ensures authenticity and prevents manipulation. Always configure your skills carefully before minting. You can always mint new NFTs with different skill combinations, but you cannot modify skills on existing NFTs.',
+    category: 'Skills'
+  },
+  {
     icon: '⏳',
     question: 'Why does my NFT show "Unknown" initially?',
     answer: 'This is completely normal! IPFS (decentralized storage) needs a few moments to fetch and cache metadata from the network. Your NFT is safely stored on the blockchain, and the image will appear within 2-5 minutes. You can refresh to check sooner.',
@@ -19,7 +49,7 @@ const faqItems: FAQItem[] = [
   {
     icon: '🔒',
     question: 'Can I edit my NFT after creation?',
-    answer: 'NFTs are immutable once created—this is by design and ensures authenticity and prevents fraud. This is what makes NFTs valuable and trustworthy. Always double-check all details (name, description, image, royalties) before minting.',
+    answer: 'NFTs are immutable once created—this is by design and ensures authenticity and prevents fraud. This is what makes NFTs valuable and trustworthy. Always double-check all details (name, description, image, royalties, skills) before minting.',
     category: 'NFT Properties'
   },
   {
@@ -31,19 +61,19 @@ const faqItems: FAQItem[] = [
   {
     icon: '💰',
     question: 'How do royalties work?',
-    answer: 'Set a royalty percentage (0-10%) during creation. Every time your NFT is resold, you automatically receive that percentage of the sale price. Royalties are enforced by the smart contract, so you earn passively on all future sales forever.',
+    answer: 'Set a royalty percentage (0-10%) during creation. Every time your NFT is resold, you automatically receive that percentage of the sale price. Royalties are enforced by the smart contract, so you earn passively on all future sales forever. Works with both Standard and Skill NFTs.',
     category: 'Monetization'
   },
   {
-    icon: '⚡',
+    icon: '🔷',
     question: 'Why use Polygon instead of Ethereum?',
-    answer: 'Polygon offers the same security as Ethereum but with 100x lower gas fees and 10x faster transactions. Your NFTs are 100% Ethereum-compatible and tradeable on any marketplace. Perfect for creators who want to minimize costs.',
+    answer: 'Polygon offers the same security as Ethereum but with 100x lower gas fees and 10x faster transactions. Your NFTs are 100% Ethereum-compatible and tradeable on any marketplace supporting Polygon. Perfect for creators who want to minimize costs, especially when adding Skills.',
     category: 'Blockchain'
   },
   {
     icon: '🔑',
     question: 'Can I transfer my NFT to another wallet?',
-    answer: 'Yes! You have full ownership. Transfer to any Ethereum-compatible wallet, sell on any marketplace supporting Polygon, or hold indefinitely. You control your NFTs completely—no platform lock-in.',
+    answer: 'Yes! You have full ownership of both Standard and Skill NFTs. Transfer to any Ethereum-compatible wallet, sell on any marketplace supporting Polygon, or hold indefinitely. You control your NFTs completely—no platform lock-in. Skills transfer with the NFT.',
     category: 'Ownership'
   }
 ];

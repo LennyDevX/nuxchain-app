@@ -10,7 +10,7 @@ interface PoolInfoProps {
 }
 
 // Contract address from environment variables
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2 || '0x0A57f28E47D42B6AAD6A4B1D91E7A896d107b637'
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xae57acBf4efE2F6536D992F86145a20e11DB8C3D'
 const POL_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000001010' // POL token on Polygon
 
 const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {
@@ -68,8 +68,8 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
         <div className="flex justify-between items-center">
           <span className="text-white/60">Estimated APY:</span>
           <div className="text-right">
-            <span className="text-green-400 font-bold text-lg">87.6%</span>
-            <p className="text-white/40 text-xs">Annual Percentage Yield</p>
+            <span className="text-green-400 font-bold text-lg">43.8%</span>
+            <p className="text-white/40 text-xs">Base Annual Percentage Yield</p>
           </div>
         </div>
 

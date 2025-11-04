@@ -10,10 +10,11 @@ import usePOLPrice from '../hooks/coingecko/usePOLPrice';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
-import { nftLogger } from '../utils/nftLogger';
+import { nftLogger } from '../utils/log/nftLogger';
 
-// Lazy load the BuyModal component
+// Lazy load components
 const BuyModal = lazy(() => import('../components/marketplace/BuyModal'));
+const MarketplaceSidebar = lazy(() => import('../components/marketplace/MarketplaceSidebar'));
 
 // ✅ Adapter function: NFTData → MarketplaceNFT
 function convertToMarketplaceNFT(nft: NFTData): MarketplaceNFT {
@@ -208,96 +209,197 @@ function Marketplace() {
   return (
     <div className="min-h-screen py-4 md:py-8">
       <div className={`max-w-7xl mx-auto ${isMobile ? 'px-3' : 'px-4 sm:px-6 lg:px-8'}`}>
-        {/* Header */}
-        <div className={`text-center ${isMobile ? 'mb-6' : 'mb-8'}`}>
-          <h1 className={`font-bold text-white ${isMobile ? 'text-2xl mb-3' : 'text-4xl mb-4'}`}>
-            NFT Marketplace
-          </h1>
-          <p className={`text-white/60 max-w-3xl mx-auto ${isMobile ? 'text-base px-4' : 'text-xl'}`}>
-            Discover, buy, and sell unique digital assets on our decentralized marketplace
-          </p>
-        </div>
-
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <p className="text-red-400">
-              Error loading marketplace: {error}
-            </p>
-          </div>
-        )}
-
-        {/* Stats - Calculated from filteredNFTs */}
-        {filteredNFTs.length > 0 && (
-          <MarketplaceStats
-            stats={{
-              totalListedNFTs: filteredNFTs.length,
-              floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
-              totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
-              averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
-            }}
-            loading={loading}
-            className={`${isMobile ? 'mb-4' : 'mb-6'}`}
-          />
-        )}
-
-        {/* Security Notice */}
         
-
-        {/* Filters Section - Full Width */}
-        <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
-          <MarketplaceFilters
-            categories={categories}
-            onCategoryChange={handleCategoryChange}
-            onPriceRangeChange={handlePriceRangeChange}
-            onSearchChange={handleSearchChange}
-            onSortChange={handleSortChange}
-            currentFilters={currentFilters}
-            className=""
-            isLoading={loading}
-          />
-        </div>
-
-        {/* Main Content - NFT Grid */}
-        <div>
-            <div className={`mb-4 flex justify-between items-center ${isMobile ? 'flex-col gap-3 sm:flex-row' : ''}`}>
-              <h2 className={`font-semibold text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                {filteredNFTs.length} NFTs
-              </h2>
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className={`bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 ${isMobile ? 'px-3 py-2 text-sm w-full sm:w-auto' : 'px-4 py-2 text-sm'}`}
-              >
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
+        {/* Desktop: Grid Layout con Sidebar */}
+        {!isMobile ? (
+          <div className="grid grid-cols-12 gap-8">
+            {/* Sidebar Izquierdo - 3 columnas */}
+            <div className="col-span-3">
+              <Suspense fallback={<LoadingSpinner />}>
+                <MarketplaceSidebar />
+              </Suspense>
             </div>
 
-            {/* Grid más espacioso para cards más grandes */}
-            <div className={`grid gap-3 ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8'}`}>
-              {loading ? (
-                <div className="col-span-full text-center py-16">
-                  <LoadingSpinner size="lg" text="Loading NFTs..." />
+            {/* Contenido Principal - 9 columnas */}
+            <div className="col-span-9">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-4xl font-bold text-white mb-4">
+                  NFT Marketplace
+                </h1>
+                <p className="text-xl text-white/60 max-w-3xl mx-auto">
+                  Discover, buy, and sell unique digital assets on our decentralized marketplace
+                </p>
+              </div>
+
+              {/* Error State */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <p className="text-red-400">
+                    Error loading marketplace: {error}
+                  </p>
                 </div>
-              ) : filteredNFTs.length === 0 ? (
-                <div className="col-span-full text-center py-16">
-                  <div className="text-white/40 text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No NFTs found</h3>
-                  <p className="text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
-                </div>
-              ) : (
-                filteredNFTs.map((nft, index) => (
-                  <NFTCardMemo
-                    key={nft.tokenId || index}
-                    nft={nft}
-                    index={index}
-                    onBuy={handleBuyNFT}
-                  />
-                ))
               )}
+
+              {/* Stats */}
+              {filteredNFTs.length > 0 && (
+                <MarketplaceStats
+                  stats={{
+                    totalListedNFTs: filteredNFTs.length,
+                    floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
+                    totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
+                    averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
+                  }}
+                  loading={loading}
+                  className="mb-6"
+                />
+              )}
+
+              {/* Filters Section */}
+              <div className="mb-6">
+                <MarketplaceFilters
+                  categories={categories}
+                  onCategoryChange={handleCategoryChange}
+                  onPriceRangeChange={handlePriceRangeChange}
+                  onSearchChange={handleSearchChange}
+                  onSortChange={handleSortChange}
+                  currentFilters={currentFilters}
+                  className=""
+                  isLoading={loading}
+                />
+              </div>
+
+              {/* Main Content - NFT Grid */}
+              <div>
+                <div className="mb-4 flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-white">
+                    {filteredNFTs.length} NFTs
+                  </h2>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-4 py-2 text-sm"
+                  >
+                    {refreshing ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                </div>
+
+                <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                  {loading ? (
+                    <div className="col-span-full text-center py-16">
+                      <LoadingSpinner size="lg" text="Loading NFTs..." />
+                    </div>
+                  ) : filteredNFTs.length === 0 ? (
+                    <div className="col-span-full text-center py-16">
+                      <div className="text-white/40 text-6xl mb-4">🔍</div>
+                      <h3 className="text-xl font-semibold text-white mb-2">No NFTs found</h3>
+                      <p className="text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
+                    </div>
+                  ) : (
+                    filteredNFTs.map((nft, index) => (
+                      <NFTCardMemo
+                        key={nft.tokenId || index}
+                        nft={nft}
+                        index={index}
+                        onBuy={handleBuyNFT}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          /* Mobile: Layout Vertical */
+          <>
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-white mb-3">
+                NFT Marketplace
+              </h1>
+              <p className="text-base text-white/60 px-4">
+                Discover, buy, and sell unique digital assets on our decentralized marketplace
+              </p>
+            </div>
+
+            {/* Error State */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-red-400">
+                  Error loading marketplace: {error}
+                </p>
+              </div>
+            )}
+
+            {/* Stats */}
+            {filteredNFTs.length > 0 && (
+              <MarketplaceStats
+                stats={{
+                  totalListedNFTs: filteredNFTs.length,
+                  floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
+                  totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
+                  averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
+                }}
+                loading={loading}
+                className="mb-4"
+              />
+            )}
+
+            {/* Filters Section */}
+            <div className="mb-4">
+              <MarketplaceFilters
+                categories={categories}
+                onCategoryChange={handleCategoryChange}
+                onPriceRangeChange={handlePriceRangeChange}
+                onSearchChange={handleSearchChange}
+                onSortChange={handleSortChange}
+                currentFilters={currentFilters}
+                className=""
+                isLoading={loading}
+              />
+            </div>
+
+            {/* Main Content - NFT Grid */}
+            <div>
+              <div className="mb-4 flex justify-between items-center flex-col gap-3 sm:flex-row">
+                <h2 className="text-lg font-semibold text-white">
+                  {filteredNFTs.length} NFTs
+                </h2>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-3 py-2 text-sm w-full sm:w-auto"
+                >
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
+
+              <div className="grid gap-2 grid-cols-2">
+                {loading ? (
+                  <div className="col-span-full text-center py-16">
+                    <LoadingSpinner size="lg" text="Loading NFTs..." />
+                  </div>
+                ) : filteredNFTs.length === 0 ? (
+                  <div className="col-span-full text-center py-16">
+                    <div className="text-white/40 text-6xl mb-4">🔍</div>
+                    <h3 className="text-xl font-semibold text-white mb-2">No NFTs found</h3>
+                    <p className="text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
+                  </div>
+                ) : (
+                  filteredNFTs.map((nft, index) => (
+                    <NFTCardMemo
+                      key={nft.tokenId || index}
+                      nft={nft}
+                      index={index}
+                      onBuy={handleBuyNFT}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Buy Modal */}
       <Suspense fallback={

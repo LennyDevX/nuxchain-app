@@ -2,11 +2,11 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient } from 'wagmi';
 import { getContract, type Abi } from 'viem';
 import { useEffect, useCallback, useRef, useState } from 'react';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
 import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
-import { nftLogger } from '../../utils/nftLogger';
+import { nftLogger } from '../../utils/log/nftLogger';
 
-const MARKETPLACE_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const MARKETPLACE_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
 
 export interface NFTAttribute {
   trait_type: string;
@@ -116,7 +116,7 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
 
       const contract = getContract({
         address: MARKETPLACE_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceABI.abi as Abi,
         client: publicClient
       });
 

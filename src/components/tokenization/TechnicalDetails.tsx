@@ -10,13 +10,43 @@ interface DetailCard {
 
 const details: DetailCard[] = [
   {
+    icon: '⚡',
+    title: 'Skill NFT System',
+    description: 'Mint NFTs with up to 5 embedded staking-focused skills',
+    badge: 'Gamified'
+  },
+  {
+    icon: '📈',
+    title: 'Stake Boost Skills',
+    description: 'Three tiers of ROI boosters: Stake Boost I (+5%), II (+10%), III (+20%). Compound your staking rewards and unlock higher yields. Works with your POL staking position to amplify earnings.',
+    badge: 'Staking'
+  },
+  {
+    icon: '🔄',
+    title: 'Auto Compound',
+    description: 'Automatically reinvest staking rewards every 24 hours. Maximizes APY through compounding without manual intervention. One of the most valuable skills for long-term yield farming.',
+    badge: 'Automated'
+  },
+  {
+    icon: '🔓',
+    title: 'Lock Reducer',
+    description: 'Reduce lock-up time by 25%, gaining flexibility to withdraw sooner. Perfect for traders who need liquidity while still earning staking rewards. Balances yield with accessibility.',
+    badge: 'Flexibility'
+  },
+  {
+    icon: '💰',
+    title: 'Fee Reducers',
+    description: 'Two levels: Fee Reducer I reduces withdrawal fees by 10%, Fee Reducer II by 25%. Minimize costs when claiming rewards. Every percentage point saved compounds over time.',
+    badge: 'Savings'
+  },
+  {
     icon: '🌐',
     title: 'IPFS Storage',
-    description: 'Your NFT data is stored on IPFS (InterPlanetary File System), a decentralized storage network. This ensures your content is permanent, immutable, and accessible even if any single server goes down.',
+    description: 'Your NFT data and skills metadata are stored on IPFS (InterPlanetary File System), a decentralized storage network. This ensures your content is permanent, immutable, and accessible even if any single server goes down.',
     badge: 'Decentralized'
   },
   {
-    icon: '⚡',
+    icon: '🔷',
     title: 'Polygon Network',
     description: 'Built on Polygon for low-cost, lightning-fast transactions. Your NFTs inherit Ethereum security while enjoying 100x lower fees. Fully compatible with any Ethereum-based dApp or marketplace.',
     badge: 'Layer 2'
@@ -24,25 +54,31 @@ const details: DetailCard[] = [
   {
     icon: '💰',
     title: 'Smart Contract Royalties',
-    description: 'Royalties are programmed directly into your NFT smart contract. You automatically receive payments on every resale, forever. No middlemen, no delays—pure smart contract automation.',
+    description: 'Royalties are programmed directly into your NFT smart contract. You automatically receive payments on every resale, forever. No middlemen, no delays—pure smart contract automation. Works with both Standard and Skill NFTs.',
     badge: 'Automated'
   },
   {
     icon: '🔒',
     title: 'True Ownership',
-    description: 'You own your NFTs completely. Transfer to any wallet, sell on any marketplace, or hold indefinitely. Your private keys = your NFTs. No platform lock-in or censorship possible.',
+    description: 'You own your NFTs and their skills completely. Transfer to any wallet, sell on any marketplace, or hold indefinitely. Your private keys = your NFTs. No platform lock-in or censorship possible. Skills are immutable.',
     badge: 'Self-Custody'
+  },
+  {
+    icon: '🏆',
+    title: 'POL Staking Integration',
+    description: 'Skill NFT creation integrates with POL staking. Stake 200+ POL to unlock skill minting. First skill is FREE, additional skills cost POL based on rarity. Passive staking rewards without sacrificing liquidity.',
+    badge: 'Integrated'
   },
   {
     icon: '🔐',
     title: 'ERC-721 Standard',
-    description: 'NFTs follow the ERC-721 standard, the most widely adopted NFT standard in Web3. This ensures maximum compatibility and future-proofing across all platforms and exchanges.',
+    description: 'NFTs follow the ERC-721 standard, the most widely adopted NFT standard in Web3. Skill data extends this with custom contract functions. Ensures maximum compatibility and future-proofing across all platforms and exchanges.',
     badge: 'Standard'
   },
   {
     icon: '⚙️',
     title: 'Batch Operations',
-    description: 'Mint multiple NFTs in a single transaction to save on gas fees. Perfect for collections or bulk operations. Manage metadata, royalties, and whitelist settings efficiently.',
+    description: 'Mint multiple NFTs in a single transaction to save on gas fees. Configure skills and metadata efficiently. Perfect for collections or bulk operations with granular skill control.',
     badge: 'Efficient'
   }
 ];
@@ -85,12 +121,12 @@ function TechnicalDetails() {
           </p>
         </motion.div>
 
-        {/* Grid Layout - 2x3 on all screens */}
+        {/* Grid Layout - Responsive 2-3 columns */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 flex-1 mb-2"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5 md:gap-3 flex-1 mb-2"
         >
           {details.map((detail, index) => (
             <motion.div key={index} variants={cardVariants}>

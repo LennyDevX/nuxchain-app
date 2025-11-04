@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, keccak256, toHex } from 'viem';
 import type { Abi } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
 import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
 
 interface MintNFTParams {
@@ -11,6 +11,11 @@ interface MintNFTParams {
   description: string;
   category: string;
   royalty: number;
+  skills?: Array<{
+    skillType: number;
+    effectValue: number;
+    rarity: number;
+  }>;
 }
 
 interface MintNFTResult {
@@ -22,7 +27,7 @@ interface MintNFTResult {
   contractAddress: string;
 }
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
 
 // Move category map outside component to prevent recreation on each render
 const categoryMap: Record<string, string> = {
@@ -67,7 +72,7 @@ export default function useMintNFT() {
   }, []);
 
   // Mint NFT using enhanced IPFS functions from blockchainUtils
-  const mintNFT = useCallback(async ({ file, name, description, category, royalty }: MintNFTParams): Promise<MintNFTResult> => {
+  const mintNFT = useCallback(async ({ file, name, description, category, royalty, skills = [] }: MintNFTParams): Promise<MintNFTResult> => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -95,33 +100,44 @@ export default function useMintNFT() {
       
       console.log("Connected wallet:", address);
 
+      // Validate Skills if present
+      if (skills && skills.length > 0) {
+        // Validation: Max 5 skills per NFT
+        if (skills.length > 5) {
+          throw new Error('Maximum 5 skills allowed per NFT');
+        }
+
+        // Validation: Check skill types are valid (0-6)
+        const invalidSkills = skills.filter(s => typeof s.skillType !== 'number' || s.skillType < 0 || s.skillType > 6);
+        if (invalidSkills.length > 0) {
+          throw new Error('Invalid skill type. Allowed types: 0-6 (Stake Boost I/II/III, Auto Compound, Lock Reducer, Fee Reducer I/II)');
+        }
+
+        // Validation: Check effect values are in range (1-100)
+        const invalidEffects = skills.filter(s => typeof s.effectValue !== 'number' || s.effectValue < 1 || s.effectValue > 100);
+        if (invalidEffects.length > 0) {
+          throw new Error('Invalid effect value. Must be between 1 and 100');
+        }
+
+        // Validation: Check rarity values are valid (0-4)
+        const invalidRarities = skills.filter(s => typeof s.rarity !== 'number' || s.rarity < 0 || s.rarity > 4);
+        if (invalidRarities.length > 0) {
+          throw new Error('Invalid rarity level. Allowed: 0-4 (Common to Legendary)');
+        }
+
+        console.log("Skills validation passed:", {
+          count: skills.length,
+          types: skills.map(s => s.skillType),
+          rarities: skills.map(s => s.rarity),
+        });
+      }
+
       // Create contract instance
       const contract = getContract({
         address: validatedContractAddress as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
-
-      // --- NUEVO: Verifica si la categoría está registrada ---
-      try {
-        // Si el contrato tiene registerCategory, intenta registrar si es necesario
-        // Si ya está registrada, esto hará revert, pero no afecta si ya existe
-        await contract.write.registerCategory([categoryToSend]);
-      } catch (catErr: unknown) {
-        // Si el error es porque ya está registrada, ignora
-        const error = catErr as any;
-        if (
-          error?.message?.includes("already registered") ||
-          error?.message?.includes("revert") ||
-          error?.data === "0x8f563f02"
-        ) {
-          // Ya está registrada o revertió, continuar
-        } else {
-          // Otro error, mostrar
-          console.warn("Error registering category:", catErr);
-        }
-      }
-      // --- FIN NUEVO ---
 
       // Step 1: Upload image to IPFS
       console.log("Uploading image to IPFS...");
@@ -169,27 +185,41 @@ export default function useMintNFT() {
         metadataUrl = URL.createObjectURL(blob);
       }
 
-      // Step 4: Estimate gas for the transaction
+      // Step 4: Prepare skill arrays
+      const skillTypes = skills.map(s => s.skillType);
+      const effectValues = skills.map(s => s.effectValue);
+      const rarities = skills.map(s => s.rarity);
+
+      console.log("Skills configuration:", { skillTypes, effectValues, rarities });
+
+      // Step 5: Estimate gas for the transaction
       console.log("Estimating gas for minting...");
       const royaltyBasisPoints = Math.floor((royalty || 250));
       
       try {
-        const gasEstimate = await contract.estimateGas.createNFT([
+        // createSkillNFT with skill arrays (empty for standard NFT)
+        const gasEstimate = await contract.estimateGas.createSkillNFT([
           metadataUrl,
           normalizedCategory,
-          royaltyBasisPoints
+          royaltyBasisPoints,
+          skillTypes,
+          effectValues,
+          rarities
         ]);
         console.log("Gas estimate:", gasEstimate.toString());
       } catch (estimateError: unknown) {
         console.warn("Gas estimation failed:", estimateError);
       }
 
-      // Step 5: Execute the minting transaction
+      // Step 6: Execute the minting transaction using createSkillNFT
       console.log("Executing minting transaction...");
-      const txHash = await contract.write.createNFT([
+      const txHash = await contract.write.createSkillNFT([
         metadataUrl,
         categoryToSend,
-        royaltyBasisPoints
+        royaltyBasisPoints,
+        skillTypes,
+        effectValues,
+        rarities
       ], {
         gas: 500000n // Set a reasonable gas limit
       });
@@ -238,7 +268,7 @@ export default function useMintNFT() {
       console.error('Error in mintNFT:', err);
       
       let errorMessage = 'An unexpected error occurred while minting your NFT.';
-      const error = err as any;
+      const error = err as { message?: string };
       
       if (error.message?.includes('user rejected')) {
         errorMessage = 'Transaction was rejected. Please try again and confirm the transaction in your wallet.';
@@ -259,7 +289,7 @@ export default function useMintNFT() {
     } finally {
       setLoading(false);
     }
-  }, [validatedContractAddress]); // Add validatedContractAddress as dependency
+  }, [validatedContractAddress, walletClient, address, publicClient]);
 
   return { mintNFT, loading, error, success, txHash };
 }

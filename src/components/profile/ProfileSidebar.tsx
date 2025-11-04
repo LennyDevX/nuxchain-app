@@ -2,10 +2,13 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useSkillNFTs } from '../../hooks/staking/useSkillNFTs';
+import { SKILL_TYPE_NAMES, type SkillType } from '../../types/contracts';
 
 const ProfileSidebar: React.FC = () => {
   const location = useLocation();
   const { address, isConnected } = useAccount();
+  const { activeSkills, isLoading: isLoadingSkills } = useSkillNFTs();
   const [username, setUsername] = useState('User');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
@@ -291,6 +294,58 @@ const ProfileSidebar: React.FC = () => {
             <span className="font-medium">{it.label}</span>
           </Link>
         ))}
+
+        {/* Active Skills NFTs Section */}
+        {isConnected && (
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <h5 className="text-white/60 text-xs font-semibold uppercase mb-3 px-2">
+              🎯 Active Skills
+            </h5>
+            {isLoadingSkills ? (
+              <div className="text-center py-4">
+                <div className="inline-block w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+              </div>
+            ) : activeSkills && activeSkills.length > 0 ? (
+              <div className="space-y-2">
+                {activeSkills.map((skillType, index) => (
+                  <div
+                    key={`skill-${index}`}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20"
+                  >
+                    <span className="text-lg">
+                      {skillType === 0n ? '⚡' :
+                       skillType === 1n ? '🔒' :
+                       skillType === 2n ? '🎯' :
+                       skillType === 3n ? '💰' :
+                       skillType === 4n ? '🛡️' :
+                       skillType === 5n ? '⏱️' :
+                       skillType === 6n ? '🎲' :
+                       '🌟'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-xs font-medium truncate">
+                        {SKILL_TYPE_NAMES[Number(skillType) as SkillType] || 'Unknown'}
+                      </p>
+                      <p className="text-white/40 text-[10px]">
+                        Active
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 px-3">
+                <p className="text-white/40 text-xs">No active skills</p>
+                <Link
+                  to="/staking"
+                  className="text-purple-400 hover:text-purple-300 text-xs mt-1 inline-block"
+                >
+                  Stake to earn skills →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
     </aside>
   );

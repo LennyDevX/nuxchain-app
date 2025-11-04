@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
-import SmartStakingABI from '../../abi/SmartStaking.json'
+import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
+import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 import StakingPeriodCarousel from './StakingPeriodCarousel'
+import { STAKING_PERIODS } from '../../constants/stakingConstants'
 
 interface StakingFormProps {
   stakingContractAddress: string
@@ -26,8 +28,15 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   
-  const tabs = ['stake', 'claim', 'withdraw', 'compound', 'emergency']
+  const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
+  
+  // ✅ Font size adaptativo
+  const fontSize = useMemo(() => ({
+    label: getOptimizedFontSize(14, isMobile), // 14px base
+    value: getOptimizedFontSize(16, isMobile), // 16px base
+    hint: getOptimizedFontSize(12, isMobile),  // 12px base
+  }), [isMobile])
   
   // Handle touch events for swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -78,6 +87,26 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     }
   }, [activeTab, isMobile, currentTabIndex])
 
+  // ✅ Keyboard navigation para tabs (Arrow Left/Right)
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (currentTabIndex > 0) {
+        setActiveTab(tabs[currentTabIndex - 1])
+      }
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (currentTabIndex < tabs.length - 1) {
+        setActiveTab(tabs[currentTabIndex + 1])
+      }
+    }
+  }, [currentTabIndex, tabs])
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
+
   const { data: balance } = useBalance({
     address: address,
     chainId: polygon.id,
@@ -112,7 +141,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: SmartStakingABI.abi,
+        abi: EnhancedSmartStakingABI.abi,
         functionName: 'deposit',
         args: [lockupInDays],
         value: parseEther(depositAmount),
@@ -130,7 +159,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: SmartStakingABI.abi,
+        abi: EnhancedSmartStakingABI.abi,
         functionName: 'withdrawAll',
       })
     } catch (error) {
@@ -153,7 +182,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: SmartStakingABI.abi,
+        abi: EnhancedSmartStakingABI.abi,
         functionName: 'compound',
         args: [lockupInDays],
       })
@@ -168,7 +197,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: SmartStakingABI.abi,
+        abi: EnhancedSmartStakingABI.abi,
         functionName: 'withdraw',
       })
     } catch (error) {
@@ -195,7 +224,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: SmartStakingABI.abi,
+        abi: EnhancedSmartStakingABI.abi,
         functionName: 'emergencyUserWithdraw',
       })
     } catch (error) {
@@ -208,7 +237,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       {/* Tabs */}
       <div className={`border-b border-white/20 relative ${
         isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
-      }`}>
+      }`}
+        role="tablist"
+      >
         <div 
           ref={tabsContainerRef}
           className={`${
@@ -217,6 +248,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         >
           <button
             onClick={() => setActiveTab('stake')}
+            role="tab"
+            aria-selected={activeTab === 'stake'}
+            aria-label="Stake Tab - Use Arrow Keys to Navigate"
             className={`font-medium transition-all duration-300 ${
               isMobile 
                 ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
@@ -233,6 +267,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </button>
           <button
             onClick={() => setActiveTab('claim')}
+            role="tab"
+            aria-selected={activeTab === 'claim'}
+            aria-label="Claim Tab"
             className={`font-medium transition-all duration-300 ${
               isMobile 
                 ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
@@ -249,6 +286,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </button>
           <button
             onClick={() => setActiveTab('withdraw')}
+            role="tab"
+            aria-selected={activeTab === 'withdraw'}
+            aria-label="Withdraw Tab"
             className={`font-medium transition-all duration-300 ${
               isMobile 
                 ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
@@ -265,6 +305,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </button>
           <button
             onClick={() => setActiveTab('compound')}
+            role="tab"
+            aria-selected={activeTab === 'compound'}
+            aria-label="Compound Tab"
             className={`font-medium transition-all duration-300 ${
               isMobile 
                 ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
@@ -281,6 +324,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </button>
           <button
             onClick={() => setActiveTab('emergency')}
+            role="tab"
+            aria-selected={activeTab === 'emergency'}
+            aria-label="Emergency Tab"
             className={`font-medium transition-all duration-300 ${
               isMobile 
                 ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
@@ -311,7 +357,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         {activeTab === 'stake' && (
           <div className="space-y-6">
             <div>
-              <label className="block text-white/80 text-sm font-medium mb-2">
+              <label 
+                className="block text-white/80 font-medium mb-2"
+                style={{ fontSize: `${fontSize.label}px` }}
+              >
                 Amount to deposit (POL)
               </label>
               <div className="relative">
@@ -324,10 +373,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 />
                 {depositAmount && (
                   <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-blue-400 text-sm">
+                    <p className="text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
                     💡 6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
                   </p>
-                  <p className="text-white/60 text-xs">
+                  <p className="text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
                     Effective deposit amount: {(parseFloat(depositAmount) * 0.94).toFixed(4)} POL
                   </p>
                   </div>
@@ -344,58 +393,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             <StakingPeriodCarousel
               value={lockupDuration}
               onChange={setLockupDuration}
-              options={[
-                {
-                  value: "0",
-                  label: "Flexible",
-                  description: "0.01% per hour",
-                  roi: {
-                    daily: "~0.24%",
-                    monthly: "~7.2%",
-                    annual: "~87.6%"
-                  }
-                },
-                {
-                  value: "30",
-                  label: "30 Days",
-                  description: "0.012% per hour",
-                  roi: {
-                    daily: "~0.29%",
-                    monthly: "~8.6%",
-                    annual: "~105.1%"
-                  }
-                },
-                {
-                  value: "90",
-                  label: "90 Days",
-                  description: "0.016% per hour",
-                  roi: {
-                    daily: "~0.38%",
-                    monthly: "~11.5%",
-                    annual: "~140.2%"
-                  }
-                },
-                {
-                  value: "180",
-                  label: "180 Days",
-                  description: "0.02% per hour",
-                  roi: {
-                    daily: "~0.48%",
-                    monthly: "~14.4%",
-                    annual: "~175.2%"
-                  }
-                },
-                {
-                  value: "365",
-                  label: "365 Days",
-                  description: "0.03% per hour",
-                  roi: {
-                    daily: "~0.72%",
-                    monthly: "~21.6%",
-                    annual: "~262.8%"
-                  }
-                }
-              ]}
+              options={STAKING_PERIODS}
               label="Lockup period (days)"
             />
 

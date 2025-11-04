@@ -9,6 +9,16 @@ import NFTDetails from '../components/tokenization/NFTDetails';
 import ProgressIndicator from '../components/tokenization/ProgressIndicator';
 import InfoCarousel from '../components/tokenization/InfoCarousel';
 
+// Types for Skill NFTs
+export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6; // STAKE_BOOST_I, STAKE_BOOST_II, STAKE_BOOST_III, AUTO_COMPOUND, LOCK_REDUCER, FEE_REDUCER_I, FEE_REDUCER_II
+export type Rarity = 0 | 1 | 2 | 3 | 4; // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
+
+export interface Skill {
+  skillType: SkillType;
+  effectValue: number;
+  rarity: Rarity;
+}
+
 interface FormData {
   name: string;
   description: string;
@@ -18,6 +28,8 @@ interface FormData {
     trait_type: string;
     value: string;
   }>;
+  nftType: 'standard' | 'skill';
+  skills: Skill[];
 }
 
 function Tokenization() {
@@ -31,7 +43,9 @@ function Tokenization() {
     description: '',
     category: 'art',
     royaltyPercentage: 250, // 2.5% default
-    attributes: [{ trait_type: '', value: '' }]
+    attributes: [{ trait_type: '', value: '' }],
+    nftType: 'standard',
+    skills: []
   });
   
   // File and upload state
@@ -63,6 +77,12 @@ function Tokenization() {
       return;
     }
 
+    // Validate skill NFT requirements
+    if (formData.nftType === 'skill' && formData.skills.length === 0) {
+      setError('Please add at least one skill for Skill NFT');
+      return;
+    }
+
     try {
       setError(null);
       
@@ -71,11 +91,13 @@ function Tokenization() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        royalty: formData.royaltyPercentage
+        royalty: formData.royaltyPercentage,
+        skills: formData.nftType === 'skill' ? formData.skills : undefined
       });
       
       if (result.success) {
-        setSuccess(`🎉 NFT "${formData.name}" created successfully! Transaction hash: ${result.txHash}`);
+        const nftType = formData.nftType === 'skill' ? 'Skill NFT' : 'NFT';
+        setSuccess(`🎉 ${nftType} "${formData.name}" created successfully! Transaction hash: ${result.txHash}`);
         setTimeout(() => {
           navigate('/nfts');
         }, 3000);
@@ -87,22 +109,16 @@ function Tokenization() {
     }
   };
 
-  // Handle mint error
-  useEffect(() => {
-    if (mintError) {
-      setError(mintError);
-    }
-  }, [mintError]);
 
   // Reset errors when form changes
   useEffect(() => {
-    if (error || mintError) {
+    if (error) {
       const timer = setTimeout(() => {
         setError(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, mintError]);
+  }, [error]);
   
 
 

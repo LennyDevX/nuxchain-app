@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import UserInfo from './UserInfo'
 import PoolInfo from './PoolInfo'
@@ -80,17 +80,32 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
     }
   ]
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
+  }, [slides.length])
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
+  }, [slides.length])
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index)
   }
+
+  // ✅ Auto-scroll active slide into view (same as StakingForm tabs)
+  useEffect(() => {
+    if (isMobile && carouselRef.current) {
+      setTimeout(() => {
+        if (carouselRef.current) {
+          const slideWidth = carouselRef.current.offsetWidth
+          carouselRef.current.scrollTo({
+            left: currentSlide * slideWidth,
+            behavior: 'smooth'
+          })
+        }
+      }, 50)
+    }
+  }, [currentSlide, isMobile])
 
   // Touch/Mouse handlers for swipe functionality
   const handleStart = (clientX: number) => {
@@ -99,13 +114,13 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
     setTranslateX(0)
   }
 
-  const handleMove = (clientX: number) => {
+  const handleMove = useCallback((clientX: number) => {
     if (!isDragging) return
     const diff = clientX - startX
     setTranslateX(diff)
-  }
+  }, [isDragging, startX])
 
-  const handleEnd = () => {
+  const handleEnd = useCallback(() => {
     if (!isDragging) return
     setIsDragging(false)
     
@@ -116,7 +131,7 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       nextSlide()
     }
     setTranslateX(0)
-  }
+  }, [isDragging, translateX, prevSlide, nextSlide])
 
   // Touch events
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -172,7 +187,7 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       document.removeEventListener('mouseup', handleGlobalMouseUp)
       document.removeEventListener('mousemove', handleGlobalMouseMove)
     }
-  }, [isDragging, startX])
+  }, [isDragging, handleEnd, handleMove])
 
   if (!isMobile) {
     // Desktop: Show all components in a grid

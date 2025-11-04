@@ -1,9 +1,23 @@
+// Types for Skill NFTs
+export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type Rarity = 0 | 1 | 2 | 3 | 4;
+
+import { SKILL_CONFIGS, RARITY_CONFIGS, calculateTotalSkillFees, formatSkillDisplayWithBenefit } from '../../constants/skillsConfig';
+
+export interface Skill {
+  skillType: SkillType;
+  effectValue: number;
+  rarity: Rarity;
+}
+
 interface FormData {
   name: string;
   description: string;
   category: string;
   royaltyPercentage: number;
   attributes: Array<{ trait_type: string; value: string }>;
+  nftType: 'standard' | 'skill';
+  skills: Skill[];
 }
 
 interface NFTDetailsProps {
@@ -70,13 +84,226 @@ export default function NFTDetails({
             onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent [&>option]:bg-gray-800 [&>option]:text-white transition-all"
           >
-            <option value="art" className="bg-gray-800 text-white">🎨 Art</option>
-            <option value="photography" className="bg-gray-800 text-white">📸 Photography</option>
-            <option value="music" className="bg-gray-800 text-white">🎵 Music</option>
-            <option value="video" className="bg-gray-800 text-white">🎬 Video</option>
-            <option value="collectibles" className="bg-gray-800 text-white">🏆 Collectibles</option>
+            <option value="art" className="bg-gray-800 text-white">Art</option>
+            <option value="photography" className="bg-gray-800 text-white">Photography</option>
+            <option value="music" className="bg-gray-800 text-white">Music</option>
+            <option value="video" className="bg-gray-800 text-white">Video</option>
+            <option value="collectibles" className="bg-gray-800 text-white">Collectibles</option>
           </select>
         </div>
+
+        {/* NFT Type Selection */}
+        <div>
+          <label className="block text-white font-medium mb-3">NFT Type</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, nftType: 'standard', skills: [] }))}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                formData.nftType === 'standard'
+                  ? 'border-purple-500 bg-purple-500/20'
+                  : 'border-white/20 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="text-2xl mb-1">Image</div>
+              <div className="text-white font-medium">Standard NFT</div>
+              <div className="text-white/60 text-xs mt-1">Basic NFT without skills</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormData(prev => ({ ...prev, nftType: 'skill' }))}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                formData.nftType === 'skill'
+                  ? 'border-purple-500 bg-purple-500/20'
+                  : 'border-white/20 bg-white/5 hover:bg-white/10'
+              }`}
+            >
+              <div className="text-2xl mb-1">Lightning</div>
+              <div className="text-white font-medium">Skill NFT</div>
+              <div className="text-white/60 text-xs mt-1">NFT with special abilities</div>
+            </button>
+          </div>
+        </div>
+
+        {/* Skill Configuration - Only show for Skill NFTs */}
+        {formData.nftType === 'skill' && (
+          <div className="space-y-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-white font-medium">Skills Configuration</h3>
+                <p className="text-white/60 text-sm">Add up to 5 skills (First skill is FREE)</p>
+              </div>
+              {formData.skills.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      skills: [...prev.skills, { skillType: 0, effectValue: 10, rarity: 0 }]
+                    }));
+                  }}
+                  className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-1 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Skill
+                </button>
+              )}
+            </div>
+
+            {/* Skills List */}
+            {formData.skills.length === 0 ? (
+              <div className="text-center py-6 text-white/60">
+                <p>No skills added yet. Click "Add Skill" to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {formData.skills.map((skill, index) => (
+                  <div key={index} className="p-3 bg-white/10 rounded-lg border border-white/20 space-y-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white font-medium text-sm">
+                        Skill #{index + 1}
+                        {index === 0 && <span className="ml-2 text-green-400">(FREE)</span>}
+                        {index > 0 && (
+                          <span className="ml-2 text-yellow-400">
+                            ({calculateTotalSkillFees([skill])} POL)
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            skills: prev.skills.filter((_, i) => i !== index)
+                          }));
+                        }}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        x
+                      </button>
+                    </div>
+
+                    {/* Skill Type with Tooltip */}
+                    <div>
+                      <label className="block text-white/80 text-sm mb-1">Type</label>
+                      <div className="relative group">
+                        <select
+                          value={skill.skillType}
+                          onChange={(e) => {
+                            const newSkills = [...formData.skills];
+                            newSkills[index].skillType = parseInt(e.target.value) as SkillType;
+                            setFormData(prev => ({ ...prev, skills: newSkills }));
+                          }}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 cursor-help"
+                          title="Select a skill type. Hover for details."
+                        >
+                          <option value="">Select a skill...</option>
+                          {SKILL_CONFIGS.map((skillConfig) => (
+                            <option key={skillConfig.id} value={skillConfig.id}>
+                              {formatSkillDisplayWithBenefit(skillConfig.id)}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Tooltip on hover */}
+                        <div className="invisible group-hover:visible absolute left-0 bottom-full mb-2 w-56 p-3 bg-gray-900 border border-purple-500/50 rounded-lg text-xs text-white/80 z-50 shadow-lg">
+                          {skill.skillType !== undefined && SKILL_CONFIGS[skill.skillType] ? (
+                            <>
+                              <p className="font-semibold text-purple-300 mb-1">
+                                {SKILL_CONFIGS[skill.skillType].emoji} {SKILL_CONFIGS[skill.skillType].name}
+                              </p>
+                              <p className="mb-1 text-white">{SKILL_CONFIGS[skill.skillType].description}</p>
+                              <p className="text-blue-300 text-xs">Impact: {SKILL_CONFIGS[skill.skillType].impact}</p>
+                              <p className="text-gray-400 text-xs mt-1">Category: {SKILL_CONFIGS[skill.skillType].category}</p>
+                            </>
+                          ) : (
+                            <p className="text-white/60">Select a skill to see details</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Effect Value */}
+                    <div>
+                      <label className="block text-white/80 text-sm mb-1">
+                        Effect Value: {skill.effectValue}
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        value={skill.effectValue}
+                        onChange={(e) => {
+                          const newSkills = [...formData.skills];
+                          newSkills[index].effectValue = parseInt(e.target.value);
+                          setFormData(prev => ({ ...prev, skills: newSkills }));
+                        }}
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Rarity with Tooltip */}
+                    <div>
+                      <label className="block text-white/80 text-sm mb-1">Rarity</label>
+                      <div className="relative group">
+                        <select
+                          value={skill.rarity}
+                          onChange={(e) => {
+                            const newSkills = [...formData.skills];
+                            newSkills[index].rarity = parseInt(e.target.value) as Rarity;
+                            setFormData(prev => ({ ...prev, skills: newSkills }));
+                          }}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 cursor-help"
+                          title="Select rarity level. Hover for fees."
+                        >
+                          {RARITY_CONFIGS.map((rarity) => (
+                            <option key={rarity.id} value={rarity.id}>
+                              {rarity.emoji} {rarity.name} ({rarity.stars} stars)
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Fee Tooltip on hover */}
+                        <div className="invisible group-hover:visible absolute left-0 bottom-full mb-2 w-56 p-3 bg-gray-900 border border-yellow-500/50 rounded-lg text-xs text-white/80 z-50 shadow-lg">
+                          {skill.rarity !== undefined && RARITY_CONFIGS[skill.rarity] ? (
+                            <>
+                              <p className="font-semibold text-yellow-300 mb-1">
+                                {RARITY_CONFIGS[skill.rarity].emoji} {RARITY_CONFIGS[skill.rarity].name}
+                              </p>
+                              <p className="text-white mb-1">Stars: {RARITY_CONFIGS[skill.rarity].stars}</p>
+                              <p className="text-green-300">
+                                Fee: {index === 0 ? 'FREE (first skill)' : RARITY_CONFIGS[skill.rarity].skillFee + ' POL'}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-white/60">Select rarity to see cost</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Total Fee Display */}
+                {formData.skills.length > 1 && (
+                  <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white font-medium">Total Skill Fee:</span>
+                      <span className="text-yellow-400 font-bold">
+                        {calculateTotalSkillFees(formData.skills)} POL
+                      </span>
+                    </div>
+                    <p className="text-white/60 text-xs mt-1">
+                      Warning: Requires minimum 200 POL staked
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Royalty Percentage */}
         <div>
@@ -102,11 +329,9 @@ export default function NFTDetails({
             </div>
           </div>
           <p className="text-white/60 text-sm mt-2">
-            💡 Royalties are earned on every future sale of your NFT
+            Info: Royalties are earned on every future sale of your NFT
           </p>
         </div>
-
-
 
         {/* Attributes */}
         <div>
@@ -147,7 +372,7 @@ export default function NFTDetails({
                     onClick={() => removeAttribute(index)}
                     className="px-3 py-2 text-red-400 hover:text-red-300 self-start sm:self-center transition-colors"
                   >
-                    ×
+                    x
                   </button>
                 )}
               </div>
@@ -159,17 +384,6 @@ export default function NFTDetails({
         {error && !error.includes('select') && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
             <p className="text-red-300 mb-2">{error}</p>
-            {error.includes('Pinata') && (
-              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                <p className="text-yellow-300 text-sm font-medium mb-2">🔧 Quick Fix:</p>
-                <ol className="text-yellow-200 text-sm space-y-1 list-decimal list-inside">
-                  <li>Go to <a href="https://app.pinata.cloud/" target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline">app.pinata.cloud</a></li>
-                  <li>Create account → API Keys → New Key</li>
-                  <li>Enable: pinFileToIPFS + pinJSONToIPFS</li>
-                  <li>Copy JWT and add to .env file</li>
-                </ol>
-              </div>
-            )}
           </div>
         )}
 

@@ -1,5 +1,7 @@
-import React, { memo } from 'react'
+import React, { memo, useMemo } from 'react'
 import { formatEther } from 'viem'
+import { useIsMobile } from '../../hooks/mobile'
+import { getOptimizedSpacing, getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 
 interface DepositData {
   amount: bigint
@@ -49,39 +51,66 @@ function getROIRate(lockupDuration: bigint): string {
 }
 
 const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, userDeposits, totalDeposit }: UserInfoProps) => {
+  const isMobile = useIsMobile()
+  
+  // ✅ Espaciado adaptativo
+  const spacing = useMemo(() => getOptimizedSpacing(12, isMobile), [isMobile])
+  
+  // ✅ Font sizes adaptativos
+  const fontSize = useMemo(() => ({
+    title: getOptimizedFontSize(16, isMobile),
+    value: getOptimizedFontSize(14, isMobile),
+    label: getOptimizedFontSize(12, isMobile),
+    small: getOptimizedFontSize(11, isMobile),
+  }), [isMobile])
   return (
     <div className="space-y-6">
       {/* User Information */}
       <div className="card-unified rounded-xl p-6 border border-white/20">
-        <h3 className="text-xl font-bold text-white mb-4">Your Information</h3>
-        <div className="space-y-3">
+        <h3 
+          className="font-bold text-white mb-4"
+          style={{ fontSize: `${fontSize.title}px` }}
+        >
+          Your Information
+        </h3>
+        <div style={{ gap: `${spacing}px` }} className="space-y-3">
           <div className="flex justify-between">
-            <span className="text-white/60">Total Deposited:</span>
-            <span className="text-white font-medium">
+            <span className="text-white/60" style={{ fontSize: `${fontSize.label}px` }}>
+              Total Deposited:
+            </span>
+            <span className="text-white font-medium" style={{ fontSize: `${fontSize.value}px` }}>
               {totalDeposit ? `${parseFloat(formatEther(totalDeposit)).toFixed(4)} POL` : '0 POL'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/60">Pending Rewards:</span>
-            <span className="text-green-400 font-medium">
+            <span className="text-white/60" style={{ fontSize: `${fontSize.label}px` }}>
+              Pending Rewards:
+            </span>
+            <span className="text-green-400 font-medium" style={{ fontSize: `${fontSize.value}px` }}>
               {pendingRewards && pendingRewards > 0n ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/60">Last Withdrawal:</span>
-            <span className="text-white/60 text-sm">
+            <span className="text-white/60" style={{ fontSize: `${fontSize.label}px` }}>
+              Last Withdrawal:
+            </span>
+            <span className="text-white/60" style={{ fontSize: `${fontSize.small}px` }}>
               {userInfo && userInfo.lastWithdraw ? new Date(Number(userInfo.lastWithdraw) * 1000).toLocaleDateString() : 'Never'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/60">Daily Withdrawal Limit:</span>
-            <span className="text-yellow-400 font-medium text-sm">
+            <span className="text-white/60" style={{ fontSize: `${fontSize.label}px` }}>
+              Daily Withdrawal Limit:
+            </span>
+            <span className="text-yellow-400 font-medium" style={{ fontSize: `${fontSize.small}px` }}>
               1,000 POL / 24h
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-white/60">Active Deposits:</span>
-            <span className="text-blue-400 font-medium">
+            <span className="text-white/60" style={{ fontSize: `${fontSize.label}px` }}>
+              Active Deposits:
+            </span>
+            <span className="text-blue-400 font-medium" style={{ fontSize: `${fontSize.value}px` }}>
               {userDeposits ? userDeposits.length : 0} / 300
             </span>
           </div>
@@ -90,22 +119,27 @@ const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, user
 
       {/* My Deposits */}
       <div className="card-unified rounded-xl p-6 border border-white/20">
-        <h3 className="text-xl font-bold text-white mb-4">My Deposits</h3>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
+        <h3 
+          className="font-bold text-white mb-4"
+          style={{ fontSize: `${fontSize.title}px` }}
+        >
+          My Deposits
+        </h3>
+        <div className="space-y-3 max-h-64 overflow-y-auto" style={{ gap: `${spacing * 0.75}px` }}>
           {userDeposits && userDeposits.length > 0 ? (
             userDeposits.map((deposit, index) => (
               <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <p className="text-white font-medium text-lg">
+                    <p className="text-white font-medium" style={{ fontSize: `${fontSize.value + 2}px` }}>
                       {deposit.amount ? parseFloat(formatEther(deposit.amount)).toFixed(4) : '0'} POL
                     </p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-white/60" style={{ fontSize: `${fontSize.small}px` }}>
                       Deposited: {new Date(Number(deposit.timestamp) * 1000).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white/60 text-sm">
+                    <p className="text-white/60" style={{ fontSize: `${fontSize.small}px` }}>
                       ROI: {getROIRate(deposit.lockupDuration)}
                     </p>
                     <div className="mt-1">
@@ -127,8 +161,8 @@ const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, user
                 </div>
                 
                 {/* Lockup Information */}
-                <div className="border-t border-white/10 pt-3 space-y-2">
-                  <div className="flex justify-between text-sm">
+                <div className="border-t border-white/10 pt-3 space-y-2" style={{ gap: `${spacing * 0.5}px` }}>
+                  <div className="flex justify-between" style={{ fontSize: `${fontSize.small}px` }}>
                     <span className="text-white/60">Lockup period:</span>
                     <span className="text-white">
                       {Math.floor(Number(deposit.lockupDuration) / (24 * 60 * 60))} days
@@ -136,7 +170,7 @@ const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, user
                   </div>
                   
                   {Number(deposit.lockupDuration) > 0 && (
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between" style={{ fontSize: `${fontSize.small}px` }}>
                       <span className="text-white/60">Available from:</span>
                       <span className={`${isFundsLocked(deposit.timestamp, deposit.lockupDuration) ? 'text-red-400' : 'text-green-400'}`}>
                         {calculateLockupEndTime(deposit.timestamp, deposit.lockupDuration).toLocaleDateString()}
@@ -144,7 +178,7 @@ const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, user
                     </div>
                   )}
                   
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between" style={{ fontSize: `${fontSize.small}px` }}>
                     <span className="text-white/60">Last claim:</span>
                     <span className="text-white/80">
                       {deposit.lastClaimTime && deposit.lastClaimTime > 0n 
@@ -161,8 +195,12 @@ const UserInfo: React.FC<UserInfoProps> = memo(({ userInfo, pendingRewards, user
               <svg className="w-12 h-12 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
-              <p className="text-white/60 text-center">You have no active deposits</p>
-              <p className="text-white/40 text-sm text-center mt-1">Start staking to see your deposits here</p>
+              <p className="text-white/60 text-center" style={{ fontSize: `${fontSize.label}px` }}>
+                You have no active deposits
+              </p>
+              <p className="text-white/40 text-center mt-1" style={{ fontSize: `${fontSize.small}px` }}>
+                Start staking to see your deposits here
+              </p>
             </div>
           )}
         </div>

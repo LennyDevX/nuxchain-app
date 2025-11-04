@@ -1,19 +1,21 @@
 import { useAccount, useReadContract } from 'wagmi'
-import { memo, useMemo, lazy, Suspense } from 'react'
-import SmartStakingABI from '../abi/SmartStaking.json'
+import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
+import EnhancedSmartStakingABI from '../abi/EnhancedSmartStaking.json'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
 import { useIsMobile } from '../hooks/mobile'
+import { stakingLogger } from '../utils/log/stakingLogger'
 
 // Lazy load components for better performance
 const StakingForm = lazy(() => import('../components/staking/StakingForm'))
 const UserInfo = lazy(() => import('../components/staking/UserInfo'))
 const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
-const StakingBonds = lazy(() => import('../components/staking/StakingBonds'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
+const SkillsProfile = lazy(() => import('../components/staking/SkillsProfile'))
+const StakingRewardsCalculator = lazy(() => import('../components/staking/StakingRewardsCalculator'))
 
 // Interfaces
 interface DepositData {
@@ -30,7 +32,7 @@ interface UserInfoData {
 }
 
 // Contract address from environment variables
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2 
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS 
 
 const Staking = memo(() => {
   const { address, isConnected } = useAccount()
@@ -39,8 +41,8 @@ const Staking = memo(() => {
   // Memoize contract configuration for better performance
   const contractConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
-  }), [STAKING_CONTRACT_ADDRESS])
+    abi: EnhancedSmartStakingABI.abi,
+  }), [])
 
   // Read contract data with optimized queries
   const { data: userInfo } = useReadContract({
@@ -132,18 +134,72 @@ const Staking = memo(() => {
     }
   })
 
+  // Helper function to safely handle BigInt serialization for logging
+  // This prevents "Do not know how to serialize a BigInt" error in React DevTools
+  const serializableBigInt = (value: bigint | number | string | undefined): string | number | undefined => {
+    if (typeof value === 'bigint') {
+      return value.toString()
+    }
+    return value
+  }
+
   // Memoize processed data to prevent unnecessary re-renders
-  const processedData = useMemo(() => ({
-    userInfo,
-    userDeposits,
-    totalPoolBalance: (totalPoolBalance as bigint) || 0n,
-    uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
-    pendingRewards: (pendingRewards as bigint) || 0n,
-    totalDeposit: (totalDeposit as bigint) || 0n,
-    contractVersion: (contractVersion as bigint) || 0n,
-    contractBalance: (contractBalance as bigint) || 0n,
-    isPaused: (isPaused as boolean) || false
-  }), [userInfo, userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
+  const processedData = useMemo(() => {
+    // Keep original bigints for component usage
+    const data = {
+      userInfo,
+      userDeposits,
+      totalPoolBalance: (totalPoolBalance as bigint) || 0n,
+      uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
+      pendingRewards: (pendingRewards as bigint) || 0n,
+      totalDeposit: (totalDeposit as bigint) || 0n,
+      contractVersion: (contractVersion as bigint) || 0n,
+      contractBalance: (contractBalance as bigint) || 0n,
+      isPaused: (isPaused as boolean) || false
+    }
+    
+    // Prevent React DevTools from trying to serialize BigInt values
+    Object.defineProperty(data, 'toJSON', {
+      value: function() {
+        return {
+          userInfo: this.userInfo,
+          totalPoolBalance: serializableBigInt(this.totalPoolBalance),
+          uniqueUsersCount: serializableBigInt(this.uniqueUsersCount),
+          pendingRewards: serializableBigInt(this.pendingRewards),
+          totalDeposit: serializableBigInt(this.totalDeposit),
+          contractVersion: serializableBigInt(this.contractVersion),
+          contractBalance: serializableBigInt(this.contractBalance),
+          isPaused: this.isPaused
+        }
+      }
+    })
+    
+    return data
+  }, [userInfo, userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
+
+  // Log staking data when it changes
+  useEffect(() => {
+    if (address && isConnected && processedData.totalDeposit > 0n) {
+      stakingLogger.logStaking({
+        totalStaked: (processedData.totalDeposit / BigInt(1e18)).toString(),
+        pendingRewards: (processedData.pendingRewards / BigInt(1e18)).toString(),
+        activePositions: (processedData.userDeposits as DepositData[] | undefined)?.length || 0,
+        hasAutoCompound: false // TODO: Get from contract
+      });
+    }
+  }, [address, isConnected, processedData.totalDeposit, processedData.pendingRewards, processedData.userDeposits]);
+
+  // Log pool info
+  useEffect(() => {
+    if (processedData.totalPoolBalance > 0n) {
+      stakingLogger.logPool({
+        totalPoolBalance: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
+        uniqueUsers: Number(processedData.uniqueUsersCount),
+        totalDeposits: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
+        isPaused: processedData.isPaused
+      });
+    }
+  }, [processedData.totalPoolBalance, processedData.uniqueUsersCount, processedData.isPaused]);
 
 
 
@@ -189,12 +245,12 @@ const Staking = memo(() => {
           </div>
         )}
 
-        {/* Main Dashboard Grid */}
-        <div className={`grid gap-8 ${
-          isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'
+        {/* Main Dashboard Grid - Optimized for desktop */}
+        <div className={`${
+          isMobile ? 'space-y-8' : 'grid grid-cols-1 lg:grid-cols-3 gap-8'
         }`}>
-          {/* Left Column - Staking Form and Bonds */}
-          <div className="space-y-8">
+          {/* Left Column - Staking Form (2 cols on desktop) */}
+          <div className={`${isMobile ? '' : 'lg:col-span-2'} space-y-8`}>
             <Suspense fallback={<LoadingSpinner />}>
               <StakingForm 
                 stakingContractAddress={STAKING_CONTRACT_ADDRESS}
@@ -203,13 +259,21 @@ const Staking = memo(() => {
                 totalDeposit={processedData.totalDeposit}
               />
             </Suspense>
-            {/* Staking Bonds Section - Load after form on mobile */}
+            
+            {/* NFT Skills Profile - New Feature */}
+            {isConnected && (
+              <Suspense fallback={<LoadingSpinner />}>
+                <SkillsProfile />
+              </Suspense>
+            )}
+            
+            {/* Staking Rewards Calculator */}
             <Suspense fallback={<LoadingSpinner />}>
-              <StakingBonds />
+              <StakingRewardsCalculator defaultAmount={100} />
             </Suspense>
           </div>
 
-          {/* Right Column - User Info and Pool Info */}
+          {/* Right Column - User Info and Pool Info (1 col on desktop) */}
           <div className="space-y-6">
             {isMobile ? (
               <Suspense fallback={<LoadingSpinner />}>
@@ -251,18 +315,8 @@ const Staking = memo(() => {
           </div>
         </div>
 
-        {/* Recent Transactions */}
-        {/* Assuming isConfirmed is a boolean state or prop, defaulting to false if not defined */}
-        {(false) && (
-          <div className="mt-8 bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-green-400 font-medium">Transaction completed successfully</span>
-            </div>
-          </div>
-        )}
+        {/* Recent Transactions - Disabled for future implementation */}
+        {/* TODO: Implement transaction history component */}
       </div>
       </div>
     </GlobalBackground>

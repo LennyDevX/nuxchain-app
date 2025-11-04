@@ -12,7 +12,7 @@ const ProfileStaking: React.FC = () => {
   const { totalStaked, pendingRewards, activePositions, isLoading } = useUserStaking();
   const isMobile = useIsMobile();
 
-  const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2;
+  const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
 
   // Get user deposits to check lockup periods
   const { data: userDeposits } = useReadContract({

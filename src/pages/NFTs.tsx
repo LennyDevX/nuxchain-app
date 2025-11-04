@@ -14,7 +14,7 @@ import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
-import { nftLogger } from '../utils/nftLogger';
+import { nftLogger } from '../utils/log/nftLogger';
 
 
 

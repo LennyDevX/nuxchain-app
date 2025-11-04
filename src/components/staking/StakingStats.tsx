@@ -1,6 +1,7 @@
 import React, { memo, useState, useRef, useCallback, useMemo } from 'react'
 import { formatEther } from 'viem'
 import { useIsMobile } from '../../hooks/mobile'
+import { getOptimizedSpacing } from '../../utils/mobile/performanceOptimization'
 
 interface StakingStatsProps {
   totalPoolBalance: bigint
@@ -23,6 +24,9 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
   const [currentSlide, setCurrentSlide] = useState(0)
   const carouselRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // ✅ Espaciado adaptativo
+  const spacing = useMemo(() => getOptimizedSpacing(16, isMobile), [isMobile])
 
   const statsData = useMemo(() => [
     {
@@ -51,7 +55,7 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
     },
     {
       title: 'Contract Version',
-      value: contractVersion ? `v${contractVersion.toString()}` : 'v0',
+      value: contractVersion ? `v${contractVersion.toString()}` : 'v2',
       subtitle: 'Smart contract',
       emoji: '📄'
     },
@@ -121,7 +125,8 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
               scrollBehavior: 'smooth',
               WebkitOverflowScrolling: 'touch',
               scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
+              msOverflowStyle: 'none',
+              gap: `${spacing}px` // ✅ Espaciado adaptativo
             }}
           >
             {Array.from({ length: totalSlides }).map((_, slideIndex) => (
@@ -129,7 +134,7 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
                 key={slideIndex}
                 className="snap-start flex-none w-full px-1"
               >
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3" style={{ gap: `${spacing * 0.75}px` }}>
                   {statsData
                     .slice(slideIndex * itemsPerSlide, slideIndex * itemsPerSlide + itemsPerSlide)
                     .map((stat, index) => (

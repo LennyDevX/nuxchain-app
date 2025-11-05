@@ -43,7 +43,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
   const [selectedPeriod, setSelectedPeriod] = useState<number>(0)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [useAutoCompound, setUseAutoCompound] = useState<boolean>(false)
-  const [isExpanded, setIsExpanded] = useState<boolean>(!isMobile) // ✅ Collapsed en mobile por defecto
+  const [isExpanded, setIsExpanded] = useState<boolean>(!isMobile) // ✅ Desktop: expanded by default, Mobile: collapsed
 
   // Calculate rewards based on inputs - returns serializable data
   const calculation = useMemo((): RewardCalculation => {
@@ -129,25 +129,23 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
 
   return (
     <div className="card-form space-y-4">
-      {/* ✅ Header con Toggle para Mobile */}
+      {/* ✅ Header con Toggle para Mobile y Desktop */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white mb-1">📊 Rewards Calculator</h3>
           <p className="text-white/50 text-xs">Estimate your earnings before staking</p>
         </div>
-        {isMobile && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="ml-2 px-3 py-2 rounded-lg bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 transition-all"
-            aria-label={isExpanded ? "Collapse calculator" : "Expand calculator"}
-          >
-            <span className="text-white text-lg">{isExpanded ? '▼' : '▶'}</span>
-          </button>
-        )}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="ml-2 px-3 py-2 rounded-lg bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 transition-all"
+          aria-label={isExpanded ? "Collapse calculator" : "Expand calculator"}
+        >
+          <span className="text-white text-lg">{isExpanded ? '▼' : '▶'}</span>
+        </button>
       </div>
 
-      {/* ✅ Contenido colapsable en mobile */}
-      {(isMobile && !isExpanded) ? (
+      {/* ✅ Contenido colapsable en mobile y desktop */}
+      {!isExpanded ? (
         // Resumen colapsado
         <div className="p-3 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg">
           <div className="grid grid-cols-2 gap-2">
@@ -168,7 +166,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
               <p className="text-purple-400 font-bold">{formatAmount(calculation.totalReward)} POL</p>
             </div>
           </div>
-          <p className="text-center text-white/50 text-xs mt-2">Click arrow to expand for details</p>
+          {isMobile && <p className="text-center text-white/50 text-xs mt-2">Click arrow to expand for details</p>}
         </div>
       ) : (
         <>

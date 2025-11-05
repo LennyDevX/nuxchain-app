@@ -3,7 +3,21 @@ import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json';
 
+// ✅ Add BigInt serialization support for React DevTools
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
+
+// ✅ Add BigInt serialization support for React DevTools
+if (typeof BigInt.prototype.toJSON === 'undefined') {
+  BigInt.prototype.toJSON = function() {
+    return this.toString();
+  };
+}
 
 interface DepositData {
   amount: bigint;
@@ -27,44 +41,54 @@ export function useUserStaking(): UserStakingData {
   const { address, isConnected } = useAccount();
   const [error] = useState<string | null>(null);
 
-  const contractConfig = {
+  // ✅ Memoize contract config
+  const contractConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
     abi: EnhancedSmartStakingABI.abi,
-  };
+  }), []);
 
-  // Get total deposit
+  // ✅ Get total deposit with optimized cache
   const { data: totalDeposit, isLoading: loadingDeposit } = useReadContract({
     ...contractConfig,
     functionName: 'getTotalDeposit',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 30000
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
-  // Get pending rewards
+  // ✅ Get pending rewards with faster update (financial data)
   const { data: pendingRewards, isLoading: loadingRewards } = useReadContract({
     ...contractConfig,
     functionName: 'calculateRewards',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 15000,
-      refetchInterval: 15000
+      staleTime: 30000, // 30 seconds for rewards
+      gcTime: 3 * 60 * 1000, // 3 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
-  // Get user deposits to count active positions
+  // ✅ Get user deposits to count active positions
   const { data: userDeposits, isLoading: loadingDeposits } = useReadContract({
     ...contractConfig,
     functionName: 'getUserDeposits',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 30000
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 

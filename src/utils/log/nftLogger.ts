@@ -262,6 +262,7 @@ class NFTLogger {
       search?: string;
       category?: string;
       status?: string;
+      nftType?: string;
       sortBy?: string;
     };
   }) {

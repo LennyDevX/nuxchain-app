@@ -7,9 +7,22 @@ import ConnectWallet from '../ui/ConnectWalletAlert'
 import { useIsMobile } from '../hooks/mobile'
 import { stakingLogger } from '../utils/log/stakingLogger'
 
+// ✅ Add BigInt serialization support for React DevTools
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+// ✅ Add BigInt serialization support for React DevTools
+if (typeof BigInt.prototype.toJSON === 'undefined') {
+  BigInt.prototype.toJSON = function() {
+    return this.toString();
+  };
+}
+
 // Lazy load components for better performance
 const StakingForm = lazy(() => import('../components/staking/StakingForm'))
-const UserInfo = lazy(() => import('../components/staking/UserInfo'))
 const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
@@ -23,12 +36,6 @@ interface DepositData {
   timestamp: bigint
   lastClaimTime: bigint
   lockupDuration: bigint
-}
-
-interface UserInfoData {
-  totalDeposited: bigint
-  pendingRewards: bigint
-  lastWithdraw: bigint
 }
 
 // Contract address from environment variables
@@ -45,25 +52,17 @@ const Staking = memo(() => {
   }), [])
 
   // Read contract data with optimized queries
-  const { data: userInfo } = useReadContract({
-    ...contractConfig,
-    functionName: 'getUserInfo',
-    args: [address],
-    query: { 
-      enabled: !!address,
-      staleTime: 30000, // 30 seconds
-      refetchInterval: isMobile ? 60000 : 30000 // Longer intervals on mobile
-    }
-  })
-
   const { data: userDeposits } = useReadContract({
     ...contractConfig,
     functionName: 'getUserDeposits',
     args: [address],
     query: { 
       enabled: !!address,
-      staleTime: 30000,
-      refetchInterval: isMobile ? 60000 : 30000
+      staleTime: 60000,
+      gcTime: 5 * 60 * 1000,
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -71,8 +70,11 @@ const Staking = memo(() => {
     ...contractConfig,
     functionName: 'totalPoolBalance',
     query: {
-      staleTime: 60000, // 1 minute
-      refetchInterval: isMobile ? 120000 : 60000
+      staleTime: 120000, // 2 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes cache
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -80,8 +82,11 @@ const Staking = memo(() => {
     ...contractConfig,
     functionName: 'uniqueUsersCount',
     query: {
-      staleTime: 60000,
-      refetchInterval: isMobile ? 120000 : 60000
+      staleTime: 120000,
+      gcTime: 10 * 60 * 1000,
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -91,8 +96,11 @@ const Staking = memo(() => {
     args: [address],
     query: { 
       enabled: !!address,
-      staleTime: 15000, // 15 seconds for rewards
-      refetchInterval: isMobile ? 30000 : 15000
+      staleTime: 30000, // 30 seconds for rewards (faster updates)
+      gcTime: 3 * 60 * 1000, // 3 minutes cache
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -102,8 +110,11 @@ const Staking = memo(() => {
     args: [address],
     query: { 
       enabled: !!address,
-      staleTime: 30000,
-      refetchInterval: isMobile ? 60000 : 30000
+      staleTime: 60000,
+      gcTime: 5 * 60 * 1000,
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -112,6 +123,7 @@ const Staking = memo(() => {
     functionName: 'getContractVersion',
     query: {
       staleTime: 300000, // 5 minutes - rarely changes
+      gcTime: 30 * 60 * 1000, // 30 minutes cache
       refetchInterval: false
     }
   })
@@ -120,8 +132,11 @@ const Staking = memo(() => {
     ...contractConfig,
     functionName: 'getContractBalance',
     query: {
-      staleTime: 60000,
-      refetchInterval: isMobile ? 120000 : 60000
+      staleTime: 120000,
+      gcTime: 10 * 60 * 1000,
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -129,8 +144,11 @@ const Staking = memo(() => {
     ...contractConfig,
     functionName: 'paused',
     query: {
-      staleTime: 60000,
-      refetchInterval: isMobile ? 120000 : 60000
+      staleTime: 120000,
+      gcTime: 10 * 60 * 1000,
+      refetchInterval: false, // ✅ Disabled
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   })
 
@@ -147,7 +165,6 @@ const Staking = memo(() => {
   const processedData = useMemo(() => {
     // Keep original bigints for component usage
     const data = {
-      userInfo,
       userDeposits,
       totalPoolBalance: (totalPoolBalance as bigint) || 0n,
       uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
@@ -162,7 +179,6 @@ const Staking = memo(() => {
     Object.defineProperty(data, 'toJSON', {
       value: function() {
         return {
-          userInfo: this.userInfo,
           totalPoolBalance: serializableBigInt(this.totalPoolBalance),
           uniqueUsersCount: serializableBigInt(this.uniqueUsersCount),
           pendingRewards: serializableBigInt(this.pendingRewards),
@@ -175,7 +191,7 @@ const Staking = memo(() => {
     })
     
     return data
-  }, [userInfo, userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
+  }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
 
   // Log staking data when it changes
   useEffect(() => {
@@ -213,8 +229,8 @@ const Staking = memo(() => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Staking <span className="text-gradient">Dashboard</span>
+          <h1 className="text-5xl font-bold text-white mb-4 text-gradient">
+            Staking Dashboard
           </h1>
           <p className="text-xl text-white/80 max-w-3xl mx-auto">
             Earn automatic rewards by staking your POL tokens
@@ -260,13 +276,6 @@ const Staking = memo(() => {
               />
             </Suspense>
             
-            {/* NFT Skills Profile - New Feature */}
-            {isConnected && (
-              <Suspense fallback={<LoadingSpinner />}>
-                <SkillsProfile />
-              </Suspense>
-            )}
-            
             {/* Staking Rewards Calculator */}
             <Suspense fallback={<LoadingSpinner />}>
               <StakingRewardsCalculator defaultAmount={100} />
@@ -278,10 +287,6 @@ const Staking = memo(() => {
             {isMobile ? (
               <Suspense fallback={<LoadingSpinner />}>
                 <StakingInfoCarousel 
-                  userInfo={processedData.userInfo as UserInfoData | undefined}
-                  pendingRewards={processedData.pendingRewards}
-                  userDeposits={processedData.userDeposits as DepositData[] | undefined}
-                  totalDeposit={processedData.totalDeposit}
                   totalPoolBalance={processedData.totalPoolBalance}
                   uniqueUsersCount={processedData.uniqueUsersCount}
                   contractAddress={STAKING_CONTRACT_ADDRESS}
@@ -290,14 +295,6 @@ const Staking = memo(() => {
               </Suspense>
             ) : (
               <>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <UserInfo 
-                    userInfo={processedData.userInfo as UserInfoData | undefined}
-                    pendingRewards={processedData.pendingRewards}
-                    userDeposits={processedData.userDeposits as DepositData[] | undefined}
-                    totalDeposit={processedData.totalDeposit}
-                  />
-                </Suspense>
                 <Suspense fallback={<LoadingSpinner />}>
                   <PoolInfo 
                     totalPoolBalance={processedData.totalPoolBalance}
@@ -310,7 +307,21 @@ const Staking = memo(() => {
                     isPaused={processedData.isPaused}
                   />
                 </Suspense>
+                
+                {/* NFT Skills Profile - Compact version for desktop */}
+                {isConnected && (
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <SkillsProfile />
+                  </Suspense>
+                )}
               </>
+            )}
+            
+            {/* Mobile: Show SkillsProfile after carousel */}
+            {isMobile && isConnected && (
+              <Suspense fallback={<LoadingSpinner />}>
+                <SkillsProfile />
+              </Suspense>
             )}
           </div>
         </div>

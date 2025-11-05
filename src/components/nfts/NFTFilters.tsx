@@ -1,23 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, memo } from 'react';
 import ModernSelect from '../ui/ModernSelect';
-
-// Hook to detect mobile devices
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-  
-  return isMobile;
-};
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface NFTFiltersProps {
   searchTerm: string;
@@ -26,6 +9,8 @@ interface NFTFiltersProps {
   onCategoryChange: (category: string) => void;
   filter: string;
   onFilterChange: (filter: string) => void;
+  nftType: string; // 'all' | 'skill' | 'standard'
+  onNFTTypeChange: (type: string) => void;
   availableCategories: string[];
   onCreateNFT: () => void;
   isLoading?: boolean;
@@ -33,13 +18,15 @@ interface NFTFiltersProps {
   onSortChange?: (sort: string) => void;
 }
 
-export default function NFTFilters({
+export default memo(function NFTFilters({
   searchTerm,
   onSearchChange,
   selectedCategory,
   onCategoryChange,
   filter,
   onFilterChange,
+  nftType = 'all',
+  onNFTTypeChange,
   availableCategories = [],
   onCreateNFT,
   isLoading = false,
@@ -67,14 +54,21 @@ export default function NFTFilters({
     }))
   ];
 
-  // Status filter options
+  // Status filter options (listing status)
   const STATUS_OPTIONS = [
     { value: 'all', label: 'All NFTs', icon: '🎨' },
     { value: 'listed', label: 'For Sale', icon: '💸' },
     { value: 'unlisted', label: 'Not Listed', icon: '🔒' }
   ];
 
-  const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all';
+  // NFT Type filter options (skill vs standard) - NEW
+  const NFT_TYPE_OPTIONS = [
+    { value: 'all', label: 'All NFTs', icon: '📦' },
+    { value: 'skill', label: 'Skill NFTs', icon: '⚡' },
+    { value: 'standard', label: 'Standard NFTs', icon: '🖼️' }
+  ];
+
+  const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all' || nftType !== 'all';
 
   // Helper function to get category icons
   function getCategoryIcon(category: string): string {
@@ -195,7 +189,7 @@ export default function NFTFilters({
 
       {/* Filter Pills (Desktop) */}
       {!isMobile && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <ModernSelect
             value={selectedCategory}
             onChange={onCategoryChange}
@@ -208,6 +202,13 @@ export default function NFTFilters({
             onChange={onFilterChange}
             options={STATUS_OPTIONS}
             placeholder="Status"
+          />
+
+          <ModernSelect
+            value={nftType}
+            onChange={onNFTTypeChange}
+            options={NFT_TYPE_OPTIONS}
+            placeholder="NFT Type"
           />
           
           {onSortChange && (
@@ -290,6 +291,13 @@ export default function NFTFilters({
                 options={STATUS_OPTIONS}
                 placeholder="Status"
               />
+
+              <ModernSelect
+                value={nftType}
+                onChange={onNFTTypeChange}
+                options={NFT_TYPE_OPTIONS}
+                placeholder="NFT Type"
+              />
               
               {onSortChange && (
                 <ModernSelect
@@ -306,6 +314,7 @@ export default function NFTFilters({
                   onClick={() => {
                     onCategoryChange('all');
                     onFilterChange('all');
+                    onNFTTypeChange('all');
                   }}
                   aria-label="Clear all active filters"
                   className="
@@ -325,4 +334,4 @@ export default function NFTFilters({
       )}
     </div>
   );
-}
+});

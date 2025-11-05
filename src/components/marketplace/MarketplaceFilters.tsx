@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, memo } from 'react';
 import ModernSelect from '../ui/ModernSelect';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useDebounce } from '../../hooks/performance/useDebounce';
@@ -10,11 +10,13 @@ interface MarketplaceFiltersProps {
   onPriceRangeChange: (min: number, max: number) => void;
   onSearchChange: (query: string) => void;
   onSortChange: (field: 'price' | 'name' | 'date') => void;
+  onNFTTypeChange: (type: string) => void; // NEW
   currentFilters: {
     category: string;
     priceRange: { min: number; max: number };
     searchQuery: string;
     sortBy: string;
+    nftType?: string; // NEW
   };
   className?: string;
   isLoading?: boolean;
@@ -26,12 +28,20 @@ const SORT_OPTIONS = [
   { value: 'name', label: 'Name: A to Z', icon: '🔤' }
 ];
 
-export default function MarketplaceFilters({
+// NEW: NFT Type filter options
+const NFT_TYPE_OPTIONS = [
+  { value: 'all', label: 'All NFTs', icon: '📦' },
+  { value: 'skill', label: 'Skill NFTs', icon: '⚡' },
+  { value: 'standard', label: 'Standard NFTs', icon: '🖼️' }
+];
+
+export default memo(function MarketplaceFilters({
   categories,
   onCategoryChange,
   onPriceRangeChange,
   onSearchChange,
   onSortChange,
+  onNFTTypeChange,
   currentFilters,
   className = '',
   isLoading = false
@@ -98,7 +108,8 @@ export default function MarketplaceFilters({
     currentFilters.category !== 'all' ||
     currentFilters.searchQuery !== '' ||
     currentFilters.priceRange.min > 0 ||
-    currentFilters.priceRange.max !== Infinity;
+    currentFilters.priceRange.max !== Infinity ||
+    (currentFilters.nftType && currentFilters.nftType !== 'all'); // NEW
 
   const hasPriceFilter = 
     currentFilters.priceRange.min > 0 || 
@@ -187,7 +198,7 @@ export default function MarketplaceFilters({
 
       {/* Filter Pills (Desktop) */}
       {!isMobile && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <ModernSelect
             value={currentFilters.category}
             onChange={onCategoryChange}
@@ -200,6 +211,14 @@ export default function MarketplaceFilters({
             onChange={(value) => onSortChange(value as 'price' | 'name' | 'date')}
             options={SORT_OPTIONS}
             placeholder="Sort by"
+          />
+
+          {/* NFT Type Filter - NEW */}
+          <ModernSelect
+            value={currentFilters.nftType || 'all'}
+            onChange={onNFTTypeChange}
+            options={NFT_TYPE_OPTIONS}
+            placeholder="NFT Type"
           />
 
           {/* Price Range Filter */}
@@ -347,6 +366,14 @@ export default function MarketplaceFilters({
                 placeholder="Sort by"
               />
 
+              {/* NFT Type Filter - NEW */}
+              <ModernSelect
+                value={currentFilters.nftType || 'all'}
+                onChange={onNFTTypeChange}
+                options={NFT_TYPE_OPTIONS}
+                placeholder="NFT Type"
+              />
+
               <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
                 <label className="block text-xs font-medium text-white/60 mb-2">Price Range (POL)</label>
                 <div className="grid grid-cols-2 gap-2 mb-2">
@@ -389,4 +416,4 @@ export default function MarketplaceFilters({
       )}
     </div>
   );
-}
+});

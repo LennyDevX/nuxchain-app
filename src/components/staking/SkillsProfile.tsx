@@ -1,15 +1,66 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSkillNFTs } from '../../hooks/staking/useSkillNFTs';
 import { useIsMobile } from '../../hooks/mobile';
 import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization';
 
 /**
+ * ✅ Optimized skill item component to prevent unnecessary re-renders
+ */
+const SkillItem = React.memo(({ 
+  skillId, 
+  fontSize 
+}: { 
+  skillId: bigint
+  fontSize: { small: number; label: number }
+}) => (
+  <div className="flex items-center justify-between bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+    <div className="flex items-center space-x-3">
+      <div className="w-8 h-8 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-lg flex items-center justify-center">
+        <span 
+          className="font-medium"
+          style={{ fontSize: `${fontSize.small}px` }}
+        >
+          #{skillId.toString()}
+        </span>
+      </div>
+      <div>
+        <div 
+          className="font-medium text-white"
+          style={{ fontSize: `${fontSize.label}px` }}
+        >
+          Skill NFT #{skillId.toString()}
+        </div>
+        <div 
+          className="text-white/60"
+          style={{ fontSize: `${fontSize.small}px` }}
+        >
+          Providing staking bonuses
+        </div>
+      </div>
+    </div>
+    <div className="px-2 py-1 bg-green-500/20 rounded-full">
+      <span 
+        className="font-semibold text-green-400"
+        style={{ fontSize: `${fontSize.small}px` }}
+      >
+        Active
+      </span>
+    </div>
+  </div>
+));
+
+SkillItem.displayName = 'SkillItem';
+
+/**
  * Componente para mostrar el perfil de Skills NFT del usuario en el dashboard de staking
  * Muestra skills activos, boosts y estado de auto-compound
+ * ✅ Totalmente optimizado para evitar re-renders innecesarios
+ * ✅ Versión compacta para desktop en sidebar
  */
 const SkillsProfile = React.memo(() => {
   const { userSkillProfile, activeSkills, hasAutoCompound, totalBoost, isLoading } = useSkillNFTs();
   const isMobile = useIsMobile()
+  const [isCollapsed, setIsCollapsed] = useState(isMobile); // Mobile: collapsed by default, Desktop: expanded
 
   // ✅ Font sizes adaptativos
   const fontSize = useMemo(() => ({
@@ -61,9 +112,43 @@ const SkillsProfile = React.memo(() => {
     return emptyComponent;
   }
 
+  // ✅ Compact version for desktop (sidebar)
+  if (!isMobile && isCollapsed) {
+    return (
+      <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-xl border border-white/10 p-4">
+        {/* Collapsed Header */}
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="w-full flex items-center justify-between hover:bg-white/5 p-2 rounded-lg transition-colors"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">⚡</span>
+            <h3 className="font-semibold text-white text-sm">Skills Profile</h3>
+          </div>
+          <svg className="w-4 h-4 text-white/60 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </button>
+        
+        {/* Compact Summary */}
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <div className="bg-white/5 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-white">{userSkillProfile.activeSkillsCount}</div>
+            <div className="text-xs text-white/60">Active</div>
+          </div>
+          <div className="bg-white/5 rounded-lg p-2 text-center">
+            <div className="text-sm font-bold text-green-400">+{totalBoost}%</div>
+            <div className="text-xs text-white/60">Boost</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Expanded version (mobile always expanded, desktop when toggled)
   return (
     <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
-      {/* Header */}
+      {/* Header with toggle button for desktop */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -85,7 +170,21 @@ const SkillsProfile = React.memo(() => {
           </div>
         </div>
         
-        {totalBoost > 0 && (
+        {/* Desktop: Toggle collapse button */}
+        {!isMobile && (
+          <button
+            onClick={() => setIsCollapsed(true)}
+            className="text-white/40 hover:text-white/60 transition-colors"
+            title="Collapse"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+        )}
+        
+        {/* Mobile: Total boost badge */}
+        {isMobile && totalBoost > 0 && (
           <div className="px-3 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full">
             <span 
               className="font-bold text-purple-300"
@@ -181,44 +280,12 @@ const SkillsProfile = React.memo(() => {
             Active Skills
           </h4>
           <div className="space-y-2">
-            {displayedSkills.map((skillId, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-lg flex items-center justify-center">
-                    <span 
-                      className="font-medium"
-                      style={{ fontSize: `${fontSize.small}px` }}
-                    >
-                      #{skillId.toString()}
-                    </span>
-                  </div>
-                  <div>
-                    <div 
-                      className="font-medium text-white"
-                      style={{ fontSize: `${fontSize.label}px` }}
-                    >
-                      Skill NFT #{skillId.toString()}
-                    </div>
-                    <div 
-                      className="text-white/60"
-                      style={{ fontSize: `${fontSize.small}px` }}
-                    >
-                      Providing staking bonuses
-                    </div>
-                  </div>
-                </div>
-                <div className="px-2 py-1 bg-green-500/20 rounded-full">
-                  <span 
-                    className="font-semibold text-green-400"
-                    style={{ fontSize: `${fontSize.small}px` }}
-                  >
-                    Active
-                  </span>
-                </div>
-              </div>
+            {displayedSkills.map((skillId) => (
+              <SkillItem 
+                key={skillId.toString()} 
+                skillId={skillId}
+                fontSize={{ small: fontSize.small, label: fontSize.label }}
+              />
             ))}
           </div>
           

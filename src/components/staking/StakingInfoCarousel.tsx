@@ -1,27 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
-import UserInfo from './UserInfo'
+
 import PoolInfo from './PoolInfo'
 import ContractInfo from './ContractInfo'
 
-interface DepositData {
-  amount: bigint
-  timestamp: bigint
-  lastClaimTime: bigint
-  lockupDuration: bigint
-}
 
-interface UserInfoData {
-  totalDeposited: bigint
-  pendingRewards: bigint
-  lastWithdraw: bigint
-}
 
 interface StakingInfoCarouselProps {
-  userInfo: UserInfoData | undefined
-  pendingRewards: bigint | undefined
-  userDeposits: DepositData[] | undefined
-  totalDeposit: bigint
   totalPoolBalance: bigint | undefined
   uniqueUsersCount: bigint | undefined
   contractAddress: string
@@ -29,10 +14,6 @@ interface StakingInfoCarouselProps {
 }
 
 const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
-  userInfo,
-  pendingRewards,
-  userDeposits,
-  totalDeposit,
   totalPoolBalance,
   uniqueUsersCount,
   contractAddress,
@@ -46,18 +27,6 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
   const carouselRef = useRef<HTMLDivElement>(null)
 
   const slides = [
-    {
-      id: 'user-info',
-      title: 'My Information',
-      component: (
-        <UserInfo
-          userInfo={userInfo}
-          pendingRewards={pendingRewards}
-          userDeposits={userDeposits}
-          totalDeposit={totalDeposit}
-        />
-      )
-    },
     {
       id: 'pool-info',
       title: 'Pool Information',

@@ -15,20 +15,14 @@
   animation: gradient-shift 8s ease-in-out infinite;
 }
 
-.text-gradient-static {
-  background: linear-gradient(
-    135deg,
-    var(--accent-purple) 0%,
-    var(--accent-red) 100%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.text-glow {
-  color: var(--pure-white);
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5),
-               0 0 20px rgba(139, 92, 246, 0.3),
-               0 0 30px rgba(139, 92, 246, 0.1);
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

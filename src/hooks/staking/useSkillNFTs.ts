@@ -3,7 +3,21 @@ import { useMemo } from 'react';
 import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json';
 import type { SkillType, UserSkillProfile, NFTSkill } from '../../types/contracts';
 
+// ✅ Add BigInt serialization support for React DevTools
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
+
+// ✅ Add BigInt serialization support for React DevTools
+if (typeof BigInt.prototype.toJSON === 'undefined') {
+  BigInt.prototype.toJSON = function() {
+    return this.toString();
+  };
+}
 
 interface UseSkillNFTsReturn {
   userSkillProfile: UserSkillProfile | null;
@@ -21,32 +35,39 @@ interface UseSkillNFTsReturn {
 export function useSkillNFTs(): UseSkillNFTsReturn {
   const { address, isConnected } = useAccount();
 
-  const contractConfig = {
+  // ✅ Memoize contract config to prevent recreating on every render
+  const contractConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
     abi: EnhancedSmartStakingABI.abi,
-  };
+  }), []);
 
-  // Get user skill profile
+  // ✅ Get user skill profile with optimized cache strategy
   const { data: profileData, isLoading: profileLoading, error: profileError } = useReadContract({
     ...contractConfig,
     functionName: 'userSkillProfiles',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 60000
+      staleTime: 60000, // 60 seconds - data is fresh
+      gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache much longer
+      refetchInterval: false, // ✅ CRITICAL: Don't auto-refetch, only refetch on window focus
+      refetchOnWindowFocus: true, // Refetch when user returns to window
+      refetchOnMount: false, // Don't refetch on component mount if data exists
     }
   });
 
-  // Get active skills count
+  // ✅ Get active skills count with same optimized strategy
   const { data: activeSkillsData, isLoading: skillsLoading } = useReadContract({
     ...contractConfig,
     functionName: 'getUserActiveSkills',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 60000
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ CRITICAL: Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
@@ -90,10 +111,11 @@ export function useSkillNFTs(): UseSkillNFTsReturn {
  * Hook para obtener detalles de un NFT skill específico
  */
 export function useNFTSkillDetails(tokenId: bigint | null) {
-  const contractConfig = {
+  // ✅ Memoize contract config
+  const contractConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
     abi: EnhancedSmartStakingABI.abi,
-  };
+  }), []);
 
   const { data: skillData, isLoading } = useReadContract({
     ...contractConfig,
@@ -101,7 +123,11 @@ export function useNFTSkillDetails(tokenId: bigint | null) {
     args: [tokenId],
     query: { 
       enabled: !!tokenId,
-      staleTime: 60000,
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 

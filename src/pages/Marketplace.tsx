@@ -1,8 +1,16 @@
-import { useState, useCallback, useMemo, lazy, Suspense, useEffect } from 'react';
+import { useState, useCallback, useMemo, lazy, Suspense, useEffect, memo } from 'react';
 import { useAccount } from 'wagmi';
 import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
 import type { NFTData } from '../hooks/nfts/useReactQueryNFTs';
 import type { MarketplaceNFT } from '../types/marketplace';
+
+// ✅ Helper: Check if NFT has skill attributes
+function hasSkill(attributes: NFTData['attributes'] | undefined): boolean {
+  return (attributes || []).some(attr => 
+    attr.trait_type.toLowerCase() === 'skill' ||
+    attr.trait_type.toLowerCase() === 'skilltype'
+  );
+}
 import MarketplaceFilters from '../components/marketplace/MarketplaceFilters';
 import MarketplaceStats from '../components/marketplace/MarketplaceStats';
 import NFTCardMemo from '../components/marketplace/NFTCardMemo';
@@ -80,6 +88,7 @@ function Marketplace() {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<MarketplaceNFT | null>(null);
   const [currentCategory, setCurrentCategory] = useState('all');
+  const [nftType, setNFTType] = useState('all'); // NEW: 'all' | 'skill' | 'standard'
   const [priceRange, setPriceRange] = useState({ min: 0, max: Infinity });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<'price' | 'name' | 'date'>('date');
@@ -99,6 +108,16 @@ function Marketplace() {
       filtered = filtered.filter(nft => 
         nft.category.toLowerCase() === currentCategory.toLowerCase()
       );
+    }
+
+    // Filter by NFT type (NEW) - check skill attribute
+    if (nftType !== 'all') {
+      filtered = filtered.filter(nft => {
+        const hasSkillAttr = hasSkill(nft.attributes);
+        if (nftType === 'skill') return hasSkillAttr;
+        if (nftType === 'standard') return !hasSkillAttr;
+        return true;
+      });
     }
 
     // Filter by price range
@@ -128,7 +147,7 @@ function Marketplace() {
     });
 
     return filtered;
-  }, [marketplaceNFTs, currentCategory, priceRange, searchQuery, sortField]);
+  }, [marketplaceNFTs, currentCategory, nftType, priceRange, searchQuery, sortField]);
 
   // Enhanced logging after filtering
   if (!loading && filteredNFTs.length > 0) {
@@ -194,12 +213,18 @@ function Marketplace() {
     setSortField(field);
   }, []);
 
+  // NEW: Handle NFT Type filter change
+  const handleNFTTypeChange = useCallback((type: string) => {
+    setNFTType(type);
+  }, []);
+
   // Current filters object for MarketplaceFilters component
   const currentFilters = {
     category: currentCategory,
     priceRange,
     searchQuery,
-    sortBy: sortField
+    sortBy: sortField,
+    nftType // NEW
   };
 
   if (!isConnected) {
@@ -224,7 +249,7 @@ function Marketplace() {
             <div className="col-span-9">
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-white mb-4">
+                <h1 className="text-4xl font-bold text-white mb-4 text-gradient">
                   NFT Marketplace
                 </h1>
                 <p className="text-xl text-white/60 max-w-3xl mx-auto">
@@ -254,7 +279,6 @@ function Marketplace() {
                   className="mb-6"
                 />
               )}
-
               {/* Filters Section */}
               <div className="mb-6">
                 <MarketplaceFilters
@@ -263,6 +287,7 @@ function Marketplace() {
                   onPriceRangeChange={handlePriceRangeChange}
                   onSearchChange={handleSearchChange}
                   onSortChange={handleSortChange}
+                  onNFTTypeChange={handleNFTTypeChange}
                   currentFilters={currentFilters}
                   className=""
                   isLoading={loading}
@@ -344,7 +369,6 @@ function Marketplace() {
                 className="mb-4"
               />
             )}
-
             {/* Filters Section */}
             <div className="mb-4">
               <MarketplaceFilters
@@ -353,6 +377,7 @@ function Marketplace() {
                 onPriceRangeChange={handlePriceRangeChange}
                 onSearchChange={handleSearchChange}
                 onSortChange={handleSortChange}
+                onNFTTypeChange={handleNFTTypeChange}
                 currentFilters={currentFilters}
                 className=""
                 isLoading={loading}
@@ -422,5 +447,4 @@ function Marketplace() {
     </div>
   );
 }
-
-export default Marketplace
+export default memo(Marketplace);

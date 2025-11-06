@@ -73,7 +73,7 @@ function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className={`fixed left-0 right-0 border-t border-white/10 bg-brand-black-600/50 backdrop-blur-glass z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`} style={{
+        <div className={`fixed left-0 right-0 z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`} style={{
           transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
         }}>
           <div className="max-w-4xl mx-auto w-full">

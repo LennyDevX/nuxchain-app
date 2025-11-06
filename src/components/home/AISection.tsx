@@ -14,7 +14,7 @@ function AISection() {
           <div className="flex justify-center">
             <div className="relative rounded-full overflow-hidden flex items-center justify-center">
               {/* Replaced static image with AnimatedAILogo */}
-              <AnimatedAILogo className="w-54 h-54" />
+              <AnimatedAILogo className="w-64 h-64" />
             </div>
           </div>
         )}

@@ -9,24 +9,26 @@ function StakingSection() {
   const isMobile = useIsMobile();
   
   // Staking calculator logic
+  // ROI base flexible: 0.005% por hora (0.00005)
+  // Multiplicadores calculados según los nuevos ROIs por hora
+  // 30d: 0.01% (2.0x), 90d: 0.014% (2.8x), 180d: 0.017% (3.4x), 365d: 0.021% (4.2x)
   const getMultiplier = () => {
     switch (lockPeriod) {
-      case '30': return 1.2;
-      case '90': return 1.5;
-      case '180': return 2.0;
-      case '365': return 2.5;
+      case '30': return 2.0;
+      case '90': return 2.8;
+      case '180': return 3.4;
+      case '365': return 4.2;
+      case 'flexible':
       default: return 1;
     }
   };
-  
+
   const calculateProjectedRewards = (days: number) => {
     if (!stakingAmount || isNaN(Number(stakingAmount))) return 0;
     const amount = Number(stakingAmount);
-    
-    const hourlyRate = 0.0001; // 0.01% per hour
+    const hourlyRate = 0.00005; // 0.005% por hora
     const multiplier = getMultiplier();
     const hours = days * 24;
-    
     return amount * hourlyRate * multiplier * hours;
   };
   
@@ -60,10 +62,10 @@ function StakingSection() {
                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:outline-none transition-colors"
                  >
                    <option value="flexible" className="bg-gray-800">Flexible (1x)</option>
-                   <option value="30" className="bg-gray-800">30 Days (1.2x)</option>
-                   <option value="90" className="bg-gray-800">90 Days (1.5x)</option>
-                   <option value="180" className="bg-gray-800">180 Days (2.0x)</option>
-                   <option value="365" className="bg-gray-800">365 Days (2.5x)</option>
+                   <option value="30" className="bg-gray-800">30 Days (2.0x)</option>
+                   <option value="90" className="bg-gray-800">90 Days (2.8x)</option>
+                   <option value="180" className="bg-gray-800">180 Days (3.4x)</option>
+                   <option value="365" className="bg-gray-800">365 Days (4.2x)</option>
                  </select>
               </div>
               
@@ -103,10 +105,10 @@ function StakingSection() {
                 
                 <div className="text-center pt-4 border-t border-white/10 mt-4">
                   <div className="text-xs text-white/50 mb-1">
-                    Base ROI: 0.01% per hour • Multiplier: {getMultiplier()}x
+                    Base ROI: 0.005% per hour • Multiplier: {getMultiplier()}x
                   </div>
                   <div className="text-sm text-purple-300 font-semibold">
-                    Effective APY: {(getMultiplier() * 0.01 * 24 * 365).toFixed(2)}%
+                    Effective APY: {(getMultiplier() * 0.005 * 24 * 365).toFixed(2)}%
                   </div>
                 </div>
               </div>
@@ -136,7 +138,11 @@ function StakingSection() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Base APY 87% anual rewards</span>
+                <span className="text-white/80">Base APY ~44% anual rewards (Flexible)</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span className="text-white/80">APY máximo ~184% (365 días)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>

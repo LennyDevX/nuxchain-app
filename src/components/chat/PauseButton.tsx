@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 
 interface PauseButtonProps {
@@ -8,9 +9,20 @@ export default function PauseButton({ onClick }: PauseButtonProps) {
   const isMobile = useIsMobile()
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ 
+        duration: 0.4,
+        delay: 0.4,
+        type: 'spring',
+        stiffness: 300,
+        damping: 25
+      }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       className={`
         relative flex items-center justify-center
         ${isMobile ? 'w-12 h-12' : 'w-14 h-14'}
@@ -30,6 +42,6 @@ export default function PauseButton({ onClick }: PauseButtonProps) {
         <rect x="6" y="4" width="4" height="16" rx="1" />
         <rect x="14" y="4" width="4" height="16" rx="1" />
       </svg>
-    </button>
+    </motion.button>
   )
 }

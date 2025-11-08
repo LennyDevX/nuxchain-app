@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import type { MarketplaceNFT } from '../../types/marketplace';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
@@ -44,16 +45,16 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
   const handleBuy = () => {
     if (!isConnected) {
       setBuyError('You must connect your wallet to purchase');
-      triggerHaptic('error'); // ✅ Haptic feedback for error
+      triggerHaptic('light'); // ✅ Haptic feedback for error
       return;
     }
     if (account && nft.owner && account.toLowerCase() === nft.owner.toLowerCase()) {
       setBuyError('You cannot buy your own NFT');
-      triggerHaptic('error'); // ✅ Haptic feedback for error
+      triggerHaptic('light'); // ✅ Haptic feedback for error
       return;
     }
     setBuyError('');
-    triggerHaptic('success'); // ✅ Haptic feedback for success
+    triggerHaptic('medium'); // ✅ Haptic feedback for success
     onBuy(nft);
     onSuccess?.(nft);
     onClose();
@@ -62,15 +63,27 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
   const isOwner = account && nft.owner && account.toLowerCase() === nft.owner.toLowerCase();
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="buy-modal-title"
-      aria-describedby="buy-modal-description"
-    >
-      <div ref={modalRef} className="card-unified border border-white/10 rounded-2xl p-6 max-w-md w-full">
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        onClick={handleBackdropClick}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="buy-modal-title"
+        aria-describedby="buy-modal-description"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.div 
+          ref={modalRef} 
+          className="card-unified border border-white/10 rounded-2xl p-6 max-w-md w-full"
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 30 }}
+        >
         <div className="flex justify-between items-center mb-4">
           <h3 id="buy-modal-title" className="text-xl font-bold text-white">Buy NFT</h3>
           <button
@@ -143,18 +156,21 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
           >
             Cancel
           </button>
-          <button
+          <motion.button
             onClick={handleBuy}
             disabled={!isConnected || Boolean(isOwner)}
             aria-label={!isConnected ? 'Connect wallet to buy' : isOwner ? 'Cannot buy your own NFT' : `Buy ${nft.name || 'NFT'} for ${nft.priceInEth || '0.10'} POL`}
             aria-disabled={!isConnected || Boolean(isOwner)}
+            whileHover={!isConnected || isOwner ? {} : { scale: 1.05 }}
+            whileTap={!isConnected || isOwner ? {} : { scale: 0.95 }}
             className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
           >
             Buy
-          </button>
+          </motion.button>
         </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

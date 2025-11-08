@@ -1,5 +1,7 @@
+import { motion } from 'framer-motion';
 import { useUserProfile, useXPProgress } from '../../hooks/marketplace/useUserProfile';
 import { useAchievements } from '../../hooks/marketplace/useAchievements';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 /**
  * Componente para mostrar el perfil gamificado del usuario
@@ -13,10 +15,8 @@ export default function GamificationProfile() {
   if (isLoading) {
     return (
       <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-white/10 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-white/10 rounded w-1/2"></div>
-        </div>
+        <SkeletonLoader width="w-1/3" height="h-6" rounded="md" className="mb-4" />
+        <SkeletonLoader width="w-1/2" height="h-4" rounded="md" />
       </div>
     );
   }
@@ -26,9 +26,19 @@ export default function GamificationProfile() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
+    <motion.div 
+      className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
+    >
       {/* Header with Level */}
-      <div className="flex items-center justify-between mb-6">
+      <motion.div 
+        className="flex items-center justify-between mb-6"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
             <span className="text-2xl font-bold text-white">{level}</span>
@@ -43,10 +53,15 @@ export default function GamificationProfile() {
           <div className="text-sm text-white/60 mb-1">Next Level</div>
           <div className="text-lg font-bold text-white">{xpForNextLevel.toString()} XP</div>
         </div>
-      </div>
+      </motion.div>
 
       {/* XP Progress Bar */}
-      <div className="mb-6">
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.15 }}
+      >
         <div className="flex justify-between text-xs text-white/60 mb-2">
           <span>Level {level}</span>
           <span>{progress.toFixed(1)}%</span>
@@ -58,10 +73,15 @@ export default function GamificationProfile() {
             style={{ width: `${progress}%` }}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <motion.div 
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
         <div className="bg-white/5 rounded-xl p-4">
           <div className="text-2xl mb-2">🎨</div>
           <div className="text-xl font-bold text-white">{typeof userProfile.nftsCreated === 'bigint' ? userProfile.nftsCreated.toString() : userProfile.nftsCreated}</div>
@@ -85,10 +105,15 @@ export default function GamificationProfile() {
           <div className="text-xl font-bold text-white">{totalUnlocked}</div>
           <div className="text-xs text-white/60">Achievements</div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Achievements Progress */}
-      <div className="bg-white/5 rounded-xl p-4">
+      <motion.div 
+        className="bg-white/5 rounded-xl p-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+      >
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-semibold text-white">Achievement Progress</h4>
           <span className="text-sm text-purple-400 font-semibold">{completionPercentage.toFixed(0)}%</span>
@@ -99,11 +124,16 @@ export default function GamificationProfile() {
             style={{ width: `${completionPercentage}%` }}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Rewards */}
       {userProfile.referralCount && (typeof userProfile.referralCount === 'bigint' ? userProfile.referralCount > BigInt(0) : userProfile.referralCount > 0) && (
-        <div className="mt-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
+        <motion.div 
+          className="mt-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <span className="text-2xl">👥</span>
@@ -116,8 +146,8 @@ export default function GamificationProfile() {
               Invite Friends
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

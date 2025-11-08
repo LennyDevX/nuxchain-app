@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 interface SkeletonLoaderProps {
   /** Ancho del skeleton */
@@ -53,14 +54,14 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     lg: 'space-y-4',
   };
 
-  const pulseVariants = {
+  const pulseVariants: Variants = {
     initial: { opacity: 0.6 },
     animate: {
       opacity: [0.6, 0.8, 0.6],
       transition: {
         duration: 2,
         repeat: Infinity,
-        ease: 'easeInOut',
+        ease: "easeInOut" as const,
       },
     },
   };

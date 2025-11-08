@@ -1,7 +1,9 @@
 import { memo } from 'react';
+import { motion } from 'framer-motion';
 import { formatEther } from 'viem';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { CardSkeletonLoader } from '../ui/SkeletonLoader';
 
 interface NFTAttribute {
   trait_type: string;
@@ -18,19 +20,6 @@ interface NFTData {
 interface NFTStatsProps {
   nfts: NFTData[];
   loading?: boolean;
-}
-
-function StatCardSkeleton() {
-  return (
-    <div className="card-stats">
-        <div className="flex items-center justify-between mb-2">
-          <div className="w-6 h-6 bg-white/10 rounded"></div>
-          <div className="w-12 h-3 bg-white/10 rounded"></div>
-        </div>
-        <div className="w-20 h-6 bg-white/10 rounded mb-1"></div>
-        <div className="w-16 h-3 bg-white/10 rounded"></div>
-      </div>
-  );
 }
 
 // Helper: Check if NFT has skill attributes
@@ -68,14 +57,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
   const formattedTotalValueUSD = polPrice ? convertPOLToUSD(totalEstimatedValuePOL) : 'Loading...';
   const formattedListedCount = listedForSaleCount.toLocaleString();
   const formattedTotalCount = totalNFTsCount.toLocaleString();
+  
   if (loading) {
     return (
-      <div className={`grid gap-2 ${isMobile ? 'grid-cols-2 grid-rows-2' : 'grid-cols-5'}`}>
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
-        <StatCardSkeleton />
+      <div className={`grid gap-2 ${isMobile ? 'grid-cols-2' : 'grid-cols-5'}`}>
+        <CardSkeletonLoader count={5} showImage={false} />
       </div>
     );
   }
@@ -83,7 +69,14 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
   return (
     <div className={`grid ${isMobile ? 'grid-cols-2 gap-2' : 'grid-cols-5 gap-2'}`}>
       {/* Total Portfolio Value */}
-      <div className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2" style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}>
+      <motion.div 
+        className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0 }}
+        viewport={{ once: true }}
+        style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}
+      >
         <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-1'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-xs md:text-sm'}`}>Total Portfolio Value</h3>
           <div className={`bg-green-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-7 h-7'}`}>
@@ -103,10 +96,17 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
             From {formattedListedCount} listed
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Listed for Sale */}
-  <div className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2" style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}>
+      <motion.div 
+        className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        viewport={{ once: true }}
+        style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}
+      >
         <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-1'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-xs md:text-sm'}`}>Listed for Sale</h3>
           <div className={`bg-blue-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-7 h-7'}`}>
@@ -121,10 +121,17 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
             Out of {formattedTotalCount}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Skill NFTs - NEW CARD */}
-      <div className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2" style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}>
+      <motion.div 
+        className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        viewport={{ once: true }}
+        style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}
+      >
         <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-1'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-xs md:text-sm'}`}>Skill NFTs</h3>
           <div className={`bg-amber-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-7 h-7'}`}>
@@ -139,10 +146,10 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
             With special abilities
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Standard NFTs */}
-      <div className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2" style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}>
+      <motion.div className="card-stats min-w-0 px-3 py-3 md:px-2 md:py-2" style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} viewport={{ once: true }}>
         <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-1'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-xs md:text-sm'}`}>Standard NFTs</h3>
           <div className={`bg-slate-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-7 h-7'}`}>
@@ -157,10 +164,10 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
             Regular NFTs
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Total Collection - on mobile spans if needed */}
-      <div className={`card-stats ${isMobile ? 'col-span-2' : ''} min-w-0 px-3 py-3 md:px-2 md:py-2`} style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}}>
+      <motion.div className={`card-stats ${isMobile ? 'col-span-2' : ''} min-w-0 px-3 py-3 md:px-2 md:py-2`} style={!isMobile ? {minWidth: 0, padding: '12px 10px'} : {}} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} viewport={{ once: true }}>
         <div className={`flex items-center justify-between ${isMobile ? 'mb-3' : 'mb-2'}`}>
           <h3 className={`font-semibold text-white ${isMobile ? 'text-sm' : 'text-base'}`}>Total Collection</h3>
           <div className={`bg-purple-500/20 rounded-lg flex items-center justify-center ${isMobile ? 'w-8 h-8' : 'w-8 h-8'}`}>
@@ -175,7 +182,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
             NFTs in collection
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 });

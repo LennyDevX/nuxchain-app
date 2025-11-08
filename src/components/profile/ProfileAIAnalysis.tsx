@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAdvancedStakingAnalysis } from '../../hooks/ai/useAdvancedStakingAnalysis';
 import AIAnalysisWelcome from './AIAnalysisWelcome';
-import '../../styles/ai-analysis-animations.css';
+import '../../styles/animations.css';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileAIAnalysis: React.FC = () => {

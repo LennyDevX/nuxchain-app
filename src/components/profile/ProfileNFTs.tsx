@@ -5,7 +5,7 @@ import { ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import '../../styles/ai-analysis-animations.css';
+import '../../styles/animations.css';
 
 const ProfileNFTs: React.FC = () => {
   const { address, isConnected } = useAccount();

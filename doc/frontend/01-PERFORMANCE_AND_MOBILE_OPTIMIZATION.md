@@ -1,315 +1,713 @@
 # 🚀 Performance & Mobile Optimization
 
-**Last Updated:** November 1, 2025  
+**Last Updated:** November 2025  
 **Status:** ✅ Production Ready  
-**Version:** 1.0
+**Audience:** Developers
 
 ---
 
-## 📊 Executive Summary
+## � Table of Contents
 
-Comprehensive mobile performance optimization achieving **-40% to -80% performance gains** across all key metrics. Implementation includes intelligent caching, accessibility compliance (WCAG 2.1 AA), PWA support, and responsive design system.
-
-### Key Metrics
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Mobile Re-renders** | 100% | 60% | **-40%** ✅ |
-| **Scroll Jank** | High | Low | **-80%** ✅ |
-| **Lighthouse CLS** | 8.5/10 | 9.2/10 | **+0.7** ✅ |
-| **Accessibility Score** | 8.2/10 | 9.5/10 | **+1.3** ✅ |
-| **CSS Bundle Size** | 15KB | 10KB | **-33%** ✅ |
-| **FPS on Mobile** | 30-40 | 55-60 | **+50%** ✅ |
+1. [Overview](#overview)
+2. [Mobile Detection Hooks](#mobile-detection-hooks)
+3. [Scroll Optimization](#scroll-optimization)
+4. [Accessibility Hooks](#accessibility-hooks)
+5. [PWA & Offline Support](#pwa--offline-support)
+6. [Performance Best Practices](#performance-best-practices)
 
 ---
 
-## 🎯 Phase 1: Core Optimizations (CRITICAL/HIGH)
+## 🎯 Overview
 
-### 1. Hook Optimization Suite
+Nuxchain implements a comprehensive performance and mobile optimization system using custom React hooks and intelligent caching strategies. All optimizations are built with accessibility (WCAG 2.1 AA) and mobile-first design in mind.
 
-#### useIsMobile - Debounce + Cache
-- **File:** `src/hooks/mobile/useIsMobile.ts`
-- **Optimization:** 150ms debounce + Map-based cache (max 100 entries)
-- **Impact:** -40% re-renders on orientation change
-- **Status:** ✅ Production Ready
-
-#### useScrollDirection - RequestAnimationFrame
-- **File:** `src/hooks/mobile/useScrollDirection.ts`
-- **Optimization:** RAF synchronization + 50ms throttle + ref-based state
-- **Impact:** -80% scroll jank, maintains 55-60 FPS
-- **Status:** ✅ Production Ready
-
-#### useReducedMotion - Accessibility Hook
-- **File:** `src/hooks/mobile/useReducedMotion.ts` (NEW)
-- **Features:**
-  - CSS media query detection (`prefers-reduced-motion`)
-  - Battery Status API integration (reduce motion at < 20% battery)
-  - WCAG 2.1 AA compliant
-- **Impact:** -60ms interaction time, accessibility compliance
-- **Status:** ✅ Production Ready
+**Key Features:**
+- ✅ Debounced mobile detection (prevents excessive re-renders)
+- ✅ RAF-synchronized scroll tracking (maintains 60 FPS)
+- ✅ Reduced motion support (respects user preferences)
+- ✅ Focus trap for modals (keyboard navigation)
+- ✅ PWA with offline support
+- ✅ Intelligent image caching
 
 ---
 
-### 2. Accessibility (WCAG 2.1 AA)
+## 📱 Mobile Detection Hooks
 
-#### Aria Labels Implementation
-- **Files Modified:** 5 components
-  - NFTFilters, MarketplaceFilters, BuyModal, ListingModal, ProfileOverview
-- **Coverage:** 32+ comprehensive aria-labels
-- **Features:**
-  - `aria-labels` for all interactive elements
-  - `aria-expanded`, `aria-haspopup` for menus
-  - `aria-live="assertive"` for critical alerts
-  - `aria-live="polite"` for informational messages
-  - `aria-busy` for loading states
-  - `aria-invalid` for form validation
-- **Impact:** +7-10 Lighthouse Accessibility Score
-- **Status:** ✅ Production Ready
+## 📱 Mobile Detection Hooks
 
-#### Keyboard Navigation & Focus Trap
-- **File:** `src/hooks/accessibility/useFocusTrap.ts` (NEW - 145 lines)
-- **Features:**
-  - Tab/Shift+Tab focus cycling
-  - ESC key modal dismissal
-  - Focus restoration to trigger element
-  - Body scroll prevention
-- **Integrated Modals:** BuyModal, ListingModal
-- **Impact:** Full WCAG AAA modal navigation
-- **Status:** ✅ Production Ready
+### useIsMobile
 
-#### Haptic Feedback Integration
-- **Files:** ProfileOverview, critical action buttons
-- **Patterns:**
-  - `vibrate(50)` for light feedback (confirmations)
-  - `vibrate(100)` for medium feedback (deletions)
-- **Impact:** Enhanced UX on mobile devices
-- **Status:** ✅ Production Ready
+**Purpose:** Detect mobile devices with debounced resize events and caching.
 
----
+**Location:** `src/hooks/mobile/useIsMobile.ts`
 
-### 3. Component Optimization
+**Features:**
+- 150ms debounce on window resize
+- Map-based cache (max 100 entries)
+- User agent detection
+- Passive event listeners
 
-#### SkeletonLoader System (NEW)
-- **File:** `src/components/ui/SkeletonLoader.tsx`
-- **Exports:**
-  - `SkeletonLoader` - Generic base
-  - `CardSkeletonLoader` - 300px fixed height
-  - `ListSkeletonLoader` - 40px per item
-  - `TableSkeletonLoader` - 50px per row
-  - `HeroSkeletonLoader` - 600px fixed height
-- **Features:**
-  - Fixed heights prevent Cumulative Layout Shift (CLS)
-  - Framer Motion pulse animation with staggered delays
-  - Responsive spacing
-- **Impact:** +15-20 Lighthouse CLS score
-- **Status:** ✅ Production Ready
+**Usage:**
 
-#### Reduced Motion in Animations
-- **Files:** 
-  - `src/components/tokenization/Benefits.tsx`
-  - `src/components/tokenization/FAQ.tsx`
-- **Implementation:**
-  - Conditional stagger (0.06s → 0)
-  - Conditional transforms (12px → 0)
-  - Instant animations when reduced motion enabled
-- **Impact:** Respects OS accessibility preferences
-- **Status:** ✅ Production Ready
+```tsx
+import { useIsMobile } from '@/hooks/mobile/useIsMobile';
 
----
+function MyComponent() {
+  const isMobile = useIsMobile();
 
-## 🎨 Phase 2: Design System (RESPONSIVE)
-
-### CSS Responsive Grid System (NEW)
-
-**File:** `src/styles/responsive-grid.css`
-
-#### Utilities
-```css
-.grid-responsive-auto    /* auto-fit + minmax(250px, 1fr) */
-.grid-responsive-2/3/4   /* Fixed columns with responsiveness */
-.grid-masonry            /* CSS Grid masonry layout */
+  return (
+    <div>
+      {isMobile ? (
+        <MobileView />
+      ) : (
+        <DesktopView />
+      )}
+    </div>
+  );
+}
 ```
 
-#### Features
-- Container Queries support (with media query fallback)
-- Dynamic gap with `clamp()`: scales 16px → 32px
-- Zero JavaScript layout calculations
+**Implementation Details:**
 
-**Impact:** -30% layout re-renders
+```typescript
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  });
 
----
+  useEffect(() => {
+    const checkMobile = debounce(() => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    }, 150); // 150ms debounce
 
-### Spacing System with CSS Variables (NEW)
+    window.addEventListener('resize', checkMobile, { passive: true });
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-**File:** `src/styles/spacing.css`
-
-#### Variables (Mobile-first with `clamp()`)
-```css
---space-xs through --space-4xl     /* Responsive spacing */
---touch-target: 44px               /* WCAG accessible touch targets */
---transition-fast/normal/slow      /* Unified timing */
+  return isMobile;
+}
 ```
 
-#### Benefits
-- -40% media queries in components
-- Automatic responsive scaling
-- Respects `prefers-reduced-motion` at root level
-- Consistent design system
+**Breakpoint:** 768px (matches Tailwind's `md:` breakpoint)
 
 ---
 
-### CSS Consolidation
+## 🔄 Scroll Optimization
 
-**Files Optimized:**
-- `src/styles/animations.css` - All 18+ animations consolidated
-- `src/styles/components.css` - Unified card/button classes
-- `src/styles/ai-analysis.css` - Specific AI styles only
+## 🔄 Scroll Optimization
 
-**Metrics:**
-- CSS Lines: 1,200 → 800 (-33%)
-- Duplicate Classes: 8-10 → 0-2 (-90%)
-- Bundle Size: 15KB → 10KB (-33%)
-- Reusability: 70% → 95% (+35%)
+### useScrollDirection
+
+**Purpose:** Track scroll direction with RequestAnimationFrame for smooth 60 FPS performance.
+
+**Location:** `src/hooks/mobile/useScrollDirection.ts`
+
+**Features:**
+- RAF (RequestAnimationFrame) synchronization
+- 50ms throttle to reduce calculations
+- Ref-based state (prevents closure issues)
+- Proper cleanup on unmount
+
+**Usage:**
+
+```tsx
+import { useScrollDirection } from '@/hooks/mobile/useScrollDirection';
+
+function Header() {
+  const scrollDirection = useScrollDirection();
+
+  return (
+    <header
+      className={`
+        fixed top-0 w-full transition-transform
+        ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'}
+      `}
+    >
+      <nav>...</nav>
+    </header>
+  );
+}
+```
+
+**Return Values:**
+- `'up'` - User scrolling up
+- `'down'` - User scrolling down
+- `null` - Initial state or no scroll
+
+**Implementation Pattern:**
+
+```typescript
+export function useScrollDirection() {
+  const [direction, setDirection] = useState<'up' | 'down' | null>(null);
+  const lastScrollY = useRef(0);
+  const ticking = useRef(false);
+
+  useEffect(() => {
+    const updateScrollDirection = () => {
+      const scrollY = window.scrollY;
+
+      if (Math.abs(scrollY - lastScrollY.current) < 10) {
+        ticking.current = false;
+        return;
+      }
+
+      setDirection(scrollY > lastScrollY.current ? 'down' : 'up');
+      lastScrollY.current = scrollY;
+      ticking.current = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking.current) {
+        requestAnimationFrame(updateScrollDirection);
+        ticking.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return direction;
+}
+```
+
+**Performance Notes:**
+- Maintains 55-60 FPS on mobile devices
+- Reduces scroll jank significantly
+- Passive listeners for better scroll performance
 
 ---
 
-## 🌐 Phase 3: PWA & Offline Support
+## ♿ Accessibility Hooks
 
-### Service Worker Implementation
+### useReducedMotion
 
-**File:** `src/sw.ts` (245 lines)
+**Purpose:** Detect user preference for reduced motion (WCAG 2.1 AA compliance).
 
-#### Caching Strategies
-- **Static Assets:** CacheFirst (30 days, 60 entries max)
-- **GraphQL API:** NetworkFirst (5 min cache, 10s timeout)
-- **RPC Calls:** NetworkFirst (2 min cache)
+**Location:** `src/hooks/mobile/useReducedMotion.ts`
 
-#### Features
-- Runtime caching for dynamic content
+**Features:**
+- CSS media query detection (`prefers-reduced-motion`)
+- Battery Status API integration (reduces motion at < 20% battery)
+- WCAG 2.1 AA compliant
+
+**Usage:**
+
+```tsx
+import { useReducedMotion } from '@/hooks/mobile/useReducedMotion';
+import { motion } from 'framer-motion';
+
+function AnimatedCard() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
+    >
+      <h2>Card Title</h2>
+    </motion.div>
+  );
+}
+```
+
+**Implementation:**
+
+```typescript
+export function useReducedMotion(): boolean {
+  const [shouldReduce, setShouldReduce] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setShouldReduce(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Check battery level
+  useEffect(() => {
+    if ('getBattery' in navigator) {
+      (navigator as any).getBattery().then((battery: any) => {
+        if (battery.level < 0.2) {
+          setShouldReduce(true);
+        }
+      });
+    }
+  }, []);
+
+  return shouldReduce;
+}
+```
+
+**When to Use:**
+- Always in animated components
+- Respect system preferences
+- Improve performance on low battery
+
+---
+
+### useFocusTrap
+
+**Purpose:** Trap keyboard focus within modals for WCAG AAA compliance.
+
+**Location:** `src/hooks/accessibility/useFocusTrap.ts`
+
+**Features:**
+- Tab/Shift+Tab focus cycling
+- ESC key dismissal
+- Focus restoration to trigger element
+- Body scroll prevention
+
+**Usage:**
+
+```tsx
+import { useFocusTrap } from '@/hooks/accessibility/useFocusTrap';
+
+function Modal({ isOpen, onClose }) {
+  const modalRef = useFocusTrap(isOpen);
+
+  if (!isOpen) return null;
+
+  return (
+    <div ref={modalRef} className="modal">
+      <h2>Modal Title</h2>
+      <button onClick={onClose}>Close</button>
+      <button>Primary Action</button>
+    </div>
+  );
+}
+```
+
+**Implementation Details:**
+
+```typescript
+export function useFocusTrap(isActive: boolean) {
+  const ref = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isActive || !ref.current) return;
+
+    const element = ref.current;
+    previousActiveElement.current = document.activeElement as HTMLElement;
+
+    // Get all focusable elements
+    const focusableElements = element.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstFocusable = focusableElements[0] as HTMLElement;
+    const lastFocusable = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    // Focus first element
+    firstFocusable?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        previousActiveElement.current?.focus();
+        return;
+      }
+
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        // Shift+Tab
+        if (document.activeElement === firstFocusable) {
+          lastFocusable?.focus();
+          e.preventDefault();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastFocusable) {
+          firstFocusable?.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    element.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      element.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+      previousActiveElement.current?.focus();
+    };
+  }, [isActive]);
+
+  return ref;
+}
+```
+
+## 🌐 PWA & Offline Support
+
+### Service Worker
+
+**Purpose:** Cache static assets and API responses for offline functionality.
+
+**Location:** `src/sw.ts` (245 lines)
+
+**Caching Strategies:**
+
+1. **Static Assets** (CacheFirst - 30 days)
+   - Images, fonts, CSS, JS bundles
+   - Max 60 entries
+
+2. **GraphQL API** (NetworkFirst - 5 min cache)
+   - Subgraph queries
+   - 10s timeout, fallback to cache
+
+3. **RPC Calls** (NetworkFirst - 2 min cache)
+   - Blockchain RPC requests
+   - Quick fallback
+
+**Configuration:**
+
+```typescript
+// src/sw.ts
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+
+// Static assets
+registerRoute(
+  ({ request }) => request.destination === 'image',
+  new CacheFirst({
+    cacheName: 'images-v1',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 60,
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      }),
+    ],
+  })
+);
+
+// GraphQL API
+registerRoute(
+  ({ url }) => url.pathname === '/api/graphql',
+  new NetworkFirst({
+    cacheName: 'graphql-v1',
+    networkTimeoutSeconds: 10,
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 5 * 60, // 5 minutes
+      }),
+    ],
+  })
+);
+```
+
+**Features:**
 - Offline fallback page (`public/offline.html`)
+- Runtime caching for dynamic content
 - Auto-retry on connection restored
-- User notification for new versions
-
-**Impact:** Full Progressive Web App functionality
+- Version notification for updates
 
 ---
 
-### Bundle Size & Smart Preloading
+### Bundle Optimization
 
-**File:** `src/router/routes.tsx`
+**Strategy:** Lazy loading with code splitting
 
-#### Implementation
-- `webpackChunkName` on all 11 lazy-loaded routes
-- Network speed detection (Network Information API)
-- `requestIdleCallback` for non-blocking preload
-- Staged preloading: Marketplace → +1s NFTs → +2s Profile
-- Skips preload on 2g/slow-2g connections
+**Route Configuration:**
 
-#### Bundle Breakdown
+```typescript
+// src/router/routes.tsx
+const Chat = lazy(() =>
+  import(/* webpackChunkName: "chat" */ '@/pages/Chat')
+);
+
+const Profile = lazy(() =>
+  import(/* webpackChunkName: "profile" */ '@/pages/Profile')
+);
+
+const NFTs = lazy(() =>
+  import(/* webpackChunkName: "nfts" */ '@/pages/NFTs')
+);
 ```
-Chat:        1.09 MB (critical, acceptable)
+
+**Bundle Sizes:**
+```
+Chat:        1.09 MB  (critical - AI features)
 DevHub:      347 KB
-Profile:     311 KB (target: <300KB - 96% achieved)
-NFTs:        109 KB ✅
-Marketplace: 44 KB ✅
+Profile:     311 KB
+NFTs:        109 KB
+Marketplace:  44 KB
+```
+
+**Smart Preloading:**
+
+```typescript
+// Detect network speed
+const connection = navigator.connection;
+const isSlowNetwork =
+  connection?.effectiveType === '2g' ||
+  connection?.effectiveType === 'slow-2g';
+
+// Staged preloading
+if (!isSlowNetwork) {
+  requestIdleCallback(() => {
+    preloadRoute('marketplace');  // Immediate
+    setTimeout(() => preloadRoute('nfts'), 1000);      // +1s
+    setTimeout(() => preloadRoute('profile'), 2000);   // +2s
+  });
+}
 ```
 
 ---
 
-## 📱 Phase 4: Mobile UX Enhancements
+## 🎯 Performance Best Practices
 
-### NFT Card Redesign
+### 1. Skeleton Loaders
 
-**Files:**
-- `src/components/nfts/NFTCardMobile.tsx`
-- `src/components/nfts/NFTCard.tsx`
+**Always use fixed heights to prevent CLS:**
 
-#### Mobile Version
-- **3-Slide Carousel:** Each slide 100% width
-  - Slide 1: Description + Price
-  - Slide 2: Addresses & Identities
-  - Slide 3: Attributes Gallery (2-column grid)
-- **Typography:** Scaled for legibility (title: xl, price: 3xl)
-- **Spacing:** 1rem padding, consistent vertical spacing
-- **Status:** ✅ Production Ready
+```tsx
+import { CardSkeletonLoader } from '@/components/ui/SkeletonLoader';
 
-#### Desktop Version
-- **Minimalista Layout:** 2-column hero section
-- **Glass Effect:** Gradient borders with purple accents
-- **Professional Presentation:** Optimized for large screens
-- **Status:** ✅ Production Ready
+function NFTGrid() {
+  const { nfts, isLoading } = useMarketplaceNFTs();
 
----
+  if (isLoading) {
+    return <CardSkeletonLoader count={6} />;
+  }
 
-## 🏗️ Architecture Summary
-
-### Directory Structure
-```
-src/
-├── hooks/
-│   ├── mobile/
-│   │   ├── useIsMobile.ts           (Optimized)
-│   │   ├── useScrollDirection.ts    (Optimized)
-│   │   └── useReducedMotion.ts      (NEW)
-│   └── accessibility/
-│       └── useFocusTrap.ts          (NEW)
-├── components/
-│   ├── ui/
-│   │   └── SkeletonLoader.tsx       (NEW)
-│   └── nfts/
-│       ├── NFTCard.tsx             (Redesigned)
-│       └── NFTCardMobile.tsx        (Redesigned)
-└── styles/
-    ├── responsive-grid.css         (NEW)
-    ├── spacing.css                 (NEW)
-    ├── animations.css              (Consolidated)
-    ├── components.css              (Consolidated)
-    └── ai-analysis.css             (Optimized)
+  return <div className="grid grid-cols-3">{/* NFT cards */}</div>;
+}
 ```
 
----
-
-## ✅ Testing & Validation
-
-### Browser Compatibility
-- ✅ Chrome 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Edge 90+
-- ✅ Mobile Safari iOS 14+
-- ✅ Chrome Android 90+
-
-### Lighthouse Metrics (Target)
-- Performance: 85+
-- Accessibility: 95+
-- Best Practices: 90+
-- SEO: 95+
-- PWA: 100
+**Available Variants:**
+- `CardSkeletonLoader` - 300px height
+- `ListSkeletonLoader` - 40px per item
+- `TableSkeletonLoader` - 50px per row
+- `HeroSkeletonLoader` - 600px height
 
 ---
 
-## 📚 Related Documentation
+### 2. Image Optimization
 
-- **[Design System & UI](02-DESIGN_SYSTEM_AND_UI.md)**
-- **[Architecture & Utils](03-ARCHITECTURE_AND_UTILS.md)**
-- **[Responsive Design Guide](04-RESPONSIVE_DESIGN_GUIDE.md)**
+**Use ImageCache for IPFS images:**
+
+```typescript
+import { imageCache } from '@/utils/cache/ImageCache';
+
+async function loadImage(url: string) {
+  // Check cache first
+  const cached = await imageCache.get(url);
+  if (cached) return cached;
+
+  // Load and cache
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  
+  await imageCache.set(url, img);
+  return img;
+}
+```
+
+**Features:**
+- 50MB bounded cache
+- LRU eviction (max 100 images)
+- 1-hour TTL
+- Automatic cleanup every 10 minutes
+
+**Check Cache Stats:**
+
+```typescript
+const stats = imageCache.getStats();
+console.log(`Memory usage: ${stats.memoryPercent}%`);
+// {
+//   size: 45,
+//   maxSize: 100,
+//   memoryUsage: 27262976,  // bytes
+//   maxMemory: 52428800,
+//   memoryPercent: 52
+// }
+```
 
 ---
 
-## 🔄 Maintenance & Updates
+### 3. React Query Configuration
 
-### Regular Reviews
-- Monthly Lighthouse audits
-- Quarterly performance benchmarks
-- Accessibility compliance checks
+**Optimal settings for Nuxchain:**
 
-### Future Enhancements
-- [ ] Web Font Optimization (WOFF2)
-- [ ] Image Optimization with next/image
-- [ ] Core Web Vitals tracking dashboard
-- [ ] React Server Components migration
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // 5 minutes
+      gcTime: 30 * 60 * 1000,        // 30 minutes
+      retry: 2,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    },
+  },
+});
+```
+
+**Infinite Scroll Pattern:**
+
+```typescript
+const { data, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  queryKey: ['marketplace-nfts'],
+  queryFn: ({ pageParam }) => fetchNFTs({ cursor: pageParam }),
+  initialPageParam: null,
+  getNextPageParam: (lastPage) => lastPage.nextCursor,
+});
+
+// Flatten pages
+const nfts = data?.pages.flatMap(page => page.nfts) || [];
+```
 
 ---
 
-**Created:** November 1, 2025  
-**Maintained by:** Nuxchain Frontend Team
+### 4. Scroll-based Prefetch
+
+**Load next page when user reaches 80% of scroll:**
+
+```typescript
+const handleScroll = (element: HTMLElement) => {
+  const { scrollTop, scrollHeight, clientHeight } = element;
+  const scrollPercent = (scrollHeight - scrollTop - clientHeight) / scrollHeight;
+  
+  if (scrollPercent < 0.2 && hasNextPage && !isFetching) {
+    fetchNextPage();
+  }
+};
+
+useEffect(() => {
+  const container = document.getElementById('nft-grid');
+  if (!container) return;
+
+  container.addEventListener('scroll', () => handleScroll(container));
+  return () => container.removeEventListener('scroll', handleScroll);
+}, [hasNextPage, isFetching]);
+```
+
+---
+
+### 5. Cross-Tab Synchronization
+
+**Sync cache invalidation across tabs:**
+
+```typescript
+// Listen for storage events
+useEffect(() => {
+  const handleSync = (e: StorageEvent) => {
+    if (e.key === 'marketplace_nfts_invalidate') {
+      queryClient.invalidateQueries({ queryKey: ['marketplace-nfts'] });
+    }
+  };
+
+  window.addEventListener('storage', handleSync);
+  return () => window.removeEventListener('storage', handleSync);
+}, []);
+
+// Broadcast invalidation
+const invalidateCache = () => {
+  localStorage.setItem('marketplace_nfts_invalidate', Date.now().toString());
+  queryClient.invalidateQueries({ queryKey: ['marketplace-nfts'] });
+};
+```
+
+---
+
+### 6. Responsive Design
+
+**Mobile-first with TailwindCSS:**
+
+```tsx
+// Responsive grid
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
+// Responsive text
+<h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+
+// Responsive padding
+<div className="p-4 sm:p-6 md:p-8 lg:p-12">
+
+// Hide/show at breakpoints
+<div className="hidden md:block">Desktop Only</div>
+<div className="md:hidden">Mobile Only</div>
+```
+
+**Breakpoints:**
+- `sm:` 640px (large phones)
+- `md:` 768px (tablets)
+- `lg:` 1024px (laptops)
+- `xl:` 1280px (desktops)
+- `2xl:` 1536px (large desktops)
+
+---
+
+### 7. Animation Performance
+
+**Use GPU-accelerated properties:**
+
+```tsx
+// ✅ Good: GPU-accelerated
+<motion.div
+  animate={{ opacity: 1, transform: 'translateY(0)' }}
+>
+
+// ❌ Bad: Triggers repaint
+<motion.div
+  animate={{ height: '200px', width: '200px' }}
+>
+```
+
+**Respect reduced motion:**
+
+```tsx
+const shouldReduce = useReducedMotion();
+
+<motion.div
+  initial={{ opacity: 0, y: shouldReduce ? 0 : 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: shouldReduce ? 0 : 0.5 }}
+>
+```
+
+---
+
+## 🔗 Related Documentation
+
+- [Components Guide](../COMPONENTS.md) - UI component library
+- [Architecture Guide](../ARCHITECTURE.md) - Project structure
+- [Design System](02-DESIGN_SYSTEM_AND_UI.md) - Design tokens
+- [Tech Stack](../STACK.md) - Technologies used
+
+---
+
+## 📋 Performance Checklist
+
+When building new features:
+
+- [ ] Use `useIsMobile` for mobile detection
+- [ ] Implement `useScrollDirection` for scroll-dependent UI
+- [ ] Add `useReducedMotion` to all animations
+- [ ] Use skeleton loaders with fixed heights
+- [ ] Configure React Query with appropriate TTL
+- [ ] Implement lazy loading for routes
+- [ ] Add aria-labels for accessibility
+- [ ] Test on mobile devices
+- [ ] Check Lighthouse scores
+- [ ] Verify offline functionality
+
+---
+
+**Created:** November 2025  
+**Maintained by:** Nuxchain Team

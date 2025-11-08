@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import MessageItem from './MessageItem'
+import TypingIndicator from './TypingIndicator'
 
 interface Message {
   id: string
@@ -142,20 +143,16 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
           return <MessageItem key={message.id} message={mappedMessage} />
         })}
         
-        {/* Loading indicator */}
+        {/* Loading indicator with TypingIndicator component */}
         {isLoading && (
           <div className="flex justify-start">
             <div className="max-w-[80%]">
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                  {/* No icon - just the three dots indicator */}
+                  {/* AI Agent icon */}
                 </div>
                 <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                    <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                  </div>
+                  <TypingIndicator isVisible={isLoading} size="medium" />
                 </div>
               </div>
             </div>

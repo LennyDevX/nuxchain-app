@@ -284,6 +284,12 @@ const Staking = memo(() => {
 
           {/* Right Column - User Info and Pool Info (1 col on desktop) */}
           <div className="space-y-6">
+            {isMobile && isConnected && (
+              <Suspense fallback={<LoadingSpinner />}>
+                <SkillsProfile />
+              </Suspense>
+            )}
+            
             {isMobile ? (
               <Suspense fallback={<LoadingSpinner />}>
                 <StakingInfoCarousel 
@@ -315,13 +321,6 @@ const Staking = memo(() => {
                   </Suspense>
                 )}
               </>
-            )}
-            
-            {/* Mobile: Show SkillsProfile after carousel */}
-            {isMobile && isConnected && (
-              <Suspense fallback={<LoadingSpinner />}>
-                <SkillsProfile />
-              </Suspense>
             )}
           </div>
         </div>

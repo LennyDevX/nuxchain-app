@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 
 import PoolInfo from './PoolInfo'
@@ -161,22 +162,41 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
   if (!isMobile) {
     // Desktop: Show all components in a grid
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {slides.map((slide) => (
-          <div key={slide.id} className="w-full">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        {slides.map((slide, index) => (
+          <motion.div 
+            key={slide.id} 
+            className="w-full"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            viewport={{ once: true }}
+          >
             {slide.component}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
   // Mobile: Carousel view
   return (
-    <div className="w-full">
+    <motion.div 
+      className="w-full"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       {/* Carousel Container */}
       <div className="relative overflow-hidden rounded-xl">
-        <div
+        <motion.div
           ref={carouselRef}
           className="flex transition-transform duration-300 ease-out"
           style={{
@@ -189,24 +209,34 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
+          layout
         >
           {slides.map((slide) => (
-            <div
+            <motion.div
               key={slide.id}
               className="w-full flex-shrink-0 px-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="w-full">
                 {slide.component}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center mt-4 space-x-2">
+      <motion.div 
+        className="flex justify-center mt-4 space-x-2"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        viewport={{ once: true }}
+      >
         {slides.map((_, index) => (
-          <button
+          <motion.button
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-2 h-2 rounded-full transition-all duration-200 ${
@@ -215,17 +245,27 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
                 : 'bg-white/30 hover:bg-white/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
+            whileHover={{ scale: 1.3 }}
+            whileTap={{ scale: 0.9 }}
+            layout
           />
         ))}
-      </div>
+      </motion.div>
 
       {/* Slide Title */}
-      <div className="text-center mt-3">
+      <motion.div 
+        className="text-center mt-3"
+        key={currentSlide}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+      >
         <h3 className="text-lg font-semibold text-white">
           {slides[currentSlide].title}
         </h3>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

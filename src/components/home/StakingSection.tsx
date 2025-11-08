@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 function StakingSection() {
@@ -36,7 +37,13 @@ function StakingSection() {
     <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Calculadora de Staking - Izquierda */}
-        <div className="order-2 lg:order-1">
+        <motion.div 
+          className="order-2 lg:order-1"
+          initial={{ opacity: 0, y: isMobile ? 20 : 0, x: isMobile ? 0 : -30 }}
+          whileInView={{ opacity: 1, y: 0, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/10 hover:border-purple-400/50 transition-all duration-300">
             <h3 className="text-xl md:text-2xl font-bold text-white mb-6 text-center">Staking Calculator</h3>
             
@@ -121,21 +128,45 @@ function StakingSection() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
         
         {/* Información - Derecha */}
-        <div className="order-1 lg:order-2">
+        <motion.div 
+          className="order-1 lg:order-2"
+          initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
+          whileInView={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
           <div className="animate-slide-up">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
               Secure <span className="text-gradient">Staking</span>
-            </h2>
+            </motion.h2>
             
-            <p className="text-xl text-white/80 mb-8 leading-relaxed">
+            <motion.p 
+              className="text-xl text-white/80 mb-8 leading-relaxed"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              viewport={{ once: true }}
+            >
               Earn rewards by staking your tokens safely and decentralized with the best market yields. 
               Our smart contract ensures maximum security and transparency for your investments.
-            </p>
+            </motion.p>
             
-            <div className="space-y-4">
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                 <span className="text-white/80">Base APY ~44% anual rewards (Flexible)</span>
@@ -152,9 +183,9 @@ function StakingSection() {
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                 <span className="text-white/80">Auto-compound rewards system </span>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

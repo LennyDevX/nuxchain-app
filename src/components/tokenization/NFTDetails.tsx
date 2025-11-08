@@ -3,6 +3,7 @@ export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type Rarity = 0 | 1 | 2 | 3 | 4;
 
 import { SKILL_CONFIGS, RARITY_CONFIGS, calculateTotalSkillFees, formatSkillDisplayWithBenefit } from '../../constants/skillsConfig';
+import { motion } from 'framer-motion';
 
 export interface Skill {
   skillType: SkillType;
@@ -47,83 +48,106 @@ export default function NFTDetails({
 }: NFTDetailsProps) {
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8">
-      <h2 className="text-2xl font-bold text-white mb-6">NFT Details</h2>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8"
+    >
+      <motion.h2 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="text-2xl font-bold text-white mb-6"
+      >
+        NFT Details
+      </motion.h2>
       
       <form onSubmit={onSubmit} className="space-y-6">
         {/* Name */}
-        <div>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.15 }}
+        >
           <label className="block text-white font-medium mb-2">Name *</label>
-          <input
+          <motion.input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
             placeholder="Enter NFT name"
             required
+            whileFocus={{ scale: 1.01 }}
           />
-        </div>
+        </motion.div>
 
         {/* Description */}
-        <div>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <label className="block text-white font-medium mb-2">Description *</label>
-          <textarea
+          <motion.textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-purple-500 focus:border-transparent h-24 resize-none transition-all"
             placeholder="Describe your NFT"
             required
+            whileFocus={{ scale: 1.01 }}
           />
-        </div>
+        </motion.div>
 
         {/* Category */}
-        <div>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <label className="block text-white font-medium mb-2">Category</label>
-          <select
+          <motion.select
             value={formData.category}
             onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent [&>option]:bg-gray-800 [&>option]:text-white transition-all"
+            whileFocus={{ scale: 1.01 }}
           >
             <option value="art" className="bg-gray-800 text-white">Art</option>
             <option value="photography" className="bg-gray-800 text-white">Photography</option>
             <option value="music" className="bg-gray-800 text-white">Music</option>
             <option value="video" className="bg-gray-800 text-white">Video</option>
             <option value="collectibles" className="bg-gray-800 text-white">Collectibles</option>
-          </select>
-        </div>
+          </motion.select>
+        </motion.div>
 
         {/* NFT Type Selection */}
-        <div>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <label className="block text-white font-medium mb-3">NFT Type</label>
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, nftType: 'standard', skills: [] }))}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                formData.nftType === 'standard'
-                  ? 'border-purple-500 bg-purple-500/20'
-                  : 'border-white/20 bg-white/5 hover:bg-white/10'
-              }`}
-            >
-              <div className="text-2xl mb-1">Image</div>
-              <div className="text-white font-medium">Standard NFT</div>
-              <div className="text-white/60 text-xs mt-1">Basic NFT without skills</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormData(prev => ({ ...prev, nftType: 'skill' }))}
-              className={`p-4 rounded-xl border-2 transition-all ${
-                formData.nftType === 'skill'
-                  ? 'border-purple-500 bg-purple-500/20'
-                  : 'border-white/20 bg-white/5 hover:bg-white/10'
-              }`}
-            >
-              <div className="text-2xl mb-1">Lightning</div>
-              <div className="text-white font-medium">Skill NFT</div>
-              <div className="text-white/60 text-xs mt-1">NFT with special abilities</div>
-            </button>
+            {['standard', 'skill'].map((type) => (
+              <motion.button
+                key={type}
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, nftType: type as 'standard' | 'skill', skills: type === 'standard' ? [] : prev.skills }))}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all ${
+                  formData.nftType === type
+                    ? 'border-purple-500 bg-purple-500/20'
+                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                }`}
+              >
+                <div className="text-2xl mb-1">{type === 'standard' ? '🖼️' : '⚡'}</div>
+                <div className="text-white font-medium">{type === 'standard' ? 'Standard NFT' : 'Skill NFT'}</div>
+                <div className="text-white/60 text-xs mt-1">{type === 'standard' ? 'Basic NFT without skills' : 'NFT with special abilities'}</div>
+              </motion.button>
+            ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Skill Configuration - Only show for Skill NFTs */}
         {formData.nftType === 'skill' && (
@@ -382,39 +406,63 @@ export default function NFTDetails({
 
         {/* Error Message */}
         {error && !error.includes('select') && (
-          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-500/20 border border-red-500/50 rounded-lg p-4"
+          >
             <p className="text-red-300 mb-2">{error}</p>
-          </div>
+          </motion.div>
         )}
 
         {/* Submit Button */}
-        <button
+        <motion.button
           type="submit"
           disabled={isUploading || isPending || isConfirming}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 transform disabled:cursor-not-allowed shadow-lg"
         >
           {isUploading ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <motion.svg 
+                className="h-5 w-5"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                viewBox="0 0 24 24"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              </motion.svg>
               Uploading to IPFS...
             </span>
           ) : isPending ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <motion.svg 
+                className="h-5 w-5"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                viewBox="0 0 24 24"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              </motion.svg>
               Creating NFT...
             </span>
           ) : isConfirming ? (
             <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+              <motion.svg 
+                className="h-5 w-5"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                viewBox="0 0 24 24"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+              </motion.svg>
               Confirming Transaction...
             </span>
           ) : (
@@ -425,8 +473,8 @@ export default function NFTDetails({
               Create NFT
             </span>
           )}
-        </button>
+        </motion.button>
       </form>
-    </div>
+    </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { memo, useState, useRef, useCallback, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
 import { useIsMobile } from '../../hooks/mobile'
 import { getOptimizedSpacing } from '../../utils/mobile/performanceOptimization'
@@ -114,7 +115,13 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
 
   if (isMobile) {
     return (
-      <div className="mb-8 w-full">
+      <motion.div 
+        className="mb-8 w-full"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
         {/* Carousel Container */}
         <div className="relative">
           <div
@@ -130,23 +137,38 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
             }}
           >
             {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-              <div
+              <motion.div
                 key={slideIndex}
                 className="snap-start flex-none w-full px-1"
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: slideIndex * 0.1 }}
+                viewport={{ once: true }}
               >
                 <div className="grid grid-cols-2 gap-3" style={{ gap: `${spacing * 0.75}px` }}>
                   {statsData
                     .slice(slideIndex * itemsPerSlide, slideIndex * itemsPerSlide + itemsPerSlide)
                     .map((stat, index) => (
-                      <div
+                      <motion.div
                         key={slideIndex * itemsPerSlide + index}
                         className="card-stats p-4 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: slideIndex * 0.1 + index * 0.08 }}
+                        viewport={{ once: true }}
+                        whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-white/60 font-medium truncate text-xs uppercase tracking-wide">
                             {stat.title}
                           </span>
-                          <span className="text-xl">{stat.emoji}</span>
+                          <motion.span 
+                            className="text-xl"
+                            whileHover={{ scale: 1.2, rotate: 5 }}
+                          >
+                            {stat.emoji}
+                          </motion.span>
                         </div>
                         <div className="mb-2">
                           <h3 className="font-bold text-white truncate text-lg md:text-xl">
@@ -156,24 +178,42 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
                         <div className="text-white/50 truncate text-xs">
                           {stat.subtitle}
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* Gradient Fade Effect - Left */}
-          <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-black/40 to-transparent pointer-events-none z-10" />
+          <motion.div 
+            className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-black/40 to-transparent pointer-events-none z-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+          />
 
           {/* Gradient Fade Effect - Right */}
-          <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-black/40 to-transparent pointer-events-none z-10" />
+          <motion.div 
+            className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-black/40 to-transparent pointer-events-none z-10"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            viewport={{ once: true }}
+          />
         </div>
 
         {/* Progress Indicators - Animated */}
-        <div className="flex justify-center items-center gap-2 mt-6 py-3">
+        <motion.div 
+          className="flex justify-center items-center gap-2 mt-6 py-3"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          viewport={{ once: true }}
+        >
           {Array.from({ length: totalSlides }).map((_, index) => (
-            <button
+            <motion.button
               key={index}
               onClick={() => scrollToSlide(index)}
               className={`rounded-full transition-all duration-300 cursor-pointer ${
@@ -183,37 +223,63 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
               }`}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={currentSlide === index}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              layout
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* Slide Counter removed as per user request */}
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="grid gap-4 mb-8 grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+    <motion.div 
+      className="grid gap-4 mb-8 grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       {statsData.map((stat, index) => (
-        <div
+        <motion.div
           key={index}
           className="card-stats bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: index * 0.08 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
+          whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{stat.title}</span>
-            <span className="text-lg">{stat.emoji}</span>
+            <motion.span 
+              className="text-lg"
+              whileHover={{ scale: 1.2, rotate: 5 }}
+            >
+              {stat.emoji}
+            </motion.span>
           </div>
           <div className="mb-1">
-            <h3 className="text-xl font-bold text-white truncate">
+            <motion.h3 
+              className="text-xl font-bold text-white truncate"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.08 + 0.2 }}
+              viewport={{ once: true }}
+            >
               {stat.value}
-            </h3>
+            </motion.h3>
           </div>
           <div className="text-white/40 text-xs truncate">
             {stat.subtitle}
           </div>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 })
 

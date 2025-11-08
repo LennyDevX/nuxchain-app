@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface LockupOption {
@@ -90,23 +91,52 @@ export default function StakingPeriodCarousel({
   if (!isMobile) {
     // Desktop view - show as cards with APY prominently
     return (
-      <div className={className}>
-        <label className="block text-sm font-medium text-white/80 mb-2">
+      <motion.div 
+        className={className}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        <motion.label 
+          className="block text-sm font-medium text-white/80 mb-2"
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          viewport={{ once: true }}
+        >
           {label}
-        </label>
-        <div className="grid grid-cols-2 gap-3">
+        </motion.label>
+        <motion.div 
+          className="grid grid-cols-2 gap-3"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           {options.map((option, index) => (
-            <button
+            <motion.button
               key={option.value}
               onClick={() => onChange(option.value)}
               className={`p-4 rounded-lg border transition-all duration-300 text-left ${index === options.length - 1 ? 'col-span-2' : ''} ${option.value === value
                 ? 'bg-blue-500/20 border-blue-500/50 text-white transform scale-105'
                 : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'}
               }`}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.05, borderColor: option.value === value ? 'rgba(59, 130, 246, 0.8)' : 'rgba(255, 255, 255, 0.3)' }}
+              whileTap={{ scale: 0.98 }}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h4 className="font-medium">{option.label}</h4>
+                  <motion.h4 
+                    className="font-medium"
+                    whileHover={{ color: '#60a5fa' }}
+                  >
+                    {option.label}
+                  </motion.h4>
                   <p className="text-xs text-white/60 mt-1">{option.description}</p>
                 </div>
                 <div className="text-right">
@@ -114,41 +144,80 @@ export default function StakingPeriodCarousel({
                   <div className="text-xs text-white/60">See ROI below</div>
                 </div>
               </div>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
         {selectedOption.roi && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg">
+          <motion.div 
+            className="mt-4 p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.35 }}
+            viewport={{ once: true }}
+          >
             <p className="text-white font-semibold text-sm mb-2">📊 Earnings Breakdown:</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center">
+            <motion.div 
+              className="grid grid-cols-3 gap-3"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              <motion.div 
+                className="text-center"
+                whileHover={{ scale: 1.08 }}
+              >
                 <p className="text-green-400 font-bold">{selectedOption.roi.daily}</p>
                 <p className="text-white/60 text-xs">Daily</p>
-              </div>
-              <div className="text-center">
+              </motion.div>
+              <motion.div 
+                className="text-center"
+                whileHover={{ scale: 1.08 }}
+              >
                 <p className="text-blue-400 font-bold">{selectedOption.roi.monthly}</p>
                 <p className="text-white/60 text-xs">Monthly</p>
-              </div>
-              <div className="text-center">
+              </motion.div>
+              <motion.div 
+                className="text-center"
+                whileHover={{ scale: 1.08 }}
+              >
                 <p className="text-purple-400 font-bold">{selectedOption.roi.annual}</p>
                 <p className="text-white/60 text-xs">Annual</p>
-              </div>
-            </div>
-            <p className="text-yellow-400 text-xs mt-3 flex items-center gap-1">
+              </motion.div>
+            </motion.div>
+            <motion.p 
+              className="text-yellow-400 text-xs mt-3 flex items-center gap-1"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+              viewport={{ once: true }}
+            >
               ⚠️ Funds are locked for the selected period. Longer = Higher rewards but less liquidity.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     );
   }
   
   // Mobile view - show as carousel
   return (
-    <div className={className}>
-      <label className="block text-sm font-medium text-white/80 mb-2">
+    <motion.div 
+      className={className}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
+      <motion.label 
+        className="block text-sm font-medium text-white/80 mb-2"
+        initial={{ opacity: 0, x: -20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3 }}
+        viewport={{ once: true }}
+      >
         {label}
-      </label>
+      </motion.label>
       
       {/* Carousel for selecting periods */}
       <div
@@ -158,9 +227,15 @@ export default function StakingPeriodCarousel({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="flex min-w-max gap-2">
+        <motion.div 
+          className="flex min-w-max gap-2"
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           {options.map((option, index) => (
-            <button
+            <motion.button
               key={option.value}
               onClick={() => {
                 onChange(option.value);
@@ -170,28 +245,46 @@ export default function StakingPeriodCarousel({
                   ? 'bg-blue-500/20 border-blue-500/50 text-white transform scale-105 shadow-lg shadow-blue-500/10'
                   : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
               }`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
             >
               <h4 className="font-medium">{option.label}</h4>
               <p className="text-xs text-white/60 mt-1">{option.description}</p>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       </div>
       
       {/* Selected option details */}
       {selectedOption.roi && (
-        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <motion.div 
+          className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
           <p className="text-blue-400 text-sm font-medium mb-1">
             📈 Estimated ROI:
           </p>
           <p className="text-white/80 text-sm">
             Daily: {selectedOption.roi.daily} | Monthly: {selectedOption.roi.monthly} | Annual: {selectedOption.roi.annual}
           </p>
-          <p className="text-yellow-400 text-xs mt-1">
+          <motion.p 
+            className="text-yellow-400 text-xs mt-1"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            viewport={{ once: true }}
+          >
             ⚠️ Longer periods = Higher ROI but funds locked
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }

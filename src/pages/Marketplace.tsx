@@ -267,13 +267,24 @@ function Marketplace() {
               )}
 
               {/* Stats */}
-              {filteredNFTs.length > 0 && (
+              {filteredNFTs.length > 0 ? (
                 <MarketplaceStats
                   stats={{
                     totalListedNFTs: filteredNFTs.length,
                     floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
                     totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
                     averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
+                  }}
+                  loading={loading}
+                  className="mb-6"
+                />
+              ) : (
+                <MarketplaceStats
+                  stats={{
+                    totalListedNFTs: 0,
+                    floorPrice: 0,
+                    totalMarketValue: 0,
+                    averagePrice: 0
                   }}
                   loading={loading}
                   className="mb-6"
@@ -357,13 +368,24 @@ function Marketplace() {
             )}
 
             {/* Stats */}
-            {filteredNFTs.length > 0 && (
+            {filteredNFTs.length > 0 ? (
               <MarketplaceStats
                 stats={{
                   totalListedNFTs: filteredNFTs.length,
                   floorPrice: Math.min(...filteredNFTs.map(nft => nft.priceInEth)),
                   totalMarketValue: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0),
                   averagePrice: filteredNFTs.reduce((sum, nft) => sum + nft.priceInEth, 0) / filteredNFTs.length
+                }}
+                loading={loading}
+                className="mb-4"
+              />
+            ) : (
+              <MarketplaceStats
+                stats={{
+                  totalListedNFTs: 0,
+                  floorPrice: 0,
+                  totalMarketValue: 0,
+                  averagePrice: 0
                 }}
                 loading={loading}
                 className="mb-4"

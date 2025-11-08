@@ -1,6 +1,8 @@
 import { useState, memo } from 'react';
+import { motion } from 'framer-motion';
 import ModernSelect from '../ui/ModernSelect';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 interface NFTFiltersProps {
   searchTerm: string;
@@ -87,19 +89,19 @@ export default memo(function NFTFilters({
   // Show skeleton while loading
   if (isLoading) {
     return (
-      <div className="space-y-3 mb-6 animate-pulse">
+      <div className="space-y-3 mb-6">
         {/* Search and Create Skeleton */}
         <div className="flex gap-2">
-          <div className="flex-1 h-11 bg-white/5 rounded-lg border border-white/10"></div>
-          <div className="w-28 h-11 bg-purple-500/10 rounded-lg border border-purple-500/20"></div>
+          <SkeletonLoader width="flex-1" height="h-11" rounded="lg" />
+          <SkeletonLoader width="w-28" height="h-11" rounded="lg" />
         </div>
         
         {/* Filters Skeleton (Desktop) */}
         {!isMobile && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
           </div>
         )}
       </div>
@@ -142,10 +144,12 @@ export default memo(function NFTFilters({
 
         {/* Mobile Filter Toggle */}
         {isMobile && (
-          <button
+          <motion.button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             aria-label={isFilterOpen ? 'Close filters menu' : 'Open filters menu'}
             aria-expanded={isFilterOpen}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={`
               h-11 px-4 flex items-center gap-2
               rounded-lg border font-medium text-sm
@@ -162,13 +166,15 @@ export default memo(function NFTFilters({
             {hasActiveFilters && (
               <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
             )}
-          </button>
+          </motion.button>
         )}
 
         {/* Create NFT Button */}
-        <button 
+        <motion.button 
           onClick={onCreateNFT}
           aria-label="Create new NFT"
+          whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(168, 85, 247, 0.4)' }}
+          whileTap={{ scale: 0.95 }}
           className="
             h-11 px-4 flex items-center gap-2
             bg-gradient-to-r from-purple-500 to-purple-600
@@ -184,7 +190,7 @@ export default memo(function NFTFilters({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span className="hidden sm:inline">Create</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Filter Pills (Desktop) */}

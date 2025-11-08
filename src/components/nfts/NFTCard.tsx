@@ -1,4 +1,5 @@
 import { memo, useCallback, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 
@@ -115,13 +116,18 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   };
 
   return (
-    <div 
+    <motion.div 
       className="group relative w-full cursor-pointer"
       onClick={handleFlip}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{ perspective: '1500px', aspectRatio: '3/4.5' }}
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
     >
       <div 
         className="relative w-full h-full transition-all duration-700"
@@ -196,38 +202,47 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                           <p className="text-[10px] sm:text-xs text-emerald-400 font-medium truncate">≈ {formattedPriceUSD}</p>
                         )}
                       </div>
-                      <button 
+                      <motion.button 
                         onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
-                        className="backdrop-blur-xl bg-purple-600/80 hover:bg-purple-500 active:bg-purple-700 border border-purple-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation whitespace-nowrap"
+                        className="backdrop-blur-xl bg-purple-600/80 hover:bg-purple-500 active:bg-purple-700 border border-purple-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.94 }}
+                        transition={{ type: 'spring', stiffness: 300 }}
                       >
                         Details
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 ) : (
-                  <button 
+                  <motion.button 
                     onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                    className="w-full backdrop-blur-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-bold text-white transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
+                    className="w-full backdrop-blur-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-bold text-white transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
                   >
                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     List for Sale
-                  </button>
+                  </motion.button>
                 )}
               </div>
 
               {/* View Details Hint - Top Right Corner when not listed */}
               {!nft.isForSale && (
-                <button
+                <motion.button
                   onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
-                  className="absolute top-2 sm:top-3 right-2 sm:right-3 backdrop-blur-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-full p-1.5 sm:p-2 transition-all duration-200 hover:scale-110 active:scale-95 z-10 touch-manipulation"
+                  className="absolute top-2 sm:top-3 right-2 sm:right-3 backdrop-blur-xl bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-full p-1.5 sm:p-2 transition-all duration-200 z-10 touch-manipulation"
                   title="View Details"
+                  whileHover={{ scale: 1.15, rotate: 10 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 350 }}
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                </button>
+                </motion.button>
               )}
             </div>
 
@@ -395,30 +410,36 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
             {/* Fixed Footer - Action Buttons */}
             <div className="relative p-4 sm:p-5 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0 space-y-2">
               {!nft.isForSale && (
-                <button 
+                <motion.button 
                   onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:from-purple-700 active:to-pink-700 border border-purple-400/50 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-purple-500/30 flex items-center justify-center gap-2 touch-manipulation"
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:from-purple-700 active:to-pink-700 border border-purple-400/50 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white flex items-center justify-center gap-2 touch-manipulation"
+                  whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(192, 132, 250, 0.4)' }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   List for Sale
-                </button>
+                </motion.button>
               )}
-              <button
+              <motion.button
                 onClick={handleFlip}
-                className="w-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 touch-manipulation"
+                className="w-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white flex items-center justify-center gap-2 touch-manipulation"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
                 </svg>
                 Back to View
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

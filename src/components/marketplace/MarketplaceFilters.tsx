@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect, memo } from 'react';
+import { motion } from 'framer-motion';
 import ModernSelect from '../ui/ModernSelect';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useDebounce } from '../../hooks/performance/useDebounce';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 interface MarketplaceFiltersProps {
   categories: { name: string; count: number; icon: string; }[];
@@ -118,18 +120,13 @@ export default memo(function MarketplaceFilters({
   // Show skeleton while loading
   if (isLoading) {
     return (
-      <div className={`space-y-3 mb-6 animate-pulse ${className}`}>
-        {/* Search Skeleton */}
-        <div className="flex gap-2">
-          <div className="flex-1 h-11 bg-white/5 rounded-lg border border-white/10"></div>
-        </div>
-        
-        {/* Filters Skeleton (Desktop) */}
+      <div className={`space-y-3 mb-6 ${className}`}>
+        <SkeletonLoader width="w-full" height="h-11" rounded="lg" className="mb-2" />
         {!isMobile && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
           </div>
         )}
       </div>
@@ -172,10 +169,12 @@ export default memo(function MarketplaceFilters({
 
         {/* Mobile Filter Toggle */}
         {isMobile && (
-          <button
+          <motion.button
             onClick={handleFilterToggle}
             aria-label={isFilterOpen ? 'Close filters menu' : 'Open filters menu'}
             aria-expanded={isFilterOpen}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={`
               h-11 px-4 flex items-center gap-2
               rounded-lg border font-medium text-sm
@@ -192,7 +191,7 @@ export default memo(function MarketplaceFilters({
             {hasActiveFilters && (
               <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
             )}
-          </button>
+          </motion.button>
         )}
       </div>
 

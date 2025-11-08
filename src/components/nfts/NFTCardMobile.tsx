@@ -1,4 +1,5 @@
 import { memo, useCallback, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 import { formatPolValue } from '../../utils/formats/format';
@@ -128,10 +129,15 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
   };
 
   return (
-    <div 
+    <motion.div 
       className="group relative w-full cursor-pointer"
       onClick={handleFlip}
       style={{ perspective: '1500px', aspectRatio: '3/5' }}
+      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
     >
       <div 
         className="relative w-full h-full transition-all duration-700"
@@ -290,15 +296,18 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
 
                   {/* CTA Button for Unlisted */}
                   {!nft.isForSale && (
-                    <button 
+                    <motion.button 
                       onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-lg px-4 py-3 text-base font-bold text-white transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 touch-manipulation"
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-lg px-4 py-3 text-base font-bold text-white flex items-center justify-center gap-2 touch-manipulation"
+                      whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ type: 'spring', stiffness: 300 }}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       List for Sale
-                    </button>
+                    </motion.button>
                   )}
                 </div>
               </div>
@@ -404,29 +413,38 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
 
             {/* Carousel Indicators - Fixed Bottom */}
             <div className="relative p-3 border-t border-white/10 bg-black/20 backdrop-blur-sm flex-shrink-0 flex items-center justify-center gap-2">
-              <button
+              <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(0); }}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   currentSlide === 0 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
                 }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               />
-              <button
+              <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(1); }}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   currentSlide === 1 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
                 }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               />
-              <button
+              <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(2); }}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   currentSlide === 2 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
                 }`}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: 'spring', stiffness: 300 }}
               />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

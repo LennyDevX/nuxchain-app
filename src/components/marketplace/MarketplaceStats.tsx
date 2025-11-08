@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import type { MarketplaceStats } from '../../types/marketplace';
 import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 interface MarketplaceStatsProps {
   stats: MarketplaceStats;
@@ -20,21 +22,28 @@ interface StatCardProps {
 function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
   if (loading) {
     return (
-      <div className="card-stats">
-        <div className="animate-pulse">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-6 h-6 bg-white/10 rounded"></div>
-            <div className="w-12 h-3 bg-white/10 rounded"></div>
-          </div>
-          <div className="w-20 h-6 bg-white/10 rounded mb-1"></div>
-          <div className="w-16 h-3 bg-white/10 rounded"></div>
-        </div>
-      </div>
+      <motion.div 
+        className="card-stats p-4 space-y-3"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        <SkeletonLoader width="w-12" height="h-4" rounded="sm" />
+        <SkeletonLoader width="w-2/3" height="h-6" rounded="sm" />
+        <SkeletonLoader width="w-1/2" height="h-3" rounded="sm" />
+      </motion.div>
     );
   }
 
   return (
-    <div className="card-stats group hover:bg-white/8 transition-all duration-300">
+    <motion.div 
+      className="card-stats group hover:bg-white/8 transition-all duration-300"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
+      viewport={{ once: true }}
+      whileHover={{ scale: 1.02, y: -4 }}
+    >
       <div className="flex items-center justify-between mb-3">
         <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{title}</span>
         <span className="text-xl group-hover:scale-110 transition-transform duration-300">{icon}</span>
@@ -51,7 +60,7 @@ function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
           {subtitle}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -85,7 +94,12 @@ export default function MarketplaceStats({ stats, loading = false, className = '
   }, [stats.floorPrice, stats.totalMarketValue, stats.averagePrice, polPrice, convertPOLToUSD, formatPolValue]);
 
   return (
-    <div className={`grid gap-4 ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'} ${className}`}>
+    <motion.div 
+      className={`grid gap-4 ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'} ${className}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
+    >
       {/* Listed NFTs */}
       <StatCard
         title="Listed NFTs"
@@ -121,6 +135,6 @@ export default function MarketplaceStats({ stats, loading = false, className = '
         icon="💰"
         loading={loading}
       />
-    </div>
+    </motion.div>
   );
 }

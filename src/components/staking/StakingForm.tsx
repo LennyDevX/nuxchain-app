@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
@@ -233,12 +234,23 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   }
 
   return (
-    <div className="card-unified overflow-hidden">
+    <motion.div 
+      className="card-unified overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       {/* Tabs */}
-      <div className={`border-b border-white/20 relative ${
-        isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
-      }`}
+      <motion.div 
+        className={`border-b border-white/20 relative ${
+          isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
+        }`}
         role="tablist"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        viewport={{ once: true }}
       >
         <div 
           ref={tabsContainerRef}
@@ -246,7 +258,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             isMobile ? 'flex min-w-max px-2' : 'flex w-full'
           }`}
         >
-          <button
+          <motion.button
             onClick={() => setActiveTab('stake')}
             role="tab"
             aria-selected={activeTab === 'stake'}
@@ -262,10 +274,16 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   : 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
             }`}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Stake
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('claim')}
             role="tab"
             aria-selected={activeTab === 'claim'}
@@ -281,10 +299,16 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   : 'bg-yellow-500/20 text-yellow-400 border-b-2 border-yellow-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
             }`}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Claim
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('withdraw')}
             role="tab"
             aria-selected={activeTab === 'withdraw'}
@@ -300,10 +324,16 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   : 'bg-red-500/20 text-red-400 border-b-2 border-red-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
             }`}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.25 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Withdraw
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('compound')}
             role="tab"
             aria-selected={activeTab === 'compound'}
@@ -321,8 +351,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             }`}
           >
             Compound
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => setActiveTab('emergency')}
             role="tab"
             aria-selected={activeTab === 'emergency'}
@@ -338,20 +368,30 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   : 'bg-orange-500/20 text-orange-400 border-b-2 border-orange-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
             }`}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.35 }}
+            viewport={{ once: true }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Emergency
-          </button>
+          </motion.button>
         </div>
         
 
-      </div>
+      </motion.div>
 
-      <div 
+      <motion.div 
         ref={contentRef}
         className={`${isMobile ? 'p-4' : 'p-6'} relative`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.4 }}
+        viewport={{ once: true }}
       >
 
         {activeTab === 'stake' && (
@@ -585,20 +625,26 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             </p>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Transaction Success Message */}
       {isConfirmed && (
-        <div className="mx-6 mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+        <motion.div 
+          className="mx-6 mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="flex items-center">
             <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <span className="text-green-400 font-medium">Transaction completed successfully</span>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

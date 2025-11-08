@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import ChatMessage from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
@@ -73,22 +74,44 @@ function Chat() {
         </div>
 
         {/* Input Area */}
-        <div className={`fixed left-0 right-0 z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`} style={{
-          transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
-        }}>
+        <motion.div 
+          className={`fixed left-0 right-0 z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
+          style={{
+            transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <div className="max-w-4xl mx-auto w-full">
             <div className={`${isMobile ? 'px-3 py-3 safe-area-inset-bottom' : 'px-6 py-4'}`}>
-              <form onSubmit={handleSendMessage} className="relative">
+              <motion.form 
+                onSubmit={handleSendMessage} 
+                className="relative"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+              >
                 {/* URL analysis indicator */}
                 {isUsingUrlContext && (
-                  <div className="mb-2 flex items-center justify-center">
+                  <motion.div 
+                    className="mb-2 flex items-center justify-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <div className="px-3 py-1.5 border border-blue-500/30 rounded-lg bg-blue-900/20 flex items-center space-x-2 text-blue-400 animate-pulse">
                       <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs'}`}>Analyzing URL content...</span>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               
-                <div className="flex items-end space-x-2">
+                <motion.div 
+                  className="flex items-end space-x-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
                   <div className="flex-1 min-w-0">
                     <InputTextArea
                       value={message}
@@ -111,17 +134,22 @@ function Chat() {
                       hasText={message.trim().length > 0}
                     />
                   </div>
-                </div>
-              </form>
+                </motion.div>
+              </motion.form>
               
               {!isMobile && (
-                <p className="text-xs text-white/40 mt-3 text-center">
+                <motion.p 
+                  className="text-xs text-white/40 mt-3 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.35 }}
+                >
                   🤖 Powered by Gemini AI • Press Enter to send, Shift+Enter for new line
-                </p>
+                </motion.p>
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

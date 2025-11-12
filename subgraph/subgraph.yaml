@@ -2,12 +2,12 @@ specVersion: 0.0.5
 schema:
   file: ./schema.graphql
 dataSources:
-  # Enhanced Smart Staking Contract (v4.0.0)
+  # Enhanced Smart Staking Contract (NEW - v4.0.0)
   - kind: ethereum
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0xae57acBf4efE2F6536D992F86145a20e11DB8C3D"
+      address: "0xFDbC0CD04EC2e4db0f4b0b2792012C4F593301F0"
       abi: EnhancedSmartStaking
       startBlock: 64419650
     mapping:
@@ -24,6 +24,9 @@ dataSources:
         - NFTSkill
         - Achievement
         - Quest
+        - UserStats
+        - GlobalStats
+        - DailyStats
       abis:
         - name: EnhancedSmartStaking
           file: ./abis/EnhancedSmartStaking.json
@@ -50,13 +53,14 @@ dataSources:
           handler: handleSkillUpgraded
       file: ./src/enhanced-smart-staking.ts
   
-  # Gamified Marketplace Contract (v2.0)
+  # Gamified Marketplace - NEW MODULAR ARCHITECTURE (Core Contract)
+  # Escucha eventos emitidos por GameifiedMarketplaceCore a través del Proxy
   - kind: ethereum
-    name: GameifiedMarketplace
+    name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0xB948cC766CBE97Ce822bF4c915D2319fbc48Ad38"
-      abi: GameifiedMarketplace
+      address: "0x23B17C16172C30DA45753F1b6Caa86c46d5794FF"
+      abi: GameifiedMarketplaceCoreV1
       startBlock: 64419800
     mapping:
       kind: ethereum/events
@@ -64,7 +68,6 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - User
-        - NFT
         - NFTMint
         - NFTList
         - NFTSale
@@ -73,10 +76,12 @@ dataSources:
         - OfferCreated
         - OfferAccepted
         - Activity
-        - UserProfile
+        - UserStats
+        - GlobalStats
+        - DailyStats
       abis:
-        - name: GameifiedMarketplace
-          file: ./abis/GameifiedMarketplace.json
+        - name: GameifiedMarketplaceCoreV1
+          file: ./abis/GameifiedMarketplaceCoreV1.json
       eventHandlers:
         - event: TokenCreated(indexed address,indexed uint256,string)
           handler: handleTokenCreated
@@ -90,14 +95,4 @@ dataSources:
           handler: handleOfferMade
         - event: OfferAccepted(indexed address,indexed address,indexed uint256,uint256)
           handler: handleOfferAccepted
-        - event: QuestCompleted(indexed address,indexed uint256)
-          handler: handleQuestCompleted
-        - event: AchievementUnlocked(indexed address,indexed uint256)
-          handler: handleAchievementUnlocked
-        - event: LevelUp(indexed address,uint8)
-          handler: handleLevelUp
-        - event: XPGained(indexed address,uint256,string)
-          handler: handleXPGained
-        - event: ReferralRegistered(indexed address,indexed address)
-          handler: handleReferralRegistered
       file: ./src/gameified-marketplace.ts

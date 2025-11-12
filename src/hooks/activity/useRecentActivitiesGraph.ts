@@ -173,30 +173,34 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
 
       const startTime = performance.now();
 
-      // Query The Graph subgraph
-      const { data, errors } = await apolloClient.query<GetUserActivitiesResponse>({
-        query: GET_USER_ACTIVITIES,
-        variables: {
-          userAddress: address.toLowerCase(), // The Graph uses lowercase addresses
-          first: maxActivities,
-          skip: 0,
-        },
-        fetchPolicy: 'no-cache', // Force fresh data, bypass cache completely
-      });
+      try {
+        // Query The Graph subgraph
+        const { data, errors } = await apolloClient.query<GetUserActivitiesResponse>({
+          query: GET_USER_ACTIVITIES,
+          variables: {
+            userAddress: address.toLowerCase(), // The Graph uses lowercase addresses
+            first: maxActivities,
+            skip: 0,
+          },
+          fetchPolicy: 'no-cache', // Force fresh data, bypass cache completely
+        });
 
-      const endTime = performance.now();
-      const duration = Math.round(endTime - startTime);
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
 
-      if (errors && errors.length > 0) {
-        console.error('❌ [The Graph] GraphQL errors:', errors);
-        throw new Error(errors[0].message);
-      }
+        if (errors && errors.length > 0) {
+          console.error('❌ [The Graph] GraphQL errors:', errors);
+          // Show empty state instead of throwing
+          console.warn('⚠️ Subgraph query failed - showing empty activity list');
+          setActivities([]);
+          return;
+        }
 
-      if (!data || !data.activities) {
-        console.warn('⚠️ [The Graph] No data returned');
-        setActivities([]);
-        return;
-      }
+        if (!data || !data.activities) {
+          console.warn('⚠️ [The Graph] No data returned - showing empty activity list');
+          setActivities([]);
+          return;
+        }
 
       console.log(
         `%c✅ useRecentActivitiesGraph Query%c\n` +
@@ -278,20 +282,25 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
 
       setActivities(finalActivities);
 
-      console.log(
-        `%c🔍 useRecentActivitiesGraph Processing%c\n` +
-        `├─ Raw: ${data.activities.length} activities\n` +
-        `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
-        `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
-        `├─ NFT Activities: ${nftActivitiesMap.size}\n` +
-        `├─ Staking Activities: ${nonNftActivities.length}\n` +
-        `└─ Final Result: ${finalActivities.length} activities sorted by date`,
-        'color: #ff8c00; font-weight: bold;',
-        'color: #ffffff;'
-      );
+        console.log(
+          `%c🔍 useRecentActivitiesGraph Processing%c\n` +
+          `├─ Raw: ${data.activities.length} activities\n` +
+          `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
+          `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
+          `├─ NFT Activities: ${nftActivitiesMap.size}\n` +
+          `├─ Staking Activities: ${nonNftActivities.length}\n` +
+          `└─ Final Result: ${finalActivities.length} activities sorted by date`,
+          'color: #ff8c00; font-weight: bold;',
+          'color: #ffffff;'
+        );
+      } catch (subgraphError) {
+        console.error('❌ [The Graph] Subgraph request failed:', subgraphError);
+        console.warn('⚠️ Subgraph unavailable - returning empty activity list');
+        console.info('💡 Note: The subgraph might not be deployed or synced yet');
+        setActivities([]);
+      }
     } catch (err) {
-      console.error('❌ [The Graph] Error fetching activities:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch activities from The Graph');
+      console.error('❌ [useRecentActivitiesGraph] Unexpected error:', err);
       setActivities([]);
     } finally {
       setIsLoading(false);

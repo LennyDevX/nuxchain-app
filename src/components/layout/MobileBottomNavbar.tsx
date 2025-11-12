@@ -285,8 +285,14 @@ const MobileBottomNavbar: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                     whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+                    onClick={(e) => {
+                      // Permitir que el WalletConnect capture eventos de click
+                      e.stopPropagation();
+                    }}
                   >
-                    <WalletConnect />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <WalletConnect />
+                    </div>
                   </motion.div>
 
                   {/* Profile Link */}

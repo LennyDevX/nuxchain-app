@@ -15,6 +15,7 @@ function WalletConnect() {
   const [touchStartY, setTouchStartY] = useState(0)
   const isMobile = useIsMobile()
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   
   // Nuevos hooks para mejoras
   const { ensName } = useENSResolution(address)
@@ -28,14 +29,35 @@ function WalletConnect() {
 
   useEffect(() => {
     if (!showDropdown) return;
+    
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // Permitir clicks dentro del dropdown o en el botón
+      if (buttonRef.current?.contains(target)) {
+        return;
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setShowDropdown(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
+    
+    function handleTouchOutside(event: TouchEvent) {
+      const target = event.target as Node;
+      if (buttonRef.current?.contains(target)) {
+        return;
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
+        setShowDropdown(false);
+      }
+    }
+    
+    // Usar capture phase para detectar clicks fuera
+    document.addEventListener('mousedown', handleClickOutside, true);
+    document.addEventListener('touchstart', handleTouchOutside, true);
+    
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleTouchOutside, true);
     };
   }, [showDropdown]);
 
@@ -48,6 +70,11 @@ function WalletConnect() {
     if (isMobile && e.changedTouches[0].clientY - touchStartY > 100) {
       setShowDropdown(false)
     }
+  }
+
+  // Prevenir propagación de clicks dentro del dropdown
+  const handleDropdownClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
   }
   
   const isPolygonNetwork = chain?.id === polygon.id
@@ -87,15 +114,16 @@ function WalletConnect() {
     return (
       <div className="relative">
         <button
+          ref={buttonRef}
           onClick={() => setShowDropdown(!showDropdown)}
-          className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-red-700 hover:to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2"
+          className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-red-700 hover:to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2 w-full"
         >
           <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
           <span>{formatAddress(address)}</span>
         </button>
         {showDropdown && (
           <>
-            {/* Backdrop para móvil */}
+            {/* Backdrop para móvil - z-40 para estar debajo del dropdown z-50 */}
             {isMobile && (
               <div 
                 className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
@@ -104,9 +132,10 @@ function WalletConnect() {
             )}
             <div
               ref={dropdownRef}
+              onClick={handleDropdownClick}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              className={`absolute z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
+              className={`absolute z-[999] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
                 isMobile
                   ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl max-h-[90vh] max-w-full'
                   : 'right-0 mt-2 w-96 bg-black rounded-xl shadow-xl border border-gray-800'
@@ -269,8 +298,9 @@ function WalletConnect() {
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setShowDropdown(!showDropdown)}
-        className="btn-wallet"
+        className="btn-wallet w-full"
       >
         Connect Wallet
       </button>
@@ -285,6 +315,7 @@ function WalletConnect() {
           )}
           <div
             ref={dropdownRef}
+            onClick={handleDropdownClick}
             className={`absolute z-50 overflow-hidden ${
               isMobile
                 ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl'

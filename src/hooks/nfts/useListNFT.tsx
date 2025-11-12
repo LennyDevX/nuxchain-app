@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import { normalizeCategory } from '../../utils/ipfs/ipfsUtils';
 
 // Use V2 contract address
-const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 interface ListNFTParams {
   tokenId: string | number | bigint;
@@ -73,7 +73,7 @@ export default function useListNFT() {
       // Initialize contract
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 

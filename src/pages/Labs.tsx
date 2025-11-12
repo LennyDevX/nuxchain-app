@@ -1,12 +1,22 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import AIFeaturesSection from '../components/labs/AIFeaturesSection';
 import InnovationShowcase from '../components/labs/InnovationShowcase';
-import RoadmapTimeline from '../components/labs/RoadmapTimeline';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
+import { useNavigate } from 'react-router-dom';
 
 const LabsPage: React.FC = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const innovationRef = useRef<HTMLElement>(null);
+
+  const handleScrollToInnovation = () => {
+    innovationRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleChatRedirect = () => {
+    navigate('/chat');
+  };
 
   return (
     <GlobalBackground>
@@ -41,10 +51,14 @@ const LabsPage: React.FC = () => {
           <div className={`flex gap-4 justify-center ${
             isMobile ? 'flex-col px-8' : 'flex-col sm:flex-row'
           }`}>
-            <button className={`btn-primary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
+            <button 
+              onClick={handleScrollToInnovation}
+              className={`btn-primary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
               {isMobile ? 'Explore' : 'Explore Projects'}
             </button>
-            <button className={`btn-secondary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
+            <button 
+              onClick={handleChatRedirect}
+              className={`btn-secondary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
               {isMobile ? 'Meet AI' : 'Meet Our AI'}
             </button>
           </div>
@@ -62,7 +76,7 @@ const LabsPage: React.FC = () => {
           </section>
 
           {/* Innovation Showcase */}
-          <section>
+          <section ref={innovationRef}>
             <div className={`text-center ${isMobile ? 'mb-6' : 'mb-12'}`}>
               <h2 className={`font-bold mb-4 ${
                 isMobile ? 'text-2xl' : 'text-3xl'
@@ -79,27 +93,22 @@ const LabsPage: React.FC = () => {
             <InnovationShowcase />
           </section>
 
-          {/* Roadmap Timeline */}
-          {!isMobile && (
-            <section>
-              <RoadmapTimeline />
-            </section>
-          )}
+         
 
-          {/* Stats Cards */}
+          {/* Future Projections */}
           <section>
             <div className={`text-center ${isMobile ? 'mb-6' : 'mb-12'}`}>
               <h2 className={`font-bold mb-4 ${
                 isMobile ? 'text-2xl' : 'text-3xl'
               }`}>
-                {isMobile ? 'Our Impact' : 'Impact of Our Technology'}
+                {isMobile ? 'Future Projections' : 'Future Projections'}
               </h2>
               <p className={`text-slate-400 max-w-3xl mx-auto ${
                 isMobile ? 'text-sm px-4' : ''
               }`}>
                 {isMobile 
-                  ? 'Real impact on investors\' performance'
-                  : 'We measure the real impact of our solutions on investors\' performance.'
+                  ? 'Our goals for the next 12 months'
+                  : 'Our projected milestones and goals for the platform within the next 12 months of development.'
                 }
               </p>
             </div>
@@ -111,7 +120,7 @@ const LabsPage: React.FC = () => {
               <div 
                 className={`card-stats border-green-500/20 ${isMobile ? 'p-3' : ''}`}
                 role="region"
-                aria-label="Profitability optimization metric showing 42% improvement"
+                aria-label="Projected average profitability improvement of 25 percent for users"
               >
                 <div>
                   <h3 
@@ -120,20 +129,20 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    +42%
+                    +30%
                   </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
-                    {isMobile ? 'Profit' : 'Profitability Optimization'}
+                    {isMobile ? 'Avg Return' : 'Avg Return Potential'}
                   </p>
                 </div>
                 {!isMobile && (
                   <div className="mt-4">
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-green-500" style={{ width: '75%' }}></div>
+                      <div className="h-full rounded-full bg-green-500" style={{ width: '25%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Users report higher earnings with AI</p>
+                    <p className="text-sm text-slate-400 mt-2">Expected improvement for early adopters</p>
                   </div>
                 )}
               </div>
@@ -141,7 +150,7 @@ const LabsPage: React.FC = () => {
               <div 
                 className={`card-stats border-blue-500/20 ${isMobile ? 'p-3' : ''}`}
                 role="region"
-                aria-label="Investment simulations metric showing over 500 thousand scenarios analyzed"
+                aria-label="Projected target of 10 thousand active users in next year"
               >
                 <div>
                   <h3 
@@ -150,20 +159,20 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    500k+
+                    5k+
                   </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
-                    {isMobile ? 'Simulations' : 'Investment Simulations'}
+                    {isMobile ? 'Target Users' : 'Target Active Users'}
                   </p>
                 </div>
                 {!isMobile && (
                   <div className="mt-4">
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-blue-500" style={{ width: '68%' }}></div>
+                      <div className="h-full rounded-full bg-blue-500" style={{ width: '40%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Scenarios analyzed monthly</p>
+                    <p className="text-sm text-slate-400 mt-2">Goal for the end of 2026</p>
                   </div>
                 )}
               </div>
@@ -171,7 +180,7 @@ const LabsPage: React.FC = () => {
               <div 
                 className={`card-stats border-purple-500/20 ${isMobile ? 'p-3' : ''}`}
                 role="region"
-                aria-label="Recommendation accuracy metric showing 98 percent success rate"
+                aria-label="Projected recommendation accuracy target of 85 percent"
               >
                 <div>
                   <h3 
@@ -180,20 +189,20 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    98%
+                    85%
                   </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
-                    {isMobile ? 'Accuracy' : 'Recommendation Accuracy'}
+                    {isMobile ? 'AI Accuracy' : 'AI Recommendation Accuracy'}
                   </p>
                 </div>
                 {!isMobile && (
                   <div className="mt-4">
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-purple-500" style={{ width: '98%' }}></div>
+                      <div className="h-full rounded-full bg-purple-500" style={{ width: '85%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">User satisfaction rate</p>
+                    <p className="text-sm text-slate-400 mt-2">Target accuracy rate by Q2 2026</p>
                   </div>
                 )}
               </div>
@@ -201,7 +210,7 @@ const LabsPage: React.FC = () => {
               <div 
                 className={`card-stats border-amber-500/20 ${isMobile ? 'p-3' : ''}`}
                 role="region"
-                aria-label="Predictive models metric showing 12 advanced analysis tools"
+                aria-label="Projected 8 major features planned for rollout"
               >
                 <div>
                   <h3 
@@ -210,20 +219,20 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    12
+                    5
                   </h3>
                   <p className={`text-slate-400 ${
                     isMobile ? 'text-xs' : ''
                   }`}>
-                    {isMobile ? 'Models' : 'Predictive Models'}
+                    {isMobile ? 'New Features' : 'Planned Features'}
                   </p>
                 </div>
                 {!isMobile && (
                   <div className="mt-4">
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-amber-500" style={{ width: '85%' }}></div>
+                      <div className="h-full rounded-full bg-amber-500" style={{ width: '60%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Advanced analysis tools</p>
+                    <p className="text-sm text-slate-400 mt-2">Major launches planned in 2026</p>
                   </div>
                 )}
               </div>

@@ -5,28 +5,33 @@ import {
   TokenSold,
   TokenUnlisted,
   OfferMade,
-  OfferAccepted,
-  QuestCompleted,
-  AchievementUnlocked,
-  LevelUp,
-  XPGained,
-  ReferralRegistered
-} from "../generated/GameifiedMarketplace/GameifiedMarketplace"
+  OfferAccepted
+} from "../generated/GameifiedMarketplaceCore/GameifiedMarketplaceCoreV1"
 import {
   User,
   Activity
 } from "../generated/schema"
 
-// Helper function to load or create user
+// ✅ OPTIMIZADO: Helper function mejorado con contadores directos
 function loadOrCreateUser(address: Bytes, timestamp: BigInt): User {
   let user = User.load(address)
   
   if (user == null) {
     user = new User(address)
+    // ✅ Inicializar contadores directos
+    user.depositCount = 0
+    user.withdrawalCount = 0
+    user.compoundCount = 0
+    user.nftMintedCount = 0
+    user.nftSoldCount = 0
+    user.nftBoughtCount = 0
+    user.offersMadeCount = 0
+    
     user.totalDeposited = BigInt.fromI32(0)
     user.totalWithdrawn = BigInt.fromI32(0)
     user.totalCompounded = BigInt.fromI32(0)
-    user.nftCount = 0
+    user.level = 1
+    user.totalXP = BigInt.fromI32(0)
     user.createdAt = timestamp
     user.updatedAt = timestamp
     user.save()
@@ -149,87 +154,4 @@ export function handleOfferAccepted(event: OfferAccepted): void {
   activity.save()
 }
 
-export function handleQuestCompleted(event: QuestCompleted): void {
-  const user = loadOrCreateUser(event.params.user, event.block.timestamp)
-  user.updatedAt = event.block.timestamp
-  user.save()
 
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "QUEST_COMPLETED"
-  activity.user = user.id
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}
-
-export function handleAchievementUnlocked(event: AchievementUnlocked): void {
-  const user = loadOrCreateUser(event.params.user, event.block.timestamp)
-  user.updatedAt = event.block.timestamp
-  user.save()
-
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "ACHIEVEMENT_UNLOCKED"
-  activity.user = user.id
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}
-
-export function handleLevelUp(event: LevelUp): void {
-  const user = loadOrCreateUser(event.params.user, event.block.timestamp)
-  user.updatedAt = event.block.timestamp
-  user.save()
-
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "LEVEL_UP"
-  activity.user = user.id
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}
-
-export function handleXPGained(event: XPGained): void {
-  const user = loadOrCreateUser(event.params.user, event.block.timestamp)
-  user.updatedAt = event.block.timestamp
-  user.save()
-
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "XP_GAINED"
-  activity.user = user.id
-  activity.amount = event.params.amount
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}
-
-export function handleReferralRegistered(event: ReferralRegistered): void {
-  const referrer = loadOrCreateUser(event.params.referrer, event.block.timestamp)
-  referrer.updatedAt = event.block.timestamp
-  referrer.save()
-
-  const referred = loadOrCreateUser(event.params.referred, event.block.timestamp)
-  referred.updatedAt = event.block.timestamp
-  referred.save()
-
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "REFERRAL_REGISTERED"
-  activity.user = referrer.id
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}

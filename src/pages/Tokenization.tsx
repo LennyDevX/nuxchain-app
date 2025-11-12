@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import useMintNFT from '../hooks/nfts/useMintNFT';
+import { useUserStaking } from '../hooks/staking/useUserStaking';
 
 // Import components
 import FileUpload from '../components/tokenization/FileUpload';
@@ -9,14 +10,14 @@ import NFTDetails from '../components/tokenization/NFTDetails';
 import ProgressIndicator from '../components/tokenization/ProgressIndicator';
 import InfoCarousel from '../components/tokenization/InfoCarousel';
 
-// Types for Skill NFTs
-export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6; // STAKE_BOOST_I, STAKE_BOOST_II, STAKE_BOOST_III, AUTO_COMPOUND, LOCK_REDUCER, FEE_REDUCER_I, FEE_REDUCER_II
+// Types for Skill NFTs - Updated for new architecture
+export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17; // All 18 official skills
 export type Rarity = 0 | 1 | 2 | 3 | 4; // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
 
 export interface Skill {
   skillType: SkillType;
-  effectValue: number;
   rarity: Rarity;
+  level: number; // 1-100
 }
 
 interface FormData {
@@ -36,6 +37,7 @@ function Tokenization() {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
   const { mintNFT, loading, error: mintError, txHash } = useMintNFT();
+  const { totalStaked } = useUserStaking();
   
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -77,9 +79,18 @@ function Tokenization() {
       return;
     }
 
-    // Validate skill NFT requirements
+    // Check staking requirement for Skill NFTs (200 POL minimum)
+    if (formData.nftType === 'skill') {
+      const stakedAmount = parseFloat(totalStaked || '0');
+      if (stakedAmount < 200) {
+        setError(`🔒 Skill NFTs require a minimum of 200 POL staked. You currently have ${stakedAmount.toFixed(2)} POL staked. Please stake more POL before creating a Skill NFT.`);
+        return;
+      }
+    }
+
+    // Only Skill NFTs require at least 1 skill (Standard NFTs don't need skills)
     if (formData.nftType === 'skill' && formData.skills.length === 0) {
-      setError('Please add at least one skill for Skill NFT');
+      setError('Add at least 1 skill to your Skill NFT. First skill is FREE!');
       return;
     }
 
@@ -92,7 +103,7 @@ function Tokenization() {
         description: formData.description,
         category: formData.category,
         royalty: formData.royaltyPercentage,
-        skills: formData.nftType === 'skill' ? formData.skills : undefined
+        skills: formData.skills // Always send skills (min 1 required)
       });
       
       if (result.success) {
@@ -105,7 +116,8 @@ function Tokenization() {
       
     } catch (err) {
       console.error('Error creating NFT:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create NFT');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create NFT';
+      setError(errorMsg || mintError);
     }
   };
 

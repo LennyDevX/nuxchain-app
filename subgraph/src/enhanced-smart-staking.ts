@@ -17,19 +17,35 @@ import {
   Withdrawal,
   Compound,
   SkillProfile,
-  Activity
+  Activity,
+  UserStats,
+  GlobalStats,
+  DailyStats
 } from "../generated/schema"
 
-// Helper function to load or create user
+// ✅ CONSTANTE para singleton GlobalStats
+const GLOBAL_STATS_ID = "global"
+
+// ✅ OPTIMIZADO: Helper mejorado con contadores directos
 function loadOrCreateUser(address: Bytes, timestamp: BigInt): User {
   let user = User.load(address)
   
   if (user == null) {
     user = new User(address)
+    // ✅ Inicializar contadores directos
+    user.depositCount = 0
+    user.withdrawalCount = 0
+    user.compoundCount = 0
+    user.nftMintedCount = 0
+    user.nftSoldCount = 0
+    user.nftBoughtCount = 0
+    user.offersMadeCount = 0
+    
+    // Totales agregados
     user.totalDeposited = BigInt.fromI32(0)
     user.totalWithdrawn = BigInt.fromI32(0)
     user.totalCompounded = BigInt.fromI32(0)
-    user.nftCount = 0
+    
     user.level = 1
     user.totalXP = BigInt.fromI32(0)
     user.createdAt = timestamp
@@ -40,10 +56,77 @@ function loadOrCreateUser(address: Bytes, timestamp: BigInt): User {
   return user
 }
 
+// ✅ NUEVO: Obtener o crear UserStats
+function getOrCreateUserStats(userAddress: Bytes, timestamp: BigInt): UserStats {
+  let stats = UserStats.load(userAddress)
+  
+  if (stats == null) {
+    stats = new UserStats(userAddress)
+    stats.user = userAddress
+    stats.totalStakingAmount = BigInt.fromI32(0)
+    stats.currentStakingAmount = BigInt.fromI32(0)
+    stats.totalRewardsEarned = BigInt.fromI32(0)
+    stats.totalRoyaltiesReceived = BigInt.fromI32(0)
+    stats.nftsMintedCount = 0
+    stats.nftsSoldCount = 0
+    stats.nftsBoughtCount = 0
+    stats.totalMarketplaceVolume = BigInt.fromI32(0)
+    stats.level = 1
+    stats.xp = BigInt.fromI32(0)
+    stats.createdAt = timestamp
+    stats.updatedAt = timestamp
+  }
+  
+  return stats
+}
+
+// ✅ NUEVO: Obtener o crear GlobalStats
+function getOrCreateGlobalStats(timestamp: BigInt): GlobalStats {
+  let stats = GlobalStats.load(GLOBAL_STATS_ID)
+  
+  if (stats == null) {
+    stats = new GlobalStats(GLOBAL_STATS_ID)
+    stats.totalDeposited = BigInt.fromI32(0)
+    stats.totalWithdrawn = BigInt.fromI32(0)
+    stats.totalCompounded = BigInt.fromI32(0)
+    stats.totalNFTsMinted = 0
+    stats.totalNFTsSold = 0
+    stats.totalMarketplaceVolume = BigInt.fromI32(0)
+    stats.totalUsers = 0
+    stats.totalActiveUsers = 0
+    stats.lastUpdatedBlock = BigInt.fromI32(0)
+    stats.updatedAt = timestamp
+  }
+  
+  return stats
+}
+
+// ✅ NUEVO: Obtener o crear DailyStats
+function getOrCreateDailyStats(timestamp: BigInt): DailyStats {
+  const dayId = (timestamp.toI64() / 86400).toString()
+  let stats = DailyStats.load(dayId)
+  
+  if (stats == null) {
+    stats = new DailyStats(dayId)
+    stats.date = timestamp
+    stats.totalDeposited = BigInt.fromI32(0)
+    stats.totalWithdrawn = BigInt.fromI32(0)
+    stats.totalCompounded = BigInt.fromI32(0)
+    stats.totalStakers = 0
+    stats.totalNFTsMinted = 0
+    stats.totalNFTsSold = 0
+    stats.totalMarketplaceVolume = BigInt.fromI32(0)
+    stats.uniqueUsers = 0
+    stats.updatedAt = timestamp
+  }
+  
+  return stats
+}
+
 export function handleDeposited(event: Deposited): void {
   const user = loadOrCreateUser(event.params.user, event.block.timestamp)
   
-  // Create deposit entity
+  // Create deposit entity (immutable record)
   const deposit = new Deposit(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
@@ -55,12 +138,35 @@ export function handleDeposited(event: Deposited): void {
   deposit.blockNumber = event.block.number
   deposit.save()
   
-  // Update user totals
+  // ✅ OPTIMIZADO: Actualizar contadores directos en User
+  user.depositCount += 1
   user.totalDeposited = user.totalDeposited.plus(event.params.amount)
   user.updatedAt = event.block.timestamp
   user.save()
   
-  // Create activity
+  // ✅ OPTIMIZADO: Actualizar UserStats
+  const userStats = getOrCreateUserStats(event.params.user, event.block.timestamp)
+  userStats.totalStakingAmount = userStats.totalStakingAmount.plus(event.params.amount)
+  userStats.currentStakingAmount = userStats.currentStakingAmount.plus(event.params.amount)
+  userStats.lastActivityAt = event.block.timestamp
+  userStats.updatedAt = event.block.timestamp
+  userStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar GlobalStats
+  const globalStats = getOrCreateGlobalStats(event.block.timestamp)
+  globalStats.totalDeposited = globalStats.totalDeposited.plus(event.params.amount)
+  globalStats.lastUpdatedBlock = event.block.number
+  globalStats.updatedAt = event.block.timestamp
+  globalStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar DailyStats
+  const dailyStats = getOrCreateDailyStats(event.block.timestamp)
+  dailyStats.totalDeposited = dailyStats.totalDeposited.plus(event.params.amount)
+  dailyStats.totalStakers += 1
+  dailyStats.updatedAt = event.block.timestamp
+  dailyStats.save()
+  
+  // Create activity for audit trail
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
@@ -88,10 +194,31 @@ export function handleWithdrawn(event: Withdrawn): void {
   withdrawal.blockNumber = event.block.number
   withdrawal.save()
   
-  // Update user totals
+  // ✅ OPTIMIZADO: Actualizar contadores
+  user.withdrawalCount += 1
   user.totalWithdrawn = user.totalWithdrawn.plus(event.params.amount)
   user.updatedAt = event.block.timestamp
   user.save()
+  
+  // ✅ OPTIMIZADO: Actualizar UserStats
+  const userStats = getOrCreateUserStats(event.params.user, event.block.timestamp)
+  userStats.currentStakingAmount = userStats.currentStakingAmount.minus(event.params.amount)
+  userStats.lastActivityAt = event.block.timestamp
+  userStats.updatedAt = event.block.timestamp
+  userStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar GlobalStats
+  const globalStats = getOrCreateGlobalStats(event.block.timestamp)
+  globalStats.totalWithdrawn = globalStats.totalWithdrawn.plus(event.params.amount)
+  globalStats.lastUpdatedBlock = event.block.number
+  globalStats.updatedAt = event.block.timestamp
+  globalStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar DailyStats
+  const dailyStats = getOrCreateDailyStats(event.block.timestamp)
+  dailyStats.totalWithdrawn = dailyStats.totalWithdrawn.plus(event.params.amount)
+  dailyStats.updatedAt = event.block.timestamp
+  dailyStats.save()
   
   // Create activity
   const activity = new Activity(

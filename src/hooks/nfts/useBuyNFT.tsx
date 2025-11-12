@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import { toast } from 'react-hot-toast';
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 export interface BuyNFTParams {
   tokenId: string;
@@ -77,7 +77,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       // Verify the NFT is still for sale and get current price
       const listedToken = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         functionName: 'getListedToken',
         args: [tokenId]
       }) as [bigint, string, bigint, bigint, boolean];
@@ -106,7 +106,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       // Execute the purchase transaction
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         functionName: 'buyToken',
         args: [tokenId],
         value: priceInWei,

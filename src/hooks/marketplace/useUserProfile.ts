@@ -1,9 +1,9 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import type { UserProfile } from '../../types/contracts';
 
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
+const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 interface UseUserProfileReturn {
   userProfile: UserProfile | null;
@@ -23,7 +23,7 @@ export function useUserProfile(): UseUserProfileReturn {
 
   const contractConfig = {
     address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: GameifiedMarketplaceABI.abi,
+    abi: GameifiedMarketplaceCoreABI.abi,
   };
 
   // Get user profile

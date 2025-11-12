@@ -1,14 +1,18 @@
-// Types for Skill NFTs
-export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-export type Rarity = 0 | 1 | 2 | 3 | 4;
+// Types for Skill NFTs - Updated for new architecture
+export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17; // All 18 official skills
+export type Rarity = 0 | 1 | 2 | 3 | 4; // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
 
+import { useEffect, useMemo } from 'react';
 import { SKILL_CONFIGS, RARITY_CONFIGS, calculateTotalSkillFees, formatSkillDisplayWithBenefit } from '../../constants/skillsConfig';
+import { useUserSkills } from '../../hooks/nfts/useUserSkills';
+import { useUserStaking } from '../../hooks/staking/useUserStaking';
+import SkillSecurityInfo from './SkillSecurityInfo';
 import { motion } from 'framer-motion';
 
 export interface Skill {
   skillType: SkillType;
-  effectValue: number;
   rarity: Rarity;
+  level: number; // 1-100
 }
 
 interface FormData {
@@ -46,6 +50,34 @@ export default function NFTDetails({
   isConfirming,
   error
 }: NFTDetailsProps) {
+  // Get user's existing skills to determine what's available
+  const { isFirstSkill, availableSkills, canAddMoreSkills, skillsUntilLimit } = useUserSkills();
+  
+  // Get user's staking balance for Skill NFT requirement check
+  const { totalStaked } = useUserStaking();
+  
+  // Check if user has minimum 200 POL staked for Skill NFT creation
+  const stakedAmount = useMemo(() => {
+    try {
+      return parseFloat(totalStaked || '0');
+    } catch {
+      return 0;
+    }
+  }, [totalStaked]);
+  
+  const hasMinimumStaking = stakedAmount >= 200;
+
+  // Auto-assign first free skill (STAKE_BOOST_I) when nftType changes to 'skill'
+  useEffect(() => {
+    if (formData.nftType === 'skill' && formData.skills.length === 0 && isFirstSkill) {
+      // First skill is always STAKE_BOOST_I (skillType = 0) with Common rarity (free)
+      setFormData(prev => ({
+        ...prev,
+        skills: [{ skillType: 0 as SkillType, rarity: 0 as Rarity, level: 10 }]
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.nftType]);
 
   return (
     <motion.div 
@@ -128,42 +160,70 @@ export default function NFTDetails({
         >
           <label className="block text-white font-medium mb-3">NFT Type</label>
           <div className="grid grid-cols-2 gap-3">
-            {['standard', 'skill'].map((type) => (
-              <motion.button
-                key={type}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, nftType: type as 'standard' | 'skill', skills: type === 'standard' ? [] : prev.skills }))}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  formData.nftType === type
-                    ? 'border-purple-500 bg-purple-500/20'
-                    : 'border-white/20 bg-white/5 hover:bg-white/10'
-                }`}
-              >
-                <div className="text-2xl mb-1">{type === 'standard' ? '🖼️' : '⚡'}</div>
-                <div className="text-white font-medium">{type === 'standard' ? 'Standard NFT' : 'Skill NFT'}</div>
-                <div className="text-white/60 text-xs mt-1">{type === 'standard' ? 'Basic NFT without skills' : 'NFT with special abilities'}</div>
-              </motion.button>
-            ))}
+            {['standard', 'skill'].map((type) => {
+              const isSkillNFT = type === 'skill';
+              const isDisabled = isSkillNFT && !hasMinimumStaking;
+              
+              return (
+                <motion.button
+                  key={type}
+                  type="button"
+                  onClick={() => {
+                    if (!isDisabled) {
+                      setFormData(prev => ({ ...prev, nftType: type as 'standard' | 'skill', skills: type === 'standard' ? [] : prev.skills }));
+                    }
+                  }}
+                  disabled={isDisabled}
+                  whileHover={!isDisabled ? { scale: 1.02 } : {}}
+                  whileTap={!isDisabled ? { scale: 0.98 } : {}}
+                  className={`p-4 rounded-xl border-2 transition-all ${
+                    isDisabled
+                      ? 'border-red-500/50 bg-red-500/10 cursor-not-allowed opacity-60'
+                      : formData.nftType === type
+                      ? 'border-purple-500 bg-purple-500/20 cursor-pointer'
+                      : 'border-white/20 bg-white/5 hover:bg-white/10 cursor-pointer'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{type === 'standard' ? '🖼️' : '⚡'}</div>
+                  <div className="text-white font-medium">{type === 'standard' ? 'Standard NFT' : 'Skill NFT'}</div>
+                  {isDisabled ? (
+                    <div className="text-red-400 text-xs mt-1">
+                      🔒 Requires 200 POL staked ({stakedAmount.toFixed(2)}/{200})
+                    </div>
+                  ) : (
+                    <div className="text-white/60 text-xs mt-1">{type === 'standard' ? 'Simple NFT (no skills)' : 'NFT with multiple abilities'}</div>
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
         </motion.div>
 
         {/* Skill Configuration - Only show for Skill NFTs */}
         {formData.nftType === 'skill' && (
-          <div className="space-y-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-white font-medium">Skills Configuration</h3>
-                <p className="text-white/60 text-sm">Add up to 5 skills (First skill is FREE)</p>
-              </div>
-              {formData.skills.length < 5 && (
+          <div className="space-y-4">
+            {/* Security Info */}
+            <SkillSecurityInfo />
+
+            {/* Skills Form */}
+            <div className="space-y-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-white font-medium">Skills Configuration</h3>
+                  <p className="text-white/60 text-sm">Add up to 3 active skills (First skill is FREE)</p>
+                </div>
+              {formData.skills.length < 3 && availableSkills.length > formData.skills.length && canAddMoreSkills && (
                 <button
                   type="button"
                   onClick={() => {
+                    // Find first available skill not already in form
+                    const skillsInForm: number[] = formData.skills.map(s => s.skillType);
+                    const nextSkillNumber = availableSkills.find(s => !skillsInForm.includes(s)) ?? 1;
+                    const nextAvailableSkill = (nextSkillNumber as unknown) as SkillType;
+                    
                     setFormData(prev => ({
                       ...prev,
-                      skills: [...prev.skills, { skillType: 0, effectValue: 10, rarity: 0 }]
+                      skills: [...prev.skills, { skillType: nextAvailableSkill, level: 10, rarity: 0 }]
                     }));
                   }}
                   className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-1 transition-colors"
@@ -173,6 +233,15 @@ export default function NFTDetails({
                   </svg>
                   Add Skill
                 </button>
+              )}
+              {formData.skills.length >= 3 && (
+                <p className="text-yellow-400 text-xs">🔒 Maximum 3 active skills reached (Security Limit)</p>
+              )}
+              {!canAddMoreSkills && formData.skills.length > 0 && (
+                <p className="text-orange-400 text-xs">⏰ You have reached your active skills limit ({skillsUntilLimit}/3). Wait for skills to expire to add new ones.</p>
+              )}
+              {availableSkills.length <= formData.skills.length && formData.skills.length > 0 && formData.skills.length < 3 && (
+                <p className="text-yellow-400 text-xs">All available skills are already added</p>
               )}
             </div>
 
@@ -188,7 +257,7 @@ export default function NFTDetails({
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-white font-medium text-sm">
                         Skill #{index + 1}
-                        {index === 0 && <span className="ml-2 text-green-400">(FREE)</span>}
+                        {index === 0 && <span className="ml-2 text-green-400">(FREE - Auto-assigned)</span>}
                         {index > 0 && (
                           <span className="ml-2 text-yellow-400">
                             ({calculateTotalSkillFees([skill])} POL)
@@ -222,13 +291,23 @@ export default function NFTDetails({
                           }}
                           className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:ring-2 focus:ring-purple-500 [&>option]:bg-gray-800 cursor-help"
                           title="Select a skill type. Hover for details."
+                          disabled={index === 0} // First skill (free) is locked
                         >
                           <option value="">Select a skill...</option>
-                          {SKILL_CONFIGS.map((skillConfig) => (
-                            <option key={skillConfig.id} value={skillConfig.id}>
-                              {formatSkillDisplayWithBenefit(skillConfig.id)}
-                            </option>
-                          ))}
+                          {SKILL_CONFIGS.map((skillConfig) => {
+                            // For other skills, only show skills not already in form
+                            const skillAlreadyAdded = formData.skills.some(
+                              (s, idx) => s.skillType === skillConfig.id && idx !== index
+                            );
+                            
+                            if (skillAlreadyAdded && index !== 0) return null;
+                            
+                            return (
+                              <option key={skillConfig.id} value={skillConfig.id}>
+                                {formatSkillDisplayWithBenefit(skillConfig.id)}
+                              </option>
+                            );
+                          })}
                         </select>
 
                         {/* Tooltip on hover */}
@@ -249,19 +328,19 @@ export default function NFTDetails({
                       </div>
                     </div>
 
-                    {/* Effect Value */}
+                    {/* Skill Level (1-100) */}
                     <div>
                       <label className="block text-white/80 text-sm mb-1">
-                        Effect Value: {skill.effectValue}
+                        Level: {skill.level}
                       </label>
                       <input
                         type="range"
                         min="1"
                         max="100"
-                        value={skill.effectValue}
+                        value={skill.level}
                         onChange={(e) => {
                           const newSkills = [...formData.skills];
-                          newSkills[index].effectValue = parseInt(e.target.value);
+                          newSkills[index].level = parseInt(e.target.value);
                           setFormData(prev => ({ ...prev, skills: newSkills }));
                         }}
                         className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
@@ -326,6 +405,7 @@ export default function NFTDetails({
                 )}
               </div>
             )}
+            </div>
           </div>
         )}
 

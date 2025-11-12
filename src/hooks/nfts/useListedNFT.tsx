@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 interface BuyNFTParams {
   tokenId: string | number | bigint;
@@ -76,7 +76,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -107,7 +107,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -137,7 +137,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -164,7 +164,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -194,7 +194,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -225,7 +225,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 

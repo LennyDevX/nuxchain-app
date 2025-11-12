@@ -1,29 +1,28 @@
 """
 User entity - represents a wallet address
+✅ OPTIMIZADO: Removidos @derivedFrom fields, agregados contadores directos
 """
 type User @entity(immutable: false) {
   id: Bytes! # wallet address
-  deposits: [Deposit!]! @derivedFrom(field: "user")
-  withdrawals: [Withdrawal!]! @derivedFrom(field: "user")
-  compounds: [Compound!]! @derivedFrom(field: "user")
-  autoCompounds: [AutoCompound!]! @derivedFrom(field: "user")
-  nftsMinted: [NFTMint!]! @derivedFrom(field: "creator")
-  nftsListed: [NFTList!]! @derivedFrom(field: "seller")
-  nftsSold: [NFTSale!]! @derivedFrom(field: "seller")
-  nftsPurchased: [NFTPurchase!]! @derivedFrom(field: "buyer")
-  offersMade: [OfferCreated!]! @derivedFrom(field: "buyer")
-  offersReceived: [OfferAccepted!]! @derivedFrom(field: "seller")
-  skillProfile: SkillProfile @derivedFrom(field: "user")
-  activeSkills: [NFTSkill!]! @derivedFrom(field: "user")
-  questsCompleted: [QuestCompletion!]! @derivedFrom(field: "user")
-  achievementsUnlocked: [AchievementUnlock!]! @derivedFrom(field: "user")
-  marketplaceProfile: MarketplaceProfile @derivedFrom(field: "user")
+  
+  # ✅ Contadores directos (sin @derivedFrom)
+  depositCount: Int!
+  withdrawalCount: Int!
+  compoundCount: Int!
+  nftMintedCount: Int!
+  nftSoldCount: Int!
+  nftBoughtCount: Int!
+  offersMadeCount: Int!
+  
+  # Totales agregados
   totalDeposited: BigInt!
   totalWithdrawn: BigInt!
   totalCompounded: BigInt!
-  nftCount: Int!
+  
+  # Métricas de gamificación
   level: Int!
   totalXP: BigInt!
+  
   createdAt: BigInt!
   updatedAt: BigInt!
 }
@@ -316,4 +315,80 @@ enum ActivityType {
   ROYALTY_PAID
   XP_GAINED
   LEVEL_UP
+}
+
+"""
+✅ NUEVO: Global Statistics - Singleton para métricas globales
+Permite queries rápidas de totales sin sumar todas las entidades
+"""
+type GlobalStats @entity(immutable: false) {
+  id: ID! # "global"
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  totalCompounded: BigInt!
+  totalNFTsMinted: Int!
+  totalNFTsSold: Int!
+  totalMarketplaceVolume: BigInt!
+  totalUsers: Int!
+  totalActiveUsers: Int!
+  lastUpdatedBlock: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: Daily Statistics - Agregaciones diarias
+Permite análisis de actividad por día sin procesar miles de eventos
+"""
+type DailyStats @entity(immutable: false) {
+  id: ID! # "date-YYYY-MM-DD"
+  date: BigInt!
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  totalCompounded: BigInt!
+  totalStakers: Int!
+  totalNFTsMinted: Int!
+  totalNFTsSold: Int!
+  totalMarketplaceVolume: BigInt!
+  uniqueUsers: Int!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: User Statistics - Agregaciones por usuario
+Cache de métricas agregadas para evitar @derivedFrom queries
+"""
+type UserStats @entity(immutable: false) {
+  id: Bytes! # user address
+  user: User!
+  totalStakingAmount: BigInt!
+  currentStakingAmount: BigInt!
+  totalRewardsEarned: BigInt!
+  totalRoyaltiesReceived: BigInt!
+  nftsMintedCount: Int!
+  nftsSoldCount: Int!
+  nftsBoughtCount: Int!
+  totalMarketplaceVolume: BigInt!
+  averageNFTPrice: BigInt
+  level: Int!
+  xp: BigInt!
+  lastActivityAt: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: NFT Statistics - Agregaciones por NFT
+Métricas de mercado para cada NFT sin procesar todas sus ventas
+"""
+type NFTStats @entity(immutable: false) {
+  id: String! # "tokenId-" concatenated (e.g., "12345")
+  totalSales: Int!
+  totalVolume: BigInt!
+  averagePrice: BigInt
+  floorPrice: BigInt
+  highestPrice: BigInt
+  lastSalePrice: BigInt
+  lastSaleAt: BigInt
+  holdersCount: Int!
+  updatedAt: BigInt!
 }

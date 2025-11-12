@@ -6,73 +6,47 @@
   },
   {
     "inputs": [],
-    "name": "AlreadyListed",
+    "name": "InsufficientPayment",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "BlacklistedAddress",
+    "name": "NoOffersAvailable",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "CategoryNotValid",
+    "name": "NotTokenOwner",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InsufficientFunds",
+    "name": "TokenNotFound",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidInput",
+    "name": "TokenNotListed",
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "OfferExpired",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OfferNotActive",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "RoyaltyTooHigh",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "SectionPaused",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenDoesNotExist",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotForSale",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TooManyOffers",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TransferFailed",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "Unauthorized",
-    "type": "error"
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "previousAdmin",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "AdminChanged",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -147,13 +121,13 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
+        "indexed": true,
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
       }
     ],
-    "name": "CategoryRegistered",
+    "name": "BeaconUpgraded",
     "type": "event"
   },
   {
@@ -161,15 +135,15 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "commenter",
-        "type": "address"
       },
       {
         "indexed": false,
@@ -186,18 +160,56 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
-        "name": "to",
+        "name": "user",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
+        "internalType": "uint8",
+        "name": "newLevel",
+        "type": "uint8"
       }
     ],
-    "name": "EmergencyWithdrawal",
+    "name": "LevelUp",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "liked",
+        "type": "bool"
+      }
+    ],
+    "name": "LikeToggled",
     "type": "event"
   },
   {
@@ -218,27 +230,21 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "seller",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
       },
       {
         "indexed": false,
@@ -255,81 +261,24 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
-      }
-    ],
-    "name": "OfferCancelled",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "offeror",
+        "type": "address"
       },
       {
         "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "expiresAt",
-        "type": "uint256"
       }
     ],
-    "name": "OfferCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "OfferExpiredCleaned",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
-      }
-    ],
-    "name": "OfferRejected",
+    "name": "OfferMade",
     "type": "event"
   },
   {
@@ -350,24 +299,24 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "seller",
+        "type": "address"
       },
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "amount",
+        "name": "newPrice",
         "type": "uint256"
       }
     ],
-    "name": "RefundFailed",
+    "name": "PriceUpdated",
     "type": "event"
   },
   {
@@ -450,30 +399,11 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
         "internalType": "address",
         "name": "creator",
         "type": "address"
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RoyaltyPaid",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
@@ -481,29 +411,17 @@
       },
       {
         "indexed": false,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "totalLikes",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "uri",
+        "type": "string"
       }
     ],
-    "name": "TokenLiked",
+    "name": "TokenCreated",
     "type": "event"
   },
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
       {
         "indexed": true,
         "internalType": "address",
@@ -511,16 +429,16 @@
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
-        "name": "price",
+        "name": "tokenId",
         "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
       }
     ],
     "name": "TokenListed",
@@ -529,62 +447,6 @@
   {
     "anonymous": false,
     "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "tokenURI",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
-      }
-    ],
-    "name": "TokenMinted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newPrice",
-        "type": "uint256"
-      }
-    ],
-    "name": "TokenPriceUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
       {
         "indexed": true,
         "internalType": "address",
@@ -596,6 +458,12 @@
         "internalType": "address",
         "name": "buyer",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -612,29 +480,10 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
         "internalType": "address",
-        "name": "user",
+        "name": "seller",
         "type": "address"
       },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "totalLikes",
-        "type": "uint256"
-      }
-    ],
-    "name": "TokenUnLiked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
       {
         "indexed": true,
         "internalType": "uint256",
@@ -684,6 +533,44 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "implementation",
+        "type": "address"
+      }
+    ],
+    "name": "Upgraded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "XPGained",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "ADMIN_ROLE",
     "outputs": [
@@ -711,7 +598,7 @@
   },
   {
     "inputs": [],
-    "name": "MAX_BATCH_MINT_SIZE",
+    "name": "PLATFORM_FEE_PERCENTAGE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -724,46 +611,7 @@
   },
   {
     "inputs": [],
-    "name": "MAX_BATCH_SIZE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MAX_OFFERS_PER_TOKEN",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MIN_PRICE",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "MODERATOR_ROLE",
+    "name": "UPGRADER_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -778,7 +626,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "offerId",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_offerIndex",
         "type": "uint256"
       }
     ],
@@ -791,12 +644,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       },
       {
         "internalType": "string",
-        "name": "text",
+        "name": "_text",
         "type": "string"
       }
     ],
@@ -845,21 +698,8 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "blacklistAddress",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],
@@ -872,7 +712,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "offerId",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_offerIndex",
         "type": "uint256"
       }
     ],
@@ -890,16 +735,16 @@
       },
       {
         "internalType": "string",
-        "name": "category",
+        "name": "_category",
         "type": "string"
       },
       {
         "internalType": "uint96",
-        "name": "royaltyPercentage",
+        "name": "_royaltyPercentage",
         "type": "uint96"
       }
     ],
-    "name": "createNFT",
+    "name": "createStandardNFT",
     "outputs": [
       {
         "internalType": "uint256",
@@ -907,66 +752,6 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_tokenURI",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
-      },
-      {
-        "internalType": "uint96",
-        "name": "royaltyPercentage",
-        "type": "uint96"
-      },
-      {
-        "internalType": "uint256",
-        "name": "quantity",
-        "type": "uint256"
-      }
-    ],
-    "name": "createNFTBatch",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "defaultRoyaltyPercentage",
-    "outputs": [
-      {
-        "internalType": "uint96",
-        "name": "",
-        "type": "uint96"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address payable",
-        "name": "to",
-        "type": "address"
-      }
-    ],
-    "name": "emergencyWithdraw",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -984,157 +769,6 @@
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "startIndex",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "count",
-        "type": "uint256"
-      }
-    ],
-    "name": "getComments",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getLikesCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getListedToken",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getOffer",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -1163,16 +797,48 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "creator",
+        "name": "_user",
         "type": "address"
       }
     ],
-    "name": "getTokensByCreator",
+    "name": "getUserProfile",
     "outputs": [
       {
-        "internalType": "uint256[]",
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "totalXP",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "level",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nftsCreated",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nftsOwned",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint32",
+            "name": "nftsSold",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "nftsBought",
+            "type": "uint32"
+          }
+        ],
+        "internalType": "struct GameifiedMarketplaceCoreV1.UserProfile",
         "name": "",
-        "type": "uint256[]"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -1223,25 +889,14 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
         "internalType": "address",
-        "name": "user",
+        "name": "_platformTreasury",
         "type": "address"
       }
     ],
-    "name": "hasUserLiked",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -1272,17 +927,36 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "isListed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "price",
+        "name": "_price",
         "type": "uint256"
       },
       {
         "internalType": "string",
-        "name": "category",
+        "name": "",
         "type": "string"
       }
     ],
@@ -1295,12 +969,31 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "listedPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
         "type": "uint256"
       },
       {
         "internalType": "uint8",
-        "name": "expiresInDays",
+        "name": "_expiresInDays",
         "type": "uint8"
       }
     ],
@@ -1317,6 +1010,151 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nftComments",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nftLikeCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "nftLikes",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nftMetadata",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "uri",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint96",
+        "name": "royaltyPercentage",
+        "type": "uint96"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "nftOffers",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "offeror",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "expiresInDays",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1363,19 +1201,6 @@
   },
   {
     "inputs": [],
-    "name": "platformFeePercentage",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "platformTreasury",
     "outputs": [
       {
@@ -1388,42 +1213,29 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "proxiableUUID",
+    "outputs": [
       {
-        "internalType": "string",
-        "name": "category",
-        "type": "string"
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
-    "name": "registerCategory",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "offerId",
-        "type": "uint256"
-      }
-    ],
-    "name": "rejectOffer",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+    "inputs": [],
+    "name": "questsContractAddress",
+    "outputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "",
         "type": "address"
       }
     ],
-    "name": "removeFromBlacklist",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1545,25 +1357,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "name": "sectionPaused",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "operator",
         "type": "address"
@@ -1582,25 +1375,12 @@
   {
     "inputs": [
       {
-        "internalType": "uint96",
-        "name": "newRoyaltyPercentage",
-        "type": "uint96"
+        "internalType": "address",
+        "name": "_questsAddress",
+        "type": "address"
       }
     ],
-    "name": "setDefaultRoyalty",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "newFeePercentage",
-        "type": "uint256"
-      }
-    ],
-    "name": "setPlatformFee",
+    "name": "setQuestsContract",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1609,11 +1389,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_treasury",
+        "name": "_skillsAddress",
         "type": "address"
       }
     ],
-    "name": "setPlatformTreasury",
+    "name": "setSkillsContract",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1621,19 +1401,40 @@
   {
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "section",
-        "type": "uint8"
-      },
-      {
-        "internalType": "bool",
-        "name": "paused",
-        "type": "bool"
+        "internalType": "address",
+        "name": "_stakingAddress",
+        "type": "address"
       }
     ],
-    "name": "setSectionPaused",
+    "name": "setStakingContract",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "skillsContractAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stakingContractAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1672,13 +1473,8 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "like",
-        "type": "bool"
       }
     ],
     "name": "toggleLike",
@@ -1732,11 +1528,11 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],
-    "name": "unlistedToken",
+    "name": "unlistToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1752,12 +1548,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "_tokenId",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "newPrice",
+        "name": "_newPrice",
         "type": "uint256"
       }
     ],
@@ -1767,10 +1563,115 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "withdrawPlatformFees",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateUserXP",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "upgradeTo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newImplementation",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "upgradeToAndCall",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userBalance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userProfiles",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalXP",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint8",
+        "name": "level",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nftsCreated",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nftsOwned",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint32",
+        "name": "nftsSold",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "nftsBought",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ]

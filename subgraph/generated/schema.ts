@@ -53,124 +53,95 @@ export class User extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get deposits(): DepositLoader {
-    return new DepositLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "deposits",
-    );
+  get depositCount(): i32 {
+    let value = this.get("depositCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get withdrawals(): WithdrawalLoader {
-    return new WithdrawalLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "withdrawals",
-    );
+  set depositCount(value: i32) {
+    this.set("depositCount", Value.fromI32(value));
   }
 
-  get compounds(): CompoundLoader {
-    return new CompoundLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "compounds",
-    );
+  get withdrawalCount(): i32 {
+    let value = this.get("withdrawalCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get autoCompounds(): AutoCompoundLoader {
-    return new AutoCompoundLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "autoCompounds",
-    );
+  set withdrawalCount(value: i32) {
+    this.set("withdrawalCount", Value.fromI32(value));
   }
 
-  get nftsMinted(): NFTMintLoader {
-    return new NFTMintLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "nftsMinted",
-    );
+  get compoundCount(): i32 {
+    let value = this.get("compoundCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get nftsListed(): NFTListLoader {
-    return new NFTListLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "nftsListed",
-    );
+  set compoundCount(value: i32) {
+    this.set("compoundCount", Value.fromI32(value));
   }
 
-  get nftsSold(): NFTSaleLoader {
-    return new NFTSaleLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "nftsSold",
-    );
+  get nftMintedCount(): i32 {
+    let value = this.get("nftMintedCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get nftsPurchased(): NFTPurchaseLoader {
-    return new NFTPurchaseLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "nftsPurchased",
-    );
+  set nftMintedCount(value: i32) {
+    this.set("nftMintedCount", Value.fromI32(value));
   }
 
-  get offersMade(): OfferCreatedLoader {
-    return new OfferCreatedLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "offersMade",
-    );
+  get nftSoldCount(): i32 {
+    let value = this.get("nftSoldCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get offersReceived(): OfferAcceptedLoader {
-    return new OfferAcceptedLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "offersReceived",
-    );
+  set nftSoldCount(value: i32) {
+    this.set("nftSoldCount", Value.fromI32(value));
   }
 
-  get skillProfile(): SkillProfileLoader {
-    return new SkillProfileLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "skillProfile",
-    );
+  get nftBoughtCount(): i32 {
+    let value = this.get("nftBoughtCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get activeSkills(): NFTSkillLoader {
-    return new NFTSkillLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "activeSkills",
-    );
+  set nftBoughtCount(value: i32) {
+    this.set("nftBoughtCount", Value.fromI32(value));
   }
 
-  get questsCompleted(): QuestCompletionLoader {
-    return new QuestCompletionLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "questsCompleted",
-    );
+  get offersMadeCount(): i32 {
+    let value = this.get("offersMadeCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  get achievementsUnlocked(): AchievementUnlockLoader {
-    return new AchievementUnlockLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "achievementsUnlocked",
-    );
-  }
-
-  get marketplaceProfile(): MarketplaceProfileLoader {
-    return new MarketplaceProfileLoader(
-      "User",
-      this.get("id")!.toBytes().toHexString(),
-      "marketplaceProfile",
-    );
+  set offersMadeCount(value: i32) {
+    this.set("offersMadeCount", Value.fromI32(value));
   }
 
   get totalDeposited(): BigInt {
@@ -210,19 +181,6 @@ export class User extends Entity {
 
   set totalCompounded(value: BigInt) {
     this.set("totalCompounded", Value.fromBigInt(value));
-  }
-
-  get nftCount(): i32 {
-    let value = this.get("nftCount");
-    if (!value || value.kind == ValueKind.NULL) {
-      return 0;
-    } else {
-      return value.toI32();
-    }
-  }
-
-  set nftCount(value: i32) {
-    this.set("nftCount", Value.fromI32(value));
   }
 
   get level(): i32 {
@@ -2823,272 +2781,764 @@ export class Activity extends Entity {
   }
 }
 
-export class DepositLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
+export class GlobalStats extends Entity {
+  constructor(id: string) {
     super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+    this.set("id", Value.fromString(id));
   }
 
-  load(): Deposit[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<Deposit[]>(value);
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save GlobalStats entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type GlobalStats must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("GlobalStats", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): GlobalStats | null {
+    return changetype<GlobalStats | null>(
+      store.get_in_block("GlobalStats", id),
+    );
+  }
+
+  static load(id: string): GlobalStats | null {
+    return changetype<GlobalStats | null>(store.get("GlobalStats", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get totalDeposited(): BigInt {
+    let value = this.get("totalDeposited");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalDeposited(value: BigInt) {
+    this.set("totalDeposited", Value.fromBigInt(value));
+  }
+
+  get totalWithdrawn(): BigInt {
+    let value = this.get("totalWithdrawn");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalWithdrawn(value: BigInt) {
+    this.set("totalWithdrawn", Value.fromBigInt(value));
+  }
+
+  get totalCompounded(): BigInt {
+    let value = this.get("totalCompounded");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalCompounded(value: BigInt) {
+    this.set("totalCompounded", Value.fromBigInt(value));
+  }
+
+  get totalNFTsMinted(): i32 {
+    let value = this.get("totalNFTsMinted");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalNFTsMinted(value: i32) {
+    this.set("totalNFTsMinted", Value.fromI32(value));
+  }
+
+  get totalNFTsSold(): i32 {
+    let value = this.get("totalNFTsSold");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalNFTsSold(value: i32) {
+    this.set("totalNFTsSold", Value.fromI32(value));
+  }
+
+  get totalMarketplaceVolume(): BigInt {
+    let value = this.get("totalMarketplaceVolume");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalMarketplaceVolume(value: BigInt) {
+    this.set("totalMarketplaceVolume", Value.fromBigInt(value));
+  }
+
+  get totalUsers(): i32 {
+    let value = this.get("totalUsers");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalUsers(value: i32) {
+    this.set("totalUsers", Value.fromI32(value));
+  }
+
+  get totalActiveUsers(): i32 {
+    let value = this.get("totalActiveUsers");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalActiveUsers(value: i32) {
+    this.set("totalActiveUsers", Value.fromI32(value));
+  }
+
+  get lastUpdatedBlock(): BigInt {
+    let value = this.get("lastUpdatedBlock");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastUpdatedBlock(value: BigInt) {
+    this.set("lastUpdatedBlock", Value.fromBigInt(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
   }
 }
 
-export class WithdrawalLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
+export class DailyStats extends Entity {
+  constructor(id: string) {
     super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+    this.set("id", Value.fromString(id));
   }
 
-  load(): Withdrawal[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<Withdrawal[]>(value);
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save DailyStats entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type DailyStats must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("DailyStats", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): DailyStats | null {
+    return changetype<DailyStats | null>(store.get_in_block("DailyStats", id));
+  }
+
+  static load(id: string): DailyStats | null {
+    return changetype<DailyStats | null>(store.get("DailyStats", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get date(): BigInt {
+    let value = this.get("date");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set date(value: BigInt) {
+    this.set("date", Value.fromBigInt(value));
+  }
+
+  get totalDeposited(): BigInt {
+    let value = this.get("totalDeposited");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalDeposited(value: BigInt) {
+    this.set("totalDeposited", Value.fromBigInt(value));
+  }
+
+  get totalWithdrawn(): BigInt {
+    let value = this.get("totalWithdrawn");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalWithdrawn(value: BigInt) {
+    this.set("totalWithdrawn", Value.fromBigInt(value));
+  }
+
+  get totalCompounded(): BigInt {
+    let value = this.get("totalCompounded");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalCompounded(value: BigInt) {
+    this.set("totalCompounded", Value.fromBigInt(value));
+  }
+
+  get totalStakers(): i32 {
+    let value = this.get("totalStakers");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalStakers(value: i32) {
+    this.set("totalStakers", Value.fromI32(value));
+  }
+
+  get totalNFTsMinted(): i32 {
+    let value = this.get("totalNFTsMinted");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalNFTsMinted(value: i32) {
+    this.set("totalNFTsMinted", Value.fromI32(value));
+  }
+
+  get totalNFTsSold(): i32 {
+    let value = this.get("totalNFTsSold");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set totalNFTsSold(value: i32) {
+    this.set("totalNFTsSold", Value.fromI32(value));
+  }
+
+  get totalMarketplaceVolume(): BigInt {
+    let value = this.get("totalMarketplaceVolume");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalMarketplaceVolume(value: BigInt) {
+    this.set("totalMarketplaceVolume", Value.fromBigInt(value));
+  }
+
+  get uniqueUsers(): i32 {
+    let value = this.get("uniqueUsers");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set uniqueUsers(value: i32) {
+    this.set("uniqueUsers", Value.fromI32(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
   }
 }
 
-export class CompoundLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
+export class UserStats extends Entity {
+  constructor(id: Bytes) {
     super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+    this.set("id", Value.fromBytes(id));
   }
 
-  load(): Compound[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<Compound[]>(value);
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save UserStats entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type UserStats must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("UserStats", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): UserStats | null {
+    return changetype<UserStats | null>(
+      store.get_in_block("UserStats", id.toHexString()),
+    );
+  }
+
+  static load(id: Bytes): UserStats | null {
+    return changetype<UserStats | null>(
+      store.get("UserStats", id.toHexString()),
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get user(): Bytes {
+    let value = this.get("user");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set user(value: Bytes) {
+    this.set("user", Value.fromBytes(value));
+  }
+
+  get totalStakingAmount(): BigInt {
+    let value = this.get("totalStakingAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalStakingAmount(value: BigInt) {
+    this.set("totalStakingAmount", Value.fromBigInt(value));
+  }
+
+  get currentStakingAmount(): BigInt {
+    let value = this.get("currentStakingAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set currentStakingAmount(value: BigInt) {
+    this.set("currentStakingAmount", Value.fromBigInt(value));
+  }
+
+  get totalRewardsEarned(): BigInt {
+    let value = this.get("totalRewardsEarned");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalRewardsEarned(value: BigInt) {
+    this.set("totalRewardsEarned", Value.fromBigInt(value));
+  }
+
+  get totalRoyaltiesReceived(): BigInt {
+    let value = this.get("totalRoyaltiesReceived");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalRoyaltiesReceived(value: BigInt) {
+    this.set("totalRoyaltiesReceived", Value.fromBigInt(value));
+  }
+
+  get nftsMintedCount(): i32 {
+    let value = this.get("nftsMintedCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set nftsMintedCount(value: i32) {
+    this.set("nftsMintedCount", Value.fromI32(value));
+  }
+
+  get nftsSoldCount(): i32 {
+    let value = this.get("nftsSoldCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set nftsSoldCount(value: i32) {
+    this.set("nftsSoldCount", Value.fromI32(value));
+  }
+
+  get nftsBoughtCount(): i32 {
+    let value = this.get("nftsBoughtCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set nftsBoughtCount(value: i32) {
+    this.set("nftsBoughtCount", Value.fromI32(value));
+  }
+
+  get totalMarketplaceVolume(): BigInt {
+    let value = this.get("totalMarketplaceVolume");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalMarketplaceVolume(value: BigInt) {
+    this.set("totalMarketplaceVolume", Value.fromBigInt(value));
+  }
+
+  get averageNFTPrice(): BigInt | null {
+    let value = this.get("averageNFTPrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set averageNFTPrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("averageNFTPrice");
+    } else {
+      this.set("averageNFTPrice", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get level(): i32 {
+    let value = this.get("level");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set level(value: i32) {
+    this.set("level", Value.fromI32(value));
+  }
+
+  get xp(): BigInt {
+    let value = this.get("xp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set xp(value: BigInt) {
+    this.set("xp", Value.fromBigInt(value));
+  }
+
+  get lastActivityAt(): BigInt {
+    let value = this.get("lastActivityAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastActivityAt(value: BigInt) {
+    this.set("lastActivityAt", Value.fromBigInt(value));
+  }
+
+  get createdAt(): BigInt {
+    let value = this.get("createdAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set createdAt(value: BigInt) {
+    this.set("createdAt", Value.fromBigInt(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
   }
 }
 
-export class AutoCompoundLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
+export class NFTStats extends Entity {
+  constructor(id: string) {
     super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+    this.set("id", Value.fromString(id));
   }
 
-  load(): AutoCompound[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<AutoCompound[]>(value);
-  }
-}
-
-export class NFTMintLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save NFTStats entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type NFTStats must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("NFTStats", id.toString(), this);
+    }
   }
 
-  load(): NFTMint[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<NFTMint[]>(value);
-  }
-}
-
-export class NFTListLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  static loadInBlock(id: string): NFTStats | null {
+    return changetype<NFTStats | null>(store.get_in_block("NFTStats", id));
   }
 
-  load(): NFTList[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<NFTList[]>(value);
-  }
-}
-
-export class NFTSaleLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  static load(id: string): NFTStats | null {
+    return changetype<NFTStats | null>(store.get("NFTStats", id));
   }
 
-  load(): NFTSale[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<NFTSale[]>(value);
-  }
-}
-
-export class NFTPurchaseLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
   }
 
-  load(): NFTPurchase[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<NFTPurchase[]>(value);
-  }
-}
-
-export class OfferCreatedLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
-  load(): OfferCreated[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<OfferCreated[]>(value);
-  }
-}
-
-export class OfferAcceptedLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  get totalSales(): i32 {
+    let value = this.get("totalSales");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
   }
 
-  load(): OfferAccepted[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<OfferAccepted[]>(value);
-  }
-}
-
-export class SkillProfileLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  set totalSales(value: i32) {
+    this.set("totalSales", Value.fromI32(value));
   }
 
-  load(): SkillProfile[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<SkillProfile[]>(value);
-  }
-}
-
-export class NFTSkillLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  get totalVolume(): BigInt {
+    let value = this.get("totalVolume");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  load(): NFTSkill[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<NFTSkill[]>(value);
-  }
-}
-
-export class QuestCompletionLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  set totalVolume(value: BigInt) {
+    this.set("totalVolume", Value.fromBigInt(value));
   }
 
-  load(): QuestCompletion[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<QuestCompletion[]>(value);
-  }
-}
-
-export class AchievementUnlockLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  get averagePrice(): BigInt | null {
+    let value = this.get("averagePrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
   }
 
-  load(): AchievementUnlock[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<AchievementUnlock[]>(value);
-  }
-}
-
-export class MarketplaceProfileLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
+  set averagePrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("averagePrice");
+    } else {
+      this.set("averagePrice", Value.fromBigInt(<BigInt>value));
+    }
   }
 
-  load(): MarketplaceProfile[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<MarketplaceProfile[]>(value);
+  get floorPrice(): BigInt | null {
+    let value = this.get("floorPrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set floorPrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("floorPrice");
+    } else {
+      this.set("floorPrice", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get highestPrice(): BigInt | null {
+    let value = this.get("highestPrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set highestPrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("highestPrice");
+    } else {
+      this.set("highestPrice", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get lastSalePrice(): BigInt | null {
+    let value = this.get("lastSalePrice");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastSalePrice(value: BigInt | null) {
+    if (!value) {
+      this.unset("lastSalePrice");
+    } else {
+      this.set("lastSalePrice", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get lastSaleAt(): BigInt | null {
+    let value = this.get("lastSaleAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastSaleAt(value: BigInt | null) {
+    if (!value) {
+      this.unset("lastSaleAt");
+    } else {
+      this.set("lastSaleAt", Value.fromBigInt(<BigInt>value));
+    }
+  }
+
+  get holdersCount(): i32 {
+    let value = this.get("holdersCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set holdersCount(value: i32) {
+    this.set("holdersCount", Value.fromI32(value));
+  }
+
+  get updatedAt(): BigInt {
+    let value = this.get("updatedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set updatedAt(value: BigInt) {
+    this.set("updatedAt", Value.fromBigInt(value));
   }
 }

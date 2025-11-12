@@ -1,9 +1,9 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import GameifiedMarketplaceABI from '../../abi/GameifiedMarketplace.json';
+import GameifiedMarketplaceQuestsABI from '../../abi/GameifiedMarketplaceQuests.json';
 import type { Quest } from '../../types/contracts';
 
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
+const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS;
 
 interface UseQuestsReturn {
   activeQuests: Quest[];
@@ -54,7 +54,7 @@ export function useQuestDetails(questId: bigint | null) {
 
   const contractConfig = {
     address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: GameifiedMarketplaceABI.abi,
+    abi: GameifiedMarketplaceQuestsABI.abi,
   };
 
   const { data: questData, isLoading } = useReadContract({

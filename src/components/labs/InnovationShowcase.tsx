@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLinkIcon, GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from '../ui/CustomIcons';
+import { GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from '../ui/CustomIcons';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface ProjectProps {
@@ -67,17 +67,6 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
           </div>
         </div>
         
-        {!isMobile && (
-          <div className="relative z-10 pt-4 border-t border-slate-700">
-            <button 
-              aria-label={highlight ? `Explore ${title} demo` : `More information about ${title}`}
-              className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'btn-secondary'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}
-            >
-              {highlight ? 'Explore Demo' : 'More Information'}
-              <ExternalLinkIcon className="ml-2 w-4 h-4" aria-hidden="true" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

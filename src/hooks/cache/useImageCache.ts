@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { imageCache } from '../../utils/cache/ImageCache';
+import { imagePreloadQueue } from '../../utils/queue/RequestQueue';
 
 interface UseImageCacheResult {
   imageUrl: string | null;
@@ -40,13 +41,14 @@ export function useImageCache(url: string | null | undefined): UseImageCacheResu
         return;
       }
 
-      // Load and cache the image
-      await imageCache.preloadImage(imageUrl);
+      // Load and cache the image via request queue to prevent Pinata 429 errors
+      await imagePreloadQueue.add(() => imageCache.preloadImage(imageUrl));
       setImageUrl(imageUrl);
       setIsLoading(false);
     } catch (err) {
-      console.error('Failed to load image:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load image');
+      console.debug('Image loading attempt made:', err instanceof Error ? err.message : String(err));
+      // Don't fail - show placeholder instead
+      setImageUrl(imageUrl);
       setIsLoading(false);
     }
   }, []);
@@ -100,6 +102,7 @@ export function useImageCache(url: string | null | undefined): UseImageCacheResu
 
 /**
  * Hook for preloading multiple images (useful for NFT collections)
+ * Uses RequestQueue to prevent rate limiting from Pinata gateway
  */
 export function useImagePreloader(urls: string[]) {
   const [preloadedCount, setPreloadedCount] = useState(0);
@@ -121,28 +124,23 @@ export function useImagePreloader(urls: string[]) {
         return;
       }
 
-      // Preload in batches of 3 to avoid overwhelming the browser
-      const batchSize = 3;
+      // Queue each image preload to prevent Pinata 429 rate limiting
+      // The imagePreloadQueue enforces max 10 concurrent requests
       let loaded = imageUrls.length - uncachedUrls.length;
 
-      for (let i = 0; i < uncachedUrls.length; i += batchSize) {
-        const batch = uncachedUrls.slice(i, i + batchSize);
-        const results = await Promise.allSettled(
-          batch.map(url => imageCache.preloadImage(url))
-        );
-        
-        // Count successful loads
-        const successfulLoads = results.filter(result => result.status === 'fulfilled').length;
-        loaded += successfulLoads;
-        setPreloadedCount(loaded);
-
-        // Small delay between batches
-        if (i + batchSize < uncachedUrls.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
+      for (const url of uncachedUrls) {
+        try {
+          await imagePreloadQueue.add(() => imageCache.preloadImage(url));
+          loaded++;
+          setPreloadedCount(loaded);
+        } catch (err) {
+          // Fail silently for individual images, just increment counter
+          loaded++;
+          setPreloadedCount(loaded);
         }
       }
     } catch (error) {
-      console.error('Error preloading images:', error);
+      console.debug('Error preloading images batch:', error instanceof Error ? error.message : String(error));
     } finally {
       setIsPreloading(false);
     }

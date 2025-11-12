@@ -69,7 +69,7 @@ const markGatewaySuccess = (gateway: string) => {
   gatewayFailures.delete(gateway);
 };
 
-// Fetch with multiple gateway fallback
+// Fetch with multiple gateway fallback and exponential backoff for rate limiting
 async function fetchWithGatewayFallback(
   cid: string,
   options: RequestInit = {}
@@ -100,10 +100,13 @@ async function fetchWithGatewayFallback(
         return response;
       }
       
-      // Rate limit or server error
+      // Rate limit or server error - use exponential backoff
       if (response.status === 429 || response.status >= 500) {
         markGatewayFailed(gateway);
-        await sleep(500); // Delay before next gateway
+        // Exponential backoff: 500ms, 1s, 2s, 4s with jitter
+        const backoffMs = Math.min(500 * Math.pow(2, attempt) + Math.random() * 1000, 8000);
+        console.warn(`[IPFS] Gateway ${gateway.split('/')[2]} returned ${response.status}, retrying in ${Math.round(backoffMs)}ms...`);
+        await sleep(backoffMs);
         continue;
       }
       
@@ -112,9 +115,10 @@ async function fetchWithGatewayFallback(
       lastError = error instanceof Error ? error : new Error('Unknown error');
       markGatewayFailed(gateway);
       
-      // Only continue if we have more gateways to try
+      // Only continue if we have more gateways to try - use exponential backoff
       if (attempt < IPFS_GATEWAYS.length - 1) {
-        await sleep(500);
+        const backoffMs = Math.min(500 * Math.pow(2, attempt) + Math.random() * 1000, 8000);
+        await sleep(backoffMs);
       }
     }
   }

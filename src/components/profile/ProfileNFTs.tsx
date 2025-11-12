@@ -4,7 +4,7 @@ import { useMarketplaceNFTsGraph, type NFTData } from '../../hooks/nfts/useMarke
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
 import { ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import LoadingSpinner from '../../ui/LoadingSpinner';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import '../../styles/animations.css';
 

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { MarketplaceStats } from '../../types/marketplace';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 

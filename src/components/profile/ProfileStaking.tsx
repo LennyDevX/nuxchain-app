@@ -41,14 +41,14 @@ const ProfileStaking: React.FC = () => {
           
           // Return estimated APY based on lockup period
           const apyMap: { [key: number]: string } = {
-            0: '87.60',     // Flexible
-            30: '105.12',   // 30 days
-            90: '140.16',   // 90 days
-            180: '175.20',  // 180 days
-            365: '262.80'   // 365 days
+            0: '43.80',     // Flexible: 0.005%/hour
+            30: '87.60',    // 30 days: 0.010%/hour
+            90: '122.64',   // 90 days: 0.014%/hour
+            180: '149.28',  // 180 days: 0.017%/hour
+            365: '219.00'   // 365 days: 0.025%/hour
           };
           
-          return apyMap[lockupDays] || '87.60';
+          return apyMap[lockupDays] || '43.80';
         }
       }
       
@@ -56,11 +56,11 @@ const ProfileStaking: React.FC = () => {
       if (rewards > 0) {
         const dailyRate = (rewards / staked) * 100;
         const annualAPY = dailyRate * 365;
-        return Math.min(annualAPY, 262.80).toFixed(2);
+        return Math.min(annualAPY, 219.00).toFixed(2);
       }
       
       // Default to flexible rate if nothing else applies
-      return '87.60';
+      return '43.80';
     } catch {
       return '0.00';
     }

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { formatEther } from 'viem';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { CardSkeletonLoader } from '../ui/SkeletonLoader';
 
 interface NFTAttribute {

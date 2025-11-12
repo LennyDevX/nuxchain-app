@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { MarketplaceNFT } from '../../types/marketplace';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 import { generateImageSrcSet, IMAGE_SIZES } from '../../utils/images/imageOptimization';

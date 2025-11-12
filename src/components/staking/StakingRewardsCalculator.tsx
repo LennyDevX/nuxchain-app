@@ -20,9 +20,9 @@ interface StakingRewardsCalculatorProps {
 // APY rates for different periods (annual percentages)
 const STAKING_PERIODS = [
   { days: 30, apy: 87.6, label: 'Short Term', risk: 'Low Risk', color: 'from-green-500 to-emerald-500' },
-  { days: 90, apy: 122.6, label: 'Medium Term', risk: 'Medium Risk', color: 'from-yellow-500 to-orange-500' },
-  { days: 180, apy: 148.9, label: 'Long Term', risk: 'Medium Risk', color: 'from-orange-500 to-red-500' },
-  { days: 365, apy: 184.0, label: 'Premium', risk: 'High Risk', color: 'from-red-500 to-pink-500' }
+  { days: 90, apy: 122.64, label: 'Medium Term', risk: 'Medium Risk', color: 'from-yellow-500 to-orange-500' },
+  { days: 180, apy: 149.28, label: 'Long Term', risk: 'Medium Risk', color: 'from-orange-500 to-red-500' },
+  { days: 365, apy: 219.0, label: 'Premium', risk: 'High Risk', color: 'from-red-500 to-pink-500' }
 ]
 
 // Skill bonuses (percentage increases to base APY)

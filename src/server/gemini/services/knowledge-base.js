@@ -28,7 +28,7 @@ const knowledgeBase = [
     commands: ['Nuxchain limits', 'Nuxchain deposit minimum', 'Nuxchain errors']
   },
   {
-    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI of 0.01% with lockup bonuses. Maximum ROI cap is 125%. Lockup periods offer enhanced rates: No lockup: 0.01% per hour (87.6% APY), 30 days: 0.012% per hour (105.1% APY), 90 days: 0.016% per hour (140.2% APY), 180 days: 0.02% per hour (175.2% APY), 365 days: 0.03% per hour (262.8% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 POL for security. Commission rate is 6% on rewards.",
+    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 POL for security. Commission rate is 6% on rewards.",
     metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" },
     commands: ['Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup']
   },
@@ -50,17 +50,17 @@ const knowledgeBase = [
     commands: ['Nuxchain claim rewards']
   },
   {
-    content: "Nuxchain Lockup Periods Explained: When you stake POL tokens, you can choose a lockup period that determines your reward rate. No lockup (0 days): 0.01% per hour, withdraw anytime. 30 days lockup: 0.012% per hour, 20% higher rewards, funds locked for 30 days. 90 days lockup: 0.016% per hour, 60% higher rewards, funds locked for 90 days. 180 days lockup: 0.02% per hour, 100% higher rewards, funds locked for 180 days. 365 days lockup: 0.03% per hour, 200% higher rewards, funds locked for 365 days. The longer you lock your tokens, the higher your hourly rewards. All rewards are calculated and accumulated automatically every hour.",
+    content: "Nuxchain Lockup Periods Explained: When you stake POL tokens, you can choose a lockup period that determines your reward rate. Flexible (0 days): 0.005% per hour, withdraw anytime. 30 days lockup: 0.010% per hour, double the flexible rewards, funds locked for 30 days. 90 days lockup: 0.014% per hour, 2.8x the flexible rewards, funds locked for 90 days. 180 days lockup: 0.017% per hour, 3.4x the flexible rewards, funds locked for 180 days. 365 days lockup: 0.025% per hour, 5x the flexible rewards, funds locked for 365 days. The longer you lock your tokens, the higher your hourly rewards. All rewards are calculated and accumulated automatically every hour.",
     metadata: { type: "staking", category: "rewards", topic: "lockup-periods" },
     commands: ['Nuxchain lockup periods', 'Nuxchain staking periods', 'Nuxchain lock duration', 'Nuxchain lockup options']
   },
   {
-    content: "Nuxchain APY base is 0.01% per hour with no lockup, which equals approximately 87.6% APY annually. This is the fundamental return a user can expect when depositing POL tokens in the SmartStaking contract without any lockup period. The base APY is calculated hourly and accumulates automatically, allowing users to see their rewards grow in real-time. This is the minimum return, and it can be significantly increased by choosing longer lockup periods.",
+    content: "Nuxchain APY base is 0.005% per hour with flexible (no lockup) option, which equals approximately 43.8% APY annually. This is the fundamental return a user can expect when depositing POL tokens in the SmartStaking contract without any lockup period. The base APY is calculated hourly and accumulates automatically, allowing users to see their rewards grow in real-time. This is the minimum return, and it can be significantly increased by choosing longer lockup periods.",
     metadata: { type: "staking", category: "rewards", topic: "apy-base" },
     commands: ['Nuxchain APY base', 'Nuxchain base return', 'Nuxchain base rate', 'APY no lockup']
   },
   {
-    content: "Nuxchain APY tiers based on lockup periods: No lockup: 0.01% per hour (87.6% APY), 30 days lockup: 0.012% per hour (105.1% APY), 90 days lockup: 0.016% per hour (140.2% APY), 180 days lockup: 0.02% per hour (175.2% APY), 365 days lockup: 0.03% per hour (262.8% APY). Maximum ROI cap of 125% applies to all deposits. Commission rate is 6% on rewards. Daily withdrawal limit is 1000 POL.",
+    content: "Nuxchain APY tiers based on lockup periods: Flexible: 0.005% per hour (43.8% APY), 30 days lockup: 0.010% per hour (87.6% APY), 90 days lockup: 0.014% per hour (122.64% APY), 180 days lockup: 0.017% per hour (149.28% APY), 365 days lockup: 0.025% per hour (219% APY). Commission rate is 6% on rewards. Daily withdrawal limit is 1000 POL.",
     metadata: { type: "staking", category: "rewards", topic: "apy-tiers" },
     commands: ['Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates']
   },

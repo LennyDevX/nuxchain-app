@@ -117,27 +117,26 @@ export function useUserStaking(): UserStakingData {
         const lastDeposit = deposits[0];
         const lockupDays = Number(lastDeposit.lockupDuration) / (24 * 60 * 60);
         
-        // Different rates based on lockup period
+        // Different rates based on lockup period (hourly percentage)
         const rates: { [key: number]: number } = {
-          0: 0.01 / 24,    // Flexible: 0.01%/hour = ~87.6% APY
-          30: 0.012 / 24,  // 30 days: ~105.12% APY
-          90: 0.016 / 24,  // 90 days: ~140.16% APY
-          180: 0.02 / 24,  // 180 days: ~175.2% APY
-          365: 0.03 / 24   // 365 days: ~262.8% APY
+          0: 0.005,   // Flexible: 0.005%/hour = ~43.8% APY
+          30: 0.010,  // 30 days: 0.010%/hour = ~87.6% APY
+          90: 0.014,  // 90 days: 0.014%/hour = ~122.64% APY
+          180: 0.017, // 180 days: 0.017%/hour = ~149.28% APY
+          365: 0.025  // 365 days: 0.025%/hour = ~219% APY
         };
         
-        const hourlyRate = rates[lockupDays] || (0.01 / 24);
-        const dailyRate = hourlyRate * 24;
-        const apy = dailyRate * 365 * 100;
+        const hourlyPercentage = rates[lockupDays] || 0.005;
+        const apy = hourlyPercentage * 24 * 365;
         
-        return apy > 250 ? '87.6' : apy.toFixed(2);
+        return apy.toFixed(2);
       }
       
       // Fallback: calculate from actual rewards
       const dailyRate = (rewardsAmount / stakedAmount);
       const apy = dailyRate * 365 * 100;
       
-      return apy > 250 ? '87.6' : apy.toFixed(2);
+      return apy.toFixed(2);
     } catch {
       return '0.00';
     }

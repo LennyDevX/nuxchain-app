@@ -510,7 +510,17 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {
                   value: "0",
                   label: "Flexible",
-                  description: "0.01% per hour",
+                  description: "0.005% per hour",
+                  roi: {
+                    daily: "~0.12%",
+                    monthly: "~3.6%",
+                    annual: "~43.8%"
+                  }
+                },
+                {
+                  value: "30",
+                  label: "30 Days",
+                  description: "0.010% per hour",
                   roi: {
                     daily: "~0.24%",
                     monthly: "~7.2%",
@@ -518,43 +528,33 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   }
                 },
                 {
-                  value: "30",
-                  label: "30 Days",
-                  description: "0.012% per hour",
-                  roi: {
-                    daily: "~0.29%",
-                    monthly: "~8.6%",
-                    annual: "~105.1%"
-                  }
-                },
-                {
                   value: "90",
                   label: "90 Days",
-                  description: "0.016% per hour",
+                  description: "0.014% per hour",
                   roi: {
-                    daily: "~0.38%",
-                    monthly: "~11.5%",
-                    annual: "~140.2%"
+                    daily: "~0.336%",
+                    monthly: "~10.08%",
+                    annual: "~122.64%"
                   }
                 },
                 {
                   value: "180",
                   label: "180 Days",
-                  description: "0.02% per hour",
+                  description: "0.017% per hour",
                   roi: {
-                    daily: "~0.48%",
-                    monthly: "~14.4%",
-                    annual: "~175.2%"
+                    daily: "~0.408%",
+                    monthly: "~12.24%",
+                    annual: "~149.28%"
                   }
                 },
                 {
                   value: "365",
                   label: "365 Days",
-                  description: "0.03% per hour",
+                  description: "0.025% per hour",
                   roi: {
-                    daily: "~0.72%",
-                    monthly: "~21.6%",
-                    annual: "~262.8%"
+                    daily: "~0.6%",
+                    monthly: "~18%",
+                    annual: "~219%"
                   }
                 }
               ]}

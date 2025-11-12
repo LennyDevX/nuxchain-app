@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { formatEther } from 'viem';
 
 import { formatPolValue } from '../../utils/formats/format';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import NFTCardMobile from './NFTCardMobile';
 
 interface NFTAttribute {

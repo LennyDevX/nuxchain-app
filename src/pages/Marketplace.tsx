@@ -14,7 +14,7 @@ function hasSkill(attributes: NFTData['attributes'] | undefined): boolean {
 import MarketplaceFilters from '../components/marketplace/MarketplaceFilters';
 import MarketplaceStats from '../components/marketplace/MarketplaceStats';
 import NFTCardMemo from '../components/marketplace/NFTCardMemo';
-import usePOLPrice from '../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../hooks/coingecko/usePOLPriceContext';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';

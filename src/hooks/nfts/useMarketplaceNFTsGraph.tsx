@@ -6,6 +6,8 @@ import { gql } from '@apollo/client';
 import { nftLogger } from '../../utils/log/nftLogger';
 import { createPublicClient, http } from 'viem';
 import { polygon } from 'viem/chains';
+import { contractReadQueue } from '../../utils/queue/RequestQueue';
+import { fetchTokenMetadata } from '../../utils/ipfs/ipfsUtils';
 
 export interface NFTAttribute {
   trait_type: string;
@@ -191,7 +193,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
         // Choose query based on what we're filtering for
         if (userOnly && address) {
           // Show user's NFTs - Query BOTH NFT_MINT and NFT_LIST to show all user's NFTs (created AND listed)
-          console.log('📊 Querying user NFTs (mints + listings) for:', address);
           
           try {
             // Query 1: User's created NFTs
@@ -206,7 +207,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             });
             
             const mintActivities = mintResult.data?.activities || [];
-            console.log(`✅ Found ${mintActivities.length} user-created NFTs (NFT_MINT)`);
             
             // Query 2: User's listed NFTs
             const saleResult = await apolloClient.query({
@@ -220,7 +220,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             });
             
             const saleActivities = saleResult.data?.activities || [];
-            console.log(`✅ Found ${saleActivities.length} user-listed NFTs (NFT_LIST)`);
             
             // Combine both queries - deduplicate by tokenId
             const tokenIdSet = new Set<string>();
@@ -245,8 +244,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               }
             }
             
-            console.log(`📊 Combined result: ${nftSource.length} unique user NFTs`);
-            
           } catch (userQueryError) {
             console.error('❌ User NFTs query FAILED:', {
               message: userQueryError instanceof Error ? userQueryError.message : String(userQueryError),
@@ -257,7 +254,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           
         } else if (isForSale) {
           // Show only NFTs that are listed for sale (NFT_LIST activities)
-          console.log('📊 Querying NFT_LIST activities (marketplace for sale)');
           
           try {
             const result = await apolloClient.query({
@@ -269,7 +265,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               fetchPolicy: 'network-only'
             });
             nftSource = result.data?.activities || [];
-            console.log(`✅ Found ${nftSource.length} listed NFTs (NFT_LIST)`);
           } catch (activitiesError) {
             console.error('❌ FOR_SALE query FAILED:', {
               message: activitiesError instanceof Error ? activitiesError.message : String(activitiesError),
@@ -280,7 +275,6 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           
         } else {
           // Show all NFTs (all NFT_MINT activities)
-          console.log('📊 Querying all NFT_MINT activities (all NFTs)');
           
           try {
             const result = await apolloClient.query({
@@ -303,21 +297,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           }
         }
         
-        console.log('📊 Activities query result:', {
-          activitiesCount: nftSource.length,
-          userFiltered: userOnly ? address : 'all',
-          skip,
-          limit
-        });
-        
         // 🔍 No additional filtering needed - Activities already filters by type and optionally by user
-        
-        console.log(`✅ Activities NFT_MINT found:`, nftSource.length, {
-          creatorAddress: userOnly ? address : 'all',
-          skip,
-          limit,
-          timestamp: new Date().toISOString()
-        });
 
         if (!nftSource || nftSource.length === 0) {
           console.warn('ℹ️ No NFT mints found. Possible reasons:', {
@@ -336,30 +316,27 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
         }
 
         // ✅ Transform to NFTData format (Activities format)
-        const itemsPromises = nftSource.map(async (item: { id: string; tokenId: string; user: string; timestamp: string; transactionHash: string; blockNumber: string; category?: string; amount?: string }) => {
-          const creatorId = item.user;
-          let nftPrice = 0n;
-          
-          // 🔍 DEBUG: Log Activities item
-          console.log(`🔍 Token #${item.tokenId} from Activities:`, {
-            id: item.id,
-            user: item.user,
-            category: item.category,
-            amount: item.amount,
-            isForSale: !!item.amount
-          });
-          
-          // If amount exists (NFT_LIST event), use it as price
-          if (item.amount) {
-            try {
-              nftPrice = BigInt(item.amount);
-              console.log(`💰 NFT #${item.tokenId} listed at price:`, nftPrice.toString());
-            } catch {
-              nftPrice = 0n;
+        // Sequential processing using request queue to prevent Pinata 429 rate limiting
+        const itemsPromises: Array<Promise<NFTData>> = [];
+        
+        for (const item of nftSource) {
+          const promise = contractReadQueue.add(async () => {
+            const creatorId = item.user;
+            let nftPrice = 0n;
+            
+            // 🔍 DEBUG: Log Activities item (only in development)
+            if (process.env.NODE_ENV === 'development') {
+              console.debug(`🔍 Token #${item.tokenId}:`, { isForSale: !!item.amount });
             }
-          }
           
-          // �🖼️ Fetch metadata from tokenURI if available
+            // If amount exists (NFT_LIST event), use it as price
+            if (item.amount) {
+              try {
+                nftPrice = BigInt(item.amount);
+              } catch {
+                nftPrice = 0n;
+              }
+            }          // �🖼️ Fetch metadata from tokenURI if available
           let metadata = {
             name: `NFT #${item.tokenId}`,
             description: item.category ? `${item.category} NFT` : 'Digital Collectible',
@@ -367,50 +344,49 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             attributes: [] as NFTAttribute[]
           };
 
-          // ✅ ALWAYS fetch tokenURI from contract (Activities doesn't have it)
-          let tokenURI: string | null = null;
-          try {
-            console.log(`🔗 Fetching tokenURI from contract for token ${item.tokenId}...`);
-            const uri = await publicClient.readContract({
-              address: '0xa3Fe859A35126D50257D175e355C7181Bcd1E19b' as `0x${string}`,
-              abi: TOKEN_URI_ABI,
-              functionName: 'tokenURI',
-              args: [BigInt(item.tokenId)]
-            });
-            console.log(`📊 Contract read response for token ${item.tokenId}:`, { uri, type: typeof uri, length: uri?.length });
-            if (uri && uri !== '0x' && uri.length > 0) {
-              tokenURI = uri;
-              console.log(`📝 ✅ Fetched tokenURI for token ${item.tokenId}:`, tokenURI);
-            } else {
-              console.info(`ℹ️ Contract returned empty/invalid URI for token ${item.tokenId}, will use placeholder`);
-            }
-          } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : String(err);
-            console.info(`ℹ️ Could not fetch tokenURI from contract for token ${item.tokenId}. Error: ${errorMsg}`);
-          }
-
-          // Load real metadata if tokenURI available
-          if (tokenURI && tokenURI.length > 0) {
+            // ✅ ALWAYS fetch tokenURI from contract (Activities doesn't have it)
+            let tokenURI: string | null = null;
             try {
-              const httpURI = tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/');
-              console.log(`🔍 Fetching metadata from: ${httpURI}`);
-              const response = await fetch(httpURI, { signal: AbortSignal.timeout(5000) });
-              if (response.ok) {
-                const json = await response.json();
-                metadata = {
-                  name: json.name || metadata.name,
-                  description: json.description || metadata.description,
-                  image: json.image ? json.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image,
-                  attributes: json.attributes || []
-                };
-                console.log(`✅ Loaded metadata for NFT #${item.tokenId}:`, metadata.name);
+              if (process.env.NODE_ENV === 'development') {
+                console.debug(`🔗 Fetching tokenURI for token ${item.tokenId}...`);
               }
-            } catch {
-              console.warn(`⚠️ Using placeholder for token ${item.tokenId} - metadata fetch failed`);
+              const uri = await publicClient.readContract({
+                address: '0xa3Fe859A35126D50257D175e355C7181Bcd1E19b' as `0x${string}`,
+                abi: TOKEN_URI_ABI,
+                functionName: 'tokenURI',
+                args: [BigInt(item.tokenId)]
+              });
+              if (uri && uri !== '0x' && uri.length > 0) {
+                tokenURI = uri;
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug(`📝 ✅ Fetched tokenURI for token ${item.tokenId}`);
+                }
+              }
+            } catch (err) {
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              console.warn(`⚠️ Could not fetch tokenURI for token ${item.tokenId}: ${errorMsg}`);
             }
-          }
-          
-          return {
+
+            // Load real metadata if tokenURI available - USE CACHED FUNCTION
+            if (tokenURI && tokenURI.length > 0) {
+              try {
+                const cachedMetadata = await fetchTokenMetadata(tokenURI);
+                if (cachedMetadata) {
+                  metadata = {
+                    name: cachedMetadata.name || metadata.name,
+                    description: cachedMetadata.description || metadata.description,
+                    image: cachedMetadata.image ? cachedMetadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image,
+                    attributes: cachedMetadata.attributes || []
+                  };
+                  if (process.env.NODE_ENV === 'development') {
+                    console.debug(`✅ Loaded metadata for NFT #${item.tokenId}`);
+                  }
+                }
+              } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : String(err);
+                console.warn(`⚠️ Metadata fetch failed for token ${item.tokenId}: ${errorMsg}`);
+              }
+            }          return {
             tokenId: item.tokenId.toString(),
             uniqueId: `nft-activity-${item.id}`,
             tokenURI: tokenURI || null,
@@ -426,18 +402,22 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             likes: '0',
             category: item.category || 'coleccionables'
           } satisfies NFTData;
-        });
+          });
+          
+          itemsPromises.push(promise);
+        }
 
-        const items = await Promise.all(itemsPromises);
+        // Process sequentially using request queue to prevent rate limiting
+        const items: NFTData[] = [];
+        for (const itemsPromise of itemsPromises) {
+          const item = await itemsPromise;
+          items.push(item);
+        }
         
-        // 🐛 Debug: Log final items with images
-        console.log('🖼️ Final NFT items:', items.map(nft => ({ 
-          tokenId: nft.tokenId, 
-          name: nft.name,
-          image: nft.image,
-          hasImage: !!nft.image,
-          imageLength: nft.image?.length 
-        })));
+        // 🐛 Debug: Log final items with images (development only)
+        if (process.env.NODE_ENV === 'development' && items.length > 0) {
+          console.debug(`✅ Loaded ${items.length} NFT items with metadata`);
+        }
 
         nftLogger.logFetchResult({
           hook: 'useMarketplaceNFTsGraph',
@@ -468,8 +448,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
       return parseInt(lastPage.nextCursor, 10);
     },
     enabled: enabled && (!userOnly || !!address),
-    refetchInterval: 30 * 1000, // ✅ Refetch every 30 seconds to catch when v0.0.6 becomes active
-    staleTime: 1 * 60 * 1000, // 1 minute - more frequent updates since data comes from subgraph
+    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
     gcTime: 10 * 60 * 1000, // 10 minutes cache
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)

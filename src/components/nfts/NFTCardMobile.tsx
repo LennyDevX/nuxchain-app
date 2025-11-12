@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 import { formatPolValue } from '../../utils/formats/format';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { generateImageSrcSet, IMAGE_SIZES } from '../../utils/images/imageOptimization';
 
 interface NFTAttribute {

@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress } from 'viem';
 import type { Abi } from 'viem';
 import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
@@ -55,6 +56,7 @@ export default function useMintNFT() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
 
   // Validate contract addresses
   const validatedProxyAddress = useMemo(() => {
@@ -245,6 +247,16 @@ export default function useMintNFT() {
       setSuccess(true);
       console.log("🎉 Minting complete!");
 
+      // ✅ Invalidate user profile cache to force refetch of XP
+      setTimeout(() => {
+        console.log('🔄 Invalidating user profile cache...');
+        queryClient.invalidateQueries({
+          queryKey: ['readContract']
+        });
+        // Trigger storage event for cross-tab sync
+        localStorage.setItem('profile_mint_complete', Date.now().toString());
+      }, 2000); // Wait 2 seconds for blockchain to settle
+
       return {
         success: true,
         txHash: tx,
@@ -292,7 +304,7 @@ export default function useMintNFT() {
     } finally {
       setLoading(false);
     }
-  }, [validatedProxyAddress, validatedSkillsAddress, walletClient, address, publicClient]);
+  }, [validatedProxyAddress, validatedSkillsAddress, walletClient, address, publicClient, queryClient]);
 
   return { mintNFT, loading, error, success, txHash };
 }

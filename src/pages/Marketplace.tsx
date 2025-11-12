@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, lazy, Suspense, useEffect, memo } from 'react';
 import { useAccount } from 'wagmi';
-import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
-import type { NFTData } from '../hooks/nfts/useReactQueryNFTs';
+import { useMarketplaceNFTsGraph } from '../hooks/nfts/useMarketplaceNFTsGraph';
+import type { NFTData } from '../hooks/nfts/useMarketplaceNFTsGraph';
 import type { MarketplaceNFT } from '../types/marketplace';
 
 // ✅ Helper: Check if NFT has skill attributes
@@ -62,7 +62,7 @@ function Marketplace() {
     loading,
     error,
     refreshNFTs
-  } = useMarketplaceNFTs({
+  } = useMarketplaceNFTsGraph({
     userOnly: false,
     isForSale: true, // Only show listed NFTs
     enabled: isConnected

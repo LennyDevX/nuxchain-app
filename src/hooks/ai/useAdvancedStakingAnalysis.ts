@@ -75,7 +75,8 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
     
     return {
       userXP: userProfile.totalXP || 0n,
-      userLevel: userProfile.level || 1,
+      // ✅ Allow level 0 (no default fallback to 1)
+      userLevel: userProfile.level ?? 0,
       completedQuests: 0, // TODO: Obtener del contrato
       totalQuests: 0, // TODO: Obtener del contrato
       unlockedAchievements: 0, // TODO: Obtener del contrato

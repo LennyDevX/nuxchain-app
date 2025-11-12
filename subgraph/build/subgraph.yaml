@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0xFDbC0CD04EC2e4db0f4b0b2792012C4F593301F0"
       abi: EnhancedSmartStaking
-      startBlock: 64419650
+      startBlock: 78897900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -55,9 +55,9 @@ dataSources:
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0x23B17C16172C30DA45753F1b6Caa86c46d5794FF"
+      address: "0xa3Fe859A35126D50257D175e355C7181Bcd1E19b"
       abi: GameifiedMarketplaceCoreV1
-      startBlock: 64419800
+      startBlock: 78899500
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

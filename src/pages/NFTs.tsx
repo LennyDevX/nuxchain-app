@@ -18,7 +18,7 @@ import InfiniteScrollNFTGrid from '../components/nfts/InfiniteScrollNFTGrid';
 import NFTFilters from '../components/nfts/NFTFilters';
 import NFTStats from '../components/nfts/NFTStats';
 import ListingModal from '../components/nfts/ListingModal';
-import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
+import { useMarketplaceNFTsGraph } from '../hooks/nfts/useMarketplaceNFTsGraph';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
@@ -43,7 +43,7 @@ function NFTs() {
     loadMoreNFTs,
     totalCount,
     loadedCount 
-  } = useMarketplaceNFTs({
+  } = useMarketplaceNFTsGraph({
     userOnly: true, // Show only user's NFTs
     enabled: isConnected
   });

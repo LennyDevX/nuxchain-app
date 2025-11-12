@@ -10,8 +10,8 @@ import { SkeletonLoader } from '../ui/SkeletonLoader';
  */
 export default function MarketplaceSidebar() {
   const { address, isConnected } = useAccount();
-  const { userProfile, level, isLoading } = useUserProfile();
-  const { progress, xpForNextLevel, currentXP } = useXPProgress();
+  const { userProfile, level, isLoading, refetch } = useUserProfile();
+  const { progress, xpRemaining, currentXP } = useXPProgress();
   const { totalUnlocked, completionPercentage } = useAchievements();
 
   if (!isConnected) {
@@ -76,7 +76,22 @@ export default function MarketplaceSidebar() {
       >
         <div className="flex justify-between items-center">
           <span className="text-sm font-semibold text-white">Experience</span>
-          <span className="text-xs text-white/60">{currentXP.toString()} XP</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/60">{currentXP.toString()} XP</span>
+            {/* ✅ Botón Refresh XP */}
+            <button
+              onClick={() => {
+                console.log('🔄 Refrescando perfil del usuario...');
+                refetch?.();
+              }}
+              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors group"
+              title="Refrescar perfil"
+            >
+              <svg className="w-4 h-4 text-white/60 group-hover:text-purple-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Progress Bar */}
@@ -84,19 +99,19 @@ export default function MarketplaceSidebar() {
           <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-500 shadow-lg"
-              style={{ width: `${progress}%` }}
+              style={{ width: `${isNaN(progress) ? 0 : progress}%` }}
             />
           </div>
           <div className="flex justify-between text-xs text-white/40 mt-1.5">
             <span>Lvl {level}</span>
-            <span className="text-purple-400 font-semibold">{progress.toFixed(0)}%</span>
+            <span className="text-purple-400 font-semibold">{isNaN(progress) ? 0 : progress.toFixed(0)}%</span>
             <span>Lvl {level + 1}</span>
           </div>
         </div>
 
         <div className="text-center">
           <p className="text-xs text-white/60">
-            {xpForNextLevel.toString()} XP to next level
+            {xpRemaining?.toString() || '0'} XP to next level
           </p>
         </div>
       </motion.div>

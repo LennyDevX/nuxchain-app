@@ -9,7 +9,8 @@ import {
 } from "../generated/GameifiedMarketplaceCore/GameifiedMarketplaceCoreV1"
 import {
   User,
-  Activity
+  Activity,
+  NFTMint
 } from "../generated/schema"
 
 // ✅ OPTIMIZADO: Helper function mejorado con contadores directos
@@ -42,13 +43,29 @@ function loadOrCreateUser(address: Bytes, timestamp: BigInt): User {
 
 export function handleTokenCreated(event: TokenCreated): void {
   const user = loadOrCreateUser(event.params.creator, event.block.timestamp)
+  user.nftMintedCount = user.nftMintedCount + 1
   user.updatedAt = event.block.timestamp
   user.save()
 
-  const activity = new Activity(
+  // ✅ CREAR ENTIDAD NFTMint para que se vea en la colección
+  const nftMint = new NFTMint(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "TOKEN_CREATED"
+  nftMint.tokenId = event.params.tokenId
+  nftMint.creator = user.id
+  nftMint.tokenURI = event.params.uri
+  nftMint.category = "coleccionables"
+  nftMint.royaltyPercentage = BigInt.fromI32(0)
+  nftMint.timestamp = event.block.timestamp
+  nftMint.transactionHash = event.transaction.hash
+  nftMint.blockNumber = event.block.number
+  nftMint.save()
+
+  // ✅ Crear Activity con tipo NFT_MINT (no TOKEN_CREATED)
+  const activity = new Activity(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-activity"
+  )
+  activity.type = "NFT_MINT"
   activity.user = user.id
   activity.tokenId = event.params.tokenId
   activity.timestamp = event.block.timestamp
@@ -65,7 +82,7 @@ export function handleTokenListed(event: TokenListed): void {
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "TOKEN_LISTED"
+  activity.type = "NFT_LIST"
   activity.user = user.id
   activity.tokenId = event.params.tokenId
   activity.amount = event.params.price
@@ -87,7 +104,7 @@ export function handleTokenSold(event: TokenSold): void {
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "TOKEN_SOLD"
+  activity.type = "NFT_SALE"
   activity.user = seller.id
   activity.tokenId = event.params.tokenId
   activity.amount = event.params.price
@@ -105,7 +122,7 @@ export function handleTokenUnlisted(event: TokenUnlisted): void {
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "TOKEN_UNLISTED"
+  activity.type = "NFT_UNLIST"
   activity.user = user.id
   activity.tokenId = event.params.tokenId
   activity.timestamp = event.block.timestamp

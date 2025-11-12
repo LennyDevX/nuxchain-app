@@ -41,6 +41,7 @@ export interface GamificationAnalysis {
 }
 
 export interface GamificationRecommendation {
+  id: string;
   type: 'quest' | 'achievement' | 'social' | 'trading';
   title: string;
   description: string;
@@ -50,26 +51,39 @@ export interface GamificationRecommendation {
 
 /**
  * Calcula el XP requerido para alcanzar un nivel específico
- * Fórmula: XP = 100 * (level ^ 1.5)
+ * Fórmula UNIFICADA: XP para Nivel N = N² × 100
+ * 
+ * Ejemplo:
+ * - Nivel 1: 1² × 100 = 100 XP (necesario para subir a Nivel 2)
+ * - Nivel 2: 2² × 100 = 400 XP (necesario para subir a Nivel 3)
+ * - Nivel 3: 3² × 100 = 900 XP (necesario para subir a Nivel 4)
+ * 
+ * XP TOTAL acumulado:
+ * - Para estar en Nivel 1: 0 XP
+ * - Para estar en Nivel 2: 100 XP
+ * - Para estar en Nivel 3: 100 + 400 = 500 XP
  */
 export function calculateXPForLevel(level: number): bigint {
-  const xp = Math.floor(100 * Math.pow(level, 1.5));
+  // ✅ FÓRMULA LINEAL (COINCIDE CON SMART CONTRACT):
+  // Cada nivel requiere 100 XP adicional
+  // Level 0: 0 XP
+  // Level 1: 100 XP
+  // Level 2: 200 XP
+  // Level 3: 300 XP
+  const xp = level * 100;
   return BigInt(xp);
 }
 
 /**
- * Calcula el nivel basado en XP total
+ * Calcula el nivel basado en XP total (LINEAL)
+ * ✅ FÓRMULA: level = floor(totalXP / 100)
+ * Con 40 XP: level 0 (mostrado como Level 1 en UI)
+ * Con 100 XP: level 1 (mostrado como Level 2 en UI)
  */
 export function calculateLevelFromXP(totalXP: bigint): number {
-  let level = 1;
-  let xpRequired = calculateXPForLevel(level);
-  
-  while (totalXP >= xpRequired) {
-    level++;
-    xpRequired = calculateXPForLevel(level);
-  }
-  
-  return level - 1;
+  // Fórmula lineal simple: divide XP por 100
+  const level = Number(totalXP) / 100;
+  return Math.floor(level);
 }
 
 /**
@@ -247,6 +261,7 @@ function generateGamificationRecommendations(
   const questsRemaining = data.totalQuests - data.completedQuests;
   if (questsRemaining > 0) {
     recommendations.push({
+      id: 'gamification-quests',
       type: 'quest',
       title: `Complete ${questsRemaining} Remaining Quest${questsRemaining > 1 ? 's' : ''}`,
       description: `You have ${questsRemaining} active quests. Complete them to earn XP and unlock special rewards.`,
@@ -259,6 +274,7 @@ function generateGamificationRecommendations(
   const achievementsRemaining = data.totalAchievements - data.unlockedAchievements;
   if (achievementsRemaining > 0 && data.unlockedAchievements < data.totalAchievements * 0.5) {
     recommendations.push({
+      id: 'gamification-achievements',
       type: 'achievement',
       title: 'Unlock More Achievements',
       description: `${achievementsRemaining} achievements waiting to be unlocked. Each one grants permanent bonuses and XP.`,
@@ -270,6 +286,7 @@ function generateGamificationRecommendations(
   // Recomendaciones sociales
   if (data.referrals < 3) {
     recommendations.push({
+      id: 'gamification-social',
       type: 'social',
       title: 'Grow Your Network',
       description: 'Invite friends to join. Earn 50 XP per referral plus a share of their trading fees.',
@@ -281,6 +298,7 @@ function generateGamificationRecommendations(
   // Recomendaciones de trading
   if (data.nftsMinted < 5) {
     recommendations.push({
+      id: 'gamification-trading-mint',
       type: 'trading',
       title: 'Create Your First NFTs',
       description: 'Mint NFTs to gain 10 XP per creation and establish your presence in the marketplace.',
@@ -291,6 +309,7 @@ function generateGamificationRecommendations(
   
   if (data.nftsBought === 0 && data.userLevel >= 2) {
     recommendations.push({
+      id: 'gamification-trading-buy',
       type: 'trading',
       title: 'Start Collecting',
       description: 'Buy your first NFT to earn 15 XP and support other creators.',
@@ -301,6 +320,7 @@ function generateGamificationRecommendations(
   
   if (data.nftsSold === 0 && data.nftsMinted >= 3) {
     recommendations.push({
+      id: 'gamification-trading-sell',
       type: 'trading',
       title: 'Make Your First Sale',
       description: 'List your NFTs at competitive prices. First sale earns 20 XP bonus!',
@@ -312,6 +332,7 @@ function generateGamificationRecommendations(
   // Recomendación de level up
   if (analysis.levelProgress && analysis.levelProgress.xpProgress >= 80) {
     recommendations.push({
+      id: 'gamification-levelup',
       type: 'achievement',
       title: 'Level Up Soon!',
       description: `You're ${analysis.levelProgress.xpProgress}% of the way to level ${data.userLevel + 1}. Keep going!`,

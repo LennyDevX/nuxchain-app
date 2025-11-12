@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
 import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import { normalizeCategory } from '../../utils/ipfs/ipfsUtils';
@@ -22,6 +23,7 @@ export default function useListNFT() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
 
   const listNFT = useCallback(async ({ tokenId, price, category }: ListNFTParams) => {
     setLoading(true);
@@ -105,6 +107,16 @@ export default function useListNFT() {
       setTxHash(txHash);
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       setSuccess(true);
+      
+      // ✅ Invalidate user profile cache to force refetch of XP
+      setTimeout(() => {
+        console.log('🔄 Invalidating user profile cache after listing...');
+        queryClient.invalidateQueries({
+          queryKey: ['readContract']
+        });
+        localStorage.setItem('profile_list_complete', Date.now().toString());
+      }, 2000);
+      
       return { txHash, receipt };
     } catch (err: unknown) {
       // Mapea errores específicos del contrato si aplica
@@ -128,7 +140,7 @@ export default function useListNFT() {
     } finally {
       setLoading(false);
     }
-  }, [address, publicClient, walletClient]);
+  }, [address, publicClient, walletClient, queryClient]);
 
   return { listNFT, loading, error, success, txHash };
 }

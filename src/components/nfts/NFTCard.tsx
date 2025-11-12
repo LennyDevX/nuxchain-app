@@ -1,6 +1,5 @@
 import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 
 import { formatPolValue } from '../../utils/formats/format';
@@ -49,7 +48,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const { imageUrl, error: imageError } = useImageCache(nft.image);
+  const [imageError, setImageError] = useState(false);
   const { convertPOLToUSD } = usePOLPrice();
   
   const handleListNFT = useCallback(() => {
@@ -60,6 +59,14 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
     e.stopPropagation();
     setIsFlipped(!isFlipped);
   }, [isFlipped]);
+
+  const handleImageError = useCallback(() => {
+    setImageError(true);
+  }, []);
+
+  const handleImageLoad = useCallback(() => {
+    setImageError(false);
+  }, []);
 
   // Touch handlers for mobile swipe-to-flip
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -146,7 +153,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
             
             {/* Large Hero Image */}
             <div className="relative flex-1 overflow-hidden">
-              {imageError || !imageUrl ? (
+              {imageError || !nft.image ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-blue-500/20">
                   <svg className="w-24 h-24 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -155,11 +162,13 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
               ) : (
                 <>
                   <img
-                    src={imageUrl}
+                    src={nft.image}
                     alt={nft.name || `NFT #${nft.tokenId}`}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                     loading="lazy"
                     decoding="async"
+                    onError={handleImageError}
+                    onLoad={handleImageLoad}
                   />
                   {/* Gradient Overlay for text readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-60"></div>

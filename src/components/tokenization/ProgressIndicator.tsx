@@ -275,7 +275,7 @@ export default function ProgressIndicator({
           >
             <p className="text-green-300 font-medium mb-2">{success}</p>
             <p className="text-green-200 text-sm">
-              🚀 Redirecting to NFTs section in a few seconds...
+              ✅ Your NFT is live on the blockchain! Scroll down to mint another one or visit your collection.
             </p>
           </motion.div>
         </motion.div>

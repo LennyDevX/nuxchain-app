@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useBalance } from 'wagmi';
-import { useMarketplaceNFTs } from '../../hooks/nfts/useReactQueryNFTs';
+import { useMarketplaceNFTsGraph } from '../../hooks/nfts/useMarketplaceNFTsGraph';
 import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGraph';
 import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
@@ -10,7 +10,7 @@ import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 
 const ProfileOverview: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { nfts, refreshNFTs } = useMarketplaceNFTs({
+  const { nfts, refreshNFTs } = useMarketplaceNFTsGraph({
     userOnly: true,
     enabled: isConnected && !!address
   });
@@ -113,7 +113,15 @@ const ProfileOverview: React.FC = () => {
       <section className="card-content">
         <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'} mb-4`}>
           <div className="flex-1">
-            <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold mb-1`}>Recent Activity</h2>
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Recent Activity</h2>
+              {activitiesLoading && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-400">
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
+                  Syncing
+                </span>
+              )}
+            </div>
             <SubgraphSyncStatus className="text-xs" />
           </div>
           <div className={`flex ${isMobile ? 'w-full' : ''} items-center gap-2`}>
@@ -178,6 +186,7 @@ const ProfileOverview: React.FC = () => {
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mb-4"></div>
                 <p className="text-gray-400 text-sm">Loading your activities...</p>
+                <p className="text-gray-500 text-xs mt-2">Syncing from The Graph subgraph...</p>
               </div>
             </div>
           ) : !isConnected ? (

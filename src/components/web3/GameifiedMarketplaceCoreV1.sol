@@ -151,7 +151,11 @@ contract GameifiedMarketplaceCoreV1 is
         isListed[_tokenId] = true;
         listedPrice[_tokenId] = _price;
         
+        // ✅ Award XP for listing
+        userProfiles[msg.sender].totalXP += 5;
+        
         emit TokenListed(msg.sender, _tokenId, _price);
+        emit XPGained(msg.sender, 5, "NFT_LISTED");
     }
 
     function unlistToken(uint256 _tokenId) external whenNotPaused {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import useMintNFT from '../hooks/nfts/useMintNFT';
 import { useUserStaking } from '../hooks/staking/useUserStaking';
 
@@ -35,7 +35,6 @@ interface FormData {
 
 function Tokenization() {
   const { isConnected } = useAccount();
-  const navigate = useNavigate();
   const { mintNFT, loading, error: mintError, txHash } = useMintNFT();
   const { totalStaked } = useUserStaking();
   
@@ -108,10 +107,43 @@ function Tokenization() {
       
       if (result.success) {
         const nftType = formData.nftType === 'skill' ? 'Skill NFT' : 'NFT';
-        setSuccess(`🎉 ${nftType} "${formData.name}" created successfully! Transaction hash: ${result.txHash}`);
+        
+        // ✅ Show toast with token ID ONLY - clean and simple
+        toast.success(
+          `NFT #${result.tokenId} minted successfully! 🎉`,
+          {
+            duration: 6000,
+            position: 'top-center',
+            style: {
+              background: '#10b981',
+              color: '#fff',
+              fontSize: '16px',
+              fontWeight: '600',
+              borderRadius: '12px',
+              padding: '16px 24px',
+              boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
+            }
+          }
+        );
+        
+        // ✅ Set success state and show in UI
+        setSuccess(`🎉 ${nftType} "${formData.name}" created successfully!`);
+        
+        // ✅ Clear form after 2 seconds
         setTimeout(() => {
-          navigate('/nfts');
-        }, 3000);
+          setFormData({
+            name: '',
+            description: '',
+            category: 'art',
+            royaltyPercentage: 250,
+            attributes: [{ trait_type: '', value: '' }],
+            nftType: 'standard',
+            skills: []
+          });
+          setSelectedFile(null);
+          setImagePreview(null);
+          setSuccess(null); // Clear success message
+        }, 2000);
       }
       
     } catch (err) {

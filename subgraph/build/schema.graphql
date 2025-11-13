@@ -14,10 +14,18 @@ type User @entity(immutable: false) {
   nftBoughtCount: Int!
   offersMadeCount: Int!
   
+  # Skill & Quest counters (nullable for backward compatibility)
+  skillPurchaseCount: Int
+  skillRenewalCount: Int
+  skillSwitchCount: Int
+  questCompletionCount: Int
+  
   # Totales agregados
   totalDeposited: BigInt!
   totalWithdrawn: BigInt!
   totalCompounded: BigInt!
+  totalEarnings: BigInt
+  totalSpent: BigInt
   
   # Métricas de gamificación
   level: Int!
@@ -391,4 +399,83 @@ type NFTStats @entity(immutable: false) {
   lastSaleAt: BigInt
   holdersCount: Int!
   updatedAt: BigInt!
+}
+
+"""
+Individual Skill - User's individual skill from IIndividualSkills contract
+"""
+type IndividualSkill @entity(immutable: false) {
+  id: ID! # skillId
+  user: User!
+  skillId: BigInt!
+  skillType: Int!
+  rarity: Int!
+  level: BigInt!
+  owner: Bytes!
+  purchasedAt: BigInt!
+  expiresAt: BigInt!
+  isActive: Boolean!
+  metadata: String!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Skill Renewal - Record of skill renewal events
+"""
+type SkillRenewal @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  skillId: BigInt!
+  newExpiryTime: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Skill Switch - Record of user switching skills
+"""
+type SkillSwitch @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  oldTokenId: BigInt!
+  newTokenId: BigInt!
+  skillType: Int!
+  switchFee: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Quest - Quest definition from GameifiedMarketplaceQuests
+"""
+type Quest @entity(immutable: false) {
+  id: ID! # questId
+  questId: BigInt!
+  questType: Int!
+  title: String!
+  description: String!
+  requirement: BigInt!
+  xpReward: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Quest Progress - User's progress on a specific quest
+"""
+type QuestProgress @entity(immutable: false) {
+  id: ID! # user address + questId
+  user: User!
+  questId: BigInt!
+  currentProgress: BigInt!
+  completed: Boolean!
+  completedAt: BigInt
+  transactionHash: Bytes!
+  blockNumber: BigInt!
 }

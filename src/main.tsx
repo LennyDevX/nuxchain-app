@@ -6,6 +6,12 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { registerSW } from 'virtual:pwa-register'
 import { getMobileOptimizationConfig } from './utils/mobile/performanceOptimization'
+import { logEnvironmentDiagnostics } from './utils/env/validateEnvironment'
+
+// ✅ Log environment diagnostics at app startup (helps debug production issues)
+if (typeof window !== 'undefined') {
+  logEnvironmentDiagnostics();
+}
 
 // ✅ Initialize mobile optimization config at app startup
 const mobileOptConfig = getMobileOptimizationConfig();

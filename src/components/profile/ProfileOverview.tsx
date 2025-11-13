@@ -4,6 +4,7 @@ import { useMarketplaceNFTsGraph } from '../../hooks/nfts/useMarketplaceNFTsGrap
 import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGraph';
 import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
+import SubgraphSyncWarning from './SubgraphSyncWarning';
 import { apolloClient } from '../../lib/apollo-client';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
@@ -181,6 +182,9 @@ const ProfileOverview: React.FC = () => {
         </div>
         
         <div className="space-y-3">
+          {/* Subgraph Sync Warning */}
+          <SubgraphSyncWarning show={activitiesLoading || activities.length === 0} />
+
           {activitiesLoading && activities.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
@@ -206,9 +210,14 @@ const ProfileOverview: React.FC = () => {
                 </svg>
               </div>
               <p className="text-gray-400 text-sm mb-2">No recent activity found</p>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-500 text-xs mb-4">
                 Start staking, trading NFTs, or making offers to see your activity here
               </p>
+              {!activitiesLoading && (
+                <p className="text-gray-600 text-xs">
+                  💡 Tip: If you just made a deposit, the activity will appear once the subgraph finishes indexing (1-2 minutes).
+                </p>
+              )}
             </div>
           ) : (
             <>

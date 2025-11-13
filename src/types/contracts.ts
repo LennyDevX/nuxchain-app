@@ -5,14 +5,23 @@
 // ════════════════════════════════════════════════════════════════════════════════════════
 
 export const SkillType = {
-  STAKING_BOOST: 0,
-  AUTO_COMPOUND: 1,
-  REDUCE_LOCKUP: 2,
-  EXTRA_REWARDS: 3,
-  COMMISSION_DISCOUNT: 4,
-  EMERGENCY_UNLOCK: 5,
-  REWARD_MULTIPLIER: 6,
-  LOYALTY_BONUS: 7
+  NONE: 0,
+  STAKE_BOOST_I: 1,
+  STAKE_BOOST_II: 2,
+  STAKE_BOOST_III: 3,
+  AUTO_COMPOUND: 4,
+  LOCK_REDUCER: 5,
+  FEE_REDUCER_I: 6,
+  FEE_REDUCER_II: 7,
+  PRIORITY_LISTING: 8,
+  BATCH_MINTER: 9,
+  VERIFIED_CREATOR: 10,
+  INFLUENCER: 11,
+  CURATOR: 12,
+  AMBASSADOR: 13,
+  VIP_ACCESS: 14,
+  EARLY_ACCESS: 15,
+  PRIVATE_AUCTIONS: 16
 } as const
 
 export type SkillType = typeof SkillType[keyof typeof SkillType]
@@ -155,14 +164,23 @@ export interface ContractAddresses {
 }
 
 export const SKILL_TYPE_NAMES: Record<SkillType, string> = {
-  [SkillType.STAKING_BOOST]: "Staking Boost",
+  [SkillType.NONE]: "None",
+  [SkillType.STAKE_BOOST_I]: "Stake Boost I",
+  [SkillType.STAKE_BOOST_II]: "Stake Boost II",
+  [SkillType.STAKE_BOOST_III]: "Stake Boost III",
   [SkillType.AUTO_COMPOUND]: "Auto Compound",
-  [SkillType.REDUCE_LOCKUP]: "Reduce Lockup",
-  [SkillType.EXTRA_REWARDS]: "Extra Rewards",
-  [SkillType.COMMISSION_DISCOUNT]: "Commission Discount",
-  [SkillType.EMERGENCY_UNLOCK]: "Emergency Unlock",
-  [SkillType.REWARD_MULTIPLIER]: "Reward Multiplier",
-  [SkillType.LOYALTY_BONUS]: "Loyalty Bonus"
+  [SkillType.LOCK_REDUCER]: "Lock Reducer",
+  [SkillType.FEE_REDUCER_I]: "Fee Reducer I",
+  [SkillType.FEE_REDUCER_II]: "Fee Reducer II",
+  [SkillType.PRIORITY_LISTING]: "Priority Listing",
+  [SkillType.BATCH_MINTER]: "Batch Minter",
+  [SkillType.VERIFIED_CREATOR]: "Verified Creator",
+  [SkillType.INFLUENCER]: "Influencer",
+  [SkillType.CURATOR]: "Curator",
+  [SkillType.AMBASSADOR]: "Ambassador",
+  [SkillType.VIP_ACCESS]: "VIP Access",
+  [SkillType.EARLY_ACCESS]: "Early Access",
+  [SkillType.PRIVATE_AUCTIONS]: "Private Auctions"
 }
 
 export const RARITY_NAMES: Record<Rarity, string> = {

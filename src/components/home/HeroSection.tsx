@@ -75,7 +75,7 @@ function HeroSection() {
                     </motion.span>
                     <br />
                     <motion.span 
-                      className="inline-block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text animate-pulse"
+                      className="inline-block text-gradient-2"
                       initial={{ opacity: 0, scale: 0.95 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.6, delay: 0.45 }}
@@ -157,13 +157,25 @@ function HeroSection() {
             </motion.div>
 
             {/* Mobile: CTA Buttons */}
-            <div className="flex flex-col gap-2 pt-1">
-              <Link to="/tokenization" className="group px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50">
+            <motion.div 
+              className="flex flex-col gap-2 pt-1"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.7 }}
+              viewport={{ once: true }}
+            >
+              <Link to="/tokenization" className="group px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95">
                 Start Creating
-                <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                <motion.span 
+                  className="inline-block transition-transform"
+                  initial={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  →
+                </motion.span>
               </Link>
-              
-            </div>
+            </motion.div>
           </div>
         ) : (
           // Desktop Layout - Original two column
@@ -198,7 +210,7 @@ function HeroSection() {
                 <h1 className="text-5xl lg:text-7xl font-black mb-4 leading-tight">
                   <span className="inline-block">Your Place</span>
                   <br />
-                  <span className="inline-block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 text-transparent bg-clip-text animate-pulse">
+                  <span className="inline-block text-gradient-2">
                     TO MINT
                   </span>
                 </h1>

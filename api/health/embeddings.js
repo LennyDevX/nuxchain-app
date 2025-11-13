@@ -1,5 +1,5 @@
-import { getRelevantContext } from '../_services/knowledge-base.js';
-import { initializeKnowledgeBaseForVercel } from '../_services/embeddings-service.js';
+import { getRelevantContext } from '../_services/knowledge-base.ts';
+import { initializeKnowledgeBaseForVercel } from '../_services/embeddings-service.ts';
 import { withSecurity } from '../_middlewares/serverless-security.js';
 
 /**

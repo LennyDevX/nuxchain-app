@@ -13,10 +13,10 @@
  * Run: node api/test/comprehensive-chat-test.js
  */
 
-import { needsKnowledgeBase, updateConversationContext, getConversationContext } from '../_services/query-classifier.js';
-import { getRelevantContext, initializeKnowledgeBaseForVercel } from '../_services/embeddings-service.js';
-import { buildSystemInstructionWithContext, NUXBEE_SYSTEM_INSTRUCTION } from '../_config/system-instruction.js';
-import { knowledgeBase } from '../_services/knowledge-base.js';
+import { needsKnowledgeBase, updateConversationContext, getConversationContext } from '../_services/query-classifier.ts';
+import { getRelevantContext, initializeKnowledgeBaseForVercel } from '../_services/embeddings-service.ts';
+import { buildSystemInstructionWithContext, NUXBEE_SYSTEM_INSTRUCTION } from '../_config/system-instruction.ts';
+import { knowledgeBase } from '../_services/knowledge-base.ts';
 
 // ============================================================================
 // CONFIGURATION

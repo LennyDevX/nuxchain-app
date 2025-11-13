@@ -25,7 +25,7 @@ if (!process.env.GEMINI_API_KEY) {
   dotenv.config({ path: envPath });
 }
 
-import { initializeKnowledgeBaseForVercel, getRelevantContext } from '../_services/embeddings-service.js';
+import { initializeKnowledgeBaseForVercel, getRelevantContext } from '../_services/embeddings-service.ts';
 
 const colors = {
   reset: '\x1b[0m',

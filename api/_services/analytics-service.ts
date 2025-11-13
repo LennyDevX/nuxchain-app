@@ -1,9 +1,22 @@
 /**
+ * ✅ TypeScript Migration - Phase 2
  * Servicio de Analytics simplificado para Vercel
  * Maneja métricas y estadísticas de rendimiento
  */
 
+import type {
+  RequestMetrics,
+  PerformanceMetric,
+  ServiceStats,
+  AllStats
+} from '../types/index.js';
+
 class AnalyticsService {
+  private metrics: {
+    requests: Map<string, RequestMetrics>;
+    performance: Map<string, PerformanceMetric[]>;
+  };
+
   constructor() {
     this.metrics = {
       requests: new Map(),
@@ -13,12 +26,9 @@ class AnalyticsService {
 
   /**
    * Inicia el seguimiento de una solicitud
-   * @param {string} service - Nombre del servicio
-   * @param {string} operation - Operación realizada
-   * @returns {Object} - Objeto de métricas para la solicitud
    */
-  startRequest(service, operation) {
-    const requestId = `${service}_${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  startRequest(service: string, operation: string): RequestMetrics {
+    const requestId: string = `${service}_${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const requestMetrics = {
       id: requestId,
@@ -35,10 +45,8 @@ class AnalyticsService {
 
   /**
    * Finaliza el seguimiento de una solicitud exitosa
-   * @param {Object} requestMetrics - Métricas de la solicitud
-   * @param {Object} additionalData - Datos adicionales
    */
-  endRequest(requestMetrics, additionalData = {}) {
+  endRequest(requestMetrics: RequestMetrics, additionalData: Record<string, any> = {}): void {
     if (!requestMetrics || !requestMetrics.id) {
       return;
     }
@@ -65,10 +73,8 @@ class AnalyticsService {
 
   /**
    * Marca una solicitud como fallida
-   * @param {Object} requestMetrics - Métricas de la solicitud
-   * @param {Error} error - Error ocurrido
    */
-  failRequest(requestMetrics, error) {
+  failRequest(requestMetrics: RequestMetrics, error: Error): void {
     if (!requestMetrics || !requestMetrics.id) {
       return;
     }
@@ -102,12 +108,9 @@ class AnalyticsService {
 
   /**
    * Registra una métrica de rendimiento
-   * @param {string} name - Nombre de la métrica
-   * @param {number} value - Valor de la métrica
-   * @param {Object} metadata - Metadatos adicionales
    */
-  recordPerformance(name, value, metadata = {}) {
-    const performanceMetric = {
+  recordPerformance(name: string, value: number, metadata: Record<string, any> = {}): void {
+    const performanceMetric: PerformanceMetric = {
       name: name,
       value: value,
       timestamp: Date.now(),
@@ -129,11 +132,9 @@ class AnalyticsService {
 
   /**
    * Obtiene estadísticas de un servicio
-   * @param {string} service - Nombre del servicio
-   * @returns {Object} - Estadísticas del servicio
    */
-  getServiceStats(service) {
-    const serviceRequests = Array.from(this.metrics.requests.values())
+  getServiceStats(service: string): ServiceStats {
+    const serviceRequests: RequestMetrics[] = Array.from(this.metrics.requests.values())
       .filter(req => req.service === service);
 
     if (serviceRequests.length === 0) {
@@ -164,10 +165,9 @@ class AnalyticsService {
 
   /**
    * Obtiene todas las estadísticas
-   * @returns {Object} - Todas las estadísticas
    */
-  getAllStats() {
-    const services = [...new Set(Array.from(this.metrics.requests.values()).map(req => req.service))];
+  getAllStats(): AllStats {
+    const services: string[] = [...new Set(Array.from(this.metrics.requests.values()).map(req => req.service))];
     const serviceStats = services.map(service => this.getServiceStats(service));
 
     return {
@@ -189,9 +189,8 @@ class AnalyticsService {
 
   /**
    * Obtiene el uso actual de memoria
-   * @returns {number} - Uso de memoria en MB
    */
-  getMemoryUsage() {
+  getMemoryUsage(): number {
     try {
       if (typeof process !== 'undefined' && process.memoryUsage) {
         const usage = process.memoryUsage();
@@ -206,9 +205,9 @@ class AnalyticsService {
   /**
    * Limpia métricas antiguas para evitar memory leaks
    */
-  cleanupOldMetrics() {
-    const now = Date.now();
-    const maxAge = 10 * 60 * 1000; // 10 minutos
+  cleanupOldMetrics(): void {
+    const now: number = Date.now();
+    const maxAge: number = 10 * 60 * 1000; // 10 minutos
 
     // Limpiar requests antiguos
     for (const [id, metrics] of this.metrics.requests.entries()) {
@@ -231,7 +230,7 @@ class AnalyticsService {
   /**
    * Reinicia todas las métricas
    */
-  reset() {
+  reset(): void {
     this.metrics.requests.clear();
     this.metrics.performance.clear();
   }

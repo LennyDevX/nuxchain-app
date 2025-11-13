@@ -1,10 +1,25 @@
-// URL Context Service for Gemini API
-// Provides functionality to fetch content from URLs for additional context
+/**
+ * ✅ TypeScript Migration - Phase 3
+ * URL Context Service for Gemini API
+ * Provides functionality to fetch content from URLs for additional context
+ */
 
-import WebScraperService from './web-scraper.js';
-import analyticsService from './analytics-service.js';
+import type {
+  UrlContextOptions,
+  ScrapedContent,
+  ProcessedUrlContent,
+  CachedUrlData,
+  RequestMetrics
+} from '../types/index.js';
+import WebScraperService from './web-scraper.ts';
+import analyticsService from './analytics-service.ts';
 
 class UrlContextService {
+  private cache: Map<string, CachedUrlData>;
+  private maxCacheSize: number;
+  private cacheTTL: number;
+  private webScraper: WebScraperService;
+
   constructor() {
     this.cache = new Map();
     this.maxCacheSize = 100;
@@ -14,12 +29,9 @@ class UrlContextService {
 
   /**
    * Fetches content from a URL for use as context
-   * @param {string} url - URL to process
-   * @param {Object} options - Additional options
-   * @returns {Promise<Object>} - Processed URL content
    */
-  async fetchUrlContext(url, options = {}) {
-    const requestMetrics = analyticsService.startRequest('url_context', 'url-fetch');
+  async fetchUrlContext(url: string, options: UrlContextOptions = {}): Promise<ProcessedUrlContent> {
+    const requestMetrics: RequestMetrics = analyticsService.startRequest('url_context', 'url-fetch');
     try {
       // Validate URL
       if (!this.isValidUrl(url)) {
@@ -71,11 +83,8 @@ class UrlContextService {
 
   /**
    * Processes scraped content to optimize it for Gemini
-   * @param {Object} scrapedContent - Content obtained from scraper
-   * @param {Object} options - Processing options
-   * @returns {Object} - Processed content
    */
-  processContentForGemini(scrapedContent, options = {}) {
+  processContentForGemini(scrapedContent: ScrapedContent, options: UrlContextOptions = {}): ProcessedUrlContent {
     const { title, content, metadata, url } = scrapedContent;
     let cleanContent = content || '';
     const maxLength = options.maxContentLength || 3000;
@@ -100,11 +109,8 @@ class UrlContextService {
 
   /**
    * Generates a summary of the content for context
-   * @param {string} content - Content to summarize
-   * @param {string} title - Title of the content
-   * @returns {string} - Generated summary
    */
-  generateContentSummary(content, title) {
+  generateContentSummary(content: string, title: string): string {
     if (!content) return 'Content not available';
     // Limit to 2 sentences for faster processing
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
@@ -114,10 +120,8 @@ class UrlContextService {
 
   /**
    * Validates if a URL is valid
-   * @param {string} url - URL to validate
-   * @returns {boolean} - True if valid
    */
-  isValidUrl(url) {
+  isValidUrl(url: string): boolean {
     try {
       const urlObj = new URL(url);
       return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
@@ -128,10 +132,8 @@ class UrlContextService {
 
   /**
    * Extracts domain from a URL
-   * @param {string} url - URL
-   * @returns {string} - Extracted domain
    */
-  extractDomain(url) {
+  extractDomain(url: string): string {
     try {
       return new URL(url).hostname;
     } catch {
@@ -141,21 +143,16 @@ class UrlContextService {
 
   /**
    * Generates cache key
-   * @param {string} url - URL
-   * @param {Object} options - Options
-   * @returns {string} - Cache key
    */
-  generateCacheKey(url, options) {
+  generateCacheKey(url: string, options: UrlContextOptions): string {
     // Use only URL as key to simplify and improve hit rate
     return url;
   }
 
   /**
    * Gets content from cache
-   * @param {string} key - Cache key
-   * @returns {Object|null} - Cached content or null
    */
-  getFromCache(key) {
+  getFromCache(key: string): ProcessedUrlContent | null {
     const item = this.cache.get(key);
     if (!item) return null;
     if (Date.now() - item.timestamp > this.cacheTTL) {
@@ -167,10 +164,8 @@ class UrlContextService {
 
   /**
    * Saves content to cache
-   * @param {string} key - Cache key
-   * @param {Object} data - Data to cache
    */
-  saveToCache(key, data) {
+  saveToCache(key: string, data: ProcessedUrlContent): void {
     // Clean cache if full
     if (this.cache.size >= this.maxCacheSize) {
       // Remove oldest item
@@ -193,7 +188,7 @@ class UrlContextService {
   /**
    * Clears the cache
    */
-  clearCache() {
+  clearCache(): void {
     this.cache.clear();
   }
 }

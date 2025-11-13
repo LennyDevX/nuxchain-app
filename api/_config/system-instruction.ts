@@ -1,7 +1,10 @@
 /**
+ * ✅ TypeScript Migration - Phase 2
  * System Instruction compartido entre API Vercel y Express Server
  * Mantiene consistencia en las respuestas del chat
  */
+
+import type { SystemInstruction } from '../types/index.js';
 
 export const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for the Nuxchain platform.
 
@@ -135,12 +138,9 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
 /**
  * Construye el system instruction completo con contexto de KB
  * ✅ FORMATO CORRECTO: Google Gemini API requiere objeto con parts array
- * @param {string} knowledgeContext - Contexto relevante de la base de conocimientos
- * @param {number} score - Score de relevancia del contexto
- * @returns {Object} System instruction en formato oficial de Google
  */
-export function buildSystemInstructionWithContext(knowledgeContext = '', score = 0) {
-  let instructionText;
+export function buildSystemInstructionWithContext(knowledgeContext: string = '', score: number = 0): SystemInstruction {
+  let instructionText: string;
   
   if (!knowledgeContext) {
     // ✅ SIN CONTEXTO: Permitir respuestas generales usando conocimiento del modelo

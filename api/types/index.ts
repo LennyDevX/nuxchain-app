@@ -128,6 +128,263 @@ export interface KnowledgeBaseContext {
   metadata?: Record<string, unknown>;
 }
 
+export interface KnowledgeBaseMetadata {
+  type: string;
+  category?: string;
+  topic?: string;
+  [key: string]: string | undefined;
+}
+
+export interface KnowledgeBaseItem {
+  content: string;
+  metadata: KnowledgeBaseMetadata;
+  commands: string[];
+}
+
+export interface SearchQuery {
+  query: string;
+  limit?: number;
+  docs?: KnowledgeBaseItem[];
+}
+
+export interface ScoredKnowledgeItem extends KnowledgeBaseItem {
+  score: number;
+}
+
+// ============================================
+// Query Classifier Types
+// ============================================
+
+export interface ClassificationOptions {
+  includeContext?: boolean;
+  debugMode?: boolean;
+}
+
+export interface ConversationContext {
+  lastQueryWasAboutNuxchain: boolean;
+  previousTopics: string[];
+}
+
+export interface SimpleClassificationResult {
+  needsKB: boolean;
+  reason: string;
+  score: number;
+}
+
+export interface DetailedClassificationResult extends SimpleClassificationResult {
+  reasoning: string[];
+  keywordMatches: number;
+  matchedKeywords: string[];
+  isCapabilityQuestion: boolean;
+  hasNumericPattern: boolean;
+  hasNuxchainContext: boolean;
+}
+
+export type ClassificationResult = SimpleClassificationResult | DetailedClassificationResult;
+
+// ============================================
+// Semantic Streaming Types
+// ============================================
+
+export interface StreamingTimings {
+  chunkDelay: number;
+  sentenceDelay: number;
+}
+
+export interface ContentAnalysis {
+  totalLength: number;
+  sentences: number;
+  codeBlocks: number;
+  inlineCode: number;
+  formulas: number;
+  lists: number;
+  headers: number;
+  complexConcepts: number;
+  complexity: 'simple' | 'medium' | 'high';
+}
+
+export interface SemanticChunk {
+  content: string;
+  type: 'simple' | 'complex' | 'code' | 'formula' | 'list' | 'header' | 'separator';
+  position: number;
+  timing: StreamingTimings;
+}
+
+export interface StreamConfig {
+  enableSemanticChunking?: boolean;
+  enableContextualPauses?: boolean;
+  enableVariableSpeed?: boolean;
+  clientInfo?: {
+    ip?: string;
+    userAgent?: string;
+  };
+  chunkSize?: number;
+  delayMs?: number;
+  fastMode?: boolean;
+}
+
+export interface StreamResponse {
+  setHeader(name: string, value: string | string[]): void;
+  write(chunk: string): boolean;
+  end(chunk?: string): void;
+  destroyed: boolean;
+  writableEnded: boolean;
+}
+
+// ========================================
+// Analytics Service Types (Phase 2)
+// ========================================
+export interface RequestMetrics {
+  id: string;
+  service: string;
+  operation: string;
+  startTime: number;
+  startMemory: number;
+  endTime?: number;
+  duration?: number;
+  endMemory?: number;
+  memoryDelta?: number;
+  success?: boolean;
+  error?: ErrorInfo;
+}
+
+export interface ErrorInfo {
+  message: string;
+  name: string;
+  stack?: string;
+}
+
+export interface PerformanceMetric {
+  name: string;
+  value: number;
+  timestamp: number;
+  metadata: Record<string, any>;
+}
+
+export interface ServiceStats {
+  service: string;
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  successRate: number;
+  averageDuration: number;
+  averageMemoryDelta: number;
+  lastRequest?: RequestMetrics;
+}
+
+export interface PerformanceMetricSummary {
+  count: number;
+  latest: PerformanceMetric;
+  average: number;
+}
+
+export interface AllStats {
+  services: ServiceStats[];
+  totalRequests: number;
+  performanceMetrics: Record<string, PerformanceMetricSummary>;
+  memoryUsage: number;
+}
+
+// ========================================
+// System Instruction Types (Phase 2)
+// ========================================
+export interface SystemInstructionPart {
+  text: string;
+}
+
+export interface SystemInstruction {
+  parts: SystemInstructionPart[];
+}
+
+// ========================================
+// Context Cache Service Types (Phase 3)
+// ========================================
+export interface CacheEntry<T = any> {
+  value: T;
+  expiresAt: number;
+  createdAt: number;
+}
+
+export interface CacheStats {
+  totalEntries: number;
+  validEntries: number;
+  expiredEntries: number;
+  maxSize: number;
+}
+
+// ========================================
+// URL Context Service Types (Phase 3)
+// ========================================
+export interface UrlContextOptions {
+  maxContentLength?: number;
+  timeout?: number;
+}
+
+export interface ScrapedContent {
+  success: boolean;
+  url: string;
+  title?: string;
+  content?: string;
+  metadata?: Record<string, any>;
+  error?: string;
+}
+
+export interface UrlContentMetadata {
+  domain: string;
+  extractedAt: string;
+  contentLength: number;
+  originalLength: number;
+  [key: string]: any;
+}
+
+export interface ProcessedUrlContent {
+  url: string;
+  title: string;
+  content: string;
+  metadata: UrlContentMetadata;
+  summary: string;
+}
+
+export interface CachedUrlData {
+  data: ProcessedUrlContent;
+  timestamp: number;
+}
+
+// ========================================
+// Web Scraper Service Types (Phase 3)
+// ========================================
+export interface WebScraperOptions {
+  maxContentLength?: number;
+  timeout?: number;
+}
+
+export interface ExtractedHtmlData {
+  title: string;
+  content: string;
+  metadata: {
+    description?: string;
+    hasContent: boolean;
+    wordCount: number;
+  };
+}
+
+export interface WebScraperResult {
+  success: boolean;
+  url: string;
+  title?: string;
+  content?: string;
+  error?: string;
+  metadata: {
+    domain: string;
+    extractedAt: string;
+    contentLength?: number;
+    failed?: boolean;
+    description?: string;
+    hasContent?: boolean;
+    wordCount?: number;
+  };
+}
+
 // ============================================
 // Rate Limiting Types
 // ============================================

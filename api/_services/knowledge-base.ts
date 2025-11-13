@@ -1,4 +1,12 @@
-const knowledgeBase = [
+/**
+ * ✅ TypeScript Migration - Phase 1
+ * Nuxchain Knowledge Base with strict types
+ * Contains 150+ structured entries for AI context
+ */
+
+import type { KnowledgeBaseItem, ScoredKnowledgeItem } from '../types/index.js';
+
+const knowledgeBase: KnowledgeBaseItem[] = [
   // === GENERAL INFORMATION ===
   {
     content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), and tokenization tools.",
@@ -677,20 +685,40 @@ const knowledgeBase = [
   }
 ];
 
-// Function to search the knowledge base - Optimized for intelligent searches
-function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
+/**
+ * Search knowledge base with intelligent scoring
+ * @param query - Search query string
+ * @param limit - Maximum results to return
+ * @param docs - Knowledge base items to search
+ * @returns Matching knowledge base items
+ */
+function searchKnowledgeBase(
+  query: string, 
+  limit: number = 5, 
+  docs: KnowledgeBaseItem[] = knowledgeBase
+): KnowledgeBaseItem[] {
   console.log('Knowledge base loaded with', docs.length, 'items');
-  const queryLower = query.toLowerCase();
+  const queryLower: string = query.toLowerCase();
   
   // Preprocess query to remove stop words
-  const stopWords = ['this', 'that', 'these', 'those', 'the', 'a', 'an', 'and', 'or', 'is', 'are', 'in', 'on', 'at', 'for', 'with'];
-  const queryWords = queryLower.split(/\s+/) 
-    .filter(word => !stopWords.includes(word) && word.length > 2)
-    .map(word => word.replace(/[^a-zA-Z0-9]/g, ''))
+  const stopWords: Set<string> = new Set(['this', 'that', 'these', 'those', 'the', 'a', 'an', 'and', 'or', 'is', 'are', 'in', 'on', 'at', 'for', 'with']);
+  const queryWords: string[] = queryLower.split(/\s+/) 
+    .filter((word: string) => !stopWords.has(word) && word.length > 2)
+    .map((word: string) => word.replace(/[^a-zA-Z0-9]/g, ''))
     .filter(Boolean);
   
   // Determine query categories
-  const categories = {
+  interface QueryCategories {
+    staking: boolean;
+    nft: boolean;
+    airdrop: boolean;
+    labs: boolean;
+    devhub: boolean;
+    roadmap: boolean;
+    general: boolean;
+  }
+  
+  const categories: QueryCategories = {
     staking: queryLower.includes('staking') || queryLower.includes('apy') || queryLower.includes('lockup'),
     nft: queryLower.includes('nft') || queryLower.includes('marketplace') || queryLower.includes('collection'),
     airdrop: queryLower.includes('airdrop') || queryLower.includes('reward'),
@@ -701,18 +729,18 @@ function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
   };
   
   // Search for exact matches in commands
-  const exactMatches = docs.filter(item => 
-    (item.commands && item.commands.some(cmd => cmd.toLowerCase() === queryLower)) ||
+  const exactMatches: KnowledgeBaseItem[] = docs.filter((item: KnowledgeBaseItem) => 
+    (item.commands && item.commands.some((cmd: string) => cmd.toLowerCase() === queryLower)) ||
     (item.metadata?.category && queryLower.includes(item.metadata.category.toLowerCase())) ||
     (item.metadata?.topic && queryLower.includes(item.metadata.topic.toLowerCase()))
   );
   
   // Search for matches in content using improved scoring algorithm
-  const scoredMatches = docs
-    .filter(item => !exactMatches.includes(item))
-    .map(item => {
-      const contentLower = item.content.toLowerCase();
-      let score = 0;
+  const scoredMatches: ScoredKnowledgeItem[] = docs
+    .filter((item: KnowledgeBaseItem) => !exactMatches.includes(item))
+    .map((item: KnowledgeBaseItem): ScoredKnowledgeItem => {
+      const contentLower: string = item.content.toLowerCase();
+      let score: number = 0;
       
       // Score for direct match
       if (contentLower.includes(queryLower)) {
@@ -720,7 +748,7 @@ function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
       }
       
       // Score for query keywords
-      queryWords.forEach(word => {
+      queryWords.forEach((word: string) => {
         if (contentLower.includes(word)) {
           // Higher score for longer words
           score += (word.length / 100) * 3;
@@ -728,40 +756,45 @@ function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
       });
       
       // Score for matching category
-      if (categories.staking && ['staking', 'smart-contract'].includes(item.metadata?.type)) {
+      const itemType: string | undefined = item.metadata?.type;
+      if (categories.staking && itemType && ['staking', 'smart-contract'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.nft && ['nft', 'marketplace'].includes(item.metadata?.type)) {
+      } else if (categories.nft && itemType && ['nft', 'marketplace'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.airdrop && ['airdrops'].includes(item.metadata?.type)) {
+      } else if (categories.airdrop && itemType && ['airdrops'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.labs && ['labs'].includes(item.metadata?.type)) {
+      } else if (categories.labs && itemType && ['labs'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.devhub && ['devhub'].includes(item.metadata?.type)) {
+      } else if (categories.devhub && itemType && ['devhub'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.roadmap && ['roadmap'].includes(item.metadata?.type)) {
+      } else if (categories.roadmap && itemType && ['roadmap'].includes(itemType)) {
         score += 0.2;
-      } else if (categories.general && ['general'].includes(item.metadata?.type)) {
+      } else if (categories.general && itemType && ['general'].includes(itemType)) {
         score += 0.1;
       }
       
       return { ...item, score };
     })
-    .filter(item => item.score > 0.1) // Filter results with minimum score
-    .sort((a, b) => b.score - a.score); // Sort by descending score
+    .filter((item: ScoredKnowledgeItem) => item.score > 0.1) // Filter results with minimum score
+    .sort((a: ScoredKnowledgeItem, b: ScoredKnowledgeItem) => b.score - a.score); // Sort by descending score
   
   // Combine exact and scored results
-  const combinedResults = [...exactMatches, ...scoredMatches.slice(0, limit - exactMatches.length)];
+  const combinedResults: KnowledgeBaseItem[] = [...exactMatches, ...scoredMatches.slice(0, limit - exactMatches.length)];
   
   // Ensure limit is not exceeded
   return combinedResults.slice(0, limit);
 }
 
-// Function to get relevant context
-function getRelevantContext(query) {
+/**
+ * Get relevant context for a query
+ * @param query - Search query string
+ * @returns Concatenated context from matching items
+ */
+function getRelevantContext(query: string): string {
   console.log('Searching context for query:', query);
-  const results = searchKnowledgeBase(query, 3);
+  const results: KnowledgeBaseItem[] = searchKnowledgeBase(query, 3);
   console.log('Results found:', results.length);
-  const context = results.map(item => item.content).join('\n\n');
+  const context: string = results.map((item: KnowledgeBaseItem) => item.content).join('\n\n');
   console.log('Generated context (first 300 chars):', context.substring(0, 300));
   return context;
 }

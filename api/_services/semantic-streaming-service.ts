@@ -1,9 +1,30 @@
-/*
+/**
+ * ✅ TypeScript Migration - Phase 2
  * Advanced Semantic Streaming Service
  * Implements semantic chunking, contextual pauses, and variable speed
  */
 
+import type {
+  ContentAnalysis,
+  SemanticChunk,
+  StreamConfig,
+  StreamResponse,
+  StreamingTimings
+} from '../types/index.js';
+
 class SemanticStreamingService {
+  private patterns: {
+    sentences: RegExp;
+    codeBlocks: RegExp;
+    inlineCode: RegExp;
+    formulas: RegExp;
+    lists: RegExp;
+    headers: RegExp;
+    complexConcepts: RegExp;
+  };
+  
+  private timings: Record<string, StreamingTimings>;
+
   constructor() {
     this.patterns = {
       // Patterns to detect different types of content
@@ -30,7 +51,7 @@ class SemanticStreamingService {
   /**
    * Analyzes content and determines its complexity
    */
-  analyzeContent(text) {
+  analyzeContent(text: string): ContentAnalysis {
     const analysis = {
       totalLength: text.length,
       sentences: (text.match(this.patterns.sentences) || []).length,
@@ -63,11 +84,11 @@ class SemanticStreamingService {
    * Splits text into semantic chunks
    * ✅ IMPROVED: Preserve markdown formatting (headers, lists, line breaks)
    */
-  createSemanticChunks(text) {
-    const chunks = [];
-    let currentChunk = '';
-    let currentType = 'simple';
-    let position = 0;
+  createSemanticChunks(text: string): SemanticChunk[] {
+    const chunks: SemanticChunk[] = [];
+    let currentChunk: string = '';
+    let currentType: string = 'simple';
+    let position: number = 0;
 
     // ✅ Split by paragraphs first to preserve markdown structure
     const paragraphs = text.split(/\n\n+/);
@@ -107,7 +128,7 @@ class SemanticStreamingService {
    * Determines the type of a sentence/paragraph
    * ✅ IMPROVED: Better detection for markdown elements
    */
-  determineSentenceType(sentence) {
+  determineSentenceType(sentence: string): SemanticChunk['type'] {
     // Check for code blocks (highest priority)
     if (this.patterns.codeBlocks.test(sentence) || sentence.includes('```')) {
       return 'code';
@@ -138,8 +159,8 @@ class SemanticStreamingService {
   /**
    * Calculates contextual pauses based on content
    */
-  calculateContextualPause(chunk, nextChunk) {
-    let basePause = chunk.timing.sentenceDelay;
+  calculateContextualPause(chunk: SemanticChunk, nextChunk?: SemanticChunk): number {
+    let basePause: number = chunk.timing.sentenceDelay;
 
     // Additional pauses based on transitions
     if (chunk.type === 'complex' && nextChunk?.type !== 'complex') {
@@ -164,7 +185,7 @@ class SemanticStreamingService {
   /**
    * Main semantic streaming
    */
-  async streamSemanticContent(res, text, options = {}) {
+  async streamSemanticContent(res: StreamResponse, text: string, options: StreamConfig = {}): Promise<void> {
     const {
       enableSemanticChunking = true,
       enableContextualPauses = true,
@@ -230,7 +251,7 @@ class SemanticStreamingService {
    * Stream chunk content with variable speed
    * ✅ IMPROVED: Preserve markdown formatting by streaming word-by-word instead of char-by-char
    */
-  async streamChunkContent(res, chunk, enableVariableSpeed) {
+  async streamChunkContent(res: StreamResponse, chunk: SemanticChunk, enableVariableSpeed: boolean): Promise<void> {
     const content = chunk.content;
     const timing = chunk.timing;
     
@@ -274,7 +295,7 @@ class SemanticStreamingService {
   /**
    * Traditional streaming as fallback
    */
-  async streamTraditional(res, text, options) {
+  async streamTraditional(res: StreamResponse, text: string, options: StreamConfig): Promise<void> {
     // Optimizations for improved performance
     const chunkSize = options.chunkSize || 50; // Increased to send more data at once
     const delayMs = options.fastMode ? 5 : (options.delayMs || 10); // Reduced delay or ultra-fast mode
@@ -309,14 +330,14 @@ class SemanticStreamingService {
   /**
    * Helper for delays
    */
-  async delay(ms) {
+  async delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
    * ASEGURAR: Método para calcular delay óptimo
    */
-  calculateOptimalDelay(chunk) {
+  calculateOptimalDelay(chunk: string): number {
     // Sin delay para chunks pequeños
     if (chunk.length < 10) return 0;
     
@@ -330,10 +351,14 @@ class SemanticStreamingService {
     return 10;
   }
   
+  private buffer: string = '';
+  private isInCodeBlock: boolean = false;
+  private codeBlockBuffer: string = '';
+
   /**
    * ASEGURAR: Flush final del buffer
    */
-  flush() {
+  flush(): string[] {
     const remaining = this.buffer;
     this.buffer = '';
     this.isInCodeBlock = false;

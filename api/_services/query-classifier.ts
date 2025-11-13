@@ -1,14 +1,22 @@
 /**
- * Query Classifier Service
+ * ✅ TypeScript Migration - Phase 1
+ * Query Classifier Service with strict types
  * Determina si una consulta necesita buscar en la base de conocimientos de Nuxchain
  * o si puede ser respondida directamente por el modelo Gemini
  */
+
+import type {
+  ClassificationOptions,
+  ConversationContext,
+  SimpleClassificationResult,
+  DetailedClassificationResult
+} from '../types/index.js';
 
 /**
  * Palabras clave que indican que la consulta es específica de Nuxchain
  * y requiere buscar en la base de conocimientos
  */
-const NUXCHAIN_KEYWORDS = [
+const NUXCHAIN_KEYWORDS: string[] = [
   // Productos/Features de Nuxchain
   'nuxchain', 'nux', 'marketplace', 'airdrop', 'staking', 'tokenization', 'tokenización',
   'nft', 'polygon', 'smart contract', 'contrato inteligente', 'nuxbee',
@@ -81,7 +89,7 @@ const NUXCHAIN_KEYWORDS = [
 /**
  * Patrones que indican preguntas genéricas que NO necesitan la base de conocimientos
  */
-const GENERIC_PATTERNS = [
+const GENERIC_PATTERNS: RegExp[] = [
   /^(hi|hello|hey|hola|buenas|buenos días|buenas tardes)/i,
   /^(what is|qué es|que es|define|explica|explain) (blockchain|crypto|nft|defi|web3)/i,
   /^(how (does|do)|cómo|como) (blockchain|crypto|nft|defi|web3)/i,
@@ -93,7 +101,7 @@ const GENERIC_PATTERNS = [
  * Patrones de preguntas sobre CAPACIDADES de Nuxchain que SÍ necesitan KB
  * Estas son preguntas genéricas pero contextualizadas a Nuxchain
  */
-const NUXCHAIN_CAPABILITY_PATTERNS = [
+const NUXCHAIN_CAPABILITY_PATTERNS: RegExp[] = [
   /^(qué puedes hacer|que puedes hacer|what can you do)/i,
   /^(cuáles son tus capacidades|cuales son tus capacidades|what are your capabilities)/i,
   /^(qué funciones|que funciones|what features) (ofreces|offers|tienes|have)/i,
@@ -108,7 +116,7 @@ const NUXCHAIN_CAPABILITY_PATTERNS = [
  * ✅ NUEVOS: Patrones para preguntas con NÚMEROS y VALORES ESPECÍFICOS
  * Estas preguntas casi siempre requieren buscar en KB
  */
-const NUMERIC_QUERY_PATTERNS = [
+const NUMERIC_QUERY_PATTERNS: RegExp[] = [
   // Preguntas sobre APY, ROI, tasas
   /(apy|roi|tasa|rendimiento|ganancia|porcentaje|interés|interest|rate|yield)/i,
   
@@ -135,17 +143,17 @@ const NUMERIC_QUERY_PATTERNS = [
  * Contexto de conversación global (simple para MVP)
  * En producción, esto debería estar asociado a cada sesión del usuario
  */
-let conversationContext = {
+let conversationContext: ConversationContext = {
   lastQueryWasAboutNuxchain: false,
   previousTopics: []
 };
 
 /**
  * Actualiza el contexto de conversación
- * @param {boolean} isAboutNuxchain - Si la última query fue sobre Nuxchain
- * @param {string[]} topics - Tópicos mencionados en la última query
+ * @param isAboutNuxchain - Si la última query fue sobre Nuxchain
+ * @param topics - Tópicos mencionados en la última query
  */
-export function updateConversationContext(isAboutNuxchain, topics = []) {
+export function updateConversationContext(isAboutNuxchain: boolean, topics: string[] = []): void {
   conversationContext.lastQueryWasAboutNuxchain = isAboutNuxchain;
   conversationContext.previousTopics = topics;
 }
@@ -153,17 +161,17 @@ export function updateConversationContext(isAboutNuxchain, topics = []) {
 /**
  * Obtiene el contexto actual de conversación
  */
-export function getConversationContext() {
+export function getConversationContext(): ConversationContext {
   return { ...conversationContext };
 }
 
 /**
  * Determina si una consulta necesita buscar en la base de conocimientos de Nuxchain
- * @param {string} query - La consulta del usuario
- * @param {object} options - Opciones adicionales: { includeContext: boolean, debugMode: boolean }
- * @returns {object} - { needsKB: boolean, reason: string, score: number }
+ * @param query - La consulta del usuario
+ * @param options - Opciones adicionales: { includeContext: boolean, debugMode: boolean }
+ * @returns { needsKB: boolean, reason: string, score: number }
  */
-export function needsKnowledgeBase(query, options = {}) {
+export function needsKnowledgeBase(query: string, options: ClassificationOptions = {}): DetailedClassificationResult {
   const { includeContext = true, debugMode = false } = options;
   
   if (!query || typeof query !== 'string') {
@@ -172,9 +180,9 @@ export function needsKnowledgeBase(query, options = {}) {
     return result;
   }
   
-  const lowerQuery = query.toLowerCase().trim();
-  let reasoning = [];
-  let finalScore = 0;
+  const lowerQuery: string = query.toLowerCase().trim();
+  let reasoning: string[] = [];
+  let finalScore: number = 0;
   
   // Paso 1: Detectar si es una pregunta completamente genérica
   // que NO sea sobre capacidades de Nuxchain
@@ -222,11 +230,11 @@ export function needsKnowledgeBase(query, options = {}) {
   }
   
   // Paso 4: Detectar palabras clave específicas de Nuxchain
-  let keywordMatches = 0;
-  const matchedKeywords = [];
+  let keywordMatches: number = 0;
+  const matchedKeywords: string[] = [];
   
   // ✅ CRITICAL KEYWORDS: Dan +0.20 (en lugar de +0.10)
-  const CRITICAL_KEYWORDS = [
+  const CRITICAL_KEYWORDS: string[] = [
     'apy', 'roi', 'staking', 'marketplace', 'nuxchain', 'nux',
     'roadmap', 'hoja de ruta', 'desarrollo', 'planes', 'futuro', // ✅ AGREGADOS
     'lockup', 'compound', 'depositar', 'retiro', 'minimo', 'maximo'
@@ -262,8 +270,8 @@ export function needsKnowledgeBase(query, options = {}) {
   }
   
   // ✅ MEJORADO: Decisión final con threshold más bajo
-  const needsKB = finalScore >= 0.20; // Bajado de 0.25 a 0.20 (permite 1 critical keyword)
-  const reason = needsKB ? 'needs_kb' : 'general_response';
+  const needsKB: boolean = finalScore >= 0.20; // Bajado de 0.25 a 0.20 (permite 1 critical keyword)
+  const reason: string = needsKB ? 'needs_kb' : 'general_response';
   
   if (debugMode) {
     console.log(`[CLASSIFIER] Final Score: ${finalScore.toFixed(2)} | Decision: ${needsKB ? '✅ USE KB' : '❌ SKIP KB'}`);
@@ -288,7 +296,7 @@ export function needsKnowledgeBase(query, options = {}) {
  * Wrapper compatible con versión anterior (solo retorna boolean)
  * Usado en el código existente
  */
-export function needsKnowledgeBaseSimple(query) {
+export function needsKnowledgeBaseSimple(query: string): boolean {
   const result = needsKnowledgeBase(query, { includeContext: true, debugMode: false });
   
   // Log simple para mantener compatibilidad
@@ -305,7 +313,7 @@ export function needsKnowledgeBaseSimple(query) {
  * Obtiene el nivel de confianza de que la query necesita KB (0-1)
  * Útil para debugging y métricas
  */
-export function getKnowledgeBaseConfidence(query) {
+export function getKnowledgeBaseConfidence(query: string): number {
   const result = needsKnowledgeBase(query, { includeContext: true, debugMode: false });
   return Math.max(0, Math.min(1, result.score));
 }
@@ -313,7 +321,7 @@ export function getKnowledgeBaseConfidence(query) {
 /**
  * Resets el contexto de conversación (útil para testing)
  */
-export function resetConversationContext() {
+export function resetConversationContext(): void {
   conversationContext = {
     lastQueryWasAboutNuxchain: false,
     previousTopics: []

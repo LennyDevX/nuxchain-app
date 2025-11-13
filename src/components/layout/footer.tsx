@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -20,7 +21,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <span className="px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
-                Beta v6.0
+                Beta v8.0
               </span>
             </div>
           </div>
@@ -29,12 +30,12 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Platform</h4>
             <ul className="space-y-2">
-              <li><a href="/staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</a></li>
-              <li><a href="/nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</a></li>
-              <li><a href="/marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</a></li>
-              <li><a href="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</a></li>
-              <li><a href="/airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</a></li>
-              <li><a href="/roadmap" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Roadmap</a></li>
+              <li><Link to="/staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</Link></li>
+              <li><Link to="/nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</Link></li>
+              <li><Link to="/marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</Link></li>
+              <li><Link to="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</Link></li>
+              <li><Link to="/airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</Link></li>
+              <li><Link to="/roadmap" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Roadmap</Link></li>
             </ul>
           </div>
 
@@ -42,11 +43,11 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Resources</h4>
             <ul className="space-y-2">
-              <li><a href="/blog" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</a></li>
-              <li><a href="/dev-hub" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</a>
+              <li><Link to="/blog" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</Link></li>
+              <li><Link to="/dev-hub" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</Link>
                 <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
-              <li><a href="/labs" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</a>
+              <li><Link to="/labs" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</Link>
                 <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
             </ul>
@@ -57,7 +58,7 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
               <li>
-                <a href="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI 🤖</a>
+                <Link to="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI 🤖</Link>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Market Analysis</span>

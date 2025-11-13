@@ -1,11 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "functions": {
     "api/chat/stream.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 2048
     },
-    "api/health/embeddings.js": {
-      "maxDuration": 30
+    "api/health/status.ts": {
+      "maxDuration": 10,
+      "memory": 256
     }
   },
   "rewrites": [

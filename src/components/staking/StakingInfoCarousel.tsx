@@ -1,27 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
-import UserInfo from './UserInfo'
+
 import PoolInfo from './PoolInfo'
 import ContractInfo from './ContractInfo'
 
-interface DepositData {
-  amount: bigint
-  timestamp: bigint
-  lastClaimTime: bigint
-  lockupDuration: bigint
-}
 
-interface UserInfoData {
-  totalDeposited: bigint
-  pendingRewards: bigint
-  lastWithdraw: bigint
-}
 
 interface StakingInfoCarouselProps {
-  userInfo: UserInfoData | undefined
-  pendingRewards: bigint | undefined
-  userDeposits: DepositData[] | undefined
-  totalDeposit: bigint
   totalPoolBalance: bigint | undefined
   uniqueUsersCount: bigint | undefined
   contractAddress: string
@@ -29,10 +15,6 @@ interface StakingInfoCarouselProps {
 }
 
 const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
-  userInfo,
-  pendingRewards,
-  userDeposits,
-  totalDeposit,
   totalPoolBalance,
   uniqueUsersCount,
   contractAddress,
@@ -46,18 +28,6 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
   const carouselRef = useRef<HTMLDivElement>(null)
 
   const slides = [
-    {
-      id: 'user-info',
-      title: 'My Information',
-      component: (
-        <UserInfo
-          userInfo={userInfo}
-          pendingRewards={pendingRewards}
-          userDeposits={userDeposits}
-          totalDeposit={totalDeposit}
-        />
-      )
-    },
     {
       id: 'pool-info',
       title: 'Pool Information',
@@ -80,17 +50,32 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
     }
   ]
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
-  }
+  }, [slides.length])
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
-  }
+  }, [slides.length])
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index)
   }
+
+  // ✅ Auto-scroll active slide into view (same as StakingForm tabs)
+  useEffect(() => {
+    if (isMobile && carouselRef.current) {
+      setTimeout(() => {
+        if (carouselRef.current) {
+          const slideWidth = carouselRef.current.offsetWidth
+          carouselRef.current.scrollTo({
+            left: currentSlide * slideWidth,
+            behavior: 'smooth'
+          })
+        }
+      }, 50)
+    }
+  }, [currentSlide, isMobile])
 
   // Touch/Mouse handlers for swipe functionality
   const handleStart = (clientX: number) => {
@@ -99,13 +84,13 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
     setTranslateX(0)
   }
 
-  const handleMove = (clientX: number) => {
+  const handleMove = useCallback((clientX: number) => {
     if (!isDragging) return
     const diff = clientX - startX
     setTranslateX(diff)
-  }
+  }, [isDragging, startX])
 
-  const handleEnd = () => {
+  const handleEnd = useCallback(() => {
     if (!isDragging) return
     setIsDragging(false)
     
@@ -116,7 +101,7 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       nextSlide()
     }
     setTranslateX(0)
-  }
+  }, [isDragging, translateX, prevSlide, nextSlide])
 
   // Touch events
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -172,27 +157,46 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       document.removeEventListener('mouseup', handleGlobalMouseUp)
       document.removeEventListener('mousemove', handleGlobalMouseMove)
     }
-  }, [isDragging, startX])
+  }, [isDragging, handleEnd, handleMove])
 
   if (!isMobile) {
     // Desktop: Show all components in a grid
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {slides.map((slide) => (
-          <div key={slide.id} className="w-full">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        {slides.map((slide, index) => (
+          <motion.div 
+            key={slide.id} 
+            className="w-full"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
+            viewport={{ once: true }}
+          >
             {slide.component}
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
   // Mobile: Carousel view
   return (
-    <div className="w-full">
+    <motion.div 
+      className="w-full"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       {/* Carousel Container */}
       <div className="relative overflow-hidden rounded-xl">
-        <div
+        <motion.div
           ref={carouselRef}
           className="flex transition-transform duration-300 ease-out"
           style={{
@@ -205,24 +209,34 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
+          layout
         >
           {slides.map((slide) => (
-            <div
+            <motion.div
               key={slide.id}
               className="w-full flex-shrink-0 px-1"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="w-full">
                 {slide.component}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Dots Indicator */}
-      <div className="flex justify-center mt-4 space-x-2">
+      <motion.div 
+        className="flex justify-center mt-4 space-x-2"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        viewport={{ once: true }}
+      >
         {slides.map((_, index) => (
-          <button
+          <motion.button
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-2 h-2 rounded-full transition-all duration-200 ${
@@ -231,17 +245,27 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
                 : 'bg-white/30 hover:bg-white/50'
             }`}
             aria-label={`Go to slide ${index + 1}`}
+            whileHover={{ scale: 1.3 }}
+            whileTap={{ scale: 0.9 }}
+            layout
           />
         ))}
-      </div>
+      </motion.div>
 
       {/* Slide Title */}
-      <div className="text-center mt-3">
+      <motion.div 
+        className="text-center mt-3"
+        key={currentSlide}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+      >
         <h3 className="text-lg font-semibold text-white">
           {slides[currentSlide].title}
         </h3>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

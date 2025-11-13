@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLinkIcon, GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from '../ui/CustomIcons';
+import { GlobeIcon, CodeIcon, DatabaseIcon, CpuIcon } from '../ui/CustomIcons';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 interface ProjectProps {
@@ -16,9 +16,13 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
   
   return (
     <div className={`h-full ${!isMobile && highlight ? 'md:col-span-2 md:row-span-2' : ''}`}>
-      <div className={`card-unified h-full ${highlight ? 'border-purple-500/30' : ''} ${
-        isMobile ? 'p-4' : ''
-      }`}>
+      <div 
+        className={`card-unified h-full ${highlight ? 'border-purple-500/30' : ''} ${
+          isMobile ? 'p-4' : ''
+        }`}
+        role="article"
+        aria-label={`${title} project card. ${description} Progress: ${progress}%`}
+      >
         <div className="relative z-10 mb-6">
           <div className={`flex items-center gap-3 ${isMobile ? 'mb-2' : 'mb-4'}`}>
             <div className={`rounded-full flex items-center justify-center ${
@@ -47,23 +51,22 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
                 <span className="text-slate-400">Progress</span>
                 <span className="font-medium">{progress}%</span>
               </div>
-              <div className={`w-full bg-slate-700 rounded-full overflow-hidden ${
-                isMobile ? 'h-1.5' : 'h-2'
-              }`}>
+              <div 
+                className={`w-full bg-slate-700 rounded-full overflow-hidden ${
+                  isMobile ? 'h-1.5' : 'h-2'
+                }`}
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${title} project development progress: ${progress} percent`}
+              >
                 <div className={`h-full rounded-full ${highlight ? 'bg-purple-500' : 'bg-blue-500'}`} style={{ width: `${progress}%` }}></div>
               </div>
             </div>
           </div>
         </div>
         
-        {!isMobile && (
-          <div className="relative z-10 pt-4 border-t border-slate-700">
-            <button className={`w-full ${highlight ? 'bg-purple-600 hover:bg-purple-700' : 'btn-secondary'} text-white transition-all duration-300 px-4 py-2 rounded-lg flex items-center justify-center`}>
-              {highlight ? 'Explore Demo' : 'More Information'}
-              <ExternalLinkIcon className="ml-2 w-4 h-4" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -125,11 +128,13 @@ const InnovationShowcase: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Filters */}
-      <div className={`flex flex-wrap gap-2 justify-center ${isMobile ? 'px-4' : ''}`}>
+      <div className={`flex flex-wrap gap-2 justify-center ${isMobile ? 'px-4' : ''}`} role="group" aria-label="Filter projects by category">
         {categories.map((category) => (
           <button
             key={category}
             onClick={() => filterProjects(category)}
+            aria-pressed={activeFilter === category}
+            aria-label={`Filter by ${category === 'all' ? 'all categories' : category}`}
             className={`px-4 py-2 rounded-full transition-all duration-300 ${
               isMobile ? 'text-xs px-3 py-1.5' : 'text-sm'
             } ${activeFilter === category 

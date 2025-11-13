@@ -10,6 +10,13 @@
 // NFT Tokenization Benefits
 export const NFT_BENEFITS = [
   {
+    icon: '⚡',
+    title: 'Create Skill NFTs',
+    description: 'Add superpowers to your NFTs with built-in staking abilities',
+    fullDescription: 'Transform standard NFTs into powerful Skill NFTs with up to 5 different staking-focused skills. Choose from 7 skill types: 📈 Stake Boost (I/II/III increase ROI by 5/10/20%), 🔄 Auto Compound (reinvests rewards every 24h), 🔓 Lock Reducer (reduce lock-up by 25%), or 💰/💸 Fee Reducers (reduce withdrawal fees by 10-25%). Each skill has an Effect Value (1-100) and Rarity (Common to Legendary). Skill NFTs are exponentially more valuable and sought-after by stakers and yield farmers.',
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
     icon: '🎨',
     title: 'Own Your Art',
     description: 'True digital ownership with blockchain verification',
@@ -24,7 +31,14 @@ export const NFT_BENEFITS = [
     color: 'from-green-500 to-emerald-500'
   },
   {
-    icon: '🌍',
+    icon: '🏆',
+    title: 'Skill NFT Premium Value',
+    description: 'Skill NFTs command 3-10x higher prices',
+    fullDescription: 'Skill NFTs are dramatically more valuable than standard NFTs. The combination of visual appeal + gamified staking abilities creates premium demand. Stakers actively seek NFTs with Stake Boost, Auto Compound, and Fee Reducer skills to maximize yields. First skill is FREE to mint, additional skills cost 25-100 POL based on rarity. Users with 200+ POL staked unlock the ability to create these premium assets.',
+    color: 'from-yellow-500 to-orange-500'
+  },
+  {
+    icon: '�🌍',
     title: 'Global Marketplace',
     description: 'Reach collectors worldwide instantly',
     fullDescription: 'Access a borderless marketplace with millions of collectors from every continent. Your NFT can be discovered and purchased 24/7 by anyone with a crypto wallet. No geographic restrictions or licensing complications.',
@@ -34,21 +48,28 @@ export const NFT_BENEFITS = [
     icon: '🔒',
     title: 'Secure & Permanent',
     description: 'Stored on IPFS and Polygon blockchain forever',
-    fullDescription: 'Your NFT metadata is stored on IPFS (decentralized storage) with automatic replication across thousands of nodes. The blockchain records ensure permanent, tamper-proof existence. Even if platforms fail, your asset persists.',
+    fullDescription: 'Your NFT metadata and skills are stored on IPFS (decentralized storage) with automatic replication across thousands of nodes. The blockchain records ensure permanent, tamper-proof existence. Skills are immutable once minted—guaranteeing authenticity and preventing fraud.',
     color: 'from-orange-500 to-red-500'
+  },
+  {
+    icon: '⚙️',
+    title: 'Skill System Mechanics',
+    description: 'Full control over your NFT\'s gamified properties',
+    fullDescription: 'Configure up to 5 skills per NFT with granular control: choose from 7 official skill types (3x Stake Boosts, Auto Compound, Lock Reducer, 2x Fee Reducers), set effect values to customize impact levels (1-100), and select rarities from Common (1★) to Legendary (5★). Higher rarities unlock stronger bonuses: Stake Boosts increase ROI efficiency, Auto Compound maximizes APY, Lock Reducer improves liquidity, Fee Reducers minimize withdrawal costs.',
+    color: 'from-indigo-500 to-purple-500'
   },
   {
     icon: '⚡',
     title: 'Low Fees',
     description: 'Mint on Polygon for minimal gas costs',
-    fullDescription: 'Polygon offers 100x lower transaction fees than Ethereum mainnet while maintaining identical security. Pay cents instead of hundreds of dollars. More profit stays in your pocket with every sale and interaction.',
+    fullDescription: 'Polygon offers 100x lower transaction fees than Ethereum mainnet while maintaining identical security. First skill is completely FREE. Additional skills cost only 25-100 POL. Pay cents instead of hundreds of dollars. More profit stays in your pocket with every sale and interaction.',
     color: 'from-yellow-500 to-orange-500'
   },
   {
     icon: '🚀',
     title: 'Instant Listing',
     description: 'List for sale immediately after creation',
-    fullDescription: 'No waiting periods or approval processes. The moment your NFT is minted, it\'s ready to sell. Tap into market momentum instantly. Multiple listing options across all major marketplaces at once.',
+    fullDescription: 'No waiting periods or approval processes. The moment your Standard or Skill NFT is minted, it\'s ready to sell. Tap into market momentum instantly. Multiple listing options across all major marketplaces at once.',
     color: 'from-indigo-500 to-purple-500'
   }
 ] as const;

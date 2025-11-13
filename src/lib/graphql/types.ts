@@ -34,7 +34,12 @@ export interface GraphQLUser {
   totalDeposited: string; // BigInt as string
   totalWithdrawn: string; // BigInt as string
   totalCompounded: string; // BigInt as string
-  nftCount: number;
+  nftMintedCount: number;
+  depositCount: number;
+  withdrawalCount: number;
+  compoundCount: number;
+  level: number;
+  totalXP: string; // BigInt as string
   createdAt: string; // BigInt as string (timestamp)
   updatedAt: string; // BigInt as string (timestamp)
 }
@@ -59,8 +64,12 @@ export interface GraphQLWithdrawal {
 export interface GraphQLNFTMint {
   id: string;
   tokenId: string; // BigInt as string
+  creator: {
+    id: string; // Bytes as hex string
+  };
   tokenURI: string;
   category: string;
+  royaltyPercentage: string; // BigInt as string
   timestamp: string; // BigInt as string
   transactionHash: string; // Bytes as hex string
   blockNumber: string; // BigInt as string

@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import useMintNFT from '../hooks/nfts/useMintNFT';
+import { useUserStaking } from '../hooks/staking/useUserStaking';
 
 // Import components
 import FileUpload from '../components/tokenization/FileUpload';
 import NFTDetails from '../components/tokenization/NFTDetails';
 import ProgressIndicator from '../components/tokenization/ProgressIndicator';
 import InfoCarousel from '../components/tokenization/InfoCarousel';
+
+// Types for Skill NFTs - Updated for new architecture
+export type SkillType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17; // All 18 official skills
+export type Rarity = 0 | 1 | 2 | 3 | 4; // COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
+
+export interface Skill {
+  skillType: SkillType;
+  rarity: Rarity;
+  level: number; // 1-100
+}
 
 interface FormData {
   name: string;
@@ -18,12 +29,14 @@ interface FormData {
     trait_type: string;
     value: string;
   }>;
+  nftType: 'standard' | 'skill';
+  skills: Skill[];
 }
 
 function Tokenization() {
   const { isConnected } = useAccount();
-  const navigate = useNavigate();
   const { mintNFT, loading, error: mintError, txHash } = useMintNFT();
+  const { totalStaked } = useUserStaking();
   
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -31,7 +44,9 @@ function Tokenization() {
     description: '',
     category: 'art',
     royaltyPercentage: 250, // 2.5% default
-    attributes: [{ trait_type: '', value: '' }]
+    attributes: [{ trait_type: '', value: '' }],
+    nftType: 'standard',
+    skills: []
   });
   
   // File and upload state
@@ -63,6 +78,21 @@ function Tokenization() {
       return;
     }
 
+    // Check staking requirement for Skill NFTs (200 POL minimum)
+    if (formData.nftType === 'skill') {
+      const stakedAmount = parseFloat(totalStaked || '0');
+      if (stakedAmount < 200) {
+        setError(`🔒 Skill NFTs require a minimum of 200 POL staked. You currently have ${stakedAmount.toFixed(2)} POL staked. Please stake more POL before creating a Skill NFT.`);
+        return;
+      }
+    }
+
+    // Only Skill NFTs require at least 1 skill (Standard NFTs don't need skills)
+    if (formData.nftType === 'skill' && formData.skills.length === 0) {
+      setError('Add at least 1 skill to your Skill NFT. First skill is FREE!');
+      return;
+    }
+
     try {
       setError(null);
       
@@ -71,38 +101,68 @@ function Tokenization() {
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        royalty: formData.royaltyPercentage
+        royalty: formData.royaltyPercentage,
+        skills: formData.skills // Always send skills (min 1 required)
       });
       
       if (result.success) {
-        setSuccess(`🎉 NFT "${formData.name}" created successfully! Transaction hash: ${result.txHash}`);
+        const nftType = formData.nftType === 'skill' ? 'Skill NFT' : 'NFT';
+        
+        // ✅ Show toast with token ID ONLY - clean and simple
+        toast.success(
+          `NFT #${result.tokenId} minted successfully! 🎉`,
+          {
+            duration: 6000,
+            position: 'top-center',
+            style: {
+              background: '#10b981',
+              color: '#fff',
+              fontSize: '16px',
+              fontWeight: '600',
+              borderRadius: '12px',
+              padding: '16px 24px',
+              boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
+            }
+          }
+        );
+        
+        // ✅ Set success state and show in UI
+        setSuccess(`🎉 ${nftType} "${formData.name}" created successfully!`);
+        
+        // ✅ Clear form after 2 seconds
         setTimeout(() => {
-          navigate('/nfts');
-        }, 3000);
+          setFormData({
+            name: '',
+            description: '',
+            category: 'art',
+            royaltyPercentage: 250,
+            attributes: [{ trait_type: '', value: '' }],
+            nftType: 'standard',
+            skills: []
+          });
+          setSelectedFile(null);
+          setImagePreview(null);
+          setSuccess(null); // Clear success message
+        }, 2000);
       }
       
     } catch (err) {
       console.error('Error creating NFT:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create NFT');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create NFT';
+      setError(errorMsg || mintError);
     }
   };
 
-  // Handle mint error
-  useEffect(() => {
-    if (mintError) {
-      setError(mintError);
-    }
-  }, [mintError]);
 
   // Reset errors when form changes
   useEffect(() => {
-    if (error || mintError) {
+    if (error) {
       const timer = setTimeout(() => {
         setError(null);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, mintError]);
+  }, [error]);
   
 
 

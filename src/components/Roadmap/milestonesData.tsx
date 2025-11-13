@@ -68,30 +68,12 @@ export const milestones: Milestone[] = [
     status: 'achieved',
     category: 'Features'
   },
-  
-  // In Progress Milestones
-  {
-    title: 'NFT Analytics Dashboard',
-    description: 'Comprehensive analytics platform for NFT collections with trend prediction, market analysis, and investment optimization tools powered by AI.',
-    date: 'Q4 2025',
-    icon: <BarChart3Icon className="w-6 h-6" />,
-    status: 'in-progress',
-    category: 'Features'
-  },
-  {
-    title: 'Nuxbee AI Platform 2.0',
-    description: 'Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools.',
-    date: 'Q1 2026',
-    icon: <AIIcon className="w-6 h-6" />,
-    status: 'in-progress',
-    category: 'Technology'
-  },
   {
     title: 'Mobile UX 2.0',
     description: 'Comprehensive update focused on reviewing and optimizing the entire web app for mobile devices, ensuring a seamless and intuitive user experience across all screens.',
     date: 'Q4 2025',
     icon: <GlobeIcon className="w-6 h-6" />,
-    status: 'in-progress',
+    status: 'achieved',
     category: 'Features'
   },
   {
@@ -99,7 +81,7 @@ export const milestones: Milestone[] = [
     description: 'Integration of best development and design practices to achieve efficient performance throughout the app codebase, enhancing speed, responsiveness, and scalability.',
     date: 'Q1 2026',
     icon: <LineChartIcon className="w-6 h-6" />,
-    status: 'in-progress',
+    status: 'achieved',
     category: 'Technology'
   },
   {
@@ -107,8 +89,34 @@ export const milestones: Milestone[] = [
     description: 'Update and optimize smart contracts for better performance and security.',
     date: 'Q1 2026',
     icon: <BarChart3Icon className="w-6 h-6" />,
+    status: 'achieved',
+    category: 'Technology'
+  },
+  
+  // In Progress Milestones
+  {
+    title: 'Nuxbee AI Platform 1.0',
+    description: 'Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools.',
+    date: 'Q1 2026',
+    icon: <AIIcon className="w-6 h-6" />,
     status: 'in-progress',
     category: 'Technology'
+  },
+  {
+    title: 'Marketing Campaigns',
+    description: 'Initial marketing campaigns to raise awareness and drive user adoption. Strategic initiatives for community building and brand visibility across social media and crypto communities.',
+    date: 'Q1 2026',
+    icon: <LineChartIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Marketing'
+  },
+  {
+    title: 'Partnerships 1.0',
+    description: 'Strategic partnerships with leading blockchain projects, protocols, and platforms to enhance ecosystem value, increase liquidity, and create synergies.',
+    date: 'Q1-Q2 2026',
+    icon: <GlobeIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Business'
   },
   {
     title: 'DAO Governance',
@@ -121,7 +129,7 @@ export const milestones: Milestone[] = [
   
   // Upcoming Milestones
   {
-    title: 'Nuxbee AI Platform',
+    title: 'Nuxbee AI Platform 2.0',
     description: 'Advanced AI-powered platform with generative AI capabilities. A comprehensive toolset hub for users with sophisticated features and automation tools.',
     date: 'Q2 2026',
     icon: <AIIcon className="w-6 h-6" />,
@@ -136,22 +144,7 @@ export const milestones: Milestone[] = [
     status: 'upcoming',
     category: 'Innovation'
   },
-  {
-    title: 'Staking Pools v2.0',
-    description: 'Advanced gamified staking pools with NFT integration, dynamic rewards, flexible lock periods, and play-to-earn mechanics. Stake your NFTs to earn rewards while participating in the DeFi gaming ecosystem.',
-    date: 'Q3 2026',
-    icon: <BarChart3Icon className="w-6 h-6" />,
-    status: 'upcoming',
-    category: 'DeFi'
-  },
-  {
-    title: 'Marketplace 2.0',
-    description: 'Next-generation marketplace with integrated gamification and staking mechanics. Trade NFTs while earning rewards through our new DeFi gaming system. Combine trading, staking, and gaming for enhanced earning potential.',
-    date: 'Q3 2026',
-    icon: <ZapIcon className="w-6 h-6" />,
-    status: 'upcoming',
-    category: 'DeFi'
-  },
+  
   {
     title: 'Nuxchain Kit',
     description: 'Comprehensive SDK and developer toolkit for building blockchain applications with Nuxchain technology. Empower developers to create custom ecosystems and dApps with our modular, open-source components and utilities.',
@@ -160,6 +153,16 @@ export const milestones: Milestone[] = [
     status: 'upcoming',
     category: 'Technology'
   },
+
+  {
+    title: 'Re-branding & New styles',
+    description: 'Complete re-branding of the platform with new visual identity, logo, and design system to reflect growth and future vision.',
+    date: 'Q2 2026',
+    icon: <AIIcon className="w-6 h-6" />,
+    status: 'upcoming',
+    category: 'Technology'
+  },
+
   {
     title: 'Global Expansion & Web Launch',
     description: 'Official public launch of the web platform. Expansion to new markets and partnerships with major blockchain projects.',

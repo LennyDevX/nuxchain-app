@@ -227,7 +227,8 @@
 }
 
 /* === RESPONSIVE === */
-@media (max-width: 768px) {
+/* Mobile: Smaller heading sizes */
+@media (max-width: 767px) {
   .markdown-chat-container h1 {
     font-size: 1.5rem !important;
   }

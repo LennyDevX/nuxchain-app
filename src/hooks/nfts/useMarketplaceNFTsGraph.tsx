@@ -46,10 +46,9 @@ interface UseMarketplaceNFTsOptions {
   userOnly?: boolean;
 }
 
-// ✅ Query del subgraph - Activities with NFT_MINT type
-// NOTA: Esta es la query que funciona en todas las versiones del subgraph
-const GET_MARKETPLACE_NFTS_FALLBACK = gql`
-  query GetMarketplaceNFTsFallback(
+// ✅ Query del subgraph - Activities with NFT_MINT type (para usuario específico)
+const QUERY_USER_NFTS = gql`
+  query QueryUserNFTs(
     $user: Bytes!
     $first: Int!
     $skip: Int!
@@ -72,9 +71,33 @@ const GET_MARKETPLACE_NFTS_FALLBACK = gql`
   }
 `;
 
+// ✅ Query simple sin filtro de usuario (fallback si QUERY_USER_NFTS falla)
+const QUERY_ALL_NFTS = gql`
+  query QueryAllNFTs(
+    $first: Int!
+    $skip: Int!
+  ) {
+    activities(
+      where: { type: "NFT_MINT" }
+      first: $first
+      skip: $skip
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
+      id
+      tokenId
+      timestamp
+      transactionHash
+      blockNumber
+      user
+      category
+    }
+  }
+`;
+
 // ✅ Query para NFTs listados en venta
-const GET_MARKETPLACE_NFTS_FOR_SALE = gql`
-  query GetMarketplaceNFTsForSale(
+const QUERY_NFTs_FOR_SALE = gql`
+  query QueryNFTsForSale(
     $first: Int!
     $skip: Int!
   ) {
@@ -98,8 +121,8 @@ const GET_MARKETPLACE_NFTS_FOR_SALE = gql`
 `;
 
 // ✅ Query para NFTs listados en venta del usuario específico
-const GET_USER_NFTS_FOR_SALE = gql`
-  query GetUserNFTsForSale(
+const QUERY_USER_NFTs_FOR_SALE = gql`
+  query QueryUserNFTsForSale(
     $user: Bytes!
     $first: Int!
     $skip: Int!
@@ -196,21 +219,40 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           
           try {
             // Query 1: User's created NFTs
-            const mintResult = await apolloClient.query({
-              query: GET_MARKETPLACE_NFTS_FALLBACK,
-              variables: {
-                user: address.toLowerCase(),
-                first: limit,
-                skip: skip
-              },
-              fetchPolicy: 'network-only'
-            });
+            let mintResult;
+            try {
+              mintResult = await apolloClient.query({
+                query: QUERY_USER_NFTS,
+                variables: {
+                  user: address.toLowerCase(),
+                  first: limit,
+                  skip: skip
+                },
+                fetchPolicy: 'network-only'
+              });
+            } catch (fallbackError) {
+              console.warn('⚠️ QUERY_USER_NFTS failed, trying simple query...', fallbackError);
+              // Fallback to simple query without user filter
+              mintResult = await apolloClient.query({
+                query: QUERY_ALL_NFTS,
+                variables: {
+                  first: limit,
+                  skip: skip
+                },
+                fetchPolicy: 'network-only'
+              });
+            }
             
-            const mintActivities = mintResult.data?.activities || [];
+            const allMintActivities = mintResult.data?.activities || [];
+            
+            // Filter by user if needed (especially when using simple query as fallback)
+            const mintActivities = allMintActivities.filter((activity: { user?: string }) => 
+              activity.user?.toLowerCase() === address.toLowerCase()
+            );
             
             // Query 2: User's listed NFTs
             const saleResult = await apolloClient.query({
-              query: GET_USER_NFTS_FOR_SALE,
+              query: QUERY_USER_NFTs_FOR_SALE,
               variables: {
                 user: address.toLowerCase(),
                 first: limit,
@@ -257,7 +299,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           
           try {
             const result = await apolloClient.query({
-              query: GET_MARKETPLACE_NFTS_FOR_SALE,
+              query: QUERY_NFTs_FOR_SALE,
               variables: {
                 first: limit,
                 skip: skip
@@ -278,9 +320,8 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           
           try {
             const result = await apolloClient.query({
-              query: GET_MARKETPLACE_NFTS_FALLBACK,
+              query: QUERY_ALL_NFTS,
               variables: {
-                user: '0x0000000000000000000000000000000000000000', // dummy value
                 first: limit,
                 skip: skip
               },
@@ -351,7 +392,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                 console.debug(`🔗 Fetching tokenURI for token ${item.tokenId}...`);
               }
               const uri = await publicClient.readContract({
-                address: '0xa3Fe859A35126D50257D175e355C7181Bcd1E19b' as `0x${string}`,
+                address: '0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e' as `0x${string}`,
                 abi: TOKEN_URI_ABI,
                 functionName: 'tokenURI',
                 args: [BigInt(item.tokenId)]
@@ -390,7 +431,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             tokenId: item.tokenId.toString(),
             uniqueId: `nft-activity-${item.id}`,
             tokenURI: tokenURI || null,
-            contract: '0xa3Fe859A35126D50257D175e355C7181Bcd1E19b' as `0x${string}`,
+            contract: '0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e' as `0x${string}`,
             name: metadata.name,
             description: metadata.description,
             image: metadata.image,
@@ -438,7 +479,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           total: items.length
         };
         } catch (error) {
-        console.error('❌ Error fetching NFTs from subgraph v0.11:', error);
+        console.error('❌ Error fetching NFTs from subgraph v0.17:', error);
         throw error;
       }
     },

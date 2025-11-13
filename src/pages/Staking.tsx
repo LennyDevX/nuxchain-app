@@ -41,6 +41,12 @@ interface DepositData {
 // Contract address from environment variables
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS 
 
+// ✅ Validación de configuración del contrato en tiempo de carga
+if (!STAKING_CONTRACT_ADDRESS) {
+  console.error('❌ CRITICAL ERROR: VITE_ENHANCED_SMARTSTAKING_ADDRESS no está configurado');
+  console.error('Este valor es requerido en variables de entorno para el funcionamiento del Staking');
+}
+
 const Staking = memo(() => {
   const { address, isConnected } = useAccount()
   const isMobile = useIsMobile()
@@ -50,6 +56,17 @@ const Staking = memo(() => {
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
     abi: EnhancedSmartStakingABI.abi,
   }), [])
+
+  // ✅ Verificar si hay configuración válida del contrato
+  const hasValidContractConfig = useMemo(() => {
+    const isValid = STAKING_CONTRACT_ADDRESS && 
+                    STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
+                    STAKING_CONTRACT_ADDRESS.startsWith('0x');
+    if (!isValid) {
+      console.warn('⚠️ Staking contract address is not properly configured:', STAKING_CONTRACT_ADDRESS);
+    }
+    return isValid;
+  }, [])
 
   // Read contract data with optimized queries
   const { data: userDeposits } = useReadContract({
@@ -249,8 +266,20 @@ const Staking = memo(() => {
           />
         </Suspense>
 
+        {/* Contract Configuration Error Alert */}
+        {!hasValidContractConfig && (
+          <div className="mb-8 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-yellow-400 font-medium">⚠️ Staking contract is not properly configured. Please contact support.</span>
+            </div>
+          </div>
+        )}
+
         {/* Contract Paused Alert */}
-        {processedData.isPaused && (
+        {hasValidContractConfig && processedData.isPaused && (
           <div className="mb-8 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
             <div className="flex items-center">
               <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

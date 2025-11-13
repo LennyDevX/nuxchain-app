@@ -7,7 +7,7 @@ dataSources:
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0xFDbC0CD04EC2e4db0f4b0b2792012C4F593301F0"
+      address: "0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3"
       abi: EnhancedSmartStaking
       startBlock: 78897900
     mapping:
@@ -59,7 +59,7 @@ dataSources:
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0xa3Fe859A35126D50257D175e355C7181Bcd1E19b"
+      address: "0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e"
       abi: GameifiedMarketplaceCoreV1
       startBlock: 78899500
     mapping:
@@ -96,3 +96,103 @@ dataSources:
         - event: OfferAccepted(indexed address,indexed address,indexed uint256,uint256)
           handler: handleOfferAccepted
       file: ./src/gameified-marketplace.ts
+
+  # Individual Skills Contract (NEW - IIndividualSkills)
+  - kind: ethereum
+    name: IIndividualSkills
+    network: matic
+    source:
+      address: "0x33Bf614459a5Eeef31803153f20342C707582364"
+      abi: IIndividualSkills
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - IndividualSkill
+        - Activity
+      abis:
+        - name: IIndividualSkills
+          file: ./abis/IIndividualSkills.json
+      eventHandlers:
+        - event: IndividualSkillActivated(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillActivated
+        - event: IndividualSkillDeactivated(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillDeactivated
+        - event: IndividualSkillExpired(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillExpired
+        - event: IndividualSkillPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handleIndividualSkillPurchased
+        - event: IndividualSkillRenewed(indexed address,indexed uint256,uint256)
+          handler: handleIndividualSkillRenewed
+        - event: IndividualSkillTransferred(indexed address,indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillTransferred
+      file: ./src/individual-skills.ts
+
+  # Marketplace Skills V2 Contract (NEW - GameifiedMarketplaceSkillsV2)
+  - kind: ethereum
+    name: GameifiedMarketplaceSkillsV2
+    network: matic
+    source:
+      address: "0x9d67c269d17cf330ed3C5f6f5Ff130AE9d2d012C"
+      abi: GameifiedMarketplaceSkillsV2
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Activity
+      abis:
+        - name: GameifiedMarketplaceSkillsV2
+          file: ./abis/GameifiedMarketplaceSkillsV2.json
+      eventHandlers:
+        - event: SkillAdded(indexed uint256,uint8,uint8)
+          handler: handleSkillAdded
+        - event: SkillDeactivatedManually(indexed address,indexed uint256,uint8)
+          handler: handleSkillDeactivatedManually
+        - event: SkillExpired(indexed address,indexed uint256,uint8)
+          handler: handleSkillExpired
+        - event: SkillNFTCreated(indexed address,indexed uint256,uint256,uint256)
+          handler: handleSkillNFTCreated
+        - event: SkillRenewed(indexed address,indexed uint256,uint256)
+          handler: handleSkillRenewed
+        - event: SkillSwitched(indexed address,indexed uint256,indexed uint256,uint8,uint256)
+          handler: handleSkillSwitched
+      file: ./src/marketplace-skills.ts
+
+  # Marketplace Quests Contract (NEW - GameifiedMarketplaceQuests)
+  - kind: ethereum
+    name: GameifiedMarketplaceQuests
+    network: matic
+    source:
+      address: "0xDE4Ad382b2E0A3C1dF2185EDd7d7b966c775E169"
+      abi: GameifiedMarketplaceQuests
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Quest
+        - QuestProgress
+        - Activity
+      abis:
+        - name: GameifiedMarketplaceQuests
+          file: ./abis/GameifiedMarketplaceQuests.json
+      eventHandlers:
+        - event: QuestCreated(indexed uint256,uint8,string,uint256,uint256)
+          handler: handleQuestCreated
+        - event: QuestCompleted(indexed address,indexed uint256,uint256)
+          handler: handleQuestCompleted
+        - event: QuestDeactivated(indexed uint256)
+          handler: handleQuestDeactivated
+        - event: QuestProgressUpdated(indexed address,indexed uint256,uint256)
+          handler: handleQuestProgressUpdated
+        - event: SocialActionRecorded(indexed address,uint256)
+          handler: handleSocialActionRecorded
+      file: ./src/marketplace-quests.ts

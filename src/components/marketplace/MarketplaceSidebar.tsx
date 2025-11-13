@@ -10,9 +10,14 @@ import { SkeletonLoader } from '../ui/SkeletonLoader';
  */
 export default function MarketplaceSidebar() {
   const { address, isConnected } = useAccount();
-  const { userProfile, level, isLoading, refetch } = useUserProfile();
+  const { userProfile, level, isLoading, refetch, error } = useUserProfile();
   const { progress, xpRemaining, currentXP } = useXPProgress();
   const { totalUnlocked, completionPercentage } = useAchievements();
+
+  // ✅ Manejo de errores de configuración
+  if (error) {
+    console.warn('⚠️ MarketplaceSidebar error:', error.message);
+  }
 
   if (!isConnected) {
     return null;
@@ -31,6 +36,20 @@ export default function MarketplaceSidebar() {
   }
 
   if (!userProfile) {
+    // ✅ Mostrar mensaje de error si no hay perfil y no es por loading
+    if (!isLoading && error) {
+      return (
+        <aside className="card-unified h-full">
+          <div className="space-y-4 p-4">
+            <div className="text-center">
+              <p className="text-sm text-yellow-400 mb-2">⚠️ Configuration Issue</p>
+              <p className="text-xs text-white/60">{error.message}</p>
+              <p className="text-xs text-white/40 mt-2">Please check environment variables</p>
+            </div>
+          </div>
+        </aside>
+      );
+    }
     return null;
   }
 

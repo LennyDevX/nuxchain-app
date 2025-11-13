@@ -11,7 +11,7 @@ interface PoolInfoProps {
 }
 
 // Contract address from environment variables
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xae57acBf4efE2F6536D992F86145a20e11DB8C3D'
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3'
 const POL_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000001010' // POL token on Polygon
 
 const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {

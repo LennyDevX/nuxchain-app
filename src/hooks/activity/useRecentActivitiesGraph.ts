@@ -193,12 +193,14 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           // Show empty state instead of throwing
           console.warn('⚠️ Subgraph query failed - showing empty activity list');
           setActivities([]);
+          setError('Subgraph query returned errors. Please try again.');
           return;
         }
 
         if (!data || !data.activities) {
           console.warn('⚠️ [The Graph] No data returned - showing empty activity list');
           setActivities([]);
+          setError('No activities found. The subgraph may still be syncing.');
           return;
         }
 
@@ -281,6 +283,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       finalActivities.sort((a, b) => b.timestamp - a.timestamp);
 
       setActivities(finalActivities);
+      setError(null); // Clear any previous errors
 
         console.log(
           `%c🔍 useRecentActivitiesGraph Processing%c\n` +
@@ -297,11 +300,20 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         console.error('❌ [The Graph] Subgraph request failed:', subgraphError);
         console.warn('⚠️ Subgraph unavailable - returning empty activity list');
         console.info('💡 Note: The subgraph might not be deployed or synced yet');
+        
+        // Set a more descriptive error message
+        const errorMessage = subgraphError instanceof Error 
+          ? subgraphError.message 
+          : 'The subgraph is temporarily unavailable';
+        
         setActivities([]);
+        setError(`Subgraph Error: ${errorMessage}. Your recent activities will appear once the subgraph is synced.`);
       }
     } catch (err) {
       console.error('❌ [useRecentActivitiesGraph] Unexpected error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unexpected error';
       setActivities([]);
+      setError(`Error loading activities: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

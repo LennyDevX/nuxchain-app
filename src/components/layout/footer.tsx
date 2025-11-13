@@ -60,6 +60,9 @@ const Footer: React.FC = () => {
               <li>
                 <Link to="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI 🤖</Link>
               </li>
+              <li>
+                <Link to="/skills" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Skill NFTs 🎯</Link>
+              </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Market Analysis</span>
                 <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>

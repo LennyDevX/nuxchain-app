@@ -6,6 +6,12 @@ import { showXPNotification, injectXPNotificationStyles } from '../../utils/noti
 
 const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
+// ✅ Validación de configuración del contrato en tiempo de carga
+if (!MARKETPLACE_CONTRACT_ADDRESS) {
+  console.error('❌ CRITICAL ERROR: VITE_GAMEIFIED_MARKETPLACE_PROXY no está configurado');
+  console.error('Este valor es requerido en variables de entorno para el funcionamiento del Marketplace');
+}
+
 interface UseUserProfileReturn {
   userProfile: UserProfile | null;
   level: number;
@@ -25,6 +31,7 @@ interface UseUserProfileReturn {
  * - Refetch más agresivo: cada 15 segundos
  * - Invalidación de cache cuando hay eventos
  * - Notificaciones cuando se gana XP
+ * - Validación de dirección del contrato en producción
  */
 export function useUserProfile(): UseUserProfileReturn {
   const { address, isConnected } = useAccount();

@@ -9,7 +9,7 @@ import embeddingsService from './embeddings-service.js';
 import { needsKnowledgeBase, updateConversationContext, needsKnowledgeBaseSimple } from './query-classifier.js';
 import urlContextService from './url-context-service.js';
 import semanticStreamingService from './semantic-streaming-service.js';
-import { buildSystemInstructionWithContext } from '../../../../api/_config/system-instruction.js';
+import { buildSystemInstructionWithContext } from '../config/system-instruction.js';
 import chatLogger from '../utils/chat-logger.js';
 
 

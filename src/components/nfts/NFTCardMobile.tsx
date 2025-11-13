@@ -132,7 +132,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
     <motion.div 
       className="group relative w-full cursor-pointer"
       onClick={handleFlip}
-      style={{ perspective: '1500px', aspectRatio: '3/5' }}
+      style={{ perspective: '1500px', aspectRatio: '3/5.5' }}
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
@@ -258,18 +258,18 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
             >
               {/* SLIDE 1 - Main Description & Price */}
               <div className="min-w-full h-full snap-start overflow-y-auto custom-scrollbar flex flex-col">
-                <div className="p-4 space-y-4 flex flex-col flex-1">
+                <div className="p-4 space-y-3 flex flex-col flex-1">
                   {/* Title Section */}
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">{nft.name || `NFT #${nft.tokenId}`}</h3>
+                    <h3 className="text-lg font-bold text-white">{nft.name || `NFT #${nft.tokenId}`}</h3>
                     <p className="text-xs text-purple-300/70 font-mono">ID: {nft.tokenId}</p>
                   </div>
 
                   {/* Description */}
                   {nft.description && (
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-3 flex-1">
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-3">
                       <h4 className="text-xs font-semibold text-gray-400 mb-2">About</h4>
-                      <p className="text-sm text-white leading-relaxed">
+                      <p className="text-sm text-white leading-relaxed line-clamp-4">
                         {nft.description}
                       </p>
                     </div>
@@ -277,81 +277,70 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
 
                   {/* Price - Prominent Display */}
                   {nft.isForSale && nft.price && (
-                    <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-600/10 border border-emerald-500/40 rounded-lg p-4">
+                    <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-600/10 border border-emerald-500/40 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-2">
-                        <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm font-semibold text-emerald-300">Current Price</span>
+                        <span className="text-xs font-semibold text-emerald-300">Current Price</span>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-3xl font-bold text-white">{formattedPricePOL}</p>
+                        <p className="text-2xl font-bold text-white">{formattedPricePOL}</p>
                         {formattedPriceUSD && (
-                          <p className="text-base text-emerald-400 font-medium">≈ {formattedPriceUSD}</p>
+                          <p className="text-sm text-emerald-400 font-medium">≈ {formattedPriceUSD}</p>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {/* CTA Button for Unlisted */}
-                  {!nft.isForSale && (
-                    <motion.button 
-                      onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-lg px-4 py-3 text-base font-bold text-white flex items-center justify-center gap-2 touch-manipulation"
-                      whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ type: 'spring', stiffness: 300 }}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      List for Sale
-                    </motion.button>
-                  )}
+                  {/* Info hint */}
+                  <div className="text-center pt-2">
+                    <p className="text-xs text-purple-300/50">Swipe or tap bottom indicators to see more</p>
+                  </div>
                 </div>
               </div>
 
               {/* SLIDE 2 - Addresses & Identities */}
               <div className="min-w-full h-full snap-start overflow-y-auto custom-scrollbar flex flex-col">
-                <div className="p-4 space-y-4 flex flex-col flex-1">
-                  <h3 className="text-lg font-bold text-white">Details</h3>
+                <div className="p-4 space-y-3 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">Details</h3>
 
                   {/* Creator Card */}
-                  <div className="bg-gradient-to-br from-purple-600/20 to-purple-600/5 border border-purple-500/40 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-purple-600/20 to-purple-600/5 border border-purple-500/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                       </svg>
-                      <p className="text-sm font-semibold text-purple-300">Creator</p>
+                      <p className="text-xs font-semibold text-purple-300">Creator</p>
                     </div>
-                    <p className="text-sm text-white font-mono bg-purple-600/30 px-3 py-2 rounded break-all">
+                    <p className="text-xs text-white font-mono bg-purple-600/30 px-3 py-2 rounded break-all">
                       {nft.creator}
                     </p>
                   </div>
 
                   {/* Owner Card */}
-                  <div className="bg-gradient-to-br from-blue-600/20 to-blue-600/5 border border-blue-500/40 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-blue-600/20 to-blue-600/5 border border-blue-500/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <p className="text-sm font-semibold text-blue-300">Owner</p>
+                      <p className="text-xs font-semibold text-blue-300">Owner</p>
                     </div>
-                    <p className="text-sm text-white font-mono bg-blue-600/30 px-3 py-2 rounded break-all">
+                    <p className="text-xs text-white font-mono bg-blue-600/30 px-3 py-2 rounded break-all">
                       {nft.owner}
                     </p>
                   </div>
 
                   {/* Contract Address */}
-                  <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-600/5 border border-indigo-500/40 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg className="w-5 h-5 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-600/5 border border-indigo-500/40 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      <p className="text-sm font-semibold text-indigo-300">Contract</p>
+                      <p className="text-xs font-semibold text-indigo-300">Contract</p>
                     </div>
-                    <p className="text-xs text-white font-mono bg-indigo-600/30 px-3 py-2 rounded break-all">
+                    <p className="text-[10px] text-white font-mono bg-indigo-600/30 px-3 py-2 rounded break-all">
                       {nft.contract}
                     </p>
                   </div>
@@ -360,7 +349,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
 
               {/* SLIDE 3 - Attributes Full Display */}
               <div className="min-w-full h-full snap-start overflow-y-auto custom-scrollbar flex flex-col">
-                <div className="p-4 space-y-4 flex flex-col flex-1">
+                <div className="p-4 space-y-3 flex flex-col flex-1">
                   {nft.attributes && nft.attributes.length > 0 ? (
                     <>
                       <div className="flex items-center justify-between">
@@ -375,26 +364,29 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2.5">
                         {nft.attributes.map((attr: NFTAttribute, index: number) => {
                           const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
                                                attr.trait_type.toLowerCase().includes('created');
                           const formattedValue = formatAttributeValue(attr.trait_type, attr.value);
                           
                           return (
-                            <div 
+                            <motion.div 
                               key={index} 
                               className={`${
                                 isSpecialAttr 
                                   ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50' 
-                                  : 'bg-white/5 border-white/10'
+                                  : 'bg-white/5 border-white/10 hover:bg-white/8'
                               } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 hover:bg-white/10 touch-manipulation`}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              transition={{ type: 'spring', stiffness: 300 }}
                             >
-                              <p className="text-[10px] text-gray-400 mb-1.5 font-medium">{attr.trait_type}</p>
+                              <p className="text-[10px] text-gray-400 mb-1.5 font-medium truncate">{attr.trait_type}</p>
                               <p className={`text-sm font-bold break-words ${isSpecialAttr ? 'text-purple-300 font-mono' : 'text-white'}`}>
                                 {formattedValue}
                               </p>
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>

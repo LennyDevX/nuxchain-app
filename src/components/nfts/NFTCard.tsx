@@ -388,26 +388,29 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                       {nft.attributes.map((attr: NFTAttribute, index: number) => {
                         const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
                                              attr.trait_type.toLowerCase().includes('created');
                         const formattedValue = formatAttributeValue(attr.trait_type, attr.value);
                         
                         return (
-                          <div 
+                          <motion.div 
                             key={index} 
                             className={`${
                               isSpecialAttr 
-                                ? 'bg-gradient-to-br from-purple-600/20 to-pink-600/10 border-purple-400/40' 
-                                : 'bg-white/5 border-white/10'
-                            } border rounded-lg p-2.5 sm:p-3 transition-all duration-200 hover:border-purple-400/50 hover:bg-white/10 touch-manipulation`}
+                                ? 'bg-gradient-to-br from-purple-600/25 to-pink-600/15 border-purple-400/50' 
+                                : 'bg-white/5 border-white/10 hover:bg-white/8'
+                            } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/60 touch-manipulation`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ type: 'spring', stiffness: 300 }}
                           >
-                            <p className="text-[9px] sm:text-xs text-gray-400 mb-1 truncate">{attr.trait_type}</p>
-                            <p className={`text-xs sm:text-sm font-bold truncate ${isSpecialAttr ? 'text-purple-300' : 'text-white'}`}>
+                            <p className="text-[9px] sm:text-xs text-gray-400 mb-1.5 font-medium truncate">{attr.trait_type}</p>
+                            <p className={`text-xs sm:text-sm font-bold truncate ${isSpecialAttr ? 'text-purple-200' : 'text-white'}`}>
                               {formattedValue}
                             </p>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
@@ -416,34 +419,9 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
               </div>
             </div>
 
-            {/* Fixed Footer - Action Buttons */}
-            <div className="relative p-4 sm:p-5 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0 space-y-2">
-              {!nft.isForSale && (
-                <motion.button 
-                  onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 active:from-purple-700 active:to-pink-700 border border-purple-400/50 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white flex items-center justify-center gap-2 touch-manipulation"
-                  whileHover={{ scale: 1.03, boxShadow: '0 0 20px rgba(192, 132, 250, 0.4)' }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  List for Sale
-                </motion.button>
-              )}
-              <motion.button
-                onClick={handleFlip}
-                className="w-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 rounded-lg px-4 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-white flex items-center justify-center gap-2 touch-manipulation"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-                </svg>
-                Back to View
-              </motion.button>
+            {/* Fixed Footer - Message hint */}
+            <div className="relative p-4 sm:p-5 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0 text-center">
+              <p className="text-xs sm:text-sm text-purple-300/60 py-1">Tap card to flip back</p>
             </div>
           </div>
         </div>

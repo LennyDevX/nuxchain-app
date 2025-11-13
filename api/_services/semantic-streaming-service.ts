@@ -52,7 +52,7 @@ class SemanticStreamingService {
    * Analyzes content and determines its complexity
    */
   analyzeContent(text: string): ContentAnalysis {
-    const analysis = {
+    const analysis: ContentAnalysis = {
       totalLength: text.length,
       sentences: (text.match(this.patterns.sentences) || []).length,
       codeBlocks: (text.match(this.patterns.codeBlocks) || []).length,
@@ -75,6 +75,8 @@ class SemanticStreamingService {
       analysis.complexity = 'high';
     } else if (complexityScore > 5) {
       analysis.complexity = 'medium';
+    } else {
+      analysis.complexity = 'simple';
     }
 
     return analysis;
@@ -300,6 +302,7 @@ class SemanticStreamingService {
     const chunkSize = options.chunkSize || 50; // Increased to send more data at once
     const delayMs = options.fastMode ? 5 : (options.delayMs || 10); // Reduced delay or ultra-fast mode
 
+    let lastSentIndex = 0;
     try {
       // Send larger portions to improve speed
       for (let i = 0; i < text.length; i += chunkSize) {
@@ -307,6 +310,7 @@ class SemanticStreamingService {
         
         const chunk = text.slice(i, i + chunkSize);
         res.write(chunk);
+        lastSentIndex = i + chunkSize;
         
         // Only add delay if not ultra-fast mode
         if (!options.fastMode && i + chunkSize < text.length) {
@@ -316,8 +320,8 @@ class SemanticStreamingService {
     } catch (error) {
       console.error('Error in traditional streaming:', error);
       // Try to send remaining text without delays
-      if (text.length > i && !res.writableEnded) {
-        res.write(text.slice(i));
+      if (text.length > lastSentIndex && !res.writableEnded) {
+        res.write(text.slice(lastSentIndex));
       }
     } finally {
       // Ensure stream closes correctly

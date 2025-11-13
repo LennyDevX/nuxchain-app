@@ -84,7 +84,7 @@ class AnalyticsService {
     const endMemory = this.getMemoryUsage();
     const memoryDelta = endMemory - requestMetrics.startMemory;
 
-    const failedMetrics = {
+    const failedMetrics: RequestMetrics = {
       ...requestMetrics,
       endTime: endTime,
       duration: duration,
@@ -94,7 +94,9 @@ class AnalyticsService {
       error: {
         message: error.message,
         name: error.name,
-        stack: error.stack
+        stack: error.stack || '',
+        code: 'ERROR',
+        timestamp: Date.now()
       }
     };
 
@@ -141,6 +143,8 @@ class AnalyticsService {
       return {
         service: service,
         totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
         successRate: 0,
         averageDuration: 0,
         averageMemoryDelta: 0

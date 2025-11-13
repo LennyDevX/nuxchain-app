@@ -11,8 +11,8 @@ import type {
   CachedUrlData,
   RequestMetrics
 } from '../types/index.js';
-import WebScraperService from './web-scraper.ts';
-import analyticsService from './analytics-service.ts';
+import WebScraperService from './web-scraper.js';
+import analyticsService from './analytics-service.js';
 
 class UrlContextService {
   private cache: Map<string, CachedUrlData>;

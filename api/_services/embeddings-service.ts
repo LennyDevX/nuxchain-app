@@ -479,7 +479,7 @@ export async function searchSimilar(
   options: SearchOptions = {}
 ): Promise<SearchResult[]> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.ts') as { knowledgeBase: KnowledgeBaseItem[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     
     if (!knowledgeBase || knowledgeBase.length === 0) {
       console.warn('⚠️ Knowledge base is empty');
@@ -727,7 +727,7 @@ async function precomputeWithSmartBatching(knowledgeBase: Document[]): Promise<P
 
 export async function precomputeKnowledgeBaseEmbeddings(): Promise<PrecomputeResult> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.ts') as { knowledgeBase: KnowledgeBaseItem[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     
     if (!process.env.GEMINI_API_KEY) {
       return { precomputed: 0 };
@@ -819,7 +819,7 @@ export async function initializeKnowledgeBaseForVercel(precompute = false): Prom
   precomputeStarted?: boolean;
 }> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.ts') as { knowledgeBase: KnowledgeBaseItem[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
     
     console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);

@@ -184,11 +184,11 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     try {
       const modules = await Promise.all([
-        import('../_services/query-classifier.ts').catch(e => { console.error('Error loading query-classifier:', e.message); throw e; }),
-        import('../_services/embeddings-service.ts').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
-        import('../_config/system-instruction.ts').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
-        import('../_services/markdown-formatter.ts').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
-        import('../_services/semantic-streaming-service.ts').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; })
+        import('../_services/query-classifier.js').catch(e => { console.error('Error loading query-classifier:', e.message); throw e; }),
+        import('../_services/embeddings-service.js').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
+        import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
+        import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
+        import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; })
       ]);
       
       needsKnowledgeBase = modules[0].needsKnowledgeBase;

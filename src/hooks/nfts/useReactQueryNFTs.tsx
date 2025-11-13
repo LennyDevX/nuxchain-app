@@ -2,11 +2,12 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient } from 'wagmi';
 import { getContract, type Abi } from 'viem';
 import { useEffect, useCallback, useRef, useState } from 'react';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
-import { nftLogger } from '../../utils/nftLogger';
+import { nftLogger } from '../../utils/log/nftLogger';
 
-const MARKETPLACE_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+// Nueva arquitectura: usar Proxy address
+const MARKETPLACE_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 export interface NFTAttribute {
   trait_type: string;
@@ -116,7 +117,7 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
 
       const contract = getContract({
         address: MARKETPLACE_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: publicClient
       });
 
@@ -133,22 +134,35 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
               return null;
             }
             
-            // Get listing information
-            type ListedToken = [
-              bigint,   // tokenId
-              string,   // seller
-              string,   // owner
-              bigint,   // price
-              boolean,  // isForSale
-              bigint,   // listedTimestamp
-              string    // category
-            ];
-
-            const listedToken = await contract.read.getListedToken([BigInt(tokenId)]) as ListedToken;
+            // Check if token is listed (use isListed mapping and listedPrice mapping)
+            let isForSale = false;
+            let price = 0n;
+            let category = 'coleccionables';
+            
+            try {
+              // Read isListed mapping
+              isForSale = await contract.read.isListed([BigInt(tokenId)]) as boolean;
+              
+              if (isForSale) {
+                // Read listed price
+                price = await contract.read.listedPrice([BigInt(tokenId)]) as bigint;
+              }
+              
+              // Try to read category from nftMetadata (check if it exists)
+              try {
+                const metadata = await contract.read.nftMetadata([BigInt(tokenId)]) as [string, string, string, bigint, bigint];
+                category = metadata[2] || 'coleccionables';
+              } catch {
+                category = 'coleccionables';
+              }
+            } catch {
+              // If we can't read listing info, continue anyway
+              // NFT still exists and user owns it
+            }
             
             // Apply filters
-            if (category && listedToken[6] !== category) return null;
-            if (typeof isForSale === 'boolean' && listedToken[4] !== isForSale) return null;
+            if (category && category !== 'coleccionables' && category.toLowerCase() !== category.toLowerCase()) return null;
+            if (typeof isForSale === 'boolean' && isForSale === false && !userOnly) return null;
             
             // For user's NFTs, show all tokens (even if not for sale)
             // For marketplace view, only show tokens that are for sale
@@ -192,11 +206,11 @@ export function useMarketplaceNFTs(options: UseMarketplaceNFTsOptions = {}) {
               image,
               attributes,
               owner, // Use the actual owner from ownerOf
-              creator: listedToken[1],
-              price: listedToken[3],
-              isForSale: listedToken[4],
+              creator: owner, // Use owner as creator for now (would need metadata storage)
+              price: price,
+              isForSale: isForSale,
               likes: '0',
-              category: listedToken[6]
+              category: category
             } satisfies NFTData;
           } catch {
             // Token doesn't exist or error reading from contract

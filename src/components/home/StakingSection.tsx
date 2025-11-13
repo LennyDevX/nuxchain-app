@@ -1,38 +1,48 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 function StakingSection() {
   const [stakingAmount, setStakingAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState('30');
-  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   // Staking calculator logic
+  // ROI base flexible: 0.005% por hora (0.00005)
+  // Multiplicadores calculados según los nuevos ROIs por hora
+  // 30d: 0.01% (2.0x), 90d: 0.014% (2.8x), 180d: 0.017% (3.4x), 365d: 0.021% (4.2x)
   const getMultiplier = () => {
     switch (lockPeriod) {
-      case '30': return 1.2;
-      case '90': return 1.5;
-      case '180': return 2.0;
-      case '365': return 2.5;
+      case '30': return 2.0;
+      case '90': return 2.8;
+      case '180': return 3.4;
+      case '365': return 4.2;
+      case 'flexible':
       default: return 1;
     }
   };
-  
+
   const calculateProjectedRewards = (days: number) => {
     if (!stakingAmount || isNaN(Number(stakingAmount))) return 0;
     const amount = Number(stakingAmount);
-    
-    const hourlyRate = 0.0001; // 0.01% per hour
+    const hourlyRate = 0.00005; // 0.005% por hora
     const multiplier = getMultiplier();
     const hours = days * 24;
-    
     return amount * hourlyRate * multiplier * hours;
   };
   
   return (
-    <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Calculadora de Staking - Izquierda */}
-        <div className="order-2 lg:order-1">
+        <motion.div 
+          className="order-2 lg:order-1"
+          initial={{ opacity: 0, y: isMobile ? 20 : 0, x: isMobile ? 0 : -30 }}
+          whileInView={{ opacity: 1, y: 0, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/10 hover:border-purple-400/50 transition-all duration-300">
             <h3 className="text-xl md:text-2xl font-bold text-white mb-6 text-center">Staking Calculator</h3>
             
@@ -58,10 +68,10 @@ function StakingSection() {
                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:outline-none transition-colors"
                  >
                    <option value="flexible" className="bg-gray-800">Flexible (1x)</option>
-                   <option value="30" className="bg-gray-800">30 Days (1.2x)</option>
-                   <option value="90" className="bg-gray-800">90 Days (1.5x)</option>
-                   <option value="180" className="bg-gray-800">180 Days (2.0x)</option>
-                   <option value="365" className="bg-gray-800">365 Days (2.5x)</option>
+                   <option value="30" className="bg-gray-800">30 Days (2.0x)</option>
+                   <option value="90" className="bg-gray-800">90 Days (2.8x)</option>
+                   <option value="180" className="bg-gray-800">180 Days (3.4x)</option>
+                   <option value="365" className="bg-gray-800">365 Days (4.2x)</option>
                  </select>
               </div>
               
@@ -101,40 +111,68 @@ function StakingSection() {
                 
                 <div className="text-center pt-4 border-t border-white/10 mt-4">
                   <div className="text-xs text-white/50 mb-1">
-                    Base ROI: 0.01% per hour • Multiplier: {getMultiplier()}x
+                    Base ROI: 0.005% per hour • Multiplier: {getMultiplier()}x
                   </div>
                   <div className="text-sm text-purple-300 font-semibold">
-                    Effective APY: {(getMultiplier() * 0.01 * 24 * 365).toFixed(2)}%
+                    Effective APY: {(getMultiplier() * 0.005 * 24 * 365).toFixed(2)}%
                   </div>
                 </div>
               </div>
               
-              <button
-                className="w-full btn-primary"
-                onClick={() => navigate('/staking')}
+              <Link
+                to="/staking"
+                className="w-full btn-primary inline-block text-center"
               >
                 Start Staking
-              </button>
+              </Link>
             </div>
           </div>
-        </div>
+        </motion.div>
         
         {/* Información - Derecha */}
-        <div className="order-1 lg:order-2">
+        <motion.div 
+          className="order-1 lg:order-2"
+          initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
+          whileInView={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
           <div className="animate-slide-up">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
               Secure <span className="text-gradient">Staking</span>
-            </h2>
+            </motion.h2>
             
-            <p className="text-xl text-white/80 mb-8 leading-relaxed">
+            <motion.p 
+              className="text-xl text-white/80 mb-8 leading-relaxed"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              viewport={{ once: true }}
+            >
               Earn rewards by staking your tokens safely and decentralized with the best market yields. 
               Our smart contract ensures maximum security and transparency for your investments.
-            </p>
+            </motion.p>
             
-            <div className="space-y-4">
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Base APY 87% anual rewards</span>
+                <span className="text-white/80">Base APY ~44% anual rewards (Flexible)</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span className="text-white/80">APY máximo ~184% (365 días)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
@@ -144,9 +182,9 @@ function StakingSection() {
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                 <span className="text-white/80">Auto-compound rewards system </span>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

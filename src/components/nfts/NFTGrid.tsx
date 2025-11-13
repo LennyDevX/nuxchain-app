@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { FixedSizeGrid } from 'react-window';
 import NFTCard from './NFTCard';
+import { CardSkeletonLoader } from '../ui/SkeletonLoader';
 
 interface NFTData {
   tokenId: string;
@@ -74,49 +76,70 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="w-full">
+        <CardSkeletonLoader count={gridConfig.columnsCount * 2} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+      <motion.div 
+        className="text-center py-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        <motion.div 
+          className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
+          whileHover={{ scale: 1.1 }}
+        >
           <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-        </div>
+        </motion.div>
         <h3 className="text-2xl font-bold text-white mb-2">Error Loading NFTs</h3>
         <p className="text-white/60 mb-6">{error}</p>
-        <button 
+        <motion.button 
           onClick={() => window.location.reload()}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200"
         >
           Try Again
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 
   if (nfts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mx-auto mb-6">
+      <motion.div 
+        className="text-center py-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
+      >
+        <motion.div 
+          className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mx-auto mb-6"
+          animate={{ rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
           <svg className="w-12 h-12 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-        </div>
+        </motion.div>
         <h3 className="text-2xl font-bold text-white mb-2">You don't have any NFTs yet</h3>
         <p className="text-white/60 mb-6">Create your first NFT and start your collection</p>
-        <button 
+        <motion.button 
           onClick={onCreateNFT}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200"
         >
           Create my first NFT
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     );
   }
 
@@ -143,19 +166,28 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
 
   // For smaller collections, use regular grid but keep consistent card heights
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-      {nfts.map((nft) => (
-        <div
+    <motion.div 
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
+    >
+      {nfts.map((nft, idx) => (
+        <motion.div
           key={nft.uniqueId || nft.tokenId}
           className="flex items-stretch"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: idx * 0.05, type: 'spring', stiffness: 300, damping: 30 }}
+          viewport={{ once: true }}
         >
           <NFTCard
             nft={nft}
             onListNFT={onListNFT}
             isMobile={gridConfig.isMobile}
           />
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }

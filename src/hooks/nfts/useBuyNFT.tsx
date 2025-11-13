@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { parseEther, type Abi } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
 import { toast } from 'react-hot-toast';
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 export interface BuyNFTParams {
   tokenId: string;
@@ -77,10 +77,10 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       // Verify the NFT is still for sale and get current price
       const listedToken = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         functionName: 'getListedToken',
         args: [tokenId]
-      }) as any[];
+      }) as [bigint, string, bigint, bigint, boolean];
 
       if (!listedToken || !listedToken[4]) { // isForSale is at index 4
         throw new Error('This NFT is no longer for sale');
@@ -106,7 +106,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       // Execute the purchase transaction
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         functionName: 'buyToken',
         args: [tokenId],
         value: priceInWei,
@@ -125,20 +125,21 @@ export default function useBuyNFT(): UseBuyNFTReturn {
         throw new Error('Transaction failed');
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error buying NFT:', err);
       
       let errorMessage = 'Failed to purchase NFT';
       
-      if (err.message) {
-        if (err.message.includes('User rejected')) {
+      const error = err as { message?: string };
+      if (error.message) {
+        if (error.message.includes('User rejected')) {
           errorMessage = 'Transaction was cancelled';
-        } else if (err.message.includes('insufficient funds')) {
+        } else if (error.message.includes('insufficient funds')) {
           errorMessage = 'Insufficient funds for this transaction';
-        } else if (err.message.includes('execution reverted')) {
+        } else if (error.message.includes('execution reverted')) {
           errorMessage = 'Transaction failed: NFT may no longer be available';
         } else {
-          errorMessage = err.message;
+          errorMessage = error.message;
         }
       }
       

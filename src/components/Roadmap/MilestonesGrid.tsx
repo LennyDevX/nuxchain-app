@@ -29,11 +29,19 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
   };
 
   const renderMilestone = (milestone: Milestone, index: number) => (
-    <div 
-      key={index} 
+    <motion.div 
+      key={index}
       className={`card-unified transition-all duration-300 relative overflow-hidden group ${
-        isMobile ? 'p-4 hover:scale-105' : 'p-6 hover:scale-105'
+        isMobile ? 'p-4' : 'p-6'
       }`}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ 
+        duration: 0.5,
+        delay: index * 0.05,
+      }}
+      viewport={{ once: true }}
     >
       {/* Status Indicator */}
       <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-4 right-4'}`}>
@@ -90,23 +98,52 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
 
       {/* Hover Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-    </div>
+    </motion.div>
   );
 
   return (
     <div className={`${isMobile ? 'space-y-8' : 'space-y-12'}`}>
-      <div className="text-center max-w-3xl mx-auto">
-        <h2 className={`font-bold ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-3xl'}`}>
+      <motion.div 
+        className="text-center max-w-3xl mx-auto"
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <motion.h2 
+          className={`font-bold ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-3xl'}`}
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           Key Milestones
-        </h2>
-        <p className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-base'}`}>
+        </motion.h2>
+        <motion.p 
+          className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-base'}`}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
           Track our progress through major achievements and upcoming goals that define our journey.
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
 
       {/* Achieved Milestones */}
-      <div>
-        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        <motion.div 
+          className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
           <div className={`rounded-full bg-green-500/20 flex items-center justify-center ${
             isMobile ? 'w-8 h-8' : 'w-10 h-10'
           }`}>
@@ -115,22 +152,39 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
           <h3 className={`font-bold text-green-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
             Achieved Milestones
           </h3>
-          <span className={`px-3 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-400 animate-pulse ${
-            isMobile ? 'text-xs' : 'text-sm'
-          }`}>
+          <motion.span 
+            className={`px-3 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-400 animate-pulse ${
+              isMobile ? 'text-xs' : 'text-sm'
+            }`}
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
             {achievedMilestones.length}
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
         <div className={`grid gap-3 ${
           isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
           {achievedMilestones.map((milestone, index) => renderMilestone(milestone, index))}
         </div>
-      </div>
+      </motion.div>
 
       {/* In Progress Milestones */}
-      <div>
-        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        <motion.div 
+          className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
           <div className={`rounded-full bg-yellow-500/20 flex items-center justify-center ${
             isMobile ? 'w-8 h-8' : 'w-10 h-10'
           }`}>
@@ -139,22 +193,39 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
           <h3 className={`font-bold text-yellow-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
             In Progress
           </h3>
-          <span className={`px-3 py-1 text-xs font-medium rounded-full bg-yellow-900/30 text-yellow-400 ${
-            isMobile ? 'text-xs' : 'text-sm'
-          }`}>
+          <motion.span 
+            className={`px-3 py-1 text-xs font-medium rounded-full bg-yellow-900/30 text-yellow-400 ${
+              isMobile ? 'text-xs' : 'text-sm'
+            }`}
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
             {inProgressMilestones.length}
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
         <div className={`grid gap-3 ${
           isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
           {inProgressMilestones.map((milestone, index) => renderMilestone(milestone, index))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Upcoming Milestones */}
-      <div>
-        <div className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+      >
+        <motion.div 
+          className={`flex items-center gap-3 ${isMobile ? 'mb-4' : 'mb-6'}`}
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
           <div className={`rounded-full bg-purple-500/20 flex items-center justify-center ${
             isMobile ? 'w-8 h-8' : 'w-10 h-10'
           }`}>
@@ -163,18 +234,24 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
           <h3 className={`font-bold text-purple-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
             Upcoming Milestones
           </h3>
-          <span className={`px-3 py-1 text-xs font-medium rounded-full bg-purple-900/30 text-purple-400 ${
-            isMobile ? 'text-xs' : 'text-sm'
-          }`}>
+          <motion.span 
+            className={`px-3 py-1 text-xs font-medium rounded-full bg-purple-900/30 text-purple-400 ${
+              isMobile ? 'text-xs' : 'text-sm'
+            }`}
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
             {upcomingMilestones.length}
-          </span>
-        </div>
+          </motion.span>
+        </motion.div>
         <div className={`grid gap-3 ${
           isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
           {upcomingMilestones.map((milestone, index) => renderMilestone(milestone, index))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Progress Stats */}
       <motion.div 

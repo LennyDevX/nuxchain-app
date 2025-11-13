@@ -1,6 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
+import type { KnowledgeBaseItem } from '../types/index.js';
 
 /**
+ * ✅ TypeScript Migration - Phase 1 (embeddings complete)
  * Servicio de Embeddings para Vercel con Gemini API
  * Usa gemini-embedding-001 para búsqueda semántica de alta calidad
  */
@@ -17,6 +19,9 @@ interface Document {
     [key: string]: unknown;
   };
 }
+
+// Reuse Document for local compatibility with existing code
+type LocalDocument = Document;
 
 interface SearchResult {
   content: string;
@@ -60,6 +65,12 @@ interface ContextResult {
 // ============================================================================
 // CONSTANTS
 // ============================================================================
+
+// Warning flags para evitar logs repetidos
+const warningFlags = {
+  apiKeyMissing: false,
+  quotaExceeded: false
+};
 
 // Stopwords en ES/EN
 const STOPWORDS = new Set([
@@ -369,10 +380,10 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   
   if (!apiKey) {
-    if (!(generateEmbedding as unknown as { _warningShown?: boolean })._warningShown) {
+    if (!warningFlags.apiKeyMissing) {
       console.warn('⚠️ GEMINI_API_KEY not configured - using BM25 fallback');
       console.warn('💡 Configure GEMINI_API_KEY in .env for better semantic search');
-      (generateEmbedding as unknown as { _warningShown: boolean })._warningShown = true;
+      warningFlags.apiKeyMissing = true;
     }
     return null;
   }
@@ -417,11 +428,11 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
     const err = error as Error & { message?: string };
     
     if (err.message?.includes('quota') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-      if (!(generateEmbedding as unknown as { _quotaWarningShown?: boolean })._quotaWarningShown) {
+      if (!warningFlags.quotaExceeded) {
         console.error('❌ Gemini Embeddings quota exceeded');
         console.warn('⚠️ Switching to BM25 fallback for all future requests');
         console.warn('💡 To use embeddings: upgrade to paid tier at https://aistudio.google.com/apikey');
-        (generateEmbedding as unknown as { _quotaWarningShown: boolean })._quotaWarningShown = true;
+        warningFlags.quotaExceeded = true;
       }
       embeddingCallCount = EMBEDDING_RATE_LIMIT.maxCallsPerMinute;
       return null;
@@ -468,7 +479,7 @@ export async function searchSimilar(
   options: SearchOptions = {}
 ): Promise<SearchResult[]> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     
     if (!knowledgeBase || knowledgeBase.length === 0) {
       console.warn('⚠️ Knowledge base is empty');
@@ -716,7 +727,7 @@ async function precomputeWithSmartBatching(knowledgeBase: Document[]): Promise<P
 
 export async function precomputeKnowledgeBaseEmbeddings(): Promise<PrecomputeResult> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     
     if (!process.env.GEMINI_API_KEY) {
       return { precomputed: 0 };
@@ -808,7 +819,7 @@ export async function initializeKnowledgeBaseForVercel(precompute = false): Prom
   precomputeStarted?: boolean;
 }> {
   try {
-    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: Document[] };
+    const { knowledgeBase } = await import('./knowledge-base.js') as { knowledgeBase: KnowledgeBaseItem[] };
     const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
     
     console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);

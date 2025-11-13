@@ -39,7 +39,12 @@ export const GET_USER_STATS = gql`
       totalDeposited
       totalWithdrawn
       totalCompounded
-      nftCount
+      nftMintedCount
+      depositCount
+      withdrawalCount
+      compoundCount
+      level
+      totalXP
       createdAt
       updatedAt
     }
@@ -88,7 +93,7 @@ export const GET_USER_WITHDRAWALS = gql`
 `;
 
 /**
- * Query to get user's NFTs minted
+ * Query to get user's NFTs minted (v0.0.7 - using NFTMint entity)
  */
 export const GET_USER_NFTS = gql`
   query GetUserNFTs($userAddress: Bytes!, $first: Int!) {
@@ -100,8 +105,12 @@ export const GET_USER_NFTS = gql`
     ) {
       id
       tokenId
+      creator {
+        id
+      }
       tokenURI
       category
+      royaltyPercentage
       timestamp
       transactionHash
       blockNumber

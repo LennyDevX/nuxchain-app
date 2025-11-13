@@ -1,8 +1,11 @@
 import React, { memo, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import type { MarketplaceNFT } from '../../types/marketplace';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
-import { useImageCache } from '../../hooks/cache/useImageCache';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
+import { generateImageSrcSet, IMAGE_SIZES } from '../../utils/images/imageOptimization';
+import { ResponsiveImage } from '../ui/ResponsiveImage';
 
 interface NFTCardProps {
   nft: MarketplaceNFT;
@@ -12,39 +15,38 @@ interface NFTCardProps {
 
 const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
   const { convertPOLToUSD, polPrice } = usePOLPrice();
-  const { imageUrl, isLoading: imageLoading, error: imageError } = useImageCache(nft.image);
   const isMobile = useIsMobile();
+  
+  // ✅ Haptic feedback
+  const triggerHaptic = useTapFeedback();
 
   const handleBuyClick = useCallback(() => {
+    triggerHaptic('medium'); // ✅ Haptic feedback when clicking buy
     onBuy(nft);
-  }, [nft, onBuy]);
+  }, [nft, onBuy, triggerHaptic]);
 
   return (
-    <div className="group card-interactive overflow-hidden h-full">
-      {/* Imagen optimizada para móvil */}
-      <div className={`${isMobile ? 'aspect-square' : 'aspect-[4/3]'} bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center relative overflow-hidden`}>
-        {imageLoading ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className={`animate-spin rounded-full border-b-2 border-purple-400 ${isMobile ? 'h-6 w-6' : 'h-10 w-10'}`}></div>
-          </div>
-        ) : imageError || !imageUrl ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className={`opacity-50 ${isMobile ? 'text-4xl' : 'text-8xl'}`}>🖼️</span>
-            {imageError && (
-              <div className={`absolute bottom-2 left-2 right-2 text-red-400 bg-black/50 rounded px-2 py-1 text-center ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                Failed to load
-              </div>
-            )}
-          </div>
-        ) : (
-          <img 
-            src={imageUrl} 
-            alt={nft.name || `NFT #${nft.tokenId || index + 1}`}
-            className="w-full h-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-        )}
+    <motion.div 
+      className="group card-interactive overflow-hidden h-full"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -4 }}
+    >
+      {/* Imagen optimizada con ResponsiveImage */}
+      <div className={`relative overflow-hidden`}>
+        <ResponsiveImage
+          src={nft.image}
+          alt={nft.name || `NFT #${nft.tokenId || index + 1}`}
+          mobileSize={`w-full ${isMobile ? 'aspect-square' : 'aspect-[4/3]'}`}
+          tabletSize={`md:w-full md:${isMobile ? 'aspect-square' : 'aspect-[4/3]'}`}
+          desktopSize={`lg:w-full lg:${isMobile ? 'aspect-square' : 'aspect-[4/3]'}`}
+          className="bg-gradient-to-br from-purple-500/20 to-blue-500/20"
+          objectFit="cover"
+          srcSet={generateImageSrcSet(nft.image)}
+          sizes={IMAGE_SIZES.nft.mobile}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         {/* Badge de categoría en la imagen */}
@@ -100,12 +102,14 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
               </div>
             </div>
             {/* Botón de compra ancho y centrado */}
-            <button 
+            <motion.button 
               onClick={handleBuyClick}
-              className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 text-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 shadow-lg hover:shadow-purple-500/25 text-sm active:scale-95 transition-transform"
             >
               Buy Now
-            </button>
+            </motion.button>
           </div>
         ) : (
           <div className="flex justify-between items-end">
@@ -118,16 +122,18 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
                 {polPrice ? `≈ ${convertPOLToUSD(nft.priceInEth || 0.1)}` : '≈ Loading...'}
               </div>
             </div>
-            <button 
+            <motion.button 
               onClick={handleBuyClick}
-              className="px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25 flex-shrink-0"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25 flex-shrink-0 active:scale-95 transition-transform"
             >
               Buy Now
-            </button>
+            </motion.button>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }, (prevProps, nextProps) => {
   // Custom comparison function for memo

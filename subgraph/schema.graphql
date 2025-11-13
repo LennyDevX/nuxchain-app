@@ -1,21 +1,28 @@
 """
 User entity - represents a wallet address
+✅ OPTIMIZADO: Removidos @derivedFrom fields, agregados contadores directos
 """
 type User @entity(immutable: false) {
   id: Bytes! # wallet address
-  deposits: [Deposit!]! @derivedFrom(field: "user")
-  withdrawals: [Withdrawal!]! @derivedFrom(field: "user")
-  compounds: [Compound!]! @derivedFrom(field: "user")
-  nftsMinted: [NFTMint!]! @derivedFrom(field: "creator")
-  nftsListed: [NFTList!]! @derivedFrom(field: "seller")
-  nftsSold: [NFTSale!]! @derivedFrom(field: "seller")
-  nftsPurchased: [NFTPurchase!]! @derivedFrom(field: "buyer")
-  offersMade: [OfferCreated!]! @derivedFrom(field: "buyer")
-  offersReceived: [OfferAccepted!]! @derivedFrom(field: "seller")
+  
+  # ✅ Contadores directos (sin @derivedFrom)
+  depositCount: Int!
+  withdrawalCount: Int!
+  compoundCount: Int!
+  nftMintedCount: Int!
+  nftSoldCount: Int!
+  nftBoughtCount: Int!
+  offersMadeCount: Int!
+  
+  # Totales agregados
   totalDeposited: BigInt!
   totalWithdrawn: BigInt!
   totalCompounded: BigInt!
-  nftCount: Int!
+  
+  # Métricas de gamificación
+  level: Int!
+  totalXP: BigInt!
+  
   createdAt: BigInt!
   updatedAt: BigInt!
 }
@@ -58,6 +65,91 @@ type Compound @entity(immutable: true) {
 }
 
 """
+Auto Compound event
+"""
+type AutoCompound @entity(immutable: true) {
+  id: ID!
+  user: User!
+  amount: BigInt!
+  newBalance: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Skill Profile - User's gamification profile in staking
+"""
+type SkillProfile @entity(immutable: false) {
+  id: ID! # user address
+  user: User!
+  totalXP: BigInt!
+  level: Int!
+  maxActiveSkills: Int!
+  stakingBoostTotal: Int!
+  feeDiscountTotal: Int!
+  hasAutoCompound: Boolean!
+  updatedAt: BigInt!
+}
+
+"""
+NFT Skill - Individual skill NFT activated by user
+"""
+type NFTSkill @entity(immutable: false) {
+  id: ID! # user address + tokenId
+  user: User!
+  tokenId: BigInt!
+  skillType: Int!
+  effectValue: Int!
+  rarity: Int!
+  isActive: Boolean!
+  activatedAt: BigInt!
+  deactivatedAt: BigInt
+  transactionHash: Bytes!
+}
+
+"""
+Quest Completion event
+"""
+type QuestCompletion @entity(immutable: true) {
+  id: ID!
+  user: User!
+  questId: BigInt!
+  rewardAmount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Achievement Unlock event
+"""
+type AchievementUnlock @entity(immutable: true) {
+  id: ID!
+  user: User!
+  achievementId: BigInt!
+  rewardAmount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Marketplace User Profile - Gamification profile
+"""
+type MarketplaceProfile @entity(immutable: false) {
+  id: ID! # user address
+  user: User!
+  totalXP: BigInt!
+  level: Int!
+  nftsCreated: BigInt!
+  nftsSold: BigInt!
+  nftsBought: BigInt!
+  referralCount: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
 NFT Mint event
 """
 type NFTMint @entity(immutable: true) {
@@ -66,6 +158,7 @@ type NFTMint @entity(immutable: true) {
   creator: User!
   tokenURI: String!
   category: String!
+  royaltyPercentage: BigInt!
   timestamp: BigInt!
   transactionHash: Bytes!
   blockNumber: BigInt!
@@ -94,6 +187,7 @@ type NFTSale @entity(immutable: true) {
   seller: User!
   buyer: User!
   price: BigInt!
+  royaltyPaid: BigInt!
   timestamp: BigInt!
   transactionHash: Bytes!
   blockNumber: BigInt!
@@ -119,6 +213,32 @@ NFT Unlist event
 type NFTUnlist @entity(immutable: true) {
   id: ID!
   tokenId: BigInt!
+  unlister: Bytes!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Offer Cancelled event
+"""
+type OfferCancelled @entity(immutable: true) {
+  id: ID!
+  offerId: BigInt!
+  tokenId: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Royalty Paid event
+"""
+type RoyaltyPaid @entity(immutable: true) {
+  id: ID!
+  tokenId: BigInt!
+  creator: Bytes!
+  amount: BigInt!
   timestamp: BigInt!
   transactionHash: Bytes!
   blockNumber: BigInt!
@@ -178,6 +298,12 @@ enum ActivityType {
   STAKING_DEPOSIT
   STAKING_WITHDRAW
   STAKING_COMPOUND
+  STAKING_AUTO_COMPOUND
+  SKILL_ACTIVATED
+  SKILL_DEACTIVATED
+  SKILL_UPGRADED
+  QUEST_COMPLETED
+  ACHIEVEMENT_UNLOCKED
   NFT_MINT
   NFT_LIST
   NFT_SALE
@@ -185,4 +311,84 @@ enum ActivityType {
   NFT_UNLIST
   OFFER_MADE
   OFFER_ACCEPTED
+  OFFER_CANCELLED
+  ROYALTY_PAID
+  XP_GAINED
+  LEVEL_UP
+}
+
+"""
+✅ NUEVO: Global Statistics - Singleton para métricas globales
+Permite queries rápidas de totales sin sumar todas las entidades
+"""
+type GlobalStats @entity(immutable: false) {
+  id: ID! # "global"
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  totalCompounded: BigInt!
+  totalNFTsMinted: Int!
+  totalNFTsSold: Int!
+  totalMarketplaceVolume: BigInt!
+  totalUsers: Int!
+  totalActiveUsers: Int!
+  lastUpdatedBlock: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: Daily Statistics - Agregaciones diarias
+Permite análisis de actividad por día sin procesar miles de eventos
+"""
+type DailyStats @entity(immutable: false) {
+  id: ID! # "date-YYYY-MM-DD"
+  date: BigInt!
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  totalCompounded: BigInt!
+  totalStakers: Int!
+  totalNFTsMinted: Int!
+  totalNFTsSold: Int!
+  totalMarketplaceVolume: BigInt!
+  uniqueUsers: Int!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: User Statistics - Agregaciones por usuario
+Cache de métricas agregadas para evitar @derivedFrom queries
+"""
+type UserStats @entity(immutable: false) {
+  id: Bytes! # user address
+  user: User!
+  totalStakingAmount: BigInt!
+  currentStakingAmount: BigInt!
+  totalRewardsEarned: BigInt!
+  totalRoyaltiesReceived: BigInt!
+  nftsMintedCount: Int!
+  nftsSoldCount: Int!
+  nftsBoughtCount: Int!
+  totalMarketplaceVolume: BigInt!
+  averageNFTPrice: BigInt
+  level: Int!
+  xp: BigInt!
+  lastActivityAt: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+"""
+✅ NUEVO: NFT Statistics - Agregaciones por NFT
+Métricas de mercado para cada NFT sin procesar todas sus ventas
+"""
+type NFTStats @entity(immutable: false) {
+  id: String! # "tokenId-" concatenated (e.g., "12345")
+  totalSales: Int!
+  totalVolume: BigInt!
+  averagePrice: BigInt
+  floorPrice: BigInt
+  highestPrice: BigInt
+  lastSalePrice: BigInt
+  lastSaleAt: BigInt
+  holdersCount: Int!
+  updatedAt: BigInt!
 }

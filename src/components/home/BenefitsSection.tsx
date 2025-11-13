@@ -1,12 +1,19 @@
+import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 
 function BenefitsSection() {
   const isMobile = useIsMobile()
   
   return (
-    <div className={`${isMobile ? 'py-12' : 'py-24'}`}>
+    <div className={`${isMobile ? 'py-12' : 'py-24'} relative z-10`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`text-center ${isMobile ? 'mb-8' : 'mb-20'} animate-fade-in`}>
+        <motion.div 
+          className={`text-center ${isMobile ? 'mb-8' : 'mb-20'} animate-fade-in`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          viewport={{ once: true }}
+        >
           <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6`}>
             Nuxchain{' '}
             <span className="text-gradient">Ecosystem</span>
@@ -17,10 +24,22 @@ function BenefitsSection() {
               : 'Discover the innovative components that make up our comprehensive Web3 ecosystem, designed to revolutionize the DeFi experience'
             }
           </p>
-        </div>
+        </motion.div>
         
-        <div className={`grid ${isMobile ? 'grid-cols-2 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}`}>
-          <div className="card-interactive text-center group relative overflow-hidden">
+        <motion.div 
+          className={`grid ${isMobile ? 'grid-cols-2 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}`}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          <motion.div 
+            className="card-interactive text-center group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,9 +55,15 @@ function BenefitsSection() {
                 : 'Comprehensive library of smart contracts and on-chain/off-chain protocols that facilitate interaction with microservices such as smart staking, tokenization, and marketplaces'
               }
             </p>
-          </div>
+          </motion.div>
           
-          <div className="card-interactive text-center hover:-translate-y-3 group relative overflow-hidden">
+          <motion.div 
+            className="card-interactive text-center hover:-translate-y-3 group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.35 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,9 +79,15 @@ function BenefitsSection() {
                 : 'Exclusive ecosystem for NFTs that avoids FOMO and liquidity exit losses, increasing perceived value and offering digital assets with real utilities'
               }
             </p>
-          </div>
+          </motion.div>
           
-          <div className="card-interactive text-center hover:-translate-y-3 group relative overflow-hidden">
+          <motion.div 
+            className="card-interactive text-center hover:-translate-y-3 group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,9 +103,15 @@ function BenefitsSection() {
                 : 'We use Polygon and Ethereum as primary bases, avoiding fragmentation, while developing innovations around these established blockchains'
               }
             </p>
-          </div>
+          </motion.div>
           
-          <div className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden">
+          <motion.div 
+            className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,9 +127,15 @@ function BenefitsSection() {
                 : 'AI hub, a fundamental part of the Nuxchain core, where we develop AI-based tools and services to optimize the user experience'
               }
             </p>
-          </div>
+          </motion.div>
           
-          <div className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden">
+          <motion.div 
+            className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,9 +151,15 @@ function BenefitsSection() {
                 : 'R&D lab to attract talent, collaborate with exceptional teams, and develop innovative and experimental ideas in the Web3 ecosystem'
               }
             </p>
-          </div>
+          </motion.div>
           
-          <div className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden">
+          <motion.div 
+            className="card-interactive text-center hover:shadow-2xl transition-all duration-300 hover:-translate-y-3 group relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+            viewport={{ once: true }}
+          >
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-red-500 to-purple-600 opacity-60 group-hover:h-2 group-hover:opacity-80 transition-all duration-300"></div>
             <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-300">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,8 +175,8 @@ function BenefitsSection() {
                 : 'Advanced security system focused on tracking, investment strategies, and diversification, functioning as a treasury to manage platform resources'
               }
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 
 interface SendMessageButtonProps {
@@ -11,10 +12,21 @@ export default function SendMessageButton({ disabled, isLoading, onClick, hasTex
   const isMobile = useIsMobile()
 
   return (
-    <button
+    <motion.button
       type="submit"
       disabled={disabled}
       onClick={onClick}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ 
+        duration: 0.4,
+        delay: 0.4,
+        type: 'spring',
+        stiffness: 300,
+        damping: 25
+      }}
+      whileHover={{ scale: hasText && !disabled ? 1.05 : 1 }}
+      whileTap={{ scale: hasText && !disabled ? 0.95 : 1 }}
       className={`
         relative flex items-center justify-center
         ${isMobile ? 'w-12 h-12' : 'w-14 h-14'}
@@ -51,6 +63,6 @@ export default function SendMessageButton({ disabled, isLoading, onClick, hasTex
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
         </svg>
       )}
-    </button>
+    </motion.button>
   )
 }

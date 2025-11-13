@@ -1,7 +1,16 @@
-// Web Scraping Service optimized for Vercel
-// Efficiently extracts content from web pages
+/**
+ * ✅ TypeScript Migration - Phase 3
+ * Web Scraping Service optimized for Vercel
+ * Efficiently extracts content from web pages
+ */
+
+import type { WebScraperOptions, ExtractedHtmlData, WebScraperResult } from '../types/index.js';
 
 class WebScraperService {
+  private timeout: number;
+  private maxRetries: number;
+  private userAgent: string;
+
   constructor() {
     // Configuration optimized for Vercel
     // OPTIMIZACIÓN: Timeout reducido para Vercel
@@ -14,20 +23,16 @@ class WebScraperService {
 
   /**
    * Detects URLs in text
-   * @param {string} text - Text to analyze
-   * @returns {Array} - Array of found URLs
    */
-  detectUrls(text) {
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+  detectUrls(text: string): string[] {
+    const urlRegex: RegExp = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
     return text.match(urlRegex) || [];
   }
 
   /**
    * Validates if a URL is valid
-   * @param {string} url - URL to validate
-   * @returns {boolean} - True if valid
    */
-  isValidUrl(url) {
+  isValidUrl(url: string): boolean {
     try {
       const urlObj = new URL(url);
       return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
@@ -38,10 +43,8 @@ class WebScraperService {
 
   /**
    * Extracts domain from URL
-   * @param {string} url - URL to process
-   * @returns {string} - Extracted domain
    */
-  extractDomain(url) {
+  extractDomain(url: string): string {
     try {
       return new URL(url).hostname;
     } catch {
@@ -51,11 +54,8 @@ class WebScraperService {
 
   /**
    * Extracts content from a URL
-   * @param {string} url - URL to process
-   * @param {Object} options - Additional options
-   * @returns {Promise<Object>} - Extracted content
    */
-  async extractContent(url, options = {}) {
+  async extractContent(url: string, options: WebScraperOptions = {}): Promise<WebScraperResult> {
     try {
       if (!this.isValidUrl(url)) {
         throw new Error('Invalid URL');
@@ -133,11 +133,8 @@ class WebScraperService {
 
   /**
    * Parses HTML and extracts relevant content
-   * @param {string} html - HTML to parse
-   * @param {string} url - Original URL
-   * @returns {Object} - Extracted data
    */
-  parseHtml(html, url) {
+  parseHtml(html: string, url: string): ExtractedHtmlData {
     // Extract title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     let title = titleMatch ? titleMatch[1].trim() : '';
@@ -206,10 +203,8 @@ class WebScraperService {
 
   /**
    * Extracts plain text from HTML
-   * @param {string} html - HTML to process
-   * @returns {string} - Extracted text
    */
-  extractTextFromHtml(html) {
+  extractTextFromHtml(html: string): string {
     return html
       .replace(/<[^>]+>/g, ' ') // Remove HTML tags
       .replace(/&nbsp;/g, ' ') // Replace entities
@@ -224,10 +219,8 @@ class WebScraperService {
 
   /**
    * Cleans text for better readability
-   * @param {string} text - Text to clean
-   * @returns {string} - Cleaned text
    */
-  cleanText(text) {
+  cleanText(text: string): string {
     return text
       .replace(/[\n\r]+/g, '\n') // Normalize newlines
       .replace(/\n\s+\n/g, '\n\n') // Remove empty lines with spaces

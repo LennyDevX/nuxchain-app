@@ -1,4 +1,5 @@
 /**
+ * ✅ TypeScript Migration - Phase 3
  * Context Cache Service adaptado para Vercel Serverless
  * 
  * Limitaciones en Vercel:
@@ -12,7 +13,13 @@
  * - Útil para requests múltiples en la misma invocación
  */
 
+import type { CacheEntry, CacheStats } from '../types/index.js';
+
 class ContextCacheService {
+  private cache: Map<string, CacheEntry>;
+  private maxSize: number;
+  private defaultTTL: number;
+
   constructor() {
     // Cache simple en memoria para la duración de la función
     this.cache = new Map();
@@ -25,7 +32,7 @@ class ContextCacheService {
   /**
    * Guardar en cache con TTL
    */
-  set(key, value, ttl = this.defaultTTL) {
+  set<T = any>(key: string, value: T, ttl: number = this.defaultTTL): boolean {
     try {
       // Si el cache está lleno, eliminar el más antiguo
       if (this.cache.size >= this.maxSize) {
@@ -53,7 +60,7 @@ class ContextCacheService {
   /**
    * Obtener del cache (con validación de expiración)
    */
-  get(key) {
+  get<T = any>(key: string): T | null {
     try {
       const entry = this.cache.get(key);
       
@@ -80,7 +87,7 @@ class ContextCacheService {
   /**
    * Verificar si existe en cache (sin devolverlo)
    */
-  has(key) {
+  has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
     
@@ -96,7 +103,7 @@ class ContextCacheService {
   /**
    * Eliminar entrada específica
    */
-  delete(key) {
+  delete(key: string): boolean {
     const deleted = this.cache.delete(key);
     if (deleted) {
       console.log(`🗑️ Cache DELETE: ${key}`);
@@ -107,7 +114,7 @@ class ContextCacheService {
   /**
    * Limpiar todo el cache
    */
-  clear() {
+  clear(): number {
     const size = this.cache.size;
     this.cache.clear();
     console.log(`🧹 Cache CLEAR: ${size} entradas eliminadas`);
@@ -117,7 +124,7 @@ class ContextCacheService {
   /**
    * Obtener estadísticas del cache
    */
-  stats() {
+  stats(): CacheStats {
     let validEntries = 0;
     let expiredEntries = 0;
     const now = Date.now();
@@ -141,7 +148,7 @@ class ContextCacheService {
   /**
    * Limpiar entradas expiradas
    */
-  cleanup() {
+  cleanup(): number {
     const now = Date.now();
     let cleaned = 0;
 
@@ -163,7 +170,7 @@ class ContextCacheService {
    * Obtener o crear (lazy loading)
    * Útil para evitar llamadas duplicadas en la misma función
    */
-  async getOrSet(key, fetchFn, ttl = this.defaultTTL) {
+  async getOrSet<T = any>(key: string, fetchFn: () => Promise<T>, ttl: number = this.defaultTTL): Promise<T> {
     // Intentar obtener del cache
     const cached = this.get(key);
     if (cached !== null) {

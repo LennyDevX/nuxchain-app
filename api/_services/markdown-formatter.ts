@@ -1,4 +1,5 @@
 /**
+ * ✅ TypeScript Migration - Phase 3
  * Markdown Formatter Service
  * Post-processes Gemini responses to ensure consistent markdown formatting
  * WITHOUT emoji injection - let Gemini handle emojis naturally
@@ -7,7 +8,7 @@
 /**
  * Check if text already has good markdown structure
  */
-function hasMarkdownStructure(text) {
+function hasMarkdownStructure(text: string): boolean {
   if (!text) return false;
   
   const hasHeaders = /^#{1,3}\s+.+$/m.test(text);
@@ -25,7 +26,7 @@ function hasMarkdownStructure(text) {
  * Improve markdown formatting of a response
  * SIMPLIFIED: No emoji injection, just ensure spacing and list formatting
  */
-function improveMarkdownFormatting(text) {
+function improveMarkdownFormatting(text: string): string {
   if (!text) return text;
   
   // If already has structure, just ensure proper spacing
@@ -48,7 +49,7 @@ function improveMarkdownFormatting(text) {
 /**
  * Ensure proper spacing between paragraphs, lists, and code blocks
  */
-function ensureProperSpacing(text) {
+function ensureProperSpacing(text: string): string {
   if (!text) return text;
   
   let improved = text;
@@ -75,7 +76,7 @@ function ensureProperSpacing(text) {
 /**
  * Format unstructured lists into proper markdown lists
  */
-function formatLists(text) {
+function formatLists(text: string): string {
   if (!text) return text;
   
   // Detect numbered lists without bullets
@@ -118,7 +119,7 @@ function formatLists(text) {
  * Post-process Gemini response to ensure markdown quality
  * SIMPLIFIED: Removed emoji injection - let Gemini handle it naturally
  */
-export function formatResponseForMarkdown(response) {
+export function formatResponseForMarkdown(response: string): string {
   if (!response || typeof response !== 'string') {
     return response;
   }

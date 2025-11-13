@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 function StakingSection() {
   const [stakingAmount, setStakingAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState('30');
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
   
   // Staking calculator logic
@@ -120,12 +119,12 @@ function StakingSection() {
                 </div>
               </div>
               
-              <button
-                className="w-full btn-primary"
-                onClick={() => navigate('/staking')}
+              <Link
+                to="/staking"
+                className="w-full btn-primary inline-block text-center"
               >
                 Start Staking
-              </button>
+              </Link>
             </div>
           </div>
         </motion.div>

@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ResponsiveImage } from '../ui/ResponsiveImage'
 
 function NFTSection() {
   const isMobile = useIsMobile()
-  const navigate = useNavigate()
   
   return (
     <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
@@ -69,12 +68,12 @@ function NFTSection() {
             transition={{ duration: 0.6, delay: 0.35 }}
             viewport={{ once: true }}
           >
-            <button 
-              onClick={() => navigate('/nfts')}
-              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary`}
+            <Link 
+              to="/nfts"
+              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary inline-block text-center`}
             >
               Explore NFTs
-            </button>
+            </Link>
           </motion.div>
         </motion.div>
         

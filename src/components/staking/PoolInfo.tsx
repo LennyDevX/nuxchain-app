@@ -2,8 +2,7 @@ import React, { memo } from 'react'
 import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
 
-import { useReadContract } from 'wagmi'
-import { erc20Abi } from 'viem'
+import { useBalance } from 'wagmi'
 
 interface PoolInfoProps {
   totalPoolBalance: bigint | undefined
@@ -11,17 +10,16 @@ interface PoolInfoProps {
 }
 
 // Contract address from environment variables
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3'
-const POL_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000001010' // POL token on Polygon
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`
 
 const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {
-  // Get actual contract balance
-  const { data: contractBalance } = useReadContract({
-    address: POL_CONTRACT_ADDRESS as `0x${string}`,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: [STAKING_CONTRACT_ADDRESS as `0x${string}`],
+  // Get actual contract balance (native POL token)
+  const { data: balanceData } = useBalance({
+    address: STAKING_CONTRACT_ADDRESS,
+    chainId: 137, // Polygon
   })
+
+  const contractBalance = balanceData?.value
 
   // Format balance with proper decimals (POL has 18 decimals like ETH)
   const formatPOL = (balance: bigint | undefined) => {

@@ -4,7 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress } from 'viem';
 import type { Abi } from 'viem';
 import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
-import GameifiedMarketplaceSkillsABI from '../../abi/GameifiedMarketplaceSkills.json';
+// Ensure the JSON file exists at the specified path.
+// If you still get type errors, add a declaration for '*.json' imports in your project.
+import GameifiedMarketplaceSkillsABI from '../../abi/GameifiedMarketplaceSkillsV2.json';
 import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
 
 interface MintNFTParams {

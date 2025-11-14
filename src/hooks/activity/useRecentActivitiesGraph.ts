@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { apolloClient } from '../../lib/apollo-client';
-import { GET_USER_ACTIVITIES } from '../../lib/graphql/queries';
-import type { GetUserActivitiesResponse, ActivityType as GraphQLActivityType } from '../../lib/graphql/types';
+import { GET_USER_ACTIVITIES, GET_USER_INDIVIDUAL_SKILLS } from '../../lib/graphql/queries';
+import type { GetUserActivitiesResponse, ActivityType as GraphQLActivityType, GraphQLActivity, GraphQLIndividualSkill } from '../../lib/graphql/types';
 
 // Tipos de actividad (exportados para uso externo)
 export type ActivityType = GraphQLActivityType;
@@ -89,6 +89,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         return `Made offer of ${details.amount} POL on NFT #${details.tokenId}`;
       case 'OFFER_ACCEPTED':
         return `Accepted offer of ${details.amount} POL for NFT #${details.tokenId}`;
+      case 'SKILL_PURCHASED':
+        return `Purchased Skill #${details.tokenId}`;
       default:
         return 'Unknown activity';
     }
@@ -117,6 +119,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         return '💬';
       case 'OFFER_ACCEPTED':
         return '✅';
+      case 'SKILL_PURCHASED':
+        return '🎯';
       default:
         return '📋';
     }
@@ -145,6 +149,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         return 'text-orange-400';
       case 'OFFER_ACCEPTED':
         return 'text-green-400';
+      case 'SKILL_PURCHASED':
+        return 'text-purple-400';
       default:
         return 'text-gray-400';
     }
@@ -174,124 +180,159 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       const startTime = performance.now();
 
       try {
-        // Query The Graph subgraph
-        const { data, errors } = await apolloClient.query<GetUserActivitiesResponse>({
-          query: GET_USER_ACTIVITIES,
-          variables: {
-            userAddress: address.toLowerCase(), // The Graph uses lowercase addresses
-            first: maxActivities,
-            skip: 0,
-          },
-          fetchPolicy: 'no-cache', // Force fresh data, bypass cache completely
-        });
+        // Query both regular activities and individual skills in parallel
+        const [activitiesResult, skillsResult] = await Promise.all([
+          apolloClient.query<GetUserActivitiesResponse>({
+            query: GET_USER_ACTIVITIES,
+            variables: {
+              userAddress: address.toLowerCase(),
+              first: maxActivities,
+              skip: 0,
+            },
+            fetchPolicy: 'no-cache',
+          }),
+          apolloClient.query({
+            query: GET_USER_INDIVIDUAL_SKILLS,
+            variables: {
+              userAddress: address.toLowerCase(),
+              first: maxActivities,
+            },
+            fetchPolicy: 'no-cache',
+          }),
+        ]);
 
         const endTime = performance.now();
         const duration = Math.round(endTime - startTime);
 
-        if (errors && errors.length > 0) {
-          console.error('❌ [The Graph] GraphQL errors:', errors);
-          // Show empty state instead of throwing
-          console.warn('⚠️ Subgraph query failed - showing empty activity list');
-          setActivities([]);
-          setError('Subgraph query returned errors. Please try again.');
-          return;
+        // Handle errors from either query
+        if (activitiesResult.errors && activitiesResult.errors.length > 0) {
+          console.error('❌ [The Graph] Activities GraphQL errors:', activitiesResult.errors);
+        }
+        if (skillsResult.errors && skillsResult.errors.length > 0) {
+          console.error('❌ [The Graph] Skills GraphQL errors:', skillsResult.errors);
         }
 
-        if (!data || !data.activities) {
-          console.warn('⚠️ [The Graph] No data returned - showing empty activity list');
-          setActivities([]);
-          setError('No activities found. The subgraph may still be syncing.');
-          return;
-        }
+        const { data: activitiesData } = activitiesResult;
+        const { data: skillsData } = skillsResult;
 
-      console.log(
-        `%c✅ useRecentActivitiesGraph Query%c\n` +
-        `├─ Fetched: ${data.activities.length} raw activities\n` +
-        `└─ Time: ${duration}ms`,
-        'color: #20b2aa; font-weight: bold;',
-        'color: #ffffff;'
-      );
+        console.log(
+          `%c✅ useRecentActivitiesGraph Query%c\n` +
+          `├─ Fetched: ${activitiesData?.activities?.length || 0} activities\n` +
+          `├─ Fetched: ${skillsData?.individualSkills?.length || 0} skills\n` +
+          `└─ Time: ${duration}ms`,
+          'color: #20b2aa; font-weight: bold;',
+          'color: #ffffff;'
+        );
 
-      // Transform GraphQL data to Activity format
-      const transformedActivities: Activity[] = data.activities.map((activity) => {
-        const details: Activity['details'] = {
-          amount: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
-          tokenId: activity.tokenId,
-          price: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
-          lockupDuration: activity.lockupDuration ? Number(activity.lockupDuration) : undefined,
-          category: activity.category,
-          buyer: activity.buyer,
-          seller: activity.seller,
-          offerId: activity.offerId,
-        };
+        // Transform GraphQL activities data to Activity format
+        const transformedActivities: Activity[] = (activitiesData?.activities || []).map((activity: GraphQLActivity) => {
+          const details: Activity['details'] = {
+            amount: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
+            tokenId: activity.tokenId,
+            price: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
+            lockupDuration: activity.lockupDuration ? Number(activity.lockupDuration) : undefined,
+            category: activity.category,
+            buyer: activity.buyer,
+            seller: activity.seller,
+            offerId: activity.offerId,
+          };
 
-        const description = generateDescription(activity.type, details);
-        const icon = getActivityIcon(activity.type);
-        const color = getActivityColor(activity.type);
+          const description = generateDescription(activity.type, details);
+          const icon = getActivityIcon(activity.type);
+          const color = getActivityColor(activity.type);
 
-        return {
-          id: activity.id,
-          type: activity.type,
-          timestamp: Number(activity.timestamp),
-          txHash: activity.transactionHash,
-          details,
-          description,
-          icon,
-          color,
-        };
-      });
+          return {
+            id: activity.id,
+            type: activity.type,
+            timestamp: Number(activity.timestamp),
+            txHash: activity.transactionHash,
+            details,
+            description,
+            icon,
+            color,
+          };
+        });
 
-      // Deduplicate by transaction hash + type first
-      const uniqueActivities = transformedActivities.reduce((acc, activity) => {
-        const key = `${activity.txHash}-${activity.type}`;
-        if (!acc.has(key)) {
-          acc.set(key, activity);
-        }
-        return acc;
-      }, new Map<string, Activity>());
+        // Transform individual skills to Activity format
+        const skillActivities: Activity[] = (skillsData?.individualSkills || []).map((skill: GraphQLIndividualSkill) => {
+          const details: Activity['details'] = {
+            amount: undefined,
+            tokenId: skill.skillId,
+          };
 
-      const deduplicatedActivities = Array.from(uniqueActivities.values());
+          // Create a skill-specific description
+          const skillName = `Skill #${skill.skillType} (Rarity: ${skill.rarity})`;
+          const description = `Purchased ${skillName}`;
+          const icon = '🎯'; // Skill icon
+          const color = '#a78bfa'; // Purple color for skills
 
-      // Sort by timestamp descending (most recent first)
-      deduplicatedActivities.sort((a, b) => b.timestamp - a.timestamp);
+          return {
+            id: `skill-${skill.id}`,
+            type: 'SKILL_PURCHASED' as const,
+            timestamp: Number(skill.purchasedAt),
+            txHash: skill.transactionHash,
+            details,
+            description,
+            icon,
+            color,
+          };
+        });
 
-      // For NFT activities, keep only the most recent activity per NFT tokenId
-      const nftActivityTypes = ['NFT_LIST', 'NFT_SALE', 'NFT_PURCHASE', 'NFT_UNLIST', 'OFFER_MADE', 'OFFER_ACCEPTED'];
-      const nftActivitiesMap = new Map<string, Activity>();
-      const nonNftActivities: Activity[] = [];
+        // Combine all activities
+        const allTransformedActivities = [...transformedActivities, ...skillActivities];
 
-      deduplicatedActivities.forEach(activity => {
-        if (nftActivityTypes.includes(activity.type) && activity.details.tokenId) {
-          // For NFT activities, use tokenId + type as key to keep only the most recent
-          const nftKey = `${activity.details.tokenId}-${activity.type}`;
-          const existing = nftActivitiesMap.get(nftKey);
-          
-          // Keep the most recent one (already sorted by timestamp)
-          if (!existing || activity.timestamp > existing.timestamp) {
-            nftActivitiesMap.set(nftKey, activity);
+        // Deduplicate by transaction hash + type
+        const uniqueActivities = allTransformedActivities.reduce((acc, activity) => {
+          const key = `${activity.txHash}-${activity.type}`;
+          if (!acc.has(key)) {
+            acc.set(key, activity);
           }
-        } else {
-          // Keep all non-NFT activities (staking, etc.)
-          nonNftActivities.push(activity);
-        }
-      });
+          return acc;
+        }, new Map<string, Activity>());
 
-      // Combine NFT activities (deduplicated by tokenId) with all other activities
-      const finalActivities = [...Array.from(nftActivitiesMap.values()), ...nonNftActivities];
+        const deduplicatedActivities = Array.from(uniqueActivities.values());
 
-      // Sort final list by timestamp
-      finalActivities.sort((a, b) => b.timestamp - a.timestamp);
+        // Sort by timestamp descending (most recent first)
+        deduplicatedActivities.sort((a, b) => b.timestamp - a.timestamp);
 
-      setActivities(finalActivities);
-      setError(null); // Clear any previous errors
+        // For NFT activities, keep only the most recent activity per NFT tokenId
+        const nftActivityTypes = ['NFT_LIST', 'NFT_SALE', 'NFT_PURCHASE', 'NFT_UNLIST', 'OFFER_MADE', 'OFFER_ACCEPTED'];
+        const nftActivitiesMap = new Map<string, Activity>();
+        const nonNftActivities: Activity[] = [];
+
+        deduplicatedActivities.forEach(activity => {
+          if (nftActivityTypes.includes(activity.type) && activity.details.tokenId) {
+            // For NFT activities, use tokenId + type as key to keep only the most recent
+            const nftKey = `${activity.details.tokenId}-${activity.type}`;
+            const existing = nftActivitiesMap.get(nftKey);
+            
+            // Keep the most recent one (already sorted by timestamp)
+            if (!existing || activity.timestamp > existing.timestamp) {
+              nftActivitiesMap.set(nftKey, activity);
+            }
+          } else {
+            // Keep all non-NFT activities (staking, skills, etc.)
+            nonNftActivities.push(activity);
+          }
+        });
+
+        // Combine NFT activities (deduplicated by tokenId) with all other activities
+        const finalActivities = [...Array.from(nftActivitiesMap.values()), ...nonNftActivities];
+
+        // Sort final list by timestamp
+        finalActivities.sort((a, b) => b.timestamp - a.timestamp);
+
+        setActivities(finalActivities);
+        setError(null); // Clear any previous errors
 
         console.log(
           `%c🔍 useRecentActivitiesGraph Processing%c\n` +
-          `├─ Raw: ${data.activities.length} activities\n` +
+          `├─ Raw Activities: ${activitiesData?.activities?.length || 0}\n` +
+          `├─ Raw Skills: ${skillsData?.individualSkills?.length || 0}\n` +
           `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
           `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
           `├─ NFT Activities: ${nftActivitiesMap.size}\n` +
-          `├─ Staking Activities: ${nonNftActivities.length}\n` +
+          `├─ Other Activities: ${nonNftActivities.length}\n` +
           `└─ Final Result: ${finalActivities.length} activities sorted by date`,
           'color: #ff8c00; font-weight: bold;',
           'color: #ffffff;'

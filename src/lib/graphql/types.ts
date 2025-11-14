@@ -12,7 +12,8 @@ export type ActivityType =
   | 'NFT_PURCHASE'
   | 'NFT_UNLIST'
   | 'OFFER_MADE'
-  | 'OFFER_ACCEPTED';
+  | 'OFFER_ACCEPTED'
+  | 'SKILL_PURCHASED';
 
 export interface GraphQLActivity {
   id: string;
@@ -75,6 +76,21 @@ export interface GraphQLNFTMint {
   blockNumber: string; // BigInt as string
 }
 
+export interface GraphQLIndividualSkill {
+  id: string;
+  skillId: string; // BigInt as string
+  skillType: string; // BigInt as string
+  rarity: string;
+  level: string; // BigInt as string
+  owner: string; // Bytes as hex string (wallet address)
+  purchasedAt: string; // BigInt as string (timestamp)
+  expiresAt: string; // BigInt as string (timestamp)
+  isActive: boolean;
+  metadata?: string;
+  transactionHash: string; // Bytes as hex string
+  blockNumber: string; // BigInt as string
+}
+
 export interface GraphQLSubgraphMeta {
   _meta: {
     block: {
@@ -98,6 +114,10 @@ export interface GetUserStatsResponse {
 
 export interface GetUserDepositsResponse {
   deposits: GraphQLDeposit[];
+}
+
+export interface GetUserIndividualSkillsResponse {
+  individualSkills: GraphQLIndividualSkill[];
 }
 
 export interface GetUserWithdrawalsResponse {

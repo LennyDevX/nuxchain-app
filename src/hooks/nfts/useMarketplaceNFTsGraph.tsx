@@ -479,7 +479,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           total: items.length
         };
         } catch (error) {
-        console.error('❌ Error fetching NFTs from subgraph v0.17:', error);
+        console.error('❌ Error fetching NFTs from subgraph v0.19:', error);
         throw error;
       }
     },

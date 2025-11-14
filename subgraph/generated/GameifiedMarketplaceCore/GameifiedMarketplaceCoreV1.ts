@@ -308,6 +308,36 @@ export class Paused__Params {
   }
 }
 
+export class PlatformFeeTransferred extends ethereum.Event {
+  get params(): PlatformFeeTransferred__Params {
+    return new PlatformFeeTransferred__Params(this);
+  }
+}
+
+export class PlatformFeeTransferred__Params {
+  _event: PlatformFeeTransferred;
+
+  constructor(event: PlatformFeeTransferred) {
+    this._event = event;
+  }
+
+  get from(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get to(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+
+  get operation(): string {
+    return this._event.parameters[3].value.toString();
+  }
+}
+
 export class PriceUpdated extends ethereum.Event {
   get params(): PriceUpdated__Params {
     return new PriceUpdated__Params(this);
@@ -331,6 +361,28 @@ export class PriceUpdated__Params {
 
   get newPrice(): BigInt {
     return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class QuestsContractUpdated extends ethereum.Event {
+  get params(): QuestsContractUpdated__Params {
+    return new QuestsContractUpdated__Params(this);
+  }
+}
+
+export class QuestsContractUpdated__Params {
+  _event: QuestsContractUpdated;
+
+  constructor(event: QuestsContractUpdated) {
+    this._event = event;
+  }
+
+  get oldAddress(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newAddress(): Address {
+    return this._event.parameters[1].value.toAddress();
   }
 }
 
@@ -409,6 +461,50 @@ export class RoleRevoked__Params {
 
   get sender(): Address {
     return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class SkillsContractUpdated extends ethereum.Event {
+  get params(): SkillsContractUpdated__Params {
+    return new SkillsContractUpdated__Params(this);
+  }
+}
+
+export class SkillsContractUpdated__Params {
+  _event: SkillsContractUpdated;
+
+  constructor(event: SkillsContractUpdated) {
+    this._event = event;
+  }
+
+  get oldAddress(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newAddress(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class StakingContractUpdated extends ethereum.Event {
+  get params(): StakingContractUpdated__Params {
+    return new StakingContractUpdated__Params(this);
+  }
+}
+
+export class StakingContractUpdated__Params {
+  _event: StakingContractUpdated;
+
+  constructor(event: StakingContractUpdated) {
+    this._event = event;
+  }
+
+  get oldAddress(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newAddress(): Address {
+    return this._event.parameters[1].value.toAddress();
   }
 }
 
@@ -1537,27 +1633,6 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toString());
   }
 
-  userBalance(param0: Address): BigInt {
-    let result = super.call("userBalance", "userBalance(address):(uint256)", [
-      ethereum.Value.fromAddress(param0),
-    ]);
-
-    return result[0].toBigInt();
-  }
-
-  try_userBalance(param0: Address): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "userBalance",
-      "userBalance(address):(uint256)",
-      [ethereum.Value.fromAddress(param0)],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
   userProfiles(
     param0: Address,
   ): GameifiedMarketplaceCoreV1__userProfilesResult {
@@ -1923,10 +1998,6 @@ export class ListTokenForSaleCall__Inputs {
 
   get _price(): BigInt {
     return this._call.inputValues[1].value.toBigInt();
-  }
-
-  get value2(): string {
-    return this._call.inputValues[2].value.toString();
   }
 }
 

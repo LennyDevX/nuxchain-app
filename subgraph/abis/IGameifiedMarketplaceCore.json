@@ -1,0 +1,80 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IGameifiedMarketplaceCore",
+  "sourceName": "contracts/Marketplace/GameifiedMarketplaceQuests.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateUserXP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userProfiles",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "totalXP",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "level",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nftsCreated",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nftsOwned",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint32",
+              "name": "nftsSold",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "nftsBought",
+              "type": "uint32"
+            }
+          ],
+          "internalType": "struct IGameifiedMarketplaceCore.UserProfile",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

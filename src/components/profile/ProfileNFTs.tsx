@@ -101,11 +101,11 @@ const ProfileNFTs: React.FC = () => {
       ) : error ? (
         <div className="card-content text-center py-16 space-y-4">
           <div className="text-6xl mb-4">⚠️</div>
-          {error.includes('indexing') || error.includes('v0.17') ? (
+          {error.includes('indexing') || error.includes('v0.19') ? (
             <>
               <p className="text-yellow-400 font-semibold text-lg">Subgraph is updating...</p>
               <p className="text-gray-400 max-w-md mx-auto">
-                The Graph v0.17 is syncing. 
+                The Graph v0.19 is syncing. 
                 This page will automatically refresh every 30 seconds.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500">

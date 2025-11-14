@@ -7,7 +7,7 @@ import {
   IndividualSkillRenewed,
   IndividualSkillTransferred,
 } from "../generated/IIndividualSkills/IIndividualSkills";
-import { IndividualSkill, User, Activity, SkillRenewal } from "../generated/schema";
+import { IndividualSkill, User, SkillRenewal } from "../generated/schema";
 
 function getOrCreateUser(address: Bytes, timestamp: BigInt): User {
   let user = User.load(address);
@@ -50,32 +50,6 @@ function getOrCreateUser(address: Bytes, timestamp: BigInt): User {
   return user;
 }
 
-function recordActivity(
-  type: string,
-  userAddress: Bytes,
-  timestamp: BigInt,
-  txHash: Bytes,
-  blockNumber: BigInt,
-  amount: BigInt | null,
-  tokenId: BigInt | null
-): void {
-  const activity = new Activity(txHash.toHex() + "-individual-skills");
-  activity.type = type;
-  activity.user = userAddress;
-  activity.timestamp = timestamp;
-  activity.transactionHash = txHash;
-  activity.blockNumber = blockNumber;
-  
-  if (amount) {
-    activity.amount = amount;
-  }
-  if (tokenId) {
-    activity.tokenId = tokenId;
-  }
-  
-  activity.save();
-}
-
 export function handleIndividualSkillActivated(event: IndividualSkillActivated): void {
   getOrCreateUser(event.params.user, event.block.timestamp);
   
@@ -88,16 +62,6 @@ export function handleIndividualSkillActivated(event: IndividualSkillActivated):
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
-  
-  recordActivity(
-    "SKILL_ACTIVATED",
-    event.params.user,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    null,
-    event.params.skillId
-  );
 }
 
 export function handleIndividualSkillDeactivated(event: IndividualSkillDeactivated): void {
@@ -112,16 +76,6 @@ export function handleIndividualSkillDeactivated(event: IndividualSkillDeactivat
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
-  
-  recordActivity(
-    "SKILL_DEACTIVATED",
-    event.params.user,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    null,
-    event.params.skillId
-  );
 }
 
 export function handleIndividualSkillExpired(event: IndividualSkillExpired): void {
@@ -136,16 +90,6 @@ export function handleIndividualSkillExpired(event: IndividualSkillExpired): voi
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
-  
-  recordActivity(
-    "SKILL_EXPIRED",
-    event.params.user,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    null,
-    event.params.skillId
-  );
 }
 
 export function handleIndividualSkillPurchased(event: IndividualSkillPurchased): void {
@@ -169,16 +113,6 @@ export function handleIndividualSkillPurchased(event: IndividualSkillPurchased):
   skill.transactionHash = event.transaction.hash;
   
   skill.save();
-  
-  recordActivity(
-    "SKILL_PURCHASED",
-    event.params.user,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    event.params.price,
-    event.params.skillId
-  );
 }
 
 export function handleIndividualSkillRenewed(event: IndividualSkillRenewed): void {
@@ -204,16 +138,6 @@ export function handleIndividualSkillRenewed(event: IndividualSkillRenewed): voi
   renewal.transactionHash = event.transaction.hash;
   renewal.blockNumber = event.block.number;
   renewal.save();
-  
-  recordActivity(
-    "SKILL_RENEWED",
-    event.params.user,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    null,
-    event.params.skillId
-  );
 }
 
 export function handleIndividualSkillTransferred(event: IndividualSkillTransferred): void {
@@ -230,14 +154,4 @@ export function handleIndividualSkillTransferred(event: IndividualSkillTransferr
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
-  
-  recordActivity(
-    "SKILL_TRANSFERRED",
-    event.params.from,
-    event.block.timestamp,
-    event.transaction.hash,
-    event.block.number,
-    null,
-    event.params.skillId
-  );
 }

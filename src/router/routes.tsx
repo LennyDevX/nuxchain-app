@@ -19,6 +19,7 @@ const Blog = lazy(() => import(/* webpackChunkName: "blog" */ '../pages/Blog'));
 const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevHub'));
 const Roadmap = lazy(() => import(/* webpackChunkName: "roadmap" */ '../pages/Roadmap'));
 const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skills'));
+const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -61,6 +62,7 @@ function AppRoutes() {
         <Route path="/tokenization" element={<Tokenization />} />
         <Route path="/labs" element={<Labs />} />
         <Route path="/skills" element={<Skills />} />
+        <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dev-hub" element={<CTAHub />} />

@@ -32,6 +32,24 @@ export class CoreContractUpdated__Params {
   }
 }
 
+export class Paused extends ethereum.Event {
+  get params(): Paused__Params {
+    return new Paused__Params(this);
+  }
+}
+
+export class Paused__Params {
+  _event: Paused;
+
+  constructor(event: Paused) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class QuestCompleted extends ethereum.Event {
   get params(): QuestCompleted__Params {
     return new QuestCompleted__Params(this);
@@ -136,6 +154,84 @@ export class QuestProgressUpdated__Params {
   }
 }
 
+export class RoleAdminChanged extends ethereum.Event {
+  get params(): RoleAdminChanged__Params {
+    return new RoleAdminChanged__Params(this);
+  }
+}
+
+export class RoleAdminChanged__Params {
+  _event: RoleAdminChanged;
+
+  constructor(event: RoleAdminChanged) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get previousAdminRole(): Bytes {
+    return this._event.parameters[1].value.toBytes();
+  }
+
+  get newAdminRole(): Bytes {
+    return this._event.parameters[2].value.toBytes();
+  }
+}
+
+export class RoleGranted extends ethereum.Event {
+  get params(): RoleGranted__Params {
+    return new RoleGranted__Params(this);
+  }
+}
+
+export class RoleGranted__Params {
+  _event: RoleGranted;
+
+  constructor(event: RoleGranted) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class RoleRevoked extends ethereum.Event {
+  get params(): RoleRevoked__Params {
+    return new RoleRevoked__Params(this);
+  }
+}
+
+export class RoleRevoked__Params {
+  _event: RoleRevoked;
+
+  constructor(event: RoleRevoked) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
 export class SocialActionRecorded extends ethereum.Event {
   get params(): SocialActionRecorded__Params {
     return new SocialActionRecorded__Params(this);
@@ -180,11 +276,1097 @@ export class StakingContractUpdated__Params {
   }
 }
 
+export class Unpaused extends ethereum.Event {
+  get params(): Unpaused__Params {
+    return new Unpaused__Params(this);
+  }
+}
+
+export class Unpaused__Params {
+  _event: Unpaused;
+
+  constructor(event: Unpaused) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class GameifiedMarketplaceQuests__getQuestResultValue0Struct extends ethereum.Tuple {
+  get questId(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get questType(): i32 {
+    return this[1].toI32();
+  }
+
+  get title(): string {
+    return this[2].toString();
+  }
+
+  get description(): string {
+    return this[3].toString();
+  }
+
+  get requirement(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get xpReward(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get active(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get createdAt(): BigInt {
+    return this[7].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct extends ethereum.Tuple {
+  get questId(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get currentProgress(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get completed(): boolean {
+    return this[2].toBoolean();
+  }
+
+  get completedAt(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceQuests__questsResult {
+  value0: BigInt;
+  value1: i32;
+  value2: string;
+  value3: string;
+  value4: BigInt;
+  value5: BigInt;
+  value6: boolean;
+  value7: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: i32,
+    value2: string,
+    value3: string,
+    value4: BigInt,
+    value5: BigInt,
+    value6: boolean,
+    value7: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+    this.value5 = value5;
+    this.value6 = value6;
+    this.value7 = value7;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set(
+      "value1",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value1)),
+    );
+    map.set("value2", ethereum.Value.fromString(this.value2));
+    map.set("value3", ethereum.Value.fromString(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
+    map.set("value6", ethereum.Value.fromBoolean(this.value6));
+    map.set("value7", ethereum.Value.fromUnsignedBigInt(this.value7));
+    return map;
+  }
+
+  getQuestId(): BigInt {
+    return this.value0;
+  }
+
+  getQuestType(): i32 {
+    return this.value1;
+  }
+
+  getTitle(): string {
+    return this.value2;
+  }
+
+  getDescription(): string {
+    return this.value3;
+  }
+
+  getRequirement(): BigInt {
+    return this.value4;
+  }
+
+  getXpReward(): BigInt {
+    return this.value5;
+  }
+
+  getActive(): boolean {
+    return this.value6;
+  }
+
+  getCreatedAt(): BigInt {
+    return this.value7;
+  }
+}
+
+export class GameifiedMarketplaceQuests__userQuestProgressResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: boolean;
+  value3: BigInt;
+
+  constructor(value0: BigInt, value1: BigInt, value2: boolean, value3: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromBoolean(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    return map;
+  }
+
+  getQuestId(): BigInt {
+    return this.value0;
+  }
+
+  getCurrentProgress(): BigInt {
+    return this.value1;
+  }
+
+  getCompleted(): boolean {
+    return this.value2;
+  }
+
+  getCompletedAt(): BigInt {
+    return this.value3;
+  }
+}
+
 export class GameifiedMarketplaceQuests extends ethereum.SmartContract {
   static bind(address: Address): GameifiedMarketplaceQuests {
     return new GameifiedMarketplaceQuests(
       "GameifiedMarketplaceQuests",
       address,
     );
+  }
+
+  ADMIN_ROLE(): Bytes {
+    let result = super.call("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  DEFAULT_ADMIN_ROLE(): Bytes {
+    let result = super.call(
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
+    );
+
+    return result[0].toBytes();
+  }
+
+  try_DEFAULT_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  coreContractAddress(): Address {
+    let result = super.call(
+      "coreContractAddress",
+      "coreContractAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_coreContractAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "coreContractAddress",
+      "coreContractAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  createQuest(
+    _questType: i32,
+    _title: string,
+    _description: string,
+    _requirement: BigInt,
+    _xpReward: BigInt,
+  ): BigInt {
+    let result = super.call(
+      "createQuest",
+      "createQuest(uint8,string,string,uint256,uint256):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType)),
+        ethereum.Value.fromString(_title),
+        ethereum.Value.fromString(_description),
+        ethereum.Value.fromUnsignedBigInt(_requirement),
+        ethereum.Value.fromUnsignedBigInt(_xpReward),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_createQuest(
+    _questType: i32,
+    _title: string,
+    _description: string,
+    _requirement: BigInt,
+    _xpReward: BigInt,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "createQuest",
+      "createQuest(uint8,string,string,uint256,uint256):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType)),
+        ethereum.Value.fromString(_title),
+        ethereum.Value.fromString(_description),
+        ethereum.Value.fromUnsignedBigInt(_requirement),
+        ethereum.Value.fromUnsignedBigInt(_xpReward),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getQuest(
+    _questId: BigInt,
+  ): GameifiedMarketplaceQuests__getQuestResultValue0Struct {
+    let result = super.call(
+      "getQuest",
+      "getQuest(uint256):((uint256,uint8,string,string,uint256,uint256,bool,uint256))",
+      [ethereum.Value.fromUnsignedBigInt(_questId)],
+    );
+
+    return changetype<GameifiedMarketplaceQuests__getQuestResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_getQuest(
+    _questId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceQuests__getQuestResultValue0Struct> {
+    let result = super.tryCall(
+      "getQuest",
+      "getQuest(uint256):((uint256,uint8,string,string,uint256,uint256,bool,uint256))",
+      [ethereum.Value.fromUnsignedBigInt(_questId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<GameifiedMarketplaceQuests__getQuestResultValue0Struct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  getRoleAdmin(role: Bytes): Bytes {
+    let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
+      ethereum.Value.fromFixedBytes(role),
+    ]);
+
+    return result[0].toBytes();
+  }
+
+  try_getRoleAdmin(role: Bytes): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "getRoleAdmin",
+      "getRoleAdmin(bytes32):(bytes32)",
+      [ethereum.Value.fromFixedBytes(role)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getUserCompletedQuests(_user: Address): Array<BigInt> {
+    let result = super.call(
+      "getUserCompletedQuests",
+      "getUserCompletedQuests(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getUserCompletedQuests(
+    _user: Address,
+  ): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getUserCompletedQuests",
+      "getUserCompletedQuests(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getUserQuestProgress(
+    _user: Address,
+    _questId: BigInt,
+  ): GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct {
+    let result = super.call(
+      "getUserQuestProgress",
+      "getUserQuestProgress(address,uint256):((uint256,uint256,bool,uint256))",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(_questId),
+      ],
+    );
+
+    return changetype<GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_getUserQuestProgress(
+    _user: Address,
+    _questId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct> {
+    let result = super.tryCall(
+      "getUserQuestProgress",
+      "getUserQuestProgress(address,uint256):((uint256,uint256,bool,uint256))",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(_questId),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  getUserSocialActions(_user: Address): BigInt {
+    let result = super.call(
+      "getUserSocialActions",
+      "getUserSocialActions(address):(uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getUserSocialActions(_user: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getUserSocialActions",
+      "getUserSocialActions(address):(uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  hasRole(role: Bytes, account: Address): boolean {
+    let result = super.call("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_hasRole(role: Bytes, account: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  paused(): boolean {
+    let result = super.call("paused", "paused():(bool)", []);
+
+    return result[0].toBoolean();
+  }
+
+  try_paused(): ethereum.CallResult<boolean> {
+    let result = super.tryCall("paused", "paused():(bool)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  quests(param0: BigInt): GameifiedMarketplaceQuests__questsResult {
+    let result = super.call(
+      "quests",
+      "quests(uint256):(uint256,uint8,string,string,uint256,uint256,bool,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+
+    return new GameifiedMarketplaceQuests__questsResult(
+      result[0].toBigInt(),
+      result[1].toI32(),
+      result[2].toString(),
+      result[3].toString(),
+      result[4].toBigInt(),
+      result[5].toBigInt(),
+      result[6].toBoolean(),
+      result[7].toBigInt(),
+    );
+  }
+
+  try_quests(
+    param0: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceQuests__questsResult> {
+    let result = super.tryCall(
+      "quests",
+      "quests(uint256):(uint256,uint8,string,string,uint256,uint256,bool,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceQuests__questsResult(
+        value[0].toBigInt(),
+        value[1].toI32(),
+        value[2].toString(),
+        value[3].toString(),
+        value[4].toBigInt(),
+        value[5].toBigInt(),
+        value[6].toBoolean(),
+        value[7].toBigInt(),
+      ),
+    );
+  }
+
+  stakingContractAddress(): Address {
+    let result = super.call(
+      "stakingContractAddress",
+      "stakingContractAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_stakingContractAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "stakingContractAddress",
+      "stakingContractAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  userCompletedQuests(param0: Address, param1: BigInt): BigInt {
+    let result = super.call(
+      "userCompletedQuests",
+      "userCompletedQuests(address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userCompletedQuests(
+    param0: Address,
+    param1: BigInt,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userCompletedQuests",
+      "userCompletedQuests(address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userQuestProgress(
+    param0: Address,
+    param1: BigInt,
+  ): GameifiedMarketplaceQuests__userQuestProgressResult {
+    let result = super.call(
+      "userQuestProgress",
+      "userQuestProgress(address,uint256):(uint256,uint256,bool,uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+
+    return new GameifiedMarketplaceQuests__userQuestProgressResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBoolean(),
+      result[3].toBigInt(),
+    );
+  }
+
+  try_userQuestProgress(
+    param0: Address,
+    param1: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceQuests__userQuestProgressResult> {
+    let result = super.tryCall(
+      "userQuestProgress",
+      "userQuestProgress(address,uint256):(uint256,uint256,bool,uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceQuests__userQuestProgressResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBoolean(),
+        value[3].toBigInt(),
+      ),
+    );
+  }
+
+  userSocialActions(param0: Address): BigInt {
+    let result = super.call(
+      "userSocialActions",
+      "userSocialActions(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userSocialActions(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userSocialActions",
+      "userSocialActions(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+
+  get _coreAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class CompleteQuestCall extends ethereum.Call {
+  get inputs(): CompleteQuestCall__Inputs {
+    return new CompleteQuestCall__Inputs(this);
+  }
+
+  get outputs(): CompleteQuestCall__Outputs {
+    return new CompleteQuestCall__Outputs(this);
+  }
+}
+
+export class CompleteQuestCall__Inputs {
+  _call: CompleteQuestCall;
+
+  constructor(call: CompleteQuestCall) {
+    this._call = call;
+  }
+
+  get _questId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class CompleteQuestCall__Outputs {
+  _call: CompleteQuestCall;
+
+  constructor(call: CompleteQuestCall) {
+    this._call = call;
+  }
+}
+
+export class CreateQuestCall extends ethereum.Call {
+  get inputs(): CreateQuestCall__Inputs {
+    return new CreateQuestCall__Inputs(this);
+  }
+
+  get outputs(): CreateQuestCall__Outputs {
+    return new CreateQuestCall__Outputs(this);
+  }
+}
+
+export class CreateQuestCall__Inputs {
+  _call: CreateQuestCall;
+
+  constructor(call: CreateQuestCall) {
+    this._call = call;
+  }
+
+  get _questType(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _title(): string {
+    return this._call.inputValues[1].value.toString();
+  }
+
+  get _description(): string {
+    return this._call.inputValues[2].value.toString();
+  }
+
+  get _requirement(): BigInt {
+    return this._call.inputValues[3].value.toBigInt();
+  }
+
+  get _xpReward(): BigInt {
+    return this._call.inputValues[4].value.toBigInt();
+  }
+}
+
+export class CreateQuestCall__Outputs {
+  _call: CreateQuestCall;
+
+  constructor(call: CreateQuestCall) {
+    this._call = call;
+  }
+
+  get value0(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
+export class DeactivateQuestCall extends ethereum.Call {
+  get inputs(): DeactivateQuestCall__Inputs {
+    return new DeactivateQuestCall__Inputs(this);
+  }
+
+  get outputs(): DeactivateQuestCall__Outputs {
+    return new DeactivateQuestCall__Outputs(this);
+  }
+}
+
+export class DeactivateQuestCall__Inputs {
+  _call: DeactivateQuestCall;
+
+  constructor(call: DeactivateQuestCall) {
+    this._call = call;
+  }
+
+  get _questId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class DeactivateQuestCall__Outputs {
+  _call: DeactivateQuestCall;
+
+  constructor(call: DeactivateQuestCall) {
+    this._call = call;
+  }
+}
+
+export class GrantRoleCall extends ethereum.Call {
+  get inputs(): GrantRoleCall__Inputs {
+    return new GrantRoleCall__Inputs(this);
+  }
+
+  get outputs(): GrantRoleCall__Outputs {
+    return new GrantRoleCall__Outputs(this);
+  }
+}
+
+export class GrantRoleCall__Inputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class GrantRoleCall__Outputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall extends ethereum.Call {
+  get inputs(): PauseCall__Inputs {
+    return new PauseCall__Inputs(this);
+  }
+
+  get outputs(): PauseCall__Outputs {
+    return new PauseCall__Outputs(this);
+  }
+}
+
+export class PauseCall__Inputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall__Outputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class RecordSocialActionCall extends ethereum.Call {
+  get inputs(): RecordSocialActionCall__Inputs {
+    return new RecordSocialActionCall__Inputs(this);
+  }
+
+  get outputs(): RecordSocialActionCall__Outputs {
+    return new RecordSocialActionCall__Outputs(this);
+  }
+}
+
+export class RecordSocialActionCall__Inputs {
+  _call: RecordSocialActionCall;
+
+  constructor(call: RecordSocialActionCall) {
+    this._call = call;
+  }
+
+  get _user(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class RecordSocialActionCall__Outputs {
+  _call: RecordSocialActionCall;
+
+  constructor(call: RecordSocialActionCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceRoleCall extends ethereum.Call {
+  get inputs(): RenounceRoleCall__Inputs {
+    return new RenounceRoleCall__Inputs(this);
+  }
+
+  get outputs(): RenounceRoleCall__Outputs {
+    return new RenounceRoleCall__Outputs(this);
+  }
+}
+
+export class RenounceRoleCall__Inputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RenounceRoleCall__Outputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+}
+
+export class RevokeRoleCall extends ethereum.Call {
+  get inputs(): RevokeRoleCall__Inputs {
+    return new RevokeRoleCall__Inputs(this);
+  }
+
+  get outputs(): RevokeRoleCall__Outputs {
+    return new RevokeRoleCall__Outputs(this);
+  }
+}
+
+export class RevokeRoleCall__Inputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RevokeRoleCall__Outputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+}
+
+export class SetCoreContractCall extends ethereum.Call {
+  get inputs(): SetCoreContractCall__Inputs {
+    return new SetCoreContractCall__Inputs(this);
+  }
+
+  get outputs(): SetCoreContractCall__Outputs {
+    return new SetCoreContractCall__Outputs(this);
+  }
+}
+
+export class SetCoreContractCall__Inputs {
+  _call: SetCoreContractCall;
+
+  constructor(call: SetCoreContractCall) {
+    this._call = call;
+  }
+
+  get _coreAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetCoreContractCall__Outputs {
+  _call: SetCoreContractCall;
+
+  constructor(call: SetCoreContractCall) {
+    this._call = call;
+  }
+}
+
+export class SetStakingContractCall extends ethereum.Call {
+  get inputs(): SetStakingContractCall__Inputs {
+    return new SetStakingContractCall__Inputs(this);
+  }
+
+  get outputs(): SetStakingContractCall__Outputs {
+    return new SetStakingContractCall__Outputs(this);
+  }
+}
+
+export class SetStakingContractCall__Inputs {
+  _call: SetStakingContractCall;
+
+  constructor(call: SetStakingContractCall) {
+    this._call = call;
+  }
+
+  get _stakingAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetStakingContractCall__Outputs {
+  _call: SetStakingContractCall;
+
+  constructor(call: SetStakingContractCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall extends ethereum.Call {
+  get inputs(): UnpauseCall__Inputs {
+    return new UnpauseCall__Inputs(this);
+  }
+
+  get outputs(): UnpauseCall__Outputs {
+    return new UnpauseCall__Outputs(this);
+  }
+}
+
+export class UnpauseCall__Inputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall__Outputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateQuestProgressCall extends ethereum.Call {
+  get inputs(): UpdateQuestProgressCall__Inputs {
+    return new UpdateQuestProgressCall__Inputs(this);
+  }
+
+  get outputs(): UpdateQuestProgressCall__Outputs {
+    return new UpdateQuestProgressCall__Outputs(this);
+  }
+}
+
+export class UpdateQuestProgressCall__Inputs {
+  _call: UpdateQuestProgressCall;
+
+  constructor(call: UpdateQuestProgressCall) {
+    this._call = call;
+  }
+
+  get _user(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get _questId(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class UpdateQuestProgressCall__Outputs {
+  _call: UpdateQuestProgressCall;
+
+  constructor(call: UpdateQuestProgressCall) {
+    this._call = call;
   }
 }

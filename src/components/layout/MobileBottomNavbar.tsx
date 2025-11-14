@@ -37,6 +37,12 @@ const MenuIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+const StoreIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-pink-300' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+  </svg>
+);
+
 
 interface NavItem {
   path: string;
@@ -62,7 +68,8 @@ const MobileBottomNavbar: React.FC = () => {
     { path: '/', label: 'Home', icon: HomeIcon },
     { path: '/staking', label: 'Staking', icon: StakingIcon },
     { path: '/nfts', label: 'NFTs', icon: NFTIcon },
-    { path: '/marketplace', label: 'Market', icon: MarketplaceIcon }
+    { path: '/marketplace', label: 'Market', icon: MarketplaceIcon },
+    { path: '/store', label: 'Store', icon: StoreIcon }
   ];
 
   const isActive = (path: string) => {

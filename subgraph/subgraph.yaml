@@ -7,9 +7,9 @@ dataSources:
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3"
+      address: "0x1E005153769F73327c4a74Ef3Dc03d53BDeB4DCe"
       abi: EnhancedSmartStaking
-      startBlock: 78897900
+      startBlock: 78900000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -53,15 +53,15 @@ dataSources:
           handler: handleSkillUpgraded
       file: ./src/enhanced-smart-staking.ts
   
-  # Gamified Marketplace - NEW MODULAR ARCHITECTURE (Core Contract)
+  # Gamified Marketplace - NEW MODULAR ARCHITECTURE (Core Contract via Proxy)
   # Escucha eventos emitidos por GameifiedMarketplaceCore a través del Proxy
   - kind: ethereum
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e"
+      address: "0x3b0111517f7D622f9e011A726616627F5Fa4DFD8"
       abi: GameifiedMarketplaceCoreV1
-      startBlock: 78899500
+      startBlock: 78900000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -97,13 +97,13 @@ dataSources:
           handler: handleOfferAccepted
       file: ./src/gameified-marketplace.ts
 
-  # Individual Skills Contract (NEW - IIndividualSkills)
+  # Individual Skills Contract (NEW - IndividualSkillsMarketplace)
   - kind: ethereum
-    name: IIndividualSkills
+    name: IndividualSkillsMarketplace
     network: matic
     source:
-      address: "0x33Bf614459a5Eeef31803153f20342C707582364"
-      abi: IIndividualSkills
+      address: "0x8B2a87A05a7703426b1Ad3D733c61Dd4B40fF538"
+      abi: IndividualSkillsMarketplace
       startBlock: 78900000
     mapping:
       kind: ethereum/events
@@ -114,8 +114,8 @@ dataSources:
         - IndividualSkill
         - Activity
       abis:
-        - name: IIndividualSkills
-          file: ./abis/IIndividualSkills.json
+        - name: IndividualSkillsMarketplace
+          file: ./abis/IndividualSkillsMarketplace.json
       eventHandlers:
         - event: IndividualSkillActivated(indexed address,indexed uint256,uint8)
           handler: handleIndividualSkillActivated
@@ -136,7 +136,7 @@ dataSources:
     name: GameifiedMarketplaceSkillsV2
     network: matic
     source:
-      address: "0x9d67c269d17cf330ed3C5f6f5Ff130AE9d2d012C"
+      address: "0xB2174934d746d0ADDFa1DF247bC0419ce44d3C95"
       abi: GameifiedMarketplaceSkillsV2
       startBlock: 78900000
     mapping:
@@ -169,7 +169,7 @@ dataSources:
     name: GameifiedMarketplaceQuests
     network: matic
     source:
-      address: "0xDE4Ad382b2E0A3C1dF2185EDd7d7b966c775E169"
+      address: "0x1cAc0986509f075f107E90B1E70e83A0684D53Ab"
       abi: GameifiedMarketplaceQuests
       startBlock: 78900000
     mapping:

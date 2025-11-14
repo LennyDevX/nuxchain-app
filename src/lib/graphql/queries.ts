@@ -134,3 +134,31 @@ export const GET_SUBGRAPH_STATUS = gql`
     }
   }
 `;
+
+/**
+ * Query to get user's purchased individual skills
+ * Used for Recent Activity display (skill purchases)
+ */
+export const GET_USER_INDIVIDUAL_SKILLS = gql`
+  query GetUserIndividualSkills($userAddress: Bytes!, $first: Int!) {
+    individualSkills(
+      where: { owner: $userAddress }
+      first: $first
+      orderBy: purchasedAt
+      orderDirection: desc
+    ) {
+      id
+      skillId
+      skillType
+      rarity
+      level
+      owner
+      purchasedAt
+      expiresAt
+      isActive
+      metadata
+      transactionHash
+      blockNumber
+    }
+  }
+`;

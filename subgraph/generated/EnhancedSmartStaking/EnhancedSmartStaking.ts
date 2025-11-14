@@ -2544,6 +2544,62 @@ export class DepositWithBoostsCall__Outputs {
   }
 }
 
+export class EmergencyWithdrawCall extends ethereum.Call {
+  get inputs(): EmergencyWithdrawCall__Inputs {
+    return new EmergencyWithdrawCall__Inputs(this);
+  }
+
+  get outputs(): EmergencyWithdrawCall__Outputs {
+    return new EmergencyWithdrawCall__Outputs(this);
+  }
+}
+
+export class EmergencyWithdrawCall__Inputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+
+  get _amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class EmergencyWithdrawCall__Outputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawAllCall extends ethereum.Call {
+  get inputs(): EmergencyWithdrawAllCall__Inputs {
+    return new EmergencyWithdrawAllCall__Inputs(this);
+  }
+
+  get outputs(): EmergencyWithdrawAllCall__Outputs {
+    return new EmergencyWithdrawAllCall__Outputs(this);
+  }
+}
+
+export class EmergencyWithdrawAllCall__Inputs {
+  _call: EmergencyWithdrawAllCall;
+
+  constructor(call: EmergencyWithdrawAllCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawAllCall__Outputs {
+  _call: EmergencyWithdrawAllCall;
+
+  constructor(call: EmergencyWithdrawAllCall) {
+    this._call = call;
+  }
+}
+
 export class NotifyAchievementUnlockedCall extends ethereum.Call {
   get inputs(): NotifyAchievementUnlockedCall__Inputs {
     return new NotifyAchievementUnlockedCall__Inputs(this);

@@ -10,6 +10,128 @@ import {
   BigInt,
 } from "@graphprotocol/graph-ts";
 
+export class EmergencyWithdrawal extends ethereum.Event {
+  get params(): EmergencyWithdrawal__Params {
+    return new EmergencyWithdrawal__Params(this);
+  }
+}
+
+export class EmergencyWithdrawal__Params {
+  _event: EmergencyWithdrawal;
+
+  constructor(event: EmergencyWithdrawal) {
+    this._event = event;
+  }
+
+  get admin(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get to(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class Paused extends ethereum.Event {
+  get params(): Paused__Params {
+    return new Paused__Params(this);
+  }
+}
+
+export class Paused__Params {
+  _event: Paused;
+
+  constructor(event: Paused) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class RoleAdminChanged extends ethereum.Event {
+  get params(): RoleAdminChanged__Params {
+    return new RoleAdminChanged__Params(this);
+  }
+}
+
+export class RoleAdminChanged__Params {
+  _event: RoleAdminChanged;
+
+  constructor(event: RoleAdminChanged) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get previousAdminRole(): Bytes {
+    return this._event.parameters[1].value.toBytes();
+  }
+
+  get newAdminRole(): Bytes {
+    return this._event.parameters[2].value.toBytes();
+  }
+}
+
+export class RoleGranted extends ethereum.Event {
+  get params(): RoleGranted__Params {
+    return new RoleGranted__Params(this);
+  }
+}
+
+export class RoleGranted__Params {
+  _event: RoleGranted;
+
+  constructor(event: RoleGranted) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
+export class RoleRevoked extends ethereum.Event {
+  get params(): RoleRevoked__Params {
+    return new RoleRevoked__Params(this);
+  }
+}
+
+export class RoleRevoked__Params {
+  _event: RoleRevoked;
+
+  constructor(event: RoleRevoked) {
+    this._event = event;
+  }
+
+  get role(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get sender(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
 export class SkillAdded extends ethereum.Event {
   get params(): SkillAdded__Params {
     return new SkillAdded__Params(this);
@@ -118,6 +240,36 @@ export class SkillNFTCreated__Params {
   }
 }
 
+export class SkillPaymentProcessed extends ethereum.Event {
+  get params(): SkillPaymentProcessed__Params {
+    return new SkillPaymentProcessed__Params(this);
+  }
+}
+
+export class SkillPaymentProcessed__Params {
+  _event: SkillPaymentProcessed;
+
+  constructor(event: SkillPaymentProcessed) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get tokenId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get operationType(): string {
+    return this._event.parameters[3].value.toString();
+  }
+}
+
 export class SkillRenewed extends ethereum.Event {
   get params(): SkillRenewed__Params {
     return new SkillRenewed__Params(this);
@@ -222,11 +374,1575 @@ export class StakingContractUpdated__Params {
   }
 }
 
+export class TreasuryAddressUpdated extends ethereum.Event {
+  get params(): TreasuryAddressUpdated__Params {
+    return new TreasuryAddressUpdated__Params(this);
+  }
+}
+
+export class TreasuryAddressUpdated__Params {
+  _event: TreasuryAddressUpdated;
+
+  constructor(event: TreasuryAddressUpdated) {
+    this._event = event;
+  }
+
+  get oldTreasury(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newTreasury(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class Unpaused extends ethereum.Event {
+  get params(): Unpaused__Params {
+    return new Unpaused__Params(this);
+  }
+}
+
+export class Unpaused__Params {
+  _event: Unpaused;
+
+  constructor(event: Unpaused) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct extends ethereum.Tuple {
+  get creator(): Address {
+    return this[0].toAddress();
+  }
+
+  get skills(): Array<GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0SkillsStruct> {
+    return this[1].toTupleArray<GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0SkillsStruct>();
+  }
+
+  get createdAt(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get basePrice(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0SkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: boolean;
+
+  constructor(value0: BigInt, value1: BigInt, value2: boolean) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromBoolean(this.value2));
+    return map;
+  }
+
+  getActiveTokenId(): BigInt {
+    return this.value0;
+  }
+
+  getExpiresAt(): BigInt {
+    return this.value1;
+  }
+
+  getCanSwitch(): boolean {
+    return this.value2;
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult {
+  value0: Array<BigInt>;
+  value1: Array<i32>;
+
+  constructor(value0: Array<BigInt>, value1: Array<i32>) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromI32Array(this.value1));
+    return map;
+  }
+
+  getTokenIds(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getStatuses(): Array<i32> {
+    return this.value1;
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__skillNFTsResult {
+  value0: Address;
+  value1: BigInt;
+  value2: BigInt;
+
+  constructor(value0: Address, value1: BigInt, value2: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddress(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    return map;
+  }
+
+  getCreator(): Address {
+    return this.value0;
+  }
+
+  getCreatedAt(): BigInt {
+    return this.value1;
+  }
+
+  getBasePrice(): BigInt {
+    return this.value2;
+  }
+}
+
 export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
   static bind(address: Address): GameifiedMarketplaceSkillsV2 {
     return new GameifiedMarketplaceSkillsV2(
       "GameifiedMarketplaceSkillsV2",
       address,
     );
+  }
+
+  ADMIN_ROLE(): Bytes {
+    let result = super.call("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+
+    return result[0].toBytes();
+  }
+
+  try_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall("ADMIN_ROLE", "ADMIN_ROLE():(bytes32)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  DEFAULT_ADMIN_ROLE(): Bytes {
+    let result = super.call(
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
+    );
+
+    return result[0].toBytes();
+  }
+
+  try_DEFAULT_ADMIN_ROLE(): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "DEFAULT_ADMIN_ROLE",
+      "DEFAULT_ADMIN_ROLE():(bytes32)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  coreContractAddress(): Address {
+    let result = super.call(
+      "coreContractAddress",
+      "coreContractAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_coreContractAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "coreContractAddress",
+      "coreContractAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  getActiveSkillsForUser(_user: Address): Array<BigInt> {
+    let result = super.call(
+      "getActiveSkillsForUser",
+      "getActiveSkillsForUser(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getActiveSkillsForUser(
+    _user: Address,
+  ): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getActiveSkillsForUser",
+      "getActiveSkillsForUser(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getRoleAdmin(role: Bytes): Bytes {
+    let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
+      ethereum.Value.fromFixedBytes(role),
+    ]);
+
+    return result[0].toBytes();
+  }
+
+  try_getRoleAdmin(role: Bytes): ethereum.CallResult<Bytes> {
+    let result = super.tryCall(
+      "getRoleAdmin",
+      "getRoleAdmin(bytes32):(bytes32)",
+      [ethereum.Value.fromFixedBytes(role)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getSkillExpiryTime(_tokenId: BigInt): BigInt {
+    let result = super.call(
+      "getSkillExpiryTime",
+      "getSkillExpiryTime(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getSkillExpiryTime(_tokenId: BigInt): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getSkillExpiryTime",
+      "getSkillExpiryTime(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getSkillNFT(
+    _tokenId: BigInt,
+  ): GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct {
+    let result = super.call(
+      "getSkillNFT",
+      "getSkillNFT(uint256):((address,(uint8,uint8,uint256,uint256,uint256)[],uint256,uint256))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return changetype<GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_getSkillNFT(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct> {
+    let result = super.tryCall(
+      "getSkillNFT",
+      "getSkillNFT(uint256):((address,(uint8,uint8,uint256,uint256,uint256)[],uint256,uint256))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  getSkillNFTSkills(
+    _tokenId: BigInt,
+  ): Array<GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct> {
+    let result = super.call(
+      "getSkillNFTSkills",
+      "getSkillNFTSkills(uint256):((uint8,uint8,uint256,uint256,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct>();
+  }
+
+  try_getSkillNFTSkills(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<
+    Array<GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getSkillNFTSkills",
+      "getSkillNFTSkills(uint256):((uint8,uint8,uint256,uint256,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct>(),
+    );
+  }
+
+  getSkillPrice(_skillType: i32, _rarity: i32): BigInt {
+    let result = super.call(
+      "getSkillPrice",
+      "getSkillPrice(uint8,uint8):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_rarity)),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getSkillPrice(
+    _skillType: i32,
+    _rarity: i32,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getSkillPrice",
+      "getSkillPrice(uint8,uint8):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_rarity)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getSkillPricesAllRarities(_skillType: i32): Array<BigInt> {
+    let result = super.call(
+      "getSkillPricesAllRarities",
+      "getSkillPricesAllRarities(uint8):(uint256[5])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getSkillPricesAllRarities(
+    _skillType: i32,
+  ): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getSkillPricesAllRarities",
+      "getSkillPricesAllRarities(uint8):(uint256[5])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getSkillSwitchInfo(
+    _user: Address,
+    _skillType: i32,
+  ): GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult {
+    let result = super.call(
+      "getSkillSwitchInfo",
+      "getSkillSwitchInfo(address,uint8):(uint256,uint256,bool)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+      ],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBoolean(),
+    );
+  }
+
+  try_getSkillSwitchInfo(
+    _user: Address,
+    _skillType: i32,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult> {
+    let result = super.tryCall(
+      "getSkillSwitchInfo",
+      "getSkillSwitchInfo(address,uint8):(uint256,uint256,bool)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBoolean(),
+      ),
+    );
+  }
+
+  getSkillTypeCount(_skillType: i32): BigInt {
+    let result = super.call(
+      "getSkillTypeCount",
+      "getSkillTypeCount(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getSkillTypeCount(_skillType: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getSkillTypeCount",
+      "getSkillTypeCount(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getUserSkillNFTs(_user: Address): Array<BigInt> {
+    let result = super.call(
+      "getUserSkillNFTs",
+      "getUserSkillNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getUserSkillNFTs(_user: Address): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getUserSkillNFTs",
+      "getUserSkillNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getUserSkillsByType(
+    _user: Address,
+    _skillType: i32,
+  ): GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult {
+    let result = super.call(
+      "getUserSkillsByType",
+      "getUserSkillsByType(address,uint8):(uint256[],uint8[])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+      ],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult(
+      result[0].toBigIntArray(),
+      result[1].toI32Array(),
+    );
+  }
+
+  try_getUserSkillsByType(
+    _user: Address,
+    _skillType: i32,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult> {
+    let result = super.tryCall(
+      "getUserSkillsByType",
+      "getUserSkillsByType(address,uint8):(uint256[],uint8[])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult(
+        value[0].toBigIntArray(),
+        value[1].toI32Array(),
+      ),
+    );
+  }
+
+  getUserTotalActiveSkills(_user: Address): BigInt {
+    let result = super.call(
+      "getUserTotalActiveSkills",
+      "getUserTotalActiveSkills(address):(uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getUserTotalActiveSkills(_user: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getUserTotalActiveSkills",
+      "getUserTotalActiveSkills(address):(uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  hasRole(role: Bytes, account: Address): boolean {
+    let result = super.call("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+
+    return result[0].toBoolean();
+  }
+
+  try_hasRole(role: Bytes, account: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall("hasRole", "hasRole(bytes32,address):(bool)", [
+      ethereum.Value.fromFixedBytes(role),
+      ethereum.Value.fromAddress(account),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  isFirstSkillFree(param0: BigInt): boolean {
+    let result = super.call(
+      "isFirstSkillFree",
+      "isFirstSkillFree(uint256):(bool)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_isFirstSkillFree(param0: BigInt): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "isFirstSkillFree",
+      "isFirstSkillFree(uint256):(bool)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  isSkillExpired(_tokenId: BigInt): boolean {
+    let result = super.call(
+      "isSkillExpired",
+      "isSkillExpired(uint256):(bool)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_isSkillExpired(_tokenId: BigInt): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "isSkillExpired",
+      "isSkillExpired(uint256):(bool)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  paused(): boolean {
+    let result = super.call("paused", "paused():(bool)", []);
+
+    return result[0].toBoolean();
+  }
+
+  try_paused(): ethereum.CallResult<boolean> {
+    let result = super.tryCall("paused", "paused():(bool)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  skillNFTs(param0: BigInt): GameifiedMarketplaceSkillsV2__skillNFTsResult {
+    let result = super.call(
+      "skillNFTs",
+      "skillNFTs(uint256):(address,uint256,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__skillNFTsResult(
+      result[0].toAddress(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+    );
+  }
+
+  try_skillNFTs(
+    param0: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__skillNFTsResult> {
+    let result = super.tryCall(
+      "skillNFTs",
+      "skillNFTs(uint256):(address,uint256,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__skillNFTsResult(
+        value[0].toAddress(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+      ),
+    );
+  }
+
+  skillPrices(param0: i32, param1: i32): BigInt {
+    let result = super.call(
+      "skillPrices",
+      "skillPrices(uint8,uint8):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_skillPrices(param0: i32, param1: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "skillPrices",
+      "skillPrices(uint8,uint8):(uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  skillTypeCount(param0: i32): BigInt {
+    let result = super.call(
+      "skillTypeCount",
+      "skillTypeCount(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_skillTypeCount(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "skillTypeCount",
+      "skillTypeCount(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  stakingContractAddress(): Address {
+    let result = super.call(
+      "stakingContractAddress",
+      "stakingContractAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_stakingContractAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "stakingContractAddress",
+      "stakingContractAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  supportsInterface(interfaceId: Bytes): boolean {
+    let result = super.call(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_supportsInterface(interfaceId: Bytes): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "supportsInterface",
+      "supportsInterface(bytes4):(bool)",
+      [ethereum.Value.fromFixedBytes(interfaceId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  treasuryAddress(): Address {
+    let result = super.call(
+      "treasuryAddress",
+      "treasuryAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_treasuryAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "treasuryAddress",
+      "treasuryAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
+  userActiveSkillsByType(param0: Address, param1: i32): BigInt {
+    let result = super.call(
+      "userActiveSkillsByType",
+      "userActiveSkillsByType(address,uint8):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userActiveSkillsByType(
+    param0: Address,
+    param1: i32,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userActiveSkillsByType",
+      "userActiveSkillsByType(address,uint8):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userSkillNFTId(param0: Address, param1: i32): BigInt {
+    let result = super.call(
+      "userSkillNFTId",
+      "userSkillNFTId(address,uint8):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userSkillNFTId(
+    param0: Address,
+    param1: i32,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userSkillNFTId",
+      "userSkillNFTId(address,uint8):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userSkillNFTs(param0: Address, param1: BigInt): BigInt {
+    let result = super.call(
+      "userSkillNFTs",
+      "userSkillNFTs(address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userSkillNFTs(
+    param0: Address,
+    param1: BigInt,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userSkillNFTs",
+      "userSkillNFTs(address,uint256):(uint256)",
+      [
+        ethereum.Value.fromAddress(param0),
+        ethereum.Value.fromUnsignedBigInt(param1),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userTotalActiveSkills(param0: Address): BigInt {
+    let result = super.call(
+      "userTotalActiveSkills",
+      "userTotalActiveSkills(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userTotalActiveSkills(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userTotalActiveSkills",
+      "userTotalActiveSkills(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+
+  get _coreAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class DeactivateExpiredSkillCall extends ethereum.Call {
+  get inputs(): DeactivateExpiredSkillCall__Inputs {
+    return new DeactivateExpiredSkillCall__Inputs(this);
+  }
+
+  get outputs(): DeactivateExpiredSkillCall__Outputs {
+    return new DeactivateExpiredSkillCall__Outputs(this);
+  }
+}
+
+export class DeactivateExpiredSkillCall__Inputs {
+  _call: DeactivateExpiredSkillCall;
+
+  constructor(call: DeactivateExpiredSkillCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class DeactivateExpiredSkillCall__Outputs {
+  _call: DeactivateExpiredSkillCall;
+
+  constructor(call: DeactivateExpiredSkillCall) {
+    this._call = call;
+  }
+}
+
+export class DeactivateSkillManuallyCall extends ethereum.Call {
+  get inputs(): DeactivateSkillManuallyCall__Inputs {
+    return new DeactivateSkillManuallyCall__Inputs(this);
+  }
+
+  get outputs(): DeactivateSkillManuallyCall__Outputs {
+    return new DeactivateSkillManuallyCall__Outputs(this);
+  }
+}
+
+export class DeactivateSkillManuallyCall__Inputs {
+  _call: DeactivateSkillManuallyCall;
+
+  constructor(call: DeactivateSkillManuallyCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _skillType(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+}
+
+export class DeactivateSkillManuallyCall__Outputs {
+  _call: DeactivateSkillManuallyCall;
+
+  constructor(call: DeactivateSkillManuallyCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawCall extends ethereum.Call {
+  get inputs(): EmergencyWithdrawCall__Inputs {
+    return new EmergencyWithdrawCall__Inputs(this);
+  }
+
+  get outputs(): EmergencyWithdrawCall__Outputs {
+    return new EmergencyWithdrawCall__Outputs(this);
+  }
+}
+
+export class EmergencyWithdrawCall__Inputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+
+  get _amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class EmergencyWithdrawCall__Outputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawAllCall extends ethereum.Call {
+  get inputs(): EmergencyWithdrawAllCall__Inputs {
+    return new EmergencyWithdrawAllCall__Inputs(this);
+  }
+
+  get outputs(): EmergencyWithdrawAllCall__Outputs {
+    return new EmergencyWithdrawAllCall__Outputs(this);
+  }
+}
+
+export class EmergencyWithdrawAllCall__Inputs {
+  _call: EmergencyWithdrawAllCall;
+
+  constructor(call: EmergencyWithdrawAllCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawAllCall__Outputs {
+  _call: EmergencyWithdrawAllCall;
+
+  constructor(call: EmergencyWithdrawAllCall) {
+    this._call = call;
+  }
+}
+
+export class GrantRoleCall extends ethereum.Call {
+  get inputs(): GrantRoleCall__Inputs {
+    return new GrantRoleCall__Inputs(this);
+  }
+
+  get outputs(): GrantRoleCall__Outputs {
+    return new GrantRoleCall__Outputs(this);
+  }
+}
+
+export class GrantRoleCall__Inputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class GrantRoleCall__Outputs {
+  _call: GrantRoleCall;
+
+  constructor(call: GrantRoleCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall extends ethereum.Call {
+  get inputs(): PauseCall__Inputs {
+    return new PauseCall__Inputs(this);
+  }
+
+  get outputs(): PauseCall__Outputs {
+    return new PauseCall__Outputs(this);
+  }
+}
+
+export class PauseCall__Inputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class PauseCall__Outputs {
+  _call: PauseCall;
+
+  constructor(call: PauseCall) {
+    this._call = call;
+  }
+}
+
+export class RegisterSkillsForNFTCall extends ethereum.Call {
+  get inputs(): RegisterSkillsForNFTCall__Inputs {
+    return new RegisterSkillsForNFTCall__Inputs(this);
+  }
+
+  get outputs(): RegisterSkillsForNFTCall__Outputs {
+    return new RegisterSkillsForNFTCall__Outputs(this);
+  }
+}
+
+export class RegisterSkillsForNFTCall__Inputs {
+  _call: RegisterSkillsForNFTCall;
+
+  constructor(call: RegisterSkillsForNFTCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _skillTypes(): Array<i32> {
+    return this._call.inputValues[1].value.toI32Array();
+  }
+
+  get _rarities(): Array<i32> {
+    return this._call.inputValues[2].value.toI32Array();
+  }
+
+  get _levels(): Array<BigInt> {
+    return this._call.inputValues[3].value.toBigIntArray();
+  }
+}
+
+export class RegisterSkillsForNFTCall__Outputs {
+  _call: RegisterSkillsForNFTCall;
+
+  constructor(call: RegisterSkillsForNFTCall) {
+    this._call = call;
+  }
+
+  get value0(): BigInt {
+    return this._call.outputValues[0].value.toBigInt();
+  }
+}
+
+export class RenewSkillCall extends ethereum.Call {
+  get inputs(): RenewSkillCall__Inputs {
+    return new RenewSkillCall__Inputs(this);
+  }
+
+  get outputs(): RenewSkillCall__Outputs {
+    return new RenewSkillCall__Outputs(this);
+  }
+}
+
+export class RenewSkillCall__Inputs {
+  _call: RenewSkillCall;
+
+  constructor(call: RenewSkillCall) {
+    this._call = call;
+  }
+
+  get _tokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class RenewSkillCall__Outputs {
+  _call: RenewSkillCall;
+
+  constructor(call: RenewSkillCall) {
+    this._call = call;
+  }
+}
+
+export class RenounceRoleCall extends ethereum.Call {
+  get inputs(): RenounceRoleCall__Inputs {
+    return new RenounceRoleCall__Inputs(this);
+  }
+
+  get outputs(): RenounceRoleCall__Outputs {
+    return new RenounceRoleCall__Outputs(this);
+  }
+}
+
+export class RenounceRoleCall__Inputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RenounceRoleCall__Outputs {
+  _call: RenounceRoleCall;
+
+  constructor(call: RenounceRoleCall) {
+    this._call = call;
+  }
+}
+
+export class RevokeRoleCall extends ethereum.Call {
+  get inputs(): RevokeRoleCall__Inputs {
+    return new RevokeRoleCall__Inputs(this);
+  }
+
+  get outputs(): RevokeRoleCall__Outputs {
+    return new RevokeRoleCall__Outputs(this);
+  }
+}
+
+export class RevokeRoleCall__Inputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+
+  get role(): Bytes {
+    return this._call.inputValues[0].value.toBytes();
+  }
+
+  get account(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class RevokeRoleCall__Outputs {
+  _call: RevokeRoleCall;
+
+  constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+}
+
+export class SetStakingContractCall extends ethereum.Call {
+  get inputs(): SetStakingContractCall__Inputs {
+    return new SetStakingContractCall__Inputs(this);
+  }
+
+  get outputs(): SetStakingContractCall__Outputs {
+    return new SetStakingContractCall__Outputs(this);
+  }
+}
+
+export class SetStakingContractCall__Inputs {
+  _call: SetStakingContractCall;
+
+  constructor(call: SetStakingContractCall) {
+    this._call = call;
+  }
+
+  get _stakingAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetStakingContractCall__Outputs {
+  _call: SetStakingContractCall;
+
+  constructor(call: SetStakingContractCall) {
+    this._call = call;
+  }
+}
+
+export class SetTreasuryAddressCall extends ethereum.Call {
+  get inputs(): SetTreasuryAddressCall__Inputs {
+    return new SetTreasuryAddressCall__Inputs(this);
+  }
+
+  get outputs(): SetTreasuryAddressCall__Outputs {
+    return new SetTreasuryAddressCall__Outputs(this);
+  }
+}
+
+export class SetTreasuryAddressCall__Inputs {
+  _call: SetTreasuryAddressCall;
+
+  constructor(call: SetTreasuryAddressCall) {
+    this._call = call;
+  }
+
+  get _treasuryAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetTreasuryAddressCall__Outputs {
+  _call: SetTreasuryAddressCall;
+
+  constructor(call: SetTreasuryAddressCall) {
+    this._call = call;
+  }
+}
+
+export class SwitchSkillCall extends ethereum.Call {
+  get inputs(): SwitchSkillCall__Inputs {
+    return new SwitchSkillCall__Inputs(this);
+  }
+
+  get outputs(): SwitchSkillCall__Outputs {
+    return new SwitchSkillCall__Outputs(this);
+  }
+}
+
+export class SwitchSkillCall__Inputs {
+  _call: SwitchSkillCall;
+
+  constructor(call: SwitchSkillCall) {
+    this._call = call;
+  }
+
+  get _oldTokenId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _newTokenId(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get _skillType(): i32 {
+    return this._call.inputValues[2].value.toI32();
+  }
+}
+
+export class SwitchSkillCall__Outputs {
+  _call: SwitchSkillCall;
+
+  constructor(call: SwitchSkillCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall extends ethereum.Call {
+  get inputs(): UnpauseCall__Inputs {
+    return new UnpauseCall__Inputs(this);
+  }
+
+  get outputs(): UnpauseCall__Outputs {
+    return new UnpauseCall__Outputs(this);
+  }
+}
+
+export class UnpauseCall__Inputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UnpauseCall__Outputs {
+  _call: UnpauseCall;
+
+  constructor(call: UnpauseCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateActiveSkillsPricingCall extends ethereum.Call {
+  get inputs(): UpdateActiveSkillsPricingCall__Inputs {
+    return new UpdateActiveSkillsPricingCall__Inputs(this);
+  }
+
+  get outputs(): UpdateActiveSkillsPricingCall__Outputs {
+    return new UpdateActiveSkillsPricingCall__Outputs(this);
+  }
+}
+
+export class UpdateActiveSkillsPricingCall__Inputs {
+  _call: UpdateActiveSkillsPricingCall;
+
+  constructor(call: UpdateActiveSkillsPricingCall) {
+    this._call = call;
+  }
+
+  get _common(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _uncommon(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get _rare(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+
+  get _epic(): BigInt {
+    return this._call.inputValues[3].value.toBigInt();
+  }
+
+  get _legendary(): BigInt {
+    return this._call.inputValues[4].value.toBigInt();
+  }
+}
+
+export class UpdateActiveSkillsPricingCall__Outputs {
+  _call: UpdateActiveSkillsPricingCall;
+
+  constructor(call: UpdateActiveSkillsPricingCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateSkillPriceCall extends ethereum.Call {
+  get inputs(): UpdateSkillPriceCall__Inputs {
+    return new UpdateSkillPriceCall__Inputs(this);
+  }
+
+  get outputs(): UpdateSkillPriceCall__Outputs {
+    return new UpdateSkillPriceCall__Outputs(this);
+  }
+}
+
+export class UpdateSkillPriceCall__Inputs {
+  _call: UpdateSkillPriceCall;
+
+  constructor(call: UpdateSkillPriceCall) {
+    this._call = call;
+  }
+
+  get _skillType(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _rarity(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+
+  get _newPrice(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+}
+
+export class UpdateSkillPriceCall__Outputs {
+  _call: UpdateSkillPriceCall;
+
+  constructor(call: UpdateSkillPriceCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateStakingSkillsPricingCall extends ethereum.Call {
+  get inputs(): UpdateStakingSkillsPricingCall__Inputs {
+    return new UpdateStakingSkillsPricingCall__Inputs(this);
+  }
+
+  get outputs(): UpdateStakingSkillsPricingCall__Outputs {
+    return new UpdateStakingSkillsPricingCall__Outputs(this);
+  }
+}
+
+export class UpdateStakingSkillsPricingCall__Inputs {
+  _call: UpdateStakingSkillsPricingCall;
+
+  constructor(call: UpdateStakingSkillsPricingCall) {
+    this._call = call;
+  }
+
+  get _common(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get _uncommon(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get _rare(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
+  }
+
+  get _epic(): BigInt {
+    return this._call.inputValues[3].value.toBigInt();
+  }
+
+  get _legendary(): BigInt {
+    return this._call.inputValues[4].value.toBigInt();
+  }
+}
+
+export class UpdateStakingSkillsPricingCall__Outputs {
+  _call: UpdateStakingSkillsPricingCall;
+
+  constructor(call: UpdateStakingSkillsPricingCall) {
+    this._call = call;
   }
 }

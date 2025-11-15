@@ -224,6 +224,19 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           'color: #ffffff;'
         );
 
+        // ✅ DIAGNOSTIC: Log if skills query returned empty (potential subgraph sync issue)
+        if ((skillsData?.individualSkills?.length || 0) === 0) {
+          console.warn(
+            `%c⚠️ [The Graph] No skills returned%c\n` +
+            `├─ User: ${address}\n` +
+            `├─ Time: ${duration}ms\n` +
+            `├─ Possible Cause: Subgraph indexing delay OR user has no purchased skills\n` +
+            `└─ Solution: Verify on-chain or wait for subgraph to sync`,
+            'color: #ff6b6b; font-weight: bold;',
+            'color: #ffffff;'
+          );
+        }
+
         // Transform GraphQL activities data to Activity format
         const transformedActivities: Activity[] = (activitiesData?.activities || []).map((activity: GraphQLActivity) => {
           const details: Activity['details'] = {
@@ -261,7 +274,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           };
 
           // Create a skill-specific description
-          const skillName = `Skill #${skill.skillType} (Rarity: ${skill.rarity})`;
+          // ✅ FIX: Show both skillId (NFT token ID) and skillType (the actual skill category)
+          const skillName = `Skill Type ${skill.skillType} (ID: ${skill.skillId}, Rarity: ${skill.rarity})`;
           const description = `Purchased ${skillName}`;
           const icon = '🎯'; // Skill icon
           const color = '#a78bfa'; // Purple color for skills
@@ -281,7 +295,9 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         // Combine all activities
         const allTransformedActivities = [...transformedActivities, ...skillActivities];
 
-        // Deduplicate by transaction hash + type
+        // ✅ CRITICAL FIX: Deduplicate by transaction hash + type
+        // This prevents showing the same transaction twice if it appears in multiple queries
+        // ⚠️ NOTE: For skills, each skill has a different txHash, so different purchases WON'T be deduplicated
         const uniqueActivities = allTransformedActivities.reduce((acc, activity) => {
           const key = `${activity.txHash}-${activity.type}`;
           if (!acc.has(key)) {
@@ -296,6 +312,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         deduplicatedActivities.sort((a, b) => b.timestamp - a.timestamp);
 
         // For NFT activities, keep only the most recent activity per NFT tokenId
+        // ✅ IMPORTANT: Skills are NOT in this list, so all skill purchases are kept
         const nftActivityTypes = ['NFT_LIST', 'NFT_SALE', 'NFT_PURCHASE', 'NFT_UNLIST', 'OFFER_MADE', 'OFFER_ACCEPTED'];
         const nftActivitiesMap = new Map<string, Activity>();
         const nonNftActivities: Activity[] = [];
@@ -333,6 +350,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
           `├─ NFT Activities: ${nftActivitiesMap.size}\n` +
           `├─ Other Activities: ${nonNftActivities.length}\n` +
+          `├─ Skills Kept: ${skillActivities.length}\n` +
           `└─ Final Result: ${finalActivities.length} activities sorted by date`,
           'color: #ff8c00; font-weight: bold;',
           'color: #ffffff;'

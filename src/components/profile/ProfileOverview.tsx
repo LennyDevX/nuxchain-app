@@ -34,6 +34,21 @@ const ProfileOverview: React.FC = () => {
     }
   }, [isConnected, address, refreshNFTs, refreshActivities]);
 
+  // ✅ FIX: Listen for skill purchase events and auto-refresh activities
+  // When a skill is purchased, the subgraph needs 2-3 seconds to index it
+  // This listener auto-refreshes the activities to show the new purchase
+  useEffect(() => {
+    const handleSkillPurchased = (event: Event) => {
+      if (event instanceof CustomEvent) {
+        console.log('🛍️ Skill purchase detected, auto-refreshing activities...');
+        refreshActivities();
+      }
+    };
+    
+    window.addEventListener('skillPurchased', handleSkillPurchased);
+    return () => window.removeEventListener('skillPurchased', handleSkillPurchased);
+  }, [refreshActivities]);
+
   // Clear Apollo cache and force refresh
   const handleClearCacheAndRefresh = async () => {
     setIsClearing(true);
@@ -56,7 +71,7 @@ const ProfileOverview: React.FC = () => {
         <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-gradient`}>
           Profile Overview
         </h1>
-        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mt-2`}>Resumen de tu cuenta y actividad en Nuxchain</p>
+        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mt-2`}>Resume of your account and activity on Nuxchain</p>
       </header>
 
       <section className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}`}>

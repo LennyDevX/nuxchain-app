@@ -83,6 +83,16 @@ export default function Store() {
     console.log('Purchasing skill:', skill);
     try {
       await purchaseSkill(skill);
+      
+      // ✅ FIX: Dispatch event to trigger activities refresh after subgraph indexation delay
+      // The subgraph typically takes 2-5 seconds to index new purchases
+      setTimeout(() => {
+        console.log('🔄 Triggering activities refresh after skill purchase');
+        window.dispatchEvent(new CustomEvent('skillPurchased', { 
+          detail: { skill, skillId: skill.skillType } 
+        }));
+      }, 2500);  // 2.5 second delay for subgraph indexation
+      
       // Modal closes automatically on success via PurchaseSkillModal
     } catch (error) {
       console.error('Purchase failed:', error);

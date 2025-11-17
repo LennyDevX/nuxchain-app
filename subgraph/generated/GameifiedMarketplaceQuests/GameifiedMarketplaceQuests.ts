@@ -294,7 +294,75 @@ export class Unpaused__Params {
   }
 }
 
+export class GameifiedMarketplaceQuests__getAllActiveQuestsResultValue0Struct extends ethereum.Tuple {
+  get questId(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get questType(): i32 {
+    return this[1].toI32();
+  }
+
+  get title(): string {
+    return this[2].toString();
+  }
+
+  get description(): string {
+    return this[3].toString();
+  }
+
+  get requirement(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get xpReward(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get active(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get createdAt(): BigInt {
+    return this[7].toBigInt();
+  }
+}
+
 export class GameifiedMarketplaceQuests__getQuestResultValue0Struct extends ethereum.Tuple {
+  get questId(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get questType(): i32 {
+    return this[1].toI32();
+  }
+
+  get title(): string {
+    return this[2].toString();
+  }
+
+  get description(): string {
+    return this[3].toString();
+  }
+
+  get requirement(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get xpReward(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get active(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get createdAt(): BigInt {
+    return this[7].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceQuests__getQuestsByTypeResultValue0Struct extends ethereum.Tuple {
   get questId(): BigInt {
     return this[0].toBigInt();
   }
@@ -343,6 +411,52 @@ export class GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct 
 
   get completedAt(): BigInt {
     return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct extends ethereum.Tuple {
+  get questId(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get currentProgress(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get completed(): boolean {
+    return this[2].toBoolean();
+  }
+
+  get completedAt(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceQuests__getUserQuestProgressByTypeResult {
+  value0: Array<BigInt>;
+  value1: Array<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct>;
+
+  constructor(
+    value0: Array<BigInt>,
+    value1: Array<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromTupleArray(this.value1));
+    return map;
+  }
+
+  getQuestIds(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getProgresses(): Array<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct> {
+    return this.value1;
   }
 }
 
@@ -580,6 +694,33 @@ export class GameifiedMarketplaceQuests extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  getAllActiveQuests(): Array<GameifiedMarketplaceQuests__getAllActiveQuestsResultValue0Struct> {
+    let result = super.call(
+      "getAllActiveQuests",
+      "getAllActiveQuests():((uint256,uint8,string,string,uint256,uint256,bool,uint256)[])",
+      [],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceQuests__getAllActiveQuestsResultValue0Struct>();
+  }
+
+  try_getAllActiveQuests(): ethereum.CallResult<
+    Array<GameifiedMarketplaceQuests__getAllActiveQuestsResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getAllActiveQuests",
+      "getAllActiveQuests():((uint256,uint8,string,string,uint256,uint256,bool,uint256)[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceQuests__getAllActiveQuestsResultValue0Struct>(),
+    );
+  }
+
   getQuest(
     _questId: BigInt,
   ): GameifiedMarketplaceQuests__getQuestResultValue0Struct {
@@ -610,6 +751,37 @@ export class GameifiedMarketplaceQuests extends ethereum.SmartContract {
       changetype<GameifiedMarketplaceQuests__getQuestResultValue0Struct>(
         value[0].toTuple(),
       ),
+    );
+  }
+
+  getQuestsByType(
+    _questType: i32,
+  ): Array<GameifiedMarketplaceQuests__getQuestsByTypeResultValue0Struct> {
+    let result = super.call(
+      "getQuestsByType",
+      "getQuestsByType(uint8):((uint256,uint8,string,string,uint256,uint256,bool,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType))],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceQuests__getQuestsByTypeResultValue0Struct>();
+  }
+
+  try_getQuestsByType(
+    _questType: i32,
+  ): ethereum.CallResult<
+    Array<GameifiedMarketplaceQuests__getQuestsByTypeResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getQuestsByType",
+      "getQuestsByType(uint8):((uint256,uint8,string,string,uint256,uint256,bool,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceQuests__getQuestsByTypeResultValue0Struct>(),
     );
   }
 
@@ -696,6 +868,49 @@ export class GameifiedMarketplaceQuests extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(
       changetype<GameifiedMarketplaceQuests__getUserQuestProgressResultValue0Struct>(
         value[0].toTuple(),
+      ),
+    );
+  }
+
+  getUserQuestProgressByType(
+    _user: Address,
+    _questType: i32,
+  ): GameifiedMarketplaceQuests__getUserQuestProgressByTypeResult {
+    let result = super.call(
+      "getUserQuestProgressByType",
+      "getUserQuestProgressByType(address,uint8):(uint256[],(uint256,uint256,bool,uint256)[])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType)),
+      ],
+    );
+
+    return new GameifiedMarketplaceQuests__getUserQuestProgressByTypeResult(
+      result[0].toBigIntArray(),
+      result[1].toTupleArray<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct>(),
+    );
+  }
+
+  try_getUserQuestProgressByType(
+    _user: Address,
+    _questType: i32,
+  ): ethereum.CallResult<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResult> {
+    let result = super.tryCall(
+      "getUserQuestProgressByType",
+      "getUserQuestProgressByType(address,uint8):(uint256[],(uint256,uint256,bool,uint256)[])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_questType)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceQuests__getUserQuestProgressByTypeResult(
+        value[0].toBigIntArray(),
+        value[1].toTupleArray<GameifiedMarketplaceQuests__getUserQuestProgressByTypeResultProgressesStruct>(),
       ),
     );
   }

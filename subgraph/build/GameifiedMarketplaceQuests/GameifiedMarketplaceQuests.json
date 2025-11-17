@@ -413,6 +413,61 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getAllActiveQuests",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "questId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+            "name": "questType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "requirement",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "xpReward",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GameifiedMarketplaceQuests.Quest[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -468,6 +523,67 @@
         "internalType": "struct GameifiedMarketplaceQuests.Quest",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+        "name": "_questType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getQuestsByType",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "questId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+            "name": "questType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "requirement",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "xpReward",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GameifiedMarketplaceQuests.Quest[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -552,6 +668,57 @@
         "internalType": "struct GameifiedMarketplaceQuests.UserQuestProgress",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+        "name": "_questType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getUserQuestProgressByType",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "questIds",
+        "type": "uint256[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "questId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentProgress",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "completed",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "completedAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GameifiedMarketplaceQuests.UserQuestProgress[]",
+        "name": "progresses",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",

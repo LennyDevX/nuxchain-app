@@ -1,6 +1,6 @@
 {
   "name": "nuxchain-subgraph",
-  "version": "0.1.8",
+  "version": "0.22",
   "description": "Nuxchain Subgraph - The Graph indexer for Nuxchain smart contracts on Polygon",
   "private": true,
   "scripts": {

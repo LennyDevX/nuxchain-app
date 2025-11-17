@@ -1,6 +1,6 @@
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
 import { useMemo, useCallback, useEffect } from 'react';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import type { UserProfile } from '../../types/contracts';
 import { showXPNotification, injectXPNotificationStyles } from '../../utils/notifications/xpNotification';
 

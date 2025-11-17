@@ -584,6 +584,400 @@ export class IndividualSkillsMarketplace__getUserIndividualSkillsDetailedResult 
   }
 }
 
+export class IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get owner(): Address {
+    return this[3].toAddress();
+  }
+
+  get purchasedAt(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get isActive(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get metadata(): string {
+    return this[7].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[8].toBigInt();
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserPlatformSkillsResult {
+  value0: Array<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct>;
+  value1: Array<boolean>;
+  value2: Array<boolean>;
+
+  constructor(
+    value0: Array<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct>,
+    value1: Array<boolean>,
+    value2: Array<boolean>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromTupleArray(this.value0));
+    map.set("value1", ethereum.Value.fromBooleanArray(this.value1));
+    map.set("value2", ethereum.Value.fromBooleanArray(this.value2));
+    return map;
+  }
+
+  getSkills(): Array<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct> {
+    return this.value0;
+  }
+
+  getIsActive(): Array<boolean> {
+    return this.value1;
+  }
+
+  getIsExpired(): Array<boolean> {
+    return this.value2;
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillStatsResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+  value4: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: BigInt,
+    value2: BigInt,
+    value3: BigInt,
+    value4: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    return map;
+  }
+
+  getTotalSkills(): BigInt {
+    return this.value0;
+  }
+
+  getTotalStakingSkills(): BigInt {
+    return this.value1;
+  }
+
+  getTotalPlatformSkills(): BigInt {
+    return this.value2;
+  }
+
+  getActiveCount(): BigInt {
+    return this.value3;
+  }
+
+  getExpiredCount(): BigInt {
+    return this.value4;
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get owner(): Address {
+    return this[3].toAddress();
+  }
+
+  get purchasedAt(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get isActive(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get metadata(): string {
+    return this[7].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[8].toBigInt();
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get owner(): Address {
+    return this[3].toAddress();
+  }
+
+  get purchasedAt(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get isActive(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get metadata(): string {
+    return this[7].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[8].toBigInt();
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillsByCategoryResult {
+  value0: Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct>;
+  value1: Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct>;
+
+  constructor(
+    value0: Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct>,
+    value1: Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromTupleArray(this.value0));
+    map.set("value1", ethereum.Value.fromTupleArray(this.value1));
+    return map;
+  }
+
+  getStakingSkills(): Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct> {
+    return this.value0;
+  }
+
+  getActiveSkills(): Array<IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct> {
+    return this.value1;
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get owner(): Address {
+    return this[3].toAddress();
+  }
+
+  get purchasedAt(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get isActive(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get metadata(): string {
+    return this[7].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[8].toBigInt();
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillsComprehensiveResult {
+  value0: Array<IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct>;
+  value1: Array<boolean>;
+  value2: Array<boolean>;
+  value3: Array<BigInt>;
+  value4: Array<string>;
+
+  constructor(
+    value0: Array<IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct>,
+    value1: Array<boolean>,
+    value2: Array<boolean>,
+    value3: Array<BigInt>,
+    value4: Array<string>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromTupleArray(this.value0));
+    map.set("value1", ethereum.Value.fromBooleanArray(this.value1));
+    map.set("value2", ethereum.Value.fromBooleanArray(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigIntArray(this.value3));
+    map.set("value4", ethereum.Value.fromStringArray(this.value4));
+    return map;
+  }
+
+  getAllSkills(): Array<IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct> {
+    return this.value0;
+  }
+
+  getIsActive(): Array<boolean> {
+    return this.value1;
+  }
+
+  getIsExpired(): Array<boolean> {
+    return this.value2;
+  }
+
+  getExpiresIn(): Array<BigInt> {
+    return this.value3;
+  }
+
+  getCategoryNames(): Array<string> {
+    return this.value4;
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get owner(): Address {
+    return this[3].toAddress();
+  }
+
+  get purchasedAt(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get isActive(): boolean {
+    return this[6].toBoolean();
+  }
+
+  get metadata(): string {
+    return this[7].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[8].toBigInt();
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserStakingSkillsResult {
+  value0: Array<IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct>;
+  value1: Array<boolean>;
+  value2: Array<boolean>;
+
+  constructor(
+    value0: Array<IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct>,
+    value1: Array<boolean>,
+    value2: Array<boolean>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromTupleArray(this.value0));
+    map.set("value1", ethereum.Value.fromBooleanArray(this.value1));
+    map.set("value2", ethereum.Value.fromBooleanArray(this.value2));
+    return map;
+  }
+
+  getSkills(): Array<IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct> {
+    return this.value0;
+  }
+
+  getIsActive(): Array<boolean> {
+    return this.value1;
+  }
+
+  getIsExpired(): Array<boolean> {
+    return this.value2;
+  }
+}
+
 export class IndividualSkillsMarketplace__individualSkillsResult {
   value0: i32;
   value1: i32;
@@ -1035,6 +1429,197 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
       new IndividualSkillsMarketplace__getUserIndividualSkillsDetailedResult(
         value[0].toTupleArray<IndividualSkillsMarketplace__getUserIndividualSkillsDetailedResultSkillsStruct>(),
         value[1].toBooleanArray(),
+      ),
+    );
+  }
+
+  getUserPlatformSkills(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserPlatformSkillsResult {
+    let result = super.call(
+      "getUserPlatformSkills",
+      "getUserPlatformSkills(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserPlatformSkillsResult(
+      result[0].toTupleArray<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct>(),
+      result[1].toBooleanArray(),
+      result[2].toBooleanArray(),
+    );
+  }
+
+  try_getUserPlatformSkills(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserPlatformSkillsResult> {
+    let result = super.tryCall(
+      "getUserPlatformSkills",
+      "getUserPlatformSkills(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserPlatformSkillsResult(
+        value[0].toTupleArray<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct>(),
+        value[1].toBooleanArray(),
+        value[2].toBooleanArray(),
+      ),
+    );
+  }
+
+  getUserSkillStats(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserSkillStatsResult {
+    let result = super.call(
+      "getUserSkillStats",
+      "getUserSkillStats(address):(uint256,uint256,uint256,uint256,uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserSkillStatsResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+    );
+  }
+
+  try_getUserSkillStats(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserSkillStatsResult> {
+    let result = super.tryCall(
+      "getUserSkillStats",
+      "getUserSkillStats(address):(uint256,uint256,uint256,uint256,uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserSkillStatsResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+        value[4].toBigInt(),
+      ),
+    );
+  }
+
+  getUserSkillsByCategory(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserSkillsByCategoryResult {
+    let result = super.call(
+      "getUserSkillsByCategory",
+      "getUserSkillsByCategory(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],(uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserSkillsByCategoryResult(
+      result[0].toTupleArray<IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct>(),
+      result[1].toTupleArray<IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct>(),
+    );
+  }
+
+  try_getUserSkillsByCategory(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserSkillsByCategoryResult> {
+    let result = super.tryCall(
+      "getUserSkillsByCategory",
+      "getUserSkillsByCategory(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],(uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserSkillsByCategoryResult(
+        value[0].toTupleArray<IndividualSkillsMarketplace__getUserSkillsByCategoryResultStakingSkillsStruct>(),
+        value[1].toTupleArray<IndividualSkillsMarketplace__getUserSkillsByCategoryResultActiveSkillsStruct>(),
+      ),
+    );
+  }
+
+  getUserSkillsComprehensive(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserSkillsComprehensiveResult {
+    let result = super.call(
+      "getUserSkillsComprehensive",
+      "getUserSkillsComprehensive(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[],uint256[],string[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserSkillsComprehensiveResult(
+      result[0].toTupleArray<IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct>(),
+      result[1].toBooleanArray(),
+      result[2].toBooleanArray(),
+      result[3].toBigIntArray(),
+      result[4].toStringArray(),
+    );
+  }
+
+  try_getUserSkillsComprehensive(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserSkillsComprehensiveResult> {
+    let result = super.tryCall(
+      "getUserSkillsComprehensive",
+      "getUserSkillsComprehensive(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[],uint256[],string[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserSkillsComprehensiveResult(
+        value[0].toTupleArray<IndividualSkillsMarketplace__getUserSkillsComprehensiveResultAllSkillsStruct>(),
+        value[1].toBooleanArray(),
+        value[2].toBooleanArray(),
+        value[3].toBigIntArray(),
+        value[4].toStringArray(),
+      ),
+    );
+  }
+
+  getUserStakingSkills(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserStakingSkillsResult {
+    let result = super.call(
+      "getUserStakingSkills",
+      "getUserStakingSkills(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserStakingSkillsResult(
+      result[0].toTupleArray<IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct>(),
+      result[1].toBooleanArray(),
+      result[2].toBooleanArray(),
+    );
+  }
+
+  try_getUserStakingSkills(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserStakingSkillsResult> {
+    let result = super.tryCall(
+      "getUserStakingSkills",
+      "getUserStakingSkills(address):((uint8,uint8,uint256,address,uint256,uint256,bool,string,uint256)[],bool[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserStakingSkillsResult(
+        value[0].toTupleArray<IndividualSkillsMarketplace__getUserStakingSkillsResultSkillsStruct>(),
+        value[1].toBooleanArray(),
+        value[2].toBooleanArray(),
       ),
     );
   }

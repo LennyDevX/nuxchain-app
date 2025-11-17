@@ -10,7 +10,6 @@ import Home from '../pages/Home';
 const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
 const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
 const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
-const Airdrops = lazy(() => import(/* webpackChunkName: "airdrops" */ '../pages/Airdrops'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
@@ -56,7 +55,6 @@ function AppRoutes() {
         <Route path="/staking" element={<Staking />} />
         <Route path="/nfts" element={<NFTs />} />
         <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/airdrops" element={<Airdrops />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/create-my-nfts" element={<Tokenization />} />
         <Route path="/tokenization" element={<Tokenization />} />

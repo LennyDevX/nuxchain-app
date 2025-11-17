@@ -2,7 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAccount, usePublicClient } from 'wagmi';
 import { getContract, type Abi } from 'viem';
 import { useEffect, useCallback, useRef, useState } from 'react';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { fetchTokenMetadata, ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import { nftLogger } from '../../utils/log/nftLogger';
 

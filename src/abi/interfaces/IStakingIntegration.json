@@ -89,9 +89,9 @@
         },
         {
           "indexed": false,
-          "internalType": "uint8",
+          "internalType": "uint16",
           "name": "level",
-          "type": "uint8"
+          "type": "uint16"
         },
         {
           "indexed": false,
@@ -279,9 +279,9 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint8",
+              "internalType": "uint16",
               "name": "level",
-              "type": "uint8"
+              "type": "uint16"
             },
             {
               "internalType": "uint8",

@@ -1,6 +1,6 @@
 import { useAccount, useReadContract } from 'wagmi'
 import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
-import EnhancedSmartStakingABI from '../abi/EnhancedSmartStaking.json'
+import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStaking.json'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'

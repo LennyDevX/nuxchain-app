@@ -36,6 +36,32 @@ export class EmergencyWithdrawal__Params {
   }
 }
 
+export class FreeSkillClaimed extends ethereum.Event {
+  get params(): FreeSkillClaimed__Params {
+    return new FreeSkillClaimed__Params(this);
+  }
+}
+
+export class FreeSkillClaimed__Params {
+  _event: FreeSkillClaimed;
+
+  constructor(event: FreeSkillClaimed) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get tokenId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get skillType(): i32 {
+    return this._event.parameters[2].value.toI32();
+  }
+}
+
 export class Paused extends ethereum.Event {
   get params(): Paused__Params {
     return new Paused__Params(this);
@@ -508,6 +534,90 @@ export class GameifiedMarketplaceSkillsV2__getSkillSwitchInfoResult {
   }
 }
 
+export class GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct extends ethereum.Tuple {
+  get creator(): Address {
+    return this[0].toAddress();
+  }
+
+  get skills(): Array<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsSkillsStruct> {
+    return this[1].toTupleArray<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsSkillsStruct>();
+  }
+
+  get createdAt(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get basePrice(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult {
+  value0: Array<BigInt>;
+  value1: Array<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct>;
+  value2: Array<BigInt>;
+  value3: Array<boolean>;
+
+  constructor(
+    value0: Array<BigInt>,
+    value1: Array<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct>,
+    value2: Array<BigInt>,
+    value3: Array<boolean>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromTupleArray(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigIntArray(this.value2));
+    map.set("value3", ethereum.Value.fromBooleanArray(this.value3));
+    return map;
+  }
+
+  getTokenIds(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getSkillNFTDetails(): Array<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct> {
+    return this.value1;
+  }
+
+  getExpiryTimes(): Array<BigInt> {
+    return this.value2;
+  }
+
+  getIsExpired(): Array<boolean> {
+    return this.value3;
+  }
+}
+
 export class GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult {
   value0: Array<BigInt>;
   value1: Array<i32>;
@@ -651,6 +761,29 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
       "getActiveSkillsForUser",
       "getActiveSkillsForUser(address):(uint256[])",
       [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getAllSkillNFTs(): Array<BigInt> {
+    let result = super.call(
+      "getAllSkillNFTs",
+      "getAllSkillNFTs():(uint256[])",
+      [],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getAllSkillNFTs(): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getAllSkillNFTs",
+      "getAllSkillNFTs():(uint256[])",
+      [],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -915,6 +1048,45 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
+  getUserSkillNFTsWithDetails(
+    _user: Address,
+  ): GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult {
+    let result = super.call(
+      "getUserSkillNFTsWithDetails",
+      "getUserSkillNFTsWithDetails(address):(uint256[],(address,(uint8,uint8,uint256,uint256,uint256)[],uint256,uint256)[],uint256[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult(
+      result[0].toBigIntArray(),
+      result[1].toTupleArray<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct>(),
+      result[2].toBigIntArray(),
+      result[3].toBooleanArray(),
+    );
+  }
+
+  try_getUserSkillNFTsWithDetails(
+    _user: Address,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult> {
+    let result = super.tryCall(
+      "getUserSkillNFTsWithDetails",
+      "getUserSkillNFTsWithDetails(address):(uint256[],(address,(uint8,uint8,uint256,uint256,uint256)[],uint256,uint256)[],uint256[],bool[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult(
+        value[0].toBigIntArray(),
+        value[1].toTupleArray<GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResultSkillNFTDetailsStruct>(),
+        value[2].toBigIntArray(),
+        value[3].toBooleanArray(),
+      ),
+    );
+  }
+
   getUserSkillsByType(
     _user: Address,
     _skillType: i32,
@@ -979,6 +1151,29 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  hasClaimedFreeSkill(param0: Address): boolean {
+    let result = super.call(
+      "hasClaimedFreeSkill",
+      "hasClaimedFreeSkill(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_hasClaimedFreeSkill(param0: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "hasClaimedFreeSkill",
+      "hasClaimedFreeSkill(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   hasRole(role: Bytes, account: Address): boolean {

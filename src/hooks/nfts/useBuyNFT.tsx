@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { toast } from 'react-hot-toast';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;

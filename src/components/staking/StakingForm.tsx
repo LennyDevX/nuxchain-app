@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
-import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json'
+import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
@@ -142,7 +142,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: EnhancedSmartStakingABI.abi,
+        abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'deposit',
         args: [lockupInDays],
         value: parseEther(depositAmount),
@@ -160,7 +160,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: EnhancedSmartStakingABI.abi,
+        abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'withdrawAll',
       })
     } catch (error) {
@@ -183,7 +183,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: EnhancedSmartStakingABI.abi,
+        abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'compound',
         args: [lockupInDays],
       })
@@ -198,7 +198,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: EnhancedSmartStakingABI.abi,
+        abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'withdraw',
       })
     } catch (error) {
@@ -225,7 +225,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
-        abi: EnhancedSmartStakingABI.abi,
+        abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'emergencyUserWithdraw',
       })
     } catch (error) {

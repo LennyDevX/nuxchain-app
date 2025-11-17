@@ -11,32 +11,6 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "AlreadyMigrated",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "AutoCompoundNotActive",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "provided",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "maximum",
-        "type": "uint256"
-      }
-    ],
-    "name": "BatchSizeTooLarge",
-    "type": "error"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -112,59 +86,12 @@
   },
   {
     "inputs": [],
-    "name": "InsufficientSkillNFTs",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "InvalidAddress",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "InvalidEffectValue",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "InvalidLockupDuration",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "expected",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "provided",
-        "type": "uint256"
-      }
-    ],
-    "name": "InvalidPrice",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "LevelUpNotEligible",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "internalType": "uint8",
-        "name": "maxSkills",
-        "type": "uint8"
-      }
-    ],
-    "name": "MaxActiveSkillsReached",
     "type": "error"
   },
   {
@@ -184,13 +111,19 @@
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "NoDepositsFound",
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "moduleName",
+        "type": "string"
+      }
+    ],
+    "name": "ModuleNotSet",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "NoPendingCommission",
+    "name": "NoDepositsFound",
     "type": "error"
   },
   {
@@ -204,55 +137,15 @@
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "SkillAlreadyActive",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "SkillNotActive",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "SkillTypeDisabled",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "UnauthorizedSender",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "achievementId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "rewardAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
       }
     ],
-    "name": "AchievementRewardObtained",
-    "type": "event"
+    "name": "SkillDisabled",
+    "type": "error"
   },
   {
     "anonymous": false,
@@ -271,25 +164,6 @@
       }
     ],
     "name": "AutoCompoundTriggered",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "AutoCompounded",
     "type": "event"
   },
   {
@@ -377,25 +251,6 @@
         "type": "uint256"
       }
     ],
-    "name": "EmergencyRewardClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
     "name": "EmergencyWithdrawal",
     "type": "event"
   },
@@ -404,69 +259,24 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "string",
+        "name": "moduleName",
+        "type": "string"
+      },
+      {
+        "indexed": true,
         "internalType": "address",
-        "name": "oldMarketplace",
+        "name": "oldModule",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "newMarketplace",
+        "name": "newModule",
         "type": "address"
       }
     ],
-    "name": "MarketplaceUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newContract",
-        "type": "address"
-      }
-    ],
-    "name": "MigrationInitiated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "NFTStaked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "NFTUnstaked",
+    "name": "ModuleUpdated",
     "type": "event"
   },
   {
@@ -499,56 +309,6 @@
       }
     ],
     "name": "Paused",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "questId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "rewardAmount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      }
-    ],
-    "name": "QuestRewardObtained",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "RewardsCompounded",
     "type": "event"
   },
   {
@@ -594,37 +354,6 @@
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "enum IStakingIntegration.SkillType",
-        "name": "skillType",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "skillLevel",
-        "type": "uint8"
-      }
-    ],
-    "name": "SkillApplied",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "nftId",
         "type": "uint256"
       },
@@ -649,9 +378,9 @@
       },
       {
         "indexed": false,
-        "internalType": "uint8",
+        "internalType": "uint16",
         "name": "level",
-        "type": "uint8"
+        "type": "uint16"
       },
       {
         "indexed": false,
@@ -667,62 +396,6 @@
       }
     ],
     "name": "SkillProfileUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "enum IStakingIntegration.SkillType",
-        "name": "skillType",
-        "type": "uint8"
-      }
-    ],
-    "name": "SkillRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "enum IStakingIntegration.Rarity",
-        "name": "newRarity",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "upgradeReward",
-        "type": "uint256"
-      }
-    ],
-    "name": "SkillUpgraded",
     "type": "event"
   },
   {
@@ -790,86 +463,10 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "commission",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "depositId",
-        "type": "uint256"
-      }
-    ],
-    "name": "WithdrawalMade",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
       }
     ],
     "name": "Withdrawn",
     "type": "event"
-  },
-  {
-    "inputs": [],
-    "name": "AUTO_COMPOUND_INTERVAL",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "achievementRewardExpirationTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "userAddresses",
-        "type": "address[]"
-      }
-    ],
-    "name": "batchAutoCompound",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
   },
   {
     "inputs": [
@@ -918,7 +515,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "userAddress",
         "type": "address"
       }
     ],
@@ -926,7 +523,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "totalBoosted",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -1025,12 +622,12 @@
     "outputs": [
       {
         "internalType": "bool",
-        "name": "upkeepNeeded",
+        "name": "",
         "type": "bool"
       },
       {
         "internalType": "bytes",
-        "name": "performData",
+        "name": "",
         "type": "bytes"
       }
     ],
@@ -1060,19 +657,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint64",
-        "name": "_lockupDuration",
-        "type": "uint64"
-      }
-    ],
-    "name": "depositWithBoosts",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "_amount",
         "type": "uint256"
@@ -1085,9 +669,15 @@
   },
   {
     "inputs": [],
-    "name": "emergencyWithdrawAll",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "gamificationModule",
+    "outputs": [
+      {
+        "internalType": "contract IEnhancedSmartStakingGamification",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1142,221 +732,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "getActiveSkillsWithDetails",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "nftIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "enum IStakingIntegration.SkillType[]",
-        "name": "skillTypes",
-        "type": "uint8[]"
-      },
-      {
-        "internalType": "enum IStakingIntegration.Rarity[]",
-        "name": "rarities",
-        "type": "uint8[]"
-      },
-      {
-        "internalType": "uint16[]",
-        "name": "effectValues",
-        "type": "uint16[]"
-      },
-      {
-        "internalType": "uint8[]",
-        "name": "rarityStars",
-        "type": "uint8[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "getAutoCompoundUsers",
     "outputs": [
       {
         "internalType": "address[]",
-        "name": "",
+        "name": "autoUsers",
         "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAvailableSkillsConfiguration",
-    "outputs": [
-      {
-        "internalType": "enum IStakingIntegration.SkillType[]",
-        "name": "skillTypes",
-        "type": "uint8[]"
-      },
-      {
-        "internalType": "uint16[]",
-        "name": "defaultEffects",
-        "type": "uint16[]"
-      },
-      {
-        "internalType": "bool[]",
-        "name": "enabled",
-        "type": "bool[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getContractBalance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "nftId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getSkillRarity",
-    "outputs": [
-      {
-        "internalType": "enum IStakingIntegration.Rarity",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "userAddress",
-        "type": "address"
-      }
-    ],
-    "name": "getTotalDeposit",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "userAddress",
-        "type": "address"
-      }
-    ],
-    "name": "getUserDeposits",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint128",
-            "name": "amount",
-            "type": "uint128"
-          },
-          {
-            "internalType": "uint64",
-            "name": "timestamp",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "lastClaimTime",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "lockupDuration",
-            "type": "uint64"
-          }
-        ],
-        "internalType": "struct EnhancedSmartStaking.Deposit[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "getUserDetailedStats",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalStaked",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "baseRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "boostedRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "questRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "achievementRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "skillLevel",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "activeSkillsCount",
-        "type": "uint8"
-      },
-      {
-        "internalType": "bool",
-        "name": "hasAutoCompoundSkill",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -1400,60 +782,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "userAddress",
-        "type": "address"
-      }
-    ],
-    "name": "getUserInfoWithSkills",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalDeposited",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "baseRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "boostedRewards",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastWithdraw",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint16",
-        "name": "stakingBoost",
-        "type": "uint16"
-      },
-      {
-        "internalType": "bool",
-        "name": "hasAutoCompound_",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint8",
-        "name": "level",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "activeSkillCount",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "user",
         "type": "address"
       }
@@ -1473,9 +801,9 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint8",
+            "internalType": "uint16",
             "name": "level",
-            "type": "uint8"
+            "type": "uint16"
           },
           {
             "internalType": "uint8",
@@ -1499,7 +827,7 @@
           }
         ],
         "internalType": "struct IStakingIntegration.UserSkillProfile",
-        "name": "",
+        "name": "profile",
         "type": "tuple"
       }
     ],
@@ -1520,57 +848,6 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "lastAchievementUnlockTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "lastAutoCompoundExecution",
-    "outputs": [
-      {
-        "internalType": "uint64",
-        "name": "",
-        "type": "uint64"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "lastQuestCompletionTime",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1619,7 +896,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "nftId",
         "type": "uint256"
       }
     ],
@@ -1629,50 +906,6 @@
         "internalType": "enum IStakingIntegration.Rarity",
         "name": "",
         "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "nftSkills",
-    "outputs": [
-      {
-        "internalType": "enum IStakingIntegration.SkillType",
-        "name": "skillType",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint16",
-        "name": "effectValue",
-        "type": "uint16"
-      },
-      {
-        "internalType": "enum IStakingIntegration.Rarity",
-        "name": "rarity",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint64",
-        "name": "activatedAt",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "cooldownEnds",
-        "type": "uint64"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -1771,39 +1004,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "oldSkillId1",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "oldSkillId2",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "newSkillId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "enum IStakingIntegration.Rarity",
-        "name": "newRarity",
-        "type": "uint8"
-      }
-    ],
-    "name": "notifySkillUpgrade",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "owner",
     "outputs": [
@@ -1851,20 +1051,33 @@
   },
   {
     "inputs": [],
-    "name": "questRewardExpirationTime",
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rewardsModule",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "contract IEnhancedSmartStakingRewards",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_gamificationModule",
+        "type": "address"
+      }
+    ],
+    "name": "setGamificationModule",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1878,6 +1091,19 @@
       }
     ],
     "name": "setMarketplaceAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_rewardsModule",
+        "type": "address"
+      }
+    ],
+    "name": "setRewardsModule",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1903,17 +1129,12 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "nftId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "enum IStakingIntegration.Rarity",
-        "name": "rarity",
-        "type": "uint8"
+        "internalType": "address",
+        "name": "_skillsModule",
+        "type": "address"
       }
     ],
-    "name": "setSkillRarity",
+    "name": "setSkillsModule",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1928,14 +1149,14 @@
     ],
     "name": "setStakingAddress",
     "outputs": [],
-    "stateMutability": "view",
+    "stateMutability": "pure",
     "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "enum IStakingIntegration.SkillType",
-        "name": "",
+        "name": "skillType",
         "type": "uint8"
       }
     ],
@@ -1954,7 +1175,7 @@
     "inputs": [
       {
         "internalType": "enum IStakingIntegration.SkillType",
-        "name": "",
+        "name": "skillType",
         "type": "uint8"
       }
     ],
@@ -1970,19 +1191,13 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "totalAchievementRewards",
+    "inputs": [],
+    "name": "skillsModule",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "contract IEnhancedSmartStakingSkills",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -1991,25 +1206,6 @@
   {
     "inputs": [],
     "name": "totalPoolBalance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "totalQuestRewards",
     "outputs": [
       {
         "internalType": "uint256",
@@ -2100,98 +1296,6 @@
     "name": "updateUserXP",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "userAchievementRewards",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "userQuestRewards",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "userSkillProfiles",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalXP",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "level",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint8",
-        "name": "maxActiveSkills",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint16",
-        "name": "stakingBoostTotal",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint16",
-        "name": "feeDiscountTotal",
-        "type": "uint16"
-      },
-      {
-        "internalType": "bool",
-        "name": "hasAutoCompound",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

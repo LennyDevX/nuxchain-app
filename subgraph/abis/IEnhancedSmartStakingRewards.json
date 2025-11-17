@@ -1,0 +1,208 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IEnhancedSmartStakingRewards",
+  "sourceName": "contracts/interfaces/IEnhancedSmartStakingRewards.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint16",
+          "name": "totalBoost",
+          "type": "uint16"
+        }
+      ],
+      "name": "calculateBoostedAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "apy",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "depositAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "depositTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastClaimTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint16",
+          "name": "totalBoost",
+          "type": "uint16"
+        }
+      ],
+      "name": "calculateBoostedRewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "boostedRewards",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "depositAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "depositTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastClaimTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint16",
+          "name": "totalBoost",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint16",
+          "name": "rarityMultiplier",
+          "type": "uint16"
+        }
+      ],
+      "name": "calculateBoostedRewardsWithRarityMultiplier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "boostedRewards",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "activeSkillCount",
+          "type": "uint8"
+        }
+      ],
+      "name": "calculateFeeDiscount",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "discountPercentage",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "depositAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "depositTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastClaimTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        }
+      ],
+      "name": "calculateRewards",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "rewards",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        }
+      ],
+      "name": "getBaseAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "apy",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getLockupPeriodsConfig",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "periods",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "apys",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

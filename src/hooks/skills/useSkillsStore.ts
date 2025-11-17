@@ -1,27 +1,14 @@
-/**
- * Custom Hook for Skills Store Operations
- * Handles purchasing individual skills from the marketplace
- * Uses IndividualSkillsMarketplace contract (payable with POL on Polygon)
- * 
- * Data Flow:
- * 1. localStorage: Fast cached read (populated on purchase)
- * 2. Subgraph (v0.20): On-chain verification and sync (GraphQL queries)
- * 3. Smart Contract: Direct read functions (fallback)
- * 
- * Strategy:
- * - Primary: localStorage for instant UI updates
- * - Secondary: Subgraph for truth/verification (once indexed)
- * - Tertiary: Contract read functions (if subgraph not ready)
- */
 
-import { useState, useCallback } from 'react';
+
+import { useState, useCallback, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
 import type { SkillData } from '../../components/skills/config';
-import IIndividualSkillsABI from '../../abi/IndividualSkillsMarketplace.json';
+import IIndividualSkillsABI from '../../abi/IndividualSkillsMarketplace/IndividualSkillsMarketplace.json';
 import { useSkillsGraph } from './useSkillsGraph';
 
 const INDIVIDUAL_SKILLS_ADDRESS = import.meta.env.VITE_INDIVIDUAL_SKILLS as `0x${string}`;
+const LAST_KNOWN_CONTRACT_KEY = 'nuxchain_last_contract_address';
 
 export interface UserSkillData {
   skillId: number;
@@ -50,6 +37,23 @@ export function useSkillsStore() {
   
   // GraphQL hook for subgraph queries
   const skillsGraph = useSkillsGraph();
+
+  // ✅ CLEANUP: Clear old skills data when contract address changes
+  useEffect(() => {
+    if (!address) return;
+
+    const lastContractAddress = localStorage.getItem(LAST_KNOWN_CONTRACT_KEY);
+    
+    // If contract address has changed, clear old skills data
+    if (lastContractAddress && lastContractAddress !== INDIVIDUAL_SKILLS_ADDRESS) {
+      console.log('🧹 Contract address changed. Clearing old skills data...');
+      const storageKey = `skills_${address.toLowerCase()}`;
+      localStorage.removeItem(storageKey);
+    }
+    
+    // Always update the last known contract address
+    localStorage.setItem(LAST_KNOWN_CONTRACT_KEY, INDIVIDUAL_SKILLS_ADDRESS);
+  }, [address]);
 
   // ========================================
   // HELPER FUNCTIONS

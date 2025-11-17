@@ -700,6 +700,175 @@ export class XPGained__Params {
   }
 }
 
+export class GameifiedMarketplaceCoreV1__getListedNFTsPageResult {
+  value0: Array<BigInt>;
+  value1: BigInt;
+
+  constructor(value0: Array<BigInt>, value1: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    return map;
+  }
+
+  getTokens(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getNextCursor(): BigInt {
+    return this.value1;
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getNFTMarketInfoResult {
+  value0: Address;
+  value1: boolean;
+  value2: BigInt;
+
+  constructor(value0: Address, value1: boolean, value2: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddress(this.value0));
+    map.set("value1", ethereum.Value.fromBoolean(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    return map;
+  }
+
+  getOwner(): Address {
+    return this.value0;
+  }
+
+  getIsListedStatus(): boolean {
+    return this.value1;
+  }
+
+  getPrice(): BigInt {
+    return this.value2;
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct extends ethereum.Tuple {
+  get creator(): Address {
+    return this[0].toAddress();
+  }
+
+  get uri(): string {
+    return this[1].toString();
+  }
+
+  get category(): string {
+    return this[2].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get royaltyPercentage(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct extends ethereum.Tuple {
+  get offeror(): Address {
+    return this[0].toAddress();
+  }
+
+  get amount(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get expiresInDays(): i32 {
+    return this[2].toI32();
+  }
+
+  get timestamp(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getUserCreatedNFTsPageResult {
+  value0: Array<BigInt>;
+  value1: BigInt;
+
+  constructor(value0: Array<BigInt>, value1: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    return map;
+  }
+
+  getTokens(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getNextCursor(): BigInt {
+    return this.value1;
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getUserNFTsDetailedResultValue0Struct extends ethereum.Tuple {
+  get creator(): Address {
+    return this[0].toAddress();
+  }
+
+  get uri(): string {
+    return this[1].toString();
+  }
+
+  get category(): string {
+    return this[2].toString();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get royaltyPercentage(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceCoreV1__getUserNFTsPageResult {
+  value0: Array<BigInt>;
+  value1: BigInt;
+
+  constructor(value0: Array<BigInt>, value1: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    return map;
+  }
+
+  getTokens(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getNextCursor(): BigInt {
+    return this.value1;
+  }
+}
+
 export class GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct extends ethereum.Tuple {
   get totalXP(): BigInt {
     return this[0].toBigInt();
@@ -1075,6 +1244,215 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  getListedNFTs(): Array<BigInt> {
+    let result = super.call("getListedNFTs", "getListedNFTs():(uint256[])", []);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getListedNFTs(): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getListedNFTs",
+      "getListedNFTs():(uint256[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getListedNFTsPage(
+    cursor: BigInt,
+    size: BigInt,
+  ): GameifiedMarketplaceCoreV1__getListedNFTsPageResult {
+    let result = super.call(
+      "getListedNFTsPage",
+      "getListedNFTsPage(uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+
+    return new GameifiedMarketplaceCoreV1__getListedNFTsPageResult(
+      result[0].toBigIntArray(),
+      result[1].toBigInt(),
+    );
+  }
+
+  try_getListedNFTsPage(
+    cursor: BigInt,
+    size: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getListedNFTsPageResult> {
+    let result = super.tryCall(
+      "getListedNFTsPage",
+      "getListedNFTsPage(uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceCoreV1__getListedNFTsPageResult(
+        value[0].toBigIntArray(),
+        value[1].toBigInt(),
+      ),
+    );
+  }
+
+  getNFTComments(_tokenId: BigInt): Array<string> {
+    let result = super.call(
+      "getNFTComments",
+      "getNFTComments(uint256):(string[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toStringArray();
+  }
+
+  try_getNFTComments(_tokenId: BigInt): ethereum.CallResult<Array<string>> {
+    let result = super.tryCall(
+      "getNFTComments",
+      "getNFTComments(uint256):(string[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toStringArray());
+  }
+
+  getNFTLikeCount(_tokenId: BigInt): BigInt {
+    let result = super.call(
+      "getNFTLikeCount",
+      "getNFTLikeCount(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getNFTLikeCount(_tokenId: BigInt): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getNFTLikeCount",
+      "getNFTLikeCount(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getNFTMarketInfo(
+    _tokenId: BigInt,
+  ): GameifiedMarketplaceCoreV1__getNFTMarketInfoResult {
+    let result = super.call(
+      "getNFTMarketInfo",
+      "getNFTMarketInfo(uint256):(address,bool,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return new GameifiedMarketplaceCoreV1__getNFTMarketInfoResult(
+      result[0].toAddress(),
+      result[1].toBoolean(),
+      result[2].toBigInt(),
+    );
+  }
+
+  try_getNFTMarketInfo(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getNFTMarketInfoResult> {
+    let result = super.tryCall(
+      "getNFTMarketInfo",
+      "getNFTMarketInfo(uint256):(address,bool,uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceCoreV1__getNFTMarketInfoResult(
+        value[0].toAddress(),
+        value[1].toBoolean(),
+        value[2].toBigInt(),
+      ),
+    );
+  }
+
+  getNFTMetadata(
+    _tokenId: BigInt,
+  ): GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct {
+    let result = super.call(
+      "getNFTMetadata",
+      "getNFTMetadata(uint256):((address,string,string,uint256,uint96))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return changetype<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_getNFTMetadata(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct> {
+    let result = super.tryCall(
+      "getNFTMetadata",
+      "getNFTMetadata(uint256):((address,string,string,uint256,uint96))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  getNFTOffers(
+    _tokenId: BigInt,
+  ): Array<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct> {
+    let result = super.call(
+      "getNFTOffers",
+      "getNFTOffers(uint256):((address,uint256,uint8,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>();
+  }
+
+  try_getNFTOffers(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<
+    Array<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getNFTOffers",
+      "getNFTOffers(uint256):((address,uint256,uint8,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>(),
+    );
+  }
+
   getRoleAdmin(role: Bytes): Bytes {
     let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
       ethereum.Value.fromFixedBytes(role),
@@ -1094,6 +1472,207 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getUserCreatedNFTs(_user: Address): Array<BigInt> {
+    let result = super.call(
+      "getUserCreatedNFTs",
+      "getUserCreatedNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getUserCreatedNFTs(_user: Address): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getUserCreatedNFTs",
+      "getUserCreatedNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getUserCreatedNFTsPage(
+    _user: Address,
+    cursor: BigInt,
+    size: BigInt,
+  ): GameifiedMarketplaceCoreV1__getUserCreatedNFTsPageResult {
+    let result = super.call(
+      "getUserCreatedNFTsPage",
+      "getUserCreatedNFTsPage(address,uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+
+    return new GameifiedMarketplaceCoreV1__getUserCreatedNFTsPageResult(
+      result[0].toBigIntArray(),
+      result[1].toBigInt(),
+    );
+  }
+
+  try_getUserCreatedNFTsPage(
+    _user: Address,
+    cursor: BigInt,
+    size: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getUserCreatedNFTsPageResult> {
+    let result = super.tryCall(
+      "getUserCreatedNFTsPage",
+      "getUserCreatedNFTsPage(address,uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceCoreV1__getUserCreatedNFTsPageResult(
+        value[0].toBigIntArray(),
+        value[1].toBigInt(),
+      ),
+    );
+  }
+
+  getUserNFTLike(_tokenId: BigInt, _user: Address): boolean {
+    let result = super.call(
+      "getUserNFTLike",
+      "getUserNFTLike(uint256,address):(bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromAddress(_user),
+      ],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_getUserNFTLike(
+    _tokenId: BigInt,
+    _user: Address,
+  ): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "getUserNFTLike",
+      "getUserNFTLike(uint256,address):(bool)",
+      [
+        ethereum.Value.fromUnsignedBigInt(_tokenId),
+        ethereum.Value.fromAddress(_user),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  getUserNFTs(_user: Address): Array<BigInt> {
+    let result = super.call("getUserNFTs", "getUserNFTs(address):(uint256[])", [
+      ethereum.Value.fromAddress(_user),
+    ]);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getUserNFTs(_user: Address): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getUserNFTs",
+      "getUserNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getUserNFTsDetailed(
+    _user: Address,
+  ): Array<GameifiedMarketplaceCoreV1__getUserNFTsDetailedResultValue0Struct> {
+    let result = super.call(
+      "getUserNFTsDetailed",
+      "getUserNFTsDetailed(address):((address,string,string,uint256,uint96)[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceCoreV1__getUserNFTsDetailedResultValue0Struct>();
+  }
+
+  try_getUserNFTsDetailed(
+    _user: Address,
+  ): ethereum.CallResult<
+    Array<GameifiedMarketplaceCoreV1__getUserNFTsDetailedResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getUserNFTsDetailed",
+      "getUserNFTsDetailed(address):((address,string,string,uint256,uint96)[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceCoreV1__getUserNFTsDetailedResultValue0Struct>(),
+    );
+  }
+
+  getUserNFTsPage(
+    _user: Address,
+    cursor: BigInt,
+    size: BigInt,
+  ): GameifiedMarketplaceCoreV1__getUserNFTsPageResult {
+    let result = super.call(
+      "getUserNFTsPage",
+      "getUserNFTsPage(address,uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+
+    return new GameifiedMarketplaceCoreV1__getUserNFTsPageResult(
+      result[0].toBigIntArray(),
+      result[1].toBigInt(),
+    );
+  }
+
+  try_getUserNFTsPage(
+    _user: Address,
+    cursor: BigInt,
+    size: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getUserNFTsPageResult> {
+    let result = super.tryCall(
+      "getUserNFTsPage",
+      "getUserNFTsPage(address,uint256,uint256):(uint256[],uint256)",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(cursor),
+        ethereum.Value.fromUnsignedBigInt(size),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceCoreV1__getUserNFTsPageResult(
+        value[0].toBigIntArray(),
+        value[1].toBigInt(),
+      ),
+    );
   }
 
   getUserProfile(

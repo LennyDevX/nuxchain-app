@@ -6,7 +6,7 @@ dataSources:
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0x1E005153769F73327c4a74Ef3Dc03d53BDeB4DCe"
+      address: "0x9C36B1Dff65d2211FAABcBCF116B9eF706c37081"
       abi: EnhancedSmartStaking
       startBlock: 78900000
     mapping:
@@ -38,24 +38,103 @@ dataSources:
           handler: handleWithdrawAll
         - event: Compounded(indexed address,uint256)
           handler: handleCompounded
-        - event: RewardsCompounded(indexed address,uint256)
-          handler: handleRewardsCompounded
-        - event: AutoCompounded(indexed address,uint256)
-          handler: handleAutoCompounded
+        - event: AutoCompoundTriggered(indexed address,uint256)
+          handler: handleAutoCompoundTriggered
         - event: SkillActivated(indexed address,indexed uint256,uint8,uint16)
           handler: handleSkillActivated
         - event: SkillDeactivated(indexed address,indexed uint256,uint8)
           handler: handleSkillDeactivated
-        - event: SkillProfileUpdated(indexed address,uint8,uint8,uint16)
+        - event: SkillProfileUpdated(indexed address,uint16,uint8,uint16)
           handler: handleSkillProfileUpdated
-        - event: SkillUpgraded(indexed address,indexed uint256,uint8,uint256)
-          handler: handleSkillUpgraded
+        - event: CommissionPaid(indexed address,uint256,uint256)
+          handler: handleCommissionPaid
+        - event: EmergencyWithdrawal(indexed address,uint256)
+          handler: handleEmergencyWithdrawal
       file: EnhancedSmartStaking\EnhancedSmartStaking.wasm
+  - kind: ethereum
+    name: EnhancedSmartStakingRewards
+    network: matic
+    source:
+      address: "0x7913f81EC061db802c55C0Cb5B4a49e77b3ff980"
+      abi: EnhancedSmartStakingRewards
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - UserStats
+        - GlobalStats
+        - DailyStats
+      abis:
+        - name: EnhancedSmartStakingRewards
+          file: EnhancedSmartStakingRewards\EnhancedSmartStakingRewards.json
+      eventHandlers:
+        - event: APYUpdated(indexed uint8,uint256,uint256)
+          handler: handleAPYUpdated
+      file: EnhancedSmartStakingRewards\EnhancedSmartStakingRewards.wasm
+  - kind: ethereum
+    name: EnhancedSmartStakingGamification
+    network: matic
+    source:
+      address: "0xF25eeB5B00135Cbab697Bc732E80bb9A1803Ed0e"
+      abi: EnhancedSmartStakingGamification
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Achievement
+        - Activity
+        - UserStats
+        - GlobalStats
+      abis:
+        - name: EnhancedSmartStakingGamification
+          file: EnhancedSmartStakingGamification\EnhancedSmartStakingGamification.json
+      eventHandlers:
+        - event: AchievementUnlocked(indexed address,uint256,uint256)
+          handler: handleAchievementUnlocked
+        - event: AutoCompoundEnabled(indexed address,uint256)
+          handler: handleAutoCompoundEnabled
+        - event: AutoCompoundDisabled(indexed address)
+          handler: handleAutoCompoundDisabled
+        - event: AutoCompoundExecuted(indexed address,uint256)
+          handler: handleAutoCompoundExecuted
+        - event: QuestCompleted(indexed address,uint256,uint256)
+          handler: handleQuestCompleted
+        - event: XPUpdated(indexed address,uint256,uint16)
+          handler: handleXPUpdated
+      file: EnhancedSmartStakingGamification\EnhancedSmartStakingGamification.wasm
+  - kind: ethereum
+    name: EnhancedSmartStakingSkills
+    network: matic
+    source:
+      address: "0xd96AE88B72ccD025bC8174728EddCF58C2523276"
+      abi: EnhancedSmartStakingSkills
+      startBlock: 78900000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - SkillProfile
+        - Activity
+        - UserStats
+      abis:
+        - name: EnhancedSmartStakingSkills
+          file: EnhancedSmartStakingSkills\EnhancedSmartStakingSkills.json
+      eventHandlers:
+        - event: SkillRarityUpdated(indexed uint256,uint8,uint16)
+          handler: handleSkillRarityUpdated
+      file: EnhancedSmartStakingSkills\EnhancedSmartStakingSkills.wasm
   - kind: ethereum
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0x3b0111517f7D622f9e011A726616627F5Fa4DFD8"
+      address: "0xB863618C5F9918c0D068647dc97A0DE4950be955"
       abi: GameifiedMarketplaceCoreV1
       startBlock: 78900000
     mapping:
@@ -96,7 +175,7 @@ dataSources:
     name: IndividualSkillsMarketplace
     network: matic
     source:
-      address: "0x8B2a87A05a7703426b1Ad3D733c61Dd4B40fF538"
+      address: "0x268f8DF7397550606F3E341561F24e179bb2B7A2"
       abi: IndividualSkillsMarketplace
       startBlock: 78900000
     mapping:
@@ -128,7 +207,7 @@ dataSources:
     name: GameifiedMarketplaceSkillsV2
     network: matic
     source:
-      address: "0xB2174934d746d0ADDFa1DF247bC0419ce44d3C95"
+      address: "0x47F922b85F45eC71d61C4DC81854593423bd4aDb"
       abi: GameifiedMarketplaceSkillsV2
       startBlock: 78900000
     mapping:
@@ -159,7 +238,7 @@ dataSources:
     name: GameifiedMarketplaceQuests
     network: matic
     source:
-      address: "0x1cAc0986509f075f107E90B1E70e83A0684D53Ab"
+      address: "0x46Ed83A810A0CDDbff9d5c69F18F989dDed411Ff"
       abi: GameifiedMarketplaceQuests
       startBlock: 78900000
     mapping:

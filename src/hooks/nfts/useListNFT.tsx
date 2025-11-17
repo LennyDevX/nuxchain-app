@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { normalizeCategory } from '../../utils/ipfs/ipfsUtils';
 
 // Use V2 contract address

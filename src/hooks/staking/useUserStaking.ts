@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
-import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json';
+import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json';
 
 // ✅ Add BigInt serialization support for React DevTools
 declare global {
@@ -42,14 +42,14 @@ export function useUserStaking(): UserStakingData {
   const [error] = useState<string | null>(null);
 
   // ✅ Memoize contract config
-  const contractConfig = useMemo(() => ({
+  const coreConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
+    abi: EnhancedSmartStakingCoreABI.abi,
   }), []);
 
   // ✅ Get total deposit with optimized cache
   const { data: totalDeposit, isLoading: loadingDeposit } = useReadContract({
-    ...contractConfig,
+    ...coreConfig,
     functionName: 'getTotalDeposit',
     args: [address],
     query: { 
@@ -64,7 +64,7 @@ export function useUserStaking(): UserStakingData {
 
   // ✅ Get pending rewards with faster update (financial data)
   const { data: pendingRewards, isLoading: loadingRewards } = useReadContract({
-    ...contractConfig,
+    ...coreConfig,
     functionName: 'calculateRewards',
     args: [address],
     query: { 
@@ -79,7 +79,7 @@ export function useUserStaking(): UserStakingData {
 
   // ✅ Get user deposits to count active positions
   const { data: userDeposits, isLoading: loadingDeposits } = useReadContract({
-    ...contractConfig,
+    ...coreConfig,
     functionName: 'getUserDeposits',
     args: [address],
     query: { 

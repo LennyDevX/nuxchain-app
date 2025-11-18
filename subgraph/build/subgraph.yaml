@@ -134,7 +134,7 @@ dataSources:
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0xB863618C5F9918c0D068647dc97A0DE4950be955"
+      address: "0x38fb2f79f587Ce86f1c9d882e2bF48f032fe9311"
       abi: GameifiedMarketplaceCoreV1
       startBlock: 78900000
     mapping:

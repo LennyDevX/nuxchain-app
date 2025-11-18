@@ -179,7 +179,10 @@ function Marketplace() {
   }, []);
 
   const handleBuy = useCallback((nft: MarketplaceNFT) => {
-    console.log('Comprando NFT:', nft);
+    console.log('🛒 [Marketplace] NFT purchased, refreshing marketplace...', {
+      tokenId: nft.tokenId,
+      nftName: nft.name
+    });
     setShowBuyModal(false);
     setSelectedNFT(null);
     refreshNFTs();

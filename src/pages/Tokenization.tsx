@@ -7,7 +7,6 @@ import { useUserStaking } from '../hooks/staking/useUserStaking';
 // Import components
 import FileUpload from '../components/tokenization/FileUpload';
 import NFTDetails from '../components/tokenization/NFTDetails';
-import ProgressIndicator from '../components/tokenization/ProgressIndicator';
 import InfoCarousel from '../components/tokenization/InfoCarousel';
 
 // Types for Skill NFTs - Updated for new architecture
@@ -35,7 +34,7 @@ interface FormData {
 
 function Tokenization() {
   const { isConnected } = useAccount();
-  const { mintNFT, loading, error: mintError, txHash } = useMintNFT();
+  const { mintNFT, loading, error: mintError } = useMintNFT();
   const { totalStaked } = useUserStaking();
   
   // Form state
@@ -53,7 +52,6 @@ function Tokenization() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
 
 
@@ -96,40 +94,49 @@ function Tokenization() {
     try {
       setError(null);
       
+      // Show loading toast while minting
+      const mintToastId = toast.loading('Minting NFT...', {
+        position: 'top-center',
+        style: {
+          background: '#3b82f6',
+          color: '#fff',
+          fontSize: '15px',
+          fontWeight: '600',
+          borderRadius: '12px',
+          padding: '14px 24px',
+          boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
+        }
+      });
+      
       const result = await mintNFT({
         file: selectedFile,
         name: formData.name,
         description: formData.description,
         category: formData.category,
         royalty: formData.royaltyPercentage,
-        skills: formData.skills // Always send skills (min 1 required)
+        skills: formData.skills
       });
       
+      // Dismiss loading toast
+      toast.dismiss(mintToastId);
+      
       if (result.success) {
-        const nftType = formData.nftType === 'skill' ? 'Skill NFT' : 'NFT';
-        
-        // ✅ Show toast with token ID ONLY - clean and simple
-        toast.success(
-          `NFT #${result.tokenId} minted successfully! 🎉`,
-          {
-            duration: 6000,
-            position: 'top-center',
-            style: {
-              background: '#10b981',
-              color: '#fff',
-              fontSize: '16px',
-              fontWeight: '600',
-              borderRadius: '12px',
-              padding: '16px 24px',
-              boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
-            }
+        // Show only one success toast notification
+        toast.success(`NFT #${result.tokenId} Minted`, {
+          duration: 4000,
+          position: 'top-center',
+          style: {
+            background: '#10b981',
+            color: '#fff',
+            fontSize: '15px',
+            fontWeight: '600',
+            borderRadius: '12px',
+            padding: '14px 24px',
+            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
           }
-        );
+        });
         
-        // ✅ Set success state and show in UI
-        setSuccess(`🎉 ${nftType} "${formData.name}" created successfully!`);
-        
-        // ✅ Clear form after 2 seconds
+        // Clear form after success
         setTimeout(() => {
           setFormData({
             name: '',
@@ -142,14 +149,30 @@ function Tokenization() {
           });
           setSelectedFile(null);
           setImagePreview(null);
-          setSuccess(null); // Clear success message
         }, 2000);
       }
       
     } catch (err) {
       console.error('Error creating NFT:', err);
+      toast.dismiss();
+      
       const errorMsg = err instanceof Error ? err.message : 'Failed to create NFT';
       setError(errorMsg || mintError);
+      
+      // Show error toast - simple message
+      toast.error('Minting failed', {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: '#ef4444',
+          color: '#fff',
+          fontSize: '15px',
+          fontWeight: '600',
+          borderRadius: '12px',
+          padding: '14px 24px',
+          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
+        }
+      });
     }
   };
 
@@ -293,38 +316,11 @@ function Tokenization() {
 
         {/* Status Messages and Progress */}
         <div className="space-y-6">
-
-            {/* Progress Indicator - Show during upload */}
-            {loading && (
-              <div className="w-full">
-                <ProgressIndicator
-                  isUploading={loading}
-                  uploadProgress={loading ? 50 : 0}
-                  isPending={loading}
-                  isConfirming={loading}
-                  success={success}
-                />
-              </div>
-            )}
-
-            {/* Success/Error Messages */}
+            {/* Show errors only if any */}
             {(error || mintError) && (
               <div className="w-full">
                 <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
                   <p className="text-red-200">{error || mintError}</p>
-                </div>
-              </div>
-            )}
-
-            {success && (
-              <div className="w-full">
-                <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-4">
-                  <p className="text-green-200">NFT creado exitosamente!</p>
-                  {txHash && (
-                    <p className="text-green-300 text-sm mt-2">
-                      Hash de transacción: <span className="font-mono">{txHash}</span>
-                    </p>
-                  )}
                 </div>
               </div>
             )}

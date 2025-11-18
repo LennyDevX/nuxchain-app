@@ -1,13 +1,43 @@
 import { gql } from '@apollo/client';
 
 /**
- * Query to get user's recent activities
- * Returns all activity types sorted by timestamp (most recent first)
+ * Query to get user's recent activities (as ACTOR - creator, lister, seller, etc.)
+ * Returns all activity types where user is the actor, sorted by timestamp
  */
 export const GET_USER_ACTIVITIES = gql`
   query GetUserActivities($userAddress: Bytes!, $first: Int!, $skip: Int!) {
     activities(
       where: { user: $userAddress }
+      first: $first
+      skip: $skip
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
+      id
+      type
+      timestamp
+      transactionHash
+      blockNumber
+      amount
+      tokenId
+      lockupDuration
+      category
+      buyer
+      seller
+      offerId
+    }
+  }
+`;
+
+/**
+ * Query to get user's PURCHASE activities (NFT_PURCHASE where user is BUYER)
+ * This captures NFTs purchased by the user from other sellers
+ * ✅ FIXED: Now queries for NFT_PURCHASE type (created for buyer in subgraph)
+ */
+export const GET_USER_PURCHASE_ACTIVITIES = gql`
+  query GetUserPurchaseActivities($userAddress: Bytes!, $first: Int!, $skip: Int!) {
+    activities(
+      where: { user: $userAddress, type: "NFT_PURCHASE" }
       first: $first
       skip: $skip
       orderBy: timestamp

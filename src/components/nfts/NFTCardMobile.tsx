@@ -1,5 +1,6 @@
 import { memo, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 import { formatPolValue } from '../../utils/formats/format';
@@ -38,6 +39,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const { imageUrl, error: imageError } = useImageCache(nft.image);
@@ -52,6 +54,23 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
     setIsFlipped(!isFlipped);
     setCurrentSlide(0); // Reset carousel when flipping
   }, [isFlipped]);
+
+  // Handle address copy to clipboard
+  const handleCopyAddress = useCallback((address: string, type: string) => {
+    navigator.clipboard.writeText(address).then(() => {
+      setCopiedAddress(address);
+      toast.success(`${type} copied!`, {
+        duration: 2000,
+        position: 'top-center'
+      });
+      setTimeout(() => setCopiedAddress(null), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy', {
+        duration: 2000,
+        position: 'top-center'
+      });
+    });
+  }, []);
 
   // Scroll to slide helper
   const scrollToSlide = useCallback((slideIndex: number) => {
@@ -306,44 +325,68 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                 <div className="p-4 space-y-3 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-white mb-1">Details</h3>
 
-                  {/* Creator Card */}
-                  <div className="bg-gradient-to-br from-purple-600/20 to-purple-600/5 border border-purple-500/40 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
+                  {/* Creator Card - Clickable */}
+                  <motion.button
+                    onClick={() => handleCopyAddress(nft.creator, 'Creator')}
+                    className="w-full text-left group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-purple-600/10 group-hover:bg-purple-600/20 border border-purple-500/30 group-hover:border-purple-500/60 transition-all duration-200">
                       <svg className="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                       </svg>
-                      <p className="text-xs font-semibold text-purple-300">Creator</p>
+                      <p className="text-xs font-semibold text-purple-300 flex-1">Creator</p>
+                      <svg className={`w-4 h-4 text-purple-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.creator ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                    <p className="text-xs text-white font-mono bg-purple-600/30 px-3 py-2 rounded break-all">
+                    <p className={`text-xs text-white font-mono bg-purple-600/15 px-3 py-2 rounded break-all transition-colors ${copiedAddress === nft.creator ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-purple-600/25'}`}>
                       {nft.creator}
                     </p>
-                  </div>
+                  </motion.button>
 
-                  {/* Owner Card */}
-                  <div className="bg-gradient-to-br from-blue-600/20 to-blue-600/5 border border-blue-500/40 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
+                  {/* Owner Card - Clickable */}
+                  <motion.button
+                    onClick={() => handleCopyAddress(nft.owner, 'Owner')}
+                    className="w-full text-left group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-blue-600/10 group-hover:bg-blue-600/20 border border-blue-500/30 group-hover:border-blue-500/60 transition-all duration-200">
                       <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <p className="text-xs font-semibold text-blue-300">Owner</p>
+                      <p className="text-xs font-semibold text-blue-300 flex-1">Owner</p>
+                      <svg className={`w-4 h-4 text-blue-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.owner ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                    <p className="text-xs text-white font-mono bg-blue-600/30 px-3 py-2 rounded break-all">
+                    <p className={`text-xs text-white font-mono bg-blue-600/15 px-3 py-2 rounded break-all transition-colors ${copiedAddress === nft.owner ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-blue-600/25'}`}>
                       {nft.owner}
                     </p>
-                  </div>
+                  </motion.button>
 
-                  {/* Contract Address */}
-                  <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-600/5 border border-indigo-500/40 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
+                  {/* Contract Address - Clickable */}
+                  <motion.button
+                    onClick={() => handleCopyAddress(nft.contract, 'Contract')}
+                    className="w-full text-left group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg bg-indigo-600/10 group-hover:bg-indigo-600/20 border border-indigo-500/30 group-hover:border-indigo-500/60 transition-all duration-200">
                       <svg className="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      <p className="text-xs font-semibold text-indigo-300">Contract</p>
+                      <p className="text-xs font-semibold text-indigo-300 flex-1">Contract</p>
+                      <svg className={`w-4 h-4 text-indigo-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.contract ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                    <p className="text-[10px] text-white font-mono bg-indigo-600/30 px-3 py-2 rounded break-all">
+                    <p className={`text-xs text-white font-mono bg-indigo-600/15 px-3 py-2 rounded break-all transition-colors ${copiedAddress === nft.contract ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-indigo-600/25'}`}>
                       {nft.contract}
                     </p>
-                  </div>
+                  </motion.button>
                 </div>
               </div>
 
@@ -364,7 +407,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-2 gap-3">
                         {nft.attributes.map((attr: NFTAttribute, index: number) => {
                           const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
                                                attr.trait_type.toLowerCase().includes('created');
@@ -376,14 +419,14 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                               className={`${
                                 isSpecialAttr 
                                   ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50' 
-                                  : 'bg-white/5 border-white/10 hover:bg-white/8'
-                              } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 hover:bg-white/10 touch-manipulation`}
-                              whileHover={{ scale: 1.02 }}
+                                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+                              } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 touch-manipulation`}
+                              whileHover={{ scale: 1.03, y: -2 }}
                               whileTap={{ scale: 0.98 }}
                               transition={{ type: 'spring', stiffness: 300 }}
                             >
-                              <p className="text-[10px] text-gray-400 mb-1.5 font-medium truncate">{attr.trait_type}</p>
-                              <p className={`text-sm font-bold break-words ${isSpecialAttr ? 'text-purple-300 font-mono' : 'text-white'}`}>
+                              <p className="text-[10px] text-gray-400 mb-2 font-medium line-clamp-2">{attr.trait_type}</p>
+                              <p className={`text-sm font-bold line-clamp-3 ${isSpecialAttr ? 'text-purple-300' : 'text-white'}`}>
                                 {formattedValue}
                               </p>
                             </motion.div>
@@ -413,6 +456,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}
+                title="About & Price"
               />
               <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(1); }}
@@ -422,6 +466,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}
+                title="Details (Tap to copy)"
               />
               <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(2); }}
@@ -431,6 +476,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}
+                title="Attributes"
               />
             </div>
           </div>

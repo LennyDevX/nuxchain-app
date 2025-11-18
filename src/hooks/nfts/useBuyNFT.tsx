@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { parseEther, type Abi } from 'viem';
 import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
+import { apolloClient } from '../../lib/apollo-client';
 import { toast } from 'react-hot-toast';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
@@ -29,6 +31,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
 
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
   
   const { writeContractAsync } = useWriteContract();
   const { isLoading: isWaitingForReceipt } = useWaitForTransactionReceipt({
@@ -74,24 +77,24 @@ export default function useBuyNFT(): UseBuyNFTReturn {
         throw new Error('Insufficient balance to purchase this NFT');
       }
 
-      // Verify the NFT is still for sale and get current price
-      const listedToken = await publicClient.readContract({
+      // Verify the NFT is still for sale using getNFTMarketInfo
+      const nftMarketInfo = await publicClient.readContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
         abi: GameifiedMarketplaceCoreABI.abi as Abi,
-        functionName: 'getListedToken',
+        functionName: 'getNFTMarketInfo',
         args: [tokenId]
-      }) as [bigint, string, bigint, bigint, boolean];
+      }) as [string, boolean, bigint];
 
-      if (!listedToken || !listedToken[4]) { // isForSale is at index 4
+      const [currentSeller, isListedStatus, currentPrice] = nftMarketInfo;
+
+      if (!isListedStatus) {
         throw new Error('This NFT is no longer for sale');
       }
 
-      const currentPrice = listedToken[3] as bigint;
       if (currentPrice !== priceInWei) {
         throw new Error('Price has changed. Please refresh and try again.');
       }
 
-      const currentSeller = listedToken[1] as string;
       if (currentSeller.toLowerCase() !== params.seller.toLowerCase()) {
         throw new Error('Seller has changed. Please refresh and try again.');
       }
@@ -121,6 +124,63 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       if (receipt.status === 'success') {
         setIsSuccess(true);
         toast.success('NFT purchased successfully!', { id: 'buy-nft' });
+        
+        console.log('✅ [useBuyNFT] Transaction confirmed on blockchain:', {
+          tokenId: params.tokenId,
+          transactionHash: receipt.transactionHash,
+          blockNumber: receipt.blockNumber
+        });
+        
+        // ✅ CRITICAL: Verify NFT is unlisted on-chain before updating UI
+        // This prevents showing stale data from subgraph
+        console.log('🔍 [useBuyNFT] Verifying NFT is unlisted on-chain...');
+        let isUnlistedOnChain = false;
+        let verifyAttempts = 0;
+        const maxVerifyAttempts = 6; // Try up to 12 seconds
+        
+        while (!isUnlistedOnChain && verifyAttempts < maxVerifyAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between checks
+          verifyAttempts++;
+          
+          try {
+            // Verify NFT is no longer listed on contract
+            const nftMarketInfo = await publicClient.readContract({
+              address: CONTRACT_ADDRESS as `0x${string}`,
+              abi: GameifiedMarketplaceCoreABI.abi as Abi,
+              functionName: 'getNFTMarketInfo',
+              args: [BigInt(params.tokenId)]
+            }) as [string, boolean, bigint];
+            
+            const [, isListedStatus] = nftMarketInfo;
+            
+            if (!isListedStatus) {
+              console.log(`✅ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT confirmed UNLISTED on-chain`);
+              isUnlistedOnChain = true;
+            } else {
+              console.log(`⏳ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT still listed, retrying...`);
+            }
+          } catch (err) {
+            console.warn(`⚠️ [useBuyNFT] Error verifying NFT status (attempt ${verifyAttempts}):`, err);
+          }
+        }
+        
+        if (!isUnlistedOnChain) {
+          console.warn('⚠️ [useBuyNFT] Could not verify NFT unlisted after 12 seconds, proceeding anyway');
+        }
+        
+        // ✅ Clear caches
+        console.log('🧹 [useBuyNFT] Clearing Apollo Client cache...');
+        await apolloClient.clearStore();
+        console.log('✅ [useBuyNFT] Apollo Client cache cleared');
+        
+        console.log('🔄 [useBuyNFT] Invalidating React Query caches...');
+        queryClient.invalidateQueries({ 
+          queryKey: ['marketplace-nfts-graph']
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ['user-nfts']
+        });
+        console.log('✅ [useBuyNFT] React Query caches invalidated - UI will refresh');
       } else {
         throw new Error('Transaction failed');
       }
@@ -148,7 +208,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [address, isConnected, publicClient, writeContractAsync]);
+  }, [address, isConnected, publicClient, writeContractAsync, queryClient]);
 
   const reset = useCallback(() => {
     setIsLoading(false);

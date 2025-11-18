@@ -146,6 +146,32 @@ const QUERY_USER_NFTs_FOR_SALE = gql`
   }
 `;
 
+// ✅ Query para NFTs COMPRADOS por el usuario (NFT_SALE events donde user es el buyer)
+const QUERY_USER_NFTs_BOUGHT = gql`
+  query QueryUserNFTsBought(
+    $user: Bytes!
+    $first: Int!
+    $skip: Int!
+  ) {
+    activities(
+      where: { buyer: $user, type: "NFT_SALE" }
+      first: $first
+      skip: $skip
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
+      id
+      tokenId
+      timestamp
+      transactionHash
+      blockNumber
+      buyer
+      category
+      amount
+    }
+  }
+`;
+
 // 🔗 Viem client para leer del contrato (Polygon Mainnet, no testnet)
 const publicClient = createPublicClient({
   chain: polygon,
@@ -157,6 +183,28 @@ const TOKEN_URI_ABI = [{
   inputs: [{ name: 'tokenId', type: 'uint256' }],
   name: 'tokenURI',
   outputs: [{ name: '', type: 'string' }],
+  stateMutability: 'view',
+  type: 'function'
+}] as const;
+
+// 📝 ABI para getNFTMarketInfo - Returns (owner, isListedStatus, price)
+const GET_NFT_MARKET_INFO_ABI = [{
+  inputs: [{ name: '_tokenId', type: 'uint256' }],
+  name: 'getNFTMarketInfo',
+  outputs: [
+    { name: 'owner', type: 'address' },
+    { name: 'isListedStatus', type: 'bool' },
+    { name: 'price', type: 'uint256' }
+  ],
+  stateMutability: 'view',
+  type: 'function'
+}] as const;
+
+// 📝 ABI para ownerOf - Returns current owner of the NFT
+const OWNER_OF_ABI = [{
+  inputs: [{ name: 'tokenId', type: 'uint256' }],
+  name: 'ownerOf',
+  outputs: [{ name: '', type: 'address' }],
   stateMutability: 'view',
   type: 'function'
 }] as const;
@@ -215,7 +263,9 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
         
         // Choose query based on what we're filtering for
         if (userOnly && address) {
-          // Show user's NFTs - Query BOTH NFT_MINT and NFT_LIST to show all user's NFTs (created AND listed)
+          // Show user's NFTs - Query NFT_MINT, NFT_LIST to get user's created/listed NFTs
+          // ⚠️ NOTE: QUERY_USER_NFTs_BOUGHT is NOT reliable because subgraph doesn't save buyer field
+          // We'll use on-chain ownerOf verification later to include purchased NFTs
           
           try {
             // Query 1: User's created NFTs
@@ -263,28 +313,72 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             
             const saleActivities = saleResult.data?.activities || [];
             
-            // Combine both queries - deduplicate by tokenId
+            // Query 3: Check ALL NFTs to find purchased ones (via on-chain ownerOf)
+            // ⚠️ Since subgraph doesn't save buyer field correctly in TOKEN_SALE events
+            const allNFTsResult = await apolloClient.query({
+              query: QUERY_ALL_NFTS,
+              variables: {
+                first: 100, // Check up to 100 NFTs
+                skip: 0
+              },
+              fetchPolicy: 'network-only'
+            });
+            
+            const allNFTs = allNFTsResult.data?.activities || [];
+            console.log(`🔍 Checking ownership of ${allNFTs.length} NFTs to find purchases...`);
+            
+            // Check ownership on-chain for ALL NFTs to find purchased ones
+            const purchasedActivities = [];
+            for (const nft of allNFTs) {
+              try {
+                const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
+                const currentOwner = await publicClient.readContract({
+                  address: PROXY_ADDRESS,
+                  abi: OWNER_OF_ABI,
+                  functionName: 'ownerOf',
+                  args: [BigInt(nft.tokenId)]
+                });
+                
+                // If current user owns this NFT but didn't create it, it's a purchased NFT
+                if (currentOwner.toLowerCase() === address.toLowerCase() && 
+                    nft.user?.toLowerCase() !== address.toLowerCase()) {
+                  purchasedActivities.push(nft);
+                  console.log(`✅ Found purchased NFT #${nft.tokenId}: owner=${currentOwner.slice(0, 10)}, creator=${nft.user?.slice(0, 10)}`);
+                }
+              } catch (err) {
+                // Skip NFTs that cause errors (might be burned or invalid)
+              }
+            }
+            
+            console.log(`✅ Found ${purchasedActivities.length} purchased NFTs via ownerOf verification`);
+            
+            // Combine all three queries - deduplicate by tokenId
             const tokenIdSet = new Set<string>();
             nftSource = [];
             
-            // Add mints first
+            // Add mints first (created NFTs)
             for (const activity of mintActivities) {
               tokenIdSet.add(activity.tokenId);
               nftSource.push(activity);
             }
             
-            // Add sales (for updated price info)
+            // Add sales (NFTs listed by user)
             for (const activity of saleActivities) {
               if (!tokenIdSet.has(activity.tokenId)) {
                 nftSource.push(activity);
-              } else {
-                // Replace mint info with sale info to get the latest price
-                const existingIndex = nftSource.findIndex(a => a.tokenId === activity.tokenId);
-                if (existingIndex >= 0) {
-                  nftSource[existingIndex] = activity;
-                }
+                tokenIdSet.add(activity.tokenId);
               }
             }
+            
+            // Add bought NFTs (NFTs purchased by user)
+            for (const activity of purchasedActivities) {
+              if (!tokenIdSet.has(activity.tokenId)) {
+                nftSource.push(activity);
+                tokenIdSet.add(activity.tokenId);
+              }
+            }
+            
+            console.log(`✅ Total user NFTs combined: ${nftSource.length} (created: ${mintActivities.length}, listed: ${saleActivities.length}, purchased: ${purchasedActivities.length})`);
             
           } catch (userQueryError) {
             console.error('❌ User NFTs query FAILED:', {
@@ -391,8 +485,9 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               if (process.env.NODE_ENV === 'development') {
                 console.debug(`🔗 Fetching tokenURI for token ${item.tokenId}...`);
               }
+              const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
               const uri = await publicClient.readContract({
-                address: '0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e' as `0x${string}`,
+                address: PROXY_ADDRESS,
                 abi: TOKEN_URI_ABI,
                 functionName: 'tokenURI',
                 args: [BigInt(item.tokenId)]
@@ -427,17 +522,41 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                 const errorMsg = err instanceof Error ? err.message : String(err);
                 console.warn(`⚠️ Metadata fetch failed for token ${item.tokenId}: ${errorMsg}`);
               }
-            }          return {
+            }
+
+            // ✅ CRITICAL: Verify current owner when userOnly=true
+            // This allows us to detect if the NFT was sold (owner !== creator)
+            let currentOwner = creatorId;
+            if (userOnly && address) {
+              try {
+                const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
+                currentOwner = await publicClient.readContract({
+                  address: PROXY_ADDRESS,
+                  abi: OWNER_OF_ABI,
+                  functionName: 'ownerOf',
+                  args: [BigInt(item.tokenId)]
+                });
+                
+                if (process.env.NODE_ENV === 'development') {
+                  const wasSold = currentOwner.toLowerCase() !== creatorId.toLowerCase();
+                  console.debug(`NFT #${item.tokenId} - Creator: ${creatorId.slice(0, 10)}..., Owner: ${currentOwner.slice(0, 10)}... ${wasSold ? '(SOLD)' : '(OWNED)'}`);
+                }
+              } catch {
+                console.warn(`⚠️ Could not fetch owner for token ${item.tokenId}`);
+              }
+            }
+
+            return {
             tokenId: item.tokenId.toString(),
             uniqueId: `nft-activity-${item.id}`,
             tokenURI: tokenURI || null,
-            contract: '0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e' as `0x${string}`,
+            contract: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`,
             name: metadata.name,
             description: metadata.description,
             image: metadata.image,
             attributes: metadata.attributes,
-            owner: creatorId,
-            creator: creatorId,
+            owner: currentOwner, // ✅ Actual owner from contract
+            creator: creatorId, // ✅ Original creator from subgraph
             price: nftPrice,
             isForSale: nftPrice > 0n,
             likes: '0',
@@ -455,28 +574,123 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           items.push(item);
         }
         
+        // ✅ CRITICAL FIX: Always verify contract state for accurate isForSale and price
+        // For marketplace (isForSale=true): Filter out NFTs not for sale
+        // For collection (userOnly=true): Update isForSale and price from on-chain data
+        let filteredItems = items;
+        
+        if (isForSale) {
+          // Marketplace view: Only show NFTs that are actually for sale
+          console.log(`🔍 [Marketplace] Verifying ${items.length} NFTs are actually for sale on-chain...`);
+          
+          const verifiedItems: NFTData[] = [];
+          for (const nft of items) {
+            try {
+              const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
+              const [ownerOnChain, isListedOnChain, priceOnChain] = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: GET_NFT_MARKET_INFO_ABI,
+                functionName: 'getNFTMarketInfo',
+                args: [BigInt(nft.tokenId)]
+              });
+              
+              if (isListedOnChain && priceOnChain > 0n) {
+                // Update price from on-chain value to be accurate
+                nft.price = priceOnChain;
+                nft.isForSale = true;
+                nft.owner = ownerOnChain; // Update owner too
+                verifiedItems.push(nft);
+                
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug(`✅ NFT #${nft.tokenId} verified FOR SALE on-chain at ${priceOnChain} wei`);
+                }
+              } else {
+                // NFT is NOT currently for sale - skip it
+                if (process.env.NODE_ENV === 'development') {
+                  console.debug(`❌ NFT #${nft.tokenId} is NOT for sale on-chain (was likely purchased or unlisted)`);
+                }
+              }
+            } catch (err) {
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Keeping it anyway.`);
+              // If we can't verify, keep it (better to show it than hide it)
+              verifiedItems.push(nft);
+            }
+          }
+          
+          console.log(`✅ [Marketplace] Verified: ${verifiedItems.length}/${items.length} NFTs are actually for sale`);
+          filteredItems = verifiedItems;
+          
+        } else if (userOnly) {
+          // Collection view: Update all NFTs with on-chain isForSale and price data
+          console.log(`🔍 [Collection] Updating ${items.length} NFTs with on-chain listing status...`);
+          console.log(`📊 [Collection] Before on-chain verification:`, items.map(nft => ({
+            tokenId: nft.tokenId,
+            price: nft.price.toString(),
+            isForSale: nft.isForSale
+          })));
+          
+          for (const nft of items) {
+            try {
+              const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
+              const [ownerOnChain, isListedOnChain, priceOnChain] = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: GET_NFT_MARKET_INFO_ABI,
+                functionName: 'getNFTMarketInfo',
+                args: [BigInt(nft.tokenId)]
+              });
+              
+              console.log(`🔍 NFT #${nft.tokenId} - On-chain data: owner=${ownerOnChain}, isListed=${isListedOnChain}, price=${priceOnChain.toString()}`);
+              
+              // Update with on-chain data (don't filter, just update)
+              nft.owner = ownerOnChain;
+              nft.isForSale = isListedOnChain && priceOnChain > 0n;
+              nft.price = priceOnChain > 0n ? priceOnChain : 0n;
+              
+              console.log(`✅ NFT #${nft.tokenId} updated: owner=${nft.owner}, isForSale=${nft.isForSale}, price=${nft.price.toString()}`);
+              
+              if (process.env.NODE_ENV === 'development') {
+                const status = nft.isForSale ? `LISTED at ${priceOnChain} wei` : 'UNLISTED';
+                console.debug(`✅ NFT #${nft.tokenId} final status: ${status}`);
+              }
+            } catch (err) {
+              const errorMsg = err instanceof Error ? err.message : String(err);
+              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Using subgraph data.`);
+              // Keep subgraph data if on-chain read fails
+            }
+          }
+          
+          console.log(`📊 [Collection] After on-chain verification:`, items.map(nft => ({
+            tokenId: nft.tokenId,
+            price: nft.price.toString(),
+            isForSale: nft.isForSale
+          })));
+          console.log(`✅ [Collection] Updated ${items.length} NFTs with on-chain listing status`);
+          filteredItems = items;
+        }
+        
         // 🐛 Debug: Log final items with images (development only)
-        if (process.env.NODE_ENV === 'development' && items.length > 0) {
-          console.debug(`✅ Loaded ${items.length} NFT items with metadata`);
+        if (process.env.NODE_ENV === 'development' && filteredItems.length > 0) {
+          console.debug(`✅ Loaded ${filteredItems.length} NFT items with metadata`);
         }
 
         nftLogger.logFetchResult({
           hook: 'useMarketplaceNFTsGraph',
-          valid: items.length,
+          valid: filteredItems.length,
           total: limit,
           category,
           isForSale,
           userOnly
         });
 
-        const hasMore = items.length === limit;
+        const hasMore = filteredItems.length === limit;
         const nextCursor = hasMore ? skip + limit : null;
 
         return {
-          items,
+          items: filteredItems,
           nextCursor: nextCursor ? nextCursor.toString() : null,
           hasMore,
-          total: items.length
+          total: filteredItems.length
         };
         } catch (error) {
         console.error('❌ Error fetching NFTs from subgraph v0.19:', error);
@@ -575,8 +789,11 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
   }, [query]);
 
   const refreshWithSync = useCallback(async () => {
+    console.log('🔄 [useMarketplaceNFTsGraph] Starting refresh with sync...');
     await refresh();
+    console.log('✅ [useMarketplaceNFTsGraph] Query refetched');
     localStorage.setItem('marketplace_nfts_invalidate', Date.now().toString());
+    console.log('✅ [useMarketplaceNFTsGraph] LocalStorage sync event sent');
   }, [refresh]);
 
   return {

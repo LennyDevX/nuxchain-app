@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { apolloClient } from '../../lib/apollo-client';
-import { GET_USER_ACTIVITIES, GET_USER_INDIVIDUAL_SKILLS } from '../../lib/graphql/queries';
+import { GET_USER_ACTIVITIES, GET_USER_PURCHASE_ACTIVITIES, GET_USER_INDIVIDUAL_SKILLS } from '../../lib/graphql/queries';
 import type { GetUserActivitiesResponse, ActivityType as GraphQLActivityType, GraphQLActivity, GraphQLIndividualSkill } from '../../lib/graphql/types';
 
 // Tipos de actividad (exportados para uso externo)
@@ -64,97 +64,124 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
     return `${days} Days`;
   }, []);
 
-  // Función para generar descripción de actividad
-  const generateDescription = useCallback((type: ActivityType, details: Activity['details']): string => {
-    switch (type) {
-      case 'STAKING_DEPOSIT':
-        return `Staked ${details.amount} POL${
-          details.lockupDuration ? ` (${formatLockupDuration(details.lockupDuration)})` : ''
-        }`;
-      case 'STAKING_WITHDRAW':
-        return `Withdrew ${details.amount} POL`;
-      case 'STAKING_COMPOUND':
-        return `Compounded ${details.amount} POL rewards`;
-      case 'NFT_MINT':
-        return `Minted NFT #${details.tokenId}${details.category ? ` (${details.category})` : ''}`;
-      case 'NFT_LIST':
-        return `Listed NFT #${details.tokenId} for ${details.price} POL`;
-      case 'NFT_SALE':
-        return `Sold NFT #${details.tokenId} for ${details.price} POL`;
-      case 'NFT_PURCHASE':
-        return `Purchased NFT #${details.tokenId} for ${details.price} POL`;
-      case 'NFT_UNLIST':
-        return `Unlisted NFT #${details.tokenId}`;
-      case 'OFFER_MADE':
-        return `Made offer of ${details.amount} POL on NFT #${details.tokenId}`;
-      case 'OFFER_ACCEPTED':
-        return `Accepted offer of ${details.amount} POL for NFT #${details.tokenId}`;
-      case 'SKILL_PURCHASED':
-        return `Purchased Skill #${details.tokenId}`;
-      default:
-        return 'Unknown activity';
-    }
+  // Mapa de descripciones de actividades para fácil mantenimiento
+  const activityDescriptions = useCallback((type: ActivityType, details: Activity['details']): string => {
+    const descriptions: Record<ActivityType, string> = {
+      STAKING_DEPOSIT: `Staked ${details.amount} POL${
+        details.lockupDuration ? ` (${formatLockupDuration(details.lockupDuration)})` : ''
+      }`,
+      STAKING_WITHDRAW: `Withdrew ${details.amount} POL`,
+      STAKING_WITHDRAW_ALL: `Withdrew all ${details.amount} POL`,
+      STAKING_COMPOUND: `Compounded ${details.amount} POL rewards`,
+      STAKING_AUTO_COMPOUND: `Auto-compounded ${details.amount} POL rewards`,
+      EMERGENCY_WITHDRAWAL: `Emergency withdrawal of ${details.amount} POL`,
+      SKILL_ACTIVATED: `Activated Skill #${details.tokenId}`,
+      SKILL_DEACTIVATED: `Deactivated Skill #${details.tokenId}`,
+      SKILL_UPGRADED: `Upgraded Skill #${details.tokenId}`,
+      SKILL_PURCHASED: `Purchased Skill #${details.tokenId}`,
+      QUEST_COMPLETED: `Completed Quest`,
+      ACHIEVEMENT_UNLOCKED: `Unlocked Achievement`,
+      NFT_MINT: `Minted NFT #${details.tokenId}${details.category ? ` (${details.category})` : ''}`,
+      NFT_LIST: `Listed NFT #${details.tokenId} for ${details.price} POL`,
+      NFT_SALE: `Sold NFT #${details.tokenId} for ${details.price} POL`,
+      NFT_PURCHASE: `Purchased NFT #${details.tokenId} for ${details.price} POL`,
+      NFT_UNLIST: `Unlisted NFT #${details.tokenId}`,
+      OFFER_MADE: `Made offer of ${details.amount} POL on NFT #${details.tokenId}`,
+      OFFER_ACCEPTED: `Accepted offer of ${details.amount} POL for NFT #${details.tokenId}`,
+      OFFER_CANCELLED: `Cancelled offer for NFT #${details.tokenId}`,
+      ROYALTY_PAID: `Paid royalty of ${details.amount} POL`,
+      COMMISSION_PAID: `Paid commission of ${details.amount} POL`,
+      XP_GAINED: `Gained ${details.amount} XP`,
+      LEVEL_UP: `Reached new level`,
+      AUTO_COMPOUND_ENABLED: `Enabled auto-compounding`,
+      AUTO_COMPOUND_DISABLED: `Disabled auto-compounding`,
+      AUTO_COMPOUND_EXECUTED: `Auto-compound executed`,
+    };
+    return descriptions[type] || `Activity: ${type}`;
   }, [formatLockupDuration]);
 
-  // Función para obtener icono según tipo de actividad
-  const getActivityIcon = useCallback((type: ActivityType): string => {
-    switch (type) {
-      case 'STAKING_DEPOSIT':
-        return '💎';
-      case 'STAKING_WITHDRAW':
-        return '💰';
-      case 'STAKING_COMPOUND':
-        return '🔄';
-      case 'NFT_MINT':
-        return '🎨';
-      case 'NFT_LIST':
-        return '🏷️';
-      case 'NFT_SALE':
-        return '💵';
-      case 'NFT_PURCHASE':
-        return '🛒';
-      case 'NFT_UNLIST':
-        return '❌';
-      case 'OFFER_MADE':
-        return '💬';
-      case 'OFFER_ACCEPTED':
-        return '✅';
-      case 'SKILL_PURCHASED':
-        return '🎯';
-      default:
-        return '📋';
-    }
+  // Función para generar descripción de actividad (mantener compatibilidad)
+  const generateDescription = useCallback((type: ActivityType, details: Activity['details']): string => {
+    return activityDescriptions(type, details);
+  }, [activityDescriptions]);
+
+  // Mapa de iconos de actividades para fácil mantenimiento
+  const activityIcons = useCallback((type: ActivityType): string => {
+    const icons: Record<ActivityType, string> = {
+      STAKING_DEPOSIT: '💎',
+      STAKING_WITHDRAW: '💰',
+      STAKING_WITHDRAW_ALL: '💸',
+      STAKING_COMPOUND: '🔄',
+      STAKING_AUTO_COMPOUND: '⚙️',
+      EMERGENCY_WITHDRAWAL: '🚨',
+      SKILL_ACTIVATED: '✨',
+      SKILL_DEACTIVATED: '⛔',
+      SKILL_UPGRADED: '⬆️',
+      SKILL_PURCHASED: '🎯',
+      QUEST_COMPLETED: '🏆',
+      ACHIEVEMENT_UNLOCKED: '🥇',
+      NFT_MINT: '🎨',
+      NFT_LIST: '🏷️',
+      NFT_SALE: '💵',
+      NFT_PURCHASE: '🛒',
+      NFT_UNLIST: '❌',
+      OFFER_MADE: '💬',
+      OFFER_ACCEPTED: '✅',
+      OFFER_CANCELLED: '🚫',
+      ROYALTY_PAID: '👑',
+      COMMISSION_PAID: '💼',
+      XP_GAINED: '📈',
+      LEVEL_UP: '🚀',
+      AUTO_COMPOUND_ENABLED: '✔️',
+      AUTO_COMPOUND_DISABLED: '✖️',
+      AUTO_COMPOUND_EXECUTED: '⚡',
+    };
+    return icons[type] || '📋';
   }, []);
 
-  // Función para obtener color según tipo de actividad
-  const getActivityColor = useCallback((type: ActivityType): string => {
-    switch (type) {
-      case 'STAKING_DEPOSIT':
-        return 'text-green-400';
-      case 'STAKING_WITHDRAW':
-        return 'text-blue-400';
-      case 'STAKING_COMPOUND':
-        return 'text-purple-400';
-      case 'NFT_MINT':
-        return 'text-pink-400';
-      case 'NFT_LIST':
-        return 'text-yellow-400';
-      case 'NFT_SALE':
-        return 'text-green-400';
-      case 'NFT_PURCHASE':
-        return 'text-blue-400';
-      case 'NFT_UNLIST':
-        return 'text-red-400';
-      case 'OFFER_MADE':
-        return 'text-orange-400';
-      case 'OFFER_ACCEPTED':
-        return 'text-green-400';
-      case 'SKILL_PURCHASED':
-        return 'text-purple-400';
-      default:
-        return 'text-gray-400';
-    }
+  // Función para obtener icono según tipo de actividad (mantener compatibilidad)
+  const getActivityIcon = useCallback((type: ActivityType): string => {
+    return activityIcons(type);
+  }, [activityIcons]);
+
+  // Mapa de colores de actividades para fácil mantenimiento
+  const activityColors = useCallback((type: ActivityType): string => {
+    const colors: Record<ActivityType, string> = {
+      STAKING_DEPOSIT: 'text-green-400',
+      STAKING_WITHDRAW: 'text-blue-400',
+      STAKING_WITHDRAW_ALL: 'text-cyan-400',
+      STAKING_COMPOUND: 'text-purple-400',
+      STAKING_AUTO_COMPOUND: 'text-indigo-400',
+      EMERGENCY_WITHDRAWAL: 'text-red-500',
+      SKILL_ACTIVATED: 'text-yellow-400',
+      SKILL_DEACTIVATED: 'text-red-400',
+      SKILL_UPGRADED: 'text-lime-400',
+      SKILL_PURCHASED: 'text-purple-400',
+      QUEST_COMPLETED: 'text-orange-400',
+      ACHIEVEMENT_UNLOCKED: 'text-yellow-300',
+      NFT_MINT: 'text-pink-400',
+      NFT_LIST: 'text-yellow-400',
+      NFT_SALE: 'text-green-400',
+      NFT_PURCHASE: 'text-blue-400',
+      NFT_UNLIST: 'text-red-400',
+      OFFER_MADE: 'text-orange-400',
+      OFFER_ACCEPTED: 'text-green-400',
+      OFFER_CANCELLED: 'text-red-400',
+      ROYALTY_PAID: 'text-amber-400',
+      COMMISSION_PAID: 'text-slate-400',
+      XP_GAINED: 'text-green-300',
+      LEVEL_UP: 'text-cyan-300',
+      AUTO_COMPOUND_ENABLED: 'text-green-400',
+      AUTO_COMPOUND_DISABLED: 'text-gray-400',
+      AUTO_COMPOUND_EXECUTED: 'text-blue-300',
+    };
+    return colors[type] || 'text-gray-400';
   }, []);
+
+  // Función para obtener color según tipo de actividad (mantener compatibilidad)
+  const getActivityColor = useCallback((type: ActivityType): string => {
+    return activityColors(type);
+  }, [activityColors]);
 
   // Función principal para obtener actividades desde The Graph
   const fetchActivities = useCallback(async () => {
@@ -180,10 +207,22 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       const startTime = performance.now();
 
       try {
-        // Query both regular activities and individual skills in parallel
-        const [activitiesResult, skillsResult] = await Promise.all([
+        // Query all three sources in parallel:
+        // 1. Regular activities (user as actor - creator, lister, seller, etc.)
+        // 2. Purchase activities (TOKEN_SALE where user is BUYER)
+        // 3. Individual skills (purchased skills)
+        const [activitiesResult, purchasesResult, skillsResult] = await Promise.all([
           apolloClient.query<GetUserActivitiesResponse>({
             query: GET_USER_ACTIVITIES,
+            variables: {
+              userAddress: address.toLowerCase(),
+              first: maxActivities,
+              skip: 0,
+            },
+            fetchPolicy: 'no-cache',
+          }),
+          apolloClient.query({
+            query: GET_USER_PURCHASE_ACTIVITIES,
             variables: {
               userAddress: address.toLowerCase(),
               first: maxActivities,
@@ -204,25 +243,55 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         const endTime = performance.now();
         const duration = Math.round(endTime - startTime);
 
-        // Handle errors from either query
+        // Handle errors from any query
         if (activitiesResult.errors && activitiesResult.errors.length > 0) {
           console.error('❌ [The Graph] Activities GraphQL errors:', activitiesResult.errors);
+        }
+        if (purchasesResult.errors && purchasesResult.errors.length > 0) {
+          console.error('❌ [The Graph] Purchases GraphQL errors:', purchasesResult.errors);
         }
         if (skillsResult.errors && skillsResult.errors.length > 0) {
           console.error('❌ [The Graph] Skills GraphQL errors:', skillsResult.errors);
         }
 
         const { data: activitiesData } = activitiesResult;
+        const { data: purchasesData } = purchasesResult;
         const { data: skillsData } = skillsResult;
 
         console.log(
           `%c✅ useRecentActivitiesGraph Query%c\n` +
-          `├─ Fetched: ${activitiesData?.activities?.length || 0} activities\n` +
+          `├─ Fetched: ${activitiesData?.activities?.length || 0} activities (as actor)\n` +
+          `├─ Fetched: ${purchasesData?.activities?.length || 0} purchases (as buyer)\n` +
           `├─ Fetched: ${skillsData?.individualSkills?.length || 0} skills\n` +
           `└─ Time: ${duration}ms`,
           'color: #20b2aa; font-weight: bold;',
           'color: #ffffff;'
         );
+
+        // ✅ DIAGNOSTIC: Log if no purchases found
+        if ((purchasesData?.activities?.length || 0) === 0) {
+          console.warn(
+            `%c📌 [The Graph] No NFT purchases found!%c\n` +
+            `├─ User Address: ${address}\n` +
+            `├─ Query Type: NFT_PURCHASE\n` +
+            `├─ Raw Response: ${JSON.stringify(purchasesData)}\n` +
+            `├─ Possible Causes:\n` +
+            `│  1. User hasn't purchased any NFTs yet\n` +
+            `│  2. Subgraph hasn't indexed NFT_PURCHASE activities\n` +
+            `│  3. Subgraph is on old version (need redeploy)\n` +
+            `└─ Solution: Check if new NFT_PURCHASE activities are being created in subgraph handler`,
+            'color: #ff0000; font-weight: bold;',
+            'color: #ffffff;'
+          );
+        } else {
+          console.log(
+            `%c✅ [The Graph] Found NFT purchases%c\n` +
+            `├─ Count: ${purchasesData?.activities?.length}\n` +
+            `└─ Sample: ${JSON.stringify(purchasesData?.activities?.[0], null, 2)}`,
+            'color: #00aa00; font-weight: bold;',
+            'color: #ffffff;'
+          );
+        }
 
         // ✅ DIAGNOSTIC: Log if skills query returned empty (potential subgraph sync issue)
         if ((skillsData?.individualSkills?.length || 0) === 0) {
@@ -266,6 +335,35 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           };
         });
 
+        // Transform purchase activities (NFT_PURCHASE activities from subgraph)
+        // ✅ SIMPLIFIED: No longer need to transform type from TOKEN_SALE to NFT_PURCHASE
+        const transformedPurchases: Activity[] = (purchasesData?.activities || []).map((activity: GraphQLActivity) => {
+          const details: Activity['details'] = {
+            amount: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
+            tokenId: activity.tokenId,
+            price: activity.amount ? formatEther(BigInt(activity.amount)) : undefined,
+            category: activity.category,
+            buyer: activity.buyer,
+            seller: activity.seller,
+          };
+
+          // ✅ FIXED: Now type is already NFT_PURCHASE from subgraph
+          const description = generateDescription(activity.type, details);
+          const icon = getActivityIcon(activity.type);
+          const color = getActivityColor(activity.type);
+
+          return {
+            id: `purchase-${activity.id}`,
+            type: activity.type,
+            timestamp: Number(activity.timestamp),
+            txHash: activity.transactionHash,
+            details,
+            description,
+            icon,
+            color,
+          };
+        });
+
         // Transform individual skills to Activity format
         const skillActivities: Activity[] = (skillsData?.individualSkills || []).map((skill: GraphQLIndividualSkill) => {
           const details: Activity['details'] = {
@@ -292,8 +390,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           };
         });
 
-        // Combine all activities
-        const allTransformedActivities = [...transformedActivities, ...skillActivities];
+        // Combine all activities (actor activities + purchases + skills)
+        const allTransformedActivities = [...transformedActivities, ...transformedPurchases, ...skillActivities];
 
         // ✅ CRITICAL FIX: Deduplicate by transaction hash + type
         // This prevents showing the same transaction twice if it appears in multiple queries
@@ -344,8 +442,10 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
 
         console.log(
           `%c🔍 useRecentActivitiesGraph Processing%c\n` +
-          `├─ Raw Activities: ${activitiesData?.activities?.length || 0}\n` +
+          `├─ Raw Activities (actor): ${activitiesData?.activities?.length || 0}\n` +
+          `├─ Raw Purchases (buyer): ${purchasesData?.activities?.length || 0}\n` +
           `├─ Raw Skills: ${skillsData?.individualSkills?.length || 0}\n` +
+          `├─ Combined Total: ${allTransformedActivities.length}\n` +
           `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
           `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +
           `├─ NFT Activities: ${nftActivitiesMap.size}\n` +

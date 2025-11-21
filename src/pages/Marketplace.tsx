@@ -337,7 +337,7 @@ function Marketplace() {
                   ) : (
                     filteredNFTs.map((nft, index) => (
                       <NFTCardMemo
-                        key={nft.tokenId || index}
+                        key={nft.uniqueId || `${nft.tokenId}-${index}`}
                         nft={nft}
                         index={index}
                         onBuy={handleBuyNFT}

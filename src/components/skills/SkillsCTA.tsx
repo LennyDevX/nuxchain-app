@@ -7,8 +7,7 @@ export const SkillsCTA: React.FC = () => {
       <motion.div
         className="relative overflow-hidden rounded-2xl p-12 md:p-16 bg-gradient-to-r from-purple-900/40 via-gray-900/50 to-blue-900/40 border border-purple-500/20"
         initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
       >
         {/* Background animation */}
@@ -29,8 +28,7 @@ export const SkillsCTA: React.FC = () => {
           <motion.h2
             className="text-4xl md:text-5xl font-black text-white mb-6"
             initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Ready to Amplify Your Earnings?
@@ -39,8 +37,7 @@ export const SkillsCTA: React.FC = () => {
           <motion.p
             className="text-xl text-gray-300 mb-8"
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             Start your journey with our exclusive Skills NFTs and multiply your rewards in the Nuxchain ecosystem.
@@ -49,8 +46,7 @@ export const SkillsCTA: React.FC = () => {
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center"
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <motion.button

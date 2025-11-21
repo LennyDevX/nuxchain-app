@@ -92,7 +92,7 @@ export const SKILL_EFFECTS: Record<SkillType, SkillEffectConfig> = {
   [SkillType.STAKE_BOOST_III]: {
     label: 'Staking APY Boost',
     effectFormat: (value: number) => `+${value}% APY`,
-    description: 'Maximizes your staking rewards with a 20% APY boost',
+    description: 'Maximizes your staking rewards with a 15% base APY boost (highest tier)',
     color: '#9F7AEA',
   },
   [SkillType.AUTO_COMPOUND]: {
@@ -104,7 +104,7 @@ export const SKILL_EFFECTS: Record<SkillType, SkillEffectConfig> = {
   [SkillType.LOCK_REDUCER]: {
     label: 'Lock Time Reduction',
     effectFormat: (value: number) => `-${value}% Lock Time`,
-    description: 'Reduces required lock period by 25%, access your funds faster',
+    description: 'Reduces required lock period, access your funds faster (up to -45% at LEGENDARY)',
     color: '#38B2AC',
   },
   [SkillType.FEE_REDUCER_I]: {
@@ -116,7 +116,7 @@ export const SKILL_EFFECTS: Record<SkillType, SkillEffectConfig> = {
   [SkillType.FEE_REDUCER_II]: {
     label: 'Platform Fee Discount',
     effectFormat: (value: number) => `-${value}% Fees`,
-    description: 'Save 25% on all platform transaction fees for power users',
+    description: 'Save up to 45% on all platform transaction fees for power users',
     color: '#D53F8C',
   },
   // === ACTIVE SKILLS (10) - Platform features ===
@@ -205,7 +205,19 @@ export const SKILL_ICONS: Record<SkillType, string> = {
   [SkillType.PRIVATE_AUCTIONS]: '🔒',
 };
 
-// Effect values by rarity
+// CRITICAL: Effect values MUST vary by SKILL TYPE, not just rarity
+// Otherwise expensive skills (STAKE_BOOST_III) would have same APY as cheap ones (STAKE_BOOST_I)
+// 
+// STAKE_BOOST_I (base): +5% APY baseline
+// - COMMON: 5%, UNCOMMON: 7%, RARE: 9%, EPIC: 12%, LEGENDARY: 16%
+//
+// STAKE_BOOST_II (1.5x cost): +10% APY baseline  
+// - COMMON: 10%, UNCOMMON: 13%, RARE: 16%, EPIC: 21%, LEGENDARY: 28%
+//
+// STAKE_BOOST_III (2.2x cost): +15% APY baseline
+// - COMMON: 15%, UNCOMMON: 19%, RARE: 23%, EPIC: 30%, LEGENDARY: 38%
+//
+// DEFAULT (used as fallback for non-staking skills)
 export const EFFECT_VALUES_BY_RARITY: Record<Rarity, number> = {
   [Rarity.COMMON]: 5,
   [Rarity.UNCOMMON]: 10,
@@ -213,6 +225,148 @@ export const EFFECT_VALUES_BY_RARITY: Record<Rarity, number> = {
   [Rarity.EPIC]: 25,
   [Rarity.LEGENDARY]: 50,
 };
+
+/**
+ * Get skill effect value based on skill type and rarity
+ * Each skill type has its own impact curve per rarity level
+ * Staking skills (1-7): APY percentage
+ * Marketplace skills (8-16): Text/multiplier display values
+ */
+export function getSkillEffectByType(skillType: SkillType, rarity: Rarity): number {
+  // Staking skill impact values (APY percentages)
+  const stakingEffects: Record<SkillType, Record<Rarity, number>> = {
+    // STAKE_BOOST_I (1.0x cost): +5% baseline
+    [SkillType.STAKE_BOOST_I]: {
+      [Rarity.COMMON]: 5,
+      [Rarity.UNCOMMON]: 7,
+      [Rarity.RARE]: 9,
+      [Rarity.EPIC]: 12,
+      [Rarity.LEGENDARY]: 16,
+    },
+    // STAKE_BOOST_II (1.5x cost): +10% baseline
+    [SkillType.STAKE_BOOST_II]: {
+      [Rarity.COMMON]: 10,
+      [Rarity.UNCOMMON]: 13,
+      [Rarity.RARE]: 16,
+      [Rarity.EPIC]: 21,
+      [Rarity.LEGENDARY]: 28,
+    },
+    // STAKE_BOOST_III (2.2x cost): +15% baseline
+    [SkillType.STAKE_BOOST_III]: {
+      [Rarity.COMMON]: 15,
+      [Rarity.UNCOMMON]: 19,
+      [Rarity.RARE]: 23,
+      [Rarity.EPIC]: 30,
+      [Rarity.LEGENDARY]: 38,
+    },
+    // AUTO_COMPOUND (1.8x cost): Compounding multiplier
+    [SkillType.AUTO_COMPOUND]: {
+      [Rarity.COMMON]: 1,
+      [Rarity.UNCOMMON]: 1.3,
+      [Rarity.RARE]: 1.6,
+      [Rarity.EPIC]: 2.1,
+      [Rarity.LEGENDARY]: 2.6,
+    },
+    // LOCK_REDUCER (1.6x cost): Lock duration reduction %
+    [SkillType.LOCK_REDUCER]: {
+      [Rarity.COMMON]: 15,
+      [Rarity.UNCOMMON]: 20,
+      [Rarity.RARE]: 25,
+      [Rarity.EPIC]: 35,
+      [Rarity.LEGENDARY]: 45,
+    },
+    // FEE_REDUCER_I (1.4x cost): Fee reduction %
+    [SkillType.FEE_REDUCER_I]: {
+      [Rarity.COMMON]: 10,
+      [Rarity.UNCOMMON]: 13,
+      [Rarity.RARE]: 16,
+      [Rarity.EPIC]: 22,
+      [Rarity.LEGENDARY]: 28,
+    },
+    // FEE_REDUCER_II (2.0x cost): Higher fee reduction %
+    [SkillType.FEE_REDUCER_II]: {
+      [Rarity.COMMON]: 18,
+      [Rarity.UNCOMMON]: 23,
+      [Rarity.RARE]: 28,
+      [Rarity.EPIC]: 37,
+      [Rarity.LEGENDARY]: 45,
+    },
+    // PRIORITY_LISTING (8): Display multiplier (1.0x - 5.0x)
+    [SkillType.PRIORITY_LISTING]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+    // BATCH_MINTER (9): Batch size multiplier (1.0x - 5.0x)
+    [SkillType.BATCH_MINTER]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+    // VERIFIED_CREATOR (10): Badge level (1.0x - 5.0x)
+    [SkillType.VERIFIED_CREATOR]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+    // INFLUENCER (11): Algorithm weight multiplier ⭐
+    [SkillType.INFLUENCER]: {
+      [Rarity.COMMON]: 2.0,
+      [Rarity.UNCOMMON]: 2.4,
+      [Rarity.RARE]: 2.8,
+      [Rarity.EPIC]: 3.6,
+      [Rarity.LEGENDARY]: 4.8,
+    },
+    // CURATOR (12): Curation power multiplier
+    [SkillType.CURATOR]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.2,
+      [Rarity.RARE]: 1.4,
+      [Rarity.EPIC]: 1.8,
+      [Rarity.LEGENDARY]: 2.4,
+    },
+    // AMBASSADOR (13): Referral multiplier ⭐
+    [SkillType.AMBASSADOR]: {
+      [Rarity.COMMON]: 1.5,
+      [Rarity.UNCOMMON]: 2.0,
+      [Rarity.RARE]: 2.6,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 3.5,
+    },
+    // VIP_ACCESS (14): Feature access level
+    [SkillType.VIP_ACCESS]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+    // EARLY_ACCESS (15): Hours early access
+    [SkillType.EARLY_ACCESS]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+    // PRIVATE_AUCTIONS (16): Auction access level
+    [SkillType.PRIVATE_AUCTIONS]: {
+      [Rarity.COMMON]: 1.0,
+      [Rarity.UNCOMMON]: 1.5,
+      [Rarity.RARE]: 2.0,
+      [Rarity.EPIC]: 3.0,
+      [Rarity.LEGENDARY]: 5.0,
+    },
+  };
+
+  return stakingEffects[skillType]?.[rarity] ?? EFFECT_VALUES_BY_RARITY[rarity];
+}
 
 // Skill categories for grouping
 export const SkillCategory = {
@@ -305,7 +459,7 @@ export function generateSkills(): SkillData[] {
       const skillTypeName = SKILL_TYPE_NAMES[skillType];
       const rarityName = RARITY_NAMES[rarity];
       const effectConfig = SKILL_EFFECTS[skillType];
-      const effectValue = EFFECT_VALUES_BY_RARITY[rarity];
+      const effectValue = getSkillEffectByType(skillType, rarity);
 
       skills.push({
         id: skillIndex,
@@ -345,7 +499,7 @@ export const FAQ_ITEMS = [
   },
   {
     question: 'What\'s the difference between rarities?',
-    answer: 'Rarity determines the effect strength: Common (5%), Uncommon (10%), Rare (15%), Epic (25%), and Legendary (50%). Higher rarity skills provide significantly stronger benefits but also cost more to purchase and maintain.',
+    answer: 'Rarity determines effect strength with a multiplier system. Common provides baseline benefits (e.g., +5% APY for Stake Boost I), while higher rarities scale up: Uncommon (×1.5), Rare (×2.0), Epic (×2.8), and Legendary (×3.5). For example, Stake Boost I LEGENDARY provides +16% APY, while Stake Boost III LEGENDARY reaches +38% APY. Higher rarity costs more but provides exponentially stronger benefits.',
   },
   {
     question: 'Can I use multiple Skills at once?',

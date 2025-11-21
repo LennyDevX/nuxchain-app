@@ -10,8 +10,7 @@ export const SkillsFAQ: React.FC = () => {
       <motion.h2
         className="text-4xl font-bold text-white mb-12 text-center"
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         Frequently Asked Questions
@@ -23,8 +22,7 @@ export const SkillsFAQ: React.FC = () => {
             key={idx}
             className="border border-gray-800 rounded-lg overflow-hidden"
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: idx * 0.05 }}
           >
             <motion.button

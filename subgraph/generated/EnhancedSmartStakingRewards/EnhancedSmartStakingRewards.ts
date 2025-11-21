@@ -23,16 +23,34 @@ export class APYUpdated__Params {
     this._event = event;
   }
 
-  get lockupPeriodIndex(): i32 {
+  get lockupIndex(): i32 {
     return this._event.parameters[0].value.toI32();
   }
 
-  get oldAPY(): BigInt {
+  get newAPY(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
+}
 
-  get newAPY(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
+export class EmergencyWithdrawal extends ethereum.Event {
+  get params(): EmergencyWithdrawal__Params {
+    return new EmergencyWithdrawal__Params(this);
+  }
+}
+
+export class EmergencyWithdrawal__Params {
+  _event: EmergencyWithdrawal;
+
+  constructor(event: EmergencyWithdrawal) {
+    this._event = event;
+  }
+
+  get admin(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
   }
 }
 
@@ -55,6 +73,58 @@ export class OwnershipTransferred__Params {
 
   get newOwner(): Address {
     return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class QuestRewardClaimed extends ethereum.Event {
+  get params(): QuestRewardClaimed__Params {
+    return new QuestRewardClaimed__Params(this);
+  }
+}
+
+export class QuestRewardClaimed__Params {
+  _event: QuestRewardClaimed;
+
+  constructor(event: QuestRewardClaimed) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get questId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get boostApplied(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
+export class RewardFunded extends ethereum.Event {
+  get params(): RewardFunded__Params {
+    return new RewardFunded__Params(this);
+  }
+}
+
+export class RewardFunded__Params {
+  _event: RewardFunded;
+
+  constructor(event: RewardFunded) {
+    this._event = event;
+  }
+
+  get funder(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
   }
 }
 
@@ -91,13 +161,13 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
     );
   }
 
-  calculateBoostedAPY(lockupPeriodIndex: i32, totalBoost: i32): BigInt {
+  calculateBoostedAPY(lockupIndex: i32, stakingBoostTotal: i32): BigInt {
     let result = super.call(
       "calculateBoostedAPY",
       "calculateBoostedAPY(uint8,uint16):(uint256)",
       [
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupIndex)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(stakingBoostTotal)),
       ],
     );
 
@@ -105,15 +175,15 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
   }
 
   try_calculateBoostedAPY(
-    lockupPeriodIndex: i32,
-    totalBoost: i32,
+    lockupIndex: i32,
+    stakingBoostTotal: i32,
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "calculateBoostedAPY",
       "calculateBoostedAPY(uint8,uint16):(uint256)",
       [
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupIndex)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(stakingBoostTotal)),
       ],
     );
     if (result.reverted) {
@@ -123,44 +193,29 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  calculateBoostedRewards(
-    depositAmount: BigInt,
-    depositTime: BigInt,
-    lastClaimTime: BigInt,
-    lockupPeriodIndex: i32,
-    totalBoost: i32,
-  ): BigInt {
+  calculateQuestReward(user: Address, baseReward: BigInt): BigInt {
     let result = super.call(
-      "calculateBoostedRewards",
-      "calculateBoostedRewards(uint256,uint256,uint256,uint8,uint16):(uint256)",
+      "calculateQuestReward",
+      "calculateQuestReward(address,uint256):(uint256)",
       [
-        ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
-        ethereum.Value.fromUnsignedBigInt(lastClaimTime),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
+        ethereum.Value.fromAddress(user),
+        ethereum.Value.fromUnsignedBigInt(baseReward),
       ],
     );
 
     return result[0].toBigInt();
   }
 
-  try_calculateBoostedRewards(
-    depositAmount: BigInt,
-    depositTime: BigInt,
-    lastClaimTime: BigInt,
-    lockupPeriodIndex: i32,
-    totalBoost: i32,
+  try_calculateQuestReward(
+    user: Address,
+    baseReward: BigInt,
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "calculateBoostedRewards",
-      "calculateBoostedRewards(uint256,uint256,uint256,uint8,uint16):(uint256)",
+      "calculateQuestReward",
+      "calculateQuestReward(address,uint256):(uint256)",
       [
-        ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
-        ethereum.Value.fromUnsignedBigInt(lastClaimTime),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
+        ethereum.Value.fromAddress(user),
+        ethereum.Value.fromUnsignedBigInt(baseReward),
       ],
     );
     if (result.reverted) {
@@ -170,48 +225,44 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  calculateBoostedRewardsWithRarityMultiplier(
+  calculateStakingRewards(
     depositAmount: BigInt,
-    depositTime: BigInt,
+    param1: BigInt,
     lastClaimTime: BigInt,
     lockupPeriodIndex: i32,
-    totalBoost: i32,
-    rarityMultiplier: i32,
+    stakingBoostTotal: i32,
   ): BigInt {
     let result = super.call(
-      "calculateBoostedRewardsWithRarityMultiplier",
-      "calculateBoostedRewardsWithRarityMultiplier(uint256,uint256,uint256,uint8,uint16,uint16):(uint256)",
+      "calculateStakingRewards",
+      "calculateStakingRewards(uint256,uint256,uint256,uint8,uint16):(uint256)",
       [
         ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
+        ethereum.Value.fromUnsignedBigInt(param1),
         ethereum.Value.fromUnsignedBigInt(lastClaimTime),
         ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(rarityMultiplier)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(stakingBoostTotal)),
       ],
     );
 
     return result[0].toBigInt();
   }
 
-  try_calculateBoostedRewardsWithRarityMultiplier(
+  try_calculateStakingRewards(
     depositAmount: BigInt,
-    depositTime: BigInt,
+    param1: BigInt,
     lastClaimTime: BigInt,
     lockupPeriodIndex: i32,
-    totalBoost: i32,
-    rarityMultiplier: i32,
+    stakingBoostTotal: i32,
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "calculateBoostedRewardsWithRarityMultiplier",
-      "calculateBoostedRewardsWithRarityMultiplier(uint256,uint256,uint256,uint8,uint16,uint16):(uint256)",
+      "calculateStakingRewards",
+      "calculateStakingRewards(uint256,uint256,uint256,uint8,uint16):(uint256)",
       [
         ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
+        ethereum.Value.fromUnsignedBigInt(param1),
         ethereum.Value.fromUnsignedBigInt(lastClaimTime),
         ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(totalBoost)),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(rarityMultiplier)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(stakingBoostTotal)),
       ],
     );
     if (result.reverted) {
@@ -221,83 +272,40 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  calculateFeeDiscount(activeSkillCount: i32): i32 {
+  gamificationModule(): Address {
     let result = super.call(
-      "calculateFeeDiscount",
-      "calculateFeeDiscount(uint8):(uint8)",
-      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(activeSkillCount))],
+      "gamificationModule",
+      "gamificationModule():(address)",
+      [],
     );
 
-    return result[0].toI32();
+    return result[0].toAddress();
   }
 
-  try_calculateFeeDiscount(activeSkillCount: i32): ethereum.CallResult<i32> {
+  try_gamificationModule(): ethereum.CallResult<Address> {
     let result = super.tryCall(
-      "calculateFeeDiscount",
-      "calculateFeeDiscount(uint8):(uint8)",
-      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(activeSkillCount))],
+      "gamificationModule",
+      "gamificationModule():(address)",
+      [],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toI32());
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  calculateRewards(
-    depositAmount: BigInt,
-    depositTime: BigInt,
-    lastClaimTime: BigInt,
-    lockupPeriodIndex: i32,
-  ): BigInt {
-    let result = super.call(
-      "calculateRewards",
-      "calculateRewards(uint256,uint256,uint256,uint8):(uint256)",
-      [
-        ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
-        ethereum.Value.fromUnsignedBigInt(lastClaimTime),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-      ],
-    );
-
-    return result[0].toBigInt();
-  }
-
-  try_calculateRewards(
-    depositAmount: BigInt,
-    depositTime: BigInt,
-    lastClaimTime: BigInt,
-    lockupPeriodIndex: i32,
-  ): ethereum.CallResult<BigInt> {
-    let result = super.tryCall(
-      "calculateRewards",
-      "calculateRewards(uint256,uint256,uint256,uint8):(uint256)",
-      [
-        ethereum.Value.fromUnsignedBigInt(depositAmount),
-        ethereum.Value.fromUnsignedBigInt(depositTime),
-        ethereum.Value.fromUnsignedBigInt(lastClaimTime),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
-      ],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  getBaseAPY(lockupPeriodIndex: i32): BigInt {
+  getBaseAPY(index: i32): BigInt {
     let result = super.call("getBaseAPY", "getBaseAPY(uint8):(uint256)", [
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(index)),
     ]);
 
     return result[0].toBigInt();
   }
 
-  try_getBaseAPY(lockupPeriodIndex: i32): ethereum.CallResult<BigInt> {
+  try_getBaseAPY(index: i32): ethereum.CallResult<BigInt> {
     let result = super.tryCall("getBaseAPY", "getBaseAPY(uint8):(uint256)", [
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(lockupPeriodIndex)),
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(index)),
     ]);
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -351,6 +359,21 @@ export class EnhancedSmartStakingRewards extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
+
+  skillsModule(): Address {
+    let result = super.call("skillsModule", "skillsModule():(address)", []);
+
+    return result[0].toAddress();
+  }
+
+  try_skillsModule(): ethereum.CallResult<Address> {
+    let result = super.tryCall("skillsModule", "skillsModule():(address)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
 }
 
 export class ConstructorCall extends ethereum.Call {
@@ -379,6 +402,66 @@ export class ConstructorCall__Outputs {
   }
 }
 
+export class ClaimQuestRewardCall extends ethereum.Call {
+  get inputs(): ClaimQuestRewardCall__Inputs {
+    return new ClaimQuestRewardCall__Inputs(this);
+  }
+
+  get outputs(): ClaimQuestRewardCall__Outputs {
+    return new ClaimQuestRewardCall__Outputs(this);
+  }
+}
+
+export class ClaimQuestRewardCall__Inputs {
+  _call: ClaimQuestRewardCall;
+
+  constructor(call: ClaimQuestRewardCall) {
+    this._call = call;
+  }
+
+  get questId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class ClaimQuestRewardCall__Outputs {
+  _call: ClaimQuestRewardCall;
+
+  constructor(call: ClaimQuestRewardCall) {
+    this._call = call;
+  }
+}
+
+export class EmergencyWithdrawCall extends ethereum.Call {
+  get inputs(): EmergencyWithdrawCall__Inputs {
+    return new EmergencyWithdrawCall__Inputs(this);
+  }
+
+  get outputs(): EmergencyWithdrawCall__Outputs {
+    return new EmergencyWithdrawCall__Outputs(this);
+  }
+}
+
+export class EmergencyWithdrawCall__Inputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class EmergencyWithdrawCall__Outputs {
+  _call: EmergencyWithdrawCall;
+
+  constructor(call: EmergencyWithdrawCall) {
+    this._call = call;
+  }
+}
+
 export class RenounceOwnershipCall extends ethereum.Call {
   get inputs(): RenounceOwnershipCall__Inputs {
     return new RenounceOwnershipCall__Inputs(this);
@@ -401,6 +484,66 @@ export class RenounceOwnershipCall__Outputs {
   _call: RenounceOwnershipCall;
 
   constructor(call: RenounceOwnershipCall) {
+    this._call = call;
+  }
+}
+
+export class SetGamificationModuleCall extends ethereum.Call {
+  get inputs(): SetGamificationModuleCall__Inputs {
+    return new SetGamificationModuleCall__Inputs(this);
+  }
+
+  get outputs(): SetGamificationModuleCall__Outputs {
+    return new SetGamificationModuleCall__Outputs(this);
+  }
+}
+
+export class SetGamificationModuleCall__Inputs {
+  _call: SetGamificationModuleCall;
+
+  constructor(call: SetGamificationModuleCall) {
+    this._call = call;
+  }
+
+  get _gamificationModule(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetGamificationModuleCall__Outputs {
+  _call: SetGamificationModuleCall;
+
+  constructor(call: SetGamificationModuleCall) {
+    this._call = call;
+  }
+}
+
+export class SetSkillsModuleCall extends ethereum.Call {
+  get inputs(): SetSkillsModuleCall__Inputs {
+    return new SetSkillsModuleCall__Inputs(this);
+  }
+
+  get outputs(): SetSkillsModuleCall__Outputs {
+    return new SetSkillsModuleCall__Outputs(this);
+  }
+}
+
+export class SetSkillsModuleCall__Inputs {
+  _call: SetSkillsModuleCall;
+
+  constructor(call: SetSkillsModuleCall) {
+    this._call = call;
+  }
+
+  get _skillsModule(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetSkillsModuleCall__Outputs {
+  _call: SetSkillsModuleCall;
+
+  constructor(call: SetSkillsModuleCall) {
     this._call = call;
   }
 }

@@ -37,6 +37,11 @@
   },
   {
     "inputs": [],
+    "name": "LevelingContractNotSet",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "QuestNotActive",
     "type": "error"
   },
@@ -67,6 +72,25 @@
       }
     ],
     "name": "CoreContractUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldLeveling",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newLeveling",
+        "type": "address"
+      }
+    ],
+    "name": "LevelingContractUpdated",
     "type": "event"
   },
   {
@@ -787,6 +811,19 @@
   },
   {
     "inputs": [],
+    "name": "levelingContractAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "pause",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -917,6 +954,19 @@
       }
     ],
     "name": "setCoreContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_levelingAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setLevelingContract",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

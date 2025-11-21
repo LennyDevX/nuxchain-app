@@ -24,7 +24,7 @@ interface NFTStatsProps {
 
 // Helper: Check if NFT has skill attributes
 function hasSkill(nft: NFTData): boolean {
-  return (nft.attributes || []).some(attr => 
+  return (nft.attributes || []).some(attr =>
     attr.trait_type.toLowerCase() === 'skill' ||
     attr.trait_type.toLowerCase() === 'skilltype'
   );
@@ -45,7 +45,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
 
   // Calculate listed for sale count
   const listedForSaleCount = nfts.filter(nft => nft.isForSale).length;
-  
+
   // Calculate total NFTs count
   const totalNFTsCount = nfts.length;
 
@@ -58,7 +58,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
   const formattedTotalValueUSD = polPrice ? convertPOLToUSD(totalEstimatedValuePOL) : 'Loading...';
   const formattedListedCount = listedForSaleCount.toLocaleString();
   const formattedTotalCount = totalNFTsCount.toLocaleString();
-  
+
   if (loading) {
     return (
       <div className={`grid gap-2 ${isMobile ? 'grid-cols-2' : 'grid-cols-5'}`}>
@@ -72,12 +72,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
     return (
       <div className="space-y-2">
         {/* Stats card con dropdown integrado */}
-        <motion.div 
+        <motion.div
           className="card-stats px-4 py-3 flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-all duration-300"
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0 }}
-          viewport={{ once: true }}
           onClick={() => setIsExpanded(!isExpanded)}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -101,10 +100,10 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-2.5 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300"
               whileHover={{ scale: 1.1 }}
             >
-              <motion.svg 
+              <motion.svg
                 className="w-5 h-5 text-purple-400"
-                fill="none" 
-                stroke="currentColor" 
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
                 animate={{ rotate: isExpanded ? 180 : 0 }}
                 transition={{ duration: 0.3, type: 'spring', stiffness: 300 }}
@@ -126,7 +125,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
           >
             <div className="grid grid-cols-2 gap-2">
               {/* Listed for Sale */}
-              <motion.div 
+              <motion.div
                 className="card-stats px-3 py-3 hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -135,7 +134,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-white text-xs">Listed for Sale</h3>
-                  <motion.div 
+                  <motion.div
                     className="bg-blue-500/20 rounded-lg flex items-center justify-center w-6 h-6"
                     whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.3)' }}
                   >
@@ -149,7 +148,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               </motion.div>
 
               {/* Skill NFTs */}
-              <motion.div 
+              <motion.div
                 className="card-stats px-3 py-3 hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -158,7 +157,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-white text-xs">Skill NFTs</h3>
-                  <motion.div 
+                  <motion.div
                     className="bg-amber-500/20 rounded-lg flex items-center justify-center w-6 h-6"
                     whileHover={{ backgroundColor: 'rgba(217, 119, 6, 0.3)' }}
                   >
@@ -172,7 +171,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               </motion.div>
 
               {/* Standard NFTs */}
-              <motion.div 
+              <motion.div
                 className="card-stats px-3 py-3 hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -181,7 +180,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-white text-xs">Standard NFTs</h3>
-                  <motion.div 
+                  <motion.div
                     className="bg-slate-500/20 rounded-lg flex items-center justify-center w-6 h-6"
                     whileHover={{ backgroundColor: 'rgba(100, 116, 139, 0.3)' }}
                   >
@@ -195,7 +194,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               </motion.div>
 
               {/* Total Collection */}
-              <motion.div 
+              <motion.div
                 className="card-stats px-3 py-3 hover:bg-white/5 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -204,7 +203,7 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
               >
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold text-white text-xs">Total Collection</h3>
-                  <motion.div 
+                  <motion.div
                     className="bg-purple-500/20 rounded-lg flex items-center justify-center w-6 h-6"
                     whileHover={{ backgroundColor: 'rgba(168, 85, 247, 0.3)' }}
                   >
@@ -227,12 +226,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
   return (
     <div className="grid grid-cols-5 gap-2">
       {/* Total Portfolio Value */}
-      <motion.div 
+      <motion.div
         className="card-stats min-w-0 px-2 py-2"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0 }}
-        viewport={{ once: true }}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-white text-xs md:text-sm">Total Portfolio Value</h3>
@@ -256,12 +254,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
       </motion.div>
 
       {/* Listed for Sale */}
-      <motion.div 
+      <motion.div
         className="card-stats min-w-0 px-2 py-2"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        viewport={{ once: true }}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-white text-xs md:text-sm">Listed for Sale</h3>
@@ -280,12 +277,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
       </motion.div>
 
       {/* Skill NFTs */}
-      <motion.div 
+      <motion.div
         className="card-stats min-w-0 px-2 py-2"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        viewport={{ once: true }}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-white text-xs md:text-sm">Skill NFTs</h3>
@@ -304,12 +300,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
       </motion.div>
 
       {/* Standard NFTs */}
-      <motion.div 
+      <motion.div
         className="card-stats min-w-0 px-2 py-2"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        viewport={{ once: true }}
       >
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-white text-xs md:text-sm">Standard NFTs</h3>
@@ -328,12 +323,11 @@ export default memo(function NFTStats({ nfts, loading = false }: NFTStatsProps) 
       </motion.div>
 
       {/* Total Collection */}
-      <motion.div 
+      <motion.div
         className="card-stats min-w-0 px-2 py-2"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        viewport={{ once: true }}
       >
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-white text-base">Total Collection</h3>

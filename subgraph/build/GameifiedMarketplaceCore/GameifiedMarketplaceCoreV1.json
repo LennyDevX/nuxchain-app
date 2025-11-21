@@ -5,31 +5,6 @@
     "type": "constructor"
   },
   {
-    "inputs": [],
-    "name": "InsufficientPayment",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NoOffersAvailable",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "NotTokenOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotFound",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "TokenNotListed",
-    "type": "error"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -166,25 +141,6 @@
       }
     ],
     "name": "Initialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "newLevel",
-        "type": "uint8"
-      }
-    ],
-    "name": "LevelUp",
     "type": "event"
   },
   {
@@ -355,25 +311,6 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "oldAddress",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newAddress",
-        "type": "address"
-      }
-    ],
-    "name": "QuestsContractUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -442,44 +379,6 @@
       }
     ],
     "name": "RoleRevoked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldAddress",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newAddress",
-        "type": "address"
-      }
-    ],
-    "name": "SkillsContractUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldAddress",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newAddress",
-        "type": "address"
-      }
-    ],
-    "name": "StakingContractUpdated",
     "type": "event"
   },
   {
@@ -631,31 +530,6 @@
       }
     ],
     "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "reason",
-        "type": "string"
-      }
-    ],
-    "name": "XPGained",
     "type": "event"
   },
   {
@@ -879,35 +753,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "cursor",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "size",
-        "type": "uint256"
-      }
-    ],
-    "name": "getListedNFTsPage",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "tokens",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nextCursor",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "_tokenId",
         "type": "uint256"
       }
@@ -936,35 +781,6 @@
       {
         "internalType": "uint256",
         "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getNFTMarketInfo",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "isListedStatus",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "price",
         "type": "uint256"
       }
     ],
@@ -1102,64 +918,6 @@
         "internalType": "address",
         "name": "_user",
         "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "cursor",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "size",
-        "type": "uint256"
-      }
-    ],
-    "name": "getUserCreatedNFTsPage",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "tokens",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nextCursor",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "getUserNFTLike",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
       }
     ],
     "name": "getUserNFTs",
@@ -1168,137 +926,6 @@
         "internalType": "uint256[]",
         "name": "",
         "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "getUserNFTsDetailed",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "creator",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "uri",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "category",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint96",
-            "name": "royaltyPercentage",
-            "type": "uint96"
-          }
-        ],
-        "internalType": "struct GameifiedMarketplaceCoreV1.NFTMetadata[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "cursor",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "size",
-        "type": "uint256"
-      }
-    ],
-    "name": "getUserNFTsPage",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "tokens",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nextCursor",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "getUserProfile",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "totalXP",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint8",
-            "name": "level",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint256",
-            "name": "nftsCreated",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "nftsOwned",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint32",
-            "name": "nftsSold",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "nftsBought",
-            "type": "uint32"
-          }
-        ],
-        "internalType": "struct GameifiedMarketplaceCoreV1.UserProfile",
-        "name": "",
-        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -1397,6 +1024,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "levelingSystemAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -1682,7 +1322,7 @@
   },
   {
     "inputs": [],
-    "name": "questsContractAddress",
+    "name": "referralSystemAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -1831,11 +1471,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_questsAddress",
+        "name": "_addr",
         "type": "address"
       }
     ],
-    "name": "setQuestsContract",
+    "name": "setLevelingSystem",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1844,7 +1484,20 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_skillsAddress",
+        "name": "_addr",
+        "type": "address"
+      }
+    ],
+    "name": "setReferralSystem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_addr",
         "type": "address"
       }
     ],
@@ -1854,34 +1507,8 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_stakingAddress",
-        "type": "address"
-      }
-    ],
-    "name": "setStakingContract",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "skillsContractAddress",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "stakingContractAddress",
     "outputs": [
       {
         "internalType": "address",
@@ -2021,24 +1648,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "updateUserXP",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "newImplementation",
         "type": "address"
       }
@@ -2064,50 +1673,6 @@
     "name": "upgradeToAndCall",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "userProfiles",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalXP",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "level",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nftsCreated",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "nftsOwned",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "nftsSold",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint32",
-        "name": "nftsBought",
-        "type": "uint32"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   }
 ]

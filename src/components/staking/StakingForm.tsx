@@ -28,17 +28,17 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   const [touchEnd, setTouchEnd] = useState(0)
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
-  
+
   const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
-  
+
   // ✅ Font size adaptativo
   const fontSize = useMemo(() => ({
     label: getOptimizedFontSize(14, isMobile), // 14px base
     value: getOptimizedFontSize(16, isMobile), // 16px base
     hint: getOptimizedFontSize(12, isMobile),  // 12px base
   }), [isMobile])
-  
+
   // Handle touch events for swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return
@@ -49,7 +49,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     }
     setTouchStart(e.targetTouches[0].clientX)
   }
-  
+
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return
     // Don't interfere with form elements
@@ -59,25 +59,25 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     }
     setTouchEnd(e.targetTouches[0].clientX)
   }
-  
+
   const handleTouchEnd = () => {
     if (!isMobile || !touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > 50
     const isRightSwipe = distance < -50
-    
+
     if (isLeftSwipe && currentTabIndex < tabs.length - 1) {
       setActiveTab(tabs[currentTabIndex + 1])
     }
     if (isRightSwipe && currentTabIndex > 0) {
       setActiveTab(tabs[currentTabIndex - 1])
     }
-    
+
     setTouchStart(0)
     setTouchEnd(0)
   }
-  
+
   // Auto-scroll active tab into view
   useEffect(() => {
     if (isMobile && tabsContainerRef.current) {
@@ -122,24 +122,24 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleDeposit = async () => {
     if (!depositAmount || !address) return
-    
+
     // Validate deposit amount
     const amountValidation = validateDepositAmount(depositAmount, balance?.value)
     if (!amountValidation.isValid) {
       alert(amountValidation.error)
       return
     }
-    
+
     // Validate lockup duration
     const lockupValidation = validateLockupDuration(lockupDuration)
     if (!lockupValidation.isValid) {
       alert(lockupValidation.error)
       return
     }
-    
+
     try {
       const lockupInDays = BigInt(parseInt(lockupDuration))
-      
+
       writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
@@ -156,7 +156,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleWithdrawAll = async () => {
     if (!address) return
-    
+
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
@@ -170,17 +170,17 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleCompound = async () => {
     if (!address) return
-    
+
     // Validate lockup duration for compound
     const lockupValidation = validateLockupDuration(compoundLockupDuration)
     if (!lockupValidation.isValid) {
       alert(lockupValidation.error)
       return
     }
-    
+
     try {
       const lockupInDays = BigInt(parseInt(compoundLockupDuration))
-      
+
       writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
@@ -194,7 +194,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleClaimRewards = async () => {
     if (!address) return
-    
+
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
@@ -208,7 +208,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleEmergencyWithdraw = async () => {
     if (!address) return
-    
+
     const confirmed = window.confirm(
       '⚠️ RETIRO DE EMERGENCIA ⚠️\n\n' +
       'This action will withdraw ALL your deposited funds immediately, ' +
@@ -219,9 +219,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       '• This action is IRREVERSIBLE\n\n' +
       'Are you sure you want to continue?'
     )
-    
+
     if (!confirmed) return
-    
+
     try {
       writeContract({
         address: stakingContractAddress as `0x${string}`,
@@ -234,50 +234,43 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="card-unified overflow-hidden"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
     >
       {/* Tabs */}
-      <motion.div 
-        className={`border-b border-white/20 relative ${
-          isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
-        }`}
+      <motion.div
+        className={`border-b border-white/20 relative ${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
+          }`}
         role="tablist"
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        viewport={{ once: true }}
       >
-        <div 
+        <div
           ref={tabsContainerRef}
-          className={`${
-            isMobile ? 'flex min-w-max px-2' : 'flex w-full'
-          }`}
+          className={`${isMobile ? 'flex min-w-max px-2' : 'flex w-full'
+            }`}
         >
           <motion.button
             onClick={() => setActiveTab('stake')}
             role="tab"
             aria-selected={activeTab === 'stake'}
             aria-label="Stake Tab - Use Arrow Keys to Navigate"
-            className={`font-medium transition-all duration-300 ${
-              isMobile 
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+            className={`font-medium transition-all duration-300 ${isMobile
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
                 : 'flex-1 py-4 px-6 text-center'
-            } ${
-              activeTab === 'stake'
-                ? isMobile 
+              } ${activeTab === 'stake'
+                ? isMobile
                   ? 'bg-blue-500/30 text-blue-300 shadow-lg transform scale-105'
                   : 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-            }`}
+              }`}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.15 }}
-            viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -288,21 +281,18 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'claim'}
             aria-label="Claim Tab"
-            className={`font-medium transition-all duration-300 ${
-              isMobile 
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+            className={`font-medium transition-all duration-300 ${isMobile
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
                 : 'flex-1 py-4 px-6 text-center'
-            } ${
-              activeTab === 'claim'
-                ? isMobile 
+              } ${activeTab === 'claim'
+                ? isMobile
                   ? 'bg-yellow-500/30 text-yellow-300 shadow-lg transform scale-105'
                   : 'bg-yellow-500/20 text-yellow-400 border-b-2 border-yellow-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-            }`}
+              }`}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -313,21 +303,18 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'withdraw'}
             aria-label="Withdraw Tab"
-            className={`font-medium transition-all duration-300 ${
-              isMobile 
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+            className={`font-medium transition-all duration-300 ${isMobile
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
                 : 'flex-1 py-4 px-6 text-center'
-            } ${
-              activeTab === 'withdraw'
-                ? isMobile 
+              } ${activeTab === 'withdraw'
+                ? isMobile
                   ? 'bg-red-500/30 text-red-300 shadow-lg transform scale-105'
                   : 'bg-red-500/20 text-red-400 border-b-2 border-red-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-            }`}
+              }`}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.25 }}
-            viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -338,17 +325,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'compound'}
             aria-label="Compound Tab"
-            className={`font-medium transition-all duration-300 ${
-              isMobile 
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+            className={`font-medium transition-all duration-300 ${isMobile
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
                 : 'flex-1 py-4 px-6 text-center'
-            } ${
-              activeTab === 'compound'
-                ? isMobile 
+              } ${activeTab === 'compound'
+                ? isMobile
                   ? 'bg-green-500/30 text-green-300 shadow-lg transform scale-105'
                   : 'bg-green-500/20 text-green-400 border-b-2 border-green-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-            }`}
+              }`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Compound
           </motion.button>
@@ -357,47 +347,43 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'emergency'}
             aria-label="Emergency Tab"
-            className={`font-medium transition-all duration-300 ${
-              isMobile 
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg' 
+            className={`font-medium transition-all duration-300 ${isMobile
+                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
                 : 'flex-1 py-4 px-6 text-center'
-            } ${
-              activeTab === 'emergency'
-                ? isMobile 
+              } ${activeTab === 'emergency'
+                ? isMobile
                   ? 'bg-orange-500/30 text-orange-300 shadow-lg transform scale-105'
                   : 'bg-orange-500/20 text-orange-400 border-b-2 border-orange-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
-            }`}
+              }`}
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.35 }}
-            viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             Emergency
           </motion.button>
         </div>
-        
+
 
       </motion.div>
 
-      <motion.div 
+      <motion.div
         ref={contentRef}
         className={`${isMobile ? 'p-4' : 'p-6'} relative`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.4 }}
-        viewport={{ once: true }}
       >
 
         {activeTab === 'stake' && (
           <div className="space-y-6">
             <div>
-              <label 
+              <label
                 className="block text-white/80 font-medium mb-2"
                 style={{ fontSize: `${fontSize.label}px` }}
               >
@@ -414,11 +400,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {depositAmount && (
                   <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <p className="text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
-                    💡 6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
-                  </p>
-                  <p className="text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
-                    Effective deposit amount: {(parseFloat(depositAmount) * 0.94).toFixed(4)} POL
-                  </p>
+                      💡 6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
+                    </p>
+                    <p className="text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
+                      Effective deposit amount: {(parseFloat(depositAmount) * 0.94).toFixed(4)} POL
+                    </p>
                   </div>
                 )}
                 <div className="absolute right-3 top-3 text-white/60 text-sm">
@@ -457,7 +443,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
               </p>
             </div>
-            
+
             <button
               onClick={handleClaimRewards}
               disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
@@ -481,7 +467,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 + {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'} (Rewards)
               </p>
             </div>
-            
+
             <button
               onClick={handleWithdrawAll}
               disabled={isPending || isConfirming}
@@ -502,7 +488,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
               </p>
             </div>
-            
+
             <StakingPeriodCarousel
               value={compoundLockupDuration}
               onChange={setCompoundLockupDuration}
@@ -560,7 +546,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               ]}
               label="Lockup period for compounded rewards (days)"
             />
-            
+
             <button
               onClick={handleCompound}
               disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
@@ -591,7 +577,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 </div>
               </div>
             </div>
-            
+
             <div className="text-center">
               <p className="text-white/80 mb-4">
                 Deposited funds that will be withdrawn:
@@ -603,15 +589,15 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 Rewards that will be lost: {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
               </p>
             </div>
-            
+
             <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 mb-6">
               <p className="text-orange-400 text-sm font-medium mb-2">🚨 BEFORE CONTINUING:</p>
               <p className="text-white/80 text-sm">
-                Consider using "Withdraw All" instead, which allows you to withdraw both your funds and rewards, 
+                Consider using "Withdraw All" instead, which allows you to withdraw both your funds and rewards,
                 respecting lockup periods when necessary.
               </p>
             </div>
-            
+
             <button
               onClick={handleEmergencyWithdraw}
               disabled={isPending || isConfirming || !totalDeposit || totalDeposit === 0n || !isPaused}
@@ -619,7 +605,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             >
               {!isPaused ? 'Only available when contract is paused' : isPending || isConfirming ? 'Processing...' : '🚨 EMERGENCY WITHDRAWAL 🚨'}
             </button>
-            
+
             <p className="text-center text-white/60 text-xs">
               {isPaused ? 'By clicking you confirm that you understand the irreversible consequences of this action' : 'Emergency withdrawal is only available when the contract owner has paused the contract'}
             </p>
@@ -629,7 +615,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
       {/* Transaction Success Message */}
       {isConfirmed && (
-        <motion.div 
+        <motion.div
           className="mx-6 mb-6 bg-green-500/10 border border-green-500/20 rounded-xl p-4"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

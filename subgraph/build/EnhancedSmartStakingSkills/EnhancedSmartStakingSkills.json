@@ -322,6 +322,26 @@
           },
           {
             "internalType": "uint16",
+            "name": "stakingBoostTotal",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeDiscountTotal",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "lockTimeReduction",
+            "type": "uint16"
+          },
+          {
+            "internalType": "bool",
+            "name": "hasAutoCompound",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16",
             "name": "rarityMultiplier",
             "type": "uint16"
           },

@@ -32,6 +32,28 @@ export class CoreContractUpdated__Params {
   }
 }
 
+export class LevelingContractUpdated extends ethereum.Event {
+  get params(): LevelingContractUpdated__Params {
+    return new LevelingContractUpdated__Params(this);
+  }
+}
+
+export class LevelingContractUpdated__Params {
+  _event: LevelingContractUpdated;
+
+  constructor(event: LevelingContractUpdated) {
+    this._event = event;
+  }
+
+  get oldLeveling(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newLeveling(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
 export class Paused extends ethereum.Event {
   get params(): Paused__Params {
     return new Paused__Params(this);
@@ -959,6 +981,29 @@ export class GameifiedMarketplaceQuests extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
+  levelingContractAddress(): Address {
+    let result = super.call(
+      "levelingContractAddress",
+      "levelingContractAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_levelingContractAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "levelingContractAddress",
+      "levelingContractAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
+  }
+
   paused(): boolean {
     let result = super.call("paused", "paused():(bool)", []);
 
@@ -1492,6 +1537,36 @@ export class SetCoreContractCall__Outputs {
   _call: SetCoreContractCall;
 
   constructor(call: SetCoreContractCall) {
+    this._call = call;
+  }
+}
+
+export class SetLevelingContractCall extends ethereum.Call {
+  get inputs(): SetLevelingContractCall__Inputs {
+    return new SetLevelingContractCall__Inputs(this);
+  }
+
+  get outputs(): SetLevelingContractCall__Outputs {
+    return new SetLevelingContractCall__Outputs(this);
+  }
+}
+
+export class SetLevelingContractCall__Inputs {
+  _call: SetLevelingContractCall;
+
+  constructor(call: SetLevelingContractCall) {
+    this._call = call;
+  }
+
+  get _levelingAddress(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetLevelingContractCall__Outputs {
+  _call: SetLevelingContractCall;
+
+  constructor(call: SetLevelingContractCall) {
     this._call = call;
   }
 }

@@ -98,6 +98,54 @@ export class AutoCompoundExecuted__Params {
   }
 }
 
+export class BadgeEarned extends ethereum.Event {
+  get params(): BadgeEarned__Params {
+    return new BadgeEarned__Params(this);
+  }
+}
+
+export class BadgeEarned__Params {
+  _event: BadgeEarned;
+
+  constructor(event: BadgeEarned) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get badgeId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get name(): string {
+    return this._event.parameters[2].value.toString();
+  }
+}
+
+export class LevelUp extends ethereum.Event {
+  get params(): LevelUp__Params {
+    return new LevelUp__Params(this);
+  }
+}
+
+export class LevelUp__Params {
+  _event: LevelUp;
+
+  constructor(event: LevelUp) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get newLevel(): i32 {
+    return this._event.parameters[1].value.toI32();
+  }
+}
+
 export class OwnershipTransferred extends ethereum.Event {
   get params(): OwnershipTransferred__Params {
     return new OwnershipTransferred__Params(this);
@@ -169,6 +217,28 @@ export class RewardExpired__Params {
 
   get amount(): BigInt {
     return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class RewardPaid extends ethereum.Event {
+  get params(): RewardPaid__Params {
+    return new RewardPaid__Params(this);
+  }
+}
+
+export class RewardPaid__Params {
+  _event: RewardPaid;
+
+  constructor(event: RewardPaid) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
   }
 }
 
@@ -399,6 +469,24 @@ export class EnhancedSmartStakingGamification__getQuestRewardResultRewardStruct 
   }
 }
 
+export class EnhancedSmartStakingGamification__getUserBadgesResultValue0Struct extends ethereum.Tuple {
+  get id(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get name(): string {
+    return this[1].toString();
+  }
+
+  get description(): string {
+    return this[2].toString();
+  }
+
+  get dateEarned(): BigInt {
+    return this[3].toBigInt();
+  }
+}
+
 export class EnhancedSmartStakingGamification__getUserXPInfoResult {
   value0: BigInt;
   value1: i32;
@@ -440,6 +528,29 @@ export class EnhancedSmartStakingGamification extends ethereum.SmartContract {
       "EnhancedSmartStakingGamification",
       address,
     );
+  }
+
+  LEVEL_UP_REWARD(): BigInt {
+    let result = super.call(
+      "LEVEL_UP_REWARD",
+      "LEVEL_UP_REWARD():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_LEVEL_UP_REWARD(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "LEVEL_UP_REWARD",
+      "LEVEL_UP_REWARD():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
   calculateLevel(xp: BigInt): i32 {
@@ -753,6 +864,37 @@ export class EnhancedSmartStakingGamification extends ethereum.SmartContract {
     );
   }
 
+  getUserBadges(
+    user: Address,
+  ): Array<EnhancedSmartStakingGamification__getUserBadgesResultValue0Struct> {
+    let result = super.call(
+      "getUserBadges",
+      "getUserBadges(address):((uint256,string,string,uint256)[])",
+      [ethereum.Value.fromAddress(user)],
+    );
+
+    return result[0].toTupleArray<EnhancedSmartStakingGamification__getUserBadgesResultValue0Struct>();
+  }
+
+  try_getUserBadges(
+    user: Address,
+  ): ethereum.CallResult<
+    Array<EnhancedSmartStakingGamification__getUserBadgesResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getUserBadges",
+      "getUserBadges(address):((uint256,string,string,uint256)[])",
+      [ethereum.Value.fromAddress(user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<EnhancedSmartStakingGamification__getUserBadgesResultValue0Struct>(),
+    );
+  }
+
   getUserXPInfo(
     user: Address,
   ): EnhancedSmartStakingGamification__getUserXPInfoResult {
@@ -874,6 +1016,48 @@ export class ConstructorCall__Outputs {
   _call: ConstructorCall;
 
   constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class AwardBadgeCall extends ethereum.Call {
+  get inputs(): AwardBadgeCall__Inputs {
+    return new AwardBadgeCall__Inputs(this);
+  }
+
+  get outputs(): AwardBadgeCall__Outputs {
+    return new AwardBadgeCall__Outputs(this);
+  }
+}
+
+export class AwardBadgeCall__Inputs {
+  _call: AwardBadgeCall;
+
+  constructor(call: AwardBadgeCall) {
+    this._call = call;
+  }
+
+  get user(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get id(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get name(): string {
+    return this._call.inputValues[2].value.toString();
+  }
+
+  get description(): string {
+    return this._call.inputValues[3].value.toString();
+  }
+}
+
+export class AwardBadgeCall__Outputs {
+  _call: AwardBadgeCall;
+
+  constructor(call: AwardBadgeCall) {
     this._call = call;
   }
 }
@@ -1246,6 +1430,40 @@ export class SetMarketplaceContractCall__Outputs {
   _call: SetMarketplaceContractCall;
 
   constructor(call: SetMarketplaceContractCall) {
+    this._call = call;
+  }
+}
+
+export class SetQuestClaimedCall extends ethereum.Call {
+  get inputs(): SetQuestClaimedCall__Inputs {
+    return new SetQuestClaimedCall__Inputs(this);
+  }
+
+  get outputs(): SetQuestClaimedCall__Outputs {
+    return new SetQuestClaimedCall__Outputs(this);
+  }
+}
+
+export class SetQuestClaimedCall__Inputs {
+  _call: SetQuestClaimedCall;
+
+  constructor(call: SetQuestClaimedCall) {
+    this._call = call;
+  }
+
+  get user(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get questId(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class SetQuestClaimedCall__Outputs {
+  _call: SetQuestClaimedCall;
+
+  constructor(call: SetQuestClaimedCall) {
     this._call = call;
   }
 }

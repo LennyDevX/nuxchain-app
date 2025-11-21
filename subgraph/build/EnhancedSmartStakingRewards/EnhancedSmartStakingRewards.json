@@ -10,14 +10,8 @@
       {
         "indexed": true,
         "internalType": "uint8",
-        "name": "lockupPeriodIndex",
+        "name": "lockupIndex",
         "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldAPY",
-        "type": "uint256"
       },
       {
         "indexed": false,
@@ -27,6 +21,25 @@
       }
     ],
     "name": "APYUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "EmergencyWithdrawal",
     "type": "event"
   },
   {
@@ -49,15 +62,65 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "questId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "boostApplied",
+        "type": "uint256"
+      }
+    ],
+    "name": "QuestRewardClaimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "funder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RewardFunded",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint8",
-        "name": "lockupPeriodIndex",
+        "name": "lockupIndex",
         "type": "uint8"
       },
       {
         "internalType": "uint16",
-        "name": "totalBoost",
+        "name": "stakingBoostTotal",
         "type": "uint16"
       }
     ],
@@ -65,7 +128,31 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "apy",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "baseReward",
+        "type": "uint256"
+      }
+    ],
+    "name": "calculateQuestReward",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "finalReward",
         "type": "uint256"
       }
     ],
@@ -81,7 +168,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "depositTime",
+        "name": "",
         "type": "uint256"
       },
       {
@@ -96,108 +183,11 @@
       },
       {
         "internalType": "uint16",
-        "name": "totalBoost",
+        "name": "stakingBoostTotal",
         "type": "uint16"
       }
     ],
-    "name": "calculateBoostedRewards",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "boostedRewards",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "depositAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "depositTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastClaimTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "lockupPeriodIndex",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint16",
-        "name": "totalBoost",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint16",
-        "name": "rarityMultiplier",
-        "type": "uint16"
-      }
-    ],
-    "name": "calculateBoostedRewardsWithRarityMultiplier",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "boostedRewards",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint8",
-        "name": "activeSkillCount",
-        "type": "uint8"
-      }
-    ],
-    "name": "calculateFeeDiscount",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "discountPercentage",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "depositAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "depositTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lastClaimTime",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "lockupPeriodIndex",
-        "type": "uint8"
-      }
-    ],
-    "name": "calculateRewards",
+    "name": "calculateStakingRewards",
     "outputs": [
       {
         "internalType": "uint256",
@@ -211,8 +201,47 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "questId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimQuestReward",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "emergencyWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "gamificationModule",
+    "outputs": [
+      {
+        "internalType": "contract IEnhancedSmartStakingGamification",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint8",
-        "name": "lockupPeriodIndex",
+        "name": "index",
         "type": "uint8"
       }
     ],
@@ -220,7 +249,7 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "apy",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -269,6 +298,45 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_gamificationModule",
+        "type": "address"
+      }
+    ],
+    "name": "setGamificationModule",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_skillsModule",
+        "type": "address"
+      }
+    ],
+    "name": "setSkillsModule",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "skillsModule",
+    "outputs": [
+      {
+        "internalType": "contract IEnhancedSmartStakingSkills",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
@@ -295,5 +363,9 @@
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

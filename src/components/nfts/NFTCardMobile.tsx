@@ -41,10 +41,10 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const { imageUrl, error: imageError } = useImageCache(nft.image);
   const { convertPOLToUSD } = usePOLPrice();
-  
+
   const handleListNFT = useCallback(() => {
     onListNFT(nft.tokenId);
   }, [onListNFT, nft.tokenId]);
@@ -104,7 +104,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
-    
+
     const maxSlides = 3;
     let newSlide = currentSlide;
 
@@ -130,43 +130,42 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
   const formatAttributeValue = (traitType: string, value: string | number): string => {
     const lowerTraitType = traitType.toLowerCase();
     const valueStr = String(value);
-    
+
     if (lowerTraitType.includes('creator') || lowerTraitType.includes('wallet') || lowerTraitType.includes('address')) {
       if (valueStr.startsWith('0x') && valueStr.length === 42) {
         return `${valueStr.slice(0, 6)}...${valueStr.slice(-4)}`;
       }
     }
-    
+
     if (lowerTraitType.includes('created') || lowerTraitType.includes('date') || lowerTraitType.includes('time')) {
       const date = new Date(isNaN(Number(valueStr)) ? valueStr : Number(valueStr) * 1000);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       }
     }
-    
+
     return valueStr;
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="group relative w-full cursor-pointer"
       onClick={handleFlip}
       style={{ perspective: '1500px', aspectRatio: '3/5.5' }}
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
-      viewport={{ once: true }}
       whileHover={{ y: -4 }}
     >
-      <div 
+      <div
         className="relative w-full h-full transition-all duration-700"
-        style={{ 
+        style={{
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
         }}
       >
         {/* FRONT SIDE - Image Only */}
-        <div 
+        <div
           className="absolute w-full h-full"
           style={{ backfaceVisibility: 'hidden' }}
         >
@@ -199,7 +198,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                 <div className="backdrop-blur-xl bg-black/80 border border-white/20 rounded-full px-3 py-1.5 shadow-lg">
                   <span className="text-xs font-bold text-white">#{nft.tokenId}</span>
                 </div>
-                
+
                 {nft.isForSale && (
                   <div className="backdrop-blur-xl bg-gradient-to-r from-emerald-500 to-green-500 rounded-full px-3 py-1.5 shadow-lg animate-pulse">
                     <span className="text-xs font-bold text-white flex items-center gap-1">
@@ -237,7 +236,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
         </div>
 
         {/* BACK SIDE - Carousel with 3 Info Slides */}
-        <div 
+        <div
           className="absolute w-full h-full top-0 left-0 rounded-2xl"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
@@ -256,7 +255,7 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                     <p className="text-[9px] text-purple-300">#{nft.tokenId}</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={handleFlip}
                   className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation flex-shrink-0"
                 >
@@ -406,21 +405,20 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                           {nft.attributes.length}
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-3">
                         {nft.attributes.map((attr: NFTAttribute, index: number) => {
-                          const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
-                                               attr.trait_type.toLowerCase().includes('created');
+                          const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') ||
+                            attr.trait_type.toLowerCase().includes('created');
                           const formattedValue = formatAttributeValue(attr.trait_type, attr.value);
-                          
+
                           return (
-                            <motion.div 
-                              key={index} 
-                              className={`${
-                                isSpecialAttr 
-                                  ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50' 
+                            <motion.div
+                              key={index}
+                              className={`${isSpecialAttr
+                                  ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50'
                                   : 'bg-white/5 border-white/10 hover:bg-white/10'
-                              } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 touch-manipulation`}
+                                } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 touch-manipulation`}
                               whileHover={{ scale: 1.03, y: -2 }}
                               whileTap={{ scale: 0.98 }}
                               transition={{ type: 'spring', stiffness: 300 }}
@@ -450,9 +448,8 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
             <div className="relative p-3 border-t border-white/10 bg-black/20 backdrop-blur-sm flex-shrink-0 flex items-center justify-center gap-2">
               <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(0); }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === 0 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentSlide === 0 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
+                  }`}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}
@@ -460,9 +457,8 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
               />
               <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(1); }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === 1 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentSlide === 1 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
+                  }`}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}
@@ -470,9 +466,8 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
               />
               <motion.button
                 onClick={(e) => { e.stopPropagation(); goToSlide(2); }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  currentSlide === 2 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${currentSlide === 2 ? 'bg-purple-500 w-6' : 'bg-white/40 w-2'
+                  }`}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 300 }}

@@ -101,11 +101,12 @@ export interface UserProfile {
   totalXP: bigint
   level: number
   nftsCreated: bigint
+  nftsOwned: bigint
   nftsSold: bigint
   nftsBought: bigint
-  referralCount: bigint
-  totalEarnings: bigint
-  lastActivityTime: bigint
+  referralCount?: bigint // Optional - from ReferralSystem
+  totalEarnings?: bigint // Optional - legacy
+  lastActivityTime?: bigint // Optional - legacy
 }
 
 export interface Achievement {

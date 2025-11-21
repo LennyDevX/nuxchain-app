@@ -10,6 +10,28 @@ import {
   BigInt,
 } from "@graphprotocol/graph-ts";
 
+export class BasePriceUpdated extends ethereum.Event {
+  get params(): BasePriceUpdated__Params {
+    return new BasePriceUpdated__Params(this);
+  }
+}
+
+export class BasePriceUpdated__Params {
+  _event: BasePriceUpdated;
+
+  constructor(event: BasePriceUpdated) {
+    this._event = event;
+  }
+
+  get rarity(): i32 {
+    return this._event.parameters[0].value.toI32();
+  }
+
+  get newPrice(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
 export class EmergencyWithdrawal extends ethereum.Event {
   get params(): EmergencyWithdrawal__Params {
     return new EmergencyWithdrawal__Params(this);
@@ -222,6 +244,28 @@ export class Paused__Params {
   }
 }
 
+export class RarityEffectMultiplierUpdated extends ethereum.Event {
+  get params(): RarityEffectMultiplierUpdated__Params {
+    return new RarityEffectMultiplierUpdated__Params(this);
+  }
+}
+
+export class RarityEffectMultiplierUpdated__Params {
+  _event: RarityEffectMultiplierUpdated;
+
+  constructor(event: RarityEffectMultiplierUpdated) {
+    this._event = event;
+  }
+
+  get rarity(): i32 {
+    return this._event.parameters[0].value.toI32();
+  }
+
+  get newMultiplier(): i32 {
+    return this._event.parameters[1].value.toI32();
+  }
+}
+
 export class RoleAdminChanged extends ethereum.Event {
   get params(): RoleAdminChanged__Params {
     return new RoleAdminChanged__Params(this);
@@ -319,6 +363,54 @@ export class SkillCleanedUp__Params {
 
   get skillId(): BigInt {
     return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class SkillEffectValueUpdated extends ethereum.Event {
+  get params(): SkillEffectValueUpdated__Params {
+    return new SkillEffectValueUpdated__Params(this);
+  }
+}
+
+export class SkillEffectValueUpdated__Params {
+  _event: SkillEffectValueUpdated;
+
+  constructor(event: SkillEffectValueUpdated) {
+    this._event = event;
+  }
+
+  get skillType(): i32 {
+    return this._event.parameters[0].value.toI32();
+  }
+
+  get rarity(): i32 {
+    return this._event.parameters[1].value.toI32();
+  }
+
+  get newEffectValue(): i32 {
+    return this._event.parameters[2].value.toI32();
+  }
+}
+
+export class SkillLevelMultiplierUpdated extends ethereum.Event {
+  get params(): SkillLevelMultiplierUpdated__Params {
+    return new SkillLevelMultiplierUpdated__Params(this);
+  }
+}
+
+export class SkillLevelMultiplierUpdated__Params {
+  _event: SkillLevelMultiplierUpdated;
+
+  constructor(event: SkillLevelMultiplierUpdated) {
+    this._event = event;
+  }
+
+  get level(): i32 {
+    return this._event.parameters[0].value.toI32();
+  }
+
+  get newMultiplier(): i32 {
+    return this._event.parameters[1].value.toI32();
   }
 }
 
@@ -1114,6 +1206,29 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytes());
   }
 
+  basePricePerRarity(param0: i32): BigInt {
+    let result = super.call(
+      "basePricePerRarity",
+      "basePricePerRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_basePricePerRarity(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "basePricePerRarity",
+      "basePricePerRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   getActiveIndividualSkills(_user: Address): Array<BigInt> {
     let result = super.call(
       "getActiveIndividualSkills",
@@ -1172,6 +1287,29 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     );
   }
 
+  getCurrentBasePrices(): Array<BigInt> {
+    let result = super.call(
+      "getCurrentBasePrices",
+      "getCurrentBasePrices():(uint256[5])",
+      [],
+    );
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getCurrentBasePrices(): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getCurrentBasePrices",
+      "getCurrentBasePrices():(uint256[5])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
   getIndividualSkill(
     _skillId: BigInt,
   ): IndividualSkillsMarketplace__getIndividualSkillResultValue0Struct {
@@ -1228,6 +1366,52 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  getLevelMultipliers(): Array<i32> {
+    let result = super.call(
+      "getLevelMultipliers",
+      "getLevelMultipliers():(uint16[3])",
+      [],
+    );
+
+    return result[0].toI32Array();
+  }
+
+  try_getLevelMultipliers(): ethereum.CallResult<Array<i32>> {
+    let result = super.tryCall(
+      "getLevelMultipliers",
+      "getLevelMultipliers():(uint16[3])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32Array());
+  }
+
+  getRarityEffectMultipliers(): Array<i32> {
+    let result = super.call(
+      "getRarityEffectMultipliers",
+      "getRarityEffectMultipliers():(uint16[5])",
+      [],
+    );
+
+    return result[0].toI32Array();
+  }
+
+  try_getRarityEffectMultipliers(): ethereum.CallResult<Array<i32>> {
+    let result = super.tryCall(
+      "getRarityEffectMultipliers",
+      "getRarityEffectMultipliers():(uint16[5])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32Array());
+  }
+
   getRoleAdmin(role: Bytes): Bytes {
     let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
       ethereum.Value.fromFixedBytes(role),
@@ -1247,6 +1431,31 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getSkillEffectValuesAllRarities(_skillType: i32): Array<i32> {
+    let result = super.call(
+      "getSkillEffectValuesAllRarities",
+      "getSkillEffectValuesAllRarities(uint8):(uint16[5])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+
+    return result[0].toI32Array();
+  }
+
+  try_getSkillEffectValuesAllRarities(
+    _skillType: i32,
+  ): ethereum.CallResult<Array<i32>> {
+    let result = super.tryCall(
+      "getSkillEffectValuesAllRarities",
+      "getSkillEffectValuesAllRarities(uint8):(uint16[5])",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32Array());
   }
 
   getSkillPrice(_skillType: i32, _rarity: i32): BigInt {
@@ -1694,6 +1903,29 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     );
   }
 
+  levelMultiplier(param0: i32): i32 {
+    let result = super.call(
+      "levelMultiplier",
+      "levelMultiplier(uint8):(uint16)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_levelMultiplier(param0: i32): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "levelMultiplier",
+      "levelMultiplier(uint8):(uint16)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
   paused(): boolean {
     let result = super.call("paused", "paused():(bool)", []);
 
@@ -1707,6 +1939,81 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  rarityEffectMultiplier(param0: i32): i32 {
+    let result = super.call(
+      "rarityEffectMultiplier",
+      "rarityEffectMultiplier(uint8):(uint16)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_rarityEffectMultiplier(param0: i32): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "rarityEffectMultiplier",
+      "rarityEffectMultiplier(uint8):(uint16)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
+  skillEffectValues(param0: i32, param1: i32): i32 {
+    let result = super.call(
+      "skillEffectValues",
+      "skillEffectValues(uint8,uint8):(uint16)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_skillEffectValues(param0: i32, param1: i32): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "skillEffectValues",
+      "skillEffectValues(uint8,uint8):(uint16)",
+      [
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
+  }
+
+  skillLevelCount(param0: i32): i32 {
+    let result = super.call(
+      "skillLevelCount",
+      "skillLevelCount(uint8):(uint8)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toI32();
+  }
+
+  try_skillLevelCount(param0: i32): ethereum.CallResult<i32> {
+    let result = super.tryCall(
+      "skillLevelCount",
+      "skillLevelCount(uint8):(uint8)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
   skillPrices(param0: i32, param1: i32): BigInt {
@@ -2309,6 +2616,196 @@ export class RevokeRoleCall__Outputs {
   _call: RevokeRoleCall;
 
   constructor(call: RevokeRoleCall) {
+    this._call = call;
+  }
+}
+
+export class SetBasePricePerRarityCall extends ethereum.Call {
+  get inputs(): SetBasePricePerRarityCall__Inputs {
+    return new SetBasePricePerRarityCall__Inputs(this);
+  }
+
+  get outputs(): SetBasePricePerRarityCall__Outputs {
+    return new SetBasePricePerRarityCall__Outputs(this);
+  }
+}
+
+export class SetBasePricePerRarityCall__Inputs {
+  _call: SetBasePricePerRarityCall;
+
+  constructor(call: SetBasePricePerRarityCall) {
+    this._call = call;
+  }
+
+  get _rarityIndex(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _newPrice(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+}
+
+export class SetBasePricePerRarityCall__Outputs {
+  _call: SetBasePricePerRarityCall;
+
+  constructor(call: SetBasePricePerRarityCall) {
+    this._call = call;
+  }
+}
+
+export class SetLevelMultiplierCall extends ethereum.Call {
+  get inputs(): SetLevelMultiplierCall__Inputs {
+    return new SetLevelMultiplierCall__Inputs(this);
+  }
+
+  get outputs(): SetLevelMultiplierCall__Outputs {
+    return new SetLevelMultiplierCall__Outputs(this);
+  }
+}
+
+export class SetLevelMultiplierCall__Inputs {
+  _call: SetLevelMultiplierCall;
+
+  constructor(call: SetLevelMultiplierCall) {
+    this._call = call;
+  }
+
+  get _levelIndex(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _newMultiplier(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+}
+
+export class SetLevelMultiplierCall__Outputs {
+  _call: SetLevelMultiplierCall;
+
+  constructor(call: SetLevelMultiplierCall) {
+    this._call = call;
+  }
+}
+
+export class SetRarityEffectMultiplierCall extends ethereum.Call {
+  get inputs(): SetRarityEffectMultiplierCall__Inputs {
+    return new SetRarityEffectMultiplierCall__Inputs(this);
+  }
+
+  get outputs(): SetRarityEffectMultiplierCall__Outputs {
+    return new SetRarityEffectMultiplierCall__Outputs(this);
+  }
+}
+
+export class SetRarityEffectMultiplierCall__Inputs {
+  _call: SetRarityEffectMultiplierCall;
+
+  constructor(call: SetRarityEffectMultiplierCall) {
+    this._call = call;
+  }
+
+  get _rarityIndex(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _newMultiplier(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+}
+
+export class SetRarityEffectMultiplierCall__Outputs {
+  _call: SetRarityEffectMultiplierCall;
+
+  constructor(call: SetRarityEffectMultiplierCall) {
+    this._call = call;
+  }
+}
+
+export class SetSkillEffectValueCall extends ethereum.Call {
+  get inputs(): SetSkillEffectValueCall__Inputs {
+    return new SetSkillEffectValueCall__Inputs(this);
+  }
+
+  get outputs(): SetSkillEffectValueCall__Outputs {
+    return new SetSkillEffectValueCall__Outputs(this);
+  }
+}
+
+export class SetSkillEffectValueCall__Inputs {
+  _call: SetSkillEffectValueCall;
+
+  constructor(call: SetSkillEffectValueCall) {
+    this._call = call;
+  }
+
+  get _skillType(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _rarity(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+
+  get _effectValue(): i32 {
+    return this._call.inputValues[2].value.toI32();
+  }
+}
+
+export class SetSkillEffectValueCall__Outputs {
+  _call: SetSkillEffectValueCall;
+
+  constructor(call: SetSkillEffectValueCall) {
+    this._call = call;
+  }
+}
+
+export class SetSkillEffectValuesAllRaritiesCall extends ethereum.Call {
+  get inputs(): SetSkillEffectValuesAllRaritiesCall__Inputs {
+    return new SetSkillEffectValuesAllRaritiesCall__Inputs(this);
+  }
+
+  get outputs(): SetSkillEffectValuesAllRaritiesCall__Outputs {
+    return new SetSkillEffectValuesAllRaritiesCall__Outputs(this);
+  }
+}
+
+export class SetSkillEffectValuesAllRaritiesCall__Inputs {
+  _call: SetSkillEffectValuesAllRaritiesCall;
+
+  constructor(call: SetSkillEffectValuesAllRaritiesCall) {
+    this._call = call;
+  }
+
+  get _skillType(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+
+  get _commonEffect(): i32 {
+    return this._call.inputValues[1].value.toI32();
+  }
+
+  get _uncommonEffect(): i32 {
+    return this._call.inputValues[2].value.toI32();
+  }
+
+  get _rareEffect(): i32 {
+    return this._call.inputValues[3].value.toI32();
+  }
+
+  get _epicEffect(): i32 {
+    return this._call.inputValues[4].value.toI32();
+  }
+
+  get _legendaryEffect(): i32 {
+    return this._call.inputValues[5].value.toI32();
+  }
+}
+
+export class SetSkillEffectValuesAllRaritiesCall__Outputs {
+  _call: SetSkillEffectValuesAllRaritiesCall;
+
+  constructor(call: SetSkillEffectValuesAllRaritiesCall) {
     this._call = call;
   }
 }

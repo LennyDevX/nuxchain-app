@@ -258,12 +258,12 @@ export default function Store() {
                 
                 {selectedCategory === 'ALL' || selectedCategory === SkillCategory.MARKETPLACE ? (
                   <>
-                    <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Active Skills:</div>
-                    <div className="flex justify-between"><span className="text-gray-400">Common</span><span className="text-orange-400 font-semibold">65 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-orange-400 font-semibold">104 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Rare</span><span className="text-orange-400 font-semibold">130 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Epic</span><span className="text-orange-400 font-semibold">195 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 font-semibold">286 POL</span></div>
+                    <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Marketplace Skills:</div>
+                    <div className="flex justify-between"><span className="text-gray-400">Common</span><span className="text-gray-400 font-semibold">50 POL</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-green-400 font-semibold">120 POL</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Rare</span><span className="text-blue-400 font-semibold">200 POL</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Epic</span><span className="text-purple-400 font-semibold">420 POL</span></div>
+                    <div className="flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 font-semibold">770 POL</span></div>
                   </>
                 ) : null}
                 <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
@@ -401,26 +401,26 @@ export default function Store() {
                     
                     {selectedCategory === 'ALL' || selectedCategory === SkillCategory.MARKETPLACE ? (
                       <>
-                        <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Active Skills:</div>
+                        <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Marketplace Skills:</div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Common</span>
-                          <span className="text-orange-400 font-semibold">65 POL</span>
+                          <span className="text-gray-400 font-semibold">50 POL</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Uncommon</span>
-                          <span className="text-orange-400 font-semibold">104 POL</span>
+                          <span className="text-green-400 font-semibold">120 POL</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Rare</span>
-                          <span className="text-orange-400 font-semibold">130 POL</span>
+                          <span className="text-blue-400 font-semibold">200 POL</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Epic</span>
-                          <span className="text-orange-400 font-semibold">195 POL</span>
+                          <span className="text-purple-400 font-semibold">420 POL</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Legendary</span>
-                          <span className="text-orange-400 font-semibold">286 POL</span>
+                          <span className="text-orange-400 font-semibold">770 POL</span>
                         </div>
                       </>
                     ) : null}
@@ -522,6 +522,7 @@ export default function Store() {
                 userSkills={userSkills}
                 onActivate={handleActivate}
                 onRenew={handleRenew}
+                onBrowseSkills={() => setActiveTab('catalog')}
                 isLoading={false}
               />
             )}
@@ -547,7 +548,7 @@ export default function Store() {
           className="mt-16 text-center text-gray-500 text-sm"
         >
           <p>
-            💡 Staking Skills: 50-220 POL • Active Skills: 30% markup • 
+            💡 Staking Skills: 50-220 POL • Marketplace Skills: 50-770 POL • 
             Renew expired skills for 50% off • Maximum 3 active skills • Skills last 30 days
           </p>
         </motion.div>

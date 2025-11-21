@@ -16,6 +16,7 @@ interface MySkillsProps {
   userSkills: UserSkill[];
   onActivate: (skill: SkillData) => void;
   onRenew: (skill: SkillData) => void;
+  onBrowseSkills?: () => void;
   isLoading?: boolean;
 }
 
@@ -70,6 +71,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
   userSkills,
   onActivate,
   onRenew,
+  onBrowseSkills,
   isLoading = false,
 }) => {
   const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active');
@@ -105,7 +107,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
           Purchase your first skill from the Catalog to get started!
         </p>
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={onBrowseSkills}
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 font-semibold"
         >
           Browse Skills
@@ -131,12 +133,23 @@ export const MySkills: React.FC<MySkillsProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.0 }}
+          className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl p-4"
+        >
+          <div className="text-3xl font-bold text-blue-400">{activeSkills.length}</div>
+          <div className="text-sm text-gray-300">Active Skills</div>
+          <div className="text-xs text-gray-500 mt-1">Currently boosting</div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl p-4"
         >
           <div className="text-3xl font-bold text-yellow-400">{expiredSkills.length}</div>
           <div className="text-sm text-gray-300">Expired Skills</div>
-          <div className="text-xs text-gray-500 mt-1">Ready to renew</div>
+          <div className="text-xs text-gray-500 mt-1">Ready to renew for 50% off</div>
         </motion.div>
 
         <motion.div
@@ -147,7 +160,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
         >
           <div className="text-3xl font-bold text-gray-300">{inactiveSkills.length}</div>
           <div className="text-sm text-gray-300">Inactive Skills</div>
-          <div className="text-xs text-gray-500 mt-1">Available to activate</div>
+          <div className="text-xs text-gray-500 mt-1">Ready to activate</div>
         </motion.div>
       </div>
 
@@ -276,9 +289,10 @@ export const MySkills: React.FC<MySkillsProps> = ({
 
                     <button
                       onClick={() => onRenew(userSkill.skill)}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 font-semibold"
+                      className="w-full px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 font-semibold flex flex-col items-center gap-1"
                     >
-                      Renew for {calculateSkillPrice(userSkill.skill.skillType, userSkill.skill.rarity, true)} POL
+                      <span>♻️ Renew Skill</span>
+                      <span className="text-xs opacity-90">{calculateSkillPrice(userSkill.skill.skillType, userSkill.skill.rarity, true)} POL (50% off)</span>
                     </button>
                   </motion.div>
                 ))}

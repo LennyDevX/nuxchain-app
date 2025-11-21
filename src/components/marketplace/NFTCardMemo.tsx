@@ -16,7 +16,7 @@ interface NFTCardProps {
 const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
   const { convertPOLToUSD, polPrice } = usePOLPrice();
   const isMobile = useIsMobile();
-  
+
   // ✅ Haptic feedback
   const triggerHaptic = useTapFeedback();
 
@@ -26,12 +26,11 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
   }, [nft, onBuy, triggerHaptic]);
 
   return (
-    <motion.div 
+    <motion.div
       className="group card-interactive overflow-hidden h-full"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
-      viewport={{ once: true }}
       whileHover={{ y: -4 }}
     >
       {/* Imagen optimizada con ResponsiveImage */}
@@ -48,14 +47,14 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
           sizes={IMAGE_SIZES.nft.mobile}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
+
         {/* Badge de categoría en la imagen */}
         <div className={`absolute ${isMobile ? 'top-2 left-2' : 'top-3 left-3'}`}>
           <span className={`bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-full border border-white/20 ${isMobile ? 'text-xs' : 'text-xs'}`}>
             {nft.category || 'Art'}
           </span>
         </div>
-        
+
         {/* Token ID en la esquina superior derecha */}
         <div className={`absolute ${isMobile ? 'top-2 right-2' : 'top-3 right-3'}`}>
           <span className={`bg-black/70 backdrop-blur-sm text-white/80 px-2 py-1 rounded-full border border-white/20 ${isMobile ? 'text-xs' : 'text-xs'}`}>
@@ -63,7 +62,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
           </span>
         </div>
       </div>
-      
+
       {/* Contenido optimizado para móvil */}
       <div className={`${isMobile ? 'p-3 space-y-3' : 'p-5 space-y-4'}`}>
         {/* Título y descripción */}
@@ -77,7 +76,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
             </p>
           )}
         </div>
-        
+
         {/* Información del vendedor - Solo en desktop */}
         {!isMobile && (
           <div className="flex items-center space-x-2 text-xs text-white/50">
@@ -87,7 +86,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
             </span>
           </div>
         )}
-        
+
         {/* Precio y botón de compra - Layout optimizado para móvil */}
         {isMobile ? (
           <div className="space-y-3">
@@ -102,7 +101,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
               </div>
             </div>
             {/* Botón de compra ancho y centrado */}
-            <motion.button 
+            <motion.button
               onClick={handleBuyClick}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -122,7 +121,7 @@ const NFTCardMemo: React.FC<NFTCardProps> = memo(({ nft, index, onBuy }) => {
                 {polPrice ? `≈ ${convertPOLToUSD(nft.priceInEth || 0.1)}` : '≈ Loading...'}
               </div>
             </div>
-            <motion.button 
+            <motion.button
               onClick={handleBuyClick}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

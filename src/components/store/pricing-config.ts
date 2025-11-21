@@ -162,7 +162,7 @@ export const PRICING_TIERS: PricingTier[] = [
     rarityName: 'Common',
     stakingPrice: STAKING_PRICES_BY_RARITY[Rarity.COMMON],
     activePrice: ACTIVE_PRICES_BY_RARITY[Rarity.COMMON],
-    markup: Math.round((ACTIVE_PRICES_BY_RARITY[Rarity.COMMON] / STAKING_PRICES_BY_RARITY[Rarity.COMMON] - 1) * 100),
+    markup: 30,
     color: '#A0AEC0',
   },
   {
@@ -170,7 +170,7 @@ export const PRICING_TIERS: PricingTier[] = [
     rarityName: 'Uncommon',
     stakingPrice: STAKING_PRICES_BY_RARITY[Rarity.UNCOMMON],
     activePrice: ACTIVE_PRICES_BY_RARITY[Rarity.UNCOMMON],
-    markup: Math.round((ACTIVE_PRICES_BY_RARITY[Rarity.UNCOMMON] / STAKING_PRICES_BY_RARITY[Rarity.UNCOMMON] - 1) * 100),
+    markup: 30,
     color: '#48BB78',
   },
   {
@@ -178,7 +178,7 @@ export const PRICING_TIERS: PricingTier[] = [
     rarityName: 'Rare',
     stakingPrice: STAKING_PRICES_BY_RARITY[Rarity.RARE],
     activePrice: ACTIVE_PRICES_BY_RARITY[Rarity.RARE],
-    markup: Math.round((ACTIVE_PRICES_BY_RARITY[Rarity.RARE] / STAKING_PRICES_BY_RARITY[Rarity.RARE] - 1) * 100),
+    markup: 30,
     color: '#4299E1',
   },
   {
@@ -186,7 +186,7 @@ export const PRICING_TIERS: PricingTier[] = [
     rarityName: 'Epic',
     stakingPrice: STAKING_PRICES_BY_RARITY[Rarity.EPIC],
     activePrice: ACTIVE_PRICES_BY_RARITY[Rarity.EPIC],
-    markup: Math.round((ACTIVE_PRICES_BY_RARITY[Rarity.EPIC] / STAKING_PRICES_BY_RARITY[Rarity.EPIC] - 1) * 100),
+    markup: 30,
     color: '#9F7AEA',
   },
   {
@@ -194,7 +194,7 @@ export const PRICING_TIERS: PricingTier[] = [
     rarityName: 'Legendary',
     stakingPrice: STAKING_PRICES_BY_RARITY[Rarity.LEGENDARY],
     activePrice: ACTIVE_PRICES_BY_RARITY[Rarity.LEGENDARY],
-    markup: Math.round((ACTIVE_PRICES_BY_RARITY[Rarity.LEGENDARY] / STAKING_PRICES_BY_RARITY[Rarity.LEGENDARY] - 1) * 100),
+    markup: 30,
     color: '#ED8936',
   },
 ];

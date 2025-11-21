@@ -14,7 +14,7 @@ export const SkillsPricingGuide: React.FC = () => {
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-white mb-2">💰 Pricing Guide</h3>
           <p className="text-gray-400">
-            Staking skills have base pricing, Active skills include 30% markup
+            Staking skills have multiplier-based pricing, Marketplace skills have fixed pricing per type
           </p>
         </div>
 
@@ -25,8 +25,7 @@ export const SkillsPricingGuide: React.FC = () => {
               <tr className="border-b border-gray-700">
                 <th className="pb-4 pr-4 text-gray-300 font-semibold">Rarity</th>
                 <th className="pb-4 px-4 text-gray-300 font-semibold text-center">Staking Skills</th>
-                <th className="pb-4 px-4 text-gray-300 font-semibold text-center">Active Skills</th>
-                <th className="pb-4 pl-4 text-gray-300 font-semibold text-center">Markup</th>
+                <th className="pb-4 px-4 text-gray-300 font-semibold text-center">Marketplace Skills</th>
               </tr>
             </thead>
             <tbody>
@@ -63,14 +62,12 @@ export const SkillsPricingGuide: React.FC = () => {
 
                   {/* Active Price */}
                   <td className="py-4 px-4 text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-orange-400 font-bold text-lg">
-                        {tier.activePrice} POL
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        +{tier.markup}%
-                      </span>
-                    </div>
+                    <span
+                      className="font-bold text-lg"
+                      style={{ color: tier.color }}
+                    >
+                      {tier.activePrice} POL
+                    </span>
                   </td>
 
                   {/* Markup Badge */}
@@ -91,19 +88,29 @@ export const SkillsPricingGuide: React.FC = () => {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mt-6 pt-6 border-t border-gray-700/50 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-start gap-3">
             <span className="text-2xl">⛓️</span>
             <div>
-              <h4 className="text-white font-semibold mb-1">Staking Skills (Types 1-7)</h4>
+              <h4 className="text-white font-semibold mb-1">Staking Skills (1-7)</h4>
               <p className="text-sm text-gray-400">
-                Boost your staking rewards and reduce fees
+                Boost staking rewards and reduce fees
               </p>
             </div>
           </div>
           
           <div className="flex items-start gap-3">
-            <span className="text-2xl">🔄</span>
+            <span className="text-2xl">⚙️</span>
+            <div>
+              <h4 className="text-white font-semibold mb-1">Marketplace Skills (8-16)</h4>
+              <p className="text-sm text-gray-400">
+                Platform features with fixed pricing per rarity level
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">♻️</span>
             <div>
               <h4 className="text-white font-semibold mb-1">Renewal Discount</h4>
               <p className="text-sm text-gray-400">

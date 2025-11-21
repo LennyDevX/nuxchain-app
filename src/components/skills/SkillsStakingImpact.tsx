@@ -40,19 +40,17 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
       <motion.h2
         className="text-4xl font-bold text-white mb-12 text-center"
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         Staking Impact
       </motion.h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left: Features */}
+        {/* Left */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="space-y-4"
         >
@@ -76,8 +74,7 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
         {/* Right: Statistics */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="space-y-4"
         >

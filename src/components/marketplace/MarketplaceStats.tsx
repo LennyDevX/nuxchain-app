@@ -22,7 +22,7 @@ interface StatCardProps {
 function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
   if (loading) {
     return (
-      <motion.div 
+      <motion.div
         className="card-stats p-4 space-y-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -36,25 +36,24 @@ function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="card-stats group hover:bg-white/8 transition-all duration-300"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
-      viewport={{ once: true }}
       whileHover={{ scale: 1.02, y: -4 }}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{title}</span>
         <span className="text-xl group-hover:scale-110 transition-transform duration-300">{icon}</span>
       </div>
-      
+
       <div className="mb-2">
         <h3 className="text-2xl font-bold text-white truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
           {typeof value === 'number' ? value.toLocaleString() : value}
         </h3>
       </div>
-      
+
       {subtitle && (
         <div className="text-white/50 text-sm truncate font-medium">
           {subtitle}
@@ -68,7 +67,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
   const { convertPOLToUSD, polPrice } = usePOLPrice();
   const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const formatPolValue = useMemo(() => {
     return (value: number) => {
       if (value === 0) return '0';
@@ -83,7 +82,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
     const floorPriceUSD = polPrice ? convertPOLToUSD(stats.floorPrice) : '$0.00';
     const totalMarketValueUSD = polPrice ? convertPOLToUSD(stats.totalMarketValue) : '$0.00';
     const averagePriceUSD = polPrice ? convertPOLToUSD(stats.averagePrice) : '$0.00';
-    
+
     return {
       floorPrice: formatPolValue(stats.floorPrice),
       totalMarketValue: formatPolValue(stats.totalMarketValue),
@@ -97,7 +96,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
   // Desktop: Grid 4 columns
   if (!isMobile) {
     return (
-      <motion.div 
+      <motion.div
         className={`grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${className}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -144,7 +143,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
       transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
     >
       {/* Main card with integrated dropdown button */}
-      <motion.div 
+      <motion.div
         className="card-stats px-4 py-3 flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-all duration-300"
         onClick={() => setIsExpanded(!isExpanded)}
         whileHover={{ scale: 1.02 }}
@@ -166,7 +165,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
           className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-2.5 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300"
           whileHover={{ scale: 1.1 }}
         >
-          <motion.svg 
+          <motion.svg
             className="w-5 h-5 text-purple-400"
             viewBox="0 0 24 24"
             fill="none"

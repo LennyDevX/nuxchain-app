@@ -181,6 +181,25 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "BasePriceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "admin",
         "type": "address"
@@ -387,6 +406,25 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "RarityEffectMultiplierUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -474,6 +512,50 @@
       }
     ],
     "name": "SkillCleanedUp",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newEffectValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillEffectValueUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint8",
+        "name": "level",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillLevelMultiplierUpdated",
     "type": "event"
   },
   {
@@ -631,6 +713,25 @@
   {
     "inputs": [
       {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "basePricePerRarity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "_skillId",
         "type": "uint256"
@@ -711,6 +812,19 @@
         "internalType": "uint256[][]",
         "name": "prices",
         "type": "uint256[][]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCurrentBasePrices",
+    "outputs": [
+      {
+        "internalType": "uint256[5]",
+        "name": "prices",
+        "type": "uint256[5]"
       }
     ],
     "stateMutability": "view",
@@ -802,6 +916,32 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getLevelMultipliers",
+    "outputs": [
+      {
+        "internalType": "uint16[3]",
+        "name": "multipliers",
+        "type": "uint16[3]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRarityEffectMultipliers",
+    "outputs": [
+      {
+        "internalType": "uint16[5]",
+        "name": "multipliers",
+        "type": "uint16[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -815,6 +955,25 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getSkillEffectValuesAllRarities",
+    "outputs": [
+      {
+        "internalType": "uint16[5]",
+        "name": "effectValues",
+        "type": "uint16[5]"
       }
     ],
     "stateMutability": "view",
@@ -1498,6 +1657,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "levelMultiplier",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "pause",
     "outputs": [],
@@ -1549,6 +1727,25 @@
       }
     ],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "rarityEffectMultiplier",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -1610,6 +1807,121 @@
   {
     "inputs": [
       {
+        "internalType": "uint8",
+        "name": "_rarityIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_newPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBasePricePerRarity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_levelIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "setLevelMultiplier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_rarityIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "setRarityEffectMultiplier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_effectValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "setSkillEffectValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_commonEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_uncommonEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_rareEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_epicEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_legendaryEffect",
+        "type": "uint16"
+      }
+    ],
+    "name": "setSkillEffectValuesAllRarities",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_stakingAddress",
         "type": "address"
@@ -1631,6 +1943,49 @@
     "name": "setTreasuryAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillEffectValues",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillLevelCount",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

@@ -54,7 +54,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   const [imageError, setImageError] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const { convertPOLToUSD } = usePOLPrice();
-  
+
   const handleListNFT = useCallback(() => {
     onListNFT(nft.tokenId);
   }, [onListNFT, nft.tokenId]);
@@ -104,7 +104,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
-    
+
     // Swipe left to flip, swipe right to unflip
     if (isLeftSwipe && !isFlipped) {
       setIsFlipped(true);
@@ -135,14 +135,14 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   const formatAttributeValue = (traitType: string, value: string | number): string => {
     const lowerTraitType = traitType.toLowerCase();
     const valueStr = String(value);
-    
+
     // Truncate wallet addresses
     if (lowerTraitType.includes('creator') || lowerTraitType.includes('wallet') || lowerTraitType.includes('address')) {
       if (valueStr.startsWith('0x') && valueStr.length === 42) {
         return `${valueStr.slice(0, 6)}...${valueStr.slice(-4)}`;
       }
     }
-    
+
     // Format dates
     if (lowerTraitType.includes('created') || lowerTraitType.includes('date') || lowerTraitType.includes('time')) {
       // Try to parse as timestamp or date string
@@ -151,12 +151,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       }
     }
-    
+
     return valueStr;
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="group relative w-full cursor-pointer"
       onClick={handleFlip}
       onTouchStart={handleTouchStart}
@@ -164,26 +164,25 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
       onTouchEnd={handleTouchEnd}
       style={{ perspective: '1500px', aspectRatio: '3/4.5' }}
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
-      viewport={{ once: true }}
       whileHover={{ y: -4 }}
     >
-      <div 
+      <div
         className="relative w-full h-full transition-all duration-700"
-        style={{ 
+        style={{
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
         }}
       >
         {/* FRONT SIDE - Image Prominent Design */}
-        <div 
+        <div
           className="absolute w-full h-full"
           style={{ backfaceVisibility: 'hidden' }}
         >
           {/* Main Card Container */}
           <div className="h-full w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-black border border-white/10 shadow-2xl transition-all duration-300 group-hover:border-purple-500/50 group-hover:shadow-purple-500/25 flex flex-col">
-            
+
             {/* Large Hero Image */}
             <div className="relative flex-1 overflow-hidden">
               {imageError || !nft.image ? (
@@ -214,7 +213,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                 <div className="backdrop-blur-xl bg-black/80 border border-white/20 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-lg">
                   <span className="text-[10px] sm:text-xs font-bold text-white">#{nft.tokenId}</span>
                 </div>
-                
+
                 {/* Status Badge - LISTED or SOLD */}
                 {nft.isForSale ? (
                   <div className="backdrop-blur-xl bg-gradient-to-r from-emerald-500 to-green-500 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-lg animate-pulse">
@@ -255,7 +254,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                           <p className="text-[10px] sm:text-xs text-emerald-400 font-medium truncate">≈ {formattedPriceUSD}</p>
                         )}
                       </div>
-                      <motion.button 
+                      <motion.button
                         onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
                         className="backdrop-blur-xl bg-purple-600/80 hover:bg-purple-500 active:bg-purple-700 border border-purple-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
                         whileHover={{ scale: 1.08 }}
@@ -274,7 +273,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         <p className="text-[10px] sm:text-xs text-gray-300 mb-0.5">Status</p>
                         <p className="text-base sm:text-lg font-bold text-blue-400">Sold</p>
                       </div>
-                      <motion.button 
+                      <motion.button
                         onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
                         className="backdrop-blur-xl bg-blue-600/80 hover:bg-blue-500 active:bg-blue-700 border border-blue-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
                         whileHover={{ scale: 1.08 }}
@@ -287,7 +286,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                   </div>
                 ) : (
                   // State 3: NFT is NOT listed AND I AM the owner - Show List for Sale button
-                  <motion.button 
+                  <motion.button
                     onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
                     className="w-full backdrop-blur-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-bold text-white transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
                     whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}
@@ -345,7 +344,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
 
 
         {/* BACK SIDE - Professional Minimalist Layout */}
-        <div 
+        <div
           className="absolute w-full h-full top-0 left-0 rounded-2xl"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
@@ -365,7 +364,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                   <h3 className="text-lg sm:text-xl font-bold text-white truncate">{nft.name || `NFT #${nft.tokenId}`}</h3>
                   <p className="text-xs sm:text-sm text-purple-300/80 mt-0.5">Token ID: <span className="font-mono">{nft.tokenId}</span></p>
                 </div>
-                <button 
+                <button
                   onClick={handleFlip}
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 touch-manipulation flex-shrink-0"
                 >
@@ -472,21 +471,20 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         {nft.attributes.length}
                       </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4">
                       {nft.attributes.map((attr: NFTAttribute, index: number) => {
-                        const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') || 
-                                             attr.trait_type.toLowerCase().includes('created');
+                        const isSpecialAttr = attr.trait_type.toLowerCase().includes('creator') ||
+                          attr.trait_type.toLowerCase().includes('created');
                         const formattedValue = formatAttributeValue(attr.trait_type, attr.value);
-                        
+
                         return (
-                          <motion.div 
-                            key={index} 
-                            className={`${
-                              isSpecialAttr 
-                                ? 'bg-gradient-to-br from-purple-600/25 to-pink-600/15 border-purple-400/50' 
+                          <motion.div
+                            key={index}
+                            className={`${isSpecialAttr
+                                ? 'bg-gradient-to-br from-purple-600/25 to-pink-600/15 border-purple-400/50'
                                 : 'bg-white/5 border-white/10 hover:bg-white/8'
-                            } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/60 touch-manipulation`}
+                              } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/60 touch-manipulation`}
                             whileHover={{ scale: 1.02, y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ type: 'spring', stiffness: 300 }}

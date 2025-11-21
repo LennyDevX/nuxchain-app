@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 import { useCallback, useEffect, useState } from 'react';
 import { apolloClient } from '../../lib/apollo-client';
@@ -146,31 +146,31 @@ const QUERY_USER_NFTs_FOR_SALE = gql`
   }
 `;
 
-// ✅ Query para NFTs COMPRADOS por el usuario (NFT_SALE events donde user es el buyer)
-const QUERY_USER_NFTs_BOUGHT = gql`
-  query QueryUserNFTsBought(
-    $user: Bytes!
-    $first: Int!
-    $skip: Int!
-  ) {
-    activities(
-      where: { buyer: $user, type: "NFT_SALE" }
-      first: $first
-      skip: $skip
-      orderBy: timestamp
-      orderDirection: desc
-    ) {
-      id
-      tokenId
-      timestamp
-      transactionHash
-      blockNumber
-      buyer
-      category
-      amount
-    }
-  }
-`;
+// NOTE: QUERY_USER_NFTs_BOUGHT not currently used, kept for reference
+// const QUERY_USER_NFTs_BOUGHT = gql`
+//   query QueryUserNFTsBought(
+//     $user: Bytes!
+//     $first: Int!
+//     $skip: Int!
+//   ) {
+//     activities(
+//       where: { buyer: $user, type: "NFT_SALE" }
+//       first: $first
+//       skip: $skip
+//       orderBy: timestamp
+//       orderDirection: desc
+//     ) {
+//       id
+//       tokenId
+//       timestamp
+//       transactionHash
+//       blockNumber
+//       buyer
+//       category
+//       amount
+//     }
+//   }
+// `;
 
 // 🔗 Viem client para leer del contrato (Polygon Mainnet, no testnet)
 const publicClient = createPublicClient({
@@ -209,6 +209,15 @@ const OWNER_OF_ABI = [{
   type: 'function'
 }] as const;
 
+// 📝 ABI para listedPrice - Returns price of NFT (0 if not listed)
+const LISTED_PRICE_ABI = [{
+  inputs: [{ name: '', type: 'uint256' }],
+  name: 'listedPrice',
+  outputs: [{ name: '', type: 'uint256' }],
+  stateMutability: 'view',
+  type: 'function'
+}] as const;
+
 /**
  * ✅ FIXED: React Query Hook para Marketplace NFTs usando SUBGRAPH
  * 
@@ -228,6 +237,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
   } = options;
 
   const { address } = useAccount();
+  const queryClient = useQueryClient();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineCachedData, setOfflineCachedData] = useState<NFTData[] | null>(null);
 
@@ -345,7 +355,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                   purchasedActivities.push(nft);
                   console.log(`✅ Found purchased NFT #${nft.tokenId}: owner=${currentOwner.slice(0, 10)}, creator=${nft.user?.slice(0, 10)}`);
                 }
-              } catch (err) {
+              } catch {
                 // Skip NFTs that cause errors (might be burned or invalid)
               }
             }
@@ -457,21 +467,40 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
         for (const item of nftSource) {
           const promise = contractReadQueue.add(async () => {
             const creatorId = item.user;
-            let nftPrice = 0n;
+            const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
             
             // 🔍 DEBUG: Log Activities item (only in development)
             if (process.env.NODE_ENV === 'development') {
-              console.debug(`🔍 Token #${item.tokenId}:`, { isForSale: !!item.amount });
+              console.debug(`🔍 Token #${item.tokenId}:`, { amount: item.amount });
             }
           
-            // If amount exists (NFT_LIST event), use it as price
-            if (item.amount) {
-              try {
-                nftPrice = BigInt(item.amount);
-              } catch {
-                nftPrice = 0n;
+            // ✅ CRITICAL: Always read price from contract for accurate listing status
+            // Don't rely on subgraph amount which may have indexing delay
+            let nftPrice = 0n;
+            try {
+              nftPrice = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: LISTED_PRICE_ABI,
+                functionName: 'listedPrice',
+                args: [BigInt(item.tokenId)]
+              });
+              
+              if (process.env.NODE_ENV === 'development') {
+                console.debug(`💰 Token #${item.tokenId} price from contract:`, nftPrice.toString(), `(${Number(nftPrice) / 1e18} POL)`);
               }
-            }          // �🖼️ Fetch metadata from tokenURI if available
+            } catch (err) {
+              console.warn(`⚠️ Could not fetch price for token ${item.tokenId}:`, err);
+              // Fallback to subgraph amount if contract read fails
+              if (item.amount) {
+                try {
+                  nftPrice = BigInt(item.amount);
+                } catch {
+                  nftPrice = 0n;
+                }
+              }
+            }
+            
+            // 🖼️ Fetch metadata from tokenURI if available
           let metadata = {
             name: `NFT #${item.tokenId}`,
             description: item.category ? `${item.category} NFT` : 'Digital Collectible',
@@ -574,10 +603,25 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           items.push(item);
         }
         
+        // ✅ DEDUPLICATE by tokenId (same NFT might have multiple events: MINT + LIST)
+        const uniqueNFTs = new Map<string, NFTData>();
+        for (const item of items) {
+          const existing = uniqueNFTs.get(item.tokenId);
+          if (!existing || item.price > existing.price) {
+            // Keep the one with highest price (LIST event has price, MINT doesn't)
+            uniqueNFTs.set(item.tokenId, item);
+          }
+        }
+        const deduplicatedItems = Array.from(uniqueNFTs.values());
+        
+        if (items.length !== deduplicatedItems.length) {
+          console.log(`🔄 [Deduplication] Removed ${items.length - deduplicatedItems.length} duplicate NFTs (same tokenId)`);
+        }
+        
         // ✅ CRITICAL FIX: Always verify contract state for accurate isForSale and price
         // For marketplace (isForSale=true): Filter out NFTs not for sale
         // For collection (userOnly=true): Update isForSale and price from on-chain data
-        let filteredItems = items;
+        let filteredItems = deduplicatedItems;
         
         if (isForSale) {
           // Marketplace view: Only show NFTs that are actually for sale
@@ -618,19 +662,24 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             }
           }
           
-          console.log(`✅ [Marketplace] Verified: ${verifiedItems.length}/${items.length} NFTs are actually for sale`);
+          console.log(`✅ [Marketplace] Verified: ${verifiedItems.length}/${deduplicatedItems.length} NFTs are actually for sale`);
+          console.log(`📊 [Marketplace] Listed NFTs:`, verifiedItems.map(nft => ({
+            tokenId: nft.tokenId,
+            price: `${Number(nft.price) / 1e18} POL`,
+            isForSale: nft.isForSale
+          })));
           filteredItems = verifiedItems;
           
         } else if (userOnly) {
           // Collection view: Update all NFTs with on-chain isForSale and price data
-          console.log(`🔍 [Collection] Updating ${items.length} NFTs with on-chain listing status...`);
-          console.log(`📊 [Collection] Before on-chain verification:`, items.map(nft => ({
+          console.log(`🔍 [Collection] Updating ${deduplicatedItems.length} NFTs with on-chain listing status...`);
+          console.log(`📊 [Collection] Before on-chain verification:`, deduplicatedItems.map(nft => ({
             tokenId: nft.tokenId,
             price: nft.price.toString(),
             isForSale: nft.isForSale
           })));
           
-          for (const nft of items) {
+          for (const nft of deduplicatedItems) {
             try {
               const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
               const [ownerOnChain, isListedOnChain, priceOnChain] = await publicClient.readContract({
@@ -660,13 +709,14 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
             }
           }
           
-          console.log(`📊 [Collection] After on-chain verification:`, items.map(nft => ({
+          console.log(`📊 [Collection] After on-chain verification:`, deduplicatedItems.map(nft => ({
             tokenId: nft.tokenId,
-            price: nft.price.toString(),
-            isForSale: nft.isForSale
+            price: `${Number(nft.price) / 1e18} POL`,
+            isForSale: nft.isForSale,
+            owner: nft.owner
           })));
-          console.log(`✅ [Collection] Updated ${items.length} NFTs with on-chain listing status`);
-          filteredItems = items;
+          console.log(`✅ [Collection] Updated ${deduplicatedItems.length} NFTs with on-chain listing status`);
+          filteredItems = deduplicatedItems;
         }
         
         // 🐛 Debug: Log final items with images (development only)
@@ -772,29 +822,59 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
   }, [query]);
 
   // ========================================
-  // 📱 CROSS-TAB SYNC
+  // 📱 CROSS-TAB SYNC + SAME-TAB SYNC
   // ========================================
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'marketplace_nfts_invalidate') {
-        query.refetch().catch(() => {
+        console.log('🔄 [useMarketplaceNFTsGraph] Storage event received, invalidating cache and refetching...');
+        // Cancel ongoing queries and invalidate cache
+        queryClient.cancelQueries({ queryKey: ['marketplace-nfts-graph'] }).then(() => {
+          query.refetch().catch(() => {
+            // Silent fail
+          });
+        }).catch(() => {
           // Silent fail
         });
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    const handleCustomRefresh = () => {
+      console.log('🔄 [useMarketplaceNFTsGraph] Received custom refresh event, invalidating cache and refetching...');
+      // Cancel ongoing queries and invalidate cache
+      queryClient.cancelQueries({ queryKey: ['marketplace-nfts-graph'] }).then(() => {
+        query.refetch().catch(() => {
+          // Silent fail
+        });
+      }).catch(() => {
+        // Silent fail
+      });
+    };
 
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [query]);
+    // Cross-tab sync (fires in other tabs)
+    window.addEventListener('storage', handleStorageChange);
+    // Same-tab sync (fires in current tab)
+    window.addEventListener('nft-listing-changed', handleCustomRefresh);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('nft-listing-changed', handleCustomRefresh);
+    };
+  }, [query, queryClient]);
 
   const refreshWithSync = useCallback(async () => {
     console.log('🔄 [useMarketplaceNFTsGraph] Starting refresh with sync...');
+    // Cancel ongoing queries and invalidate cache to force fresh fetch
+    await queryClient.cancelQueries({ queryKey: ['marketplace-nfts-graph'] });
+    console.log('✅ [useMarketplaceNFTsGraph] Query cache invalidated');
     await refresh();
-    console.log('✅ [useMarketplaceNFTsGraph] Query refetched');
+    console.log('✅ [useMarketplaceNFTsGraph] Query refetched with fresh data');
     localStorage.setItem('marketplace_nfts_invalidate', Date.now().toString());
     console.log('✅ [useMarketplaceNFTsGraph] LocalStorage sync event sent');
-  }, [refresh]);
+    // Dispatch custom event for same-tab sync
+    window.dispatchEvent(new CustomEvent('nft-listing-changed'));
+    console.log('✅ [useMarketplaceNFTsGraph] Custom event dispatched');
+  }, [refresh, queryClient]);
 
   return {
     nfts: isOnline ? nfts : (offlineCachedData || nfts),

@@ -4,23 +4,111 @@
   "sourceName": "contracts/interfaces/IEnhancedSmartStakingRewards.sol",
   "abi": [
     {
+      "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
           "internalType": "uint8",
-          "name": "lockupPeriodIndex",
+          "name": "lockupIndex",
           "type": "uint8"
         },
         {
-          "internalType": "uint16",
-          "name": "totalBoost",
-          "type": "uint16"
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newAPY",
+          "type": "uint256"
         }
       ],
-      "name": "calculateBoostedAPY",
+      "name": "APYUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "EmergencyWithdrawal",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "boostApplied",
+          "type": "uint256"
+        }
+      ],
+      "name": "QuestRewardClaimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "funder",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardFunded",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseReward",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateQuestReward",
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "apy",
+          "name": "finalReward",
           "type": "uint256"
         }
       ],
@@ -51,108 +139,11 @@
         },
         {
           "internalType": "uint16",
-          "name": "totalBoost",
+          "name": "stakingBoostTotal",
           "type": "uint16"
         }
       ],
-      "name": "calculateBoostedRewards",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "boostedRewards",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "depositAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "depositTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "lastClaimTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint8",
-          "name": "lockupPeriodIndex",
-          "type": "uint8"
-        },
-        {
-          "internalType": "uint16",
-          "name": "totalBoost",
-          "type": "uint16"
-        },
-        {
-          "internalType": "uint16",
-          "name": "rarityMultiplier",
-          "type": "uint16"
-        }
-      ],
-      "name": "calculateBoostedRewardsWithRarityMultiplier",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "boostedRewards",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint8",
-          "name": "activeSkillCount",
-          "type": "uint8"
-        }
-      ],
-      "name": "calculateFeeDiscount",
-      "outputs": [
-        {
-          "internalType": "uint8",
-          "name": "discountPercentage",
-          "type": "uint8"
-        }
-      ],
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "depositAmount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "depositTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "lastClaimTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint8",
-          "name": "lockupPeriodIndex",
-          "type": "uint8"
-        }
-      ],
-      "name": "calculateRewards",
+      "name": "calculateStakingRewards",
       "outputs": [
         {
           "internalType": "uint256",
@@ -166,38 +157,14 @@
     {
       "inputs": [
         {
-          "internalType": "uint8",
-          "name": "lockupPeriodIndex",
-          "type": "uint8"
-        }
-      ],
-      "name": "getBaseAPY",
-      "outputs": [
-        {
           "internalType": "uint256",
-          "name": "apy",
+          "name": "questId",
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "getLockupPeriodsConfig",
-      "outputs": [
-        {
-          "internalType": "uint256[]",
-          "name": "periods",
-          "type": "uint256[]"
-        },
-        {
-          "internalType": "uint256[]",
-          "name": "apys",
-          "type": "uint256[]"
-        }
-      ],
-      "stateMutability": "view",
+      "name": "claimQuestReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ],

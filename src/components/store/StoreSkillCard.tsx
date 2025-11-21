@@ -1,8 +1,8 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { RARITY_NAMES } from '../../types/contracts';
 import type { SkillData } from '../skills/config';
-import { calculateSkillPrice, getMarkupPercentage, isActiveSkill } from './pricing-config';
+import { calculateSkillPrice } from './pricing-config';
 
 interface StoreSkillCardProps {
   skill: SkillData;
@@ -10,24 +10,25 @@ interface StoreSkillCardProps {
   isOwned?: boolean;
 }
 
-export const StoreSkillCard = memo<StoreSkillCardProps>(({ 
-  skill, 
+export const StoreSkillCard = memo<StoreSkillCardProps>(({
+  skill,
   onClick,
-  isOwned = false 
+  isOwned = false
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  // Calcular precio dinámico usando función centralizada
+  const price = useMemo(() => {
+    return calculateSkillPrice(skill.skillType, skill.rarity, false);
+  }, [skill.skillType, skill.rarity]);
   
-  const price = calculateSkillPrice(skill.skillType, skill.rarity, false);
-  const markup = getMarkupPercentage(skill.skillType);
-  const showMarkup = isActiveSkill(skill.skillType) && markup > 0;
   const isFree = price === 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: (skill.id % 6) * 0.05 }}
-      viewport={{ once: true, margin: '-50px' }}
       className="h-full"
     >
       <motion.button
@@ -35,11 +36,10 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         disabled={isOwned}
-        className={`w-full h-full relative group overflow-hidden rounded-xl bg-gray-900/50 border transition-all duration-300 p-6 flex flex-col justify-between ${
-          isOwned 
-            ? 'border-gray-700 cursor-default opacity-60' 
+        className={`w-full h-full relative group overflow-hidden rounded-xl bg-gray-900/50 border transition-all duration-300 p-6 flex flex-col justify-between ${isOwned
+            ? 'border-gray-700 cursor-default opacity-60'
             : 'border-gray-800 cursor-pointer hover:border-opacity-100'
-        }`}
+          }`}
         style={{
           borderColor: isHovered && !isOwned ? skill.color : undefined,
         }}
@@ -93,11 +93,6 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
               >
                 {RARITY_NAMES[skill.rarity]}
               </span>
-              {showMarkup && markup > 0 && !isFree && !isOwned && (
-                <span className="text-xs font-bold px-2 py-1 rounded-full text-white bg-orange-500/70">
-                  +{markup}% ACTIVE
-                </span>
-              )}
             </div>
           </div>
 
@@ -126,25 +121,18 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
         {/* Footer - Price and Description */}
         <div className="relative z-10 pt-4 border-t border-gray-700/50">
           <p className="text-xs text-gray-500 mb-3 line-clamp-2">{skill.description}</p>
-          
+
           {/* Price Section */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex flex-col">
               {isFree ? (
                 <span className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
                   FREE
                 </span>
               ) : (
-                <>
-                  <span className="text-xl font-bold text-white">
-                    {price} POL
-                  </span>
-                  {showMarkup && markup > 0 && (
-                    <span className="text-xs text-gray-500">
-                      +{markup}% premium
-                    </span>
-                  )}
-                </>
+                <span className="text-xl font-bold text-white">
+                  {price} POL
+                </span>
               )}
             </div>
 

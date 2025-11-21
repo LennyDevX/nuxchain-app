@@ -262,16 +262,32 @@ export class EnhancedSmartStakingSkills__getUserSkillProfileResultProfileStruct 
     return this[1].toI32();
   }
 
-  get rarityMultiplier(): i32 {
+  get stakingBoostTotal(): i32 {
     return this[2].toI32();
   }
 
-  get level(): i32 {
+  get feeDiscountTotal(): i32 {
     return this[3].toI32();
   }
 
-  get activeSkillCount(): i32 {
+  get lockTimeReduction(): i32 {
     return this[4].toI32();
+  }
+
+  get hasAutoCompound(): boolean {
+    return this[5].toBoolean();
+  }
+
+  get rarityMultiplier(): i32 {
+    return this[6].toI32();
+  }
+
+  get level(): i32 {
+    return this[7].toI32();
+  }
+
+  get activeSkillCount(): i32 {
+    return this[8].toI32();
   }
 }
 
@@ -466,7 +482,7 @@ export class EnhancedSmartStakingSkills extends ethereum.SmartContract {
   ): EnhancedSmartStakingSkills__getUserSkillProfileResultProfileStruct {
     let result = super.call(
       "getUserSkillProfile",
-      "getUserSkillProfile(address):((uint256[],uint16,uint16,uint16,uint8))",
+      "getUserSkillProfile(address):((uint256[],uint16,uint16,uint16,uint16,bool,uint16,uint16,uint8))",
       [ethereum.Value.fromAddress(user)],
     );
 
@@ -480,7 +496,7 @@ export class EnhancedSmartStakingSkills extends ethereum.SmartContract {
   ): ethereum.CallResult<EnhancedSmartStakingSkills__getUserSkillProfileResultProfileStruct> {
     let result = super.tryCall(
       "getUserSkillProfile",
-      "getUserSkillProfile(address):((uint256[],uint16,uint16,uint16,uint8))",
+      "getUserSkillProfile(address):((uint256[],uint16,uint16,uint16,uint16,bool,uint16,uint16,uint8))",
       [ethereum.Value.fromAddress(user)],
     );
     if (result.reverted) {

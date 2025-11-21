@@ -217,15 +217,33 @@ export function analyzeSkills(
 
 /**
  * Calcula el impacto de los skills en el APY
+ * El boost del contrato viene en basis points (500 = 5.00%)
+ * Se aplica como multiplicador sobre el APY base
+ * Ejemplo: baseAPY=43.8%, boost=500 → 43.8% * 1.05 = 45.99%
  */
 export function calculateSkillAPYImpact(
   baseAPY: number,
   totalSkillBoost: number
 ): number {
-  // El boost se aplica como porcentaje adicional
-  // Ejemplo: 50 puntos de boost = +5% APY
-  const boostPercentage = totalSkillBoost / 1000; // Convertir a porcentaje
-  return baseAPY * (1 + boostPercentage);
+  // Si no hay boost, retornar APY base sin modificar
+  if (totalSkillBoost === 0) {
+    return baseAPY;
+  }
+  
+  // Convertir boost de basis points a multiplicador
+  // 500 basis points = 5% = multiplicador 1.05
+  // Formula: baseAPY * (1 + totalSkillBoost / 10000)
+  const boostMultiplier = 1 + (totalSkillBoost / 10000);
+  const enhancedAPY = baseAPY * boostMultiplier;
+  
+  console.log('💎 Skill APY Calculation:', {
+    baseAPY,
+    totalSkillBoost,
+    boostMultiplier,
+    enhancedAPY
+  });
+  
+  return enhancedAPY;
 }
 
 /**

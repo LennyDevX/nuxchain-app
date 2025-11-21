@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { toast } from 'react-hot-toast';
 import type { SkillData } from '../skills/config';
-import { formatPrice } from './pricing-config';
+import { calculateSkillPrice, formatPrice } from './pricing-config';
 import { RARITY_NAMES } from '../../types/contracts';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
@@ -31,25 +31,6 @@ const LoadingSpinner = () => (
   </svg>
 );
 
-/**
- * Calculate skill price based on type and rarity
- * Matches IndividualSkillsMarketplace contract pricing
- */
-function calculateSkillPrice(skillType: number, rarity: number): number {
-  // STAKING SKILLS prices (Skills 1-7)
-  const stakingPrices = [50, 80, 100, 150, 220];
-  // ACTIVE SKILLS prices (Skills 8-16) - 30% markup
-  const activePrices = [65, 104, 130, 195, 286];
-  
-  if (skillType >= 1 && skillType <= 7) {
-    return stakingPrices[rarity] || 0;
-  } else if (skillType >= 8 && skillType <= 16) {
-    return activePrices[rarity] || 0;
-  }
-  
-  return 0;
-}
-
 interface PurchaseSkillModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -76,7 +57,8 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
   if (!isOpen || !skill) return null;
 
   // Calculate price in POL for individual skills using contract pricing
-  const price = calculateSkillPrice(skill.skillType, skill.rarity);
+  const price = calculateSkillPrice(skill.skillType, skill.rarity, false);
+  const renewalPrice = calculateSkillPrice(skill.skillType, skill.rarity, true);
   const hasInsufficientBalance = userBalance < price;
 
   const handlePurchase = async () => {
@@ -225,18 +207,28 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
             </div>
 
             {/* Price Breakdown */}
-            <div className="bg-gray-800/50 rounded-xl p-4 space-y-3">
+            <div className="bg-gray-800/50 rounded-xl p-4 space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-400">Price:</span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-400">Purchase Price:</span>
+                <span className="text-white font-bold text-lg">
                   {price.toFixed(3)} POL
                 </span>
               </div>
 
+              <div className="border-t border-gray-700/50 pt-3">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-gray-400 text-sm">Renewal Cost (50% off):</span>
+                  <span className="text-yellow-400 font-bold">
+                    {renewalPrice.toFixed(3)} POL
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">💡 Renew expired skills for half price after 30 days</p>
+              </div>
+
               {!hasInsufficientBalance && (
-                <div className="flex justify-between items-center text-sm">
+                <div className="border-t border-gray-700/50 pt-3 flex justify-between items-center text-sm">
                   <span className="text-gray-400">Your Balance:</span>
-                  <span className="text-green-400">
+                  <span className="text-green-400 font-semibold">
                     {userBalance.toFixed(3)} POL
                   </span>
                 </div>

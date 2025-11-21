@@ -51,7 +51,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
   const handleExpand = () => {
     const newState = !isExpanded
     setIsExpanded(newState)
-    
+
     // Scroll to component when expanding
     if (newState && containerRef.current) {
       setTimeout(() => {
@@ -59,7 +59,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
         if (rect) {
           const scrollTop = window.scrollY || document.documentElement.scrollTop
           const targetTop = scrollTop + rect.top - 80 // 80px de offset para que se vea bien
-          
+
           window.scrollTo({
             top: targetTop,
             behavior: 'smooth'
@@ -74,37 +74,37 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
     const period = STAKING_PERIODS[selectedPeriod]
     const baseAmount = parseEther(stakingAmount.toString())
     const baseAPY = period.apy
-    
+
     // Apply skill bonuses
     let skillBonus = 0
     selectedSkills.forEach(skill => {
       skillBonus += (SKILL_BONUSES[skill as keyof typeof SKILL_BONUSES] || 0)
     })
-    
+
     // Auto compound bonus
     if (useAutoCompound) {
       skillBonus += 15
     }
-    
+
     // Final APY
     const finalAPY = baseAPY + skillBonus
-    
+
     // Calculate daily reward (APY / 365 days)
     const dailyPercentage = finalAPY / 365
     const dailyReward = (baseAmount * BigInt(Math.round(dailyPercentage * 10000))) / BigInt(1000000)
-    
+
     // Calculate monthly reward (30 days)
     const monthlyReward = (dailyReward * BigInt(30))
-    
+
     // Calculate total reward for the period
     // NOTE: Always use original period.days for calculation
     // Lock Reducer ONLY affects display, not actual rewards
     const daysInPeriod = BigInt(period.days)
     const totalReward = (dailyReward * daysInPeriod)
-    
+
     // Final amount = principal + total reward
     const finalAmount = baseAmount + totalReward
-    
+
     // Return ONLY serializable values, never BigInt directly
     return {
       dailyReward: formatEther(dailyReward),
@@ -118,8 +118,8 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
   }, [stakingAmount, selectedPeriod, selectedSkills, useAutoCompound])
 
   const toggleSkill = (skillName: string) => {
-    setSelectedSkills(prev => 
-      prev.includes(skillName) 
+    setSelectedSkills(prev =>
+      prev.includes(skillName)
         ? prev.filter(s => s !== skillName)
         : [...prev, skillName]
     )
@@ -127,19 +127,19 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
 
   const formatAmount = (value: string): string => {
     const parsed = parseFloat(value)
-    return parsed >= 1000 
+    return parsed >= 1000
       ? (parsed / 1000).toFixed(2) + 'K'
       : parsed.toFixed(4)
   }
 
   const period = STAKING_PERIODS[selectedPeriod]
-  
+
   // Calculate actual lock days with Lock Reducer
   let actualLockDays = period.days
   if (selectedSkills.includes('LOCK_REDUCER')) {
     actualLockDays = Math.round(period.days * 0.75) // 25% reduction
   }
-  
+
   // Calculate withdrawal fee with Fee Reducer
   let withdrawalFee = WITHDRAWAL_FEE_BASE
   if (selectedSkills.includes('FEE_REDUCER_II')) {
@@ -147,26 +147,24 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
   } else if (selectedSkills.includes('FEE_REDUCER_I')) {
     withdrawalFee = WITHDRAWAL_FEE_BASE * 0.90 // 10% reduction (total: 5.4%)
   }
-  
+
   const feeAmount = parseFloat(calculation.finalAmount) * (withdrawalFee / 100)
   const savedFee = parseFloat(calculation.finalAmount) * ((WITHDRAWAL_FEE_BASE - withdrawalFee) / 100)
 
   return (
-    <motion.div 
+    <motion.div
       ref={containerRef}
       className="card-form space-y-4"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      viewport={{ once: true }}
     >
       {/* ✅ Header con Toggle para Mobile y Desktop */}
-      <motion.div 
+      <motion.div
         className="flex items-center justify-between"
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        viewport={{ once: true }}
       >
         <div>
           <h3 className="text-lg font-bold text-white mb-1">📊 Rewards Calculator</h3>
@@ -179,7 +177,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <motion.span 
+          <motion.span
             className="text-white text-lg inline-block"
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.3 }}
@@ -193,14 +191,14 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
       <AnimatePresence mode="wait">
         {!isExpanded ? (
           // Resumen colapsado
-          <motion.div 
+          <motion.div
             key="collapsed"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
@@ -277,11 +275,10 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedPeriod(idx)}
-                    className={`p-2 rounded-lg text-center text-xs font-bold transition-all ${
-                      selectedPeriod === idx
+                    className={`p-2 rounded-lg text-center text-xs font-bold transition-all ${selectedPeriod === idx
                         ? `border border-purple-500 bg-purple-500/30 text-white`
                         : `border border-white/10 bg-white/5 text-white/60 hover:bg-white/10`
-                    }`}
+                      }`}
                   >
                     <div className="text-purple-300">{p.apy}%</div>
                     <div className="text-white/70">{p.days}d</div>
@@ -311,17 +308,16 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
                     whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => toggleSkill(skillName)}
-                    className={`w-full p-1.5 rounded text-xs transition-all flex items-center justify-between ${
-                      selectedSkills.includes(skillName)
+                    className={`w-full p-1.5 rounded text-xs transition-all flex items-center justify-between ${selectedSkills.includes(skillName)
                         ? `bg-blue-500/30 border border-blue-500 text-blue-300`
                         : `bg-white/5 border border-white/10 text-white/60 hover:bg-white/10`
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <input
                         type="checkbox"
                         checked={selectedSkills.includes(skillName)}
-                        onChange={() => {}}
+                        onChange={() => { }}
                         className="w-3 h-3 accent-blue-500 cursor-pointer flex-shrink-0"
                       />
                       <span className="text-xs truncate flex-1">{skillName.replace(/_/g, ' ')}</span>
@@ -340,11 +336,10 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000 }: StakingRewardsC
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setUseAutoCompound(!useAutoCompound)}
-              className={`w-full p-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${
-                useAutoCompound
+              className={`w-full p-2 rounded-lg text-xs font-medium transition-all flex items-center justify-between ${useAutoCompound
                   ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300'
                   : 'bg-white/5 border border-white/10 text-white/60'
-              }`}
+                }`}
             >
               <span>🔄 Auto Compound 24h</span>
               <span className="text-emerald-300 font-bold">+15%</span>

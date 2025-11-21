@@ -1,6 +1,7 @@
 import { useAccount, useReadContract } from 'wagmi'
 import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
 import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStaking.json'
+import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
@@ -122,14 +123,15 @@ const Staking = memo(() => {
   })
 
   const { data: totalDeposit } = useReadContract({
-    ...contractConfig,
+    address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
+    abi: EnhancedSmartStakingViewABI.abi,
     functionName: 'getTotalDeposit',
     args: [address],
     query: { 
       enabled: !!address,
       staleTime: 60000,
       gcTime: 5 * 60 * 1000,
-      refetchInterval: false, // ✅ Disabled
+      refetchInterval: false,
       refetchOnWindowFocus: true,
       refetchOnMount: false,
     }
@@ -145,17 +147,7 @@ const Staking = memo(() => {
     }
   })
 
-  const { data: contractBalance } = useReadContract({
-    ...contractConfig,
-    functionName: 'getContractBalance',
-    query: {
-      staleTime: 120000,
-      gcTime: 10 * 60 * 1000,
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
+
 
   const { data: isPaused } = useReadContract({
     ...contractConfig,
@@ -188,7 +180,6 @@ const Staking = memo(() => {
       pendingRewards: (pendingRewards as bigint) || 0n,
       totalDeposit: (totalDeposit as bigint) || 0n,
       contractVersion: (contractVersion as bigint) || 0n,
-      contractBalance: (contractBalance as bigint) || 0n,
       isPaused: (isPaused as boolean) || false
     }
     
@@ -201,14 +192,13 @@ const Staking = memo(() => {
           pendingRewards: serializableBigInt(this.pendingRewards),
           totalDeposit: serializableBigInt(this.totalDeposit),
           contractVersion: serializableBigInt(this.contractVersion),
-          contractBalance: serializableBigInt(this.contractBalance),
           isPaused: this.isPaused
         }
       }
     })
     
     return data
-  }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, contractBalance, isPaused])
+  }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, isPaused])
 
   // Log staking data when it changes
   useEffect(() => {
@@ -261,8 +251,6 @@ const Staking = memo(() => {
             uniqueUsersCount={processedData.uniqueUsersCount}
             totalDeposit={processedData.totalDeposit}
             pendingRewards={processedData.pendingRewards}
-            contractVersion={processedData.contractVersion}
-            contractBalance={processedData.contractBalance}
           />
         </Suspense>
 

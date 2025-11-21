@@ -155,7 +155,7 @@ function TechnicalDetails() {
                 {/* Bottom accent bar */}
                 <motion.div
                   initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
+                  animate={{ scaleX: 1 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
                   className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent origin-left"
                 />

@@ -20,15 +20,18 @@ const ProfileNFTs: React.FC = () => {
   const isMobile = useIsMobile();
   const prevNftsRef = useRef<NFTData[]>([]);
 
-  // Cache NFTs to prevent flash during refresh - FIXED: Use ref to track previous value
+  // Cache NFTs to prevent flash during refresh - FIXED: Deep check for actual changes
   useEffect(() => {
     if (nfts && nfts.length > 0) {
-      // Only update if NFTs actually changed (check by length and first tokenId)
+      // Check if NFTs actually changed (length, tokenId, or sale status)
       const nftsChanged = 
         prevNftsRef.current.length !== nfts.length ||
-        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId);
+        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId) ||
+        (nfts[0] && prevNftsRef.current[0]?.isForSale !== nfts[0].isForSale) ||
+        (nfts[0] && prevNftsRef.current[0]?.price !== nfts[0].price);
       
       if (nftsChanged) {
+        console.log('🔄 [ProfileNFTs] NFTs data changed, updating cache');
         setCachedNfts(nfts);
         prevNftsRef.current = nfts;
       }
@@ -57,6 +60,17 @@ const ProfileNFTs: React.FC = () => {
       setIsRefreshing(false);
     }
   }, [isRefreshing, refreshNFTs]);
+
+  // Listen for NFT listing changes from other components
+  useEffect(() => {
+    const handleListingChange = () => {
+      console.log('🔔 [ProfileNFTs] NFT listing changed, refreshing...');
+      refreshNFTs();
+    };
+
+    window.addEventListener('nft-listing-changed', handleListingChange);
+    return () => window.removeEventListener('nft-listing-changed', handleListingChange);
+  }, [refreshNFTs]);
 
   // Determine which NFTs to display
   const displayNfts = isRefreshing && cachedNfts.length > 0 ? cachedNfts : nfts;

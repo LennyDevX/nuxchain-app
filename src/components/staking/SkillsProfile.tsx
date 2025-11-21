@@ -8,11 +8,11 @@ import { SkeletonLoader } from '../ui/SkeletonLoader';
 /**
  * ✅ Optimized skill item component to prevent unnecessary re-renders
  */
-const SkillItem = React.memo(({ 
-  skillId, 
+const SkillItem = React.memo(({
+  skillId,
   fontSize,
   index
-}: { 
+}: {
   skillId: bigint
   fontSize: { small: number; label: number }
   index: number
@@ -26,7 +26,7 @@ const SkillItem = React.memo(({
   >
     <div className="flex items-center space-x-3">
       <div className="w-8 h-8 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-lg flex items-center justify-center">
-        <span 
+        <span
           className="font-medium"
           style={{ fontSize: `${fontSize.small}px` }}
         >
@@ -34,13 +34,13 @@ const SkillItem = React.memo(({
         </span>
       </div>
       <div>
-        <div 
+        <div
           className="font-medium text-white"
           style={{ fontSize: `${fontSize.label}px` }}
         >
           Skill NFT #{skillId.toString()}
         </div>
-        <div 
+        <div
           className="text-white/60"
           style={{ fontSize: `${fontSize.small}px` }}
         >
@@ -49,7 +49,7 @@ const SkillItem = React.memo(({
       </div>
     </div>
     <div className="px-2 py-1 bg-green-500/20 rounded-full">
-      <span 
+      <span
         className="font-semibold text-green-400"
         style={{ fontSize: `${fontSize.small}px` }}
       >
@@ -85,7 +85,7 @@ const SkillsProfile = React.memo(() => {
   const handleExpand = () => {
     const newState = !isCollapsed
     setIsCollapsed(newState)
-    
+
     // Scroll to component when expanding on mobile
     if (newState === false && isMobile && containerRef.current) {
       setTimeout(() => {
@@ -93,7 +93,7 @@ const SkillsProfile = React.memo(() => {
         if (rect) {
           const scrollTop = window.scrollY || document.documentElement.scrollTop
           const targetTop = scrollTop + rect.top - 80
-          
+
           window.scrollTo({
             top: targetTop,
             behavior: 'smooth'
@@ -145,12 +145,11 @@ const SkillsProfile = React.memo(() => {
 
   // ✅ Collapsed/Expanded with smooth animations
   return (
-    <motion.div 
+    <motion.div
       ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
     >
       <AnimatePresence mode="wait">
         {isCollapsed ? (
@@ -174,7 +173,7 @@ const SkillsProfile = React.memo(() => {
                 <span className="text-lg">⚡</span>
                 <h3 className="font-semibold text-white text-sm">Skills Profile</h3>
               </div>
-              <motion.span 
+              <motion.span
                 className="text-white text-lg inline-block"
                 animate={{ rotate: isCollapsed ? 0 : 180 }}
                 transition={{ duration: 0.3 }}
@@ -182,9 +181,9 @@ const SkillsProfile = React.memo(() => {
                 ▼
               </motion.span>
             </motion.button>
-            
+
             {/* Compact Summary */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
@@ -202,81 +201,46 @@ const SkillsProfile = React.memo(() => {
           </motion.div>
         ) : (
           // ✅ Expanded version
-        <motion.div
-          key="expanded"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6"
-        >
-          {/* Header with toggle button for desktop */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex items-center justify-between mb-6"
+            className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-lg rounded-2xl border border-white/10 p-6"
           >
-            <div className="flex items-center space-x-3">
-              <motion.div 
-                className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center"
-                whileHover={{ scale: 1.05 }}
-              >
-                <span className="text-xl">⚡</span>
-              </motion.div>
-              <div>
-                <h3 
-                  className="font-bold text-white"
-                  style={{ fontSize: `${fontSize.title}px` }}
-                >
-                  Skills Profile
-                </h3>
-                <p 
-                  className="text-white/60"
-                  style={{ fontSize: `${fontSize.small}px` }}
-                >
-                  Active NFT Boosts
-                </p>
-              </div>
-            </div>
-            
-            {/* Desktop: Toggle collapse button */}
-            {!isMobile && (
-              <motion.button
-                onClick={handleExpand}
-                whileHover={{ scale: 1.1, color: 'rgba(255,255,255,0.8)' }}
-                whileTap={{ scale: 0.95 }}
-                className="text-white/40 transition-colors"
-                title="Collapse"
-              >
-                <motion.span 
-                  className="text-white text-lg inline-block"
-                  animate={{ rotate: isCollapsed ? 0 : 180 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  ▼
-                </motion.span>
-              </motion.button>
-            )}
-            
-            {/* Mobile: Toggle collapse button + Total boost badge */}
-            {isMobile && (
+            {/* Header with toggle button for desktop */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center justify-between mb-6"
+            >
               <div className="flex items-center space-x-3">
-                {totalBoost > 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
-                    className="px-3 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full"
+                <motion.div
+                  className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span className="text-xl">⚡</span>
+                </motion.div>
+                <div>
+                  <h3
+                    className="font-bold text-white"
+                    style={{ fontSize: `${fontSize.title}px` }}
                   >
-                    <span 
-                      className="font-bold text-purple-300"
-                      style={{ fontSize: `${fontSize.label}px` }}
-                    >
-                      +{totalBoost}%
-                    </span>
-                  </motion.div>
-                )}
+                    Skills Profile
+                  </h3>
+                  <p
+                    className="text-white/60"
+                    style={{ fontSize: `${fontSize.small}px` }}
+                  >
+                    Active NFT Boosts
+                  </p>
+                </div>
+              </div>
+
+              {/* Desktop: Toggle collapse button */}
+              {!isMobile && (
                 <motion.button
                   onClick={handleExpand}
                   whileHover={{ scale: 1.1, color: 'rgba(255,255,255,0.8)' }}
@@ -284,7 +248,7 @@ const SkillsProfile = React.memo(() => {
                   className="text-white/40 transition-colors"
                   title="Collapse"
                 >
-                  <motion.span 
+                  <motion.span
                     className="text-white text-lg inline-block"
                     animate={{ rotate: isCollapsed ? 0 : 180 }}
                     transition={{ duration: 0.3 }}
@@ -292,113 +256,148 @@ const SkillsProfile = React.memo(() => {
                     ▼
                   </motion.span>
                 </motion.button>
-              </div>
-            )}
-          </motion.div>
+              )}
 
-          {/* Stats Grid - ✅ Columnas adaptativas */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            style={{ 
-              display: 'grid',
-              gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
-              gap: '1rem'
-            }}
-            className="mb-6"
-          >
-            {[
-              { emoji: '🎯', label: 'Active Skills', value: userSkillProfile.activeSkillsCount, color: 'text-white' },
-              { emoji: '📈', label: 'Staking Boost', value: `+${totalBoost}%`, color: 'text-green-400' },
-              { emoji: '🔄', label: 'Auto-Compound', value: hasAutoCompound ? 'ON' : 'OFF', color: hasAutoCompound ? 'text-green-400' : 'text-white/40' },
-              { emoji: '⏱️', label: 'Lockup Reduction', value: `-${userSkillProfile.lockupReduction}%`, color: 'text-blue-400' }
-            ].map((stat, idx) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.15 + idx * 0.05 }}
-                whileHover={{ scale: 1.05 }}
-                className="bg-white/5 rounded-xl p-4"
-              >
-                <div className="text-2xl mb-2">{stat.emoji}</div>
-                <div 
-                  className={`font-bold ${stat.color}`}
-                  style={{ fontSize: `${fontSize.value + 4}px` }}
-                >
-                  {stat.value}
+              {/* Mobile: Toggle collapse button + Total boost badge */}
+              {isMobile && (
+                <div className="flex items-center space-x-3">
+                  {totalBoost > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
+                      className="px-3 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full"
+                    >
+                      <span
+                        className="font-bold text-purple-300"
+                        style={{ fontSize: `${fontSize.label}px` }}
+                      >
+                        +{totalBoost}%
+                      </span>
+                    </motion.div>
+                  )}
+                  <motion.button
+                    onClick={handleExpand}
+                    whileHover={{ scale: 1.1, color: 'rgba(255,255,255,0.8)' }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-white/40 transition-colors"
+                    title="Collapse"
+                  >
+                    <motion.span
+                      className="text-white text-lg inline-block"
+                      animate={{ rotate: isCollapsed ? 0 : 180 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      ▼
+                    </motion.span>
+                  </motion.button>
                 </div>
-                <div 
-                  className="text-white/60"
-                  style={{ fontSize: `${fontSize.small}px` }}
-                >
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+              )}
+            </motion.div>
 
-          {/* Active Skills List */}
-          {activeSkills.length > 0 && (
+            {/* Stats Grid - ✅ Columnas adaptativas */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+                gap: '1rem'
+              }}
+              className="mb-6"
             >
-              <h4 
-                className="font-semibold text-white/80 mb-3"
-                style={{ fontSize: `${fontSize.label}px` }}
+              {[
+                { emoji: '🎯', label: 'Active Skills', value: userSkillProfile.activeSkillsCount, color: 'text-white' },
+                { emoji: '📈', label: 'Staking Boost', value: `+${totalBoost}%`, color: 'text-green-400' },
+                { emoji: '🔄', label: 'Auto-Compound', value: hasAutoCompound ? 'ON' : 'OFF', color: hasAutoCompound ? 'text-green-400' : 'text-white/40' },
+                { emoji: '⏱️', label: 'Lockup Reduction', value: `-${userSkillProfile.lockupReduction}%`, color: 'text-blue-400' }
+              ].map((stat, idx) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 + idx * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white/5 rounded-xl p-4"
+                >
+                  <div className="text-2xl mb-2">{stat.emoji}</div>
+                  <div
+                    className={`font-bold ${stat.color}`}
+                    style={{ fontSize: `${fontSize.value + 4}px` }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div
+                    className="text-white/60"
+                    style={{ fontSize: `${fontSize.small}px` }}
+                  >
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Active Skills List */}
+            {activeSkills.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
               >
-                Active Skills
-              </h4>
-              <div className="space-y-2">
-                {displayedSkills.map((skillId, idx) => (
-                  <SkillItem 
-                    key={skillId.toString()} 
-                    skillId={skillId}
-                    fontSize={{ small: fontSize.small, label: fontSize.label }}
-                    index={idx}
-                  />
-                ))}
-              </div>
-              
-              {activeSkills.length > 3 && (
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.25 }}
-                  whileHover={{ x: 5 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full mt-3 py-2 text-purple-400 hover:text-purple-300 transition-colors"
+                <h4
+                  className="font-semibold text-white/80 mb-3"
                   style={{ fontSize: `${fontSize.label}px` }}
                 >
-                  View all {activeSkills.length} skills →
-                </motion.button>
-              )}
-            </motion.div>
-          )}
+                  Active Skills
+                </h4>
+                <div className="space-y-2">
+                  {displayedSkills.map((skillId, idx) => (
+                    <SkillItem
+                      key={skillId.toString()}
+                      skillId={skillId}
+                      fontSize={{ small: fontSize.small, label: fontSize.label }}
+                      index={idx}
+                    />
+                  ))}
+                </div>
 
-          {/* Info Banner */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-            className="mt-6 bg-purple-500/10 border border-purple-500/20 rounded-lg p-4"
-          >
-            <div className="flex items-start space-x-3">
-              <span className="text-xl">💡</span>
-              <div className="flex-1">
-                <p 
-                  className="text-white/70"
-                  style={{ fontSize: `${fontSize.small}px` }}
-                >
-                  <span className="font-semibold text-purple-300">Tip:</span> Activate more Skills NFTs from the Marketplace to increase your rewards and unlock special features like Auto-Compound!
-                </p>
+                {activeSkills.length > 3 && (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.25 }}
+                    whileHover={{ x: 5 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mt-3 py-2 text-purple-400 hover:text-purple-300 transition-colors"
+                    style={{ fontSize: `${fontSize.label}px` }}
+                  >
+                    View all {activeSkills.length} skills →
+                  </motion.button>
+                )}
+              </motion.div>
+            )}
+
+            {/* Info Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+              className="mt-6 bg-purple-500/10 border border-purple-500/20 rounded-lg p-4"
+            >
+              <div className="flex items-start space-x-3">
+                <span className="text-xl">💡</span>
+                <div className="flex-1">
+                  <p
+                    className="text-white/70"
+                    style={{ fontSize: `${fontSize.small}px` }}
+                  >
+                    <span className="font-semibold text-purple-300">Tip:</span> Activate more Skills NFTs from the Marketplace to increase your rewards and unlock special features like Auto-Compound!
+                  </p>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

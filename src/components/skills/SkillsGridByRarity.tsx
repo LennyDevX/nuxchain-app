@@ -79,8 +79,7 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
       <motion.div
         className="text-center mb-16"
         initial={{ opacity: 0, y: -20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <h2 className="text-4xl font-bold text-white mb-4">Explore All Skills</h2>
@@ -89,15 +88,13 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
         </p>
       </motion.div>
 
-      {/* Categories */}
       <div className="space-y-12">
         {([SkillCategory.STAKING, SkillCategory.MARKETPLACE] as const).map((category) => (
           <motion.div
             key={category}
             className="relative"
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
           >
             {/* Category Header */}
@@ -210,8 +207,7 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
       <motion.div
         className="mt-16 p-6 bg-gray-900/50 border border-gray-800 rounded-xl"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <h3 className="text-lg font-bold text-white mb-4">📊 Rarity Effects</h3>
@@ -247,8 +243,7 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
       <motion.div
         className="mt-12 p-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-800/30 rounded-xl"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="flex gap-4">

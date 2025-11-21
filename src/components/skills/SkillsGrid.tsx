@@ -15,8 +15,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
       <motion.h2
         className="text-4xl font-bold text-white mb-12 text-center"
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
       >
         Explore All Skills
@@ -26,8 +25,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
       <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: '-100px' }}
+        animate="visible"
         variants={{
           hidden: { opacity: 0 },
           visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
@@ -42,8 +40,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
       <motion.div
         className="mt-12 p-6 bg-gray-900/50 border border-gray-800 rounded-xl"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         <h3 className="text-lg font-bold text-white mb-4">Rarity Guide</h3>

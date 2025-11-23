@@ -283,7 +283,7 @@ export default function Store() {
             {/* Filters Button */}
             <button
               onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-              className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-purple-500 transition-colors"
+              className="w-full flex items-center justify-between card-unified rounded-lg p-3 hover:bg-white/10 transition-all"
             >
               <span className="font-bold text-white text-sm">🔍 Search & Filters</span>
               <span className={`transition-transform ${isFiltersExpanded ? 'rotate-180' : ''}`}>▼</span>
@@ -296,7 +296,7 @@ export default function Store() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 space-y-3 overflow-hidden"
+                className="card-unified rounded-lg p-4 space-y-3 overflow-hidden"
               >
                 {/* Search */}
                 <div>
@@ -306,7 +306,7 @@ export default function Store() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Find skill..."
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                   />
                 </div>
 
@@ -316,11 +316,17 @@ export default function Store() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | 'ALL')}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.5rem center',
+                      paddingRight: '1.75rem'
+                    }}
                   >
-                    <option value="ALL">All</option>
-                    <option value={SkillCategory.STAKING}>🎯 Staking</option>
-                    <option value={SkillCategory.MARKETPLACE}>🏪 Marketplace</option>
+                    <option value="ALL" style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>All</option>
+                    <option value={SkillCategory.STAKING} style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>🎯 Staking</option>
+                    <option value={SkillCategory.MARKETPLACE} style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>🏪 Marketplace</option>
                   </select>
                 </div>
 
@@ -374,7 +380,7 @@ export default function Store() {
                 transition={{ delay: 0.1 }}
               >
                 {/* Pricing Guide - Compact */}
-                <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+                <div className="card-unified p-4">
                   <h3 className="text-sm font-bold text-white mb-3">💰 Pricing</h3>
                   <div className="space-y-2 text-xs">
                     {selectedCategory === 'ALL' || selectedCategory === SkillCategory.STAKING ? (
@@ -446,7 +452,7 @@ export default function Store() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Find skill..."
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                   />
                 </div>
 
@@ -456,11 +462,17 @@ export default function Store() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | 'ALL')}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.5rem center',
+                      paddingRight: '1.75rem'
+                    }}
                   >
-                    <option value="ALL">All</option>
-                    <option value={SkillCategory.STAKING}>🎯 Staking</option>
-                    <option value={SkillCategory.MARKETPLACE}>🏪 Marketplace</option>
+                    <option value="ALL" style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>All</option>
+                    <option value={SkillCategory.STAKING} style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>🎯 Staking</option>
+                    <option value={SkillCategory.MARKETPLACE} style={{ backgroundColor: '#1f2937', color: '#ffffff' }}>🏪 Marketplace</option>
                   </select>
                 </div>
 

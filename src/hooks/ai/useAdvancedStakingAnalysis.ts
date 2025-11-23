@@ -7,6 +7,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useUserStaking } from '../staking/useUserStaking';
 import { useUserProfile } from '../marketplace/useUserProfile';
 import { useSkillNFTs } from '../staking/useSkillNFTs';
+import { useQuestStatus } from '../marketplace/useQuestStatus';
+import { useAchievementStatus } from '../marketplace/useAchievementStatus';
+import { usePortfolioAnalysis } from '../ai/usePortfolioAnalysis';
 import {
   analyzeSkills,
   calculateSkillAPYImpact,
@@ -66,10 +69,13 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
   const stakingData = useUserStaking();
   const userProfile = useUserProfile();
   const skillsData = useSkillNFTs();
+  const questStatus = useQuestStatus();
+  const achievementStatus = useAchievementStatus();
+  const portfolioData = usePortfolioAnalysis();
   
   const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
 
-  // Preparar datos de gamificación
+  // Preparar datos de gamificación con quest y achievement stats reales
   const gamificationData: GamificationData | null = useMemo(() => {
     if (!userProfile.userProfile) return null;
     
@@ -77,16 +83,16 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
       userXP: userProfile.totalXP || 0n,
       // ✅ Allow level 0 (no default fallback to 1)
       userLevel: userProfile.level ?? 0,
-      completedQuests: 0, // TODO: Obtener del contrato
-      totalQuests: 0, // TODO: Obtener del contrato
-      unlockedAchievements: 0, // TODO: Obtener del contrato
-      totalAchievements: 0, // TODO: Obtener del contrato
+      completedQuests: questStatus.completedQuests,
+      totalQuests: questStatus.totalQuests,
+      unlockedAchievements: achievementStatus.unlockedAchievements,
+      totalAchievements: achievementStatus.totalAchievements,
       referrals: Number(userProfile.userProfile.referralCount || 0),
       nftsMinted: Number(userProfile.userProfile.nftsCreated || 0),
       nftsSold: Number(userProfile.userProfile.nftsSold || 0),
       nftsBought: Number(userProfile.userProfile.nftsBought || 0),
     };
-  }, [userProfile]);
+  }, [userProfile, questStatus, achievementStatus]);
 
   // Análisis de skills
   const skillAnalysis = useMemo(() => {
@@ -172,11 +178,10 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
     }
   }, [gamificationData]);
 
-  // Por ahora el análisis de portafolio está simplificado
+  // Análisis de portafolio con datos reales de deposits individuales
   const portfolioAnalysis: PortfolioAnalysis | null = useMemo(() => {
-    // TODO: Implementar cuando tengamos acceso a deposits individuales
-    return null;
-  }, []);
+    return portfolioData.portfolioAnalysis;
+  }, [portfolioData.portfolioAnalysis]);
 
   const portfolioEfficiency = useMemo(() => {
     if (!portfolioAnalysis) return null;
@@ -331,7 +336,8 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
     return () => clearInterval(interval);
   }, []);
 
-  const isLoading = stakingData.isLoading || skillsData.isLoading || userProfile.isLoading;
+  const isLoading = stakingData.isLoading || skillsData.isLoading || userProfile.isLoading || 
+                    questStatus.isLoading || achievementStatus.isLoading || portfolioData.isLoading;
 
   return {
     overallScore,

@@ -142,7 +142,7 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
       >
         <motion.div
           ref={modalRef}
-          className="card-unified border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+          className="card-unified p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -207,7 +207,7 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
             </div>
 
             {/* Price Breakdown */}
-            <div className="bg-gray-800/50 rounded-xl p-4 space-y-4">
+            <div className="card-unified p-4 space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Purchase Price:</span>
                 <span className="text-white font-bold text-lg">

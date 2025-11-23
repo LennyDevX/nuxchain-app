@@ -23,10 +23,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
           onClick={() => onClick(skill)}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="w-full h-full relative group cursor-pointer overflow-hidden rounded-lg bg-gray-900/50 border border-gray-800 transition-all duration-300 hover:border-opacity-100 p-4 flex flex-col justify-between text-left"
-          style={{
-            borderColor: isHovered ? skill.color : 'rgb(31, 41, 55)',
-          }}
+          className="card-unified w-full h-full relative group p-4 flex flex-col justify-between text-left"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -84,10 +81,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
         onClick={() => onClick(skill)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="w-full h-full relative group cursor-pointer overflow-hidden rounded-xl bg-gray-900/50 border border-gray-800 transition-all duration-300 hover:border-opacity-100 p-6 flex flex-col justify-between"
-        style={{
-          borderColor: isHovered ? skill.color : 'rgb(31, 41, 55)',
-        }}
+        className="card-unified w-full h-full relative group p-6 flex flex-col justify-between"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.98 }}
       >

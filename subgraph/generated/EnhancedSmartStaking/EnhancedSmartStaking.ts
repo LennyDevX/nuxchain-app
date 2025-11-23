@@ -128,6 +128,28 @@ export class EmergencyWithdrawal__Params {
   }
 }
 
+export class MarketplaceAuthorizationUpdated extends ethereum.Event {
+  get params(): MarketplaceAuthorizationUpdated__Params {
+    return new MarketplaceAuthorizationUpdated__Params(this);
+  }
+}
+
+export class MarketplaceAuthorizationUpdated__Params {
+  _event: MarketplaceAuthorizationUpdated;
+
+  constructor(event: MarketplaceAuthorizationUpdated) {
+    this._event = event;
+  }
+
+  get marketplace(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get isAuthorized(): boolean {
+    return this._event.parameters[1].value.toBoolean();
+  }
+}
+
 export class ModuleUpdated extends ethereum.Event {
   get params(): ModuleUpdated__Params {
     return new ModuleUpdated__Params(this);
@@ -415,6 +437,77 @@ export class EnhancedSmartStaking__getActiveSkillsResultValue0Struct extends eth
   }
 }
 
+export class EnhancedSmartStaking__getUserResult {
+  value0: Array<Address>;
+  value1: BigInt;
+  value2: BigInt;
+
+  constructor(value0: Array<Address>, value1: BigInt, value2: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromAddressArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    return map;
+  }
+
+  getValue0(): Array<Address> {
+    return this.value0;
+  }
+
+  getValue1(): BigInt {
+    return this.value1;
+  }
+
+  getValue2(): BigInt {
+    return this.value2;
+  }
+}
+
+export class EnhancedSmartStaking__getUserDepositResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+
+  constructor(value0: BigInt, value1: BigInt, value2: BigInt, value3: BigInt) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    return map;
+  }
+
+  getValue0(): BigInt {
+    return this.value0;
+  }
+
+  getValue1(): BigInt {
+    return this.value1;
+  }
+
+  getValue2(): BigInt {
+    return this.value2;
+  }
+
+  getValue3(): BigInt {
+    return this.value3;
+  }
+}
+
 export class EnhancedSmartStaking__getUserInfoResult {
   value0: BigInt;
   value1: BigInt;
@@ -487,6 +580,29 @@ export class EnhancedSmartStaking__getUserSkillProfileResultProfileStruct extend
 export class EnhancedSmartStaking extends ethereum.SmartContract {
   static bind(address: Address): EnhancedSmartStaking {
     return new EnhancedSmartStaking("EnhancedSmartStaking", address);
+  }
+
+  authorizedMarketplaces(param0: Address): boolean {
+    let result = super.call(
+      "authorizedMarketplaces",
+      "authorizedMarketplaces(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBoolean();
+  }
+
+  try_authorizedMarketplaces(param0: Address): ethereum.CallResult<boolean> {
+    let result = super.tryCall(
+      "authorizedMarketplaces",
+      "authorizedMarketplaces(address):(bool)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
   calculateBoostedAPY(user: Address, baseAPY: BigInt): BigInt {
@@ -770,6 +886,111 @@ export class EnhancedSmartStaking extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddressArray());
   }
 
+  getContractBalance(): BigInt {
+    let result = super.call(
+      "getContractBalance",
+      "getContractBalance():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getContractBalance(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getContractBalance",
+      "getContractBalance():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getUser(user: Address): EnhancedSmartStaking__getUserResult {
+    let result = super.call(
+      "getUser",
+      "getUser(address):(address[],uint256,uint64)",
+      [ethereum.Value.fromAddress(user)],
+    );
+
+    return new EnhancedSmartStaking__getUserResult(
+      result[0].toAddressArray(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+    );
+  }
+
+  try_getUser(
+    user: Address,
+  ): ethereum.CallResult<EnhancedSmartStaking__getUserResult> {
+    let result = super.tryCall(
+      "getUser",
+      "getUser(address):(address[],uint256,uint64)",
+      [ethereum.Value.fromAddress(user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new EnhancedSmartStaking__getUserResult(
+        value[0].toAddressArray(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+      ),
+    );
+  }
+
+  getUserDeposit(
+    user: Address,
+    index: BigInt,
+  ): EnhancedSmartStaking__getUserDepositResult {
+    let result = super.call(
+      "getUserDeposit",
+      "getUserDeposit(address,uint256):(uint128,uint64,uint64,uint64)",
+      [
+        ethereum.Value.fromAddress(user),
+        ethereum.Value.fromUnsignedBigInt(index),
+      ],
+    );
+
+    return new EnhancedSmartStaking__getUserDepositResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+    );
+  }
+
+  try_getUserDeposit(
+    user: Address,
+    index: BigInt,
+  ): ethereum.CallResult<EnhancedSmartStaking__getUserDepositResult> {
+    let result = super.tryCall(
+      "getUserDeposit",
+      "getUserDeposit(address,uint256):(uint128,uint64,uint64,uint64)",
+      [
+        ethereum.Value.fromAddress(user),
+        ethereum.Value.fromUnsignedBigInt(index),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new EnhancedSmartStaking__getUserDepositResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+      ),
+    );
+  }
+
   getUserInfo(userAddress: Address): EnhancedSmartStaking__getUserInfoResult {
     let result = super.call(
       "getUserInfo",
@@ -861,29 +1082,6 @@ export class EnhancedSmartStaking extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
-  }
-
-  marketplaceContract(): Address {
-    let result = super.call(
-      "marketplaceContract",
-      "marketplaceContract():(address)",
-      [],
-    );
-
-    return result[0].toAddress();
-  }
-
-  try_marketplaceContract(): ethereum.CallResult<Address> {
-    let result = super.tryCall(
-      "marketplaceContract",
-      "marketplaceContract():(address)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   migrated(): boolean {
@@ -1547,6 +1745,40 @@ export class SetMarketplaceAddressCall__Outputs {
   _call: SetMarketplaceAddressCall;
 
   constructor(call: SetMarketplaceAddressCall) {
+    this._call = call;
+  }
+}
+
+export class SetMarketplaceAuthorizationCall extends ethereum.Call {
+  get inputs(): SetMarketplaceAuthorizationCall__Inputs {
+    return new SetMarketplaceAuthorizationCall__Inputs(this);
+  }
+
+  get outputs(): SetMarketplaceAuthorizationCall__Outputs {
+    return new SetMarketplaceAuthorizationCall__Outputs(this);
+  }
+}
+
+export class SetMarketplaceAuthorizationCall__Inputs {
+  _call: SetMarketplaceAuthorizationCall;
+
+  constructor(call: SetMarketplaceAuthorizationCall) {
+    this._call = call;
+  }
+
+  get _marketplace(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+
+  get _isAuthorized(): boolean {
+    return this._call.inputValues[1].value.toBoolean();
+  }
+}
+
+export class SetMarketplaceAuthorizationCall__Outputs {
+  _call: SetMarketplaceAuthorizationCall;
+
+  constructor(call: SetMarketplaceAuthorizationCall) {
     this._call = call;
   }
 }

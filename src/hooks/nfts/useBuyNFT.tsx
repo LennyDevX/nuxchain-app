@@ -77,36 +77,14 @@ export default function useBuyNFT(): UseBuyNFTReturn {
         throw new Error('Insufficient balance to purchase this NFT');
       }
 
-      // Verify the NFT is still for sale using getNFTMarketInfo
-      const nftMarketInfo = await publicClient.readContract({
-        address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: GameifiedMarketplaceCoreABI.abi as Abi,
-        functionName: 'getNFTMarketInfo',
-        args: [tokenId]
-      }) as [string, boolean, bigint];
-
-      const [currentSeller, isListedStatus, currentPrice] = nftMarketInfo;
-
-      if (!isListedStatus) {
-        throw new Error('This NFT is no longer for sale');
-      }
-
-      if (currentPrice !== priceInWei) {
-        throw new Error('Price has changed. Please refresh and try again.');
-      }
-
-      if (currentSeller.toLowerCase() !== params.seller.toLowerCase()) {
-        throw new Error('Seller has changed. Please refresh and try again.');
-      }
-
       // Check if user is trying to buy their own NFT
-      if (currentSeller.toLowerCase() === address.toLowerCase()) {
+      if (params.seller.toLowerCase() === address.toLowerCase()) {
         throw new Error('You cannot buy your own NFT');
       }
 
       toast.loading('Preparing transaction...', { id: 'buy-nft' });
 
-      // Execute the purchase transaction
+      // Execute the purchase transaction using buyToken function
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESS as `0x${string}`,
         abi: GameifiedMarketplaceCoreABI.abi as Abi,
@@ -143,24 +121,23 @@ export default function useBuyNFT(): UseBuyNFTReturn {
           verifyAttempts++;
           
           try {
-            // Verify NFT is no longer listed on contract
-            const nftMarketInfo = await publicClient.readContract({
+            // Try to read the owner and listing status directly
+            const ownerResult = await publicClient.readContract({
               address: CONTRACT_ADDRESS as `0x${string}`,
               abi: GameifiedMarketplaceCoreABI.abi as Abi,
-              functionName: 'getNFTMarketInfo',
-              args: [BigInt(params.tokenId)]
-            }) as [string, boolean, bigint];
+              functionName: 'ownerOf',
+              args: [tokenId]
+            }) as string;
             
-            const [, isListedStatus] = nftMarketInfo;
-            
-            if (!isListedStatus) {
-              console.log(`✅ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT confirmed UNLISTED on-chain`);
+            // If ownerOf returns the current buyer, NFT has been transferred
+            if (ownerResult.toLowerCase() === address.toLowerCase()) {
+              console.log(`✅ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT ownership confirmed`);
               isUnlistedOnChain = true;
             } else {
-              console.log(`⏳ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT still listed, retrying...`);
+              console.log(`⏳ [useBuyNFT] Attempt ${verifyAttempts}/${maxVerifyAttempts}: NFT not yet owned, retrying...`);
             }
           } catch (err) {
-            console.warn(`⚠️ [useBuyNFT] Error verifying NFT status (attempt ${verifyAttempts}):`, err);
+            console.warn(`⚠️ [useBuyNFT] Error verifying NFT ownership (attempt ${verifyAttempts}):`, err);
           }
         }
         

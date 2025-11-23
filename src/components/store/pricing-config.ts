@@ -1,40 +1,162 @@
 /**
  * Skills Store Pricing Configuration
- * Prices match IndividualSkillsMarketplace contract exactly
+ * Prices differentiated by skill type based on their impact/APY boost
  * 
- * STAKING SKILLS (1-7):
- * - COMMON: 50 POL
- * - UNCOMMON: 80 POL
- * - RARE: 100 POL
- * - EPIC: 150 POL
- * - LEGENDARY: 220 POL
+ * STAKING SKILLS (1-7) - Prices vary by skill tier:
+ * - STAKE_BOOST_I (1.0x base): 50, 80, 100, 150, 220 POL
+ * - STAKE_BOOST_II (1.5x): 75, 120, 150, 225, 330 POL
+ * - STAKE_BOOST_III (2.2x): 110, 176, 220, 330, 484 POL
+ * - AUTO_COMPOUND (1.8x): 90, 144, 180, 270, 396 POL
+ * - LOCK_REDUCER (1.6x): 80, 128, 160, 240, 352 POL
+ * - FEE_REDUCER_I (1.4x): 70, 112, 140, 210, 308 POL
+ * - FEE_REDUCER_II (2.0x): 100, 160, 200, 300, 440 POL
  * 
- * ACTIVE SKILLS (8-16): 30% markup on staking prices
- * - COMMON: 65 POL (50 * 1.3)
- * - UNCOMMON: 104 POL (80 * 1.3)
- * - RARE: 130 POL (100 * 1.3)
- * - EPIC: 195 POL (150 * 1.3)
- * - LEGENDARY: 286 POL (220 * 1.3)
+ * ACTIVE SKILLS (8-16): 30% markup on corresponding staking skill prices
  */
 
 import { Rarity, SkillType, SKILL_TYPE_CATEGORY, SkillCategory } from '../skills/config';
 
-// STAKING SKILLS PRICES (Skills 1-7) - From contract constants
-export const STAKING_PRICES_BY_RARITY: Record<Rarity, number> = {
-  [Rarity.COMMON]: 50,
-  [Rarity.UNCOMMON]: 80,
-  [Rarity.RARE]: 100,
-  [Rarity.EPIC]: 150,
-  [Rarity.LEGENDARY]: 220,
+// STAKING SKILLS PRICES (Skills 1-7) - Calculated per skill type
+// Generate dynamically based on multipliers
+export const STAKING_PRICES_BY_SKILL: Record<SkillType, Record<Rarity, number>> = {
+  // STAKE_BOOST_I: Base prices (1.0x)
+  [SkillType.STAKE_BOOST_I]: {
+    [Rarity.COMMON]: 50,
+    [Rarity.UNCOMMON]: 80,
+    [Rarity.RARE]: 100,
+    [Rarity.EPIC]: 150,
+    [Rarity.LEGENDARY]: 220,
+  },
+  // STAKE_BOOST_II: 1.5x multiplier
+  [SkillType.STAKE_BOOST_II]: {
+    [Rarity.COMMON]: 75,      // 50 * 1.5
+    [Rarity.UNCOMMON]: 120,   // 80 * 1.5
+    [Rarity.RARE]: 150,       // 100 * 1.5
+    [Rarity.EPIC]: 225,       // 150 * 1.5
+    [Rarity.LEGENDARY]: 330,  // 220 * 1.5
+  },
+  // STAKE_BOOST_III: 2.2x multiplier
+  [SkillType.STAKE_BOOST_III]: {
+    [Rarity.COMMON]: 110,     // 50 * 2.2
+    [Rarity.UNCOMMON]: 176,   // 80 * 2.2
+    [Rarity.RARE]: 220,       // 100 * 2.2
+    [Rarity.EPIC]: 330,       // 150 * 2.2
+    [Rarity.LEGENDARY]: 484,  // 220 * 2.2
+  },
+  // AUTO_COMPOUND: 1.8x multiplier
+  [SkillType.AUTO_COMPOUND]: {
+    [Rarity.COMMON]: 90,      // 50 * 1.8
+    [Rarity.UNCOMMON]: 144,   // 80 * 1.8
+    [Rarity.RARE]: 180,       // 100 * 1.8
+    [Rarity.EPIC]: 270,       // 150 * 1.8
+    [Rarity.LEGENDARY]: 396,  // 220 * 1.8
+  },
+  // LOCK_REDUCER: 1.6x multiplier
+  [SkillType.LOCK_REDUCER]: {
+    [Rarity.COMMON]: 80,      // 50 * 1.6
+    [Rarity.UNCOMMON]: 128,   // 80 * 1.6
+    [Rarity.RARE]: 160,       // 100 * 1.6
+    [Rarity.EPIC]: 240,       // 150 * 1.6
+    [Rarity.LEGENDARY]: 352,  // 220 * 1.6
+  },
+  // FEE_REDUCER_I: 1.4x multiplier
+  [SkillType.FEE_REDUCER_I]: {
+    [Rarity.COMMON]: 70,      // 50 * 1.4
+    [Rarity.UNCOMMON]: 112,   // 80 * 1.4
+    [Rarity.RARE]: 140,       // 100 * 1.4
+    [Rarity.EPIC]: 210,       // 150 * 1.4
+    [Rarity.LEGENDARY]: 308,  // 220 * 1.4
+  },
+  // FEE_REDUCER_II: 2.0x multiplier
+  [SkillType.FEE_REDUCER_II]: {
+    [Rarity.COMMON]: 100,     // 50 * 2.0
+    [Rarity.UNCOMMON]: 160,   // 80 * 2.0
+    [Rarity.RARE]: 200,       // 100 * 2.0
+    [Rarity.EPIC]: 300,       // 150 * 2.0
+    [Rarity.LEGENDARY]: 440,  // 220 * 2.0
+  },
+  // ACTIVE SKILLS (8-16): Use base staking prices + 30% markup
+  [SkillType.PRIORITY_LISTING]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.BATCH_MINTER]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.VERIFIED_CREATOR]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.INFLUENCER]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.CURATOR]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.AMBASSADOR]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.VIP_ACCESS]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.EARLY_ACCESS]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
+  [SkillType.PRIVATE_AUCTIONS]: {
+    [Rarity.COMMON]: 65,      // 50 * 1.3
+    [Rarity.UNCOMMON]: 104,   // 80 * 1.3
+    [Rarity.RARE]: 130,       // 100 * 1.3
+    [Rarity.EPIC]: 195,       // 150 * 1.3
+    [Rarity.LEGENDARY]: 286,  // 220 * 1.3
+  },
 };
 
-// ACTIVE SKILLS PRICES (Skills 8-16) - 30% markup on staking prices
+// ACTIVE SKILLS PRICES (Skills 8-16) - 30% markup on base staking prices (STAKE_BOOST_I tier)
 export const ACTIVE_PRICES_BY_RARITY: Record<Rarity, number> = {
   [Rarity.COMMON]: 65,       // 50 * 1.3
   [Rarity.UNCOMMON]: 104,    // 80 * 1.3
   [Rarity.RARE]: 130,        // 100 * 1.3
   [Rarity.EPIC]: 195,        // 150 * 1.3
   [Rarity.LEGENDARY]: 286,   // 220 * 1.3
+};
+
+// Legacy backward-compatible exports (for deprecated code)
+export const STAKING_PRICES_BY_RARITY: Record<Rarity, number> = {
+  [Rarity.COMMON]: 50,
+  [Rarity.UNCOMMON]: 80,
+  [Rarity.RARE]: 100,
+  [Rarity.EPIC]: 150,
+  [Rarity.LEGENDARY]: 220,
 };
 
 // Renewal cost is 50% of original price
@@ -45,7 +167,7 @@ export const ACTIVE_SKILLS_MARKUP = 1.3;
 
 /**
  * Calculate price for a skill based on type and rarity
- * Matches IndividualSkillsMarketplace contract pricing
+ * Each staking skill has its own pricing tier based on APY impact
  * @param skillType - Type of skill (1-16)
  * @param rarity - Rarity level (0-4)
  * @param isRenewal - Whether this is a renewal (50% discount)
@@ -61,7 +183,8 @@ export function calculateSkillPrice(
   // Get base price from appropriate pricing table
   let basePrice: number;
   if (category === SkillCategory.STAKING) {
-    basePrice = STAKING_PRICES_BY_RARITY[rarity];
+    // Use skill-specific pricing
+    basePrice = STAKING_PRICES_BY_SKILL[skillType]?.[rarity] ?? STAKING_PRICES_BY_RARITY[rarity];
   } else {
     basePrice = ACTIVE_PRICES_BY_RARITY[rarity];
   }
@@ -86,7 +209,7 @@ export function getMarketplacePrice(skillType: SkillType, rarity: Rarity): numbe
   const category = SKILL_TYPE_CATEGORY[skillType];
   
   if (category === SkillCategory.STAKING) {
-    return STAKING_PRICES_BY_RARITY[rarity];
+    return STAKING_PRICES_BY_SKILL[skillType]?.[rarity] ?? STAKING_PRICES_BY_RARITY[rarity];
   } else {
     return ACTIVE_PRICES_BY_RARITY[rarity];
   }

@@ -187,24 +187,11 @@ const TOKEN_URI_ABI = [{
   type: 'function'
 }] as const;
 
-// 📝 ABI para getNFTMarketInfo - Returns (owner, isListedStatus, price)
-const GET_NFT_MARKET_INFO_ABI = [{
-  inputs: [{ name: '_tokenId', type: 'uint256' }],
-  name: 'getNFTMarketInfo',
-  outputs: [
-    { name: 'owner', type: 'address' },
-    { name: 'isListedStatus', type: 'bool' },
-    { name: 'price', type: 'uint256' }
-  ],
-  stateMutability: 'view',
-  type: 'function'
-}] as const;
-
-// 📝 ABI para ownerOf - Returns current owner of the NFT
-const OWNER_OF_ABI = [{
-  inputs: [{ name: 'tokenId', type: 'uint256' }],
-  name: 'ownerOf',
-  outputs: [{ name: '', type: 'address' }],
+// 📝 ABI para isListed - Returns whether NFT is listed (bool)
+const IS_LISTED_ABI = [{
+  inputs: [{ name: '', type: 'uint256' }],
+  name: 'isListed',
+  outputs: [{ name: '', type: 'bool' }],
   stateMutability: 'view',
   type: 'function'
 }] as const;
@@ -214,6 +201,15 @@ const LISTED_PRICE_ABI = [{
   inputs: [{ name: '', type: 'uint256' }],
   name: 'listedPrice',
   outputs: [{ name: '', type: 'uint256' }],
+  stateMutability: 'view',
+  type: 'function'
+}] as const;
+
+// 📝 ABI para ownerOf - Returns current owner of the NFT
+const OWNER_OF_ABI = [{
+  inputs: [{ name: 'tokenId', type: 'uint256' }],
+  name: 'ownerOf',
+  outputs: [{ name: '', type: 'address' }],
   stateMutability: 'view',
   type: 'function'
 }] as const;
@@ -603,19 +599,23 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           items.push(item);
         }
         
-        // ✅ DEDUPLICATE by tokenId (same NFT might have multiple events: MINT + LIST)
-        const uniqueNFTs = new Map<string, NFTData>();
+        // ✅ DEDUPLICATE by tokenId - CRITICAL: Keep ONLY the most recent listing event
+        // If same NFT was listed multiple times, keep the latest one (highest timestamp)
+        const uniqueNFTs = new Map<string, { nft: NFTData; timestamp: number }>();
         for (const item of items) {
+          // Get timestamp from subgraph event (Activities query includes timestamp)
+          const timestamp = nftSource.find((s: { tokenId: string }) => s.tokenId === item.tokenId)?.timestamp || 0;
           const existing = uniqueNFTs.get(item.tokenId);
-          if (!existing || item.price > existing.price) {
-            // Keep the one with highest price (LIST event has price, MINT doesn't)
-            uniqueNFTs.set(item.tokenId, item);
+          
+          if (!existing || timestamp > existing.timestamp) {
+            // Keep the most recent event (latest timestamp)
+            uniqueNFTs.set(item.tokenId, { nft: item, timestamp });
           }
         }
-        const deduplicatedItems = Array.from(uniqueNFTs.values());
+        const deduplicatedItems = Array.from(uniqueNFTs.values()).map(entry => entry.nft);
         
         if (items.length !== deduplicatedItems.length) {
-          console.log(`🔄 [Deduplication] Removed ${items.length - deduplicatedItems.length} duplicate NFTs (same tokenId)`);
+          console.log(`🔄 [Deduplication] Removed ${items.length - deduplicatedItems.length} duplicate NFTs (kept most recent listing)`);
         }
         
         // ✅ CRITICAL FIX: Always verify contract state for accurate isForSale and price
@@ -631,34 +631,60 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           for (const nft of items) {
             try {
               const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
-              const [ownerOnChain, isListedOnChain, priceOnChain] = await publicClient.readContract({
-                address: PROXY_ADDRESS,
-                abi: GET_NFT_MARKET_INFO_ABI,
-                functionName: 'getNFTMarketInfo',
-                args: [BigInt(nft.tokenId)]
-              });
               
-              if (isListedOnChain && priceOnChain > 0n) {
-                // Update price from on-chain value to be accurate
+              // ✅ CRITICAL: First verify current owner
+              const currentOwner = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: OWNER_OF_ABI,
+                functionName: 'ownerOf',
+                args: [BigInt(nft.tokenId)]
+              }) as string;
+              
+              // ✅ IMPORTANT: Only show NFT if current owner matches the creator/seller from subgraph
+              // This prevents showing NFTs that were sold to someone else
+              if (currentOwner.toLowerCase() !== nft.owner.toLowerCase()) {
+                console.debug(`❌ NFT #${nft.tokenId} owner changed (old: ${nft.owner}, current: ${currentOwner}) - was sold, skipping`);
+                continue;
+              }
+              
+              // Read isListed status
+              const isListedOnChain = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: IS_LISTED_ABI,
+                functionName: 'isListed',
+                args: [BigInt(nft.tokenId)]
+              }) as boolean;
+              
+              if (!isListedOnChain) {
+                // NFT is NOT currently for sale - skip it
+                console.debug(`❌ NFT #${nft.tokenId} is NOT for sale on-chain (was likely purchased or unlisted)`);
+                continue;
+              }
+              
+              // Read the listing price on-chain
+              const priceOnChain = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: LISTED_PRICE_ABI,
+                functionName: 'listedPrice',
+                args: [BigInt(nft.tokenId)]
+              }) as bigint;
+              
+              if (priceOnChain > 0n) {
+                // Update price and owner from on-chain values to be accurate
                 nft.price = priceOnChain;
                 nft.isForSale = true;
-                nft.owner = ownerOnChain; // Update owner too
+                nft.owner = currentOwner; // Update to current owner
                 verifiedItems.push(nft);
                 
-                if (process.env.NODE_ENV === 'development') {
-                  console.debug(`✅ NFT #${nft.tokenId} verified FOR SALE on-chain at ${priceOnChain} wei`);
-                }
+                console.debug(`✅ NFT #${nft.tokenId} verified FOR SALE on-chain by ${currentOwner.slice(0, 6)}... at ${Number(priceOnChain) / 1e18} POL`);
               } else {
-                // NFT is NOT currently for sale - skip it
-                if (process.env.NODE_ENV === 'development') {
-                  console.debug(`❌ NFT #${nft.tokenId} is NOT for sale on-chain (was likely purchased or unlisted)`);
-                }
+                // Price is 0 - skip it
+                console.debug(`❌ NFT #${nft.tokenId} has 0 price on-chain - skipping`);
               }
             } catch (err) {
               const errorMsg = err instanceof Error ? err.message : String(err);
-              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Keeping it anyway.`);
-              // If we can't verify, keep it (better to show it than hide it)
-              verifiedItems.push(nft);
+              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Skipping it.`);
+              // Skip if we can't verify (better than showing stale data)
             }
           }
           
@@ -676,47 +702,80 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           console.log(`📊 [Collection] Before on-chain verification:`, deduplicatedItems.map(nft => ({
             tokenId: nft.tokenId,
             price: nft.price.toString(),
-            isForSale: nft.isForSale
+            isForSale: nft.isForSale,
+            creator: nft.creator
           })));
+          
+          // ✅ FILTER: Only keep NFTs that user currently owns
+          const ownedNFTs: NFTData[] = [];
           
           for (const nft of deduplicatedItems) {
             try {
               const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
-              const [ownerOnChain, isListedOnChain, priceOnChain] = await publicClient.readContract({
+              
+              // ✅ CRITICAL: First check current owner to detect if NFT was sold
+              const currentOwner = await publicClient.readContract({
                 address: PROXY_ADDRESS,
-                abi: GET_NFT_MARKET_INFO_ABI,
-                functionName: 'getNFTMarketInfo',
+                abi: OWNER_OF_ABI,
+                functionName: 'ownerOf',
                 args: [BigInt(nft.tokenId)]
-              });
+              }) as string;
               
-              console.log(`🔍 NFT #${nft.tokenId} - On-chain data: owner=${ownerOnChain}, isListed=${isListedOnChain}, price=${priceOnChain.toString()}`);
+              // ✅ IMPORTANT: Only include NFTs that the connected user currently owns
+              // Check against address (connected wallet), not creator
+              if (!address || currentOwner.toLowerCase() !== address.toLowerCase()) {
+                console.log(`❌ NFT #${nft.tokenId} NOT owned by user anymore (current owner: ${currentOwner.slice(0, 6)}) - FILTERING OUT`);
+                continue; // Skip this NFT - user doesn't own it anymore
+              }
               
-              // Update with on-chain data (don't filter, just update)
-              nft.owner = ownerOnChain;
+              console.log(`✅ NFT #${nft.tokenId} is owned by user ${address.slice(0, 6)}`);
+              
+              // Read isListed status
+              const isListedOnChain = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: IS_LISTED_ABI,
+                functionName: 'isListed',
+                args: [BigInt(nft.tokenId)]
+              }) as boolean;
+              
+              // Read the listing price on-chain
+              const priceOnChain = await publicClient.readContract({
+                address: PROXY_ADDRESS,
+                abi: LISTED_PRICE_ABI,
+                functionName: 'listedPrice',
+                args: [BigInt(nft.tokenId)]
+              }) as bigint;
+              
+              console.log(`🔍 NFT #${nft.tokenId} - On-chain data: owner=${currentOwner.slice(0, 6)}, isListed=${isListedOnChain}, price=${priceOnChain.toString()} wei`);
+              
+              // Update with on-chain data
               nft.isForSale = isListedOnChain && priceOnChain > 0n;
               nft.price = priceOnChain > 0n ? priceOnChain : 0n;
+              nft.owner = currentOwner;
               
-              console.log(`✅ NFT #${nft.tokenId} updated: owner=${nft.owner}, isForSale=${nft.isForSale}, price=${nft.price.toString()}`);
+              // Add to owned NFTs list
+              ownedNFTs.push(nft);
               
-              if (process.env.NODE_ENV === 'development') {
-                const status = nft.isForSale ? `LISTED at ${priceOnChain} wei` : 'UNLISTED';
-                console.debug(`✅ NFT #${nft.tokenId} final status: ${status}`);
-              }
+              console.log(`✅ NFT #${nft.tokenId} added to collection: isForSale=${nft.isForSale}, price=${(Number(nft.price) / 1e18).toFixed(4)} POL`);
+              
+              const status = nft.isForSale ? `LISTED at ${(Number(nft.price) / 1e18).toFixed(4)} POL` : 'UNLISTED';
+              console.debug(`✅ NFT #${nft.tokenId} final status: ${status}`);
             } catch (err) {
               const errorMsg = err instanceof Error ? err.message : String(err);
-              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Using subgraph data.`);
-              // Keep subgraph data if on-chain read fails
+              console.warn(`⚠️ Could not verify NFT #${nft.tokenId} on-chain: ${errorMsg}. Skipping it.`);
+              // Skip NFTs that cause errors
             }
           }
           
-          console.log(`📊 [Collection] After on-chain verification:`, deduplicatedItems.map(nft => ({
+          console.log(`📊 [Collection] After filtering: ${ownedNFTs.length}/${deduplicatedItems.length} NFTs owned by user`);
+          console.log(`📊 [Collection] Final NFTs:`, ownedNFTs.map(nft => ({
             tokenId: nft.tokenId,
             price: `${Number(nft.price) / 1e18} POL`,
             isForSale: nft.isForSale,
-            owner: nft.owner
+            owner: nft.owner.slice(0, 8) + '...',
+            creator: nft.creator.slice(0, 8) + '...'
           })));
-          console.log(`✅ [Collection] Updated ${deduplicatedItems.length} NFTs with on-chain listing status`);
-          filteredItems = deduplicatedItems;
+          filteredItems = ownedNFTs;
         }
         
         // 🐛 Debug: Log final items with images (development only)

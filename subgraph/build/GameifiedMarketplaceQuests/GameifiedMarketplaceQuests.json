@@ -495,6 +495,35 @@
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "_limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getMostPopularQuests",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "questIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "completionCounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "titles",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "_questId",
         "type": "uint256"
       }
@@ -547,6 +576,68 @@
         "internalType": "struct GameifiedMarketplaceQuests.Quest",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getQuestLeaderboard",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "users",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "completedCounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "totalXP",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getQuestSystemStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalQuests",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activeQuests",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCompletions",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalXPAwarded",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageCompletionRate",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -657,6 +748,77 @@
         "internalType": "address",
         "name": "_user",
         "type": "address"
+      }
+    ],
+    "name": "getUserIncompleteQuests",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "questIds",
+        "type": "uint256[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "questId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+            "name": "questType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "requirement",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "xpReward",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GameifiedMarketplaceQuests.Quest[]",
+        "name": "questData",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "progressPercentages",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
       },
       {
         "internalType": "uint256",
@@ -743,6 +905,45 @@
         "internalType": "struct GameifiedMarketplaceQuests.UserQuestProgress[]",
         "name": "progresses",
         "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserQuestStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalCompleted",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalInProgress",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalXPEarned",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "completionRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum GameifiedMarketplaceQuests.QuestType",
+        "name": "favoriteType",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",

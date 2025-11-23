@@ -172,7 +172,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
     >
-      {nfts.map((nft, idx) => (
+      {nfts.map((nft, _idx) => (
         <motion.div
           key={nft.uniqueId || nft.tokenId}
           className="flex items-stretch"

@@ -610,6 +610,166 @@ export class IndividualSkillsMarketplace__getIndividualSkillResultValue0Struct e
   }
 }
 
+export class IndividualSkillsMarketplace__getIndividualSkillsMarketStatsResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+  value4: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: BigInt,
+    value2: BigInt,
+    value3: BigInt,
+    value4: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    return map;
+  }
+
+  getSkillsSold(): BigInt {
+    return this.value0;
+  }
+
+  getActiveSkills(): BigInt {
+    return this.value1;
+  }
+
+  getRevenue(): BigInt {
+    return this.value2;
+  }
+
+  getAveragePricePerSkill(): BigInt {
+    return this.value3;
+  }
+
+  getUniqueBuyers(): BigInt {
+    return this.value4;
+  }
+}
+
+export class IndividualSkillsMarketplace__getSkillAdoptionRatesResult {
+  value0: Array<i32>;
+  value1: Array<BigInt>;
+  value2: Array<BigInt>;
+
+  constructor(
+    value0: Array<i32>,
+    value1: Array<BigInt>,
+    value2: Array<BigInt>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromI32Array(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigIntArray(this.value2));
+    return map;
+  }
+
+  getSkillTypes(): Array<i32> {
+    return this.value0;
+  }
+
+  getUserCounts(): Array<BigInt> {
+    return this.value1;
+  }
+
+  getPercentages(): Array<BigInt> {
+    return this.value2;
+  }
+}
+
+export class IndividualSkillsMarketplace__getSkillRevenueByRarityResult {
+  value0: Array<i32>;
+  value1: Array<BigInt>;
+  value2: Array<BigInt>;
+
+  constructor(
+    value0: Array<i32>,
+    value1: Array<BigInt>,
+    value2: Array<BigInt>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromI32Array(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigIntArray(this.value2));
+    return map;
+  }
+
+  getRarities(): Array<i32> {
+    return this.value0;
+  }
+
+  getRevenue(): Array<BigInt> {
+    return this.value1;
+  }
+
+  getSalesCount(): Array<BigInt> {
+    return this.value2;
+  }
+}
+
+export class IndividualSkillsMarketplace__getSkillRevenueByTypeResult {
+  value0: Array<i32>;
+  value1: Array<BigInt>;
+  value2: Array<BigInt>;
+
+  constructor(
+    value0: Array<i32>,
+    value1: Array<BigInt>,
+    value2: Array<BigInt>,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromI32Array(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigIntArray(this.value2));
+    return map;
+  }
+
+  getSkillTypes(): Array<i32> {
+    return this.value0;
+  }
+
+  getRevenue(): Array<BigInt> {
+    return this.value1;
+  }
+
+  getSalesCount(): Array<BigInt> {
+    return this.value2;
+  }
+}
+
 export class IndividualSkillsMarketplace__getUserIndividualSkillsDetailedResultSkillsStruct extends ethereum.Tuple {
   get skillType(): i32 {
     return this[0].toI32();
@@ -747,6 +907,48 @@ export class IndividualSkillsMarketplace__getUserPlatformSkillsResult {
 
   getIsExpired(): Array<boolean> {
     return this.value2;
+  }
+}
+
+export class IndividualSkillsMarketplace__getUserSkillSpendingResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: i32;
+
+  constructor(value0: BigInt, value1: BigInt, value2: BigInt, value3: i32) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set(
+      "value3",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value3)),
+    );
+    return map;
+  }
+
+  getTotalSpent(): BigInt {
+    return this.value0;
+  }
+
+  getSkillsPurchased(): BigInt {
+    return this.value1;
+  }
+
+  getAverageSpentPerSkill(): BigInt {
+    return this.value2;
+  }
+
+  getMostPurchasedType(): i32 {
+    return this.value3;
   }
 }
 
@@ -1366,6 +1568,43 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  getIndividualSkillsMarketStats(): IndividualSkillsMarketplace__getIndividualSkillsMarketStatsResult {
+    let result = super.call(
+      "getIndividualSkillsMarketStats",
+      "getIndividualSkillsMarketStats():(uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+
+    return new IndividualSkillsMarketplace__getIndividualSkillsMarketStatsResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+    );
+  }
+
+  try_getIndividualSkillsMarketStats(): ethereum.CallResult<IndividualSkillsMarketplace__getIndividualSkillsMarketStatsResult> {
+    let result = super.tryCall(
+      "getIndividualSkillsMarketStats",
+      "getIndividualSkillsMarketStats():(uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getIndividualSkillsMarketStatsResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+        value[4].toBigInt(),
+      ),
+    );
+  }
+
   getLevelMultipliers(): Array<i32> {
     let result = super.call(
       "getLevelMultipliers",
@@ -1431,6 +1670,39 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBytes());
+  }
+
+  getSkillAdoptionRates(): IndividualSkillsMarketplace__getSkillAdoptionRatesResult {
+    let result = super.call(
+      "getSkillAdoptionRates",
+      "getSkillAdoptionRates():(uint8[],uint256[],uint256[])",
+      [],
+    );
+
+    return new IndividualSkillsMarketplace__getSkillAdoptionRatesResult(
+      result[0].toI32Array(),
+      result[1].toBigIntArray(),
+      result[2].toBigIntArray(),
+    );
+  }
+
+  try_getSkillAdoptionRates(): ethereum.CallResult<IndividualSkillsMarketplace__getSkillAdoptionRatesResult> {
+    let result = super.tryCall(
+      "getSkillAdoptionRates",
+      "getSkillAdoptionRates():(uint8[],uint256[],uint256[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getSkillAdoptionRatesResult(
+        value[0].toI32Array(),
+        value[1].toBigIntArray(),
+        value[2].toBigIntArray(),
+      ),
+    );
   }
 
   getSkillEffectValuesAllRarities(_skillType: i32): Array<i32> {
@@ -1515,16 +1787,79 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
-  getUserActiveIndividualSkills(
-    _user: Address,
-    _skillType: i32,
-  ): Array<BigInt> {
+  getSkillRevenueByRarity(): IndividualSkillsMarketplace__getSkillRevenueByRarityResult {
+    let result = super.call(
+      "getSkillRevenueByRarity",
+      "getSkillRevenueByRarity():(uint8[],uint256[],uint256[])",
+      [],
+    );
+
+    return new IndividualSkillsMarketplace__getSkillRevenueByRarityResult(
+      result[0].toI32Array(),
+      result[1].toBigIntArray(),
+      result[2].toBigIntArray(),
+    );
+  }
+
+  try_getSkillRevenueByRarity(): ethereum.CallResult<IndividualSkillsMarketplace__getSkillRevenueByRarityResult> {
+    let result = super.tryCall(
+      "getSkillRevenueByRarity",
+      "getSkillRevenueByRarity():(uint8[],uint256[],uint256[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getSkillRevenueByRarityResult(
+        value[0].toI32Array(),
+        value[1].toBigIntArray(),
+        value[2].toBigIntArray(),
+      ),
+    );
+  }
+
+  getSkillRevenueByType(): IndividualSkillsMarketplace__getSkillRevenueByTypeResult {
+    let result = super.call(
+      "getSkillRevenueByType",
+      "getSkillRevenueByType():(uint8[],uint256[],uint256[])",
+      [],
+    );
+
+    return new IndividualSkillsMarketplace__getSkillRevenueByTypeResult(
+      result[0].toI32Array(),
+      result[1].toBigIntArray(),
+      result[2].toBigIntArray(),
+    );
+  }
+
+  try_getSkillRevenueByType(): ethereum.CallResult<IndividualSkillsMarketplace__getSkillRevenueByTypeResult> {
+    let result = super.tryCall(
+      "getSkillRevenueByType",
+      "getSkillRevenueByType():(uint8[],uint256[],uint256[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getSkillRevenueByTypeResult(
+        value[0].toI32Array(),
+        value[1].toBigIntArray(),
+        value[2].toBigIntArray(),
+      ),
+    );
+  }
+
+  getUserActiveIndividualSkills(_user: Address, param1: i32): Array<BigInt> {
     let result = super.call(
       "getUserActiveIndividualSkills",
       "getUserActiveIndividualSkills(address,uint8):(uint256[])",
       [
         ethereum.Value.fromAddress(_user),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
       ],
     );
 
@@ -1533,14 +1868,14 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
 
   try_getUserActiveIndividualSkills(
     _user: Address,
-    _skillType: i32,
+    param1: i32,
   ): ethereum.CallResult<Array<BigInt>> {
     let result = super.tryCall(
       "getUserActiveIndividualSkills",
       "getUserActiveIndividualSkills(address,uint8):(uint256[])",
       [
         ethereum.Value.fromAddress(_user),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
+        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
       ],
     );
     if (result.reverted) {
@@ -1550,30 +1885,21 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
-  getUserActiveSkillCountByType(_user: Address, _skillType: i32): i32 {
+  getUserActiveSkillCount(_user: Address): i32 {
     let result = super.call(
-      "getUserActiveSkillCountByType",
-      "getUserActiveSkillCountByType(address,uint8):(uint8)",
-      [
-        ethereum.Value.fromAddress(_user),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
-      ],
+      "getUserActiveSkillCount",
+      "getUserActiveSkillCount(address):(uint8)",
+      [ethereum.Value.fromAddress(_user)],
     );
 
     return result[0].toI32();
   }
 
-  try_getUserActiveSkillCountByType(
-    _user: Address,
-    _skillType: i32,
-  ): ethereum.CallResult<i32> {
+  try_getUserActiveSkillCount(_user: Address): ethereum.CallResult<i32> {
     let result = super.tryCall(
-      "getUserActiveSkillCountByType",
-      "getUserActiveSkillCountByType(address,uint8):(uint8)",
-      [
-        ethereum.Value.fromAddress(_user),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(_skillType)),
-      ],
+      "getUserActiveSkillCount",
+      "getUserActiveSkillCount(address):(uint8)",
+      [ethereum.Value.fromAddress(_user)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -1675,6 +2001,45 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
         value[0].toTupleArray<IndividualSkillsMarketplace__getUserPlatformSkillsResultSkillsStruct>(),
         value[1].toBooleanArray(),
         value[2].toBooleanArray(),
+      ),
+    );
+  }
+
+  getUserSkillSpending(
+    _user: Address,
+  ): IndividualSkillsMarketplace__getUserSkillSpendingResult {
+    let result = super.call(
+      "getUserSkillSpending",
+      "getUserSkillSpending(address):(uint256,uint256,uint256,uint8)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new IndividualSkillsMarketplace__getUserSkillSpendingResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toI32(),
+    );
+  }
+
+  try_getUserSkillSpending(
+    _user: Address,
+  ): ethereum.CallResult<IndividualSkillsMarketplace__getUserSkillSpendingResult> {
+    let result = super.tryCall(
+      "getUserSkillSpending",
+      "getUserSkillSpending(address):(uint256,uint256,uint256,uint8)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new IndividualSkillsMarketplace__getUserSkillSpendingResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toI32(),
       ),
     );
   }
@@ -1964,6 +2329,52 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
+  revenueByRarity(param0: i32): BigInt {
+    let result = super.call(
+      "revenueByRarity",
+      "revenueByRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_revenueByRarity(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "revenueByRarity",
+      "revenueByRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  revenueBySkillType(param0: i32): BigInt {
+    let result = super.call(
+      "revenueBySkillType",
+      "revenueBySkillType(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_revenueBySkillType(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "revenueBySkillType",
+      "revenueBySkillType(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   skillEffectValues(param0: i32, param1: i32): i32 {
     let result = super.call(
       "skillEffectValues",
@@ -2045,6 +2456,52 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  skillsSoldByRarity(param0: i32): BigInt {
+    let result = super.call(
+      "skillsSoldByRarity",
+      "skillsSoldByRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_skillsSoldByRarity(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "skillsSoldByRarity",
+      "skillsSoldByRarity(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  skillsSoldByType(param0: i32): BigInt {
+    let result = super.call(
+      "skillsSoldByType",
+      "skillsSoldByType(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_skillsSoldByType(param0: i32): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "skillsSoldByType",
+      "skillsSoldByType(uint8):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param0))],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   stakingContractAddress(): Address {
     let result = super.call(
       "stakingContractAddress",
@@ -2091,6 +2548,44 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBoolean());
   }
 
+  totalRevenue(): BigInt {
+    let result = super.call("totalRevenue", "totalRevenue():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_totalRevenue(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("totalRevenue", "totalRevenue():(uint256)", []);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalSkillsSold(): BigInt {
+    let result = super.call(
+      "totalSkillsSold",
+      "totalSkillsSold():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalSkillsSold(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalSkillsSold",
+      "totalSkillsSold():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   treasuryAddress(): Address {
     let result = super.call(
       "treasuryAddress",
@@ -2114,30 +2609,21 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  userActiveSkillCount(param0: Address, param1: i32): i32 {
+  userActiveSkillCount(param0: Address): i32 {
     let result = super.call(
       "userActiveSkillCount",
-      "userActiveSkillCount(address,uint8):(uint8)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
-      ],
+      "userActiveSkillCount(address):(uint8)",
+      [ethereum.Value.fromAddress(param0)],
     );
 
     return result[0].toI32();
   }
 
-  try_userActiveSkillCount(
-    param0: Address,
-    param1: i32,
-  ): ethereum.CallResult<i32> {
+  try_userActiveSkillCount(param0: Address): ethereum.CallResult<i32> {
     let result = super.tryCall(
       "userActiveSkillCount",
-      "userActiveSkillCount(address,uint8):(uint8)",
-      [
-        ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
-      ],
+      "userActiveSkillCount(address):(uint8)",
+      [ethereum.Value.fromAddress(param0)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -2146,14 +2632,13 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toI32());
   }
 
-  userActiveSkills(param0: Address, param1: i32, param2: BigInt): BigInt {
+  userActiveSkills(param0: Address, param1: BigInt): BigInt {
     let result = super.call(
       "userActiveSkills",
-      "userActiveSkills(address,uint8,uint256):(uint256)",
+      "userActiveSkills(address,uint256):(uint256)",
       [
         ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
-        ethereum.Value.fromUnsignedBigInt(param2),
+        ethereum.Value.fromUnsignedBigInt(param1),
       ],
     );
 
@@ -2162,16 +2647,14 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
 
   try_userActiveSkills(
     param0: Address,
-    param1: i32,
-    param2: BigInt,
+    param1: BigInt,
   ): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
       "userActiveSkills",
-      "userActiveSkills(address,uint8,uint256):(uint256)",
+      "userActiveSkills(address,uint256):(uint256)",
       [
         ethereum.Value.fromAddress(param0),
-        ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(param1)),
-        ethereum.Value.fromUnsignedBigInt(param2),
+        ethereum.Value.fromUnsignedBigInt(param1),
       ],
     );
     if (result.reverted) {
@@ -2205,6 +2688,29 @@ export class IndividualSkillsMarketplace extends ethereum.SmartContract {
         ethereum.Value.fromAddress(param0),
         ethereum.Value.fromUnsignedBigInt(param1),
       ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userTotalSpent(param0: Address): BigInt {
+    let result = super.call(
+      "userTotalSpent",
+      "userTotalSpent(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userTotalSpent(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userTotalSpent",
+      "userTotalSpent(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();

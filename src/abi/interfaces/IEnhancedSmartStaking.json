@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "IEnhancedSmartStaking",
-  "sourceName": "contracts/Marketplace/GameifiedMarketplaceSkillsV2.sol",
+  "sourceName": "contracts/Marketplace/GameifiedMarketplaceSkillsNft.sol",
   "abi": [
     {
       "inputs": [

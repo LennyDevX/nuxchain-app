@@ -69,10 +69,19 @@ export const GET_USER_STATS = gql`
       totalDeposited
       totalWithdrawn
       totalCompounded
+      totalEarnings
+      totalSpent
       nftMintedCount
+      nftSoldCount
+      nftBoughtCount
+      offersMadeCount
       depositCount
       withdrawalCount
       compoundCount
+      skillPurchaseCount
+      skillRenewalCount
+      skillSwitchCount
+      questCompletionCount
       level
       totalXP
       createdAt
@@ -187,6 +196,7 @@ export const GET_USER_INDIVIDUAL_SKILLS = gql`
       expiresAt
       isActive
       metadata
+      createdAt
       transactionHash
       blockNumber
     }

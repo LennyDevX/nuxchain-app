@@ -38,7 +38,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
 
       {/* Rarity Legend */}
       <motion.div
-        className="mt-12 p-6 bg-gray-900/50 border border-gray-800 rounded-xl"
+        className="mt-12 card-unified p-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}

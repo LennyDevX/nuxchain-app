@@ -123,7 +123,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30 rounded-xl p-4"
+          className="card-unified p-4"
         >
           <div className="text-3xl font-bold text-green-400">{activeSkills.length}</div>
           <div className="text-sm text-gray-300">Active Skills</div>
@@ -134,7 +134,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.0 }}
-          className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-xl p-4"
+          className="card-unified p-4"
         >
           <div className="text-3xl font-bold text-blue-400">{activeSkills.length}</div>
           <div className="text-sm text-gray-300">Active Skills</div>
@@ -145,7 +145,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-xl p-4"
+          className="card-unified p-4"
         >
           <div className="text-3xl font-bold text-yellow-400">{expiredSkills.length}</div>
           <div className="text-sm text-gray-300">Expired Skills</div>
@@ -156,7 +156,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-gray-500/20 to-gray-600/20 border border-gray-500/30 rounded-xl p-4"
+          className="card-unified p-4"
         >
           <div className="text-3xl font-bold text-gray-300">{inactiveSkills.length}</div>
           <div className="text-sm text-gray-300">Inactive Skills</div>
@@ -197,7 +197,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 relative overflow-hidden"
+              className="card-unified p-6 relative"
             >
               {/* Glow effect */}
               <div
@@ -279,7 +279,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-gray-900/50 border border-red-500/30 rounded-xl p-6"
+                    className="card-unified p-6"
                   >
                     <div className="text-4xl mb-4">{userSkill.skill.icon}</div>
                     <h4 className="text-lg font-bold text-white mb-1">
@@ -319,7 +319,7 @@ export const MySkills: React.FC<MySkillsProps> = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-gray-900/50 border border-gray-700 rounded-xl p-6"
+                    className="card-unified p-6"
                   >
                     <div className="text-4xl mb-4">{userSkill.skill.icon}</div>
                     <h4 className="text-lg font-bold text-white mb-1">

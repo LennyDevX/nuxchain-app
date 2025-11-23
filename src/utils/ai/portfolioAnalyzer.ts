@@ -66,17 +66,28 @@ function classifyPositions(positions: StakingPosition[]): PortfolioAnalysis['pos
   };
 
   positions.forEach(pos => {
+    console.log(`[portfolioAnalyzer] Classifying position:`, {
+      depositId: pos.depositId.toString(),
+      lockupDuration: pos.lockupDuration,
+      isLocked: pos.isLocked
+    });
+    
     if (pos.lockupDuration === 0) {
       distribution.flexible++;
+      console.log(`  → Classified as FLEXIBLE (lockupDuration = 0)`);
     } else if (pos.lockupDuration <= 30) {
       distribution.short++;
+      console.log(`  → Classified as SHORT (lockupDuration <= 30 days)`);
     } else if (pos.lockupDuration <= 90) {
       distribution.medium++;
+      console.log(`  → Classified as MEDIUM (lockupDuration <= 90 days)`);
     } else {
       distribution.long++;
+      console.log(`  → Classified as LONG (lockupDuration > 90 days)`);
     }
   });
 
+  console.log(`[portfolioAnalyzer] Distribution:`, distribution);
   return distribution;
 }
 

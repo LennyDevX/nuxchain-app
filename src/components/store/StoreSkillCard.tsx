@@ -36,13 +36,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         disabled={isOwned}
-        className={`w-full h-full relative group overflow-hidden rounded-xl bg-gray-900/50 border transition-all duration-300 p-6 flex flex-col justify-between ${isOwned
-            ? 'border-gray-700 cursor-default opacity-60'
-            : 'border-gray-800 cursor-pointer hover:border-opacity-100'
-          }`}
-        style={{
-          borderColor: isHovered && !isOwned ? skill.color : undefined,
-        }}
+        className={`card-unified w-full h-full relative group p-6 flex flex-col justify-between ${isOwned ? 'opacity-60 cursor-default' : 'cursor-pointer'}`}
         whileHover={isOwned ? {} : { scale: 1.03 }}
         whileTap={isOwned ? {} : { scale: 0.98 }}
       >

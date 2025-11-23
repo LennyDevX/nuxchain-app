@@ -31,10 +31,9 @@ interface NFTData {
 
 interface NFTCardMobileProps {
   nft: NFTData;
-  onListNFT: (tokenId: string) => void;
 }
 
-function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
+function NFTCardMobile({ nft }: NFTCardMobileProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -44,10 +43,6 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
 
   const { imageUrl, error: imageError } = useImageCache(nft.image);
   const { convertPOLToUSD } = usePOLPrice();
-
-  const handleListNFT = useCallback(() => {
-    onListNFT(nft.tokenId);
-  }, [onListNFT, nft.tokenId]);
 
   const handleFlip = useCallback((e?: React.MouseEvent | React.TouchEvent) => {
     e?.stopPropagation();
@@ -416,8 +411,8 @@ function NFTCardMobile({ nft, onListNFT }: NFTCardMobileProps) {
                             <motion.div
                               key={index}
                               className={`${isSpecialAttr
-                                  ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50'
-                                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/20 border-purple-400/50'
+                                : 'bg-white/5 border-white/10 hover:bg-white/10'
                                 } border rounded-lg p-3 transition-all duration-200 hover:border-purple-400/50 touch-manipulation`}
                               whileHover={{ scale: 1.03, y: -2 }}
                               whileTap={{ scale: 0.98 }}
@@ -489,7 +484,6 @@ export default memo(NFTCardMobile, (prevProps, nextProps) => {
     prevProps.nft.image === nextProps.nft.image &&
     prevProps.nft.name === nextProps.nft.name &&
     prevProps.nft.description === nextProps.nft.description &&
-    prevProps.nft.attributes === nextProps.nft.attributes &&
-    prevProps.onListNFT === nextProps.onListNFT
+    prevProps.nft.attributes === nextProps.nft.attributes
   );
 });

@@ -1609,6 +1609,207 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toString());
   }
+
+  totalCreators(param0: Address): BigInt {
+    let result = super.call(
+      "totalCreators",
+      "totalCreators(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalCreators(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalCreators",
+      "totalCreators(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalNFTsSold(): BigInt {
+    let result = super.call("totalNFTsSold", "totalNFTsSold():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_totalNFTsSold(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalNFTsSold",
+      "totalNFTsSold():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalRoyaltiesPaid(): BigInt {
+    let result = super.call(
+      "totalRoyaltiesPaid",
+      "totalRoyaltiesPaid():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalRoyaltiesPaid(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalRoyaltiesPaid",
+      "totalRoyaltiesPaid():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalTradingVolume(): BigInt {
+    let result = super.call(
+      "totalTradingVolume",
+      "totalTradingVolume():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalTradingVolume(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalTradingVolume",
+      "totalTradingVolume():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userNFTsBought(param0: Address): BigInt {
+    let result = super.call(
+      "userNFTsBought",
+      "userNFTsBought(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userNFTsBought(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userNFTsBought",
+      "userNFTsBought(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userNFTsSold(param0: Address): BigInt {
+    let result = super.call("userNFTsSold", "userNFTsSold(address):(uint256)", [
+      ethereum.Value.fromAddress(param0),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_userNFTsSold(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userNFTsSold",
+      "userNFTsSold(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userPurchaseVolume(param0: Address): BigInt {
+    let result = super.call(
+      "userPurchaseVolume",
+      "userPurchaseVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userPurchaseVolume(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userPurchaseVolume",
+      "userPurchaseVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userRoyaltiesEarned(param0: Address): BigInt {
+    let result = super.call(
+      "userRoyaltiesEarned",
+      "userRoyaltiesEarned(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userRoyaltiesEarned(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userRoyaltiesEarned",
+      "userRoyaltiesEarned(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userSalesVolume(param0: Address): BigInt {
+    let result = super.call(
+      "userSalesVolume",
+      "userSalesVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userSalesVolume(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userSalesVolume",
+      "userSalesVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
 }
 
 export class ConstructorCall extends ethereum.Call {

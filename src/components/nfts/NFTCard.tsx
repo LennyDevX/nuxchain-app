@@ -39,7 +39,7 @@ interface NFTCardProps {
 function NFTCard({ nft, onListNFT, isMobile }: NFTCardProps) {
   // Use mobile version if on mobile device
   if (isMobile) {
-    return <NFTCardMobile nft={nft} onListNFT={onListNFT} />;
+    return <NFTCardMobile nft={nft} />;
   }
 
   return <NFTCardDesktop nft={nft} onListNFT={onListNFT} />;

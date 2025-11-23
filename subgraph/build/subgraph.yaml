@@ -6,7 +6,7 @@ dataSources:
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0x83068D1aC14B56B814FaB09e72707e70CC333053"
+      address: "0x4633E9f7F638E12C7D7E569D53942399789B5697"
       abi: EnhancedSmartStaking
       startBlock: 78900000
     mapping:
@@ -55,7 +55,7 @@ dataSources:
     name: EnhancedSmartStakingRewards
     network: matic
     source:
-      address: "0xfb68219596607517c73D2a7998d13565aFF507B6"
+      address: "0x72FCA7d14E5f29046f8B82ca70B24981b03A266f"
       abi: EnhancedSmartStakingRewards
       startBlock: 78900000
     mapping:
@@ -77,7 +77,7 @@ dataSources:
     name: EnhancedSmartStakingGamification
     network: matic
     source:
-      address: "0xeE33e8102449427ABD393c7B0Ed8Fe850B2f05cd"
+      address: "0x90216d0227EfbBae880EC2b8F03695cB82326598"
       abi: EnhancedSmartStakingGamification
       startBlock: 78900000
     mapping:
@@ -111,7 +111,7 @@ dataSources:
     name: EnhancedSmartStakingSkills
     network: matic
     source:
-      address: "0x6447ea4e3C714F750E75e2030d851cffe186Ce47"
+      address: "0x8Ea7278c3000a0628D0BA2925308aE0973Be3140"
       abi: EnhancedSmartStakingSkills
       startBlock: 78900000
     mapping:
@@ -134,7 +134,7 @@ dataSources:
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0xCB2711689eB734589B82F6Ff1f4f0A6e8C08A2A5"
+      address: "0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5"
       abi: GameifiedMarketplaceCoreV1
       startBlock: 78900000
     mapping:
@@ -175,7 +175,7 @@ dataSources:
     name: IndividualSkillsMarketplace
     network: matic
     source:
-      address: "0x49f762A922C204E90FbF63438A5573aE3a465A29"
+      address: "0xB23257758B385444dF5A78aC2F315bd653470df3"
       abi: IndividualSkillsMarketplace
       startBlock: 78900000
     mapping:
@@ -207,7 +207,7 @@ dataSources:
     name: GameifiedMarketplaceSkillsV2
     network: matic
     source:
-      address: "0xDafC9653ef5e83b098B017FbCB63795d446Cb6D1"
+      address: "0x355126Fbb7f8294aaB32Be884C49102075c5D6ce"
       abi: GameifiedMarketplaceSkillsV2
       startBlock: 78900000
     mapping:
@@ -238,7 +238,7 @@ dataSources:
     name: GameifiedMarketplaceQuests
     network: matic
     source:
-      address: "0xBc9B8be55733DdEb8335808C40be884af093f141"
+      address: "0x61D75d56559Cd4722870A797a17793ed9f840245"
       abi: GameifiedMarketplaceQuests
       startBlock: 78900000
     mapping:

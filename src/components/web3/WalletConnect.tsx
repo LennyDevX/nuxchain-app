@@ -116,7 +116,7 @@ function WalletConnect() {
         <button
           ref={buttonRef}
           onClick={() => setShowDropdown(!showDropdown)}
-          className="bg-gradient-to-r from-red-400 to-purple-500 hover:from-red-700 hover:to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg flex items-center space-x-2 w-full"
+          className="btn-primary w-full flex items-center justify-center space-x-2  "
         >
           <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
           <span>{formatAddress(address)}</span>
@@ -300,7 +300,7 @@ function WalletConnect() {
       <button
         ref={buttonRef}
         onClick={() => setShowDropdown(!showDropdown)}
-        className="btn-wallet w-full"
+        className="btn-primary w-full"
       >
         Connect Wallet
       </button>

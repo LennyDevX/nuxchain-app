@@ -78,7 +78,6 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       SKILL_ACTIVATED: `Activated Skill #${details.tokenId}`,
       SKILL_DEACTIVATED: `Deactivated Skill #${details.tokenId}`,
       SKILL_UPGRADED: `Upgraded Skill #${details.tokenId}`,
-      SKILL_PURCHASED: `Purchased Skill #${details.tokenId}`,
       QUEST_COMPLETED: `Completed Quest`,
       ACHIEVEMENT_UNLOCKED: `Unlocked Achievement`,
       NFT_MINT: `Minted NFT #${details.tokenId}${details.category ? ` (${details.category})` : ''}`,
@@ -117,7 +116,6 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       SKILL_ACTIVATED: '✨',
       SKILL_DEACTIVATED: '⛔',
       SKILL_UPGRADED: '⬆️',
-      SKILL_PURCHASED: '🎯',
       QUEST_COMPLETED: '🏆',
       ACHIEVEMENT_UNLOCKED: '🥇',
       NFT_MINT: '🎨',
@@ -156,7 +154,6 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       SKILL_ACTIVATED: 'text-yellow-400',
       SKILL_DEACTIVATED: 'text-red-400',
       SKILL_UPGRADED: 'text-lime-400',
-      SKILL_PURCHASED: 'text-purple-400',
       QUEST_COMPLETED: 'text-orange-400',
       ACHIEVEMENT_UNLOCKED: 'text-yellow-300',
       NFT_MINT: 'text-pink-400',
@@ -380,7 +377,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
 
           return {
             id: `skill-${skill.id}`,
-            type: 'SKILL_PURCHASED' as const,
+            type: 'SKILL_UPGRADED' as const, // Reusing SKILL_UPGRADED type for purchased skills display
             timestamp: Number(skill.purchasedAt),
             txHash: skill.transactionHash,
             details,

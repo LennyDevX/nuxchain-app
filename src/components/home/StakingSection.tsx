@@ -6,6 +6,7 @@ import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 function StakingSection() {
   const [stakingAmount, setStakingAmount] = useState('');
   const [lockPeriod, setLockPeriod] = useState('30');
+  const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const isMobile = useIsMobile();
 
   // Staking calculator logic
@@ -42,89 +43,131 @@ function StakingSection() {
           animate={{ opacity: 1, y: 0, x: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
         >
-          <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/10 hover:border-purple-400/50 transition-all duration-300">
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-6 text-center">Staking Calculator</h3>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-white/80 mb-2 font-medium">Amount to Stake (POL)</label>
-                <input
-                  type="number"
-                  value={stakingAmount}
-                  onChange={(e) => setStakingAmount(e.target.value)}
-                  placeholder="10"
-                  min="0"
-                  step="0.01"
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-purple-400 focus:outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white/80 mb-2 font-medium">Lock Period</label>
-                <select
-                  value={lockPeriod}
-                  onChange={(e) => setLockPeriod(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:outline-none transition-colors"
+          <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-4 md:p-6 border border-white/10 hover:border-purple-400/50 transition-all duration-300">
+            {/* Header con Botón Expandir/Contraer */}
+            <div className={`flex items-center mb-6 ${isMobile && !isCalculatorExpanded ? 'justify-center' : 'justify-between'}`}>
+              <h3 className="text-xl md:text-2xl font-bold text-white">Staking Calculator</h3>
+              {isMobile && (
+                <button
+                  onClick={() => setIsCalculatorExpanded(!isCalculatorExpanded)}
+                  className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors absolute right-4 md:right-8"
+                  aria-label="Toggle calculator"
                 >
-                  <option value="flexible" className="bg-gray-800">Flexible (1x)</option>
-                  <option value="30" className="bg-gray-800">30 Days (2.0x)</option>
-                  <option value="90" className="bg-gray-800">90 Days (2.8x)</option>
-                  <option value="180" className="bg-gray-800">180 Days (3.4x)</option>
-                  <option value="365" className="bg-gray-800">365 Days (4.2x)</option>
-                </select>
-              </div>
-
-              {/* Rewards Projections */}
-              <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-xl p-4 border border-purple-400/20">
-                <h4 className="text-sm font-semibold text-purple-300 text-center mb-4">Projected Rewards</h4>
-
-                <div className="grid grid-cols-2 gap-3 text-xs md:text-sm">
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <div className="text-white/60 mb-1">24 Hours</div>
-                    <div className="text-purple-400 font-bold">
-                      {calculateProjectedRewards(1).toFixed(4)} POL
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <div className="text-white/60 mb-1">30 Days</div>
-                    <div className="text-purple-400 font-bold">
-                      {calculateProjectedRewards(30).toFixed(2)} POL
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <div className="text-white/60 mb-1">6 Months</div>
-                    <div className="text-purple-400 font-bold">
-                      {calculateProjectedRewards(180).toFixed(2)} POL
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 rounded-lg p-3 text-center">
-                    <div className="text-white/60 mb-1">1 Year</div>
-                    <div className="text-purple-400 font-bold">
-                      {calculateProjectedRewards(365).toFixed(2)} POL
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-center pt-4 border-t border-white/10 mt-4">
-                  <div className="text-xs text-white/50 mb-1">
-                    Base ROI: 0.005% per hour • Multiplier: {getMultiplier()}x
-                  </div>
-                  <div className="text-sm text-purple-300 font-semibold">
-                    Effective APY: {(getMultiplier() * 0.005 * 24 * 365).toFixed(2)}%
-                  </div>
-                </div>
-              </div>
-
-              <Link
-                to="/staking"
-                className="w-full btn-primary inline-block text-center"
-              >
-                Start Staking
-              </Link>
+                  <motion.svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-purple-400"
+                    animate={{ rotate: isCalculatorExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                  >
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                  </motion.svg>
+                </button>
+              )}
             </div>
+
+            {/* Contenido Colapsable */}
+            <motion.div
+              initial={isMobile ? { maxHeight: 0, opacity: 0 } : undefined}
+              animate={
+                isMobile
+                  ? {
+                      maxHeight: isCalculatorExpanded ? 1200 : 0,
+                      opacity: isCalculatorExpanded ? 1 : 0,
+                    }
+                  : { maxHeight: 'auto', opacity: 1 }
+              }
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className={`overflow-hidden ${isMobile && !isCalculatorExpanded ? 'hidden' : ''}`}
+            >
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-white/80 mb-2 font-medium">Amount to Stake (POL)</label>
+                  <input
+                    type="number"
+                    value={stakingAmount}
+                    onChange={(e) => setStakingAmount(e.target.value)}
+                    placeholder="10"
+                    min="0"
+                    step="0.01"
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-purple-400 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-white/80 mb-2 font-medium">Lock Period</label>
+                  <select
+                    value={lockPeriod}
+                    onChange={(e) => setLockPeriod(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:outline-none transition-colors"
+                  >
+                    <option value="flexible" className="bg-gray-800">Flexible (1x)</option>
+                    <option value="30" className="bg-gray-800">30 Days (2.0x)</option>
+                    <option value="90" className="bg-gray-800">90 Days (2.8x)</option>
+                    <option value="180" className="bg-gray-800">180 Days (3.4x)</option>
+                    <option value="365" className="bg-gray-800">365 Days (4.2x)</option>
+                  </select>
+                </div>
+
+                {/* Rewards Projections */}
+                <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-xl p-4 border border-purple-400/20">
+                  <h4 className="text-sm font-semibold text-purple-300 text-center mb-4">Projected Rewards</h4>
+
+                  <div className="grid grid-cols-2 gap-3 text-xs md:text-sm">
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <div className="text-white/60 mb-1">24 Hours</div>
+                      <div className="text-purple-400 font-bold">
+                        {calculateProjectedRewards(1).toFixed(4)} POL
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <div className="text-white/60 mb-1">30 Days</div>
+                      <div className="text-purple-400 font-bold">
+                        {calculateProjectedRewards(30).toFixed(2)} POL
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <div className="text-white/60 mb-1">6 Months</div>
+                      <div className="text-purple-400 font-bold">
+                        {calculateProjectedRewards(180).toFixed(2)} POL
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 rounded-lg p-3 text-center">
+                      <div className="text-white/60 mb-1">1 Year</div>
+                      <div className="text-purple-400 font-bold">
+                        {calculateProjectedRewards(365).toFixed(2)} POL
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-center pt-4 border-t border-white/10 mt-4">
+                    <div className="text-xs text-white/50 mb-1">
+                      Base ROI: 0.005% per hour • Multiplier: {getMultiplier()}x
+                    </div>
+                    <div className="text-sm text-purple-300 font-semibold">
+                      Effective APY: {(getMultiplier() * 0.005 * 24 * 365).toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+
+                <Link
+                  to="/staking"
+                  className="w-full btn-primary inline-block text-center"
+                >
+                  Start Staking
+                </Link>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
 

@@ -34,7 +34,7 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
     },
     {
       title: 'Users',
-      value: uniqueUsersCount ? uniqueUsersCount.toString() : '1',
+      value: uniqueUsersCount ? uniqueUsersCount.toString() : '0',
       subtitle: isMobile ? 'Participants' : 'Staking participants',
       emoji: '👥'
     },

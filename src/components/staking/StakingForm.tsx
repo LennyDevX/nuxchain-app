@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
 import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json'
+import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 import StakingPeriodCarousel from './StakingPeriodCarousel'
+import { WithdrawConfirmationModal } from './WithdrawConfirmationModal'
 import { STAKING_PERIODS } from '../../constants/stakingConstants'
 
 interface StakingFormProps {
@@ -26,11 +28,54 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   const [activeTab, setActiveTab] = useState('stake')
   const [touchStart, setTouchStart] = useState(0)
   const [touchEnd, setTouchEnd] = useState(0)
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
+  // Get contract balance for validation
+  const { data: poolStats } = useReadContract({
+    address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
+    abi: EnhancedSmartStakingViewABI.abi,
+    functionName: 'getPoolStats',
+  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?, bigint?] | undefined }
+
+  const contractBalance = (poolStats?.[4] as bigint) || 0n
+
+  // Get user info including total rewards claimed
+  const { 
+    data: userDepositsInfo,
+    refetch: refetchUserDeposits
+  } = useReadContract({
+    address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
+    abi: EnhancedSmartStakingViewABI.abi,
+    functionName: 'getUserDeposits',
+    args: [address],
+    query: {
+      enabled: !!address,
+      staleTime: 60000,
+      gcTime: 5 * 60 * 1000,
+      refetchInterval: false,
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
+    }
+  })
+
   const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
+
+  // Extract total rewards claimed from user deposits info
+  // Structure: [totalDeposited, totalRewardsClaimed, depositCount, lastWithdrawTime]
+  const totalRewardsClaimed = useMemo(() => {
+    if (!userDepositsInfo || typeof userDepositsInfo !== 'object') return 0n
+    const info = userDepositsInfo as unknown as [bigint, bigint, bigint, bigint]
+    // totalRewardsClaimed is at index 1 - total amount of rewards user has claimed so far
+    const claimed = info[1]
+    console.log('📊 Total Rewards Claimed (from contract):', {
+      raw: claimed?.toString(),
+      formatted: claimed ? `${parseFloat(formatEther(claimed)).toFixed(12)} POL` : '0 POL'
+    })
+    return claimed || 0n
+  }, [userDepositsInfo])
 
   // ✅ Font size adaptativo
   const fontSize = useMemo(() => ({
@@ -120,6 +165,14 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     hash,
   })
 
+  // Refetch user deposits info when transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed) {
+      console.log('✅ Transaction confirmed, refetching user deposits...')
+      refetchUserDeposits()
+    }
+  }, [isConfirmed, refetchUserDeposits])
+
   const handleDeposit = async () => {
     if (!depositAmount || !address) return
 
@@ -155,16 +208,34 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
 
   const handleWithdrawAll = async () => {
-    if (!address) return
+    if (!address) {
+      alert('Please connect your wallet first')
+      return
+    }
 
+    // Validate that user has something to withdraw
+    if (!totalDeposit || totalDeposit === 0n) {
+      alert('You don\'t have any deposits to withdraw')
+      return
+    }
+
+    // Open modal for validation and confirmation
+    setIsWithdrawModalOpen(true)
+  }
+
+  const executeWithdraw = async () => {
     try {
-      writeContract({
+      await writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'withdrawAll',
+        chain: polygon,
       })
+      setIsWithdrawModalOpen(false)
     } catch (error) {
+      console.error('Withdraw error:', error)
       showContractError(error, 'Error withdrawing all')
+      setIsWithdrawModalOpen(false)
     }
   }
 
@@ -426,7 +497,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             <button
               onClick={handleDeposit}
               disabled={!depositAmount || isPending || isConfirming || isPaused}
-              className="w-full bg-gradient-to-r from-red-400 to-purple-500 hover:from-red-700 hover:to-purple-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg"
+              className="w-full btn-primary"
             >
               {isPaused ? 'Contract Paused' : isPending || isConfirming ? 'Processing...' : 'Stake Now'}
             </button>
@@ -435,21 +506,79 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
         {activeTab === 'claim' && (
           <div className="space-y-6">
-            <div className="text-center">
-              <p className="text-white/80 mb-4">
-                Claim your available rewards without affecting your staked amount
-              </p>
-              <p className="text-2xl font-bold text-white mb-6">
-                {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
-              </p>
+            {/* Pending Rewards Section */}
+            <div className="space-y-2">
+              <p className="text-white/80 text-sm font-medium">Available to Claim</p>
+              <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4">
+                <p className="text-3xl font-bold text-white mb-1">
+                  {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
+                </p>
+                <p className="text-white/60 text-xs">
+                  {pendingRewards && pendingRewards > 0n 
+                    ? 'These rewards are ready to be claimed and transferred to your wallet'
+                    : 'No pending rewards at this moment. Keep staking to earn more!'
+                  }
+                </p>
+              </div>
             </div>
 
+            {/* Total Claimed Summary */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Total Rewards Claimed */}
+              <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg p-4">
+                <p className="text-white/70 text-xs font-semibold mb-2">💎 Total Claimed</p>
+                <p className="text-xl font-bold text-purple-400 mb-1">
+                  {totalRewardsClaimed ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL` : '0 POL'}
+                </p>
+                <p className="text-white/50 text-xs">
+                  Cumulative rewards withdrawn
+                </p>
+              </div>
+
+              {/* Total Staked */}
+              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-4">
+                <p className="text-white/70 text-xs font-semibold mb-2">💰 Total Staked</p>
+                <p className="text-xl font-bold text-cyan-400 mb-1">
+                  {totalDeposit ? `${parseFloat(formatEther(totalDeposit)).toFixed(6)} POL` : '0 POL'}
+                </p>
+                <p className="text-white/50 text-xs">
+                  Your current stake
+                </p>
+              </div>
+            </div>
+
+            {/* Information Section */}
+            <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4">
+              <p className="text-blue-300 text-sm leading-relaxed">
+                <strong>ℹ️ How it works:</strong>
+              </p>
+              <ul className="text-blue-200/70 text-xs mt-2 space-y-1 ml-4 list-disc">
+                <li>Claiming rewards does NOT affect your staked amount</li>
+                <li>Claimed rewards go directly to your wallet</li>
+                <li>You can claim multiple times as rewards accumulate</li>
+                <li>Rewards continue accruing after each claim</li>
+              </ul>
+            </div>
+
+            {/* Claim Button */}
             <button
               onClick={handleClaimRewards}
               disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              {isPending || isConfirming ? 'Processing...' : 'Claim Rewards'}
+              {isPending || isConfirming ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : !pendingRewards || pendingRewards === 0n ? (
+                'No Rewards to Claim'
+              ) : (
+                `Claim ${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL`
+              )}
             </button>
           </div>
         )}
@@ -630,6 +759,17 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           </div>
         </motion.div>
       )}
+
+      {/* Withdraw Confirmation Modal */}
+      <WithdrawConfirmationModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        onConfirm={executeWithdraw}
+        userStaked={totalDeposit || 0n}
+        pendingRewards={pendingRewards || 0n}
+        contractBalance={contractBalance}
+        isProcessing={isPending || isConfirming}
+      />
     </motion.div>
   )
 }

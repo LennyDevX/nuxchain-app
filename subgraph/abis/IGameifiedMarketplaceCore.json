@@ -1,8 +1,37 @@
 {
   "_format": "hh-sol-artifact-1",
   "contractName": "IGameifiedMarketplaceCore",
-  "sourceName": "contracts/Marketplace/GameifiedMarketplaceQuests.sol",
+  "sourceName": "contracts/Marketplace/GameifiedMarketplaceSkillsNft.sol",
   "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_tokenURI",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_category",
+          "type": "string"
+        },
+        {
+          "internalType": "uint96",
+          "name": "_royaltyPercentage",
+          "type": "uint96"
+        }
+      ],
+      "name": "createStandardNFT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
     {
       "inputs": [
         {
@@ -19,57 +48,6 @@
       "name": "updateUserXP",
       "outputs": [],
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "userProfiles",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "totalXP",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint8",
-              "name": "level",
-              "type": "uint8"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nftsCreated",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "nftsOwned",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint32",
-              "name": "nftsSold",
-              "type": "uint32"
-            },
-            {
-              "internalType": "uint32",
-              "name": "nftsBought",
-              "type": "uint32"
-            }
-          ],
-          "internalType": "struct IGameifiedMarketplaceCore.UserProfile",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "view",
       "type": "function"
     }
   ],

@@ -12,7 +12,6 @@ export type ActivityType =
   | 'SKILL_ACTIVATED'
   | 'SKILL_DEACTIVATED'
   | 'SKILL_UPGRADED'
-  | 'SKILL_PURCHASED'
   | 'QUEST_COMPLETED'
   | 'ACHIEVEMENT_UNLOCKED'
   | 'NFT_MINT'
@@ -51,10 +50,19 @@ export interface GraphQLUser {
   totalDeposited: string; // BigInt as string
   totalWithdrawn: string; // BigInt as string
   totalCompounded: string; // BigInt as string
+  totalEarnings?: string; // BigInt as string (optional)
+  totalSpent?: string; // BigInt as string (optional)
   nftMintedCount: number;
+  nftSoldCount: number;
+  nftBoughtCount: number;
+  offersMadeCount: number;
   depositCount: number;
   withdrawalCount: number;
   compoundCount: number;
+  skillPurchaseCount?: number; // optional for backward compatibility
+  skillRenewalCount?: number; // optional
+  skillSwitchCount?: number; // optional
+  questCompletionCount?: number; // optional
   level: number;
   totalXP: string; // BigInt as string
   createdAt: string; // BigInt as string (timestamp)
@@ -95,14 +103,15 @@ export interface GraphQLNFTMint {
 export interface GraphQLIndividualSkill {
   id: string;
   skillId: string; // BigInt as string
-  skillType: string; // BigInt as string
-  rarity: string;
+  skillType: number; // Int (changed from string)
+  rarity: number; // Int (changed from string)
   level: string; // BigInt as string
   owner: string; // Bytes as hex string (wallet address)
   purchasedAt: string; // BigInt as string (timestamp)
   expiresAt: string; // BigInt as string (timestamp)
   isActive: boolean;
-  metadata?: string;
+  metadata: string; // Required in schema
+  createdAt: string; // BigInt as string (new field)
   transactionHash: string; // Bytes as hex string
   blockNumber: string; // BigInt as string
 }

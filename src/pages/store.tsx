@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { useBalance } from 'wagmi';
@@ -18,6 +19,7 @@ const PurchaseSkillModal = lazy(() => import('../components/store/PurchaseSkillM
 type TabType = 'catalog' | 'myskills';
 
 export default function Store() {
+  const navigate = useNavigate();
   const { address, isConnected } = useAccount();
   const { purchaseSkill, getUserSkills } = useSkillsStore();
   const { data: balanceData } = useBalance({ address });
@@ -178,6 +180,12 @@ export default function Store() {
                     }`}
                   >
                     💼 My Skills
+                  </button>
+                  <button
+                    onClick={() => navigate('/skills')}
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap text-gray-400 hover:text-white"
+                  >
+                    ℹ️ Skills Info
                   </button>
                 </div>
 

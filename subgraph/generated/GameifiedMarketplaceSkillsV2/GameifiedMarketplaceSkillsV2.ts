@@ -440,6 +440,162 @@ export class Unpaused__Params {
   }
 }
 
+export class GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct extends ethereum.Tuple {
+  get skillType(): i32 {
+    return this[0].toI32();
+  }
+
+  get rarity(): i32 {
+    return this[1].toI32();
+  }
+
+  get level(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get createdAt(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get expiresAt(): BigInt {
+    return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getExpiringSkillsResult {
+  value0: Array<BigInt>;
+  value1: Array<BigInt>;
+  value2: Array<
+    Array<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>
+  >;
+
+  constructor(
+    value0: Array<BigInt>,
+    value1: Array<BigInt>,
+    value2: Array<
+      Array<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>
+    >,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigIntArray(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    map.set("value2", ethereum.Value.fromTupleMatrix(this.value2));
+    return map;
+  }
+
+  getTokenIds(): Array<BigInt> {
+    return this.value0;
+  }
+
+  getExpiryTimes(): Array<BigInt> {
+    return this.value1;
+  }
+
+  getSkills(): Array<
+    Array<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>
+  > {
+    return this.value2;
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getPopularSkillsResult {
+  value0: Array<i32>;
+  value1: Array<BigInt>;
+  value2: Array<i32>;
+
+  constructor(value0: Array<i32>, value1: Array<BigInt>, value2: Array<i32>) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromI32Array(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigIntArray(this.value1));
+    map.set("value2", ethereum.Value.fromI32Array(this.value2));
+    return map;
+  }
+
+  getSkillTypes(): Array<i32> {
+    return this.value0;
+  }
+
+  getPurchaseCounts(): Array<BigInt> {
+    return this.value1;
+  }
+
+  getMostBoughtRarity(): Array<i32> {
+    return this.value2;
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillMarketStatsResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+  value4: BigInt;
+  value5: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: BigInt,
+    value2: BigInt,
+    value3: BigInt,
+    value4: BigInt,
+    value5: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+    this.value5 = value5;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
+    return map;
+  }
+
+  getTotalSkillNFTs(): BigInt {
+    return this.value0;
+  }
+
+  getTotalActiveSkills(): BigInt {
+    return this.value1;
+  }
+
+  getTotalExpiredSkills(): BigInt {
+    return this.value2;
+  }
+
+  getTotalSkillsSold(): BigInt {
+    return this.value3;
+  }
+
+  getTotalRevenue(): BigInt {
+    return this.value4;
+  }
+
+  getAverageSkillsPerNFT(): BigInt {
+    return this.value5;
+  }
+}
+
 export class GameifiedMarketplaceSkillsV2__getSkillNFTResultValue0Struct extends ethereum.Tuple {
   get creator(): Address {
     return this[0].toAddress();
@@ -499,6 +655,58 @@ export class GameifiedMarketplaceSkillsV2__getSkillNFTSkillsResultValue0Struct e
 
   get expiresAt(): BigInt {
     return this[4].toBigInt();
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getSkillRarityDistributionResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+  value4: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: BigInt,
+    value2: BigInt,
+    value3: BigInt,
+    value4: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    return map;
+  }
+
+  getCommonCount(): BigInt {
+    return this.value0;
+  }
+
+  getUncommonCount(): BigInt {
+    return this.value1;
+  }
+
+  getRareCount(): BigInt {
+    return this.value2;
+  }
+
+  getEpicCount(): BigInt {
+    return this.value3;
+  }
+
+  getLegendaryCount(): BigInt {
+    return this.value4;
   }
 }
 
@@ -618,6 +826,82 @@ export class GameifiedMarketplaceSkillsV2__getUserSkillNFTsWithDetailsResult {
   }
 }
 
+export class GameifiedMarketplaceSkillsV2__getUserSkillPortfolioResult {
+  value0: BigInt;
+  value1: BigInt;
+  value2: BigInt;
+  value3: BigInt;
+  value4: BigInt;
+  value5: BigInt;
+  value6: BigInt;
+  value7: BigInt;
+
+  constructor(
+    value0: BigInt,
+    value1: BigInt,
+    value2: BigInt,
+    value3: BigInt,
+    value4: BigInt,
+    value5: BigInt,
+    value6: BigInt,
+    value7: BigInt,
+  ) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+    this.value3 = value3;
+    this.value4 = value4;
+    this.value5 = value5;
+    this.value6 = value6;
+    this.value7 = value7;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
+    map.set("value1", ethereum.Value.fromUnsignedBigInt(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
+    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
+    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
+    map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
+    map.set("value6", ethereum.Value.fromUnsignedBigInt(this.value6));
+    map.set("value7", ethereum.Value.fromUnsignedBigInt(this.value7));
+    return map;
+  }
+
+  getTotalSkillNFTs(): BigInt {
+    return this.value0;
+  }
+
+  getActiveSkillNFTs(): BigInt {
+    return this.value1;
+  }
+
+  getExpiredSkillNFTs(): BigInt {
+    return this.value2;
+  }
+
+  getTotalActiveSkills(): BigInt {
+    return this.value3;
+  }
+
+  getStakingSkillsCount(): BigInt {
+    return this.value4;
+  }
+
+  getPlatformSkillsCount(): BigInt {
+    return this.value5;
+  }
+
+  getExpiringIn24h(): BigInt {
+    return this.value6;
+  }
+
+  getTotalSpentOnSkills(): BigInt {
+    return this.value7;
+  }
+}
+
 export class GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult {
   value0: Array<BigInt>;
   value1: Array<i32>;
@@ -640,6 +924,38 @@ export class GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult {
 
   getStatuses(): Array<i32> {
     return this.value1;
+  }
+}
+
+export class GameifiedMarketplaceSkillsV2__getUserSkillsGroupedResult {
+  value0: Array<i32>;
+  value1: Array<i32>;
+  value2: Array<BigInt>;
+
+  constructor(value0: Array<i32>, value1: Array<i32>, value2: Array<BigInt>) {
+    this.value0 = value0;
+    this.value1 = value1;
+    this.value2 = value2;
+  }
+
+  toMap(): TypedMap<string, ethereum.Value> {
+    let map = new TypedMap<string, ethereum.Value>();
+    map.set("value0", ethereum.Value.fromI32Array(this.value0));
+    map.set("value1", ethereum.Value.fromI32Array(this.value1));
+    map.set("value2", ethereum.Value.fromUnsignedBigIntArray(this.value2));
+    return map;
+  }
+
+  getSkillTypes(): Array<i32> {
+    return this.value0;
+  }
+
+  getRarities(): Array<i32> {
+    return this.value1;
+  }
+
+  getCounts(): Array<BigInt> {
+    return this.value2;
   }
 }
 
@@ -792,6 +1108,88 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
+  getExpiringSkills(
+    _user: Address,
+    _hoursThreshold: BigInt,
+  ): GameifiedMarketplaceSkillsV2__getExpiringSkillsResult {
+    let result = super.call(
+      "getExpiringSkills",
+      "getExpiringSkills(address,uint256):(uint256[],uint256[],(uint8,uint8,uint256,uint256,uint256)[][])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(_hoursThreshold),
+      ],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getExpiringSkillsResult(
+      result[0].toBigIntArray(),
+      result[1].toBigIntArray(),
+      result[2].toTupleMatrix<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>(),
+    );
+  }
+
+  try_getExpiringSkills(
+    _user: Address,
+    _hoursThreshold: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getExpiringSkillsResult> {
+    let result = super.tryCall(
+      "getExpiringSkills",
+      "getExpiringSkills(address,uint256):(uint256[],uint256[],(uint8,uint8,uint256,uint256,uint256)[][])",
+      [
+        ethereum.Value.fromAddress(_user),
+        ethereum.Value.fromUnsignedBigInt(_hoursThreshold),
+      ],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getExpiringSkillsResult(
+        value[0].toBigIntArray(),
+        value[1].toBigIntArray(),
+        value[2].toTupleMatrix<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>(),
+      ),
+    );
+  }
+
+  getPopularSkills(
+    _limit: BigInt,
+  ): GameifiedMarketplaceSkillsV2__getPopularSkillsResult {
+    let result = super.call(
+      "getPopularSkills",
+      "getPopularSkills(uint256):(uint8[],uint256[],uint8[])",
+      [ethereum.Value.fromUnsignedBigInt(_limit)],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getPopularSkillsResult(
+      result[0].toI32Array(),
+      result[1].toBigIntArray(),
+      result[2].toI32Array(),
+    );
+  }
+
+  try_getPopularSkills(
+    _limit: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getPopularSkillsResult> {
+    let result = super.tryCall(
+      "getPopularSkills",
+      "getPopularSkills(uint256):(uint8[],uint256[],uint8[])",
+      [ethereum.Value.fromUnsignedBigInt(_limit)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getPopularSkillsResult(
+        value[0].toI32Array(),
+        value[1].toBigIntArray(),
+        value[2].toI32Array(),
+      ),
+    );
+  }
+
   getRoleAdmin(role: Bytes): Bytes {
     let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
       ethereum.Value.fromFixedBytes(role),
@@ -834,6 +1232,45 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getSkillMarketStats(): GameifiedMarketplaceSkillsV2__getSkillMarketStatsResult {
+    let result = super.call(
+      "getSkillMarketStats",
+      "getSkillMarketStats():(uint256,uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getSkillMarketStatsResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+      result[5].toBigInt(),
+    );
+  }
+
+  try_getSkillMarketStats(): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getSkillMarketStatsResult> {
+    let result = super.tryCall(
+      "getSkillMarketStats",
+      "getSkillMarketStats():(uint256,uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getSkillMarketStatsResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+        value[4].toBigInt(),
+        value[5].toBigInt(),
+      ),
+    );
   }
 
   getSkillNFT(
@@ -955,6 +1392,43 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getSkillRarityDistribution(): GameifiedMarketplaceSkillsV2__getSkillRarityDistributionResult {
+    let result = super.call(
+      "getSkillRarityDistribution",
+      "getSkillRarityDistribution():(uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getSkillRarityDistributionResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+    );
+  }
+
+  try_getSkillRarityDistribution(): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getSkillRarityDistributionResult> {
+    let result = super.tryCall(
+      "getSkillRarityDistribution",
+      "getSkillRarityDistribution():(uint256,uint256,uint256,uint256,uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getSkillRarityDistributionResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+        value[4].toBigInt(),
+      ),
+    );
   }
 
   getSkillSwitchInfo(
@@ -1087,6 +1561,53 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     );
   }
 
+  getUserSkillPortfolio(
+    _user: Address,
+  ): GameifiedMarketplaceSkillsV2__getUserSkillPortfolioResult {
+    let result = super.call(
+      "getUserSkillPortfolio",
+      "getUserSkillPortfolio(address):(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getUserSkillPortfolioResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+      result[5].toBigInt(),
+      result[6].toBigInt(),
+      result[7].toBigInt(),
+    );
+  }
+
+  try_getUserSkillPortfolio(
+    _user: Address,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getUserSkillPortfolioResult> {
+    let result = super.tryCall(
+      "getUserSkillPortfolio",
+      "getUserSkillPortfolio(address):(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getUserSkillPortfolioResult(
+        value[0].toBigInt(),
+        value[1].toBigInt(),
+        value[2].toBigInt(),
+        value[3].toBigInt(),
+        value[4].toBigInt(),
+        value[5].toBigInt(),
+        value[6].toBigInt(),
+        value[7].toBigInt(),
+      ),
+    );
+  }
+
   getUserSkillsByType(
     _user: Address,
     _skillType: i32,
@@ -1126,6 +1647,43 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
       new GameifiedMarketplaceSkillsV2__getUserSkillsByTypeResult(
         value[0].toBigIntArray(),
         value[1].toI32Array(),
+      ),
+    );
+  }
+
+  getUserSkillsGrouped(
+    _user: Address,
+  ): GameifiedMarketplaceSkillsV2__getUserSkillsGroupedResult {
+    let result = super.call(
+      "getUserSkillsGrouped",
+      "getUserSkillsGrouped(address):(uint8[],uint8[],uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+
+    return new GameifiedMarketplaceSkillsV2__getUserSkillsGroupedResult(
+      result[0].toI32Array(),
+      result[1].toI32Array(),
+      result[2].toBigIntArray(),
+    );
+  }
+
+  try_getUserSkillsGrouped(
+    _user: Address,
+  ): ethereum.CallResult<GameifiedMarketplaceSkillsV2__getUserSkillsGroupedResult> {
+    let result = super.tryCall(
+      "getUserSkillsGrouped",
+      "getUserSkillsGrouped(address):(uint8[],uint8[],uint256[])",
+      [ethereum.Value.fromAddress(_user)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new GameifiedMarketplaceSkillsV2__getUserSkillsGroupedResult(
+        value[0].toI32Array(),
+        value[1].toI32Array(),
+        value[2].toBigIntArray(),
       ),
     );
   }

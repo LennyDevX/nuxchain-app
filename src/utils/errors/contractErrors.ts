@@ -120,8 +120,8 @@ export function validateDepositAmount(amount: string, balance?: bigint): { isVal
     return { isValid: false, error: '❌ Amount must be greater than 0 POL' };
   }
   
-  if (numAmount < 5) {
-    return { isValid: false, error: '❌ Minimum deposit amount is 5 POL' };
+  if (numAmount < 10) {
+    return { isValid: false, error: '❌ Minimum deposit amount is 10 POL' };
   }
   
   if (numAmount > 10000) {

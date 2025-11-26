@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts/nftToasts';
 import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
@@ -36,19 +37,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
       // Dismiss loading toast
       toast.dismiss(loadingToastId);
       
-      toast.success(`NFT #${tokenId} Listed`, {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#10b981',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
-        }
-      });
+      nftToasts.listingSuccess(`NFT #${tokenId}`, 'Listed successfully');
       
       // Reset and close after showing success
       setTimeout(() => {
@@ -67,31 +56,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
       // Dismiss loading toast
       toast.dismiss(loadingToastId);
       
-      // Filtrar mensajes de error técnicos
-      let errorMessage = 'Transacción rechazada';
-      const errorMsg = listError.message || '';
-      
-      if (errorMsg.includes('denied') || errorMsg.includes('User rejected') || errorMsg.includes('user denied')) {
-        errorMessage = 'Transacción rechazada';
-      } else if (errorMsg.includes('insufficient')) {
-        errorMessage = 'Saldo insuficiente';
-      } else if (errorMsg.includes('reverted')) {
-        errorMessage = 'Transacción fallida';
-      }
-      
-      toast.error(errorMessage, {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
-        }
-      });
+      nftToasts.listingError(listError.message || 'Failed to list NFT');
       
       setTimeout(() => {
         setLoadingToastId(null);
@@ -101,36 +66,12 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
 
   const handleConfirmListing = async () => {
     if (!isConnected) {
-      toast.error('Please connect your wallet first', {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
-        }
-      });
+      nftToasts.walletNotConnected();
       return;
     }
     
     if (!tokenId || !listingPrice || parseFloat(listingPrice) < 50) {
-      toast.error('Enter valid price (min 50 POL)', {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
-        }
-      });
+      nftToasts.error('Enter valid price (minimum 50 POL)');
       return;
     }
 
@@ -138,16 +79,17 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
       // Dismiss any existing loading toasts
       toast.dismiss();
       
-      const toastId = toast.loading('Listing NFT...', {
+      const toastId = toast.loading('📋 Listing NFT...', {
         position: 'top-center',
         style: {
-          background: '#3b82f6',
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
           color: '#fff',
-          fontSize: '15px',
+          fontSize: '14px',
           fontWeight: '600',
           borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
+          padding: '16px 24px',
+          boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
+          border: '1px solid rgba(139, 92, 246, 0.5)'
         }
       });
       setLoadingToastId(toastId);

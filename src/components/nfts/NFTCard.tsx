@@ -2,7 +2,7 @@ import { memo, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { formatEther } from 'viem';
 import { useAccount } from 'wagmi';
-import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts/nftToasts';
 
 import { formatPolValue } from '../../utils/formats/format';
 import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
@@ -76,16 +76,10 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
   const handleCopyAddress = useCallback((address: string, type: string) => {
     navigator.clipboard.writeText(address).then(() => {
       setCopiedAddress(address);
-      toast.success(`${type} copied to clipboard!`, {
-        duration: 2000,
-        position: 'top-center'
-      });
+      nftToasts.addressCopied(type);
       setTimeout(() => setCopiedAddress(null), 2000);
     }).catch(() => {
-      toast.error('Failed to copy address', {
-        duration: 2000,
-        position: 'top-center'
-      });
+      nftToasts.error('Failed to copy address');
     });
   }, []);
 

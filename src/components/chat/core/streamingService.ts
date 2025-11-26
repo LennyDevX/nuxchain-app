@@ -1,4 +1,5 @@
 import { enhancedCache } from './cacheManager';
+import { chatLogger } from '../../../utils/log/chatLogger';
 import type { ChatMessage, ChatAction } from './chatReducer';
 
 export interface StreamingServiceOptions {
@@ -47,7 +48,7 @@ export class StreamingService {
       this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
       this.webWorker.onerror = this.handleWorkerError.bind(this);
       
-      console.log('Web Worker initialized successfully');
+      chatLogger.logInfo('Web Worker inicializado correctamente', 'StreamingService');
       
     } catch (error) {
       console.warn('Failed to initialize Web Worker from file, trying fallback:', error);
@@ -64,7 +65,7 @@ export class StreamingService {
       this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
       this.webWorker.onerror = this.handleWorkerError.bind(this);
       
-      console.log('Fallback Web Worker initialized successfully');
+      chatLogger.logInfo('Fallback Web Worker inicializado correctamente', 'StreamingService');
       
     } catch (error) {
       console.warn('Web Worker not available, using main thread processing:', error);
@@ -177,7 +178,11 @@ export class StreamingService {
   }
 
   private handleWorkerError(error: ErrorEvent): void {
-    console.error('Web Worker error:', error);
+    chatLogger.logError('Error en Web Worker', 'StreamingService', {
+      message: error.message,
+      filename: error.filename,
+      lineno: error.lineno
+    });
     for (const [, callback] of this.pendingWorkerCallbacks) {
       callback.reject(new Error('Worker error: ' + error.message));
     }
@@ -196,7 +201,11 @@ export class StreamingService {
     lastMessage,
     setInput
   }: StreamingServiceOptions): Promise<void> {
-    console.log('Starting stream processing...');
+    const startTime = Date.now();
+    chatLogger.logStreamingEvent(
+      { type: 'START', messageId: lastMessage.id },
+      'StreamingService'
+    );
     const reader = response.body!.getReader();
     let fullResponse = '';
     let frameId: number | null = null;
@@ -234,10 +243,10 @@ export class StreamingService {
     try {
       while (true) {
         const { value, done } = await reader.read();
-        console.log(`Read from stream: done=${done}, value size=${value?.length}`);
+        chatLogger.logDebug(`Lectura de stream: done=${done}, tamaño=${value?.length}`, 'StreamingService');
         
         if (done) {
-          console.log('Stream finished.');
+          chatLogger.logInfo('Stream finalizado correctamente', 'StreamingService');
           break;
         }
         
@@ -259,24 +268,32 @@ export class StreamingService {
       
       debouncedUpdate.cancel();
       if (frameId) cancelAnimationFrame(frameId);
-      console.log('Finalizing stream with content:', fullResponse);
+      chatLogger.logInfo('Finalizando stream con contenido', 'StreamingService', {
+        contentLength: fullResponse.length
+      });
       onUpdate(fullResponse);
       onFinish(fullResponse);
       
       if (fullResponse && lastMessage?.conversationId) {
         try {
           await enhancedCache.set(lastMessage.conversationId, fullResponse, 3600000);
+          chatLogger.logCache('SET', { conversationId: lastMessage.conversationId });
         } catch (error) {
-          console.warn('Failed to cache response:', error);
+          chatLogger.logWarning('Falló el caché de respuesta', 'StreamingService', {
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
         }
       }
       
     } catch (error) {
       if (frameId) cancelAnimationFrame(frameId);
-      console.error('Streaming error:', error);
+      chatLogger.logError('Error en streaming', 'StreamingService', {
+        errorName: (error as Error).name,
+        errorMessage: (error as Error).message
+      }, error as Error);
       
       if ((error as Error).name === 'AbortError') {
-        console.log('Stream cancelled by user');
+        chatLogger.logInfo('Stream cancelado por usuario', 'StreamingService');
         return;
       }
 
@@ -290,7 +307,9 @@ export class StreamingService {
       onError(error as Error, onRetry, lastMessage.id);
 
     } finally {
-      console.log('Cleaning up stream resources.');
+      chatLogger.logInfo('Limpiando recursos del stream', 'StreamingService', {
+        activeStreams: this.activeStreams.size
+      });
       this.activeStreams.delete(reader);
       try {
         reader.releaseLock();

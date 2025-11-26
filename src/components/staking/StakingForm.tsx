@@ -8,6 +8,9 @@ import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartSta
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
+import { stakingLogger } from '../../utils/log/stakingLogger'
+import { stakingToasts } from '../../utils/toasts/stakingToasts'
+import { useUserDeposits } from '../../hooks/staking/useUserDeposits'
 import StakingPeriodCarousel from './StakingPeriodCarousel'
 import { WithdrawConfirmationModal } from './WithdrawConfirmationModal'
 import { STAKING_PERIODS } from '../../constants/stakingConstants'
@@ -22,6 +25,7 @@ interface StakingFormProps {
 function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDeposit }: StakingFormProps) {
   const { address } = useAccount()
   const isMobile = useIsMobile()
+  const { lockedDeposits } = useUserDeposits()
   const [depositAmount, setDepositAmount] = useState('')
   const [lockupDuration, setLockupDuration] = useState('0') // default: Flexible
   const [compoundLockupDuration, setCompoundLockupDuration] = useState('0') // default: Flexible
@@ -70,12 +74,15 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     const info = userDepositsInfo as unknown as [bigint, bigint, bigint, bigint]
     // totalRewardsClaimed is at index 1 - total amount of rewards user has claimed so far
     const claimed = info[1]
-    console.log('📊 Total Rewards Claimed (from contract):', {
-      raw: claimed?.toString(),
-      formatted: claimed ? `${parseFloat(formatEther(claimed)).toFixed(12)} POL` : '0 POL'
+    stakingLogger.logRewards({
+      pending: pendingRewards ? formatEther(pendingRewards) : '0',
+      accumulated: claimed ? formatEther(claimed) : '0',
+      claimed: claimed ? formatEther(claimed) : '0',
+      baseAPY: 87.6,
+      finalAPY: 87.6
     })
     return claimed || 0n
-  }, [userDepositsInfo])
+  }, [userDepositsInfo, pendingRewards])
 
   // ✅ Font size adaptativo
   const fontSize = useMemo(() => ({
@@ -179,19 +186,34 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     // Validate deposit amount
     const amountValidation = validateDepositAmount(depositAmount, balance?.value)
     if (!amountValidation.isValid) {
-      alert(amountValidation.error)
+      if (amountValidation.error?.includes('Minimum')) {
+        stakingToasts.minimumDepositError('10 POL')
+      } else if (amountValidation.error?.includes('Maximum')) {
+        stakingToasts.maximumDepositError('10,000 POL')
+      } else if (amountValidation.error?.includes('Insufficient')) {
+        stakingToasts.insufficientBalance(depositAmount, balance ? parseFloat(balance.formatted).toFixed(4) : '0')
+      } else {
+        stakingToasts.error(amountValidation.error || 'Invalid deposit amount')
+      }
       return
     }
 
     // Validate lockup duration
     const lockupValidation = validateLockupDuration(lockupDuration)
     if (!lockupValidation.isValid) {
-      alert(lockupValidation.error)
+      stakingToasts.invalidLockupPeriod()
       return
     }
 
     try {
       const lockupInDays = BigInt(parseInt(lockupDuration))
+
+      stakingLogger.logDeposit({
+        amount: depositAmount,
+        lockupPeriod: parseInt(lockupDuration),
+        user: address || '',
+        success: false
+      })
 
       writeContract({
         address: stakingContractAddress as `0x${string}`,
@@ -201,6 +223,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         value: parseEther(depositAmount),
       })
     } catch (error) {
+      stakingLogger.logError({
+        context: 'deposit',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
       showContractError(error, 'Error al realizar el depósito')
     }
   }
@@ -209,14 +235,19 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const handleWithdrawAll = async () => {
     if (!address) {
-      alert('Please connect your wallet first')
+      stakingToasts.walletNotConnected()
       return
     }
 
     // Validate that user has something to withdraw
     if (!totalDeposit || totalDeposit === 0n) {
-      alert('You don\'t have any deposits to withdraw')
+      stakingToasts.noDeposits()
       return
+    }
+
+    // Show info about locked deposits if any
+    if (lockedDeposits > 0) {
+      console.log(`⚠️ User has ${lockedDeposits} locked deposit(s) that may incur penalties`)
     }
 
     // Open modal for validation and confirmation
@@ -225,6 +256,13 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const executeWithdraw = async () => {
     try {
+      stakingLogger.logWithdraw({
+        positionId: 1,
+        amount: totalDeposit ? formatEther(totalDeposit) : '0',
+        user: address || '',
+        success: false
+      })
+
       await writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
@@ -233,7 +271,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       })
       setIsWithdrawModalOpen(false)
     } catch (error) {
-      console.error('Withdraw error:', error)
+      stakingLogger.logError({
+        context: 'withdraw',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
       showContractError(error, 'Error withdrawing all')
       setIsWithdrawModalOpen(false)
     }
@@ -245,12 +286,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     // Validate lockup duration for compound
     const lockupValidation = validateLockupDuration(compoundLockupDuration)
     if (!lockupValidation.isValid) {
-      alert(lockupValidation.error)
+      stakingToasts.invalidLockupPeriod()
       return
     }
 
     try {
       const lockupInDays = BigInt(parseInt(compoundLockupDuration))
+
+      stakingLogger.logCompound({
+        positionId: 1,
+        rewardsCompounded: pendingRewards ? formatEther(pendingRewards) : '0',
+        newTotalStaked: totalDeposit && pendingRewards ? formatEther(totalDeposit + pendingRewards) : '0',
+        user: address,
+        success: false
+      })
 
       writeContract({
         address: stakingContractAddress as `0x${string}`,
@@ -259,6 +308,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         args: [lockupInDays],
       })
     } catch (error) {
+      stakingLogger.logError({
+        context: 'compound',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
       showContractError(error, 'Error al hacer compound')
     }
   }
@@ -267,12 +320,23 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     if (!address) return
 
     try {
+      stakingLogger.logClaim({
+        positionId: 1,
+        amount: pendingRewards ? formatEther(pendingRewards) : '0',
+        user: address,
+        success: false
+      })
+
       writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'withdraw',
       })
     } catch (error) {
+      stakingLogger.logError({
+        context: 'claim',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
       showContractError(error, 'Error claiming rewards')
     }
   }
@@ -291,15 +355,29 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       'Are you sure you want to continue?'
     )
 
-    if (!confirmed) return
+    if (!confirmed) {
+      return
+    }
 
     try {
+      stakingLogger.logEmergencyWithdraw({
+        positionId: 1,
+        amount: totalDeposit ? formatEther(totalDeposit) : '0',
+        penalty: '0', // Will be calculated on-chain
+        user: address,
+        success: false
+      })
+
       writeContract({
         address: stakingContractAddress as `0x${string}`,
         abi: EnhancedSmartStakingCoreABI.abi,
         functionName: 'emergencyUserWithdraw',
       })
     } catch (error) {
+      stakingLogger.logError({
+        context: 'emergency',
+        error: error instanceof Error ? error : new Error(String(error))
+      })
       showContractError(error, 'Error in emergency withdrawal')
     }
   }

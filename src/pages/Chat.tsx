@@ -11,6 +11,7 @@ import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { useChatNavbar } from '../hooks/mobile/useChatNavbar'
 import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimization'
+import { chatLogger } from '../utils/log/chatLogger'
 
 function Chat() {
   const [message, setMessage] = useState('')
@@ -19,6 +20,14 @@ function Chat() {
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
+
+  // Loguear inicio de sesión
+  React.useEffect(() => {
+    chatLogger.logSessionStart()
+    return () => {
+      chatLogger.logSessionEnd()
+    }
+  }, [])
 
 
 
@@ -32,10 +41,27 @@ function Chat() {
     }
 
     try {
+      chatLogger.logMessageEvent(
+        {
+          type: 'SEND',
+          messageId: `user_${Date.now()}`,
+          sender: 'user',
+          contentPreview: message.trim(),
+          timestamp: new Date().toISOString()
+        },
+        'Chat'
+      )
       await sendMessage(message.trim())
       setMessage('')
     } catch (error) {
-      console.error('Error sending message:', error)
+      chatLogger.logError(
+        'Error al enviar mensaje',
+        'Chat',
+        {
+          message: message.trim().substring(0, 50)
+        },
+        error as Error
+      )
       toast.error('Error al enviar el mensaje. Asegúrate de que el servidor esté ejecutándose.')
     }
   }
@@ -44,10 +70,25 @@ function Chat() {
     setShowWelcome(false)
     // Auto-send the selected question
     try {
+      chatLogger.logMessageEvent(
+        {
+          type: 'SEND',
+          messageId: `user_${Date.now()}`,
+          sender: 'user',
+          contentPreview: question,
+          timestamp: new Date().toISOString()
+        },
+        'WelcomeScreen'
+      )
       await sendMessage(question)
       setMessage('') // Clear the input after sending
     } catch (error) {
-      console.error('Error sending selected question:', error)
+      chatLogger.logError(
+        'Error al enviar pregunta seleccionada',
+        'WelcomeScreen',
+        { question: question.substring(0, 50) },
+        error as Error
+      )
       toast.error('Error sending the selected question.')
     }
   }
@@ -75,13 +116,13 @@ function Chat() {
 
         {/* Input Area */}
         <motion.div 
-          className={`fixed left-0 right-0 z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
+          className={`fixed left-0 right-0 z-10 bottom-2 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
           style={{
             transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
         >
           <div className="max-w-4xl mx-auto w-full">
             <div className={`${isMobile ? 'px-3 py-3 safe-area-inset-bottom' : 'px-6 py-4'}`}>

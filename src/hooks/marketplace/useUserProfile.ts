@@ -1,9 +1,9 @@
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
-import { useMemo, useCallback, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
 import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import LevelingSystemABI from '../../abi/LevelingSystem/LevelingSystem.json';
 import type { UserProfile } from '../../types/contracts';
-import { showXPNotification, injectXPNotificationStyles } from '../../utils/notifications/xpNotification';
+import { xpToasts } from '../../utils/toasts/xpToasts';
 
 const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
@@ -37,11 +37,6 @@ interface UseUserProfileReturn {
  */
 export function useUserProfile(): UseUserProfileReturn {
   const { address, isConnected } = useAccount();
-
-  // Initialize notification styles once
-  useEffect(() => {
-    injectXPNotificationStyles();
-  }, []);
 
   const marketplaceConfig = {
     address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
@@ -82,11 +77,7 @@ export function useUserProfile(): UseUserProfileReturn {
       const amount = (log.args as Record<string, unknown>)?.amount ? Number((log.args as Record<string, unknown>).amount) : 0;
       const reason = (log.args as Record<string, unknown>)?.reason ? String((log.args as Record<string, unknown>).reason) : 'ACTIVITY';
       
-      showXPNotification({
-        type: 'xp_gained',
-        amount,
-        reason
-      });
+      xpToasts.xpGained(amount, reason);
     }
     
     // Refetch inmediato cuando se gane XP
@@ -115,11 +106,7 @@ export function useUserProfile(): UseUserProfileReturn {
       const newLevel = (log.args as Record<string, unknown>)?.newLevel ? Number((log.args as Record<string, unknown>).newLevel) : 1;
       const nextLevelXP = ((newLevel + 1) ** 2 * 100);
       
-      showXPNotification({
-        type: 'level_up',
-        level: newLevel,
-        nextLevelXP
-      });
+      xpToasts.levelUp(newLevel, nextLevelXP);
     }
     
     // Refetch inmediato cuando suba de nivel

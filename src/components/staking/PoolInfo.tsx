@@ -4,6 +4,7 @@ import { formatEther } from 'viem'
 import { useReadContract, useAccount } from 'wagmi'
 import type { Abi } from 'viem'
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
+import { stakingLogger } from '../../utils/log/stakingLogger'
 
 interface PoolInfoProps {
   totalPoolBalance?: bigint
@@ -31,16 +32,6 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
     functionName: 'getPoolHealth',
     chainId: chain?.id,
   }) as { data: readonly [number?, string?, bigint?, string?] | undefined }
-
-  // ✅ Get user total deposit from main contract (fallback if viewer doesn't work)
-  const { data: userTotalDeposit } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getTotalDeposit',
-    args: [address],
-    chainId: chain?.id,
-    query: { enabled: !!address, staleTime: 10000, gcTime: 30000 }
-  })
 
   // ✅ Get user summary with flexible/locked breakdown - NEW: Now correctly implemented in contract
   const { data: userSummaryData } = useReadContract({
@@ -82,12 +73,13 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
   const userTotalStaked = extractValue(userSummaryData, 0) // Index 0: userStaked
   
   // Debug logs to verify data extraction (remove in production)
-  console.log('📊 Pool Info Debug:', {
-    userSummaryData,
-    userFlexibleBalance: userFlexibleBalance.toString(),
-    userLockedBalance: userLockedBalance.toString(),
-    userTotalStaked: userTotalStaked.toString(),
-    userTotalDeposit: userTotalDeposit?.toString()
+  stakingLogger.logPool({
+    totalPoolBalance: poolTotalValue ? formatEther(poolTotalValue) : '0',
+    uniqueUsers: poolActiveUsers ? Number(poolActiveUsers) : 0,
+    totalDeposits: poolTotalValue ? formatEther(poolTotalValue) : '0',
+    isPaused: false,
+    minDeposit: '1',
+    maxDeposit: statusMessage
   })
 
   // Format balance with proper decimals (POL has 18 decimals like ETH)

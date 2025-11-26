@@ -1,6 +1,6 @@
 import { memo, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts/nftToasts';
 import { useImageCache } from '../../hooks/cache/useImageCache';
 import { formatEther } from 'viem';
 import { formatPolValue } from '../../utils/formats/format';
@@ -54,16 +54,10 @@ function NFTCardMobile({ nft }: NFTCardMobileProps) {
   const handleCopyAddress = useCallback((address: string, type: string) => {
     navigator.clipboard.writeText(address).then(() => {
       setCopiedAddress(address);
-      toast.success(`${type} copied!`, {
-        duration: 2000,
-        position: 'top-center'
-      });
+      nftToasts.addressCopied(type);
       setTimeout(() => setCopiedAddress(null), 2000);
     }).catch(() => {
-      toast.error('Failed to copy', {
-        duration: 2000,
-        position: 'top-center'
-      });
+      nftToasts.error('Failed to copy address');
     });
   }, []);
 

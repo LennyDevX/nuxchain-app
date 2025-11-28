@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <img src="/Nuxchain-logo.jpg" alt="Nuxchain" className="w-10 h-10" />
+              <img src="/favicon1.png" alt="Nuxchain" className="w-10 h-10" />
               <h3 className="text-2xl font-bold text-gradient">
                 Nuxchain
               </h3>
@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <span className="px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
-                Beta v8.0
+                Public Beta v0.2
               </span>
             </div>
           </div>
@@ -115,13 +115,7 @@ const Footer: React.FC = () => {
               </a>
             </div>
             
-            <div className="space-y-2">
-              <p className="text-xs text-gray-500">Join our community</p>
-              <div className="flex flex-col space-y-1 text-xs text-gray-400">
-                <span>📧 support@nuxchain.com</span>
-                <span>🌐 www.nuxchain.com</span>
-              </div>
-            </div>
+            
           </div>
         </div>
 

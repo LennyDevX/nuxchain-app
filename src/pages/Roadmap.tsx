@@ -1,8 +1,8 @@
 import React from 'react';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import RoadmapHero from '../components/roadmap/RoadmapHero.tsx';
-import MilestonesGrid from '../components/roadmap/MilestonesGrid.tsx';
+import RoadmapHero from '../components/roadmap/RoadmapHero';
+import MilestonesGrid from '../components/roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
   const isMobile = useIsMobile();

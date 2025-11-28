@@ -15,7 +15,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'Nuxchain Protocols',
     shortTitle: 'Protocols',
-    description: 'Smart contracts y protocolos que potencian staking, tokenización y mercados descentralizados',
+    description: 'Smart contracts and protocols that power staking, tokenization and decentralized markets',
     icon: (
       <svg className="w-6 h-6 text-blue-400/60 group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -27,7 +27,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'NFTs 2.0',
     shortTitle: 'NFTs',
-    description: 'Ecosistema exclusivo de NFTs con utilidades reales, sin FOMO ni pérdidas de liquidez',
+    description: 'Exclusive NFT ecosystem with real utilities, no FOMO or liquidity losses',
     icon: (
       <svg className="w-6 h-6 text-purple-400/60 group-hover:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -39,7 +39,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'Nux-Chain',
     shortTitle: 'Blockchain',
-    description: 'Construido sobre Polygon y Ethereum para máxima compatibilidad y sostenibilidad',
+    description: 'Built on Polygon and Ethereum for maximum compatibility and sustainability',
     icon: (
       <svg className="w-6 h-6 text-orange-400/60 group-hover:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -51,7 +51,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'Nux-AI',
     shortTitle: 'AI',
-    description: 'Hub de IA para herramientas inteligentes que optimizan cada aspecto de tu experiencia',
+    description: 'AI hub with intelligent tools that optimize every aspect of your experience',
     icon: (
       <svg className="w-6 h-6 text-emerald-400/60 group-hover:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -63,7 +63,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'Nuxchain Labs',
     shortTitle: 'Labs',
-    description: 'Laboratorio de I+D colaborativo para desarrollar ideas innovadoras en Web3',
+    description: 'Collaborative R&D laboratory to develop innovative ideas in Web3',
     icon: (
       <svg className="w-6 h-6 text-indigo-400/60 group-hover:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -75,7 +75,7 @@ const ecosystemCards: EcosystemCard[] = [
   {
     title: 'Nux-Vault',
     shortTitle: 'Vault',
-    description: 'Sistema avanzado de tesorería para estrategias de inversión y diversificación segura',
+    description: 'Advanced treasury system for investment strategies and secure diversification',
     icon: (
       <svg className="w-6 h-6 text-rose-400/60 group-hover:text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -121,13 +121,13 @@ function BenefitsSection() {
           transition={{ duration: 0.5 }}
         >
           <div className="inline-flex items-center justify-center px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-6 backdrop-blur-sm">
-            <span className="text-sm font-medium text-white/80">Ecosistema Completo</span>
+            <span className="text-sm font-medium text-white/80">Complete Ecosystem</span>
           </div>
           <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-4 leading-tight`}>
             Nuxchain <span className="text-gradient">Ecosystem</span>
           </h2>
           <p className={`${isMobile ? 'text-sm' : 'text-lg'} text-white/70 max-w-3xl mx-auto leading-relaxed`}>
-            Componentes innovadores diseñados para revolucionar la experiencia Web3 y potenciar tu estrategia DeFi
+            Innovative components designed to revolutionize the Web3 experience and power your DeFi strategy
           </p>
         </motion.div>
 

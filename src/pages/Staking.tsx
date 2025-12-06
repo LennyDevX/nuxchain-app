@@ -15,21 +15,23 @@ declare global {
   }
 }
 
-// ✅ Add BigInt serialization support for React DevTools
 if (typeof BigInt.prototype.toJSON === 'undefined') {
   BigInt.prototype.toJSON = function() {
     return this.toString();
   };
 }
 
-// Lazy load components for better performance
+// Lazy load components - OPTIMIZED: Removed redundant components
 const StakingForm = lazy(() => import('../components/staking/StakingForm'))
 const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
-const SkillsProfile = lazy(() => import('../components/staking/SkillsProfile'))
 const StakingRewardsCalculator = lazy(() => import('../components/staking/StakingRewardsCalculator'))
+
+// Analytics components - Only essential ones
+const UserRewardsProjection = lazy(() => import('../components/staking/UserRewardsProjection'))
+const StakingEfficiencyCard = lazy(() => import('../components/staking/StakingEfficiencyCard'))
 
 // Interfaces
 interface DepositData {
@@ -232,119 +234,134 @@ const Staking = memo(() => {
 
   return (
     <GlobalBackground>
-      <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4 text-gradient">
-            Staking Dashboard
-          </h1>
-          <p className="text-xl text-white/80 max-w-3xl mx-auto">
-            Earn automatic rewards by staking your POL tokens
-          </p>
-        </div>
+      <div className="min-h-screen py-6 lg:py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* ═══════════════════════════════════════════════════════════════
+              HEADER - Compact & Clean
+          ═══════════════════════════════════════════════════════════════ */}
+          <header className="mb-8">
+            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+              Smart Staking
+            </h1>
+            <p className="text-white/60 text-sm lg:text-base">
+              Earn automatic rewards by staking your POL tokens
+            </p>
+          </header>
 
+          {/* ═══════════════════════════════════════════════════════════════
+              HERO STATS - Key metrics at a glance
+          ═══════════════════════════════════════════════════════════════ */}
+          <Suspense fallback={<LoadingSpinner />}>
+            <StakingStats
+              totalPoolBalance={processedData.totalPoolBalance}
+              uniqueUsersCount={processedData.uniqueUsersCount}
+              totalDeposit={processedData.totalDeposit}
+              pendingRewards={processedData.pendingRewards}
+            />
+          </Suspense>
 
-        <Suspense fallback={<LoadingSpinner />}>
-          <StakingStats
-            totalPoolBalance={processedData.totalPoolBalance}
-            uniqueUsersCount={processedData.uniqueUsersCount}
-            totalDeposit={processedData.totalDeposit}
-            pendingRewards={processedData.pendingRewards}
-          />
-        </Suspense>
-
-        {/* Contract Configuration Error Alert */}
-        {!hasValidContractConfig && (
-          <div className="mb-8 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              <span className="text-yellow-400 font-medium">⚠️ Staking contract is not properly configured. Please contact support.</span>
+          {/* ═══════════════════════════════════════════════════════════════
+              ALERTS - Contract status warnings (compact)
+          ═══════════════════════════════════════════════════════════════ */}
+          {!hasValidContractConfig && (
+            <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-400 text-sm flex items-center gap-2">
+                <span>⚠️</span>
+                Staking contract is not properly configured.
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Contract Paused Alert */}
-        {hasValidContractConfig && processedData.isPaused && (
-          <div className="mb-8 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              <span className="text-red-400 font-medium">⚠️ The staking contract is temporarily paused. Deposits cannot be made at this time.</span>
+          {hasValidContractConfig && processedData.isPaused && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm flex items-center gap-2">
+                <span>⏸️</span>
+                Contract is temporarily paused. Deposits are disabled.
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Main Dashboard Grid - Optimized for desktop */}
-        <div className={`${
-          isMobile ? 'space-y-8' : 'grid grid-cols-1 lg:grid-cols-3 gap-8'
-        }`}>
-          {/* Left Column - Staking Form (2 cols on desktop) */}
-          <div className={`${isMobile ? '' : 'lg:col-span-2'} space-y-8`}>
-            <Suspense fallback={<LoadingSpinner />}>
-              <StakingForm 
-                stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-                pendingRewards={processedData.pendingRewards}
-                isPaused={processedData.isPaused}
-                totalDeposit={processedData.totalDeposit}
-              />
-            </Suspense>
+          {/* ═══════════════════════════════════════════════════════════════
+              MAIN LAYOUT - 12-column grid for better control
+          ═══════════════════════════════════════════════════════════════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
             
-            {/* Staking Rewards Calculator */}
-            <Suspense fallback={<LoadingSpinner />}>
-              <StakingRewardsCalculator defaultAmount={100} />
-            </Suspense>
-          </div>
-
-          {/* Right Column - User Info and Pool Info (1 col on desktop) */}
-          <div className="space-y-6">
-            {isMobile && isConnected && (
+            {/* ─────────────────────────────────────────────────────────────
+                LEFT COLUMN - Main staking interface (8 cols)
+            ───────────────────────────────────────────────────────────── */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Staking Form - Primary Action Component */}
               <Suspense fallback={<LoadingSpinner />}>
-                <SkillsProfile />
-              </Suspense>
-            )}
-            
-            {isMobile ? (
-              <Suspense fallback={<LoadingSpinner />}>
-                <StakingInfoCarousel 
-                  totalPoolBalance={processedData.totalPoolBalance}
-                  uniqueUsersCount={processedData.uniqueUsersCount}
-                  contractAddress={STAKING_CONTRACT_ADDRESS}
+                <StakingForm 
+                  stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                  pendingRewards={processedData.pendingRewards}
                   isPaused={processedData.isPaused}
+                  totalDeposit={processedData.totalDeposit}
                 />
               </Suspense>
-            ) : (
-              <>
+
+              {/* Analytics Row - Rewards + Efficiency side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Suspense fallback={<LoadingSpinner />}>
-                  <PoolInfo 
-                    totalPoolBalance={processedData.totalPoolBalance}
-                    uniqueUsersCount={processedData.uniqueUsersCount}
-                  />
+                  <UserRewardsProjection />
                 </Suspense>
                 <Suspense fallback={<LoadingSpinner />}>
-                  <ContractInfo 
+                  <StakingEfficiencyCard />
+                </Suspense>
+              </div>
+            </div>
+
+            {/* ─────────────────────────────────────────────────────────────
+                RIGHT COLUMN - Sidebar info (4 cols)
+            ───────────────────────────────────────────────────────────── */}
+            <aside className="lg:col-span-4 space-y-6">
+              
+              {isMobile ? (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <StakingInfoCarousel 
+                    totalPoolBalance={processedData.totalPoolBalance}
+                    uniqueUsersCount={processedData.uniqueUsersCount}
                     contractAddress={STAKING_CONTRACT_ADDRESS}
                     isPaused={processedData.isPaused}
                   />
                 </Suspense>
-                
-                {/* NFT Skills Profile - Compact version for desktop */}
-                {isConnected && (
+              ) : (
+                <>
+                  {/* Pool Info - Contract health & metrics */}
                   <Suspense fallback={<LoadingSpinner />}>
-                    <SkillsProfile />
+                    <PoolInfo 
+                      totalPoolBalance={processedData.totalPoolBalance}
+                      uniqueUsersCount={processedData.uniqueUsersCount}
+                    />
                   </Suspense>
-                )}
-              </>
-            )}
-          </div>
-        </div>
 
-        {/* Recent Transactions - Disabled for future implementation */}
-        {/* TODO: Implement transaction history component */}
-      </div>
+                  {/* Contract Info - Address & status */}
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ContractInfo 
+                      contractAddress={STAKING_CONTRACT_ADDRESS}
+                      isPaused={processedData.isPaused}
+                    />
+                  </Suspense>
+
+                  {/* Rewards Calculator - Compact sidebar version */}
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <StakingRewardsCalculator defaultAmount={1000} />
+                  </Suspense>
+                </>
+              )}
+
+              {/* Mobile-only: Rewards Calculator */}
+              {isMobile && (
+                <Suspense fallback={<LoadingSpinner />}>
+                  <StakingRewardsCalculator defaultAmount={1000} />
+                </Suspense>
+              )}
+            </aside>
+          </div>
+
+        </div>
       </div>
     </GlobalBackground>
   )

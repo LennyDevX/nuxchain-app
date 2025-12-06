@@ -909,6 +909,31 @@ export class EnhancedSmartStaking extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  getTotalClaimedRewards(userAddress: Address): BigInt {
+    let result = super.call(
+      "getTotalClaimedRewards",
+      "getTotalClaimedRewards(address):(uint256)",
+      [ethereum.Value.fromAddress(userAddress)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getTotalClaimedRewards(
+    userAddress: Address,
+  ): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getTotalClaimedRewards",
+      "getTotalClaimedRewards(address):(uint256)",
+      [ethereum.Value.fromAddress(userAddress)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
   getUser(user: Address): EnhancedSmartStaking__getUserResult {
     let result = super.call(
       "getUser",
@@ -1262,6 +1287,29 @@ export class EnhancedSmartStaking extends ethereum.SmartContract {
       "totalPoolBalance",
       "totalPoolBalance():(uint256)",
       [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalRewardsClaimed(param0: Address): BigInt {
+    let result = super.call(
+      "totalRewardsClaimed",
+      "totalRewardsClaimed(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalRewardsClaimed(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalRewardsClaimed",
+      "totalRewardsClaimed(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();

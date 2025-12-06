@@ -11,6 +11,8 @@ import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization
 import { stakingLogger } from '../../utils/log/stakingLogger'
 import { stakingToasts } from '../../utils/toasts/stakingToasts'
 import { useUserDeposits } from '../../hooks/staking/useUserDeposits'
+import { useTotalClaimedRewardsV2 } from '../../hooks/staking/useTotalClaimedRewardsV2'
+import { useStakingAnalytics } from '../../hooks/staking/useStakingAnalytics'
 import StakingPeriodCarousel from './StakingPeriodCarousel'
 import { WithdrawConfirmationModal } from './WithdrawConfirmationModal'
 import { STAKING_PERIODS } from '../../constants/stakingConstants'
@@ -45,9 +47,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const contractBalance = (poolStats?.[4] as bigint) || 0n
 
-  // Get user info including total rewards claimed
+  // Get user info for refetching deposits
   const { 
-    data: userDepositsInfo,
     refetch: refetchUserDeposits
   } = useReadContract({
     address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
@@ -67,22 +68,31 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
   const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
 
-  // Extract total rewards claimed from user deposits info
-  // Structure: [totalDeposited, totalRewardsClaimed, depositCount, lastWithdrawTime]
-  const totalRewardsClaimed = useMemo(() => {
-    if (!userDepositsInfo || typeof userDepositsInfo !== 'object') return 0n
-    const info = userDepositsInfo as unknown as [bigint, bigint, bigint, bigint]
-    // totalRewardsClaimed is at index 1 - total amount of rewards user has claimed so far
-    const claimed = info[1]
-    stakingLogger.logRewards({
-      pending: pendingRewards ? formatEther(pendingRewards) : '0',
-      accumulated: claimed ? formatEther(claimed) : '0',
-      claimed: claimed ? formatEther(claimed) : '0',
-      baseAPY: 87.6,
-      finalAPY: 87.6
-    })
-    return claimed || 0n
-  }, [userDepositsInfo, pendingRewards])
+  // ✅ Get total claimed rewards directly from contract
+  const { 
+    totalClaimed: totalRewardsClaimed, 
+    isLoading: isLoadingClaimed, 
+    refetch: refetchClaimed 
+  } = useTotalClaimedRewardsV2(
+    stakingContractAddress as `0x${string}`,
+    address
+  )
+
+  // ✅ Get withdrawal status from new analytics hook
+  const { withdrawalStatus, loadingWithdrawal } = useStakingAnalytics()
+
+  // Log rewards for debugging
+  useEffect(() => {
+    if (pendingRewards !== undefined && totalRewardsClaimed !== undefined) {
+      stakingLogger.logRewards({
+        pending: formatEther(pendingRewards),
+        accumulated: formatEther(totalRewardsClaimed),
+        claimed: formatEther(totalRewardsClaimed),
+        baseAPY: 26.3,
+        finalAPY: 26.3
+      })
+    }
+  }, [pendingRewards, totalRewardsClaimed])
 
   // ✅ Font size adaptativo
   const fontSize = useMemo(() => ({
@@ -177,8 +187,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     if (isConfirmed) {
       console.log('✅ Transaction confirmed, refetching user deposits...')
       refetchUserDeposits()
+      // Refetch claimed rewards after withdraw/claim
+      if (activeTab === 'claim' || activeTab === 'withdraw') {
+        setTimeout(() => refetchClaimed(), 2000)
+      }
     }
-  }, [isConfirmed, refetchUserDeposits])
+  }, [isConfirmed, refetchUserDeposits, refetchClaimed, activeTab])
 
   const handleDeposit = async () => {
     if (!depositAmount || !address) return
@@ -604,12 +618,29 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             <div className="grid grid-cols-2 gap-4">
               {/* Total Rewards Claimed */}
               <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg p-4">
-                <p className="text-white/70 text-xs font-semibold mb-2">💎 Total Claimed</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-white/70 text-xs font-semibold">💎 Total Claimed</p>
+                  <div className="flex items-center gap-1">
+                    {isLoadingClaimed && (
+                      <svg className="animate-spin h-3 w-3 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    
+                  </div>
+                </div>
                 <p className="text-xl font-bold text-purple-400 mb-1">
-                  {totalRewardsClaimed ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL` : '0 POL'}
+                  {totalRewardsClaimed && totalRewardsClaimed > 0n 
+                    ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL` 
+                    : '0.000000 POL'}
                 </p>
                 <p className="text-white/50 text-xs">
-                  Cumulative rewards withdrawn
+                  {isLoadingClaimed 
+                    ? 'Loading from contract...' 
+                    : totalRewardsClaimed && totalRewardsClaimed > 0n
+                      ? 'Total rewards withdrawn since inception'
+                      : 'No rewards claimed yet. Stake and earn!'}
                 </p>
               </div>
 
@@ -663,6 +694,39 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
         {activeTab === 'withdraw' && (
           <div className="space-y-6">
+            {/* Withdrawal Status Info from Contract */}
+            {!loadingWithdrawal && withdrawalStatus && (
+              <motion.div 
+                className={`p-4 rounded-lg border ${
+                  withdrawalStatus.canWithdraw 
+                    ? 'bg-emerald-500/10 border-emerald-500/30' 
+                    : 'bg-amber-500/10 border-amber-500/30'
+                }`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/70 text-sm">Withdrawal Status</span>
+                  <span className={`text-sm font-semibold ${
+                    withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-amber-400'
+                  }`}>
+                    {withdrawalStatus.canWithdraw ? '✅ Available' : '⏳ Pending'}
+                  </span>
+                </div>
+                {withdrawalStatus.dailyLimitRemaining !== '0.00' && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/50">Daily Limit Remaining</span>
+                    <span className="text-white/80">{withdrawalStatus.dailyLimitRemaining} POL</span>
+                  </div>
+                )}
+                {!withdrawalStatus.canWithdraw && withdrawalStatus.lockedUntilFormatted && (
+                  <p className="text-amber-300/80 text-xs mt-2">
+                    🔒 Next unlock: {withdrawalStatus.lockedUntilFormatted}
+                  </p>
+                )}
+              </motion.div>
+            )}
+
             <div className="text-center">
               <p className="text-white/80 mb-4">
                 Withdraw all your staked amount and accumulated rewards
@@ -703,51 +767,51 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {
                   value: "0",
                   label: "Flexible",
-                  description: "0.005% per hour",
+                  description: "0.003% per hour",
                   roi: {
-                    daily: "~0.12%",
-                    monthly: "~3.6%",
-                    annual: "~43.8%"
+                    daily: "~0.072%",
+                    monthly: "~2.19%",
+                    annual: "~26.3%"
                   }
                 },
                 {
                   value: "30",
                   label: "30 Days",
-                  description: "0.010% per hour",
+                  description: "0.005% per hour",
                   roi: {
-                    daily: "~0.24%",
-                    monthly: "~7.2%",
-                    annual: "~87.6%"
+                    daily: "~0.12%",
+                    monthly: "~3.65%",
+                    annual: "~43.8%"
                   }
                 },
                 {
                   value: "90",
                   label: "90 Days",
-                  description: "0.014% per hour",
+                  description: "0.009% per hour",
                   roi: {
-                    daily: "~0.336%",
-                    monthly: "~10.08%",
-                    annual: "~122.64%"
+                    daily: "~0.216%",
+                    monthly: "~6.57%",
+                    annual: "~78.8%"
                   }
                 },
                 {
                   value: "180",
                   label: "180 Days",
-                  description: "0.017% per hour",
+                  description: "0.012% per hour",
                   roi: {
-                    daily: "~0.408%",
-                    monthly: "~12.24%",
-                    annual: "~149.28%"
+                    daily: "~0.288%",
+                    monthly: "~8.76%",
+                    annual: "~105.1%"
                   }
                 },
                 {
                   value: "365",
                   label: "365 Days",
-                  description: "0.025% per hour",
+                  description: "0.018% per hour",
                   roi: {
-                    daily: "~0.6%",
-                    monthly: "~18%",
-                    annual: "~219%"
+                    daily: "~0.432%",
+                    monthly: "~13.14%",
+                    annual: "~157.7%"
                   }
                 }
               ]}

@@ -1124,7 +1124,7 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
     return new GameifiedMarketplaceSkillsV2__getExpiringSkillsResult(
       result[0].toBigIntArray(),
       result[1].toBigIntArray(),
-      result[2].toTupleMatrix<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>(),
+      result[2].toTupleMatrix<>(),
     );
   }
 
@@ -1148,7 +1148,7 @@ export class GameifiedMarketplaceSkillsV2 extends ethereum.SmartContract {
       new GameifiedMarketplaceSkillsV2__getExpiringSkillsResult(
         value[0].toBigIntArray(),
         value[1].toBigIntArray(),
-        value[2].toTupleMatrix<GameifiedMarketplaceSkillsV2__getExpiringSkillsResultSkillsStruct>(),
+        value[2].toTupleMatrix<>(),
       ),
     );
   }

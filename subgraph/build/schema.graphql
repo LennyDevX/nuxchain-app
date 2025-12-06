@@ -19,6 +19,7 @@ type User @entity(immutable: false) {
   skillRenewalCount: Int
   skillSwitchCount: Int
   questCompletionCount: Int
+  questRewardClaimCount: Int
   
   # Totales agregados
   totalDeposited: BigInt!
@@ -26,6 +27,7 @@ type User @entity(immutable: false) {
   totalCompounded: BigInt!
   totalEarnings: BigInt
   totalSpent: BigInt
+  totalQuestRewards: BigInt
   
   # Métricas de gamificación
   level: Int!
@@ -33,6 +35,32 @@ type User @entity(immutable: false) {
   
   createdAt: BigInt!
   updatedAt: BigInt!
+}
+
+"""
+Quest Reward Claim - When user claims quest rewards from Rewards module
+"""
+type QuestRewardClaim @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  questId: BigInt!
+  amount: BigInt!
+  boostApplied: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Reward Funding - When rewards contract is funded
+"""
+type RewardFunding @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  funder: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
 }
 
 """

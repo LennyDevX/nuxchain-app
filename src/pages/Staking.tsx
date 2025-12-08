@@ -241,7 +241,7 @@ const Staking = memo(() => {
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
           <header className="mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gradient mb-2">
               Smart Staking
             </h1>
             <p className="text-white/60 text-sm lg:text-base">

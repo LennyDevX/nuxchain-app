@@ -129,10 +129,14 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
     try {
       // Prepare conversation history for Gemini API
-      const conversationHistory = state.messages.map((msg: ChatMessage) => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-      }));
+      // FIXED: Filter out messages with null/empty text to avoid Gemini API error
+      // "required oneof field 'data' must have one initialized field"
+      const conversationHistory = state.messages
+        .filter((msg: ChatMessage) => msg.text && msg.text.trim() !== '')
+        .map((msg: ChatMessage) => ({
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        }));
 
       // Add current message
       conversationHistory.push({

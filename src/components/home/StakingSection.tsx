@@ -9,28 +9,27 @@ function StakingSection() {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const isMobile = useIsMobile();
 
-  // Staking calculator logic
-  // ROI base flexible: 0.005% por hora (0.00005)
-  // Multiplicadores calculados según los nuevos ROIs por hora
-  // 30d: 0.01% (2.0x), 90d: 0.014% (2.8x), 180d: 0.017% (3.4x), 365d: 0.021% (4.2x)
-  const getMultiplier = () => {
+  // Staking calculator logic - APY values from EnhancedSmartStakingRewards.sol
+  // Lockup periods: 0 (Flexible), 30, 90, 180, 365 days
+  // Base APYs from contract: 263, 438, 788, 1051, 1577 (in basis points)
+  // Hourly rates from contract comments: 0.003%, 0.005%, 0.009%, 0.012%, 0.018%
+  const getAPYData = () => {
     switch (lockPeriod) {
-      case '30': return 2.0;
-      case '90': return 2.8;
-      case '180': return 3.4;
-      case '365': return 4.2;
+      case '30': return { apy: 43.8, hourlyRate: 0.005 }; // 43.8% APY = 0.005% per hour
+      case '90': return { apy: 78.8, hourlyRate: 0.009 }; // 78.8% APY = 0.009% per hour
+      case '180': return { apy: 105.12, hourlyRate: 0.012 }; // 105.12% APY = 0.012% per hour
+      case '365': return { apy: 157.68, hourlyRate: 0.018 }; // 157.68% APY = 0.018% per hour
       case 'flexible':
-      default: return 1;
+      default: return { apy: 26.3, hourlyRate: 0.003 }; // 26.3% APY = 0.003% per hour
     }
   };
 
   const calculateProjectedRewards = (days: number) => {
     if (!stakingAmount || isNaN(Number(stakingAmount))) return 0;
     const amount = Number(stakingAmount);
-    const hourlyRate = 0.00005; // 0.005% por hora
-    const multiplier = getMultiplier();
+    const { hourlyRate } = getAPYData();
     const hours = days * 24;
-    return amount * hourlyRate * multiplier * hours;
+    return amount * hourlyRate * hours;
   };
 
   return (
@@ -108,11 +107,11 @@ function StakingSection() {
                     onChange={(e) => setLockPeriod(e.target.value)}
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:border-purple-400 focus:outline-none transition-colors"
                   >
-                    <option value="flexible" className="bg-gray-800">Flexible (1x)</option>
-                    <option value="30" className="bg-gray-800">30 Days (2.0x)</option>
-                    <option value="90" className="bg-gray-800">90 Days (2.8x)</option>
-                    <option value="180" className="bg-gray-800">180 Days (3.4x)</option>
-                    <option value="365" className="bg-gray-800">365 Days (4.2x)</option>
+                    <option value="flexible" className="bg-gray-800">Flexible (26.3% APY)</option>
+                    <option value="30" className="bg-gray-800">30 Days (43.8% APY)</option>
+                    <option value="90" className="bg-gray-800">90 Days (78.8% APY)</option>
+                    <option value="180" className="bg-gray-800">180 Days (105.12% APY)</option>
+                    <option value="365" className="bg-gray-800">365 Days (157.68% APY)</option>
                   </select>
                 </div>
 
@@ -152,10 +151,10 @@ function StakingSection() {
 
                   <div className="text-center pt-4 border-t border-white/10 mt-4">
                     <div className="text-xs text-white/50 mb-1">
-                      Base ROI: 0.005% per hour • Multiplier: {getMultiplier()}x
+                      Base APY: {getAPYData().apy.toFixed(2)}% • ROI: {(getAPYData().hourlyRate).toFixed(4)}% per hour
                     </div>
                     <div className="text-sm text-purple-300 font-semibold">
-                      Effective APY: {(getMultiplier() * 0.005 * 24 * 365).toFixed(2)}%
+                      Effective APY: {getAPYData().apy.toFixed(2)}%
                     </div>
                   </div>
                 </div>
@@ -206,19 +205,19 @@ function StakingSection() {
             >
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Base APY ~44% anual rewards (Flexible)</span>
+                <span className="text-white/80">Base APY 26.3% (Flexible staking)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">APY máximo ~184% (365 días)</span>
+                <span className="text-white/80">APY up to 157.68% (365 days lock)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Flexible lock periods</span>
+                <span className="text-white/80">Multiple lock periods: 30, 90, 180, 365 days</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">Auto-compound rewards system </span>
+                <span className="text-white/80">Skill boosts and gamification rewards</span>
               </div>
             </motion.div>
           </div>

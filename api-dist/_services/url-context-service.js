@@ -3,8 +3,8 @@
  * URL Context Service for Gemini API
  * Provides functionality to fetch content from URLs for additional context
  */
-import WebScraperService from './web-scraper.ts';
-import analyticsService from './analytics-service.ts';
+import WebScraperService from './web-scraper.js';
+import analyticsService from './analytics-service.js';
 class UrlContextService {
     cache;
     maxCacheSize;

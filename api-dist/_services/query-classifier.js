@@ -142,7 +142,17 @@ export function getConversationContext() {
 export function needsKnowledgeBase(query, options = {}) {
     const { includeContext = true, debugMode = false } = options;
     if (!query || typeof query !== 'string') {
-        const result = { needsKB: false, reason: 'empty_query', score: 0 };
+        const result = {
+            needsKB: false,
+            reason: 'empty_query',
+            score: 0,
+            reasoning: [],
+            keywordMatches: 0,
+            matchedKeywords: [],
+            isCapabilityQuestion: false,
+            hasNumericPattern: false,
+            hasNuxchainContext: false
+        };
         if (debugMode)
             console.log(`[CLASSIFIER] Invalid query:`, result);
         return result;
@@ -162,7 +172,12 @@ export function needsKnowledgeBase(query, options = {}) {
                 needsKB: false,
                 reason: 'generic_question',
                 score: 0.1,
-                reasoning
+                reasoning,
+                keywordMatches: 0,
+                matchedKeywords: [],
+                isCapabilityQuestion: false,
+                hasNumericPattern: false,
+                hasNuxchainContext: false
             };
         }
     }

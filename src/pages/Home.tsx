@@ -11,6 +11,7 @@ const AISection = lazy(() => import('../components/home/AISection'))
 const TokenizationSection = lazy(() => import('../components/home/TokenizationSection'))
 const AirdropsInfo = lazy(() => import('../components/home/AirdropsInfo'))
 const BenefitsSection = lazy(() => import('../components/home/BenefitsSection'))
+const PriceTracker = lazy(() => import('../components/market/PriceTracker'))
 
 // Loading skeleton fallback - Optimizado con HeroSkeletonLoader
 const SectionLoader = () => (
@@ -60,6 +61,16 @@ function Home() {
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <AirdropsInfo />
+        </Suspense>
+      </LazySection>
+      
+      <LazySection>
+        <Suspense fallback={<SectionLoader />}>
+          <div className="w-full py-20 px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            <div className="max-w-7xl mx-auto">
+              <PriceTracker compact />
+            </div>
+          </div>
         </Suspense>
       </LazySection>
       

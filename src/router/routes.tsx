@@ -19,6 +19,8 @@ const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevH
 const Roadmap = lazy(() => import(/* webpackChunkName: "roadmap" */ '../pages/Roadmap'));
 const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skills'));
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
+const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
+const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -64,6 +66,8 @@ function AppRoutes() {
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dev-hub" element={<CTAHub />} />
+        <Route path="/investments" element={<Investments />} />
+        <Route path="/market" element={<Market />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

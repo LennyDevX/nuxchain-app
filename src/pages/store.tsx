@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { useBalance } from 'wagmi';
 import { toast } from 'react-hot-toast';
+import { formatUnits } from 'viem';
 import { SKILLS_DATA, SkillCategory } from '../components/skills/config';
 import type { SkillData, SkillType } from '../components/skills/config';
 import { Rarity } from '../types/contracts';
@@ -36,7 +37,8 @@ export default function Store() {
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   // Get ETH balance (native currency for individual skills)
-  const userBalance = balanceData?.value ? parseFloat(balanceData.formatted) : 0;
+  // In wagmi 3.x, format the balance manually using formatUnits
+  const userBalance = balanceData?.value ? parseFloat(formatUnits(balanceData.value, balanceData.decimals)) : 0;
 
   // Memoized skills data
   const allSkills = useMemo(() => SKILLS_DATA, []);

@@ -20,7 +20,7 @@ class WebScraperService {
      * Detects URLs in text
      */
     detectUrls(text) {
-        const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+        const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_.+~#?&//=]*)/g;
         return text.match(urlRegex) || [];
     }
     /**
@@ -79,7 +79,7 @@ class WebScraperService {
             }
             const html = await response.text();
             console.log(`[WebScraper] HTML obtained: ${html.length} characters`);
-            const extractedData = this.parseHtml(html, url);
+            const extractedData = this.parseHtml(html);
             // Limit extracted content to first 3000 characters
             let limitedContent = extractedData.content || '';
             const maxLength = options.maxContentLength || 3000;
@@ -101,11 +101,12 @@ class WebScraperService {
         }
         catch (error) {
             // Critical error logging only
-            console.error(`❌ [WebScraper] Error extracting content from ${url}:`, error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`❌ [WebScraper] Error extracting content from ${url}:`, message);
             return {
                 success: false,
                 url: url,
-                error: error.message,
+                error: message,
                 metadata: {
                     domain: this.extractDomain(url),
                     extractedAt: new Date().toISOString(),
@@ -117,7 +118,7 @@ class WebScraperService {
     /**
      * Parses HTML and extracts relevant content
      */
-    parseHtml(html, url) {
+    parseHtml(html) {
         // Extract title
         const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
         let title = titleMatch ? titleMatch[1].trim() : '';
@@ -129,7 +130,7 @@ class WebScraperService {
         // Extract content from body
         let content = '';
         // Remove scripts, styles and other unwanted elements
-        let cleanHtml = html
+        const cleanHtml = html
             .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
             .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
             .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')

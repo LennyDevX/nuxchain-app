@@ -22,16 +22,18 @@ if (mobileOptConfig.reduceAnimations) {
   document.documentElement.style.setProperty('--animation-timing', 'linear');
 }
 
-// ✅ Disable Lit dev mode for production performance
-// This prevents "Lit is in dev mode" warning in console
-if (typeof window !== 'undefined' && import.meta.env.PROD) {
-  // Disable Lit dev mode warnings in production
+// ✅ Disable Lit dev mode warnings (WalletConnect uses Lit internally)
+// This prevents "Element scheduled an update after update completed" warnings
+if (typeof window !== 'undefined') {
   try {
-    // Access global Lit state if available
+    // Suppress Lit development warnings globally
     const litModule = (globalThis as Record<string, unknown>).__litModule;
     if (litModule && typeof litModule === 'object' && 'setIsDevMode' in litModule) {
       (litModule as { setIsDevMode?: (isDev: boolean) => void }).setIsDevMode?.(false);
     }
+    
+    // Also suppress via global flag
+    (globalThis as Record<string, unknown>).litIssuedWarnings = new Set(['change-in-update']);
   } catch {
     // Silently fail if Lit module not accessible
   }
@@ -40,6 +42,7 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 import './styles/index.css'
 import './styles/spacing.css'
 import './styles/responsive-grid.css'
+import './styles/walletconnect.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
 
@@ -70,8 +73,6 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     },
   });
 }
-
-// ✅ Configure QueryClient with optimal defaults for performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

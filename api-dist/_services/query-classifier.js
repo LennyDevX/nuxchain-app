@@ -158,7 +158,7 @@ export function needsKnowledgeBase(query, options = {}) {
         return result;
     }
     const lowerQuery = query.toLowerCase().trim();
-    let reasoning = [];
+    const reasoning = [];
     let finalScore = 0;
     // Paso 1: Detectar si es una pregunta completamente genérica
     // que NO sea sobre capacidades de Nuxchain

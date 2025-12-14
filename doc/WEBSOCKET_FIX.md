@@ -181,14 +181,54 @@ const { dataSource, isConnected, lastUpdate } = useLiveGridBot(config);
 ❌ Errores 401 cada 60 segundos
 ❌ Consola llena de logs y warnings
 ❌ Múltiples conexiones simultáneas
+❌ Reconexiones infinitas
 ```
 
 ### Después
 ```
 ✅ 1 conexión WebSocket estable o fallback a REST
 ✅ 0 errores 401 (API opcional con fallback)
-✅ Logs limpios e informativos
+✅ 0 logs en consola (silencioso en producción)
 ✅ Gestión correcta del estado de conexiones
+✅ Reconexiones inteligentes con máximo 5 intentos
+```
+
+---
+
+## 🔧 Cambios en Logs
+
+### Política de Logs
+- ✅ **Producción**: ZERO logs en consola
+- ✅ **Errores**: Silenciosos con fallback automático
+- ✅ **WebSocket**: Sin logs de conexión/desconexión
+- ✅ **API**: Sin logs de errores 401/404
+- ✅ **State**: Sin logs de localStorage
+
+### Logs Eliminados
+- `[WebSocket] Already connected or connecting, skipping...`
+- `[WebSocket] Attempting to connect to Binance Futures...`
+- `[WebSocket] Connected to Binance Futures`
+- `[WebSocket] Connection error occurred`
+- `[WebSocket] Disconnected: 1006`
+- `[WebSocket] Will retry connection (X/5)`
+- `[WebSocket] Max retries reached, using REST API only`
+- `[useInvestments] API not available, using fallback data`
+- `[useInvestments] API not reachable, using fallback data`
+- `[useInvestments] Error fetching data:`
+- `[useLiveGridBot] Error calculating metrics:`
+- `[useLiveGridBot] REST fetch error:`
+- `[GridBot] Error loading state:`
+- `[GridBot] Error saving state:`
+
+### Debug Mode (Opcional)
+Si necesitas debugging, puedes crear una variable de entorno:
+```typescript
+// En .env
+VITE_DEBUG_GRIDBOT=true
+
+// En código
+const DEBUG = import.meta.env.VITE_DEBUG_GRIDBOT === 'true';
+if (DEBUG) console.log('[Debug] Message');
 ```
 
 ---

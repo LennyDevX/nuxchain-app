@@ -258,7 +258,7 @@ export interface PerformanceMetric {
   name: string;
   value: number;
   timestamp: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ServiceStats {
@@ -299,7 +299,7 @@ export interface SystemInstruction {
 // ========================================
 // Context Cache Service Types (Phase 3)
 // ========================================
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   value: T;
   expiresAt: number;
   createdAt: number;
@@ -325,7 +325,7 @@ export interface ScrapedContent {
   url: string;
   title?: string;
   content?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   error?: string;
 }
 
@@ -334,7 +334,7 @@ export interface UrlContentMetadata {
   extractedAt: string;
   contentLength: number;
   originalLength: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ProcessedUrlContent {

@@ -88,8 +88,6 @@ class SemanticStreamingService {
    */
   createSemanticChunks(text: string): SemanticChunk[] {
     const chunks: SemanticChunk[] = [];
-    let currentChunk: string = '';
-    let currentType: string = 'simple';
     let position: number = 0;
 
     // ✅ Split by paragraphs first to preserve markdown structure
@@ -191,8 +189,7 @@ class SemanticStreamingService {
     const {
       enableSemanticChunking = true,
       enableContextualPauses = true,
-      enableVariableSpeed = true,
-      clientInfo = {}
+      enableVariableSpeed = true
     } = options;
 
     // Configure optimized headers

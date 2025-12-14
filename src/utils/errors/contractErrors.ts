@@ -2,7 +2,7 @@
 
 export interface ContractError {
   name: string;
-  args?: any[];
+  args?: unknown[];
 }
 
 /**
@@ -10,10 +10,11 @@ export interface ContractError {
  * @param error - The error object from the contract call
  * @returns User-friendly error message
  */
-export function parseContractError(error: any): string {
+export function parseContractError(error: unknown): string {
+  const err = error as { message?: unknown; cause?: { data?: unknown } | undefined; data?: unknown };
   // Check if it's a contract revert with custom error
-  if (error?.cause?.data || error?.data) {
-    const errorData = error.cause?.data || error.data;
+  if (err?.cause?.data || err?.data) {
+    const errorData = err.cause?.data || err.data;
     
     // Try to decode the error based on known error signatures
     if (typeof errorData === 'string') {
@@ -64,8 +65,8 @@ export function parseContractError(error: any): string {
   }
 
   // Check for common revert reasons
-  if (error?.message) {
-    const message = error.message.toLowerCase();
+  if (typeof err?.message === 'string') {
+    const message = err.message.toLowerCase();
     
     if (message.includes('paused')) {
       return '⏸️ Contract is temporarily paused';
@@ -96,7 +97,7 @@ export function parseContractError(error: any): string {
  * @param error - The error object
  * @param customMessage - Optional custom message prefix
  */
-export function showContractError(error: any, customMessage?: string): void {
+export function showContractError(error: unknown, customMessage?: string): void {
   const errorMessage = parseContractError(error);
   const fullMessage = customMessage ? `${customMessage}: ${errorMessage}` : errorMessage;
   

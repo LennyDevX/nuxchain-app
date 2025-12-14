@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
-import { parseEther, formatEther } from 'viem'
+import { parseEther, formatEther, formatUnits } from 'viem'
 import { polygon } from 'wagmi/chains'
 import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json'
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
@@ -205,7 +205,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       } else if (amountValidation.error?.includes('Maximum')) {
         stakingToasts.maximumDepositError('10,000 POL')
       } else if (amountValidation.error?.includes('Insufficient')) {
-        stakingToasts.insufficientBalance(depositAmount, balance ? parseFloat(balance.formatted).toFixed(4) : '0')
+        stakingToasts.insufficientBalance(depositAmount, balance ? parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(4) : '0')
       } else {
         stakingToasts.error(amountValidation.error || 'Invalid deposit amount')
       }
@@ -575,7 +575,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 </div>
               </div>
               <div className="mt-2 text-sm text-white/60">
-                Balance: {balance ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}` : '0 POL'}
+                Balance: {balance ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(4)} ${balance.symbol}` : '0 POL'}
               </div>
             </div>
 

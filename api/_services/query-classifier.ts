@@ -8,7 +8,6 @@
 import type {
   ClassificationOptions,
   ConversationContext,
-  SimpleClassificationResult,
   DetailedClassificationResult
 } from '../types/index.js';
 
@@ -191,7 +190,7 @@ export function needsKnowledgeBase(query: string, options: ClassificationOptions
   }
   
   const lowerQuery: string = query.toLowerCase().trim();
-  let reasoning: string[] = [];
+  const reasoning: string[] = [];
   let finalScore: number = 0;
   
   // Paso 1: Detectar si es una pregunta completamente genérica

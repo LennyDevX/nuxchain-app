@@ -48,7 +48,7 @@ export class StreamingService {
       this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
       this.webWorker.onerror = this.handleWorkerError.bind(this);
       
-      chatLogger.logInfo('Web Worker inicializado correctamente', 'StreamingService');
+      chatLogger.logDebug('Web Worker inicializado', 'StreamingService');
       
     } catch (error) {
       console.warn('Failed to initialize Web Worker from file, trying fallback:', error);
@@ -65,7 +65,7 @@ export class StreamingService {
       this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
       this.webWorker.onerror = this.handleWorkerError.bind(this);
       
-      chatLogger.logInfo('Fallback Web Worker inicializado correctamente', 'StreamingService');
+      chatLogger.logDebug('Fallback Web Worker inicializado', 'StreamingService');
       
     } catch (error) {
       console.warn('Web Worker not available, using main thread processing:', error);
@@ -239,14 +239,32 @@ export class StreamingService {
     
     this.activeStreams.add(reader);
     
+    // Stream tracking variables (reduce verbosity)
+    let chunkCounter = 0;
+    let totalBytesRead = 0;
+    const streamStartTime = Date.now();
+    
     try {
       while (true) {
         const { value, done } = await reader.read();
-        chatLogger.logDebug(`Lectura de stream: done=${done}, tamaño=${value?.length}`, 'StreamingService');
         
         if (done) {
-          chatLogger.logInfo('Stream finalizado correctamente', 'StreamingService');
+          const duration = Date.now() - streamStartTime;
+          chatLogger.logInfo('✅ Stream completado', 'StreamingService', {
+            chunks: chunkCounter,
+            bytes: totalBytesRead,
+            duration: `${duration}ms`,
+            avgSpeed: `${Math.round(totalBytesRead / duration)}b/ms`
+          });
           break;
+        }
+        
+        chunkCounter++;
+        totalBytesRead += value?.length || 0;
+        
+        // Log solo cada 50 chunks o en producción nunca
+        if (chunkCounter % 50 === 0) {
+          chatLogger.logDebug(`📊 Stream progreso: ${chunkCounter} chunks, ${totalBytesRead} bytes`, 'StreamingService');
         }
         
         // chunkIndex++; // Removed unused increment

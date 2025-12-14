@@ -1,8 +1,11 @@
 
-import ai, { DEFAULT_MODEL, defaultFunctionDeclaration, urlContextFunctionDeclaration, allFunctionDeclarations } from '../config/ai-config.js';
+import ai, { DEFAULT_MODEL, blockchainFunctionDeclarations, blockchainFunctionNames, allFunctionDeclarations } from '../config/ai-config.js';
+import { executeBlockchainFunction } from './blockchain-service.js';
 import { incrementTokenCount, logError, logInfo } from '../middlewares/logger.js';
 import env from '../config/environment.js';
 import contextCacheService from './context-cache-service.js';
+import tokenCountingService from './token-counting-service.js';
+import costTrackingService from './cost-tracking-service.js';
 import { GoogleGenAI } from '@google/genai';
 import { getModelInfo, getSafeModel } from '../config/ai-config.js';
 import embeddingsService from './embeddings-service.js';
@@ -409,34 +412,26 @@ export function getManagedResponseCache() {
 export async function executeFunctionCall(functionCall) {
   const { name, args } = functionCall;
   
-  console.log('🔧 [EXEC] Ejecutando función:', name);
-  console.log('🔧 [EXEC] Argumentos recibidos:', JSON.stringify(args, null, 2));
+  console.log('� [EXEC] Ejecutando función blockchain:', name);
+  chatLogger.logInfo(`🔗 Ejecutando: ${name}`, 'FunctionCall', args);
   
   try {
-    let result;
-    switch (name) {
-      case 'urlContext':
-        console.log('🔧 [EXEC] Llamando executeUrlContext con argumentos:', JSON.stringify(args, null, 2));
-        result = await executeUrlContext(args);
-        console.log('🔧 [EXEC] Resultado de urlContext:', JSON.stringify(result, null, 2));
-        return result;
-
-      case 'controlLight':
-        console.log('🔧 [EXEC] Llamando executeControlLight con argumentos:', JSON.stringify(args, null, 2));
-        result = await executeControlLight(args);
-        console.log('🔧 [EXEC] Resultado de controlLight:', JSON.stringify(result, null, 2));
-        return result;
-      default:
-        throw new Error(`Función no reconocida: ${name}`);
+    // Check if it's a blockchain function
+    if (blockchainFunctionNames.includes(name)) {
+      const result = await executeBlockchainFunction(name, args);
+      console.log('🔗 [EXEC] Resultado blockchain:', JSON.stringify(result, null, 2));
+      chatLogger.logInfo(`✅ Resultado: ${name}`, 'FunctionCall', { success: result.success });
+      return result;
     }
+    
+    throw new Error(`Función no reconocida: ${name}`);
   } catch (error) {
-    console.error(`🔧 [EXEC] Error ejecutando función ${name}:`, error);
-    const errorResult = {
+    console.error(`🔗 [EXEC] Error ejecutando función ${name}:`, error);
+    chatLogger.logError(`❌ Error: ${name}`, 'FunctionCall', { error: error.message });
+    return {
       error: true,
       message: error.message
     };
-    console.log('🔧 [EXEC] Resultado de error:', JSON.stringify(errorResult, null, 2));
-    return errorResult;
   }
 }
 
@@ -445,63 +440,11 @@ export async function executeFunctionCall(functionCall) {
  * @param {Object} args - Argumentos de la función
  * @returns {Promise<Object>} - Resultado del contexto de URL
  */
-async function executeUrlContext(args) {
-  try {
-    // Verificar que la API key esté configurada
-    if (!env.geminiApiKey) {
-      throw new Error('GEMINI_API_KEY no está configurada. En producción, asegúrate de configurar esta variable de entorno en tu plataforma de hosting.');
-    }
-    
-    const { url, includeImages = false } = args;
-    
-    console.log('🔧 [URL_CONTEXT] Procesando URL:', url);
-    console.log('🔧 [URL_CONTEXT] Incluir imágenes:', includeImages);
-    
-    const contextData = await urlContextService.fetchUrlContext(url, { includeImages });
-    
-    console.log('🔧 [URL_CONTEXT] Contexto obtenido exitosamente');
-    
-    return {
-      success: true,
-      data: contextData,
-      message: `URL context retrieved successfully from ${url}`
-    };
-    
-  } catch (error) {
-    console.error('🔧 [URL_CONTEXT] Error en executeUrlContext:', error.message);
-    return {
-      success: false,
-      error: error.message,
-      message: `Error al obtener contenido de la URL: ${error.message}`
-    };
-  }
-}
-
-
-
-/**
- * Ejecuta la función de control de luz (función original)
- * @param {Object} args - Argumentos de la función
- * @returns {Promise<Object>} - Resultado del control
- */
-async function executeControlLight(args) {
-  try {
-    const { brightness, colorTemperature } = args;
-    
-    // Simular control de luz
-    return {
-      success: true,
-      data: { brightness, colorTemperature },
-      message: `Luz configurada: brillo ${brightness}%, temperatura ${colorTemperature}`
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message,
-      message: `Error al controlar la luz: ${error.message}`
-    };
-  }
-}
+// ============================================
+// BLOCKCHAIN FUNCTION CALLING
+// Las funciones blockchain se manejan en ./blockchain-service.js
+// Funciones disponibles: get_pol_price, get_staking_info, get_nft_listings, check_wallet_balance, estimate_staking_reward
+// ============================================
 
 /**
  * Procesa una solicitud a Gemini con herramientas habilitadas
@@ -536,29 +479,16 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
     }
   }
 
-  // Configurar herramientas basadas en enabledTools
-  const tools = [];
-  const allowedFunctionNames = [];
-  const hasUrlContext = enabledTools.includes('urlContext');
+  // Configurar herramientas blockchain
+  const tools = [...blockchainFunctionDeclarations];
+  const allowedFunctionNames = [...blockchainFunctionNames];
   
-  if (hasUrlContext) {
-    console.log('🔧 [TOOLS] Agregando herramienta urlContext');
-    tools.push(urlContextFunctionDeclaration);
-    allowedFunctionNames.push('urlContext');
-  }
-  
-  // googleSearch tool removed
-  
-  if (enabledTools.includes('controlLight')) {
-    console.log('🔧 [TOOLS] Agregando herramienta controlLight');
-    tools.push(defaultFunctionDeclaration);
-    allowedFunctionNames.push('controlLight');
-  }
+  console.log('🔗 [TOOLS] Blockchain tools habilitadas:', allowedFunctionNames.join(', '));
   
   // Enriquecer contexto con base de conocimientos para consultas relevantes
   if (typeof contents === 'string') {
     const knowledgeContext = await enrichContextWithKnowledgeBase(contents, {
-      skipNuxchainContext: hasUrlContext
+      skipNuxchainContext: false
     });
     if (knowledgeContext) {
       contents = `${knowledgeContext}\n\n${contents}`;
@@ -568,7 +498,7 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
     const lastMessage = contents[contents.length - 1];
     if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0] && lastMessage.parts[0].text) {
       const knowledgeContext = await enrichContextWithKnowledgeBase(lastMessage.parts[0].text, {
-        skipNuxchainContext: hasUrlContext
+        skipNuxchainContext: false
       });
       if (knowledgeContext) {
         // Crear una copia del último mensaje con contexto enriquecido
@@ -614,39 +544,37 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
     }
   };
   
-  // Para consultas sobre precios actuales o información en tiempo real, forzar el uso de herramientas
-  let isRealTimeQuery = false;
+  // Para consultas blockchain, forzar el uso de herramientas
+  let isBlockchainQuery = false;
   
   // Manejar tanto strings como arrays
   const contentsArray = Array.isArray(contents) ? contents : [{ parts: [{ text: contents }] }];
   
-  isRealTimeQuery = contentsArray.some(content => {
+  isBlockchainQuery = contentsArray.some(content => {
     const text = content.parts?.[0]?.text?.toLowerCase() || '';
-    console.log('🔧 [DEBUG] Texto analizado:', text);
     
-    const hasPrecio = text.includes('precio') || text.includes('preico');
-    const hasBitcoin = text.includes('bitcoin') || text.includes('btc');
-    const hasTimeIndicator = text.includes('actual') || text.includes('hoy') || text.includes('ahora') || 
-                            text.includes('últimas') || text.includes('tiempo real');
-    const hasDatePattern = /\b\d{1,2}\b.*\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b.*\b\d{4}\b/.test(text) ||
-                            /\d{4}-\d{2}-\d{2}/.test(text) ||
-                            /\d{1,2}\/\d{1,2}\/\d{4}/.test(text) ||
-                            /\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+\d{1,2},?\s+\d{4}\b/.test(text);
+    // Detectar queries blockchain
+    const hasPolPrice = text.includes('pol') || text.includes('matic') || text.includes('polygon');
+    const hasPriceKeyword = text.includes('precio') || text.includes('price') || text.includes('cotiza');
+    const hasStaking = text.includes('staking') || text.includes('stake') || text.includes('stakear');
+    const hasNft = text.includes('nft') || text.includes('marketplace') || text.includes('listado');
+    const hasWallet = text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera');
+    const hasReward = text.includes('reward') || text.includes('recompensa') || text.includes('apr') || text.includes('ganancia');
     
-    console.log('🔧 [DEBUG] Condiciones:', { hasPrecio, hasBitcoin, hasTimeIndicator, hasDatePattern });
+    const shouldUseTools = (hasPolPrice && hasPriceKeyword) || hasStaking || (hasNft && (text.includes('lista') || text.includes('venta'))) || hasWallet || hasReward;
     
-    const shouldUseTools = hasPrecio && hasBitcoin && (hasTimeIndicator || hasDatePattern);
-    console.log('🔧 [DEBUG] Debería usar herramientas:', shouldUseTools);
+    if (shouldUseTools) {
+      chatLogger.logInfo('🔗 Query blockchain detectada', 'Tools', { hasPolPrice, hasStaking, hasNft, hasWallet, hasReward });
+    }
     
     return shouldUseTools;
   });
   
-  console.log('🔧 [DEBUG] isRealTimeQuery:', isRealTimeQuery);
-  console.log('🔧 [DEBUG] allowedFunctionNames:', allowedFunctionNames);
+  chatLogger.logDebug(`🔗 isBlockchainQuery: ${isBlockchainQuery}`, 'Tools');
   
-  if (isRealTimeQuery && allowedFunctionNames.includes('googleSearch')) {
-    console.log('🔧 [DEBUG] Configurando modo ANY para usar herramientas');
-    toolConfig.functionCallingConfig.mode = 'ANY';
+  if (isBlockchainQuery && tools.length > 0) {
+    chatLogger.logInfo('🔗 Configurando modo AUTO para blockchain tools', 'Tools');
+    toolConfig.functionCallingConfig.mode = 'AUTO';
     toolConfig.functionCallingConfig.allowedFunctionNames = allowedFunctionNames;
   }
 
@@ -736,9 +664,9 @@ export async function processGeminiRequestWithTools(contents, model = DEFAULT_MO
 export async function processFunctionCallingRequest({
   prompt,
   model = DEFAULT_MODEL,
-  functionDeclarations = [defaultFunctionDeclaration],
-  functionCallingMode = 'ANY',
-  allowedFunctionNames = ['controlLight']
+  functionDeclarations = blockchainFunctionDeclarations,
+  functionCallingMode = 'AUTO',
+  allowedFunctionNames = blockchainFunctionNames
 }) {
   if (!env.geminiApiKey) {
     throw new Error('API key no configurada');
@@ -775,12 +703,13 @@ export async function processFunctionCallingRequest({
 
 /**
  * Procesa una solicitud de streaming nativo a la API de Gemini
+ * 🆕 Enhanced with Token Counting and Context Caching
  * @param {Object|String} contents - Contenido del prompt o historial de mensajes
  * @param {String} model - Modelo de Gemini a utilizar
  * @param {Object} params - Parámetros adicionales
  * @returns {Promise<ReadableStream>} - Stream nativo de Gemini
  */
-export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL, params = {}) {
+export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL, params = {}, options = {}) {
   if (!env.geminiApiKey) {
     throw new Error('API key no configurada');
   }
@@ -788,6 +717,9 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   if (!contents) {
     throw new Error('Se requiere un prompt o historial de mensajes');
   }
+  
+  // ✅ Opción para saltar Knowledge Base (para blockchain queries que ya tienen datos)
+  const skipKnowledgeBase = options.skipKnowledgeBase || false;
   
   // ✅ NUEVO: Obtener contexto de KB y construir systemInstruction
   let knowledgeContext = '';
@@ -803,8 +735,8 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
     }
   }
   
-  // Obtener contexto relevante de KB
-  if (userQuery) {
+  // Obtener contexto relevante de KB - SOLO si no se especificó skipKnowledgeBase
+  if (userQuery && !skipKnowledgeBase) {
     // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
     const classificationResult = needsKnowledgeBase(userQuery, { includeContext: true, debugMode: true });
     
@@ -824,6 +756,19 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
       
       if (knowledgeContext) {
         console.log(`✅ KB found (stream): ${knowledgeContext.length} chars, score: ${contextScore.toFixed(3)}`);
+        
+        // 🆕 TOKEN COUNTING: Optimize context length if needed
+        const MAX_CONTEXT_TOKENS = 4000;
+        const optimizedContext = await tokenCountingService.optimizeContextLength(
+          knowledgeContext, 
+          MAX_CONTEXT_TOKENS, 
+          model
+        );
+        
+        if (optimizedContext.wasTruncated) {
+          console.log(`✂️ Context optimized: ${optimizedContext.originalTokens} → ${optimizedContext.tokenCount} tokens (${optimizedContext.reduction})`);
+          knowledgeContext = optimizedContext.optimizedContext;
+        }
       } else {
         console.log('⚠️ No KB context found (stream)');
       }
@@ -833,10 +778,34 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
     } else {
       console.log(`⏭️ Skipping KB (stream) - Reason: ${classificationResult.reason}`);
     }
+  } else if (skipKnowledgeBase) {
+    console.log(`⏭️ Skipping KB (stream) - Reason: Blockchain query with pre-loaded data`);
   }
   
-  // Construir systemInstruction con contexto
-  const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  // Construir systemInstruction con contexto (vacío si se saltó KB)
+  const systemInstruction = skipKnowledgeBase ? null : buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  
+  // 🆕 TOKEN COUNTING: Count total tokens before sending
+  const tokenBreakdown = tokenCountingService.estimateMultiPartTokens({
+    systemInstruction: systemInstruction?.parts?.[0]?.text || '',
+    context: knowledgeContext,
+    message: userQuery
+  }, model);
+  
+  // 🆕 Log token counting con chat logger
+  chatLogger.logTokenCounting({
+    beforeOptimization: {
+      systemTokens: tokenBreakdown.systemTokens,
+      contextTokens: tokenBreakdown.contextTokens,
+      messageTokens: tokenBreakdown.messageTokens,
+      totalTokens: tokenBreakdown.totalTokens
+    },
+    estimatedCost: tokenCountingService.estimateCost(
+      tokenBreakdown.totalTokens,
+      500, // Estimated output
+      model
+    )
+  });
   
   // ✅ DEBUG: Verificar que systemInstruction tenga el formato correcto
   console.log('🔧 [DEBUG] SystemInstruction format (stream):', {
@@ -869,19 +838,28 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   );
   
   try {
+    // ✅ Construir config dinámicamente - solo incluir systemInstruction si existe
+    const streamConfig = {
+      temperature: params.temperature || 0.3,
+      topK: params.topK || 20,
+      topP: params.topP || 0.85,
+      maxOutputTokens: maxTokens,
+      responseMimeType: 'text/plain',
+    };
+    
+    // Solo añadir systemInstruction si no es null (para blockchain queries se salta)
+    if (systemInstruction) {
+      streamConfig.systemInstruction = systemInstruction;
+    }
+    
+    console.log(`🚀 [Stream] Sending to Gemini | KB: ${systemInstruction ? 'YES' : 'NO (blockchain)'} | MaxTokens: ${maxTokens}`);
+    
     // ✅ CORRECTO según @google/genai SDK oficial: TODO en 'config'
     const response = await withTimeoutAndRetry(() => 
       ai.models.generateContentStream({
         model: safeModel,
         contents: enrichedContents,
-        config: {
-          systemInstruction, // ✅ systemInstruction dentro de config
-          temperature: params.temperature || 0.3,
-          topK: params.topK || 20,
-          topP: params.topP || 0.85,
-          maxOutputTokens: maxTokens,
-          responseMimeType: 'text/plain',
-        }
+        config: streamConfig
       }), 
       { timeoutMs: 20000, maxRetries: 3, backoffMs: 2000 }
     );

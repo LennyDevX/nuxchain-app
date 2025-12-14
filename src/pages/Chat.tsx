@@ -16,7 +16,7 @@ import { chatLogger } from '../utils/log/chatLogger'
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
-  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB } = useChatStreaming()
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
@@ -143,6 +143,44 @@ function Chat() {
                   >
                     <div className="px-3 py-1.5 border border-blue-500/30 rounded-lg bg-blue-900/20 flex items-center space-x-2 text-blue-400 animate-pulse">
                       <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs'}`}>Analyzing URL content...</span>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* 🔗 Blockchain action indicator */}
+                {blockchainAction && (
+                  <motion.div 
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="px-4 py-2 border border-purple-500/30 rounded-xl bg-purple-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                      </div>
+                      <span className="text-purple-300 font-medium text-sm">{blockchainAction}</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* 📚 Knowledge Base search indicator */}
+                {isSearchingKB && !blockchainAction && (
+                  <motion.div 
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="px-4 py-2 border border-blue-500/30 rounded-xl bg-blue-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      </div>
+                      <span className="text-blue-300 font-medium text-sm">Searching in KB...</span>
                     </div>
                   </motion.div>
                 )}

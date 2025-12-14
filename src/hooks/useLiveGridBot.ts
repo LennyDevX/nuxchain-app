@@ -108,7 +108,6 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
       setLastUpdate(new Date());
       setError(null);
     } catch (err) {
-      console.error('[useLiveGridBot] Error calculating metrics:', err);
       setError(err instanceof Error ? err.message : 'Error calculating metrics');
     }
   }, [config]);
@@ -147,7 +146,6 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
       
       updateMetricsWithPrice(price, mark, funding, history);
     } catch (err) {
-      console.warn('[useLiveGridBot] REST fetch error:', err);
       setError(err instanceof Error ? err.message : 'Error fetching data');
     } finally {
       setIsLoading(false);
@@ -167,24 +165,21 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
     if (wsRef.current) {
       const state = wsRef.current.readyState;
       if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
-        console.log('[WebSocket] Already connected or connecting, skipping...');
         return;
       }
       // Cerrar conexión anterior si existe
       try {
         wsRef.current.close();
-      } catch (err) {
-        console.warn('[WebSocket] Error closing previous connection:', err);
+      } catch {
+        // Silencioso
       }
       wsRef.current = null;
     }
 
     try {
-      console.log('[WebSocket] Attempting to connect to Binance Futures...');
       const ws = new WebSocket(BINANCE_WS);
 
       ws.onopen = () => {
-        console.log('[WebSocket] Connected to Binance Futures');
         setIsConnected(true);
         setDataSource('websocket');
         wsRetriesRef.current = 0;
@@ -205,26 +200,17 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
               priceHistoryRef.current
             );
           }
-        } catch (err) {
-          console.warn('[WebSocket] Parse error:', err);
+        } catch {
+          // Parse error silencioso
         }
       };
 
       ws.onerror = () => {
-        // Solo logear si estaba conectado previamente
-        if (isConnected) {
-          console.warn('[WebSocket] Connection error occurred');
-        }
         setIsConnected(false);
       };
 
       ws.onclose = (event) => {
         setIsConnected(false);
-        
-        // Solo logear si no fue cierre intencional
-        if (event.code !== 1000) {
-          console.log(`[WebSocket] Disconnected: ${event.code}`);
-        }
         
         // Limpiar referencia solo si es esta misma instancia
         if (wsRef.current === ws) {
@@ -234,7 +220,6 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
         // Reconectar solo si no fue cierre intencional y no hay demasiados intentos
         if (event.code !== 1000 && wsRetriesRef.current < MAX_WS_RETRIES) {
           wsRetriesRef.current++;
-          console.log(`[WebSocket] Will retry connection (${wsRetriesRef.current}/${MAX_WS_RETRIES})`);
           
           // Esperar antes de reconectar
           setTimeout(() => {
@@ -244,19 +229,16 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
             }
           }, WS_RECONNECT_DELAY);
         } else if (wsRetriesRef.current >= MAX_WS_RETRIES) {
-          console.log('[WebSocket] Max retries reached, using REST API only');
           setDataSource('binance');
         }
       };
 
       wsRef.current = ws;
-    } catch (err) {
-      console.error('[WebSocket] Failed to create connection:', err);
+    } catch {
       setIsConnected(false);
       wsRef.current = null;
-      // No reintentar inmediatamente en caso de error de creación
     }
-  }, [updateMetricsWithPrice, isConnected]);
+  }, [updateMetricsWithPrice]);
 
   /**
    * Desconectar WebSocket
@@ -303,7 +285,8 @@ export function useLiveGridBot(config: GridBotConfig): UseLiveGridBotReturn {
       // Guardar estado final
       forceSaveBotState();
     };
-  }, [fetchFromREST, connectWebSocket, disconnectWebSocket]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Refetch historial cada 5 minutos para mantener curva actualizada
   useEffect(() => {
@@ -350,8 +333,8 @@ export function useMultipleGridBots(configs: GridBotConfig[]) {
           const metrics = calculatePnL(config, price, [], funding, mark);
           newMetrics.set(config.symbol, metrics);
         }
-      } catch (error) {
-        console.error('[useMultipleGridBots] Error:', error);
+      } catch {
+        // Error silencioso
       }
       
       setBotsMetrics(newMetrics);
@@ -380,8 +363,8 @@ export function useBTCPrice() {
         const response = await fetch(`${GRIDBOT_API}?type=current`);
         const data = await response.json() as ApiResponse;
         setPrice(data.markPrice || data.price || null);
-      } catch (err) {
-        console.error('[useBTCPrice] Error:', err);
+      } catch {
+        // Error silencioso
       } finally {
         setIsLoading(false);
       }

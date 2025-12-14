@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 import { useMarketplaceNFTsGraph } from '../../hooks/nfts/useMarketplaceNFTsGraph';
 import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGraph';
 import ActivityItem from './ActivityItem';
@@ -110,7 +111,7 @@ const ProfileOverview: React.FC = () => {
             <div className="flex-1 min-w-0">
               <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400 truncate`}>Balance</h3>
               <p className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white truncate`}>
-                {balance ? `${parseFloat(balance.formatted).toFixed(isMobile ? 2 : 4)} ${balance.symbol}` : '0.0000 POL'}
+                {balance ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(isMobile ? 2 : 4)} ${balance.symbol}` : '0.0000 POL'}
               </p>
             </div>
           </div>

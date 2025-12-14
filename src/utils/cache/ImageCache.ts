@@ -36,7 +36,7 @@ class ImageCache {
     }
 
     // Create new loading promise with retry logic
-    const loadingPromise = new Promise<HTMLImageElement>((resolve, reject) => {
+    const loadingPromise = new Promise<HTMLImageElement>((resolve) => {
       const tryLoad = (attempt: number = 0) => {
         const img = new Image();
         

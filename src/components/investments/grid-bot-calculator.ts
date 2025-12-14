@@ -313,8 +313,7 @@ function loadBotState(): GridBotState | null {
     }
     
     return parsed;
-  } catch (error) {
-    console.warn('[GridBot] Error loading state:', error);
+  } catch {
     return null;
   }
 }
@@ -331,8 +330,8 @@ function saveBotState(): void {
     
     botState.lastSaveTime = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(botState));
-  } catch (error) {
-    console.warn('[GridBot] Error saving state:', error);
+  } catch {
+    // Error silencioso
   }
 }
 

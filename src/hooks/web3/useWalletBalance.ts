@@ -5,6 +5,7 @@
 
 import { useMemo } from 'react';
 import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
 
 export interface WalletBalanceData {
   // Raw balance in wei
@@ -50,7 +51,8 @@ export function useWalletBalance(): WalletBalanceData {
 
   return useMemo(() => {
     const balanceWei = balance?.value ?? 0n;
-    const balanceFormatted = balance ? parseFloat(balance.formatted) : 0;
+    // In wagmi 3.x, format the balance manually using formatUnits
+    const balanceFormatted = balance ? parseFloat(formatUnits(balance.value, balance.decimals)) : 0;
     const symbol = balance?.symbol ?? 'POL';
     
     // Calculate available for staking (minus gas reserve)

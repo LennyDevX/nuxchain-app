@@ -161,7 +161,7 @@ class AnalyticsService {
                 return Math.round(usage.heapUsed / 1024 / 1024 * 100) / 100; // MB con 2 decimales
             }
         }
-        catch (error) {
+        catch {
             // En entornos donde process no está disponible
         }
         return 0;

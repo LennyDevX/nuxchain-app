@@ -46,7 +46,7 @@ class AnalyticsService {
   /**
    * Finaliza el seguimiento de una solicitud exitosa
    */
-  endRequest(requestMetrics: RequestMetrics, additionalData: Record<string, any> = {}): void {
+  endRequest(requestMetrics: RequestMetrics, additionalData: Record<string, unknown> = {}): void {
     if (!requestMetrics || !requestMetrics.id) {
       return;
     }
@@ -111,7 +111,7 @@ class AnalyticsService {
   /**
    * Registra una métrica de rendimiento
    */
-  recordPerformance(name: string, value: number, metadata: Record<string, any> = {}): void {
+  recordPerformance(name: string, value: number, metadata: Record<string, unknown> = {}): void {
     const performanceMetric: PerformanceMetric = {
       name: name,
       value: value,
@@ -200,7 +200,7 @@ class AnalyticsService {
         const usage = process.memoryUsage();
         return Math.round(usage.heapUsed / 1024 / 1024 * 100) / 100; // MB con 2 decimales
       }
-    } catch (error) {
+    } catch {
       // En entornos donde process no está disponible
     }
     return 0;

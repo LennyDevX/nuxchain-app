@@ -74,10 +74,11 @@ class UrlContextService {
 
       return processedContent;
     } catch (error) {
-      analyticsService.failRequest(requestMetrics, error);
+      const err = error instanceof Error ? error : new Error(String(error));
+      analyticsService.failRequest(requestMetrics, err);
       // Critical error logging only
-      console.error('Error in fetchUrlContext:', error.message);
-      throw error;
+      console.error('Error in fetchUrlContext:', err.message);
+      throw err;
     }
   }
 
@@ -110,7 +111,8 @@ class UrlContextService {
   /**
    * Generates a summary of the content for context
    */
-  generateContentSummary(content: string, title: string): string {
+  generateContentSummary(content: string, _title: string): string {
+    void _title;
     if (!content) return 'Content not available';
     // Limit to 2 sentences for faster processing
     const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
@@ -144,7 +146,7 @@ class UrlContextService {
   /**
    * Generates cache key
    */
-  generateCacheKey(url: string, options: UrlContextOptions): string {
+  generateCacheKey(url: string): string {
     // Use only URL as key to simplify and improve hit rate
     return url;
   }

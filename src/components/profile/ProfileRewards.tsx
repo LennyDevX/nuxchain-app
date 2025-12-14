@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAccount } from 'wagmi';
 import { useUserRewards } from '../../hooks/rewards/useUserRewards';
-import LoadingSpinner from '../../ui/LoadingSpinner';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const ProfileRewards: React.FC = () => {

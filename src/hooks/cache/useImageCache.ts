@@ -133,7 +133,7 @@ export function useImagePreloader(urls: string[]) {
           await imagePreloadQueue.add(() => imageCache.preloadImage(url));
           loaded++;
           setPreloadedCount(loaded);
-        } catch (err) {
+        } catch {
           // Fail silently for individual images, just increment counter
           loaded++;
           setPreloadedCount(loaded);

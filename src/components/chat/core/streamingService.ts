@@ -201,7 +201,6 @@ export class StreamingService {
     lastMessage,
     setInput
   }: StreamingServiceOptions): Promise<void> {
-    const startTime = Date.now();
     chatLogger.logStreamingEvent(
       { type: 'START', messageId: lastMessage.id },
       'StreamingService'

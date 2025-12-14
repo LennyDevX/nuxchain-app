@@ -144,7 +144,6 @@ export function useInvestments(autoRefresh = true): UseInvestmentsResult {
       if (!response.ok) {
         // Si es 401/404, usar fallback silenciosamente (API opcional)
         if (response.status === 401 || response.status === 404) {
-          console.log('[useInvestments] API not available, using fallback data');
           setData(FALLBACK_DATA);
           setLastFetched(new Date());
           return;
@@ -160,13 +159,7 @@ export function useInvestments(autoRefresh = true): UseInvestmentsResult {
       } else {
         throw new Error(result.error || 'Failed to fetch investment data');
       }
-    } catch (err) {
-      // Solo logear si no es un error de red esperado
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        console.log('[useInvestments] API not reachable, using fallback data');
-      } else {
-        console.warn('[useInvestments] Error fetching data:', err);
-      }
+    } catch {
       setError(null); // No mostrar error al usuario, usar fallback
       // Usar datos de fallback cuando hay error
       setData(FALLBACK_DATA);

@@ -38,12 +38,12 @@ export const getMobileOptimizationConfig = (): MobileOptimizationConfig => {
 /**
  * Debounce function para optimizar eventos de scroll y resize
  */
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number,
   immediate?: boolean
 ): ((...args: Parameters<T>) => void) => {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   
   return (...args: Parameters<T>) => {
     const later = () => {
@@ -63,7 +63,7 @@ export const debounce = <T extends (...args: any[]) => any>(
 /**
  * Throttle function para limitar la frecuencia de ejecución
  */
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): ((...args: Parameters<T>) => void) => {

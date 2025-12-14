@@ -852,6 +852,12 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
       streamConfig.systemInstruction = systemInstruction;
     }
     
+    // Agregar tools si fueron pasadas en options
+    if (options.tools) {
+      streamConfig.tools = options.tools;
+      console.log(`🔧 [Stream] Tools enabled:`, options.tools);
+    }
+    
     console.log(`🚀 [Stream] Sending to Gemini | KB: ${systemInstruction ? 'YES' : 'NO (blockchain)'} | MaxTokens: ${maxTokens}`);
     
     // ✅ CORRECTO según @google/genai SDK oficial: TODO en 'config'

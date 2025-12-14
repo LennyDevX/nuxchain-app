@@ -103,6 +103,24 @@ function detectBlockchainQuery(message) {
 }
 
 /**
+ * Detecta URLs en el mensaje del usuario
+ */
+function detectUrls(text) {
+  const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+  const urls = text.match(urlRegex) || [];
+  
+  // Validate URLs
+  return urls.filter(url => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
  * Ejecuta las funciones blockchain detectadas y retorna el contexto
  * @param {string} messageText - Mensaje del usuario
  * @param {string[]} functions - Funciones blockchain a ejecutar
@@ -486,6 +504,42 @@ export async function generateContent(req, res, next = null) {
           streaming: true
         });
         
+        // 🔗 URL CONTEXT: Detectar URLs en el mensaje y extraer contenido
+        const detectedUrls = detectUrls(queryText);
+        const hasUrls = detectedUrls.length > 0;
+        let urlContext = '';
+        
+        if (hasUrls) {
+          console.log(`\n🔗 =========== URL DETECTION ===========`);
+          console.log(`🔗 URLs detected: ${detectedUrls.length}`);
+          console.log(`🔗 URLs:`, detectedUrls);
+          console.log(`🔗 ====================================\n`);
+          
+          // Extract URL content
+          console.log(`🔗 Extracting content from URLs...`);
+          try {
+            const urlContents = [];
+            for (const url of detectedUrls) {
+              try {
+                const result = await webScraperService.extractContent(url, { maxContentLength: 4000 });
+                if (result.success && result.content) {
+                  urlContents.push(`\n[URL: ${url}]\n${result.content}`);
+                  console.log(`✅ URL content extracted: ${result.content.length} chars from ${url}`);
+                }
+              } catch (urlError) {
+                console.warn(`⚠️ Failed to extract ${url}:`, urlError.message);
+              }
+            }
+            
+            if (urlContents.length > 0) {
+              urlContext = urlContents.join('\n\n');
+              console.log(`📄 Total URL context: ${urlContext.length} chars`);
+            }
+          } catch (error) {
+            console.error('Error extracting URL content:', error);
+          }
+        }
+        
         // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
         const blockchainDetection = detectBlockchainQuery(queryText);
         let enrichedContents = contents;
@@ -557,8 +611,34 @@ Formato de respuesta esperado: "[Dato] según [fuente]."`;
           }
         }
         
+        // Add URL content context if available (after blockchain context)
+        if (urlContext) {
+          const urlSystemPrompt = `[CONTENIDO DE URL - ANALIZA ESTE CONTENIDO PARA RESPONDER]:\n${urlContext}`;
+          
+          if (typeof enrichedContents === 'string') {
+            enrichedContents = `${enrichedContents}\n\n${urlSystemPrompt}`;
+          } else if (Array.isArray(enrichedContents) && enrichedContents.length > 0) {
+            // Agregar contexto de URL al último mensaje del usuario
+            const lastMessage = enrichedContents[enrichedContents.length - 1];
+            if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0]) {
+              lastMessage.parts[0].text = `${lastMessage.parts[0].text}\n\n${urlSystemPrompt}`;
+            }
+          }
+          console.log(`📄 [LOCAL] URL context added: ${urlContext.length} chars`);
+        }
+        
+        // Configurar tools si hay URLs detectadas (mantener como fallback)
+        const configTools = hasUrls ? [{ url_context: {} }] : undefined;
+        
+        if (hasUrls) {
+          console.log('✅ URL context: explicit content + tool enabled as fallback');
+        }
+        
         // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain
-        const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { skipKnowledgeBase: isBlockchainQuery });
+        const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { 
+          skipKnowledgeBase: isBlockchainQuery,
+          tools: configTools 
+        });
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
         let fullResponse = '';

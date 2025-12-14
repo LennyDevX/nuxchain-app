@@ -185,11 +185,25 @@ export function useChatStreaming(): UseChatStreamingReturn {
     dispatch({ type: 'ADD_USER_MESSAGE', payload: userMessage });
     dispatch({ type: 'START_STREAMING' });
     
+    // \ud83d\udd17 Detectar URLs en el mensaje
+    const detectedUrls = detectUrls(messageText);
+    const hasUrls = detectedUrls.length > 0;
+    
     // 🔗 Detectar si es una query blockchain para mostrar feedback
     const blockchainDetection = detectBlockchainQuery(messageText);
-    if (blockchainDetection.isBlockchain) {
+    
+    if (hasUrls) {
+      // Si hay URLs, mostrar indicador de URL context
+      setIsUsingUrlContext(true);
+      setBlockchainAction(null);
+      setIsSearchingKB(false);
+      if (import.meta.env.DEV) {
+        console.log('🔗 [FRONTEND] URLs detected:', detectedUrls.length);
+      }
+    } else if (blockchainDetection.isBlockchain) {
       setBlockchainAction(blockchainDetection.action);
       setIsSearchingKB(false);
+      setIsUsingUrlContext(false);
       if (import.meta.env.DEV) {
         console.log('🔗 [FRONTEND] Blockchain query detected:', blockchainDetection.action);
       }
@@ -197,6 +211,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // 📚 For non-blockchain queries, show KB search indicator
       setIsSearchingKB(true);
       setBlockchainAction(null);
+      setIsUsingUrlContext(false);
       if (import.meta.env.DEV) {
         console.log('📚 [FRONTEND] Searching knowledge base...');
       }
@@ -219,11 +234,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
         parts: [{ text: messageText }]
       });
 
-      // Automatically detect URLs
-      const detectedUrls = detectUrls(messageText);
-      
-      // CAMBIO: Siempre usar el endpoint stream.js principal
-      // El backend maneja URLs automáticamente si están presentes
+      // Use main stream endpoint (URLs already detected above)
       const endpoint = API_ENDPOINTS.gemini.stream;
       
       //Tipo específico en lugar de any
@@ -240,19 +251,13 @@ export function useChatStreaming(): UseChatStreamingReturn {
         requestBody.walletAddress = connectedWallet;
       }
       
-      // Si hay URLs, agregarlas al contexto
-      if (detectedUrls.length > 0) {
-        requestBody.urls = detectedUrls;
-        setIsUsingUrlContext(true);
-        
-        // Solo log en desarrollo
-        if (import.meta.env.DEV) {
-          console.log('🔗 [FRONTEND] Request con URLs:', {
-            endpoint,
-            urls: detectedUrls.length,
-            body: requestBody
-          });
-        }
+      // Log request details in development (URL context already set above)
+      if (import.meta.env.DEV && hasUrls) {
+        console.log('🔗 [FRONTEND] Sending message with URLs:', {
+          endpoint,
+          urlCount: detectedUrls.length,
+          urls: detectedUrls
+        });
       }
       
       // Make streaming request to backend

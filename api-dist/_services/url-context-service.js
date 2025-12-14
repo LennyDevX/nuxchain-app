@@ -1,99 +1,102 @@
 /**
  * ✅ TypeScript Migration - Phase 3
  * URL Context Service for Gemini API
- * Provides functionality to fetch content from URLs for additional context
+ * Uses native Gemini URL context tool for fetching and analyzing URL content
+ * @see https://ai.google.dev/gemini-api/docs/url-context
  */
-import WebScraperService from './web-scraper.js';
 import analyticsService from './analytics-service.js';
 class UrlContextService {
     cache;
     maxCacheSize;
     cacheTTL;
-    webScraper;
     constructor() {
         this.cache = new Map();
         this.maxCacheSize = 100;
         this.cacheTTL = 300000; // 5 minutes
-        this.webScraper = new WebScraperService();
     }
     /**
-     * Fetches content from a URL for use as context
+     * Validates URL for Gemini URL context tool
+     * Note: The actual URL fetching is handled by Gemini's native URL context tool
+     * This service provides validation and metadata tracking
+     *
+     * @example
+     * // In your API endpoint, use Gemini's tools API:
+     * const tools = [{ "url_context": {} }];
+     * const response = await client.models.generate_content({
+     *   model: "gemini-2.5-flash-lite",
+     *   contents: `Analyze this URL: ${url}`,
+     *   config: { tools }
+     * });
      */
-    async fetchUrlContext(url, options = {}) {
-        const requestMetrics = analyticsService.startRequest('url_context', 'url-fetch');
+    async validateUrlForContext(url, options = {}) {
+        const requestMetrics = analyticsService.startRequest('url_context', 'url-validation');
         try {
             // Validate URL
             if (!this.isValidUrl(url)) {
                 throw new Error('Invalid URL provided');
             }
-            // Use simple cacheKey if options don't affect result
-            const cacheKey = url;
-            const cachedResult = this.getFromCache(cacheKey);
-            if (cachedResult) {
-                analyticsService.endRequest(requestMetrics, {
-                    cached: true,
-                    url: url,
-                    contentLength: cachedResult.content?.length || 0
-                });
-                return cachedResult;
+            // Check if URL is accessible type
+            const urlObj = new URL(url);
+            if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                throw new Error('Only HTTP and HTTPS URLs are supported');
             }
-            // Limit maximum content length by default
-            const maxContentLength = options.maxContentLength || 3000;
-            const scrapedContent = await this.webScraper.extractContent(url, { ...options, maxContentLength });
-            if (!scrapedContent.success) {
-                throw new Error(`Failed to get content from URL: ${scrapedContent.error}`);
-            }
-            // Process and structure content for Gemini
-            const processedContent = this.processContentForGemini(scrapedContent, { ...options, maxContentLength });
-            // Save to cache
-            this.saveToCache(cacheKey, processedContent);
             analyticsService.endRequest(requestMetrics, {
-                cached: false,
                 url: url,
-                contentLength: processedContent.content?.length || 0,
-                title: processedContent.title,
-                success: true
+                valid: true
             });
-            return processedContent;
+            return { valid: true };
         }
         catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             analyticsService.failRequest(requestMetrics, err);
-            // Critical error logging only
-            console.error('Error in fetchUrlContext:', err.message);
-            throw err;
+            console.error('Error validating URL:', err.message);
+            return { valid: false, error: err.message };
         }
     }
     /**
-     * Processes scraped content to optimize it for Gemini
+     * Processes URL context metadata from Gemini response
+     * Extracts information about URL retrieval success/failure
      */
-    processContentForGemini(scrapedContent, options = {}) {
-        const { title, content, metadata, url } = scrapedContent;
-        let cleanContent = content || '';
-        const maxLength = options.maxContentLength || 3000;
-        if (cleanContent.length > maxLength) {
-            cleanContent = cleanContent.substring(0, maxLength) + '...';
+    processUrlContextMetadata(urlMetadata) {
+        const result = {
+            successful: [],
+            failed: [],
+            unsafe: []
+        };
+        for (const meta of urlMetadata) {
+            if (meta.url_retrieval_status === 'URL_RETRIEVAL_STATUS_SUCCESS') {
+                result.successful.push(meta.retrieved_url);
+            }
+            else if (meta.url_retrieval_status === 'URL_RETRIEVAL_STATUS_UNSAFE') {
+                result.unsafe.push(meta.retrieved_url);
+            }
+            else {
+                result.failed.push(meta.retrieved_url);
+            }
         }
-        const contextData = {
+        return result;
+    }
+    /**
+     * Creates context data structure for tracking
+     */
+    createContextData(url, title) {
+        return {
             url: url,
-            title: title || 'No title',
-            content: cleanContent,
+            title: title || 'URL Content',
+            content: '', // Content is handled by Gemini's native URL context tool
             metadata: {
                 domain: this.extractDomain(url),
                 extractedAt: new Date().toISOString(),
-                contentLength: cleanContent.length,
-                originalLength: content?.length || 0,
-                ...metadata
+                contentLength: 0,
+                originalLength: 0
             },
-            summary: this.generateContentSummary(cleanContent, title)
+            summary: 'Content retrieved via Gemini URL context tool'
         };
-        return contextData;
     }
     /**
      * Generates a summary of the content for context
      */
-    generateContentSummary(content, _title) {
-        void _title;
+    generateContentSummary(content) {
         if (!content)
             return 'Content not available';
         // Limit to 2 sentences for faster processing

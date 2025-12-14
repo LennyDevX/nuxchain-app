@@ -4,6 +4,23 @@ import { withSecurity } from '../_middlewares/serverless-security.js';
 let blockchainService = null;
 let blockchainTools = null;
 /**
+ * Detecta URLs en el mensaje del usuario
+ */
+function detectUrls(text) {
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+    const urls = text.match(urlRegex) || [];
+    // Validate URLs
+    return urls.filter(url => {
+        try {
+            new URL(url);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    });
+}
+/**
  * Detecta si el mensaje requiere llamadas a funciones blockchain
  */
 function detectBlockchainQuery(message) {
@@ -264,6 +281,13 @@ async function streamHandler(req, res) {
         const systemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0);
         // Inicializar Gemini
         const client = new GoogleGenAI({ apiKey });
+        // 🔗 URL CONTEXT: Detectar URLs en el mensaje
+        const detectedUrls = detectUrls(messageContent);
+        const hasUrls = detectedUrls.length > 0;
+        if (hasUrls) {
+            console.log(`🔗 URLs detected in message: ${detectedUrls.length}`);
+            console.log(`🔗 URLs: ${detectedUrls.join(', ')}`);
+        }
         // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
         const blockchainDetection = detectBlockchainQuery(messageContent);
         let blockchainContext = '';
@@ -405,12 +429,19 @@ async function streamHandler(req, res) {
             ? `${stakingAdvicePreamble}${messageContent}\n\n[CONTEXTO BLOCKCHAIN ACTUAL - USA ESTOS DATOS PARA RESPONDER]:\n${blockchainContext}`
             : `${stakingAdvicePreamble}${messageContent}`;
         console.log('🤖 Generating response...');
+        // \ud83d\udd17 Configure tools (add URL context if URLs detected)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const configTools = hasUrls ? [{ url_context: {} }] : undefined;
+        if (hasUrls) {
+            console.log('\u2705 URL context tool enabled for request');
+        }
         // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
         const streamResponse = await client.models.generateContentStream({
             model: "gemini-2.5-flash-lite",
             contents: enrichedMessage,
             config: {
                 systemInstruction,
+                ...(configTools && { tools: configTools }), // Solo incluir tools si hay URLs
                 safetySettings: [
                     {
                         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -441,17 +472,32 @@ async function streamHandler(req, res) {
         let fullResponse = '';
         // Recolectar respuesta completa del stream
         console.log('📥 Collecting response from Gemini...');
+        let urlContextMetadata = null;
         for await (const chunk of streamResponse) {
             const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (!chunkText) {
-                console.warn('⚠️ Empty chunk received, skipping...');
+                console.warn('\u26a0\ufe0f Empty chunk received, skipping...');
                 continue;
             }
             fullResponse += chunkText;
             totalChars += chunkText.length;
             chunks++;
+            // \ud83d\udd17 Extract URL context metadata if available
+            if (hasUrls && chunk.candidates?.[0]?.urlContextMetadata) {
+                urlContextMetadata = chunk.candidates[0].urlContextMetadata;
+            }
         }
-        console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+        console.log(`\u2705 Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+        // \ud83d\udd17 Log URL context results
+        if (hasUrls && urlContextMetadata) {
+            const urlMetadata = urlContextMetadata.url_metadata || [];
+            const successful = urlMetadata.filter((m) => m.url_retrieval_status === 'URL_RETRIEVAL_STATUS_SUCCESS').length;
+            const failed = urlMetadata.length - successful;
+            console.log(`\ud83d\udd17 URL Context Results: ${successful} successful, ${failed} failed`);
+            if (failed > 0) {
+                console.warn('\u26a0\ufe0f Some URLs could not be retrieved');
+            }
+        }
         // 🆕 TOKEN TRACKING: Update token metrics
         const estimatedInputTokens = tokenCountingService.quickEstimate(messageContent);
         const estimatedOutputTokens = tokenCountingService.quickEstimate(fullResponse);

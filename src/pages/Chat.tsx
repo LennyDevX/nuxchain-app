@@ -133,16 +133,21 @@ function Chat() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.25 }}
               >
-                {/* URL analysis indicator */}
+                {/* \ud83d\udd17 URL analysis indicator */}
                 {isUsingUrlContext && (
                   <motion.div 
-                    className="mb-2 flex items-center justify-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="px-3 py-1.5 border border-blue-500/30 rounded-lg bg-blue-900/20 flex items-center space-x-2 text-blue-400 animate-pulse">
-                      <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs'}`}>Analyzing URL content...</span>
+                    <div className="px-4 py-2 border border-cyan-500/30 rounded-xl bg-cyan-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                      </div>
+                      <span className="text-cyan-300 font-medium text-sm">Analyzing URL content...</span>
                     </div>
                   </motion.div>
                 )}

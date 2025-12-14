@@ -43,6 +43,66 @@ export interface ChatStateEvent {
   error?: string;
 }
 
+export interface TokenCountingEvent {
+  beforeOptimization?: {
+    systemTokens?: number;
+    contextTokens?: number;
+    messageTokens?: number;
+    totalTokens?: number;
+  };
+  afterOptimization?: {
+    contextTokens?: number;
+    totalTokens?: number;
+  };
+  wasOptimized?: boolean;
+  estimatedCost?: {
+    inputCost?: number;
+    outputCost?: number;
+    totalCost?: number;
+  };
+}
+
+export interface CacheOperationEvent {
+  operation: 'CREATE' | 'HIT' | 'MISS' | 'UPDATE' | 'DELETE' | 'EXPIRED';
+  cacheName?: string;
+  type?: string;
+  ttl?: number;
+  estimatedTokens?: number;
+  tokensSaved?: number;
+}
+
+export interface CacheStatsEvent {
+  hits?: number;
+  misses?: number;
+  activeCaches?: number;
+  tokensSaved?: number;
+  estimatedSavings?: string;
+}
+
+export interface CostTrackingEvent {
+  tokens?: {
+    input?: number;
+    output?: number;
+    cached?: number;
+    total?: number;
+  };
+  costs?: {
+    input?: string;
+    output?: string;
+    cached?: string;
+    total?: string;
+    savings?: string;
+  };
+  requests?: {
+    total?: number;
+    cacheHitRate?: string;
+  };
+  averages?: {
+    tokensPerRequest?: number;
+    costPerRequest?: string;
+  };
+}
+
 class ChatLogger {
   private isDevelopment = !import.meta.env.PROD;
   private logHistory: LogContext[] = [];
@@ -414,10 +474,6 @@ class ChatLogger {
       ...context,
       timestamp: this.getTimestamp()
     });
-
-    if (this.isDevelopment) {
-      console.info(`[${component}] ${message}`, context);
-    }
   }
 
   /**
@@ -434,8 +490,6 @@ class ChatLogger {
       ...context,
       timestamp: this.getTimestamp()
     });
-
-    console.debug(`[${component}] ${message}`, context);
   }
 
   /**
@@ -567,9 +621,106 @@ class ChatLogger {
   }
 
   /**
+   * Log de token counting y optimización
+   */
+  logTokenCounting(event: TokenCountingEvent, component: string = 'TokenCounting'): void {
+    const timestamp = this.getTimestamp();
+
+    if (event.beforeOptimization) {
+      this.logInfo(
+        '📊 Token analysis',
+        component,
+        {
+          beforeOptimization: event.beforeOptimization,
+          afterOptimization: event.afterOptimization,
+          wasOptimized: event.wasOptimized,
+          estimatedCost: event.estimatedCost,
+          timestamp
+        }
+      );
+    }
+  }
+
+  /**
+   * Log de operaciones de cache
+   */
+  logCacheOperation(event: CacheOperationEvent, component: string = 'ContextCache'): void {
+    const timestamp = this.getTimestamp();
+    const symbols: Record<string, string> = {
+      'CREATE': '💾🆕',
+      'HIT': '💾✅',
+      'MISS': '💾❌',
+      'UPDATE': '💾🔄',
+      'DELETE': '💾🗑️',
+      'EXPIRED': '💾⏰'
+    };
+
+    const symbol = symbols[event.operation] || '💾';
+    
+    this.logInfo(
+      `${symbol} Cache ${event.operation}`,
+      component,
+      {
+        cacheName: event.cacheName,
+        type: event.type,
+        ttl: event.ttl,
+        estimatedTokens: event.estimatedTokens,
+        tokensSaved: event.tokensSaved,
+        timestamp
+      }
+    );
+  }
+
+  /**
+   * Log de estadísticas de cache
+   */
+  logCacheStats(stats: CacheStatsEvent, component: string = 'ContextCache'): void {
+    const timestamp = this.getTimestamp();
+    
+    const hitRate = stats.hits !== undefined && stats.misses !== undefined
+      ? ((stats.hits / (stats.hits + stats.misses)) * 100).toFixed(1)
+      : 0;
+
+    this.logInfo(
+      '💾 Cache Statistics',
+      component,
+      {
+        hits: stats.hits,
+        misses: stats.misses,
+        hitRate: `${hitRate}%`,
+        activeCaches: stats.activeCaches,
+        tokensSaved: stats.tokensSaved,
+        estimatedSavings: stats.estimatedSavings,
+        timestamp
+      }
+    );
+  }
+
+  /**
+   * Log de tracking de costos
+   */
+  logCostTracking(event: CostTrackingEvent, component: string = 'CostTracking'): void {
+    const timestamp = this.getTimestamp();
+
+    this.logInfo(
+      '💰 Cost Tracking',
+      component,
+      {
+        tokens: event.tokens,
+        costs: event.costs,
+        requests: event.requests,
+        averages: event.averages,
+        timestamp
+      }
+    );
+  }
+
+  /**
    * Log de sesión
    */
   logSessionStart(): void {
+    if (!this.isDevelopment) return;
+    
     this.logInfo(
       '🚀 Sesión de chat iniciada',
       'ChatSession',
@@ -584,6 +735,8 @@ class ChatLogger {
    * Log de fin de sesión
    */
   logSessionEnd(): void {
+    if (!this.isDevelopment) return;
+    
     this.logInfo(
       '🛑 Sesión de chat finalizada',
       'ChatSession',

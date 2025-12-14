@@ -7,6 +7,13 @@ import type {
   KnowledgeBaseContext 
 } from '../types/index.js';
 
+// Lazy imports for blockchain services
+let blockchainService: typeof import('../_services/blockchain-service.js') | null = null;
+let blockchainTools: typeof import('../_services/blockchain-tools.js') | null = null;
+
+// Import type for function names
+type BlockchainFunctionName = 'get_pol_price' | 'get_staking_info' | 'get_nft_listings' | 'check_wallet_balance' | 'get_user_staking_position' | 'estimate_staking_reward';
+
 // ============================================================================
 // TIPOS
 // ============================================================================
@@ -15,6 +22,9 @@ interface RequestMetrics {
   success: number;
   errors: number;
   avgResponseTime: number;
+  totalTokensUsed: number;       // NEW: Track token usage
+  totalTokensSaved: number;      // NEW: Track tokens saved by caching
+  estimatedCostSavings: number;  // NEW: Track cost savings
 }
 
 interface ClassificationResult {
@@ -33,10 +43,76 @@ interface StreamConfig {
   };
 }
 
+// Interface for blockchain function calls
+interface FunctionCallResult {
+  name: string;
+  args: Record<string, unknown>;
+  result: unknown;
+}
+
+/**
+ * Detecta si el mensaje requiere llamadas a funciones blockchain
+ */
+function detectBlockchainQuery(message: string): { isBlockchain: boolean; functions: string[] } {
+  const text = message.toLowerCase();
+  const functions: string[] = [];
+  
+  // Detectar queries de precio POL - MEJORADO: más keywords
+  if ((text.includes('pol') || text.includes('matic') || text.includes('polygon')) &&
+      (text.includes('precio') || text.includes('price') || text.includes('cotiza') || 
+       text.includes('vale') || text.includes('cuesta') || text.includes('actual') ||
+       text.includes('cuánto') || text.includes('cuanto') || text.includes('costo'))) {
+    functions.push('get_pol_price');
+  }
+  
+  // Detectar queries de staking
+  if (text.includes('staking') || text.includes('stake') || text.includes('stakear') || 
+      text.includes('stakeado') || text.includes('apr') || text.includes('apy')) {
+    functions.push('get_staking_info');
+
+    // Si el usuario pide optimizar o pide datos propios (mis depósitos/rewards), traer posición on-chain
+    const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera)\b/i.test(text);
+    const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar)\b/i.test(text);
+    const mentionsRewardsOrDeposits = /(reward|recompens|ganancia|pendiente|acumulad|deposit|dep[oó]sit|bloquead|locked|unlock|retirable|withdraw)\b/i.test(text);
+    if (isUserIntent || isOptimizationIntent || mentionsRewardsOrDeposits) {
+      functions.push('get_user_staking_position');
+    }
+  }
+  
+  // Detectar queries de NFT listings
+  if ((text.includes('nft') || text.includes('marketplace')) && 
+      (text.includes('lista') || text.includes('venta') || text.includes('disponible') || text.includes('comprar'))) {
+    functions.push('get_nft_listings');
+  }
+  
+  // Detectar queries de wallet/balance - MEJORADO: detectar "mi balance", "my wallet", etc
+  if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
+      (text.includes('0x') || text.includes('direccion') || text.includes('address') || 
+       text.includes('mi ') || text.includes('my ') || text.includes('tengo') || text.includes('revisa'))) {
+    functions.push('check_wallet_balance');
+  }
+  
+  // Detectar queries de reward estimation
+  if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
+      (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
+    functions.push('estimate_staking_reward');
+  }
+  
+  // Log para debug
+  if (functions.length > 0) {
+    console.log(`🔗 Blockchain detection: "${text.substring(0, 50)}..." → [${functions.join(', ')}]`);
+  }
+  
+  return {
+    isBlockchain: functions.length > 0,
+    functions
+  };
+}
+
 // Tipo para el body que puede venir en diferentes formatos
 type ChatRequestBody = 
-  | { messages: ChatMessage[]; message?: never }
-  | { message: string; messages?: never }
+  | { messages: ChatMessage[]; message?: never; walletAddress?: string }
+  | { message: string; messages?: never; walletAddress?: string }
   | ChatMessage[]
   | string;
 
@@ -47,7 +123,10 @@ const metrics: RequestMetrics = {
   total: 0,
   success: 0,
   errors: 0,
-  avgResponseTime: 0
+  avgResponseTime: 0,
+  totalTokensUsed: 0,
+  totalTokensSaved: 0,
+  estimatedCostSavings: 0
 };
 
 /**
@@ -181,6 +260,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     console.log('📦 Loading services...');
     let needsKnowledgeBase, updateConversationContext, getRelevantContext;
     let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
+    let tokenCountingService;
     
     try {
       const modules = await Promise.all([
@@ -188,7 +268,8 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         import('../_services/embeddings-service.js').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
         import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
         import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
-        import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; })
+        import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; }),
+        import('../_services/token-counting-service.js').catch(e => { console.error('Error loading token-counting:', e.message); throw e; })
       ]);
       
       needsKnowledgeBase = modules[0].needsKnowledgeBase;
@@ -197,6 +278,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       buildSystemInstructionWithContext = modules[2].buildSystemInstructionWithContext;
       formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
       semanticStreamingService = modules[4].default;
+      tokenCountingService = modules[5].default;
       
       console.log('✅ All services loaded successfully');
     } catch (importError) {
@@ -243,13 +325,35 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     }
     
     // Truncar contexto para evitar límites de tokens
-    const MAX_CONTEXT_LENGTH = 8000;
-    if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-      relevantContext = {
-        ...relevantContext,
-        context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
-      };
-      console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+    // 🆕 Use Token Counting Service for smart truncation
+    const MAX_CONTEXT_TOKENS = 4000;
+    if (relevantContext.context && relevantContext.context.length > 0) {
+      try {
+        const optimizedContext = await tokenCountingService.optimizeContextLength(
+          relevantContext.context,
+          MAX_CONTEXT_TOKENS,
+          'gemini-2.5-flash-lite'
+        );
+        
+        if (optimizedContext.wasTruncated) {
+          console.log(`✂️ Context optimized: ${optimizedContext.originalTokens} → ${optimizedContext.tokenCount} tokens (${optimizedContext.reduction})`);
+          relevantContext = {
+            ...relevantContext,
+            context: optimizedContext.optimizedContext
+          };
+        }
+      } catch {
+        // Fallback to simple character truncation
+        console.warn('⚠️ Token optimization failed, using character limit');
+        const MAX_CONTEXT_LENGTH = 8000;
+        if (relevantContext.context.length > MAX_CONTEXT_LENGTH) {
+          relevantContext = {
+            ...relevantContext,
+            context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
+          };
+          console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars (fallback)`);
+        }
+      }
     }
     
     if (relevantContext.context) {
@@ -267,12 +371,196 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     // Inicializar Gemini
     const client = new GoogleGenAI({ apiKey });
     
+    // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
+    const blockchainDetection = detectBlockchainQuery(messageContent);
+    let blockchainContext = '';
+    
+    if (blockchainDetection.isBlockchain) {
+      console.log(`🔗 Blockchain query detected. Functions: ${blockchainDetection.functions.join(', ')}`);
+      
+      try {
+        // Lazy load blockchain services
+        if (!blockchainService) {
+          blockchainService = await import('../_services/blockchain-service.js');
+        }
+        if (!blockchainTools) {
+          blockchainTools = await import('../_services/blockchain-tools.js');
+        }
+        
+        const functionResults: FunctionCallResult[] = [];
+        
+        // Get connected wallet address from request body
+        const requestBody = req.body as { walletAddress?: string };
+        const connectedWallet = requestBody.walletAddress;
+        
+        // Ejecutar funciones blockchain detectadas
+        for (const funcName of blockchainDetection.functions) {
+          try {
+            // Extraer argumentos básicos del mensaje si es necesario
+            let args: Record<string, unknown> = {};
+            
+            // Para check_wallet_balance, usar wallet conectada o extraer del mensaje
+            if (funcName === 'check_wallet_balance') {
+              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+              if (addressMatch) {
+                // Si el usuario especifica una dirección explícita, usarla
+                args = { address: addressMatch[0] };
+              } else if (connectedWallet) {
+                // Si no, usar la wallet conectada del usuario
+                args = { address: connectedWallet };
+                console.log(`🔗 Using connected wallet: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+              } else {
+                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                continue;
+              }
+            }
+
+            // Para get_user_staking_position, igual que wallet: dirección explícita o wallet conectada
+            if (funcName === 'get_user_staking_position') {
+              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+              if (addressMatch) {
+                args = { address: addressMatch[0] };
+              } else if (connectedWallet) {
+                args = { address: connectedWallet };
+                console.log(`🔗 Using connected wallet for staking: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+              } else {
+                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                continue;
+              }
+            }
+            
+            // Para estimate_staking_reward, intentar extraer cantidad
+            if (funcName === 'estimate_staking_reward') {
+              const amountMatch = messageContent.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
+              if (amountMatch) {
+                args = { amount: parseFloat(amountMatch[1]) };
+              } else {
+                args = { amount: 100 }; // Default amount for estimation
+              }
+            }
+            
+            console.log(`🔗 Executing ${funcName} with args:`, args);
+            const result = await blockchainService.executeBlockchainFunction(funcName as BlockchainFunctionName, args);
+            
+            functionResults.push({
+              name: funcName,
+              args,
+              result
+            });
+            
+            console.log(`✅ ${funcName} completed successfully`);
+          } catch (funcError) {
+            console.error(`❌ Error executing ${funcName}:`, funcError);
+          }
+        }
+        
+        // Helper function to get source label (sin emojis para mejor compatibilidad)
+        const getSourceLabel = (source: string | undefined): string => {
+          const sources: Record<string, string> = {
+            'coingecko': 'CoinGecko API',
+            'binance': 'Binance API',
+            'diadata': 'DIA Data Oracle',
+            'polygon': 'Polygon RPC',
+            'contract': 'Smart Contract',
+            'fallback': 'Datos Estimados'
+          };
+          return sources[source || ''] || source || 'Blockchain';
+        };
+
+        // Construir contexto blockchain para incluir en el prompt
+        if (functionResults.length > 0) {
+          blockchainContext = `\n\n**DATOS BLOCKCHAIN EN TIEMPO REAL:**\n${functionResults.map(fr => {
+            const data = fr.result as { 
+              success: boolean; 
+              price?: number;
+              change24h?: number;
+              volume24h?: number;
+              totalStaked?: string;
+              totalStakedUSD?: number;
+              apy?: number;
+              totalParticipants?: number;
+              totalRewardsPaid?: string;
+              totalListings?: number;
+              activeListings?: unknown[];
+              floorPrice?: string;
+              note?: string;
+              address?: string;
+              balancePOL?: string;
+              balanceUSD?: number;
+              stakedAmount?: string;
+              pendingRewards?: string;
+              amount?: string;
+              duration?: string;
+              estimatedReward?: string;
+              estimatedRewardUSD?: number;
+              lockBonus?: number;
+              totalDepositedPOL?: string;
+              depositCount?: number;
+              pendingRewardsPOL?: string;
+              hasAutoCompound?: boolean;
+              nextUnlockTime?: string | null;
+              apyRates?: { flexible: number; locked30: number; locked90: number; locked180: number; locked365: number };
+              recommendations?: string[];
+              source?: string;
+            };
+            
+            if (data.success) {
+              const source = getSourceLabel(data.source);
+              
+              if (fr.name === 'get_pol_price') {
+                return `- Precio POL: $${data.price?.toFixed(4) || 'N/A'} USD ${data.change24h ? `(${data.change24h > 0 ? '+' : ''}${data.change24h.toFixed(2)}% 24h)` : ''}${data.volume24h ? ` | Volumen: $${(data.volume24h/1e6).toFixed(2)}M` : ''}\n  [Fuente: ${source}]`;
+              }
+              if (fr.name === 'get_staking_info') {
+                return `- Staking Pool: ${data.totalStaked || 'N/A'} (~$${data.totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}% | Participantes: ${data.totalParticipants || 'N/A'} | Recompensas: ${data.totalRewardsPaid || 'N/A'}\n  [Fuente: ${getSourceLabel('contract')}]`;
+              }
+              if (fr.name === 'get_nft_listings') {
+                const count = Array.isArray(data.activeListings) ? data.activeListings.length : (data.activeListings || 0);
+                return `- NFT Marketplace: ${count} listados activos de ${data.totalListings || 0} total${data.floorPrice ? ` | Floor: ${data.floorPrice}` : ''}${data.note ? `\n  Info: ${data.note}` : ''}\n  [Fuente: ${getSourceLabel('contract')}]`;
+              }
+              if (fr.name === 'check_wallet_balance') {
+                return `- Wallet ${data.address?.slice(0,6)}...${data.address?.slice(-4)}:\n  Balance: ${data.balancePOL || 'N/A'} (~$${data.balanceUSD?.toFixed(2) || 'N/A'} USD)${data.stakedAmount ? ` | Staked: ${data.stakedAmount}` : ''}${data.pendingRewards ? ` | Rewards: ${data.pendingRewards}` : ''}\n  [Fuente: ${getSourceLabel('polygon')}]`;
+              }
+              if (fr.name === 'get_user_staking_position') {
+                const apy = data.apyRates
+                  ? `APY: Flexible ${data.apyRates.flexible}% | 30d ${data.apyRates.locked30}% | 90d ${data.apyRates.locked90}% | 180d ${data.apyRates.locked180}% | 365d ${data.apyRates.locked365}%`
+                  : 'APY: N/A';
+                const recs = Array.isArray(data.recommendations) && data.recommendations.length
+                  ? `\n  Recomendaciones:\n  - ${data.recommendations.join('\n  - ')}`
+                  : '';
+                return `- Posicion Staking (usuario):\n  Depositado: ${data.totalDepositedPOL || 'N/A'} | Depositos: ${data.depositCount ?? 'N/A'} | Rewards: ${data.pendingRewardsPOL || 'N/A'} | Auto-Compound: ${typeof data.hasAutoCompound === 'boolean' ? (data.hasAutoCompound ? 'SI' : 'NO') : 'N/A'}${data.nextUnlockTime ? `\n  Proximo unlock: ${data.nextUnlockTime}` : ''}\n  ${apy}${recs}\n  [Fuente: ${getSourceLabel('contract')}]`;
+              }
+              if (fr.name === 'estimate_staking_reward') {
+                return `- Estimacion Staking: ${data.amount} por ${data.duration}\n  Recompensa: ${data.estimatedReward || 'N/A'} (~$${data.estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}%${data.lockBonus ? ` (+${data.lockBonus}% bonus lock)` : ''}\n  [Fuente: Calculo basado en contrato]`;
+              }
+              return `- ${fr.name}: ${JSON.stringify(data)}`;
+            }
+            return `- ${fr.name}: Error o sin datos`;
+          }).join('\n')}\n`;
+          
+          console.log(`📊 Blockchain context added: ${blockchainContext.length} chars`);
+        }
+      } catch (blockchainError) {
+        console.error('❌ Blockchain service error:', blockchainError);
+        // Continue without blockchain context
+      }
+    }
+    
+    // Enriquecer mensaje con contexto blockchain si existe
+    const isStakingAdviceQuery = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar).*(staking|stake|rewards|recompens)/i.test(messageContent);
+    const stakingAdvicePreamble = isStakingAdviceQuery
+      ? 'INSTRUCCIONES: Usa los datos on-chain del usuario en el CONTEXTO BLOCKCHAIN. Da 3-5 recomendaciones accionables y concretas (qué hacer y por qué), y menciona si hay Auto-Compound, rewards pendientes y si conviene mover Flexible -> Locked segun APY y liquidez.\n\n'
+      : '';
+
+    const enrichedMessage = blockchainContext
+      ? `${stakingAdvicePreamble}${messageContent}\n\n[CONTEXTO BLOCKCHAIN ACTUAL - USA ESTOS DATOS PARA RESPONDER]:\n${blockchainContext}`
+      : `${stakingAdvicePreamble}${messageContent}`;
+    
     console.log('🤖 Generating response...');
     
-    // Generar stream
+    // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
     const streamResponse = await client.models.generateContentStream({
       model: "gemini-2.5-flash-lite",
-      contents: messageContent,
+      contents: enrichedMessage,
       config: {
         systemInstruction,
         safetySettings: [
@@ -323,6 +611,13 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
     
+    // 🆕 TOKEN TRACKING: Update token metrics
+    const estimatedInputTokens = tokenCountingService.quickEstimate(messageContent);
+    const estimatedOutputTokens = tokenCountingService.quickEstimate(fullResponse);
+    metrics.totalTokensUsed += estimatedInputTokens + estimatedOutputTokens;
+    
+    console.log(`📊 Token estimate: ~${estimatedInputTokens} input, ~${estimatedOutputTokens} output`);
+    
     // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
     // This guarantees that both local dev and production responses have proper markdown structure
     const formattedResponse = formatResponseForMarkdown(fullResponse);
@@ -354,9 +649,10 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     console.log(`✅ Stream completed: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
     
-    // Log de métricas cada 50 requests
+    // Log de métricas cada 50 requests (enhanced with token stats)
     if (metrics.total % 50 === 0) {
       console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
+      console.log(`📊 [TOKENS] Total Used: ${metrics.totalTokensUsed}, Saved: ${metrics.totalTokensSaved}, Est. Savings: $${metrics.estimatedCostSavings.toFixed(4)}`);
     }
     
   } catch (error) {

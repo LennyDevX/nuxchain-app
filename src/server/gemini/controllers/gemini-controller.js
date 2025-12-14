@@ -8,6 +8,7 @@ import {
   executeFunctionCall,
   clearCache as clearGeminiCache 
 } from '../services/gemini-service.js';
+import { executeBlockchainFunction } from '../services/blockchain-service.js';
 import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
@@ -26,6 +27,247 @@ const webScraperService = new WebScraperService();
 
 // === Configuración ===
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB, cambiar aquí para ajustar el límite
+
+// === 🔗 BLOCKCHAIN DETECTION ===
+/**
+ * Detecta si el mensaje requiere llamadas a funciones blockchain
+ */
+function detectBlockchainQuery(message) {
+  const text = message.toLowerCase();
+  const functions = [];
+
+  const isUserIntent =
+    text.includes('mi ') ||
+    text.includes('mis ') ||
+    text.includes('mio') ||
+    text.includes('mía') ||
+    text.includes('revisa') ||
+    text.includes('tengo');
+
+  const isOptimizationIntent =
+    text.includes('optimiza') ||
+    text.includes('optimizar') ||
+    text.includes('mejorar') ||
+    text.includes('mejora') ||
+    text.includes('recomend') ||
+    text.includes('consej') ||
+    text.includes('estrateg');
+  
+  // Detectar queries de precio POL
+  if ((text.includes('pol') || text.includes('matic') || text.includes('polygon')) &&
+      (text.includes('precio') || text.includes('price') || text.includes('cotiza') || 
+       text.includes('vale') || text.includes('cuesta') || text.includes('actual') ||
+       text.includes('cuánto') || text.includes('cuanto') || text.includes('costo'))) {
+    functions.push('get_pol_price');
+  }
+  
+  // Detectar queries de staking
+  if (text.includes('staking') || text.includes('stake') || text.includes('stakear') || 
+      text.includes('stakeado') || text.includes('apr') || text.includes('apy')) {
+    functions.push('get_staking_info');
+  }
+
+  // Detectar queries de staking del usuario (depositos/recompensas/optimizacion)
+  if ((text.includes('staking') || text.includes('stake') || text.includes('stakear') || text.includes('stakeado')) &&
+      (isUserIntent || isOptimizationIntent || text.includes('recompensa') || text.includes('rewards') || text.includes('deposit') || text.includes('deposito') || text.includes('acumulad'))) {
+    functions.push('get_user_staking_position');
+  }
+  
+  // Detectar queries de NFT listings
+  if ((text.includes('nft') || text.includes('marketplace')) && 
+      (text.includes('lista') || text.includes('venta') || text.includes('disponible') || text.includes('comprar'))) {
+    functions.push('get_nft_listings');
+  }
+  
+  // Detectar queries de wallet/balance - incluir "mi balance", "mi wallet", etc.
+  if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
+      (text.includes('0x') || text.includes('direccion') || text.includes('address') ||
+       text.includes('mi ') || text.includes('mio') || text.includes('tengo') || text.includes('revisa'))) {
+    functions.push('check_wallet_balance');
+  }
+  
+  // Detectar queries de reward estimation
+  if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
+      (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
+    functions.push('estimate_staking_reward');
+  }
+  
+  if (functions.length > 0) {
+    console.log(`🔗 [LOCAL] Blockchain detection: "${text.substring(0, 50)}..." → [${functions.join(', ')}]`);
+  }
+  
+  return {
+    isBlockchain: functions.length > 0,
+    functions
+  };
+}
+
+/**
+ * Ejecuta las funciones blockchain detectadas y retorna el contexto
+ * @param {string} messageText - Mensaje del usuario
+ * @param {string[]} functions - Funciones blockchain a ejecutar
+ * @param {string|undefined} connectedWallet - Wallet conectada del usuario (opcional)
+ */
+async function executeBlockchainFunctions(messageText, functions, connectedWallet = null) {
+  const results = [];
+  
+  for (const funcName of functions) {
+    try {
+      let args = {};
+      
+      // Extraer argumentos si es necesario
+      if (funcName === 'check_wallet_balance') {
+        // Primero intentar extraer direccion del mensaje
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { walletAddress: addressMatch[0] };
+        } else if (connectedWallet) {
+          // Si no hay direccion en el mensaje, usar la wallet conectada
+          args = { connectedWallet: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          // No hay direccion disponible
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found and no connected wallet`);
+          results.push({ 
+            name: funcName, 
+            result: { 
+              success: false, 
+              error: 'Para ver tu balance, conecta tu wallet o proporciona una direccion (ej: 0x1234...)' 
+            } 
+          });
+          continue;
+        }
+      }
+
+      if (funcName === 'get_user_staking_position') {
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { walletAddress: addressMatch[0] };
+        } else if (connectedWallet) {
+          args = { connectedWallet: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet (staking): ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found and no connected wallet`);
+          results.push({
+            name: funcName,
+            result: {
+              success: false,
+              error: 'Para ver tus depositos/recompensas de staking, conecta tu wallet o proporciona una direccion (ej: 0x1234...)'
+            }
+          });
+          continue;
+        }
+      }
+      
+      if (funcName === 'estimate_staking_reward') {
+        const amountMatch = messageText.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
+        args = { amount: amountMatch ? parseFloat(amountMatch[1]) : 100 };
+      }
+      
+      console.log(`[LOCAL] Executing ${funcName}...`);
+      const result = await executeBlockchainFunction(funcName, args);
+      console.log(`[LOCAL] Result for ${funcName}:`, JSON.stringify(result, null, 2));
+      results.push({ name: funcName, result });
+      console.log(`[LOCAL] ${funcName} completed successfully`);
+    } catch (error) {
+      console.error(`[LOCAL] Error in ${funcName}:`, error.message);
+    }
+  }
+  
+  if (results.length === 0) {
+    console.log('⚠️ [LOCAL] No blockchain results to return');
+    return '';
+  }
+  
+  // Helper function to get source label (sin emojis para mejor compatibilidad)
+  const getSourceLabel = (source) => {
+    const sources = {
+      'coingecko': 'CoinGecko API',
+      'binance': 'Binance API',
+      'diadata': 'DIA Data Oracle',
+      'polygon': 'Polygon RPC',
+      'contract': 'Smart Contract',
+      'fallback': 'Datos Estimados'
+    };
+    return sources[source] || source || 'Blockchain';
+  };
+
+  // Formatear los resultados - los datos vienen directamente en result, no en result.data
+  const formattedContext = `\n\n**DATOS BLOCKCHAIN EN TIEMPO REAL:**\n${results.map(r => {
+    if (r.result && r.result.success) {
+      // Extraer los campos relevantes según el tipo de función
+      if (r.name === 'get_pol_price') {
+        const { price, change24h, volume24h, marketCap, source } = r.result;
+        const sourceLabel = getSourceLabel(source);
+        const changeEmoji = change24h > 0 ? '📈' : change24h < 0 ? '📉' : '➡️';
+        return `\n**💰 Precio POL:**\n  • Precio actual: $${price?.toFixed(4) || 'N/A'} USD\n  • Cambio 24h: ${changeEmoji} ${change24h ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A'}${volume24h ? `\n  • Volumen 24h: $${(volume24h/1e6).toFixed(2)}M USD` : ''}${marketCap ? `\n  • Market Cap: $${(marketCap/1e6).toFixed(2)}M USD` : ''}\n  [Fuente: ${sourceLabel}]\n`;
+      }
+      if (r.name === 'get_staking_info') {
+        const { totalStaked, totalStakedUSD, apy, apyRates, totalParticipants, totalRewardsPaid, source } = r.result;
+        const apyDetails = apyRates ? `\n    • Flexible: ${apyRates.flexible?.toFixed(2)}%\n    • 30 días: ${apyRates.locked30?.toFixed(2)}%\n    • 90 días: ${apyRates.locked90?.toFixed(2)}%\n    • 180 días: ${apyRates.locked180?.toFixed(2)}%\n    • 365 días: ${apyRates.locked365?.toFixed(2)}%` : '';
+        return `\n**🏦 Staking Pool Global:**\n  • Total staked: ${totalStaked || 'N/A'} (~$${totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  • APY base: ${apy?.toFixed(2) || 'N/A'}%${apyDetails}\n  • Participantes activos: ${totalParticipants?.toLocaleString() || 'N/A'}\n  • Recompensas pagadas: ${totalRewardsPaid || 'N/A'}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+      }
+      if (r.name === 'get_nft_listings') {
+        const { totalListings, activeListings, floorPrice, message, source } = r.result;
+        const count = Array.isArray(activeListings) ? activeListings.length : activeListings || 0;
+        return `\n**🎨 NFT Marketplace:**\n  • Total NFTs: ${totalListings || 0}\n  • Activos: ${count}${floorPrice ? `\n  • Floor price: ${floorPrice}` : ''}${message ? `\n  ℹ️  ${message}` : ''}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+      }
+      if (r.name === 'check_wallet_balance') {
+        const { address, balancePOL, balanceUSD, stakedAmount, pendingRewards, source } = r.result;
+        return `\n**👛 Tu Wallet ${address?.slice(0,6)}...${address?.slice(-4)}:**\n  • Balance disponible: ${balancePOL || 'N/A'} (~$${balanceUSD?.toFixed(2) || 'N/A'} USD)${stakedAmount && stakedAmount !== '0 POL' ? `\n  • En staking: ${stakedAmount}` : ''}${pendingRewards && pendingRewards !== '0 POL' ? `\n  • Rewards pendientes: ${pendingRewards}` : ''}\n  [Fuente: ${getSourceLabel(source || 'polygon')}]\n`;
+      }
+      if (r.name === 'estimate_staking_reward') {
+        const { amount, duration, estimatedReward, estimatedRewardUSD, apy, isLocked } = r.result;
+        return `\n**📈 Estimación de Recompensas:**\n  • Monto: ${amount}\n  • Duración: ${duration}\n  • Tipo: ${isLocked ? '🔒 Locked' : '🔓 Flexible'}\n  • APY aplicado: ${apy?.toFixed(2) || 'N/A'}%\n  • Recompensa estimada: ${estimatedReward || 'N/A'} (~$${estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  [Fuente: Cálculo basado en contrato]\n`;
+      }
+
+      if (r.name === 'get_user_staking_position') {
+        const {
+          totalDepositedPOL,
+          depositCount,
+          pendingRewardsPOL,
+          hasAutoCompound,
+          nextUnlockTime,
+          apyRates,
+          recommendations,
+          depositSummary,
+          source,
+        } = r.result;
+
+        // Format APY rates with proper formatting
+        const apyText = apyRates
+          ? `\n  **APY Tasas:**\n    • Flexible: ${apyRates.flexible.toFixed(2)}%\n    • 30 días: ${apyRates.locked30.toFixed(2)}%\n    • 90 días: ${apyRates.locked90.toFixed(2)}%\n    • 180 días: ${apyRates.locked180.toFixed(2)}%\n    • 365 días: ${apyRates.locked365.toFixed(2)}%`
+          : '';
+
+        // Format deposit summary
+        let depositSummaryText = '';
+        if (depositSummary) {
+          const flexible = depositSummary.flexible?.count || 0;
+          const locked30 = depositSummary.locked30?.count || 0;
+          const locked90 = depositSummary.locked90?.count || 0;
+          const locked180 = depositSummary.locked180?.count || 0;
+          const locked365 = depositSummary.locked365?.count || 0;
+          
+          if (flexible + locked30 + locked90 + locked180 + locked365 > 0) {
+            depositSummaryText = `\n  **Tipo de Depósitos:**\n    • Flexible: ${flexible}\n    • Locked 30d: ${locked30}\n    • Locked 90d: ${locked90}\n    • Locked 180d: ${locked180}\n    • Locked 365d: ${locked365}`;
+          }
+        }
+
+        // Format recommendations
+        const recText = Array.isArray(recommendations) && recommendations.length
+          ? `\n  **Recomendaciones:**\n${recommendations.map((rec, idx) => `    ${idx + 1}. ${rec}`).join('\n')}`
+          : '';
+
+        return `\n**📊 Tu Posición de Staking:**\n  • Depositado: ${totalDepositedPOL || 'N/A'}\n  • Número de depósitos: ${depositCount ?? 'N/A'}\n  • Rewards pendientes: ${pendingRewardsPOL || 'N/A'}\n  • Auto-Compound: ${hasAutoCompound ? '✅ Activado' : '❌ Desactivado'}${nextUnlockTime ? `\n  • Próximo unlock: ${nextUnlockTime}` : ''}${depositSummaryText}${apyText}${recText}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+      }
+      return `- ${r.name}: ${JSON.stringify(r.result)}`;
+    }
+    return `- ${r.name}: Error o sin datos`;
+  }).join('\n')}\n`;
+  
+  console.log(`📊 [LOCAL] Formatted blockchain context: ${formattedContext}`);
+  return formattedContext;
+}
 
 // === Utilidades ===
 /**
@@ -113,10 +355,16 @@ export async function generateContent(req, res, next = null) {
   chatLogger.reset();
   
   try {
-    const { prompt, model, messages, temperature, maxTokens, stream, image } = req.body;
+    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress } = req.body;
     
-    // Get the actual query for logging
-    const queryText = prompt || messages?.[messages.length - 1]?.text || messages?.[messages.length - 1]?.parts?.[0]?.text || '';
+    // Get the actual query for logging - MEJORADO para capturar el texto correctamente
+    let queryText = prompt || '';
+    if (!queryText && messages && Array.isArray(messages) && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      queryText = lastMsg?.text || lastMsg?.parts?.[0]?.text || lastMsg?.content || '';
+    }
+    
+    console.log(`📝 [LOCAL] Query received: "${queryText.substring(0, 100)}..."`);
     
     chatLogger.logSystemInfo({
       kbEnabled: true,
@@ -238,8 +486,79 @@ export async function generateContent(req, res, next = null) {
           streaming: true
         });
         
-        // Obtener stream nativo de Gemini
-        const geminiStream = await processGeminiStreamRequest(contents, model, params);
+        // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
+        const blockchainDetection = detectBlockchainQuery(queryText);
+        let enrichedContents = contents;
+        
+        console.log(`\n🔗 =========== BLOCKCHAIN DETECTION ===========`);
+        console.log(`🔗 Query: "${queryText}"`);
+        console.log(`🔗 Is Blockchain: ${blockchainDetection.isBlockchain}`);
+        console.log(`🔗 Functions: ${blockchainDetection.functions.join(', ') || 'none'}`);
+        console.log(`🔗 =============================================\n`);
+        
+        // Flag para indicar si es blockchain query (salta KB search)
+        let isBlockchainQuery = false;
+        
+        if (blockchainDetection.isBlockchain) {
+          isBlockchainQuery = true;
+          console.log(`[LOCAL] Blockchain query detected: ${blockchainDetection.functions.join(', ')}`);
+          const blockchainContext = await executeBlockchainFunctions(queryText, blockchainDetection.functions, walletAddress);
+          
+          console.log(`🔗 [LOCAL] Blockchain context result: "${blockchainContext}"`);
+          
+          if (blockchainContext) {
+            const isStakingAdviceQuery =
+              /(optimiza|optimizar|mejorar|recomend|consej|estrateg)/i.test(queryText) &&
+              /(stake|staking|recompens|rewards)/i.test(queryText);
+
+            // Crear instrucción específica para respuestas de datos blockchain
+            const blockchainSystemPrompt = isStakingAdviceQuery
+              ? `INSTRUCCIONES CRÍTICAS:
+1. Usa los datos on-chain proporcionados para este usuario
+2. Responde en español con 3-5 recomendaciones ACCIONABLES para optimizar rewards
+3. Menciona cifras clave (depositado, rewards pendientes, tipo de depósitos) y la fuente
+4. NO busques en base de conocimiento; usa SOLO estos datos + buenas prácticas generales
+5. Sé claro y conciso
+
+DATOS EN TIEMPO REAL (USUARIO):
+${blockchainContext}
+
+Formato sugerido: 1 frase con resumen + 3-5 bullets cortos.`
+              : `INSTRUCCIONES CRÍTICAS:
+1. Responde DIRECTAMENTE con los datos proporcionados
+2. Sé BREVE y PRECISO - máximo 2-3 oraciones
+3. Incluye el precio/dato exacto y la fuente
+4. NO busques en base de conocimiento - usa SOLO los datos proporcionados
+5. NO divagues ni añadas información extra
+
+DATOS EN TIEMPO REAL:
+${blockchainContext}
+
+Formato de respuesta esperado: "[Dato] según [fuente]."`;
+
+            // Enriquecer el contenido con datos blockchain
+            if (typeof contents === 'string') {
+              enrichedContents = `${blockchainSystemPrompt}\n\nPregunta del usuario: ${contents}`;
+            } else if (Array.isArray(contents) && contents.length > 0) {
+              // Para arrays de mensajes, agregar como mensaje de sistema al inicio
+              enrichedContents = [
+                {
+                  role: 'user',
+                  parts: [{ text: blockchainSystemPrompt }]
+                },
+                {
+                  role: 'model', 
+                  parts: [{ text: 'Entendido. Responderé usando únicamente los datos blockchain proporcionados de forma breve y precisa.' }]
+                },
+                ...contents
+              ];
+            }
+            console.log(`📊 [LOCAL] Blockchain context added: ${blockchainContext.length} chars`);
+          }
+        }
+        
+        // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain
+        const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { skipKnowledgeBase: isBlockchainQuery });
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
         let fullResponse = '';

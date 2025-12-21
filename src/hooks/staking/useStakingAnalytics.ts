@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAccount, useReadContract } from 'wagmi';
+import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
@@ -156,88 +156,81 @@ export function useStakingAnalytics() {
   // CONTRACT READS
   // ============================================
 
-  // 1. getGlobalStats() - Platform-wide metrics
-  const { data: globalStatsRaw, isLoading: loadingGlobalStats, refetch: refetchGlobalStats } = useReadContract({
-    ...viewConfig,
-    functionName: 'getGlobalStats',
-    query: {
-      staleTime: 30000,
-      gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
-    }
-  });
+  // ============================================
+  // CONTRACT READS (OPTIMIZED MULTICALL)
+  // ============================================
 
-  // 2. getHourlyROIRates() - ROI rates per period
-  const { data: hourlyROIRaw, isLoading: loadingROI } = useReadContract({
-    ...viewConfig,
-    functionName: 'getHourlyROIRates',
-    query: {
-      staleTime: 60 * 60 * 1000, // 1 hour - rates don't change often
-      gcTime: 24 * 60 * 60 * 1000,
-    }
-  });
-
-  // 3. getStakingRatesInfo() - Complete rates structure
-  const { data: stakingRatesRaw, isLoading: loadingRates } = useReadContract({
-    ...viewConfig,
-    functionName: 'getStakingRatesInfo',
-    query: {
-      staleTime: 60 * 60 * 1000,
-      gcTime: 24 * 60 * 60 * 1000,
-    }
-  });
-
-  // 4. getUserRewardsProjection() - User-specific projections
-  const { data: rewardsProjectionRaw, isLoading: loadingProjection, refetch: refetchProjection } = useReadContract({
-    ...viewConfig,
-    functionName: 'getUserRewardsProjection',
-    args: [address],
-    query: {
-      enabled: !!address && isConnected,
-      staleTime: 30000,
-      gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
-    }
-  });
-
-  // 5. getUserLockupAnalysis() - Lockup breakdown
-  const { data: lockupAnalysisRaw, isLoading: loadingLockup, refetch: refetchLockup } = useReadContract({
-    ...viewConfig,
-    functionName: 'getUserLockupAnalysis',
-    args: [address],
+  const {
+    data: multicallData,
+    isLoading: loadingMulticall,
+    refetch: refetchMulticall
+  } = useReadContracts({
+    contracts: [
+      {
+        ...viewConfig,
+        functionName: 'getGlobalStats',
+      },
+      {
+        ...viewConfig,
+        functionName: 'getHourlyROIRates',
+      },
+      {
+        ...viewConfig,
+        functionName: 'getStakingRatesInfo',
+      },
+      {
+        ...viewConfig,
+        functionName: 'getUserRewardsProjection',
+        args: [address],
+      },
+      {
+        ...viewConfig,
+        functionName: 'getUserLockupAnalysis',
+        args: [address],
+      },
+      {
+        ...viewConfig,
+        functionName: 'getWithdrawalStatus',
+        args: [address],
+      },
+      {
+        ...viewConfig,
+        functionName: 'getStakingEfficiency',
+        args: [address],
+      }
+    ],
     query: {
       enabled: !!address && isConnected,
       staleTime: 60000,
       gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false
     }
   });
 
-  // 6. getWithdrawalStatus() - Withdrawal limits and status
-  const { data: withdrawalStatusRaw, isLoading: loadingWithdrawal, refetch: refetchWithdrawal } = useReadContract({
-    ...viewConfig,
-    functionName: 'getWithdrawalStatus',
-    args: [address],
-    query: {
-      enabled: !!address && isConnected,
-      staleTime: 30000,
-      gcTime: 3 * 60 * 1000,
-      refetchOnWindowFocus: true,
-    }
-  });
+  // Extract data results
+  const globalStatsRaw = multicallData?.[0]?.result;
+  const hourlyROIRaw = multicallData?.[1]?.result;
+  const stakingRatesRaw = multicallData?.[2]?.result;
+  const rewardsProjectionRaw = multicallData?.[3]?.result;
+  const lockupAnalysisRaw = multicallData?.[4]?.result;
+  const withdrawalStatusRaw = multicallData?.[5]?.result;
+  const efficiencyRaw = multicallData?.[6]?.result;
 
-  // 7. getStakingEfficiency() - Efficiency score + tips
-  const { data: efficiencyRaw, isLoading: loadingEfficiency, refetch: refetchEfficiency } = useReadContract({
-    ...viewConfig,
-    functionName: 'getStakingEfficiency',
-    args: [address],
-    query: {
-      enabled: !!address && isConnected,
-      staleTime: 60000,
-      gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: true,
-    }
-  });
+  // Extract individual loading states and refetch functions for compatibility
+  // Note: With multicall, they generally load and refetch together
+  const loadingGlobalStats = loadingMulticall;
+  const loadingROI = loadingMulticall;
+  const loadingRates = loadingMulticall;
+  const loadingProjection = loadingMulticall;
+  const loadingLockup = loadingMulticall;
+  const loadingWithdrawal = loadingMulticall;
+  const loadingEfficiency = loadingMulticall;
+
+  const refetchGlobalStats = refetchMulticall;
+  const refetchProjection = refetchMulticall;
+  const refetchLockup = refetchMulticall;
+  const refetchWithdrawal = refetchMulticall;
+  const refetchEfficiency = refetchMulticall;
 
   // ============================================
   // FORMATTED DATA
@@ -245,10 +238,10 @@ export function useStakingAnalytics() {
 
   const globalStats = useMemo((): FormattedGlobalStats | null => {
     if (!globalStatsRaw) return null;
-    
-    const raw = globalStatsRaw as { 
-      totalValueLocked: bigint; 
-      totalUniqueUsers: bigint; 
+
+    const raw = globalStatsRaw as {
+      totalValueLocked: bigint;
+      totalUniqueUsers: bigint;
       contractBalance: bigint;
       availableRewards: bigint;
       healthStatus: number;
@@ -283,9 +276,9 @@ export function useStakingAnalytics() {
 
   const rewardsProjection = useMemo((): FormattedRewardsProjection | null => {
     if (!rewardsProjectionRaw) return null;
-    
+
     const raw = rewardsProjectionRaw as UserRewardsProjection;
-    
+
     return {
       hourly: formatPOL(raw.hourlyRewards, 8),
       daily: formatPOL(raw.dailyRewards, 6),
@@ -303,11 +296,11 @@ export function useStakingAnalytics() {
 
   const lockupAnalysis = useMemo((): FormattedLockupAnalysis | null => {
     if (!lockupAnalysisRaw) return null;
-    
+
     const raw = lockupAnalysisRaw as UserLockupAnalysis;
     const totalLocked = raw.totalLocked30 + raw.totalLocked90 + raw.totalLocked180 + raw.totalLocked365;
     const nextUnlockDate = raw.nextUnlockTime > 0n ? new Date(Number(raw.nextUnlockTime) * 1000) : null;
-    
+
     return {
       flexible: formatPOL(raw.totalFlexible),
       locked30: formatPOL(raw.totalLocked30),
@@ -317,7 +310,7 @@ export function useStakingAnalytics() {
       totalLocked: formatPOL(totalLocked),
       nextUnlockAmount: formatPOL(raw.nextUnlockAmount),
       nextUnlockTime: nextUnlockDate,
-      nextUnlockTimeFormatted: nextUnlockDate 
+      nextUnlockTimeFormatted: nextUnlockDate
         ? nextUnlockDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         : 'No locked deposits',
     };
@@ -325,18 +318,18 @@ export function useStakingAnalytics() {
 
   const withdrawalStatus = useMemo((): FormattedWithdrawalStatus | null => {
     if (!withdrawalStatusRaw) return null;
-    
+
     const raw = withdrawalStatusRaw as readonly [boolean, bigint, bigint, bigint];
     const DAILY_LIMIT = 2000n * 10n ** 18n; // 2000 POL daily limit
     const lockedDate = raw[2] > 0n ? new Date(Number(raw[2]) * 1000) : null;
     const limitUsed = DAILY_LIMIT - raw[3];
     const limitUsedPercent = Number((limitUsed * 100n) / DAILY_LIMIT);
-    
+
     return {
       canWithdraw: raw[0],
       withdrawableRewards: formatPOL(raw[1]),
       lockedUntilDate: lockedDate,
-      lockedUntilFormatted: lockedDate 
+      lockedUntilFormatted: lockedDate
         ? lockedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
         : 'Available now',
       dailyLimitRemaining: formatPOL(raw[3]),
@@ -346,10 +339,10 @@ export function useStakingAnalytics() {
 
   const stakingEfficiency = useMemo((): FormattedStakingEfficiency | null => {
     if (!efficiencyRaw) return null;
-    
+
     const raw = efficiencyRaw as readonly [bigint, readonly [string, string, string]];
     const score = Number(raw[0]);
-    
+
     const getLevel = (s: number): { level: FormattedStakingEfficiency['level']; color: string } => {
       if (s >= 90) return { level: 'Master', color: 'text-yellow-400' };
       if (s >= 70) return { level: 'Excellent', color: 'text-emerald-400' };
@@ -357,9 +350,9 @@ export function useStakingAnalytics() {
       if (s >= 30) return { level: 'Fair', color: 'text-orange-400' };
       return { level: 'Poor', color: 'text-red-400' };
     };
-    
+
     const levelInfo = getLevel(score);
-    
+
     return {
       score,
       level: levelInfo.level,
@@ -370,9 +363,9 @@ export function useStakingAnalytics() {
 
   const stakingRates = useMemo((): FormattedRatesInfo | null => {
     if (!stakingRatesRaw) return null;
-    
+
     const raw = stakingRatesRaw as StakingRatesInfo;
-    
+
     return {
       periods: [0, 1, 2, 3, 4].map(i => ({
         days: Number(raw.lockupPeriods[i]),
@@ -392,7 +385,7 @@ export function useStakingAnalytics() {
   // ============================================
   // CALCULATE POTENTIAL EARNINGS FUNCTION
   // ============================================
-  
+
   const useCalculatePotentialEarnings = (amount: bigint, lockupPeriodIndex: number, daysToProject: number) => {
     const { data, isLoading } = useReadContract({
       ...viewConfig,
@@ -419,7 +412,7 @@ export function useStakingAnalytics() {
   // ============================================
   // GET DEPOSIT REWARD RATES FUNCTION
   // ============================================
-  
+
   const useDepositRewardRates = (depositIndex: number) => {
     const { data, isLoading } = useReadContract({
       ...viewConfig,

@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from 'wagmi'
+import { useAccount, useReadContracts } from 'wagmi'
 import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
 import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStaking.json'
 import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json'
@@ -16,7 +16,7 @@ declare global {
 }
 
 if (typeof BigInt.prototype.toJSON === 'undefined') {
-  BigInt.prototype.toJSON = function() {
+  BigInt.prototype.toJSON = function () {
     return this.toString();
   };
 }
@@ -42,7 +42,7 @@ interface DepositData {
 }
 
 // Contract address from environment variables
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS 
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS
 
 // ✅ Validación de configuración del contrato en tiempo de carga
 if (!STAKING_CONTRACT_ADDRESS) {
@@ -62,106 +62,69 @@ const Staking = memo(() => {
 
   // ✅ Verificar si hay configuración válida del contrato
   const hasValidContractConfig = useMemo(() => {
-    const isValid = STAKING_CONTRACT_ADDRESS && 
-                    STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
-                    STAKING_CONTRACT_ADDRESS.startsWith('0x');
+    const isValid = STAKING_CONTRACT_ADDRESS &&
+      STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
+      STAKING_CONTRACT_ADDRESS.startsWith('0x');
     if (!isValid) {
       console.warn('⚠️ Staking contract address is not properly configured:', STAKING_CONTRACT_ADDRESS);
     }
     return isValid;
   }, [])
 
-  // Read contract data with optimized queries
-  const { data: userDeposits } = useReadContract({
-    ...contractConfig,
-    functionName: 'getUserDeposits',
-    args: [address],
-    query: { 
-      enabled: !!address,
-      staleTime: 60000,
-      gcTime: 5 * 60 * 1000,
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
-
-  const { data: totalPoolBalance } = useReadContract({
-    ...contractConfig,
-    functionName: 'totalPoolBalance',
+  // ✅ Optimized: Use Multicall to fetch all data in a single RPC request
+  const { data: stakingData } = useReadContracts({
+    contracts: [
+      {
+        ...contractConfig,
+        functionName: 'getUserDeposits',
+        args: [address],
+      },
+      {
+        ...contractConfig,
+        functionName: 'totalPoolBalance',
+      },
+      {
+        ...contractConfig,
+        functionName: 'uniqueUsersCount',
+      },
+      {
+        ...contractConfig,
+        functionName: 'calculateRewards',
+        args: [address],
+      },
+      {
+        address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
+        abi: EnhancedSmartStakingViewABI.abi,
+        functionName: 'getTotalDeposit',
+        args: [address],
+      },
+      {
+        ...contractConfig,
+        functionName: 'getContractVersion',
+      },
+      {
+        ...contractConfig,
+        functionName: 'paused',
+      }
+    ],
     query: {
-      staleTime: 120000, // 2 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes cache
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
-
-  const { data: uniqueUsersCount } = useReadContract({
-    ...contractConfig,
-    functionName: 'uniqueUsersCount',
-    query: {
-      staleTime: 120000,
-      gcTime: 10 * 60 * 1000,
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
-
-  const { data: pendingRewards } = useReadContract({
-    ...contractConfig,
-    functionName: 'calculateRewards',
-    args: [address],
-    query: { 
       enabled: !!address,
-      staleTime: 30000, // 30 seconds for rewards (faster updates)
-      gcTime: 3 * 60 * 1000, // 3 minutes cache
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
-
-  const { data: totalDeposit } = useReadContract({
-    address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingViewABI.abi,
-    functionName: 'getTotalDeposit',
-    args: [address],
-    query: { 
-      enabled: !!address,
-      staleTime: 60000,
+      staleTime: 30000,
       gcTime: 5 * 60 * 1000,
       refetchInterval: false,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   })
 
-  const { data: contractVersion } = useReadContract({
-    ...contractConfig,
-    functionName: 'getContractVersion',
-    query: {
-      staleTime: 300000, // 5 minutes - rarely changes
-      gcTime: 30 * 60 * 1000, // 30 minutes cache
-      refetchInterval: false
-    }
-  })
-
-
-
-  const { data: isPaused } = useReadContract({
-    ...contractConfig,
-    functionName: 'paused',
-    query: {
-      staleTime: 120000,
-      gcTime: 10 * 60 * 1000,
-      refetchInterval: false, // ✅ Disabled
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
+  // Extract data from multicall result
+  const userDeposits = stakingData?.[0]?.result
+  const totalPoolBalance = stakingData?.[1]?.result
+  const uniqueUsersCount = stakingData?.[2]?.result
+  const pendingRewards = stakingData?.[3]?.result
+  const totalDeposit = stakingData?.[4]?.result
+  const contractVersion = stakingData?.[5]?.result
+  const isPaused = stakingData?.[6]?.result
 
   // Helper function to safely handle BigInt serialization for logging
   // This prevents "Do not know how to serialize a BigInt" error in React DevTools
@@ -184,10 +147,10 @@ const Staking = memo(() => {
       contractVersion: (contractVersion as bigint) || 0n,
       isPaused: (isPaused as boolean) || false
     }
-    
+
     // Prevent React DevTools from trying to serialize BigInt values
     Object.defineProperty(data, 'toJSON', {
-      value: function() {
+      value: function () {
         return {
           totalPoolBalance: serializableBigInt(this.totalPoolBalance),
           uniqueUsersCount: serializableBigInt(this.uniqueUsersCount),
@@ -198,7 +161,7 @@ const Staking = memo(() => {
         }
       }
     })
-    
+
     return data
   }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, isPaused])
 
@@ -236,7 +199,7 @@ const Staking = memo(() => {
     <GlobalBackground>
       <div className="min-h-screen py-6 lg:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           {/* ═══════════════════════════════════════════════════════════════
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
@@ -286,15 +249,15 @@ const Staking = memo(() => {
               MAIN LAYOUT - 12-column grid for better control
           ═══════════════════════════════════════════════════════════════ */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            
+
             {/* ─────────────────────────────────────────────────────────────
                 LEFT COLUMN - Main staking interface (8 cols)
             ───────────────────────────────────────────────────────────── */}
             <div className="lg:col-span-8 space-y-6">
-              
+
               {/* Staking Form - Primary Action Component */}
               <Suspense fallback={<LoadingSpinner />}>
-                <StakingForm 
+                <StakingForm
                   stakingContractAddress={STAKING_CONTRACT_ADDRESS}
                   pendingRewards={processedData.pendingRewards}
                   isPaused={processedData.isPaused}
@@ -317,10 +280,10 @@ const Staking = memo(() => {
                 RIGHT COLUMN - Sidebar info (4 cols)
             ───────────────────────────────────────────────────────────── */}
             <aside className="lg:col-span-4 space-y-6">
-              
+
               {isMobile ? (
                 <Suspense fallback={<LoadingSpinner />}>
-                  <StakingInfoCarousel 
+                  <StakingInfoCarousel
                     totalPoolBalance={processedData.totalPoolBalance}
                     uniqueUsersCount={processedData.uniqueUsersCount}
                     contractAddress={STAKING_CONTRACT_ADDRESS}
@@ -331,7 +294,7 @@ const Staking = memo(() => {
                 <>
                   {/* Pool Info - Contract health & metrics */}
                   <Suspense fallback={<LoadingSpinner />}>
-                    <PoolInfo 
+                    <PoolInfo
                       totalPoolBalance={processedData.totalPoolBalance}
                       uniqueUsersCount={processedData.uniqueUsersCount}
                     />
@@ -339,7 +302,7 @@ const Staking = memo(() => {
 
                   {/* Contract Info - Address & status */}
                   <Suspense fallback={<LoadingSpinner />}>
-                    <ContractInfo 
+                    <ContractInfo
                       contractAddress={STAKING_CONTRACT_ADDRESS}
                       isPaused={processedData.isPaused}
                     />

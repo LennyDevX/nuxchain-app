@@ -43,7 +43,7 @@ class UrlContextService {
    *   config: { tools }
    * });
    */
-  async validateUrlForContext(url: string, options: UrlContextOptions = {}): Promise<{ valid: boolean; error?: string }> {
+  async validateUrlForContext(url: string): Promise<{ valid: boolean; error?: string }> {
     const requestMetrics: RequestMetrics = analyticsService.startRequest('url_context', 'url-validation');
     try {
       // Validate URL

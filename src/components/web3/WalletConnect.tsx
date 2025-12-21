@@ -19,17 +19,19 @@ function WalletConnect() {
   const isMobile = useIsMobile()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
-  
+
   // Nuevos hooks para mejoras
   const { ensName } = useENSResolution(address)
   const { gasPrice, gasLevel } = useGasPrice()
   const { transactions } = useTransactionHistory(3)
-  
+
   // Caching de balance usando useCallback
   const { data: balance } = useBalance({
     address: address,
     query: {
       enabled: Boolean(address && isConnected),
+      staleTime: 120000, // 2 minutes
+      gcTime: 300000,    // 5 minutes
     },
   })
 
@@ -42,7 +44,7 @@ function WalletConnect() {
       setShowDropdown(false)
       setIsConnecting(false)
       setConnectionError(null)
-      
+
       console.log(`✅ [Wallet] Connected successfully!`, {
         address: `${address.slice(0, 6)}...${address.slice(-4)}`,
         chain: chain?.name,
@@ -53,11 +55,11 @@ function WalletConnect() {
 
   useEffect(() => {
     if (!showDropdown) return;
-    
+
     function handleClickOutside(event: MouseEvent) {
       // Don't close while connecting
       if (isConnecting) return;
-      
+
       const target = event.target as Node;
       // Permitir clicks dentro del dropdown o en el botón
       if (buttonRef.current?.contains(target)) {
@@ -67,11 +69,11 @@ function WalletConnect() {
         setShowDropdown(false);
       }
     }
-    
+
     function handleTouchOutside(event: TouchEvent) {
       // Don't close while connecting
       if (isConnecting) return;
-      
+
       const target = event.target as Node;
       if (buttonRef.current?.contains(target)) {
         return;
@@ -80,11 +82,11 @@ function WalletConnect() {
         setShowDropdown(false);
       }
     }
-    
+
     // Usar capture phase para detectar clicks fuera
     document.addEventListener('mousedown', handleClickOutside, true);
     document.addEventListener('touchstart', handleTouchOutside, true);
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside, true);
       document.removeEventListener('touchstart', handleTouchOutside, true);
@@ -94,12 +96,12 @@ function WalletConnect() {
   // Reset connecting state after timeout to prevent stuck state
   useEffect(() => {
     if (!isConnecting) return;
-    
+
     const timeoutId = setTimeout(() => {
       console.warn('[WalletConnect] Connection timeout - resetting state')
       setIsConnecting(false)
     }, 60000); // 60 seconds timeout
-    
+
     return () => clearTimeout(timeoutId);
   }, [isConnecting]);
 
@@ -115,7 +117,7 @@ function WalletConnect() {
     }
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
@@ -136,7 +138,7 @@ function WalletConnect() {
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.stopPropagation()
   }
-  
+
   const isPolygonNetwork = chain?.id === polygon.id
 
   const formatFixed = (value: string, digits: number) => {
@@ -227,7 +229,7 @@ function WalletConnect() {
           <>
             {/* Backdrop para móvil - z-40 para estar debajo del dropdown z-50 */}
             {isMobile && (
-              <div 
+              <div
                 className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
                 onClick={() => setShowDropdown(false)}
               />
@@ -237,11 +239,10 @@ function WalletConnect() {
               onClick={handleDropdownClick}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              className={`absolute z-[999] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${
-                isMobile
+              className={`absolute z-[999] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
                   ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl max-h-[90vh] max-w-full'
                   : 'right-0 mt-2 w-96 bg-black rounded-xl shadow-xl border border-gray-800'
-              }`}
+                }`}
             >
               {/* Header */}
               <div className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-gray-900 p-6 border-b border-purple-500/20">
@@ -253,7 +254,7 @@ function WalletConnect() {
                     ✕
                   </button>
                 )}
-                
+
                 {/* Balance destacado */}
                 <div className="text-center mb-4">
                   <p className="text-xs text-gray-400 mb-1">Total Balance</p>
@@ -308,30 +309,27 @@ function WalletConnect() {
                 </div>
 
                 {/* Network Status */}
-                <div className={`rounded-lg p-3 border ${
-                  gasLevel === 'low' 
-                    ? 'bg-green-500/10 border-green-500/20' 
+                <div className={`rounded-lg p-3 border ${gasLevel === 'low'
+                    ? 'bg-green-500/10 border-green-500/20'
                     : gasLevel === 'high'
-                    ? 'bg-red-500/10 border-red-500/20'
-                    : 'bg-yellow-500/10 border-yellow-500/20'
-                }`}>
+                      ? 'bg-red-500/10 border-red-500/20'
+                      : 'bg-yellow-500/10 border-yellow-500/20'
+                  }`}>
                   <p className="text-xs text-gray-400 mb-2">Network Congestion</p>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-400">Gas Price</p>
-                      <p className={`text-sm font-bold ${
-                        gasLevel === 'low' ? 'text-green-400' : gasLevel === 'high' ? 'text-red-400' : 'text-yellow-400'
-                      }`}>
+                      <p className={`text-sm font-bold ${gasLevel === 'low' ? 'text-green-400' : gasLevel === 'high' ? 'text-red-400' : 'text-yellow-400'
+                        }`}>
                         {formatGasPrice(gasPrice)} Gwei
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      gasLevel === 'low' 
-                        ? 'bg-green-500/20 text-green-400' 
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${gasLevel === 'low'
+                        ? 'bg-green-500/20 text-green-400'
                         : gasLevel === 'high'
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
                       {getGasLevelLabel(gasLevel)}
                     </span>
                   </div>
@@ -354,13 +352,12 @@ function WalletConnect() {
                             <span className="text-xs font-mono text-gray-300 group-hover:text-purple-400">
                               {tx.hash.slice(0, 8)}...{tx.hash.slice(-6)}
                             </span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${
-                              tx.status === 'confirmed' 
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${tx.status === 'confirmed'
                                 ? 'bg-green-500/20 text-green-400'
                                 : tx.status === 'pending'
-                                ? 'bg-yellow-500/20 text-yellow-400'
-                                : 'bg-red-500/20 text-red-400'
-                            }`}>
+                                  ? 'bg-yellow-500/20 text-yellow-400'
+                                  : 'bg-red-500/20 text-red-400'
+                              }`}>
                               {tx.status === 'confirmed' ? '✓' : tx.status === 'pending' ? '⏱' : '✕'}
                             </span>
                           </div>
@@ -377,9 +374,8 @@ function WalletConnect() {
                   disconnect()
                   setShowDropdown(false)
                 }}
-                className={`w-full text-left text-red-400 hover:bg-red-900/30 transition-all duration-200 font-medium border-t border-gray-800 ${
-                  isMobile ? 'px-6 py-4 text-base' : 'px-4 py-3 text-sm'
-                }`}
+                className={`w-full text-left text-red-400 hover:bg-red-900/30 transition-all duration-200 font-medium border-t border-gray-800 ${isMobile ? 'px-6 py-4 text-base' : 'px-4 py-3 text-sm'
+                  }`}
               >
                 Disconnect Wallet
               </button>
@@ -411,17 +407,15 @@ function WalletConnect() {
           <div
             ref={dropdownRef}
             onClick={handleDropdownClick}
-            className={`absolute z-50 overflow-hidden ${
-              isMobile
+            className={`absolute z-50 overflow-hidden ${isMobile
                 ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl'
                 : 'right-0 mt-2 w-56 bg-black rounded-lg shadow-lg border border-gray-800'
-            }`}
+              }`}
           >
-            <div className={`border-b ${
-              isMobile
+            <div className={`border-b ${isMobile
                 ? 'p-6 border-gray-800 bg-gray-900'
                 : 'p-3 border-gray-800 bg-gray-900'
-            }`}>
+              }`}>
               {isMobile && (
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold text-white">Connect Wallet</h3>
@@ -433,9 +427,8 @@ function WalletConnect() {
                   </button>
                 </div>
               )}
-              <p className={`font-medium ${
-                isMobile ? 'text-base text-white' : 'text-sm text-white'
-              }`}>Select Wallet</p>
+              <p className={`font-medium ${isMobile ? 'text-base text-white' : 'text-sm text-white'
+                }`}>Select Wallet</p>
             </div>
             <div className={isMobile ? 'p-4 space-y-3' : 'p-2'}>
               {connectionError && (
@@ -464,30 +457,30 @@ function WalletConnect() {
                     onClick={async () => {
                       try {
                         if (isDisabled) return
-                        
+
                         // Clear any previous errors
                         setConnectionError(null)
-                        
+
                         // Close dropdown BEFORE attempting connection
                         setShowDropdown(false)
                         setIsConnecting(true)
-                        
+
                         if (key === 'walletconnect') {
                           console.log(`✅ [WalletConnect] Opening QR modal for WalletConnect...`)
                         } else {
                           console.log(`🔌 [Connector] Attempting to connect with: ${key}`)
                         }
-                        
+
                         await connectAsync({ connector: connector as Connector })
-                        
+
                         console.log(`✅ [WalletConnect] Successfully connected with: ${key}`)
                       } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error)
                         console.error(`❌ [WalletConnect] Error connecting with ${key}:`, errorMessage)
-                        
+
                         // Make error message user-friendly
                         let friendlyMessage = 'Connection failed. Please try again.'
-                        
+
                         if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
                           friendlyMessage = 'You cancelled the connection'
                         } else if (errorMessage.includes('reset') || errorMessage.includes('closed')) {
@@ -497,9 +490,9 @@ function WalletConnect() {
                         } else if (errorMessage.includes('network')) {
                           friendlyMessage = 'Network error. Please check your connection.'
                         }
-                        
+
                         setConnectionError(friendlyMessage)
-                        
+
                         // DON'T re-open dropdown on error - user needs to click "Connect Wallet" again
                         // This prevents the modal from repeatedly opening
                       } finally {
@@ -508,11 +501,10 @@ function WalletConnect() {
                       }
                     }}
                     disabled={isDisabled}
-                    className={`w-full text-left rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isMobile
+                    className={`w-full text-left rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isMobile
                         ? 'px-4 py-4 text-base text-white bg-gray-800 hover:bg-gray-700 border border-gray-700'
                         : 'px-3 py-2 text-sm text-white/80 hover:bg-gray-700'
-                    }`}
+                      }`}
                   >
                     <div className="flex flex-col">
                       <div className="font-medium text-white">{title}</div>

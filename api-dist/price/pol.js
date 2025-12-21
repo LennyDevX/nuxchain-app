@@ -7,6 +7,7 @@
  * - Distribuye rate limits del servidor en lugar del cliente
  * - Agrega headers CORS correctos
  */
+import { withEnhancedSecurity } from '../_middlewares/enhanced-security.js';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos - más corto que el cliente para propagación rápida
 let priceCache = null;
 // Rate limiting básico
@@ -26,7 +27,7 @@ function isRateLimited(ip) {
     requestLog.set(ip, recentRequests);
     return false;
 }
-export default async function handler(req, res) {
+export default withEnhancedSecurity(async function handler(req, res) {
     // Solo GET permitido
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -138,4 +139,4 @@ export default async function handler(req, res) {
             priceChange24h: 0
         });
     }
-}
+});

@@ -9,6 +9,7 @@
  * ✅ Cache inteligente por tipo de dato
  * ✅ Klines para historial de precios
  */
+import { withEnhancedSecurity } from '../_middlewares/enhanced-security.js';
 // APIs
 const BINANCE_FUTURES_API = 'https://fapi.binance.com/fapi/v1';
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
@@ -230,7 +231,7 @@ function getNextFundingTime() {
 /**
  * Handler principal
  */
-export default async function handler(req, res) {
+export default withEnhancedSecurity(async function handler(req, res) {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -326,4 +327,4 @@ export default async function handler(req, res) {
             timestamp: Date.now(),
         });
     }
-}
+});

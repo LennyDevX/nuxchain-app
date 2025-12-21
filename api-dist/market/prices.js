@@ -14,6 +14,7 @@
  * - Distribuye rate limits del servidor
  * - Agrega headers CORS correctos
  */
+import { withEnhancedSecurity } from '../_middlewares/enhanced-security.js';
 const COINGECKO_API_BASE = 'https://api.coingecko.com/api/v3';
 const CACHE_DURATION = 60 * 1000; // 60 segundos - actualización rápida para datos de mercado
 // Cache en memoria (se resetea en cada cold start de Vercel)
@@ -128,7 +129,7 @@ async function getMultiplePrices(symbols) {
 /**
  * Handler principal de la serverless function
  */
-export default async function handler(req, res) {
+async function handler(req, res) {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -277,3 +278,4 @@ export default async function handler(req, res) {
         });
     }
 }
+export default withEnhancedSecurity(handler);

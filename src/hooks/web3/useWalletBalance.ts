@@ -39,13 +39,13 @@ const MAX_STAKE_AMOUNT = 10000; // Maximum per deposit
  */
 export function useWalletBalance(): WalletBalanceData {
   const { address, isConnected } = useAccount();
-  
+
   const { data: balance, isLoading } = useBalance({
     address: address,
     query: {
       enabled: !!address && isConnected,
-      staleTime: 30000, // 30 seconds
-      gcTime: 60000,    // 1 minute
+      staleTime: 120000, // 2 minutes
+      gcTime: 300000,    // 5 minutes
     }
   });
 
@@ -54,20 +54,20 @@ export function useWalletBalance(): WalletBalanceData {
     // In wagmi 3.x, format the balance manually using formatUnits
     const balanceFormatted = balance ? parseFloat(formatUnits(balance.value, balance.decimals)) : 0;
     const symbol = balance?.symbol ?? 'POL';
-    
+
     // Calculate available for staking (minus gas reserve)
     const availableForStaking = Math.max(0, balanceFormatted - GAS_RESERVE);
-    
+
     // Check if can stake minimum amount
     const canStake = availableForStaking >= MIN_STAKE_AMOUNT;
-    
+
     // Calculate suggested stake amounts
     const suggestedAmounts = {
       conservative: Math.min(availableForStaking * 0.25, MAX_STAKE_AMOUNT),
       moderate: Math.min(availableForStaking * 0.50, MAX_STAKE_AMOUNT),
       aggressive: Math.min(availableForStaking * 0.75, MAX_STAKE_AMOUNT),
     };
-    
+
     return {
       balanceWei,
       balanceFormatted,
@@ -104,8 +104,8 @@ export function analyzeBalanceOpportunity(
     };
   }
 
-  const balanceToPortfolioRatio = currentPortfolioValue > 0 
-    ? (availableBalance / currentPortfolioValue) * 100 
+  const balanceToPortfolioRatio = currentPortfolioValue > 0
+    ? (availableBalance / currentPortfolioValue) * 100
     : 100;
 
   // High opportunity: Large balance relative to portfolio OR low diversification
@@ -113,7 +113,7 @@ export function analyzeBalanceOpportunity(
     return {
       opportunity: 'high',
       message: `You have ${availableBalance.toFixed(2)} POL available to significantly improve your portfolio.`,
-      suggestedAction: diversificationScore < 40 
+      suggestedAction: diversificationScore < 40
         ? 'Create new positions across different lockup periods'
         : 'Consider adding to underweighted lockup tiers',
       potentialImpact: `Could increase diversification by ${Math.min(30, Math.floor(availableBalance / 10))}+ points`,
@@ -125,7 +125,7 @@ export function analyzeBalanceOpportunity(
     return {
       opportunity: 'medium',
       message: `${availableBalance.toFixed(2)} POL available for portfolio optimization.`,
-      suggestedAction: liquidityRatio < 20 
+      suggestedAction: liquidityRatio < 20
         ? 'Add flexible positions to improve liquidity'
         : 'Consider longer lockups for better yields',
       potentialImpact: 'Moderate improvement to portfolio balance',

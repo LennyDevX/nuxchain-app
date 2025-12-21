@@ -18,21 +18,21 @@ export function useTotalClaimedRewardsV2(
   stakingContractAddress: `0x${string}`,
   userAddress?: `0x${string}`
 ) {
-  const { 
-    data: totalClaimed, 
-    isLoading, 
+  const {
+    data: totalClaimed,
+    isLoading,
     error,
-    refetch 
+    refetch
   } = useReadContract({
     address: stakingContractAddress,
-    abi: EnhancedSmartStakingABI,
+    abi: (EnhancedSmartStakingABI as any).abi || EnhancedSmartStakingABI,
     functionName: 'getTotalClaimedRewards',
-    args: [userAddress],
+    args: [userAddress as `0x${string}`],
     chainId: polygon.id,
     query: {
       enabled: !!userAddress,
-      staleTime: 30_000, // Cache por 30 segundos
-      refetchOnWindowFocus: true,
+      staleTime: 300_000, // 5 minutos (Optimizado para evitar 429)
+      refetchOnWindowFocus: false, // No recargar automáticamente al enfocar ventana
     },
   })
 

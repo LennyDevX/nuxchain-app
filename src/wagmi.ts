@@ -30,30 +30,38 @@ export const config = createConfig({
     }),
     ...(projectId
       ? [
-          walletConnect({
-            projectId,
-            showQrModal: true,
-            // Enable debug mode to see more details about connection issues
-            isNewChainsStale: true,
-            metadata: {
-              name: appName,
-              description: 'Nuxchain - Web3 Ecosystem Platform',
-              url: appUrl || 'https://nuxchain.app',
-              icons: appIconUrl ? [appIconUrl] : [],
-            },
-            qrModalOptions: { 
-              themeMode: 'dark',
-              themeVariables: {
-                '--wcm-z-index': '9999'
-              }
-            },
-          }),
-        ]
+        walletConnect({
+          projectId,
+          showQrModal: true,
+          // Enable debug mode to see more details about connection issues
+          isNewChainsStale: true,
+          metadata: {
+            name: appName,
+            description: 'Nuxchain - Web3 Ecosystem Platform',
+            url: appUrl || 'https://nuxchain.app',
+            icons: appIconUrl ? [appIconUrl] : [],
+          },
+          qrModalOptions: {
+            themeMode: 'dark',
+            themeVariables: {
+              '--wcm-z-index': '9999'
+            }
+          },
+        }),
+      ]
       : []),
   ],
   transports: {
-    [polygon.id]: http(alchemyApiKey ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}` : undefined),
-    [polygonAmoy.id]: http(),
+    [polygon.id]: http(alchemyApiKey ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}` : undefined, {
+      batch: true, // Habilitar batching para reducir el número de peticiones
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
+    [polygonAmoy.id]: http(undefined, {
+      batch: true,
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
   },
 })
 

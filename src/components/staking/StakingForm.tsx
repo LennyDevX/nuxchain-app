@@ -27,7 +27,7 @@ interface StakingFormProps {
 function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDeposit }: StakingFormProps) {
   const { address } = useAccount()
   const isMobile = useIsMobile()
-  const { lockedDeposits } = useUserDeposits()
+  // State for form
   const [depositAmount, setDepositAmount] = useState('')
   const [lockupDuration, setLockupDuration] = useState('0') // default: Flexible
   const [compoundLockupDuration, setCompoundLockupDuration] = useState('0') // default: Flexible
@@ -47,32 +47,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
   const contractBalance = (poolStats?.[4] as bigint) || 0n
 
-  // Get user info for refetching deposits
-  const { 
+  // Get user info and refetch function
+  const {
+    lockedDeposits,
     refetch: refetchUserDeposits
-  } = useReadContract({
-    address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingViewABI.abi,
-    functionName: 'getUserDeposits',
-    args: [address],
-    query: {
-      enabled: !!address,
-      staleTime: 60000,
-      gcTime: 5 * 60 * 1000,
-      refetchInterval: false,
-      refetchOnWindowFocus: true,
-      refetchOnMount: false,
-    }
-  })
+  } = useUserDeposits()
 
   const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
 
   // ✅ Get total claimed rewards directly from contract
-  const { 
-    totalClaimed: totalRewardsClaimed, 
-    isLoading: isLoadingClaimed, 
-    refetch: refetchClaimed 
+  const {
+    totalClaimed: totalRewardsClaimed,
+    isLoading: isLoadingClaimed,
+    refetch: refetchClaimed
   } = useTotalClaimedRewardsV2(
     stakingContractAddress as `0x${string}`,
     address
@@ -423,8 +411,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             aria-selected={activeTab === 'stake'}
             aria-label="Stake Tab - Use Arrow Keys to Navigate"
             className={`font-medium transition-all duration-300 ${isMobile
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-                : 'flex-1 py-4 px-6 text-center'
+              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
+              : 'flex-1 py-4 px-6 text-center'
               } ${activeTab === 'stake'
                 ? isMobile
                   ? 'bg-blue-500/30 text-blue-300 shadow-lg transform scale-105'
@@ -445,8 +433,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             aria-selected={activeTab === 'claim'}
             aria-label="Claim Tab"
             className={`font-medium transition-all duration-300 ${isMobile
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-                : 'flex-1 py-4 px-6 text-center'
+              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
+              : 'flex-1 py-4 px-6 text-center'
               } ${activeTab === 'claim'
                 ? isMobile
                   ? 'bg-yellow-500/30 text-yellow-300 shadow-lg transform scale-105'
@@ -467,8 +455,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             aria-selected={activeTab === 'withdraw'}
             aria-label="Withdraw Tab"
             className={`font-medium transition-all duration-300 ${isMobile
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-                : 'flex-1 py-4 px-6 text-center'
+              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
+              : 'flex-1 py-4 px-6 text-center'
               } ${activeTab === 'withdraw'
                 ? isMobile
                   ? 'bg-red-500/30 text-red-300 shadow-lg transform scale-105'
@@ -489,8 +477,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             aria-selected={activeTab === 'compound'}
             aria-label="Compound Tab"
             className={`font-medium transition-all duration-300 ${isMobile
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-                : 'flex-1 py-4 px-6 text-center'
+              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
+              : 'flex-1 py-4 px-6 text-center'
               } ${activeTab === 'compound'
                 ? isMobile
                   ? 'bg-green-500/30 text-green-300 shadow-lg transform scale-105'
@@ -511,8 +499,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             aria-selected={activeTab === 'emergency'}
             aria-label="Emergency Tab"
             className={`font-medium transition-all duration-300 ${isMobile
-                ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-                : 'flex-1 py-4 px-6 text-center'
+              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
+              : 'flex-1 py-4 px-6 text-center'
               } ${activeTab === 'emergency'
                 ? isMobile
                   ? 'bg-orange-500/30 text-orange-300 shadow-lg transform scale-105'
@@ -606,7 +594,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                   {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
                 </p>
                 <p className="text-white/60 text-xs">
-                  {pendingRewards && pendingRewards > 0n 
+                  {pendingRewards && pendingRewards > 0n
                     ? 'These rewards are ready to be claimed and transferred to your wallet'
                     : 'No pending rewards at this moment. Keep staking to earn more!'
                   }
@@ -627,17 +615,17 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                     )}
-                    
+
                   </div>
                 </div>
                 <p className="text-xl font-bold text-purple-400 mb-1">
-                  {totalRewardsClaimed && totalRewardsClaimed > 0n 
-                    ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL` 
+                  {totalRewardsClaimed && totalRewardsClaimed > 0n
+                    ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL`
                     : '0.000000 POL'}
                 </p>
                 <p className="text-white/50 text-xs">
-                  {isLoadingClaimed 
-                    ? 'Loading from contract...' 
+                  {isLoadingClaimed
+                    ? 'Loading from contract...'
                     : totalRewardsClaimed && totalRewardsClaimed > 0n
                       ? 'Total rewards withdrawn since inception'
                       : 'No rewards claimed yet. Stake and earn!'}
@@ -696,20 +684,18 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
           <div className="space-y-6">
             {/* Withdrawal Status Info from Contract */}
             {!loadingWithdrawal && withdrawalStatus && (
-              <motion.div 
-                className={`p-4 rounded-lg border ${
-                  withdrawalStatus.canWithdraw 
-                    ? 'bg-emerald-500/10 border-emerald-500/30' 
-                    : 'bg-amber-500/10 border-amber-500/30'
-                }`}
+              <motion.div
+                className={`p-4 rounded-lg border ${withdrawalStatus.canWithdraw
+                  ? 'bg-emerald-500/10 border-emerald-500/30'
+                  : 'bg-amber-500/10 border-amber-500/30'
+                  }`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-white/70 text-sm">Withdrawal Status</span>
-                  <span className={`text-sm font-semibold ${
-                    withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-amber-400'
-                  }`}>
+                  <span className={`text-sm font-semibold ${withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
                     {withdrawalStatus.canWithdraw ? '✅ Available' : '⏳ Pending'}
                   </span>
                 </div>

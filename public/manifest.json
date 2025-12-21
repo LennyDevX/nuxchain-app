@@ -26,15 +26,15 @@
   ],
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "/favicon.svg?v=2",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/favicon1.png?v=2",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     }
   ],

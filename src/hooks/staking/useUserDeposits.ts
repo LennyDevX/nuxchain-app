@@ -29,6 +29,7 @@ export interface UseUserDepositsReturn {
   flexibleDeposits: number;
   isLoading: boolean;
   error: string | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -45,16 +46,16 @@ export function useUserDeposits(): UseUserDepositsReturn {
   }), []);
 
   // Get user info to know how many deposits exist
-  const { data: userInfo, isLoading: loadingUserInfo, error: userInfoError } = useReadContract({
+  const { data: userInfo, isLoading: loadingUserInfo, error: userInfoError, refetch: refetchUserInfo } = useReadContract({
     ...contractConfig,
     functionName: 'getUserInfo',
     args: [address],
-    query: { 
+    query: {
       enabled: !!address && isConnected,
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
       refetchInterval: false,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });
@@ -74,7 +75,7 @@ export function useUserDeposits(): UseUserDepositsReturn {
   // Fetch all deposits in parallel using useReadContracts
   const depositContracts = useMemo(() => {
     if (depositIndices.length === 0 || !address) return [];
-    
+
     return depositIndices.map(index => ({
       ...contractConfig,
       functionName: 'getUserDeposit' as const,
@@ -82,14 +83,14 @@ export function useUserDeposits(): UseUserDepositsReturn {
     }));
   }, [depositIndices, address, contractConfig]);
 
-  const { data: depositsData, isLoading: loadingDeposits, error: depositsError } = useReadContracts({
+  const { data: depositsData, isLoading: loadingDeposits, error: depositsError, refetch: refetchDeposits } = useReadContracts({
     contracts: depositContracts,
     query: {
       enabled: depositContracts.length > 0 && !!address && isConnected,
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
       refetchInterval: false,
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });
@@ -97,13 +98,13 @@ export function useUserDeposits(): UseUserDepositsReturn {
   // Parse deposits data
   const deposits = useMemo((): UserDeposit[] => {
     if (!depositsData || depositsData.length === 0) return [];
-    
+
     const currentTime = BigInt(Math.floor(Date.now() / 1000));
-    
+
     const parsedDeposits = depositsData
       .map((result, index) => {
         if (result.status !== 'success' || !result.result) return null;
-        
+
         // Order from Solidity struct Deposit:
         // uint128 amount, uint64 timestamp, uint64 lastClaimTime, uint64 lockupDuration
         const data = result.result as [bigint, bigint, bigint, bigint];
@@ -111,12 +112,12 @@ export function useUserDeposits(): UseUserDepositsReturn {
         const depositTime = data[1];         // uint64 timestamp (depositTime)
         const lastClaimTime = data[2];       // uint64 lastClaimTime
         const lockupDuration = data[3];      // uint64 lockupDuration (in seconds)
-        
+
         // Calculate unlock time
         const unlockTime = depositTime + lockupDuration;
         const isLocked = currentTime < unlockTime;
         const isActive = amount > 0n;
-        
+
         console.log(`[useUserDeposits] Deposit ${index}:`, {
           amount: amount.toString(),
           depositTime: depositTime.toString(),
@@ -127,7 +128,7 @@ export function useUserDeposits(): UseUserDepositsReturn {
           isLocked,
           isActive
         });
-        
+
         return {
           index,
           amount,
@@ -140,11 +141,11 @@ export function useUserDeposits(): UseUserDepositsReturn {
         } as UserDeposit;
       })
       .filter((deposit): deposit is UserDeposit => deposit !== null);
-    
+
     console.log(`[useUserDeposits] Total active deposits:`, parsedDeposits.filter(d => d.isActive).length);
     console.log(`[useUserDeposits] Total locked deposits:`, parsedDeposits.filter(d => d.isActive && d.isLocked).length);
     console.log(`[useUserDeposits] Total flexible deposits:`, parsedDeposits.filter(d => d.isActive && !d.isLocked).length);
-    
+
     return parsedDeposits;
   }, [depositsData]);
 
@@ -164,6 +165,11 @@ export function useUserDeposits(): UseUserDepositsReturn {
   const isLoading = loadingUserInfo || loadingDeposits;
   const error = userInfoError?.message || depositsError?.message || null;
 
+  // Combined refetch function
+  const refetch = async () => {
+    await Promise.all([refetchUserInfo(), refetchDeposits()]);
+  };
+
   return {
     deposits,
     totalDeposits: depositCount,
@@ -172,5 +178,6 @@ export function useUserDeposits(): UseUserDepositsReturn {
     flexibleDeposits,
     isLoading,
     error,
+    refetch,
   };
 }

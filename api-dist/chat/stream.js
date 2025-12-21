@@ -1,5 +1,6 @@
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
-import { withSecurity } from '../_middlewares/serverless-security.js';
+import { withEnhancedSecurity } from '../_middlewares/enhanced-security.js';
+import WebScraperService from '../_services/web-scraper.js';
 // Lazy imports for blockchain services
 let blockchainService = null;
 let blockchainTools = null;
@@ -425,15 +426,55 @@ async function streamHandler(req, res) {
         const stakingAdvicePreamble = isStakingAdviceQuery
             ? 'INSTRUCCIONES: Usa los datos on-chain del usuario en el CONTEXTO BLOCKCHAIN. Da 3-5 recomendaciones accionables y concretas (qué hacer y por qué), y menciona si hay Auto-Compound, rewards pendientes y si conviene mover Flexible -> Locked segun APY y liquidez.\n\n'
             : '';
-        const enrichedMessage = blockchainContext
-            ? `${stakingAdvicePreamble}${messageContent}\n\n[CONTEXTO BLOCKCHAIN ACTUAL - USA ESTOS DATOS PARA RESPONDER]:\n${blockchainContext}`
-            : `${stakingAdvicePreamble}${messageContent}`;
-        console.log('🤖 Generating response...');
-        // \ud83d\udd17 Configure tools (add URL context if URLs detected)
+        // \ud83d\udd17 Build enriched message with all contexts
+        let enrichedMessage = messageContent;
+        let urlContext = '';
+        // Extract URL content if URLs detected
+        if (hasUrls) {
+            console.log('\ud83d\udd17 Extracting content from URLs:', detectedUrls);
+            const webScraper = new WebScraperService();
+            try {
+                const urlContents = [];
+                for (const url of detectedUrls) {
+                    try {
+                        const result = await webScraper.extractContent(url, { maxContentLength: 4000 });
+                        if (result.success && result.content) {
+                            urlContents.push(`\n[URL: ${url}]\n${result.content}`);
+                            console.log(`\u2705 URL content extracted: ${result.content.length} chars from ${url}`);
+                        }
+                    }
+                    catch (urlError) {
+                        console.warn(`\u26a0\ufe0f Failed to extract ${url}:`, urlError);
+                    }
+                }
+                if (urlContents.length > 0) {
+                    urlContext = urlContents.join('\n\n');
+                }
+            }
+            catch (error) {
+                console.error('Error extracting URL content:', error);
+            }
+        }
+        // Add blockchain context if available
+        if (blockchainContext) {
+            enrichedMessage = `${stakingAdvicePreamble}${enrichedMessage}\n\n[CONTEXTO BLOCKCHAIN ACTUAL - USA ESTOS DATOS PARA RESPONDER]:\n${blockchainContext}`;
+        }
+        else if (stakingAdvicePreamble) {
+            enrichedMessage = `${stakingAdvicePreamble}${enrichedMessage}`;
+        }
+        // Add URL content context if available
+        if (urlContext) {
+            enrichedMessage = `${enrichedMessage}\n\n[CONTENIDO DE URL - ANALIZA ESTE CONTENIDO PARA RESPONDER]:\n${urlContext}`;
+            console.log(`\ud83d\udcc4 URL context added: ${urlContext.length} chars`);
+        }
+        console.log('\ud83e\udd16 Generating response...');
+        // \ud83d\udd17 Configure tools (keep URL context tool for additional support)
+        // Note: We now extract content ourselves for better accuracy, but keep tool as fallback
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const configTools = hasUrls ? [{ url_context: {} }] : undefined;
         if (hasUrls) {
-            console.log('\u2705 URL context tool enabled for request');
+            console.log('\u2705 URL context: explicit content + tool enabled as fallback');
+            console.log('\ud83d\udd17 URLs processed:', detectedUrls.length);
         }
         // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
         const streamResponse = await client.models.generateContentStream({
@@ -587,7 +628,7 @@ async function streamHandler(req, res) {
 // - API Key validation (si se configura)
 // - Timeout protection
 // - Error handling
-export default withSecurity(streamHandler);
+export default withEnhancedSecurity(streamHandler);
 // Configuración de Vercel
 export const config = {
     maxDuration: 60

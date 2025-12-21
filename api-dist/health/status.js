@@ -1,4 +1,5 @@
-export default async function handler(req, res) {
+import { withEnhancedSecurity } from '../_middlewares/enhanced-security.js';
+export default withEnhancedSecurity(async function handler(req, res) {
     try {
         // Check environment variables
         const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY);
@@ -32,4 +33,4 @@ export default async function handler(req, res) {
             stack: err.stack
         });
     }
-}
+});

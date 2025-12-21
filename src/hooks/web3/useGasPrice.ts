@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { usePublicClient } from 'wagmi'
 
 interface GasInfo {
@@ -7,50 +7,37 @@ interface GasInfo {
 }
 
 export function useGasPrice() {
-  const [gasInfo, setGasInfo] = useState<GasInfo>({
-    gasPrice: null,
-    gasLevel: 'normal',
-  })
-  const [isLoading, setIsLoading] = useState(false)
   const publicClient = usePublicClient()
 
-  const fetchGasPrice = useCallback(async () => {
-    if (!publicClient) return
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['gasPrice'],
+    queryFn: async () => {
+      if (!publicClient) throw new Error('Public client not available')
+      const price = await publicClient.getGasPrice()
 
-    setIsLoading(true)
-    try {
-      const price = await publicClient.getGasPrice?.()
-      
-      if (price) {
-        // Determinar nivel de congestión
-        // Gas price típicos en Polygon:
-        // Low: < 50 gwei
-        // Normal: 50-100 gwei
-        // High: > 100 gwei
-        const priceInGwei = Number(price) / 1e9
-        let level: 'low' | 'normal' | 'high' = 'normal'
-        
-        if (priceInGwei < 50) level = 'low'
-        else if (priceInGwei > 100) level = 'high'
+      if (!price) return null
 
-        setGasInfo({
-          gasPrice: price,
-          gasLevel: level,
-        })
-      }
-    } catch (error) {
-      console.warn('Error fetching gas price:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [publicClient])
+      const priceInGwei = Number(price) / 1e9
+      let level: 'low' | 'normal' | 'high' = 'normal'
 
-  useEffect(() => {
-    fetchGasPrice()
-    // Actualizar cada 30 segundos
-    const interval = setInterval(fetchGasPrice, 30000)
-    return () => clearInterval(interval)
-  }, [fetchGasPrice])
+      if (priceInGwei < 50) level = 'low'
+      else if (priceInGwei > 100) level = 'high'
 
-  return { ...gasInfo, isLoading, refetch: fetchGasPrice }
+      return {
+        gasPrice: price,
+        gasLevel: level,
+      } as GasInfo
+    },
+    enabled: !!publicClient,
+    staleTime: 300000, // 5 minutes (Optimizado para evitar 429)
+    refetchInterval: 300000, // Update every 5 minutes
+    refetchOnWindowFocus: false, // Evita ráfagas al cambiar de pestaña
+  })
+
+  return {
+    gasPrice: data?.gasPrice ?? null,
+    gasLevel: data?.gasLevel ?? 'normal',
+    isLoading,
+    refetch
+  }
 }

@@ -27,12 +27,12 @@ const knowledgeBase = [
         commands: ['Nuxchain smart contract', 'Nuxchain SmartStaking', 'Nuxchain functions']
     },
     {
-        content: "Nuxchain SmartStaking has deposit limits: minimum 5 POL and maximum 10000 POL per deposit. Maximum 300 deposits per user. Daily withdrawal limit is 1000 POL for security. The contract includes custom errors like AlreadyMigrated, DailyWithdrawalLimitExceeded, NoRewardsAvailable for better error handling.",
+        content: "Nuxchain SmartStaking has deposit limits: minimum 10 POL and maximum 100000 POL per deposit. Maximum 400 deposits per user. Daily withdrawal limit is 2000 POL for security. The contract includes custom errors like AlreadyMigrated, DailyWithdrawalLimitExceeded, NoRewardsAvailable for better error handling.",
         metadata: { type: "smart-contract", category: "staking", topic: "limits" },
         commands: ['Nuxchain limits', 'Nuxchain deposit minimum', 'Nuxchain errors']
     },
     {
-        content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 POL for security. Commission rate is 6% on rewards.",
+        content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 2000 POL for security. Commission rate is 6% on rewards.",
         metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" },
         commands: ['Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup']
     },
@@ -390,7 +390,7 @@ const knowledgeBase = [
         commands: ['Nuxchain staking rewards', 'Nuxchain APY calculation', 'Nuxchain compound rewards']
     },
     {
-        content: "FAQ - POL Token: POL is Polygon's native token used for all transactions on Nuxchain. You need POL for: gas fees on all transactions, staking deposits to earn rewards, purchasing NFTs in the marketplace, paying marketplace fees. You can acquire POL from exchanges like Binance, Coinbase, or KuCoin, then bridge it to Polygon network. Always keep some POL in your wallet for gas fees. Minimum staking amount is 5 POL, maximum is 10,000 POL per deposit.",
+        content: "FAQ - POL Token: POL is Polygon's native token used for all transactions on Nuxchain. You need POL for: gas fees on all transactions, staking deposits to earn rewards, purchasing NFTs in the marketplace, paying marketplace fees. You can acquire POL from exchanges like Binance, Coinbase, or KuCoin, then bridge it to Polygon network. Always keep some POL in your wallet for gas fees. Minimum staking amount is 10 POL, maximum is 100,000 POL per deposit. Maximum 400 deposits per user.",
         metadata: { type: "faq", category: "token", topic: "pol-usage" },
         commands: ['Nuxchain POL', 'Nuxchain Polygon token', 'What is POL', 'How to get POL']
     },

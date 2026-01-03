@@ -49,6 +49,7 @@ export interface StakingInfoResult {
   lastUpdated?: string;
   error?: string;
   cached?: boolean;
+  note?: string;
 }
 
 export interface NFTListingsResult {
@@ -111,6 +112,7 @@ export interface UserStakingPositionResult {
   recommendations?: string[];
   contractAddress?: string;
   error?: string;
+  note?: string;
   cached?: boolean;
   source?: string;
 }
@@ -382,27 +384,37 @@ export async function getUserStakingPosition(address: string): Promise<UserStaki
 
     type ApyRatesTuple = readonly [bigint, bigint, bigint, bigint, bigint];
 
+    // Use safeRpcCall wrapper for all contract reads
     const [statsAny, apyAny, depositsByType] = await Promise.all([
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getUserDetailedStats',
-        args: [address as Address],
-        authorizationList: undefined,
-      }) as Promise<unknown>,
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getAPYRates',
-        authorizationList: undefined,
-      }) as Promise<unknown>,
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getUserDepositsByType',
-        args: [address as Address],
-        authorizationList: undefined,
-      }) as Promise<unknown>,
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getUserDetailedStats',
+          args: [address as Address],
+          authorizationList: undefined,
+        }) as Promise<unknown>,
+        'getUserDetailedStats'
+      ),
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getAPYRates',
+          authorizationList: undefined,
+        }) as Promise<unknown>,
+        'getAPYRates'
+      ),
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getUserDepositsByType',
+          args: [address as Address],
+          authorizationList: undefined,
+        }) as Promise<unknown>,
+        'getUserDepositsByType'
+      ),
     ]);
 
     const stats = statsAny as UserDetailedStatsTuple;
@@ -484,11 +496,21 @@ export async function getUserStakingPosition(address: string): Promise<UserStaki
     setCache(cacheKey, result, CACHE_TTL.USER_STAKING);
     return result;
   } catch (error) {
-    console.error('[BlockchainService] Error fetching user staking position:', error);
+    console.error('[BlockchainService] ❌ Error fetching user staking position:', {
+      address: address.slice(0, 6) + '...' + address.slice(-4),
+      error: error instanceof Error ? error.message : String(error),
+    });
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user staking position';
+    const isRateLimitError = errorMessage.includes('429') || errorMessage.includes('Too Many Requests');
+    
     return {
       success: false,
       address,
-      error: error instanceof Error ? error.message : 'Failed to fetch user staking position',
+      error: isRateLimitError
+        ? 'RPC rate limit reached. Please try again in a moment.'
+        : errorMessage,
+      note: `View your wallet on PolygonScan: https://polygonscan.com/address/${address}`,
     };
   }
 }
@@ -518,9 +540,41 @@ function setCache<T>(key: string, data: T, ttl: number): void {
 // CONFIGURATION
 // ============================================================================
 
+// RPC URLs with fallbacks - prioritize env variable, then fallback to public RPCs
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || process.env.VITE_ALCHEMY;
+console.log('[BlockchainService] 🔍 Environment check:', {
+  hasALCHEMY_API_KEY: !!process.env.ALCHEMY_API_KEY,
+  hasVITE_ALCHEMY: !!process.env.VITE_ALCHEMY,
+  keyPreview: ALCHEMY_API_KEY?.slice(0, 8) + '...',
+});
+
+const PRIMARY_RPC = ALCHEMY_API_KEY 
+  ? `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+  : null;
+
+// Public Polygon RPCs for fallback (no API key required)
+const FALLBACK_RPCS = [
+  'https://polygon-rpc.com',
+  'https://rpc-mainnet.matic.quiknode.pro',
+  'https://polygon.llamarpc.com',
+  'https://polygon.drpc.org',
+];
+
+// Get the best available RPC URL
+function getRpcUrl(): string {
+  if (PRIMARY_RPC) {
+    return PRIMARY_RPC;
+  }
+  console.warn('[BlockchainService] \u26a0\ufe0f No Alchemy API key found, using public RPC fallback');
+  return FALLBACK_RPCS[0];
+}
+
 const CONFIG = {
   COINGECKO_API: 'https://api.coingecko.com/api/v3',
-  ALCHEMY_URL: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.VITE_ALCHEMY || 'Oyk0XqXD7K2HQO4bkbDm1w8iZQ6fHulV'}`,
+  POLYGONSCAN_API: 'https://api.polygonscan.com/api',
+  POLYGONSCAN_API_KEY: process.env.POLYGONSCAN_API_KEY || 'YourApiKeyToken',
+  RPC_URL: getRpcUrl(),
+  FALLBACK_RPCS,
   
   // Contract addresses from .env
   STAKING_CONTRACT: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946',
@@ -531,11 +585,159 @@ const CONFIG = {
   SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/YOUR_SUBGRAPH_ID/nuxchain/version/latest',
 };
 
+// Log RPC configuration on startup with detailed info
+if (PRIMARY_RPC) {
+  console.log(`[BlockchainService] \ud83d\udd17 Using Alchemy RPC with API key: ${ALCHEMY_API_KEY?.slice(0, 8)}...`);
+  console.log(`[BlockchainService] \ud83d\udccd RPC URL: https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY?.slice(0, 8)}...`);
+} else {
+  console.warn(`[BlockchainService] \u26a0\ufe0f No Alchemy API key found! Using public RPC: ${CONFIG.RPC_URL}`);
+  console.warn('[BlockchainService] \ud83d\udca1 Set ALCHEMY_API_KEY environment variable for better performance');
+  console.warn('[BlockchainService] \ud83d\udca1 Public RPCs may have rate limits and slower response times');
+}
+
 // Public client for reading blockchain data using Viem
-const publicClient = createPublicClient({
+// Using http transport with retry and timeout options
+let publicClient = createPublicClient({
   chain: polygon,
-  transport: http(CONFIG.ALCHEMY_URL)
-});
+  transport: http(CONFIG.RPC_URL, {
+    timeout: 10000, // 10 second timeout
+    retryCount: 2,
+    retryDelay: 1000,
+  })
+}) as ReturnType<typeof createPublicClient>;
+
+// Track failed RPC attempts to switch to fallback
+let rpcFailureCount = 0;
+const MAX_FAILURES_BEFORE_SWITCH = 3;
+
+/**
+ * Helper to switch to fallback RPC if primary fails repeatedly
+ */
+function switchToFallbackRpc(): void {
+  if (rpcFailureCount >= MAX_FAILURES_BEFORE_SWITCH && CONFIG.FALLBACK_RPCS.length > 0) {
+    const fallbackUrl = CONFIG.FALLBACK_RPCS[0];
+    console.warn(`[BlockchainService] \ud83d\udd04 Switching to fallback RPC: ${fallbackUrl}`);
+    publicClient = createPublicClient({
+      chain: polygon,
+      transport: http(fallbackUrl, {
+        timeout: 10000,
+        retryCount: 2,
+        retryDelay: 1000,
+      })
+    });
+    rpcFailureCount = 0; // Reset counter
+  }
+}
+
+/**
+ * Wrapper for RPC calls with automatic fallback handling
+ */
+async function safeRpcCall<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
+  try {
+    const result = await operation();
+    // Reset failure count on success
+    if (rpcFailureCount > 0) rpcFailureCount = Math.max(0, rpcFailureCount - 1);
+    return result;
+  } catch (error) {
+    rpcFailureCount++;
+    console.error(`[BlockchainService] \u274c RPC call failed (${operationName}):`, {
+      error: error instanceof Error ? error.message : String(error),
+      failureCount: rpcFailureCount,
+    });
+    
+    // Check if it's an Alchemy-specific error (inactive app, rate limit)
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('App is ina') || errorMsg.includes('429') || errorMsg.includes('Too Many Requests')) {
+      console.warn('[BlockchainService] \u26a0\ufe0f Alchemy API issue detected, switching to fallback');
+      rpcFailureCount = MAX_FAILURES_BEFORE_SWITCH; // Force switch
+    }
+    
+    switchToFallbackRpc();
+    throw error;
+  }
+}
+
+// ============================================================================
+// POLYGONSCAN API HELPERS
+// ============================================================================
+
+/**
+ * Get contract information from PolygonScan
+ * Useful for verification and additional context
+ */
+async function getContractInfoFromPolygonScan(contractAddress: string): Promise<{
+  name?: string;
+  compiler?: string;
+  verified?: boolean;
+  transactions?: number;
+  balance?: string;
+}> {
+  try {
+    // Get contract source code (includes name, compiler version, etc.)
+    const sourceResponse = await fetch(
+      `${CONFIG.POLYGONSCAN_API}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    
+    if (!sourceResponse.ok) {
+      throw new Error(`PolygonScan API error: ${sourceResponse.status}`);
+    }
+    
+    const sourceData = await sourceResponse.json() as {
+      status: string;
+      message: string;
+      result: Array<{
+        SourceCode: string;
+        ABI: string;
+        ContractName: string;
+        CompilerVersion: string;
+        OptimizationUsed: string;
+        Runs: string;
+      }>;
+    };
+    
+    if (sourceData.status !== '1' || !sourceData.result || sourceData.result.length === 0) {
+      return { verified: false };
+    }
+    
+    const contractInfo = sourceData.result[0];
+    const verified = contractInfo.SourceCode && contractInfo.SourceCode.length > 0;
+    
+    // Get contract balance
+    const balanceResponse = await fetch(
+      `${CONFIG.POLYGONSCAN_API}?module=account&action=balance&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    
+    let balance = '0';
+    if (balanceResponse.ok) {
+      const balanceData = await balanceResponse.json() as { status: string; result: string };
+      if (balanceData.status === '1') {
+        // Convert from wei to POL
+        const balanceWei = BigInt(balanceData.result);
+        balance = (Number(balanceWei) / 1e18).toFixed(4);
+      }
+    }
+    
+    return {
+      name: contractInfo.ContractName || undefined,
+      compiler: contractInfo.CompilerVersion || undefined,
+      verified,
+      balance: `${balance} POL`,
+    };
+  } catch (error) {
+    console.warn('[BlockchainService] Could not fetch contract info from PolygonScan:', error instanceof Error ? error.message : String(error));
+    return {};
+  }
+}
+
+/**
+ * Get PolygonScan link for contract address
+ */
+function getPolygonScanLink(address: string): string {
+  return `https://polygonscan.com/address/${address}`;
+}
+
 
 // ============================================================================
 // POL PRICE FUNCTION
@@ -663,7 +865,7 @@ async function getPolPriceFromDIA(): Promise<POLPriceResult> {
 
 /**
  * Get Nuxchain staking contract information
- * Uses Alchemy RPC for direct contract reads
+ * Uses RPC for direct contract reads with automatic fallback
  */
 export async function getStakingInfo(): Promise<StakingInfoResult> {
   const cacheKey = 'staking_info';
@@ -690,20 +892,26 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
       },
     ] as const;
 
-    // Read contract stats and APY rates
+    // Read contract stats and APY rates using safeRpcCall wrapper
     const [stats, apyRates] = await Promise.all([
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEWER_ABI,
-        functionName: 'getGlobalStats',
-        authorizationList: undefined,
-      }),
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getAPYRates',
-        authorizationList: undefined,
-      }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint]>,
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEWER_ABI,
+          functionName: 'getGlobalStats',
+          authorizationList: undefined,
+        }),
+        'getGlobalStats'
+      ),
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getAPYRates',
+          authorizationList: undefined,
+        }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint]>,
+        'getAPYRates'
+      ),
     ]);
 
     // Convert Wei to Ether
@@ -727,6 +935,19 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
     const locked180APY = Number(apyRates[3]) / 10;
     const locked365APY = Number(apyRates[4]) / 10;
 
+    // Get contract info from PolygonScan (non-blocking)
+    const contractInfo = await getContractInfoFromPolygonScan(CONFIG.STAKING_CONTRACT).catch(() => ({ 
+      verified: false 
+    } as { name?: string; compiler?: string; verified?: boolean; transactions?: number; balance?: string; }));
+    const polygonScanLink = getPolygonScanLink(CONFIG.STAKING_CONTRACT);
+    
+    // Build note with contract verification info
+    let note = `Ver contrato: ${polygonScanLink}`;
+    if (contractInfo?.verified) {
+      note += ` | Verificado \u2705`;
+      if (contractInfo?.name) note += ` | ${contractInfo.name}`;
+    }
+
     const result: StakingInfoResult = {
       success: true,
       totalStaked: `${formattedStaked} POL`,
@@ -743,33 +964,39 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
       totalRewardsPaid: `${formattedRewards} POL`,
       contractAddress: CONFIG.STAKING_CONTRACT,
       lastUpdated: new Date().toISOString(),
+      note,
       cached: false,
     };
     
     setCache(cacheKey, result, CACHE_TTL.STAKING_INFO);
+    console.log('[BlockchainService] \u2705 Staking info fetched successfully from blockchain');
     return result;
     
   } catch (error) {
-    console.error('[BlockchainService] Error fetching staking info:', error);
+    console.error('[BlockchainService] ❌ Error fetching staking info from blockchain:', { error });
     
-    // Return fallback data on error
+    // Try to get contract verification info from PolygonScan for additional context
+    const contractInfo = await getContractInfoFromPolygonScan(CONFIG.STAKING_VIEWER).catch(() => null);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch staking info from blockchain';
+    const isRateLimitError = errorMessage.includes('429') || errorMessage.includes('Too Many Requests');
+    const isAlchemyInactiveError = errorMessage.includes('App is ina');
+    
+    let helpfulMessage = errorMessage;
+    if (isRateLimitError) {
+      helpfulMessage = 'RPC rate limit reached. The free Alchemy tier has limited requests. Try again in a moment or upgrade your Alchemy plan.';
+    } else if (isAlchemyInactiveError) {
+      helpfulMessage = 'Alchemy API app is inactive. Please verify your API key is correct in the .env file (ALCHEMY_API_KEY).';
+    }
+    
+    // Return actual error instead of fake data
     return {
-      success: true,
-      totalStaked: '2,500,000 POL',
-      totalStakedUSD: 1250000,
-      apy: 26.3, // Flexible APY from contract docs
-      apyRates: {
-        flexible: 26.3,
-        locked30: 43.8,
-        locked90: 78.8,
-        locked180: 105.12,
-        locked365: 157.68,
-      },
-      totalParticipants: 1250,
-      contractAddress: CONFIG.STAKING_CONTRACT,
-      lastUpdated: new Date().toISOString(),
-      error: 'Using cached data - live fetch failed',
-      cached: true,
+      success: false,
+      error: helpfulMessage,
+      contractAddress: CONFIG.STAKING_VIEWER,
+      note: contractInfo?.verified 
+        ? `Contract is verified on PolygonScan. View at: https://polygonscan.com/address/${CONFIG.STAKING_VIEWER}`
+        : `Unable to verify contract. Check status at: https://polygonscan.com/address/${CONFIG.STAKING_VIEWER}`,
     };
   }
 }
@@ -812,13 +1039,16 @@ export async function getNftListings(
       },
     ] as const;
 
-    // Read contract using Viem
-    const stats = await publicClient.readContract({
-      address: CONFIG.MARKETPLACE_PROXY as Address,
-      abi: MARKETPLACE_ABI,
-      functionName: 'getSkillMarketStats',
-      authorizationList: undefined,
-    }) as readonly [bigint, bigint, bigint, bigint, bigint, bigint];
+    // Read contract using safeRpcCall wrapper
+    const stats = await safeRpcCall(
+      () => publicClient.readContract({
+        address: CONFIG.MARKETPLACE_PROXY as Address,
+        abi: MARKETPLACE_ABI,
+        functionName: 'getSkillMarketStats',
+        authorizationList: undefined,
+      }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint, bigint]>,
+      'getSkillMarketStats'
+    );
 
     const totalNFTs = Number(stats[0]);
     const activeNFTs = Number(stats[1]);
@@ -867,7 +1097,7 @@ export async function getNftListings(
 
 /**
  * Get wallet balance and staking info for a specific address
- * Uses Alchemy RPC for balance queries
+ * Uses RPC with automatic fallback for balance queries
  */
 export async function getWalletBalance(address: string): Promise<WalletBalanceResult> {
   // Validate address format
@@ -886,8 +1116,12 @@ export async function getWalletBalance(address: string): Promise<WalletBalanceRe
   }
   
   try {
+    // Use safeRpcCall wrapper for balance query
     const [balanceWei, polPrice, staking] = await Promise.all([
-      publicClient.getBalance({ address: address as Address }),
+      safeRpcCall(
+        () => publicClient.getBalance({ address: address as Address }),
+        'getBalance'
+      ),
       getPolPrice(),
       getUserStakingPosition(address),
     ]);
@@ -918,7 +1152,7 @@ export async function getWalletBalance(address: string): Promise<WalletBalanceRe
     return result;
     
   } catch (error) {
-    console.error('[BlockchainService] Error fetching wallet balance:', error);
+    console.error('[BlockchainService] \u274c Error fetching wallet balance:', { error });
     return {
       success: false,
       address: address,
@@ -960,12 +1194,15 @@ export async function estimateStakingReward(
     let lockedAPY = 78.8; // Default 90d lock APY
     
     try {
-      const apyRates = await publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER as Address,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getAPYRates',
-        authorizationList: undefined,
-      }) as readonly [bigint, bigint, bigint, bigint, bigint];
+      const apyRates = await safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEWER as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getAPYRates',
+          authorizationList: undefined,
+        }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint]>,
+        'getAPYRates (estimate)'
+      );
       
       flexibleAPY = Number(apyRates[0]) / 10;
       // Choose APY based on duration

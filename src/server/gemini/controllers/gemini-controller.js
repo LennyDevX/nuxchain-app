@@ -215,15 +215,14 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
     if (r.result && r.result.success) {
       // Extraer los campos relevantes según el tipo de función
       if (r.name === 'get_pol_price') {
-        const { price, change24h, volume24h, marketCap, source } = r.result;
-        const sourceLabel = getSourceLabel(source);
+        const { price, change24h, volume24h, marketCap } = r.result;
         const changeEmoji = change24h > 0 ? '📈' : change24h < 0 ? '📉' : '➡️';
-        return `\n**💰 Precio POL:**\n  • Precio actual: $${price?.toFixed(4) || 'N/A'} USD\n  • Cambio 24h: ${changeEmoji} ${change24h ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A'}${volume24h ? `\n  • Volumen 24h: $${(volume24h/1e6).toFixed(2)}M USD` : ''}${marketCap ? `\n  • Market Cap: $${(marketCap/1e6).toFixed(2)}M USD` : ''}\n  [Fuente: ${sourceLabel}]\n`;
+        return `\n**💰 Precio POL:**\n  • Precio actual: $${price?.toFixed(4) || 'N/A'} USD\n  • Cambio 24h: ${changeEmoji} ${change24h ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A'}${volume24h ? `\n  • Volumen 24h: $${(volume24h/1e6).toFixed(2)}M USD` : ''}${marketCap ? `\n  • Market Cap: $${(marketCap/1e6).toFixed(2)}M USD` : ''}\n`;
       }
       if (r.name === 'get_staking_info') {
-        const { totalStaked, totalStakedUSD, apy, apyRates, totalParticipants, totalRewardsPaid, source } = r.result;
+        const { totalStaked, totalStakedUSD, apy, apyRates, totalParticipants, totalRewardsPaid } = r.result;
         const apyDetails = apyRates ? `\n    • Flexible: ${apyRates.flexible?.toFixed(2)}%\n    • 30 días: ${apyRates.locked30?.toFixed(2)}%\n    • 90 días: ${apyRates.locked90?.toFixed(2)}%\n    • 180 días: ${apyRates.locked180?.toFixed(2)}%\n    • 365 días: ${apyRates.locked365?.toFixed(2)}%` : '';
-        return `\n**🏦 Staking Pool Global:**\n  • Total staked: ${totalStaked || 'N/A'} (~$${totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  • APY base: ${apy?.toFixed(2) || 'N/A'}%${apyDetails}\n  • Participantes activos: ${totalParticipants?.toLocaleString() || 'N/A'}\n  • Recompensas pagadas: ${totalRewardsPaid || 'N/A'}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+        return `\n**🏦 Staking Pool Global:**\n  • Total staked: ${totalStaked || 'N/A'} (~$${totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  • APY base: ${apy?.toFixed(2) || 'N/A'}%${apyDetails}\n  • Participantes activos: ${totalParticipants?.toLocaleString() || 'N/A'}\n  • Recompensas pagadas: ${totalRewardsPaid || 'N/A'}\n`;
       }
       if (r.name === 'get_nft_listings') {
         const { totalListings, activeListings, floorPrice, message, source } = r.result;
@@ -231,8 +230,8 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
         return `\n**🎨 NFT Marketplace:**\n  • Total NFTs: ${totalListings || 0}\n  • Activos: ${count}${floorPrice ? `\n  • Floor price: ${floorPrice}` : ''}${message ? `\n  ℹ️  ${message}` : ''}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
       }
       if (r.name === 'check_wallet_balance') {
-        const { address, balancePOL, balanceUSD, stakedAmount, pendingRewards, source } = r.result;
-        return `\n**👛 Tu Wallet ${address?.slice(0,6)}...${address?.slice(-4)}:**\n  • Balance disponible: ${balancePOL || 'N/A'} (~$${balanceUSD?.toFixed(2) || 'N/A'} USD)${stakedAmount && stakedAmount !== '0 POL' ? `\n  • En staking: ${stakedAmount}` : ''}${pendingRewards && pendingRewards !== '0 POL' ? `\n  • Rewards pendientes: ${pendingRewards}` : ''}\n  [Fuente: ${getSourceLabel(source || 'polygon')}]\n`;
+        const { address, balancePOL, balanceUSD, stakedAmount, pendingRewards } = r.result;
+        return `\n**👛 Tu Wallet ${address?.slice(0,6)}...${address?.slice(-4)}:**\n  • Balance disponible: ${balancePOL || 'N/A'} (~$${balanceUSD?.toFixed(2) || 'N/A'} USD)${stakedAmount && stakedAmount !== '0 POL' ? `\n  • En staking: ${stakedAmount}` : ''}${pendingRewards && pendingRewards !== '0 POL' ? `\n  • Rewards pendientes: ${pendingRewards}` : ''}\n`;
       }
       if (r.name === 'estimate_staking_reward') {
         const { amount, duration, estimatedReward, estimatedRewardUSD, apy, isLocked } = r.result;
@@ -249,34 +248,54 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
           apyRates,
           recommendations,
           depositSummary,
-          source,
         } = r.result;
 
-        // Format APY rates with proper formatting
-        const apyText = apyRates
-          ? `\n  **APY Tasas:**\n    • Flexible: ${apyRates.flexible.toFixed(2)}%\n    • 30 días: ${apyRates.locked30.toFixed(2)}%\n    • 90 días: ${apyRates.locked90.toFixed(2)}%\n    • 180 días: ${apyRates.locked180.toFixed(2)}%\n    • 365 días: ${apyRates.locked365.toFixed(2)}%`
-          : '';
-
-        // Format deposit summary
+        // Format deposit summary with amounts and detect locked deposits
         let depositSummaryText = '';
+        let hasLockedDeposits = false;
+        
         if (depositSummary) {
-          const flexible = depositSummary.flexible?.count || 0;
-          const locked30 = depositSummary.locked30?.count || 0;
-          const locked90 = depositSummary.locked90?.count || 0;
-          const locked180 = depositSummary.locked180?.count || 0;
-          const locked365 = depositSummary.locked365?.count || 0;
+          const flexible = depositSummary.flexible || {};
+          const locked30 = depositSummary.locked30 || {};
+          const locked90 = depositSummary.locked90 || {};
+          const locked180 = depositSummary.locked180 || {};
+          const locked365 = depositSummary.locked365 || {};
           
-          if (flexible + locked30 + locked90 + locked180 + locked365 > 0) {
-            depositSummaryText = `\n  **Tipo de Depósitos:**\n    • Flexible: ${flexible}\n    • Locked 30d: ${locked30}\n    • Locked 90d: ${locked90}\n    • Locked 180d: ${locked180}\n    • Locked 365d: ${locked365}`;
+          hasLockedDeposits = (locked30.count || 0) + (locked90.count || 0) + (locked180.count || 0) + (locked365.count || 0) > 0;
+          
+          const deposits = [];
+          if (flexible.count > 0) {
+            deposits.push(`    🔓 **Flexible:** ${flexible.count} depósito${flexible.count > 1 ? 's' : ''} (${flexible.totalAmountPOL.toFixed(2)} POL) - Retirable cuando quieras`);
+          }
+          if (locked30.count > 0) {
+            deposits.push(`    🔒 **Locked 30d:** ${locked30.count} depósito${locked30.count > 1 ? 's' : ''} (${locked30.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked30?.toFixed(2)}%`);
+          }
+          if (locked90.count > 0) {
+            deposits.push(`    🔒 **Locked 90d:** ${locked90.count} depósito${locked90.count > 1 ? 's' : ''} (${locked90.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked90?.toFixed(2)}%`);
+          }
+          if (locked180.count > 0) {
+            deposits.push(`    🔒 **Locked 180d:** ${locked180.count} depósito${locked180.count > 1 ? 's' : ''} (${locked180.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked180?.toFixed(2)}%`);
+          }
+          if (locked365.count > 0) {
+            deposits.push(`    🔒 **Locked 365d:** ${locked365.count} depósito${locked365.count > 1 ? 's' : ''} (${locked365.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked365?.toFixed(2)}%`);
+          }
+          
+          if (deposits.length > 0) {
+            depositSummaryText = `\n  **Tus Depósitos:**\n${deposits.join('\n')}`;
           }
         }
 
-        // Format recommendations
-        const recText = Array.isArray(recommendations) && recommendations.length
-          ? `\n  **Recomendaciones:**\n${recommendations.map((rec, idx) => `    ${idx + 1}. ${rec}`).join('\n')}`
+        // Only show next unlock if there are locked deposits
+        const unlockText = (hasLockedDeposits && nextUnlockTime) 
+          ? `\n  • 📅 Próximo desbloqueo: ${nextUnlockTime}` 
           : '';
 
-        return `\n**📊 Tu Posición de Staking:**\n  • Depositado: ${totalDepositedPOL || 'N/A'}\n  • Número de depósitos: ${depositCount ?? 'N/A'}\n  • Rewards pendientes: ${pendingRewardsPOL || 'N/A'}\n  • Auto-Compound: ${hasAutoCompound ? '✅ Activado' : '❌ Desactivado'}${nextUnlockTime ? `\n  • Próximo unlock: ${nextUnlockTime}` : ''}${depositSummaryText}${apyText}${recText}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+        // Format recommendations
+        const recText = Array.isArray(recommendations) && recommendations.length
+          ? `\n  **💡 Recomendaciones:**\n${recommendations.map((rec, idx) => `    ${idx + 1}. ${rec}`).join('\n')}`
+          : '';
+
+        return `\n**📊 Tu Posición de Staking:**\n  • Total depositado: ${totalDepositedPOL || 'N/A'}\n  • Número de depósitos: ${depositCount ?? 'N/A'}\n  • Rewards acumulados: ${pendingRewardsPOL || 'N/A'}\n  • Auto-Compound: ${hasAutoCompound ? '✅ Activado' : '❌ Desactivado'}${unlockText}${depositSummaryText}${recText}\n`;
       }
       return `- ${r.name}: ${JSON.stringify(r.result)}`;
     }
@@ -570,7 +589,7 @@ export async function generateContent(req, res, next = null) {
               ? `INSTRUCCIONES CRÍTICAS:
 1. Usa los datos on-chain proporcionados para este usuario
 2. Responde en español con 3-5 recomendaciones ACCIONABLES para optimizar rewards
-3. Menciona cifras clave (depositado, rewards pendientes, tipo de depósitos) y la fuente
+3. Menciona cifras clave (depositado, rewards pendientes, tipo de depósitos)
 4. NO busques en base de conocimiento; usa SOLO estos datos + buenas prácticas generales
 5. Sé claro y conciso
 
@@ -581,14 +600,16 @@ Formato sugerido: 1 frase con resumen + 3-5 bullets cortos.`
               : `INSTRUCCIONES CRÍTICAS:
 1. Responde DIRECTAMENTE con los datos proporcionados
 2. Sé BREVE y PRECISO - máximo 2-3 oraciones
-3. Incluye el precio/dato exacto y la fuente
+3. Muestra el dato exacto con claridad
 4. NO busques en base de conocimiento - usa SOLO los datos proporcionados
 5. NO divagues ni añadas información extra
+6. NO menciones fuentes técnicas (RPC, API, etc) al usuario
 
 DATOS EN TIEMPO REAL:
 ${blockchainContext}
 
-Formato de respuesta esperado: "[Dato] según [fuente]."`;
+Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
+
 
             // Enriquecer el contenido con datos blockchain
             if (typeof contents === 'string') {

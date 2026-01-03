@@ -36,35 +36,59 @@ const detectUrls = (text: string): string[] => {
 interface BlockchainDetection {
   isBlockchain: boolean;
   action: string | null;
+  requiresWallet?: boolean; // Flag to indicate if query needs connected wallet
 }
 
-const detectBlockchainQuery = (text: string): BlockchainDetection => {
+const detectBlockchainQuery = (text: string, hasConnectedWallet = false): BlockchainDetection => {
   const lowerText = text.toLowerCase();
   
   // Detectar precio POL/MATIC
   if ((lowerText.includes('pol') || lowerText.includes('matic') || lowerText.includes('polygon')) &&
       (lowerText.includes('precio') || lowerText.includes('price') || lowerText.includes('cotiza') || 
-       lowerText.includes('vale') || lowerText.includes('cuesta') || lowerText.includes('actual'))) {
+       lowerText.includes('vale') || lowerText.includes('cuesta') || lowerText.includes('actual') ||
+       lowerText.includes('cuánto') || lowerText.includes('cuanto'))) {
     return { isBlockchain: true, action: 'Fetching POL price...' };
   }
   
-  // Detectar staking
+  // Detectar staking info general (APY, pool stats)
   if (lowerText.includes('staking') || lowerText.includes('stake') || lowerText.includes('stakear') ||
       lowerText.includes('apr') || lowerText.includes('apy')) {
+    // Si menciona "mi" o "my", es query de posición personal
+    const isPersonalQuery = /\b(mi|mis|my|tengo|cuánto|cuanto)\b/.test(lowerText);
+    if (isPersonalQuery && hasConnectedWallet) {
+      return { isBlockchain: true, action: 'Checking your staking position...', requiresWallet: true };
+    }
     return { isBlockchain: true, action: 'Querying staking data...' };
   }
   
   // Detectar NFT
   if ((lowerText.includes('nft') || lowerText.includes('marketplace')) &&
       (lowerText.includes('lista') || lowerText.includes('venta') || lowerText.includes('disponible') ||
-       lowerText.includes('listing') || lowerText.includes('available'))) {
+       lowerText.includes('listing') || lowerText.includes('available') || lowerText.includes('comprar'))) {
     return { isBlockchain: true, action: 'Searching NFT listings...' };
   }
   
-  // Detectar wallet/balance
-  if ((lowerText.includes('wallet') || lowerText.includes('balance') || lowerText.includes('saldo')) &&
-      lowerText.includes('0x')) {
+  // 🆕 MEJORADO: Detectar wallet/balance - ahora soporta frases naturales
+  // Detecta: "mi balance", "my wallet", "cuántos POL tengo", "revisa mi saldo", etc.
+  const hasWalletKeywords = lowerText.includes('wallet') || lowerText.includes('balance') || 
+                            lowerText.includes('saldo') || lowerText.includes('cartera');
+  const hasExplicitAddress = lowerText.includes('0x');
+  const hasPersonalIndicator = /\b(mi|mis|my|tengo|revisa|check|cuánto|cuanto|what.*my|cuál.*mi)\b/.test(lowerText);
+  const askingAboutPOL = (lowerText.includes('pol') || lowerText.includes('matic')) && 
+                         /\b(tengo|have|cuántos?|how many|cuál|what)\b/.test(lowerText);
+  
+  // Caso 1: Tiene dirección 0x explícita
+  if (hasWalletKeywords && hasExplicitAddress) {
     return { isBlockchain: true, action: 'Checking wallet balance...' };
+  }
+  
+  // Caso 2: Pregunta personal con wallet conectada
+  if ((hasWalletKeywords || askingAboutPOL) && hasPersonalIndicator) {
+    if (hasConnectedWallet) {
+      return { isBlockchain: true, action: 'Checking your connected wallet...', requiresWallet: true };
+    }
+    // Sin wallet conectada, aún detectamos pero el backend manejará el caso
+    return { isBlockchain: true, action: 'Wallet query detected (connect wallet for data)', requiresWallet: true };
   }
   
   // Detectar rewards
@@ -190,7 +214,9 @@ export function useChatStreaming(): UseChatStreamingReturn {
     const hasUrls = detectedUrls.length > 0;
     
     // 🔗 Detectar si es una query blockchain para mostrar feedback
-    const blockchainDetection = detectBlockchainQuery(messageText);
+    // Pasamos flag de wallet conectada para detectar queries personales como "mi balance"
+    const hasConnectedWallet = Boolean(connectedWallet);
+    const blockchainDetection = detectBlockchainQuery(messageText, hasConnectedWallet);
     
     if (hasUrls) {
       // Si hay URLs, mostrar indicador de URL context
@@ -420,7 +446,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Resetear estado de herramientas
       setIsUsingUrlContext(false);
     }
-  }, [state.messages, state.status, state.conversationId]);
+  }, [state.messages, state.status, state.conversationId, connectedWallet]);
 
   const clearMessages = useCallback(() => {
     dispatch({ type: 'RESET_CONVERSATION' });

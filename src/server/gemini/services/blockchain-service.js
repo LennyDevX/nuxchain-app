@@ -23,9 +23,23 @@ const log = {
 // ============================================================================
 
 // Public client for reading blockchain data
+if (!env.alchemyKey) {
+  console.warn('⚠️ [BlockchainService] No ALCHEMY_API_KEY found! Set it in .env file');
+  console.warn('⚠️ [BlockchainService] Add: ALCHEMY_API_KEY=your_key_here');
+}
+
 const publicClient = createPublicClient({
   chain: polygon,
-  transport: http(`https://polygon-mainnet.g.alchemy.com/v2/${env.alchemyKey || 'Oyk0XqXD7K2HQO4bkbDm1w8iZQ6fHulV'}`)
+  transport: http(env.alchemyKey 
+    ? `https://polygon-mainnet.g.alchemy.com/v2/${env.alchemyKey}`
+    : 'https://polygon-rpc.com' // Fallback to public RPC
+  )
+});
+
+console.log('[BlockchainService] 🔗 RPC configured:', {
+  hasAlchemyKey: !!env.alchemyKey,
+  keyPreview: env.alchemyKey ? env.alchemyKey.slice(0, 8) + '...' : 'none',
+  rpcUrl: env.alchemyKey ? 'Alchemy' : 'Public RPC',
 });
 
 // ============================================================================
@@ -78,12 +92,16 @@ const cache = new BlockchainCache();
 
 const CONFIG = {
   COINGECKO_API: 'https://api.coingecko.com/api/v3',
-  ALCHEMY_URL: `https://polygon-mainnet.g.alchemy.com/v2/${env.alchemyKey || 'Oyk0XqXD7K2HQO4bkbDm1w8iZQ6fHulV'}`,
+  ALCHEMY_URL: env.alchemyKey 
+    ? `https://polygon-mainnet.g.alchemy.com/v2/${env.alchemyKey}`
+    : 'https://polygon-rpc.com',
+  POLYGONSCAN_API: 'https://api.polygonscan.com/api',
+  POLYGONSCAN_API_KEY: env.polygonScanKey,
   
   // Contract addresses
-  STAKING_CONTRACT: env.stakingContract || '0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946',
-  STAKING_VIEWER: env.stakingViewer || '0x97C24aC0Eb18b87Ea71312e1Ea415aE17D696462',
-  MARKETPLACE_PROXY: env.marketplaceProxy || '0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5',
+  STAKING_CONTRACT: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946',
+  STAKING_VIEWER: process.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '0x97C24aC0Eb18b87Ea71312e1Ea415aE17D696462',
+  MARKETPLACE_PROXY: process.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5',
 };
 
 // ============================================================================

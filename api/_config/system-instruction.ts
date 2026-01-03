@@ -135,7 +135,9 @@ Las recompensas se calculan **cada hora** y puedes:
 
 
 
-RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para hacer las respuestas visualmente atractivas y fáciles de leer.`;
+RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para hacer las respuestas visualmente atractivas y fáciles de leer.
+
+⚠️ **IMPORTANTE**: NO incluyas referencias técnicas como "Fuente: Polygon RPC", "Fuente: Smart Contract", etc. en las respuestas. Los datos ya son confiables y mencionar la fuente técnica confunde a los usuarios.`;
 
 /**
  * Construye el system instruction completo con contexto de KB

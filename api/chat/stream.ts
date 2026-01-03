@@ -482,19 +482,6 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
           }
         }
         
-        // Helper function to get source label (sin emojis para mejor compatibilidad)
-        const getSourceLabel = (source: string | undefined): string => {
-          const sources: Record<string, string> = {
-            'coingecko': 'CoinGecko API',
-            'binance': 'Binance API',
-            'diadata': 'DIA Data Oracle',
-            'polygon': 'Polygon RPC',
-            'contract': 'Smart Contract',
-            'fallback': 'Datos Estimados'
-          };
-          return sources[source || ''] || source || 'Blockchain';
-        };
-
         // Construir contexto blockchain para incluir en el prompt
         if (functionResults.length > 0) {
           blockchainContext = `\n\n**DATOS BLOCKCHAIN EN TIEMPO REAL:**\n${functionResults.map(fr => {
@@ -528,37 +515,76 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
               hasAutoCompound?: boolean;
               nextUnlockTime?: string | null;
               apyRates?: { flexible: number; locked30: number; locked90: number; locked180: number; locked365: number };
+              depositSummary?: Record<string, { label?: string; count: number; withdrawableCount?: number; totalAmountPOL: number }>;
               recommendations?: string[];
               source?: string;
             };
             
             if (data.success) {
-              const source = getSourceLabel(data.source);
-              
               if (fr.name === 'get_pol_price') {
-                return `- Precio POL: $${data.price?.toFixed(4) || 'N/A'} USD ${data.change24h ? `(${data.change24h > 0 ? '+' : ''}${data.change24h.toFixed(2)}% 24h)` : ''}${data.volume24h ? ` | Volumen: $${(data.volume24h/1e6).toFixed(2)}M` : ''}\n  [Fuente: ${source}]`;
+                return `- Precio POL: $${data.price?.toFixed(4) || 'N/A'} USD ${data.change24h ? `(${data.change24h > 0 ? '+' : ''}${data.change24h.toFixed(2)}% 24h)` : ''}${data.volume24h ? ` | Volumen: $${(data.volume24h/1e6).toFixed(2)}M` : ''}`;
               }
               if (fr.name === 'get_staking_info') {
-                return `- Staking Pool: ${data.totalStaked || 'N/A'} (~$${data.totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}% | Participantes: ${data.totalParticipants || 'N/A'} | Recompensas: ${data.totalRewardsPaid || 'N/A'}\n  [Fuente: ${getSourceLabel('contract')}]`;
+                return `- Staking Pool: ${data.totalStaked || 'N/A'} (~$${data.totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}% | Participantes: ${data.totalParticipants || 'N/A'} | Recompensas: ${data.totalRewardsPaid || 'N/A'}`;
               }
               if (fr.name === 'get_nft_listings') {
                 const count = Array.isArray(data.activeListings) ? data.activeListings.length : (data.activeListings || 0);
-                return `- NFT Marketplace: ${count} listados activos de ${data.totalListings || 0} total${data.floorPrice ? ` | Floor: ${data.floorPrice}` : ''}${data.note ? `\n  Info: ${data.note}` : ''}\n  [Fuente: ${getSourceLabel('contract')}]`;
+                return `- NFT Marketplace: ${count} listados activos de ${data.totalListings || 0} total${data.floorPrice ? ` | Floor: ${data.floorPrice}` : ''}${data.note ? `\n  Info: ${data.note}` : ''}`;
               }
               if (fr.name === 'check_wallet_balance') {
-                return `- Wallet ${data.address?.slice(0,6)}...${data.address?.slice(-4)}:\n  Balance: ${data.balancePOL || 'N/A'} (~$${data.balanceUSD?.toFixed(2) || 'N/A'} USD)${data.stakedAmount ? ` | Staked: ${data.stakedAmount}` : ''}${data.pendingRewards ? ` | Rewards: ${data.pendingRewards}` : ''}\n  [Fuente: ${getSourceLabel('polygon')}]`;
+                return `- Wallet ${data.address?.slice(0,6)}...${data.address?.slice(-4)}:\n  Balance: ${data.balancePOL || 'N/A'} (~$${data.balanceUSD?.toFixed(2) || 'N/A'} USD)${data.stakedAmount ? ` | Staked: ${data.stakedAmount}` : ''}${data.pendingRewards ? ` | Rewards: ${data.pendingRewards}` : ''}`;
               }
               if (fr.name === 'get_user_staking_position') {
-                const apy = data.apyRates
-                  ? `APY: Flexible ${data.apyRates.flexible}% | 30d ${data.apyRates.locked30}% | 90d ${data.apyRates.locked90}% | 180d ${data.apyRates.locked180}% | 365d ${data.apyRates.locked365}%`
-                  : 'APY: N/A';
-                const recs = Array.isArray(data.recommendations) && data.recommendations.length
-                  ? `\n  Recomendaciones:\n  - ${data.recommendations.join('\n  - ')}`
+                // Build deposit summary with amounts and detect locked deposits
+                let depositSummaryText = '';
+                let hasLockedDeposits = false;
+                
+                type DepositInfo = { label?: string; count: number; withdrawableCount?: number; totalAmountPOL: number };
+                
+                if (data.depositSummary) {
+                  const flexible = (data.depositSummary.flexible || {}) as DepositInfo;
+                  const locked30 = (data.depositSummary.locked30 || {}) as DepositInfo;
+                  const locked90 = (data.depositSummary.locked90 || {}) as DepositInfo;
+                  const locked180 = (data.depositSummary.locked180 || {}) as DepositInfo;
+                  const locked365 = (data.depositSummary.locked365 || {}) as DepositInfo;
+                  
+                  hasLockedDeposits = (locked30.count || 0) + (locked90.count || 0) + (locked180.count || 0) + (locked365.count || 0) > 0;
+                  
+                  const deposits = [];
+                  if ((flexible.count || 0) > 0) {
+                    deposits.push(`    🔓 Flexible: ${flexible.count} depósito${flexible.count > 1 ? 's' : ''} (${flexible.totalAmountPOL?.toFixed(2) || '0'} POL) - Retirable cuando quieras`);
+                  }
+                  if ((locked30.count || 0) > 0) {
+                    deposits.push(`    🔒 Locked 30d: ${locked30.count} depósito${locked30.count > 1 ? 's' : ''} (${locked30.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked30?.toFixed(2)}%`);
+                  }
+                  if ((locked90.count || 0) > 0) {
+                    deposits.push(`    🔒 Locked 90d: ${locked90.count} depósito${locked90.count > 1 ? 's' : ''} (${locked90.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked90?.toFixed(2)}%`);
+                  }
+                  if ((locked180.count || 0) > 0) {
+                    deposits.push(`    🔒 Locked 180d: ${locked180.count} depósito${locked180.count > 1 ? 's' : ''} (${locked180.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked180?.toFixed(2)}%`);
+                  }
+                  if ((locked365.count || 0) > 0) {
+                    deposits.push(`    🔒 Locked 365d: ${locked365.count} depósito${locked365.count > 1 ? 's' : ''} (${locked365.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked365?.toFixed(2)}%`);
+                  }
+                  
+                  if (deposits.length > 0) {
+                    depositSummaryText = `\n  Tus Depósitos:\n${deposits.join('\n')}`;
+                  }
+                }
+                
+                // Only show next unlock if there are locked deposits
+                const unlockText = (hasLockedDeposits && data.nextUnlockTime) 
+                  ? `\n  📅 Próximo desbloqueo: ${data.nextUnlockTime}` 
                   : '';
-                return `- Posicion Staking (usuario):\n  Depositado: ${data.totalDepositedPOL || 'N/A'} | Depositos: ${data.depositCount ?? 'N/A'} | Rewards: ${data.pendingRewardsPOL || 'N/A'} | Auto-Compound: ${typeof data.hasAutoCompound === 'boolean' ? (data.hasAutoCompound ? 'SI' : 'NO') : 'N/A'}${data.nextUnlockTime ? `\n  Proximo unlock: ${data.nextUnlockTime}` : ''}\n  ${apy}${recs}\n  [Fuente: ${getSourceLabel('contract')}]`;
+                
+                const recs = Array.isArray(data.recommendations) && data.recommendations.length
+                  ? `\n  💡 Recomendaciones:\n${data.recommendations.map((rec: string, idx: number) => `    ${idx + 1}. ${rec}`).join('\n')}`
+                  : '';
+                
+                return `- Posición Staking:\n  Total depositado: ${data.totalDepositedPOL || 'N/A'}\n  Número de depósitos: ${data.depositCount ?? 'N/A'}\n  Rewards acumulados: ${data.pendingRewardsPOL || 'N/A'}\n  Auto-Compound: ${typeof data.hasAutoCompound === 'boolean' ? (data.hasAutoCompound ? '✅ Activado' : '❌ Desactivado') : 'N/A'}${unlockText}${depositSummaryText}${recs}`;
               }
               if (fr.name === 'estimate_staking_reward') {
-                return `- Estimacion Staking: ${data.amount} por ${data.duration}\n  Recompensa: ${data.estimatedReward || 'N/A'} (~$${data.estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}%${data.lockBonus ? ` (+${data.lockBonus}% bonus lock)` : ''}\n  [Fuente: Calculo basado en contrato]`;
+                return `- Estimación Staking: ${data.amount} por ${data.duration}\n  Recompensa: ${data.estimatedReward || 'N/A'} (~$${data.estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}%${data.lockBonus ? ` (+${data.lockBonus}% bonus lock)` : ''}`;
               }
               return `- ${fr.name}: ${JSON.stringify(data)}`;
             }

@@ -604,7 +604,7 @@ let publicClient = createPublicClient({
     retryCount: 2,
     retryDelay: 1000,
   })
-}) as ReturnType<typeof createPublicClient>;
+});
 
 // Track failed RPC attempts to switch to fallback
 let rpcFailureCount = 0;

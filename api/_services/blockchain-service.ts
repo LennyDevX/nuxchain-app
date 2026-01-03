@@ -836,7 +836,6 @@ async function getPolPriceFromDIA(): Promise<POLPriceResult> {
       volume24h: data.VolumeYesterdayUSD || null,
       lastUpdated: data.Time || new Date().toISOString(),
       cached: false,
-      note: 'Fuente: DIA Data'
     };
     
     setCache('pol_price', result, CACHE_TTL.POL_PRICE);

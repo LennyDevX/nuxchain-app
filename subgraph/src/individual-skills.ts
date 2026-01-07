@@ -36,13 +36,9 @@ function getOrCreateUser(address: Bytes, timestamp: BigInt): User {
     user.updatedAt = timestamp;
     user.save();
   } else {
-    // Initialize new fields for existing users
-    if (user.skillPurchaseCount === null) user.skillPurchaseCount = 0;
-    if (user.skillRenewalCount === null) user.skillRenewalCount = 0;
-    if (user.skillSwitchCount === null) user.skillSwitchCount = 0;
-    if (user.questCompletionCount === null) user.questCompletionCount = 0;
-    if (user.totalEarnings === null) user.totalEarnings = BigInt.fromI32(0);
-    if (user.totalSpent === null) user.totalSpent = BigInt.fromI32(0);
+    // Update timestamp for existing users
+    // Note: Fields are i32/BigInt and cannot be null in AssemblyScript
+    // They are initialized when user is created, so no null checks needed
     user.updatedAt = timestamp;
     user.save();
   }
@@ -54,10 +50,29 @@ export function handleIndividualSkillActivated(event: IndividualSkillActivated):
   getOrCreateUser(event.params.user, event.block.timestamp);
   
   const skillId = event.params.skillId.toString();
-  const skill = IndividualSkill.load(skillId);
+  let skill = IndividualSkill.load(skillId);
   
   if (skill) {
     skill.isActive = true;
+    skill.blockNumber = event.block.number;
+    skill.transactionHash = event.transaction.hash;
+    skill.save();
+  } else {
+    // ✅ FIXED: Create skill if it doesn't exist (edge case: activation before purchase event)
+    // This can happen if events are processed out of order
+    skill = new IndividualSkill(skillId);
+    const user = getOrCreateUser(event.params.user, event.block.timestamp);
+    skill.user = user.id;
+    skill.skillId = event.params.skillId;
+    skill.skillType = 0; // Default, will be updated when purchase event is processed
+    skill.rarity = 0;
+    skill.level = BigInt.fromI32(1);
+    skill.owner = event.params.user;
+    skill.purchasedAt = event.block.timestamp;
+    skill.expiresAt = event.block.timestamp.plus(BigInt.fromI32(30 * 24 * 60 * 60));
+    skill.isActive = true;
+    skill.metadata = "";
+    skill.createdAt = event.block.timestamp;
     skill.blockNumber = event.block.number;
     skill.transactionHash = event.transaction.hash;
     skill.save();
@@ -76,6 +91,7 @@ export function handleIndividualSkillDeactivated(event: IndividualSkillDeactivat
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
+  // Note: If skill doesn't exist, it's likely already been deactivated or doesn't exist yet
 }
 
 export function handleIndividualSkillExpired(event: IndividualSkillExpired): void {
@@ -90,6 +106,7 @@ export function handleIndividualSkillExpired(event: IndividualSkillExpired): voi
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
+  // Note: If skill doesn't exist, it may have been transferred or deleted
 }
 
 export function handleIndividualSkillPurchased(event: IndividualSkillPurchased): void {
@@ -126,18 +143,19 @@ export function handleIndividualSkillRenewed(event: IndividualSkillRenewed): voi
     skill.blockNumber = event.block.number;
     skill.transactionHash = event.transaction.hash;
     skill.save();
+    
+    // Record renewal event only if skill exists
+    const renewalId = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+    const renewal = new SkillRenewal(renewalId);
+    renewal.user = user.id;
+    renewal.skillId = event.params.skillId;
+    renewal.newExpiryTime = event.params.newExpiryTime;
+    renewal.timestamp = event.block.timestamp;
+    renewal.transactionHash = event.transaction.hash;
+    renewal.blockNumber = event.block.number;
+    renewal.save();
   }
-  
-  // Record renewal event
-  const renewalId = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
-  const renewal = new SkillRenewal(renewalId);
-  renewal.user = user.id;
-  renewal.skillId = event.params.skillId;
-  renewal.newExpiryTime = event.params.newExpiryTime;
-  renewal.timestamp = event.block.timestamp;
-  renewal.transactionHash = event.transaction.hash;
-  renewal.blockNumber = event.block.number;
-  renewal.save();
+  // Note: If skill doesn't exist, can't renew it
 }
 
 export function handleIndividualSkillTransferred(event: IndividualSkillTransferred): void {
@@ -154,4 +172,5 @@ export function handleIndividualSkillTransferred(event: IndividualSkillTransferr
     skill.transactionHash = event.transaction.hash;
     skill.save();
   }
+  // Note: If skill doesn't exist, can't transfer it
 }

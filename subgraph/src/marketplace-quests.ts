@@ -39,13 +39,9 @@ function getOrCreateUser(address: Bytes, timestamp: BigInt): User {
     user.updatedAt = timestamp;
     user.save();
   } else {
-    // Initialize new fields for existing users
-    if (user.skillPurchaseCount === null) user.skillPurchaseCount = 0;
-    if (user.skillRenewalCount === null) user.skillRenewalCount = 0;
-    if (user.skillSwitchCount === null) user.skillSwitchCount = 0;
-    if (user.questCompletionCount === null) user.questCompletionCount = 0;
-    if (user.totalEarnings === null) user.totalEarnings = BigInt.fromI32(0);
-    if (user.totalSpent === null) user.totalSpent = BigInt.fromI32(0);
+    // Update timestamp for existing users
+    // Note: Fields are i32/BigInt and cannot be null in AssemblyScript
+    // They are initialized when user is created, so no null checks needed
     user.updatedAt = timestamp;
     user.save();
   }
@@ -171,7 +167,8 @@ export function handleQuestCompleted(event: QuestCompletedEvent): void {
     null
   );
 
-  user.questCompletionCount = user.questCompletionCount! + 1;
+  // Increment quest completion count (field is i32, cannot be null)
+  user.questCompletionCount = user.questCompletionCount + 1;
   user.updatedAt = event.block.timestamp;
   user.save();
 }

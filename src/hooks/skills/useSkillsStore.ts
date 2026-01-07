@@ -1,11 +1,10 @@
-
-
 import { useState, useCallback, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
 import type { SkillData } from '../../components/skills/config';
 import IIndividualSkillsABI from '../../abi/IndividualSkillsMarketplace/IndividualSkillsMarketplace.json';
 import { useSkillsGraph } from './useSkillsGraph';
+import { dispatchTransactionEvent } from '../subgraph/useTransactionWatcher';
 
 const INDIVIDUAL_SKILLS_ADDRESS = import.meta.env.VITE_INDIVIDUAL_SKILLS as `0x${string}`;
 const LAST_KNOWN_CONTRACT_KEY = 'nuxchain_last_contract_address';
@@ -157,6 +156,13 @@ export function useSkillsStore() {
             
             // Save back to localStorage
             localStorage.setItem(storageKey, JSON.stringify(updatedSkills));
+
+            // ✅ NEW: Dispatch transaction event for auto-refresh
+            dispatchTransactionEvent('skillPurchased', {
+              txHash: hash,
+              type: 'skill_purchase',
+              timestamp: Date.now(),
+            });
 
             return receipt;
           } else {

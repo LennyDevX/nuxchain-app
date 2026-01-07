@@ -6,9 +6,10 @@ import { useRecentActivities } from '../../hooks/activity/useRecentActivitiesGra
 import ActivityItem from './ActivityItem';
 import { SubgraphSyncStatus } from './SubgraphSyncStatus';
 import SubgraphSyncWarning from './SubgraphSyncWarning';
-import { apolloClient } from '../../lib/apollo-client';
+import { apolloClient, clearSubgraphCache } from '../../lib/apollo-client';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
+import { useTransactionWatcher } from '../../hooks/subgraph/useTransactionWatcher';
 
 const ProfileOverview: React.FC = () => {
   const { address, isConnected } = useAccount();
@@ -21,6 +22,14 @@ const ProfileOverview: React.FC = () => {
   
   // ✅ Haptic feedback
   const triggerHaptic = useTapFeedback();
+  
+  // ✅ NEW: Auto-refresh activities after any blockchain transaction
+  useTransactionWatcher(async () => {
+    await Promise.all([refreshActivities(), refreshNFTs()]);
+  }, {
+    clearCache: true,
+    delay: 3000, // Wait 3 seconds for subgraph to index
+  });
   
   const { data: balance } = useBalance({
     address: address,
@@ -35,30 +44,18 @@ const ProfileOverview: React.FC = () => {
     }
   }, [isConnected, address, refreshNFTs, refreshActivities]);
 
-  // ✅ FIX: Listen for skill purchase events and auto-refresh activities
-  // When a skill is purchased, the subgraph needs 2-3 seconds to index it
-  // This listener auto-refreshes the activities to show the new purchase
-  useEffect(() => {
-    const handleSkillPurchased = (event: Event) => {
-      if (event instanceof CustomEvent) {
-        console.log('🛍️ Skill purchase detected, auto-refreshing activities...');
-        refreshActivities();
-      }
-    };
-    
-    window.addEventListener('skillPurchased', handleSkillPurchased);
-    return () => window.removeEventListener('skillPurchased', handleSkillPurchased);
-  }, [refreshActivities]);
-
   // Clear Apollo cache and force refresh
   const handleClearCacheAndRefresh = async () => {
     setIsClearing(true);
+    triggerHaptic(); // Haptic feedback
     try {
       console.log('🧹 [Apollo] Clearing cache...');
-      await apolloClient.clearStore(); // Clear all cached data
-      console.log('✅ [Apollo] Cache cleared');
-      await refreshActivities(); // Fetch fresh data from v0.0.2
-      console.log('✅ [Apollo] Data refreshed from The Graph v0.0.2');
+      await clearSubgraphCache(); // Use new centralized cache clearing function
+      await Promise.all([
+        refreshActivities(), // Fetch fresh data from The Graph v0.34
+        refreshNFTs(), // Also refresh NFTs
+      ]);
+      console.log('✅ [Apollo] Data refreshed from The Graph v0.34');
     } catch (err) {
       console.error('❌ [Apollo] Error clearing cache:', err);
     } finally {

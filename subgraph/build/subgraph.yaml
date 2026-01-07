@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946"
       abi: EnhancedSmartStaking
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -87,7 +87,7 @@ dataSources:
     source:
       address: "0x90216d0227EfbBae880EC2b8F03695cB82326598"
       abi: EnhancedSmartStakingGamification
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -121,7 +121,7 @@ dataSources:
     source:
       address: "0x8Ea7278c3000a0628D0BA2925308aE0973Be3140"
       abi: EnhancedSmartStakingSkills
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -144,7 +144,7 @@ dataSources:
     source:
       address: "0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5"
       abi: GameifiedMarketplaceCoreV1
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -185,7 +185,7 @@ dataSources:
     source:
       address: "0xB23257758B385444dF5A78aC2F315bd653470df3"
       abi: IndividualSkillsMarketplace
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -217,7 +217,7 @@ dataSources:
     source:
       address: "0x61D75d56559Cd4722870A797a17793ed9f840245"
       abi: GameifiedMarketplaceQuests
-      startBlock: 81000000
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

@@ -597,34 +597,36 @@ if (PRIMARY_RPC) {
 
 // Public client for reading blockchain data using Viem
 // Using http transport with retry and timeout options
-let publicClient = createPublicClient({
-  chain: polygon,
-  transport: http(CONFIG.RPC_URL, {
-    timeout: 10000, // 10 second timeout
-    retryCount: 2,
-    retryDelay: 1000,
+let publicClient = (() => 
+  createPublicClient({
+    chain: polygon,
+    transport: http(CONFIG.RPC_URL, {
+      timeout: 10000,
+      retryCount: 2,
+      retryDelay: 1000,
+    })
   })
-});
+)();
 
 // Track failed RPC attempts to switch to fallback
 let rpcFailureCount = 0;
 const MAX_FAILURES_BEFORE_SWITCH = 3;
 
-/**
- * Helper to switch to fallback RPC if primary fails repeatedly
- */
 function switchToFallbackRpc(): void {
   if (rpcFailureCount >= MAX_FAILURES_BEFORE_SWITCH && CONFIG.FALLBACK_RPCS.length > 0) {
     const fallbackUrl = CONFIG.FALLBACK_RPCS[0];
-    console.warn(`[BlockchainService] \ud83d\udd04 Switching to fallback RPC: ${fallbackUrl}`);
-    publicClient = createPublicClient({
-      chain: polygon,
-      transport: http(fallbackUrl, {
-        timeout: 10000,
-        retryCount: 2,
-        retryDelay: 1000,
-      })
-    });
+    console.warn(`[BlockchainService] 🔄 Switching to fallback RPC: ${fallbackUrl}`);
+    const newClient = (() => {
+      return createPublicClient({
+        chain: polygon,
+        transport: http(fallbackUrl, {
+          timeout: 10000,
+          retryCount: 2,
+          retryDelay: 1000,
+        })
+      });
+    })();
+    publicClient = newClient as typeof publicClient;
     rpcFailureCount = 0; // Reset counter
   }
 }

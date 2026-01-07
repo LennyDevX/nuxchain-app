@@ -9,16 +9,16 @@ function StakingSection() {
   const [isCalculatorExpanded, setIsCalculatorExpanded] = useState(false);
   const isMobile = useIsMobile();
 
-  // Staking calculator logic - APY values from EnhancedSmartStakingRewards.sol
+  // Staking calculator logic - APY values from EnhancedSmartStakingView.sol
   // Lockup periods: 0 (Flexible), 30, 90, 180, 365 days
-  // Base APYs from contract: 263, 438, 788, 1051, 1577 (in basis points)
-  // Hourly rates from contract comments: 0.003%, 0.005%, 0.009%, 0.012%, 0.018%
+  // Base APYs (in basis points / 100): 263 → 26.3%, 438 → 43.8%, 788 → 78.8%, 1051 → 105.1%, 1577 → 157.7%
+  // Hourly rates (in basis points / 10000): 30 → 0.003%, 50 → 0.005%, 90 → 0.009%, 120 → 0.012%, 180 → 0.018%
   const getAPYData = () => {
     switch (lockPeriod) {
       case '30': return { apy: 43.8, hourlyRate: 0.005 }; // 43.8% APY = 0.005% per hour
       case '90': return { apy: 78.8, hourlyRate: 0.009 }; // 78.8% APY = 0.009% per hour
-      case '180': return { apy: 105.12, hourlyRate: 0.012 }; // 105.12% APY = 0.012% per hour
-      case '365': return { apy: 157.68, hourlyRate: 0.018 }; // 157.68% APY = 0.018% per hour
+      case '180': return { apy: 105.1, hourlyRate: 0.012 }; // 105.1% APY = 0.012% per hour
+      case '365': return { apy: 157.7, hourlyRate: 0.018 }; // 157.7% APY = 0.018% per hour
       case 'flexible':
       default: return { apy: 26.3, hourlyRate: 0.003 }; // 26.3% APY = 0.003% per hour
     }
@@ -110,8 +110,8 @@ function StakingSection() {
                     <option value="flexible" className="bg-gray-800">Flexible (26.3% APY)</option>
                     <option value="30" className="bg-gray-800">30 Days (43.8% APY)</option>
                     <option value="90" className="bg-gray-800">90 Days (78.8% APY)</option>
-                    <option value="180" className="bg-gray-800">180 Days (105.12% APY)</option>
-                    <option value="365" className="bg-gray-800">365 Days (157.68% APY)</option>
+                    <option value="180" className="bg-gray-800">180 Days (105.1% APY)</option>
+                    <option value="365" className="bg-gray-800">365 Days (157.7% APY)</option>
                   </select>
                 </div>
 
@@ -209,7 +209,7 @@ function StakingSection() {
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                <span className="text-white/80">APY up to 157.68% (365 days lock)</span>
+                <span className="text-white/80">APY up to 157.7% (365 days lock)</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>

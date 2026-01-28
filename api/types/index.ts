@@ -526,3 +526,27 @@ export type Middleware = (
   res: ExpressResponse,
   next: () => void
 ) => void | Promise<void>;
+
+// ============================================
+// Airdrop Service Types
+// ============================================
+
+export interface AirdropRegistration {
+  name: string;
+  email: string;
+  wallet: string;
+  timestamp?: number;
+  createdAt?: any; // Firestore serverTimestamp
+}
+
+export interface AirdropRegistrationRequest {
+  name: string;
+  email: string;
+  wallet: string;
+}
+
+export interface AirdropRegistrationResponse {
+  success: boolean;
+  id?: string;
+  message?: string;
+}

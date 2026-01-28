@@ -11,7 +11,7 @@ function Navbar() {
     { path: '/', label: 'Home' },
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
-    { path: '/marketplace', label: 'Marketplace' },
+    { path: '/airdrop', label: 'Airdrop' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
     { path: '/chat', label: 'Chat' }

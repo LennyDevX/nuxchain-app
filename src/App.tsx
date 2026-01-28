@@ -6,6 +6,7 @@ import Navbar from './components/layout/Navbar'
 import MobileBottomNavbar from './components/layout/MobileBottomNavbar'
 import GlobalBackground from './ui/gradientBackground'
 import AppRoutes from './router/routes'
+import NetworkAlert from './components/web3/NetworkAlert'
 
 /**
  * Inner component para que useScrollToTop funcione dentro del Router
@@ -15,6 +16,7 @@ function AppContent() {
 
   return (
     <GlobalBackground>
+      <NetworkAlert />
       <Navbar />
       <AppRoutes />
       <MobileBottomNavbar />

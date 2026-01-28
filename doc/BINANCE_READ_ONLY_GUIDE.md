@@ -48,33 +48,7 @@ function MarketOverview() {
 }
 ```
 
-### 2. **Monitor de Precios en Tiempo Real**
-Seguimiento del precio actual de cualquier criptomoneda.
 
-```typescript
-import { useSymbolPrice } from '@/hooks/useMarketData';
-
-function PriceTracker({ symbol }: { symbol: string }) {
-  const { data: price, loading, error } = useSymbolPrice(symbol);
-  
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error}</div>;
-  
-  const isProfitable = price!.change24h >= 0;
-  
-  return (
-    <div>
-      <h2>{symbol}</h2>
-      <p>Precio: ${price?.price.toFixed(2)}</p>
-      <p className={isProfitable ? 'text-green-500' : 'text-red-500'}>
-        24h: {isProfitable ? '+' : ''}{price?.changePercent24h.toFixed(2)}%
-      </p>
-      <p>Alto: ${price?.high24h.toFixed(2)} | Bajo: ${price?.low24h.toFixed(2)}</p>
-      <p>Volumen: ${price?.quoteVolume24h.toFixed(0)}</p>
-    </div>
-  );
-}
-```
 
 ### 3. **Cartera Pública** (Ya implementada - `/investments`)
 Muestra:

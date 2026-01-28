@@ -1,0 +1,556 @@
+/* ============================================================================
+   NETWORK ALERT - COMPACT & MODERN DESIGN
+   Optimized for mobile, tablet, and desktop
+   ============================================================================ */
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes alert-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes alert-slide-up {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+
+@keyframes icon-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.85;
+  }
+}
+
+@keyframes gradient-shift-alert {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ========================================
+   CONTAINER - CENTERED WITH MARGINS
+   ======================================== */
+
+.network-alert-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: calc(100% - 32px);
+  max-width: 480px;
+  
+  animation: alert-slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.network-alert-container.network-alert-visible {
+  animation: alert-slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ========================================
+   CONTENT - COMPACT & SLEEK
+   ======================================== */
+
+.network-alert-content {
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.9) 0%,
+    rgba(31, 41, 55, 0.95) 50%,
+    rgba(15, 23, 42, 0.9) 100%
+  );
+  
+  border: 1px solid;
+  border-image: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.5),
+    rgba(236, 72, 153, 0.3),
+    rgba(139, 92, 246, 0.2)
+  ) 1;
+  
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  
+  box-shadow: 
+    0 0 30px rgba(139, 92, 246, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Animated gradient overlay */
+.network-alert-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  animation: gradient-shift-alert 6s infinite;
+  pointer-events: none;
+}
+
+/* ========================================
+   ICON - PULSING WITH ACCENT COLORS
+   ======================================== */
+
+.network-alert-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.2),
+    rgba(236, 72, 153, 0.15)
+  );
+  
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  
+  color: #a78bfa;
+  font-weight: 600;
+  
+  animation: icon-pulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.network-alert-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+}
+
+/* ========================================
+   TEXT CONTENT - CLEAN & READABLE
+   ======================================== */
+
+.network-alert-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.network-alert-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+  text-wrap: balance;
+}
+
+.network-alert-subtitle {
+  font-size: 12px;
+  color: #cbd5e1;
+  line-height: 1.25;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+/* ========================================
+   ACTION BUTTON - GRADIENT & INTERACTIVE
+   ======================================== */
+
+.network-alert-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  
+  padding: 8px 14px;
+  
+  background: linear-gradient(
+    135deg,
+    #8b5cf6 0%,
+    #a855f7 50%,
+    #d946ef 100%
+  );
+  background-size: 200% 200%;
+  
+  border: none;
+  border-radius: 7px;
+  
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.network-alert-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  
+  transition: left 0.5s ease;
+  z-index: -1;
+}
+
+.network-alert-button:hover {
+  background: linear-gradient(
+    135deg,
+    #a855f7 0%,
+    #d946ef 50%,
+    #ec4899 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift-alert 3s ease infinite;
+  
+  box-shadow: 
+    0 6px 20px rgba(139, 92, 246, 0.4),
+    0 0 15px rgba(217, 70, 239, 0.3);
+  
+  transform: translateY(-1px);
+}
+
+.network-alert-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+.network-alert-button svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5;
+}
+
+/* ========================================
+   CLOSE BUTTON - MINIMAL & RESPONSIVE
+   ======================================== */
+
+.network-alert-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 30px;
+  height: 30px;
+  
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  
+  color: #cbd5e1;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  padding: 0;
+  min-width: unset;
+  position: relative;
+  z-index: 1;
+}
+
+.network-alert-close:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #f1f5f9;
+  transform: rotate(90deg);
+}
+
+.network-alert-close:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.network-alert-close svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+/* ========================================
+   BORDER EFFECT - SUBTLE ANIMATED LINE
+   ======================================== */
+
+.network-alert-border-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.5),
+    rgba(236, 72, 153, 0.3),
+    transparent
+  );
+  
+  border-radius: 0 0 10px 10px;
+  
+  animation: gradient-shift-alert 3s ease infinite;
+  background-size: 200% 100%;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablet (768px and below) */
+@media (max-width: 768px) {
+  .network-alert-container {
+    top: 18px;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+  
+  .network-alert-content {
+    padding: 11px 14px;
+    gap: 10px;
+  }
+  
+  .network-alert-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .network-alert-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .network-alert-title {
+    font-size: 13px;
+  }
+  
+  .network-alert-subtitle {
+    font-size: 11px;
+  }
+  
+  .network-alert-button {
+    padding: 7px 12px;
+    font-size: 11px;
+    gap: 5px;
+  }
+  
+  .network-alert-button svg {
+    width: 13px;
+    height: 13px;
+  }
+  
+  .network-alert-close {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .network-alert-close svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+  .network-alert-container {
+    top: 16px;
+    width: calc(100% - 20px);
+    max-width: calc(100% - 20px);
+  }
+  
+  .network-alert-content {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .network-alert-icon {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
+  
+  .network-alert-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+  
+  .network-alert-text {
+    flex: 1;
+    min-width: 100px;
+  }
+  
+  .network-alert-title {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  
+  .network-alert-subtitle {
+    font-size: 10px;
+  }
+  
+  .network-alert-button {
+    padding: 7px 11px;
+    font-size: 11px;
+    gap: 4px;
+    order: 3;
+    width: calc(100% - 8px - 28px - 8px);
+  }
+  
+  .network-alert-button svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .network-alert-close {
+    width: 26px;
+    height: 26px;
+    order: 4;
+  }
+  
+  .network-alert-close svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Extra small devices (320px) */
+@media (max-width: 360px) {
+  .network-alert-container {
+    top: 14px;
+    width: calc(100% - 16px);
+    max-width: calc(100% - 16px);
+  }
+  
+  .network-alert-content {
+    padding: 9px 10px;
+    gap: 6px;
+  }
+  
+  .network-alert-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .network-alert-title {
+    font-size: 11px;
+  }
+  
+  .network-alert-subtitle {
+    font-size: 9px;
+    display: none;
+  }
+  
+  .network-alert-button {
+    padding: 6px 10px;
+    font-size: 10px;
+    gap: 3px;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY & PREFERENCES
+   ======================================== */
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  .network-alert-content {
+    border-width: 2px;
+    box-shadow: 
+      0 0 40px rgba(139, 92, 246, 0.25),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.08);
+  }
+  
+  .network-alert-button {
+    box-shadow: 0 0 0 2px #fff, 0 6px 20px rgba(139, 92, 246, 0.5);
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .network-alert-container,
+  .network-alert-content,
+  .network-alert-icon,
+  .network-alert-button,
+  .network-alert-close {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .network-alert-button:hover {
+    animation: none;
+  }
+}
+
+/* Dark mode (most devices are dark, but for consistency) */
+@media (prefers-color-scheme: dark) {
+  .network-alert-content {
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.92) 0%,
+      rgba(25, 35, 52, 0.96) 50%,
+      rgba(12, 20, 39, 0.92) 100%
+    );
+  }
+}
+
+/* Print - hide alert */
+@media print {
+  .network-alert-container {
+    display: none !important;
+  }
+}

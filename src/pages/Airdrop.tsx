@@ -11,17 +11,17 @@ import '../styles/nux-coin-display.css';
 
 function Airdrop() {
   // EVM wallet hooks
-  const { address: evmAddress, isConnected: evmConnected } = useAccount();
-  
+  const { isConnected: evmConnected } = useAccount();
+
   // Solana wallet hooks
   const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     wallet: '',
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     type: 'success' | 'error' | null;
@@ -33,9 +33,8 @@ function Airdrop() {
   const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
 
   // Constantes del airdrop
-  const TOKENS_PER_USER = 75000; // 75K NUX tokens por usuario
-  const MAX_AIRDROP_POOL = 75000000; // 75M NUX tokens máximo
-  const MAX_USERS = MAX_AIRDROP_POOL / TOKENS_PER_USER; // 1000 usuarios máximo
+  const TOKENS_PER_USER = 5000; // 5K NUX tokens por usuario
+  const MAX_USERS = 10000; // 10,000 usuarios máximo
   const POL_BONUS_PER_USER = 10; // 10 POL por usuario para staking
 
   // Cargar número de usuarios registrados
@@ -53,28 +52,28 @@ function Airdrop() {
     };
 
     loadUsersCount();
-    
+
     // Actualizar cada 30 segundos
     const interval = setInterval(loadUsersCount, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-fill wallet cuando se conecta (prioridad Solana)
+  // Auto-fill wallet cuando se conecta (SOLANA ONLY)
   useEffect(() => {
     if (solanaConnected && solanaPublicKey) {
       const solanaAddress = solanaPublicKey.toBase58();
       setFormData(prev => ({ ...prev, wallet: solanaAddress }));
       setDetectedNetwork('solana');
-    } else if (evmConnected && evmAddress) {
-      setFormData(prev => ({ ...prev, wallet: evmAddress }));
+    } else if (evmConnected) {
       setDetectedNetwork('evm');
+      // No auto-fill EVM anymore
     } else {
       setDetectedNetwork(null);
     }
-  }, [solanaConnected, solanaPublicKey, evmConnected, evmAddress]);
+  }, [solanaConnected, solanaPublicKey, evmConnected]);
 
   useEffect(() => {
-    document.title = 'Nuxchain | NUX Token Airdrop - Get 75K NUX Tokens';
+    document.title = `Nuxchain | NUX Token Airdrop - Get ${TOKENS_PER_USER.toLocaleString()} NUX Tokens`;
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +106,17 @@ function Airdrop() {
     if (!formData.wallet || formData.wallet.trim().length === 0) {
       setSubmitStatus({
         type: 'error',
-        message: 'Please connect your wallet or enter a valid wallet address',
+        message: 'Please connect your Solana wallet or enter a valid Solana address',
+      });
+      return false;
+    }
+
+    // Basic Solana address validation (base58 and length 32-44)
+    const solanaRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+    if (!solanaRegex.test(formData.wallet.trim())) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Invalid Solana address. Please use a valid Solana wallet.',
       });
       return false;
     }
@@ -117,7 +126,7 @@ function Airdrop() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -135,21 +144,19 @@ function Airdrop() {
 
       setSubmitStatus({
         type: 'success',
-        message: 'Successfully registered! You will receive 75,000 NUX tokens + 10 POL for staking.',
+        message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens + 10 POL for staking.`,
       });
       setShowSuccess(true);
-      
+
       // Actualizar contador
       setRegisteredUsers(prev => prev + 1);
-      
+
       // Reset form
       setFormData({
         name: '',
         email: '',
-        wallet: solanaConnected && solanaPublicKey 
-          ? solanaPublicKey.toBase58() 
-          : evmConnected && evmAddress 
-          ? evmAddress 
+        wallet: solanaConnected && solanaPublicKey
+          ? solanaPublicKey.toBase58()
           : '',
       });
 
@@ -157,7 +164,7 @@ function Airdrop() {
       setTimeout(() => {
         setShowSuccess(false);
       }, 8000);
-      
+
     } catch (error) {
       console.error('Registration error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to register. Please try again.';
@@ -174,9 +181,10 @@ function Airdrop() {
   const airdropEndDate = new Date(2026, 1, 14, 23, 59, 59);
 
   // Calcular usuarios restantes y estadísticas
-  const usersRemaining = MAX_USERS - registeredUsers;
+  const isPoolFull = registeredUsers >= MAX_USERS;
+  const usersRemaining = Math.max(0, MAX_USERS - registeredUsers);
   const totalPolBonus = registeredUsers * POL_BONUS_PER_USER;
-  const poolProgress = (registeredUsers / MAX_USERS) * 100;
+  const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
 
   return (
     <GlobalBackground>
@@ -193,7 +201,7 @@ function Airdrop() {
               $NUX Token Airdrop
             </h1>
             <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-2">
-              Register now and receive <span className="font-bold text-purple-400">75,000 NUX tokens</span>
+              Register now and receive <span className="font-bold text-purple-400">{TOKENS_PER_USER.toLocaleString()} NUX tokens</span>
             </p>
             <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-6">
               Plus <span className="font-bold text-pink-400">10 POL tokens</span> bonus for staking
@@ -240,142 +248,170 @@ function Airdrop() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
               {/* Form Column */}
               <div className="lg:col-span-7">
-            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-xl rounded-3xl border border-gray-700/50 p-6 sm:p-8 lg:p-10 shadow-2xl">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Input */}
-                <div className="space-y-2">
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                    className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    disabled={isSubmitting}
-                    required
-                    minLength={3}
-                  />
-                </div>
-
-                {/* Email Input */}
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="your.email@example.com"
-                    className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                    disabled={isSubmitting}
-                    required
-                  />
-                </div>
-
-                {/* Wallet Input */}
-                <div className="space-y-2">
-                  <label htmlFor="wallet" className="block text-sm font-medium text-gray-300">
-                    Wallet Address *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="wallet"
-                      name="wallet"
-                      value={formData.wallet}
-                      onChange={handleInputChange}
-                      placeholder="Solana or Polygon address"
-                      className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      disabled={isSubmitting || (solanaConnected && !!solanaPublicKey) || (evmConnected && !!evmAddress)}
-                      required
-                    />
-                    {(solanaConnected || evmConnected) && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-400">
-                          {detectedNetwork === 'solana' ? 'Solana' : 'Polygon'}
-                        </span>
+                <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-xl rounded-3xl border border-gray-700/50 p-6 sm:p-8 lg:p-10 shadow-2xl">
+                  {isPoolFull ? (
+                    <div className="text-center py-12 px-6 bg-red-500/5 border border-red-500/20 rounded-2xl">
+                      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m13-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                       </div>
-                    )}
-                  </div>
-                  
-                  
-                </div>
-
-                {/* Info Box */}
-                <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/30 rounded-xl p-4 flex gap-3">
-                  <svg className="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  <div className="text-sm text-gray-300">
-                    <p className="font-medium text-purple-300 mb-1">What you'll receive:</p>
-                    <ul className="list-disc list-inside space-y-1 text-gray-400">
-                      <li><strong className="text-white">75,000 NUX tokens</strong> on Solana network</li>
-                      <li><strong className="text-white">10 POL tokens</strong> bonus for staking</li>
-                      <li>Early access to Nuxchain ecosystem</li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Status Messages */}
-                {submitStatus.type && (
-                  <div
-                    className={`p-4 rounded-xl border ${
-                      submitStatus.type === 'success'
-                        ? 'bg-green-500/10 border-green-500/30 text-green-300'
-                        : 'bg-red-500/10 border-red-500/30 text-red-300'
-                    } animate-fadeIn`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {submitStatus.type === 'success' ? (
-                        <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                      <p className="text-sm">{submitStatus.message}</p>
+                      <h3 className="text-2xl font-bold text-white mb-3">Airdrop Pool Full!</h3>
+                      <p className="text-gray-400 text-sm mb-6 max-w-sm mx-auto">
+                        All {MAX_USERS.toLocaleString()} slots have been filled. Registration is now closed. Thank you for your interest!
+                      </p>
+                      <div className="inline-block px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-bold uppercase tracking-widest">
+                        Sold Out
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Registering...</span>
-                    </>
                   ) : (
-                    <>
-                      <span>Register for Airdrop</span>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </>
-                  )}
-                </button>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Name Input */}
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          placeholder="Enter your full name"
+                          className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          disabled={isSubmitting}
+                          required
+                          minLength={3}
+                        />
+                      </div>
 
-                <p className="text-xs text-center text-gray-500">
-                  By registering, you agree to receive your airdrop allocation and participate in the Nuxchain ecosystem
-                </p>
-              </form>
+                      {/* Email Input */}
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          placeholder="your.email@example.com"
+                          className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                          disabled={isSubmitting}
+                          required
+                        />
+                      </div>
+
+                      {/* Wallet Input */}
+                      <div className="space-y-2">
+                        <label htmlFor="wallet" className="block text-sm font-medium text-gray-300">
+                          Wallet Address *
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="wallet"
+                            name="wallet"
+                            value={formData.wallet}
+                            onChange={handleInputChange}
+                            placeholder="Enter your Solana (SOL) address"
+                            className={`w-full px-4 py-3 bg-gray-900/50 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${detectedNetwork === 'evm' ? 'border-orange-500/50' : 'border-gray-700'
+                              }`}
+                            disabled={isSubmitting || (solanaConnected && !!solanaPublicKey)}
+                            required
+                          />
+                          {solanaConnected && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-400 font-bold uppercase tracking-wider">
+                                Solana Connected
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Alert for EVM users */}
+                        {detectedNetwork === 'evm' && !solanaConnected && (
+                          <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl flex gap-3 animate-fadeIn">
+                            <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <p className="text-xs text-orange-200/80">
+                              <strong className="text-orange-400 block mb-0.5">Solana Required!</strong>
+                              You are connected to Polygon. This airdrop is only compatible with the Solana network. Please connect a Solana wallet (Phantom/OKX) to continue.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info Box */}
+                      <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-500/30 rounded-xl p-4 flex gap-3">
+                        <svg className="w-6 h-6 text-purple-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <div className="text-sm text-gray-300">
+                          <p className="font-medium text-purple-300 mb-1">What you'll receive:</p>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400">
+                            <li><strong className="text-white">{TOKENS_PER_USER.toLocaleString()} NUX tokens</strong> on Solana network</li>
+                            <li><strong className="text-white">10 POL tokens</strong> bonus for staking</li>
+                            <li>Early access to Nuxchain ecosystem</li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Status Messages */}
+                      {submitStatus.type && (
+                        <div
+                          className={`p-4 rounded-xl border ${submitStatus.type === 'success'
+                            ? 'bg-green-500/10 border-green-500/30 text-green-300'
+                            : 'bg-red-500/10 border-red-500/30 text-red-300'
+                            } animate-fadeIn`}
+                        >
+                          <div className="flex items-start gap-3">
+                            {submitStatus.type === 'success' ? (
+                              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            <p className="text-sm">{submitStatus.message}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Registering...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Register for Airdrop</span>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+
+                      <p className="text-xs text-center text-gray-500">
+                        By registering, you agree to receive your airdrop allocation and participate in the Nuxchain ecosystem
+                      </p>
+                    </form>
+                  )}
                 </div>
               </div>
 
@@ -389,7 +425,7 @@ function Airdrop() {
                     </svg>
                     Live Airdrop Stats
                   </h3>
-                  
+
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-2">
@@ -397,7 +433,7 @@ function Airdrop() {
                       <span className="text-purple-300 font-semibold">{poolProgress.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full transition-all duration-500 animate-gradient-shift"
                         style={{ width: `${poolProgress}%` }}
                       />
@@ -433,11 +469,11 @@ function Airdrop() {
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
                       <span className="text-gray-400 text-sm">NUX per User</span>
-                      <span className="text-purple-400 font-semibold">75,000</span>
+                      <span className="text-purple-400 font-semibold">{TOKENS_PER_USER.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
                       <span className="text-gray-400 text-sm">Total NUX Pool</span>
-                      <span className="text-white font-semibold">75M</span>
+                      <span className="text-white font-semibold">50M</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50 bg-pink-500/5 -mx-2 px-2 py-2 rounded-lg">
                       <span className="text-gray-400 text-sm flex items-center gap-2">
@@ -471,7 +507,7 @@ function Airdrop() {
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">75K NUX tokens</strong> - Launch price allocation</span>
+                      <span><strong className="text-white">{(TOKENS_PER_USER / 1000).toLocaleString()}K NUX tokens</strong> - Launch price allocation</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -567,7 +603,7 @@ function Airdrop() {
                     <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span><strong className="text-purple-300">75,000 NUX tokens</strong></span>
+                    <span><strong className="text-purple-300">{TOKENS_PER_USER.toLocaleString()} NUX tokens</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 20 20">

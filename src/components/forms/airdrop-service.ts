@@ -13,21 +13,11 @@ function isValidSolanaAddress(address: string): boolean {
   }
 }
 
-/**
- * Validate if a string is a valid EVM address (0x...)
- */
-function isValidEVMAddress(address: string): boolean {
-  const hexRegex = /^0x[a-fA-F0-9]{40}$/;
-  return hexRegex.test(address);
-}
 
 /**
  * Detect wallet network type
  */
-function detectWalletNetwork(wallet: string): 'solana' | 'evm' | null {
-  if (wallet.startsWith('0x') && wallet.length === 42) {
-    return isValidEVMAddress(wallet) ? 'evm' : null;
-  }
+function detectWalletNetwork(wallet: string): 'solana' | null {
   // Solana addresses are typically 32-44 characters in Base58
   if (wallet.length >= 32 && wallet.length <= 44 && !wallet.startsWith('0x')) {
     return isValidSolanaAddress(wallet) ? 'solana' : null;
@@ -67,7 +57,7 @@ export async function submitAirdropRegistration(
   try {
     console.log('📝 Starting airdrop registration...');
     console.log('Received data:', { name, email, wallet });
-    
+
     // ========================================
     // VALIDATE FIRESTORE INSTANCE
     // ========================================
@@ -75,7 +65,7 @@ export async function submitAirdropRegistration(
       console.error('❌ Firestore instance is undefined');
       throw new Error('Database connection not initialized. Please refresh the page.');
     }
-    
+
     // ========================================
     // VALIDATE NAME
     // ========================================
@@ -92,7 +82,7 @@ export async function submitAirdropRegistration(
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const trimmedEmail = email.trim();
-    
+
     if (!emailRegex.test(trimmedEmail)) {
       console.error('❌ Email validation failed:', trimmedEmail);
       throw new Error('Invalid email format');
@@ -106,9 +96,9 @@ export async function submitAirdropRegistration(
     }
 
     const walletNetwork = detectWalletNetwork(wallet);
-    
+
     if (!walletNetwork) {
-      throw new Error('Invalid wallet address. Please provide a valid Solana or Polygon (EVM) address.');
+      throw new Error('Invalid wallet address. This airdrop is only compatible with the Solana network.');
     }
 
     // Normalize data
@@ -128,9 +118,9 @@ export async function submitAirdropRegistration(
       collection(db, 'nuxchainAirdropRegistrations'),
       where('wallet', '==', normalizedWallet)
     );
-    
+
     const walletSnapshot = await getDocs(walletQuery);
-    
+
     if (!walletSnapshot.empty) {
       console.warn('⚠️ Wallet already registered:', normalizedWallet);
       throw new Error('This wallet is already registered for the airdrop');
@@ -141,9 +131,9 @@ export async function submitAirdropRegistration(
       collection(db, 'nuxchainAirdropRegistrations'),
       where('email', '==', normalizedEmail)
     );
-    
+
     const emailSnapshot = await getDocs(emailQuery);
-    
+
     if (!emailSnapshot.empty) {
       console.warn('⚠️ Email already registered:', normalizedEmail);
       throw new Error('This email is already registered for the airdrop');
@@ -161,7 +151,7 @@ export async function submitAirdropRegistration(
       network: walletNetwork, // Store network type
       createdAt: serverTimestamp(),
       status: 'pending',
-      airdropAmount: '75000', // 75K NUX tokens
+      airdropAmount: '5000', // 5K NUX tokens
       polBonus: '10', // 10 POL bonus
     };
 
@@ -173,31 +163,31 @@ export async function submitAirdropRegistration(
     });
 
     const addDocPromise = addDoc(collection(db, 'nuxchainAirdropRegistrations'), airdropData);
-    
+
     const docRef = await Promise.race([addDocPromise, timeoutPromise]);
 
     console.log('✅ Successfully registered for airdrop:', docRef.id);
     return { success: true, id: docRef.id };
-    
+
   } catch (error) {
     console.error('❌ Error in submitAirdropRegistration:', error);
-    
+
     if (error instanceof Error) {
       // Permission errors
       if (error.message.includes('permission-denied') || error.message.includes('PERMISSION_DENIED')) {
         throw new Error('Access denied. Please contact support or check Firestore rules.');
       }
-      
+
       // Firebase config errors
       if (error.message.includes('not initialized') || error.message.includes('Firebase') || error.message.includes('app/invalid-credential')) {
         throw new Error('Database configuration error. Please refresh and try again.');
       }
-      
+
       // Network errors
       if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('timeout')) {
         throw new Error('Network error. Please check your internet connection and try again.');
       }
-      
+
       // Validation errors - pass through
       if (error.message.includes('Invalid') || error.message.includes('required') || error.message.includes('already registered')) {
         throw error;

@@ -9,23 +9,29 @@ import { useGasPrice } from '../../hooks/web3/useGasPrice'
 import { useTransactionHistory } from '../../hooks/web3/useTransactionHistory'
 import { useSolanaWallet, useSolanaWalletDetection } from '../../hooks/web3/useSolanaWallet'
 import { useNetworkContext } from '../../hooks/web3/useNetworkContext'
-import { SOLANA_NETWORKS, type SolanaNetwork } from '../../constants/solana'
+import { useMarketPrices } from '../../hooks/web3/useMarketPrices'
+import { useSolanaGasPrice } from '../../hooks/web3/useSolanaGasPrice'
+
+// Iconos oficiales de las Wallets
+const METAMASK_LOGO = '/MetaMaskLogo.png'
+const PHANTOM_LOGO = '/PhantomLogo.png'
+const WALLETCONNECT_LOGO = '/WalletConnect.png'
+const OKX_LOGO = '/OKXLogo.webp'
 
 function WalletConnect() {
   // EVM Wallet
-  const { address, isConnected, chain } = useAccount()
+  const { address, isConnected, chain, connector: activeConnector } = useAccount()
   const { connectAsync, connectors } = useConnect()
   const { disconnect: disconnectEVM } = useDisconnect()
   const { switchChain } = useSwitchChain()
 
   // Solana Wallet
   const solanaWallet = useSolanaWallet()
-  const { publicKey: solanaPublicKey, wallet: solanaWalletName } = useWallet()
-  const { disconnect: disconnectSolana, select: selectSolanaWallet, wallets } = useWallet()
-  const { hasPhantom } = useSolanaWalletDetection()
+  const { publicKey: solanaPublicKey, wallet: solanaWalletName, disconnect: disconnectSolana, select: selectSolanaWallet, wallets, connect: connectSolanaWallet } = useWallet()
+  useSolanaWalletDetection()
 
   // Global Network Context
-  const { activeNetwork, setActiveNetwork, solanaNetwork, setSolanaNetwork } = useNetworkContext()
+  const { activeNetwork, setActiveNetwork, solanaNetwork } = useNetworkContext()
 
   // State
   const [showDropdown, setShowDropdown] = useState(false)
@@ -33,17 +39,18 @@ function WalletConnect() {
   const [touchStartY, setTouchStartY] = useState(0)
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
-  
+
   const isMobile = useIsMobile()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Nuevos hooks para mejoras
+  // Hooks
   const { ensName } = useENSResolution(address)
   const { gasPrice, gasLevel } = useGasPrice()
+  const { prioritizationFee, gasLevel: solanaGasLevel } = useSolanaGasPrice(solanaNetwork)
   const { transactions } = useTransactionHistory(3)
+  const { prices } = useMarketPrices()
 
-  // Caching de balance usando useCallback
   const { data: balance } = useBalance({
     address: address,
     query: {
@@ -57,101 +64,57 @@ function WalletConnect() {
 
   // Update active network based on connections
   useEffect(() => {
-    if (solanaPublicKey && !address) {
+    if (solanaPublicKey && !address && activeNetwork !== 'solana') {
       setActiveNetwork('solana')
       setActiveTab('solana')
-    } else if (address && !solanaPublicKey) {
+    } else if (address && !solanaPublicKey && activeNetwork !== 'evm') {
       setActiveNetwork('evm')
       setActiveTab('evm')
     }
   }, [solanaPublicKey, address, setActiveNetwork])
 
-  // Log successful connection
+  // Log successful connection & Close dropdown
   useEffect(() => {
-    if (activeNetwork === 'evm' && isConnected && address) {
+    if ((activeNetwork === 'evm' && isConnected && address) || (activeNetwork === 'solana' && solanaPublicKey)) {
       setShowDropdown(false)
       setIsConnecting(false)
       setConnectionError(null)
-
-      console.log(`✅ [EVM Wallet] Connected successfully!`, {
-        address: `${address.slice(0, 6)}...${address.slice(-4)}`,
-        chain: chain?.name,
-        balance: balance ? `${formatUnits(balance.value, balance.decimals)} ${balance.symbol}` : 'Loading...',
-      })
-    } else if (activeNetwork === 'solana' && solanaPublicKey) {
-      setShowDropdown(false)
-      setIsConnecting(false)
-      setConnectionError(null)
-
-      console.log(`✅ [Solana Wallet] Connected successfully!`, {
-        address: solanaPublicKey.toBase58().slice(0, 6) + '...' + solanaPublicKey.toBase58().slice(-4),
-        wallet: solanaWalletName,
-        network: solanaNetwork,
-        balance: solanaWallet.balance ? `${solanaWallet.balance} SOL` : 'Loading...',
-      })
     }
-  }, [isConnected, address, solanaPublicKey, activeNetwork, chain, balance, solanaWalletName, solanaNetwork, solanaWallet.balance])
+  }, [isConnected, address, solanaPublicKey, activeNetwork])
 
   useEffect(() => {
-    if (!showDropdown) return;
-
+    if (!showDropdown) return
     function handleClickOutside(event: MouseEvent) {
-      if (isConnecting) return;
-
-      const target = event.target as Node;
-      if (buttonRef.current?.contains(target)) {
-        return;
-      }
+      if (isConnecting) return
+      const target = event.target as Node
+      if (buttonRef.current?.contains(target)) return
       if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setShowDropdown(false);
+        setShowDropdown(false)
       }
     }
+    document.addEventListener('mousedown', handleClickOutside, true)
+    return () => document.removeEventListener('mousedown', handleClickOutside, true)
+  }, [showDropdown, isConnecting])
 
-    document.addEventListener('mousedown', handleClickOutside, true);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside, true);
-    };
-  }, [showDropdown, isConnecting]);
-
-  useEffect(() => {
-    if (!isConnecting) return;
-
-    const timeoutId = setTimeout(() => {
-      console.warn('[WalletConnect] Connection timeout - resetting state')
-      setIsConnecting(false)
-    }, 60000);
-
-    return () => clearTimeout(timeoutId);
-  }, [isConnecting]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartY(e.touches[0].clientY)
-  }
-
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStartY(e.touches[0].clientY)
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (isMobile && e.changedTouches[0].clientY - touchStartY > 100) {
       setShowDropdown(false)
     }
   }
-
-  const handleDropdownClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-  }
+  const handleDropdownClick = (e: React.MouseEvent) => e.stopPropagation()
 
   const isPolygonNetwork = chain?.id === polygon.id
 
   const formatFixed = (value: string, digits: number) => {
     const [whole, frac = ''] = value.split('.')
-    const trimmedWhole = whole.length ? whole : '0'
-    const trimmedFrac = frac.padEnd(digits, '0').slice(0, digits)
-    return `${trimmedWhole}.${trimmedFrac}`
+    return `${whole || '0'}.${frac.padEnd(digits, '0').slice(0, digits)}`
   }
 
   const getEVMBalanceLabel = () => {
     const symbol = balance?.symbol || chain?.nativeCurrency?.symbol || 'POL'
     if (!balance) return `0.0000 ${symbol}`
-    const formatted = formatUnits(balance.value, balance.decimals)
-    return `${formatFixed(formatted, 4)} ${symbol}`
+    return `${formatFixed(formatUnits(balance.value, balance.decimals), 4)} ${symbol}`
   }
 
   const getSolanaBalanceLabel = () => {
@@ -159,11 +122,34 @@ function WalletConnect() {
     return `${solanaWallet.balance.toFixed(4)} SOL`
   }
 
+  const getUSDBalanceLabel = () => {
+    if (activeNetwork === 'evm' && balance && prices.pol?.usd) {
+      const usdValue = Number(formatUnits(balance.value, balance.decimals)) * prices.pol.usd
+      return `$${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+    if (activeNetwork === 'solana' && solanaWallet.balance && prices.sol?.usd) {
+      const usdValue = solanaWallet.balance * prices.sol.usd
+      return `$${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+    return null
+  }
+
+  const getWalletIcon = (key: string) => {
+    switch (key) {
+      case 'metamask': return METAMASK_LOGO
+      case 'phantom': return PHANTOM_LOGO
+      case 'walletconnect': return WALLETCONNECT_LOGO
+      case 'okx': return OKX_LOGO
+      default: return null
+    }
+  }
+
   const getConnectorKey = (connector: unknown) => {
     const name = (connector as { name?: string }).name?.toLowerCase() ?? ''
     const id = (connector as { id?: string }).id?.toLowerCase() ?? ''
     const haystack = `${id} ${name}`
     if (haystack.includes('metamask')) return 'metamask'
+    if (haystack.includes('phantom')) return 'phantom'
     if (haystack.includes('walletconnect')) return 'walletconnect'
     if (haystack.includes('okx')) return 'okx'
     if (haystack.includes('injected')) return 'injected'
@@ -172,33 +158,21 @@ function WalletConnect() {
 
   const getConnectorSubtitle = (key: string) => {
     switch (key) {
-      case 'injected':
-        return 'Browser wallet extension'
-      case 'metamask':
-        return 'MetaMask extension / mobile'
-      case 'walletconnect':
-        return 'Scan QR with WalletConnect'
-      case 'okx':
-        return 'OKX Wallet extension - supports EVM & Solana'
-      default:
-        return 'Wallet connector'
+      case 'injected': return 'Browser wallet extension'
+      case 'metamask': return 'MetaMask extension / mobile'
+      case 'phantom': return 'Phantom extension / mobile'
+      case 'walletconnect': return 'Scan QR with WalletConnect'
+      case 'okx': return 'Official OKX Wallet - EVM & Solana'
+      default: return 'Wallet connector'
     }
   }
 
   const getConnectorDisabledReason = (connector: unknown) => {
     const key = getConnectorKey(connector)
-    if (key === 'walletconnect' && !walletConnectProjectId) {
-      return 'Missing WalletConnect Project ID'
-    }
-    const ready = (connector as { ready?: boolean }).ready
-    if (ready === false) {
-      return 'Not available in this browser'
-    }
+    if (key === 'walletconnect' && !walletConnectProjectId) return 'Missing WalletConnect Project ID'
+    // Relaxed check: Only disable if explicitly false
+    if ((connector as any).ready === false) return 'Extension not found'
     return null
-  }
-
-  const formatAddress = (addr: string) => {
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
   }
 
   const formatGasPrice = (gas: bigint | null) => {
@@ -208,595 +182,378 @@ function WalletConnect() {
 
   const getGasLevelLabel = (level: 'low' | 'normal' | 'high') => {
     switch (level) {
-      case 'low':
-        return 'Low'
-      case 'normal':
-        return 'Normal'
-      case 'high':
-        return 'High'
+      case 'low': return 'Low'
+      case 'normal': return 'Normal'
+      case 'high': return 'High'
+      default: return 'Normal'
     }
   }
 
-  // Display connected state
-  if ((isConnected && address) || (solanaPublicKey)) {
-    return (
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          onClick={() => setShowDropdown(!showDropdown)}
-          className="btn-primary w-full flex items-center justify-center space-x-2"
-        >
-          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
-          <span>
-            {activeNetwork === 'evm' && address ? formatAddress(address) : solanaPublicKey ? formatAddress(solanaPublicKey.toBase58()) : 'Connect'}
-          </span>
-        </button>
-        {showDropdown && (
-          <>
-            {isMobile && (
-              <div
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
-                onClick={() => setShowDropdown(false)}
-              />
-            )}
-            <div
-              ref={dropdownRef}
-              onClick={handleDropdownClick}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              className={`absolute z-[999] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
-                  ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl max-h-[90vh] max-w-full'
-                  : 'right-0 mt-2 w-96 bg-black rounded-xl shadow-xl border border-gray-800'
-                }`}
-            >
-              {/* Tabs para cambiar entre EVM y Solana */}
-              <div className="bg-gray-900 border-b border-gray-800 flex">
-                <button
-                  onClick={() => {
-                    setActiveTab('evm')
-                    setActiveNetwork('evm')
-                  }}
-                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                    activeTab === 'evm'
-                      ? 'text-purple-400 border-b-2 border-purple-400 bg-black/50'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  EVM (Polygon)
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('solana')
-                    setActiveNetwork('solana')
-                  }}
-                  className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                    activeTab === 'solana'
-                      ? 'text-purple-400 border-b-2 border-purple-400 bg-black/50'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Solana
-                </button>
-              </div>
+  const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
-              {/* EVM Tab Content */}
-              {activeTab === 'evm' && isConnected && address && (
-                <>
-                  <div className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-gray-900 p-6 border-b border-purple-500/20">
-                    {isMobile && (
-                      <button
-                        onClick={() => setShowDropdown(false)}
-                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    )}
-
-                    <div className="text-center mb-4">
-                      <p className="text-xs text-gray-400 mb-1">Total Balance</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        {getEVMBalanceLabel()}
-                      </p>
-                    </div>
-
-                    <div className="bg-black/30 rounded-lg p-3 border border-white/10">
-                      {ensName && (
-                        <p className="text-sm text-purple-400 font-medium mb-1">{ensName}</p>
-                      )}
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-gray-300 font-mono truncate">{address}</p>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(address)
-                          }}
-                          className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 text-purple-400 rounded transition-colors flex-shrink-0"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 space-y-3">
-                    <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Network</p>
-                          <p className="text-sm font-semibold text-white">{chain?.name || 'Unknown'}</p>
-                        </div>
-                        {!isPolygonNetwork && (
-                          <button
-                            onClick={() => switchChain({ chainId: polygon.id })}
-                            className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-colors font-medium"
-                          >
-                            Switch
-                          </button>
-                        )}
-                      </div>
-                      {!isPolygonNetwork && (
-                        <div className="mt-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-orange-400 text-xs">
-                          ⚠️ Switch to Polygon for full features
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={`rounded-lg p-3 border ${gasLevel === 'low'
-                        ? 'bg-green-500/10 border-green-500/20'
-                        : gasLevel === 'high'
-                          ? 'bg-red-500/10 border-red-500/20'
-                          : 'bg-yellow-500/10 border-yellow-500/20'
-                      }`}>
-                      <p className="text-xs text-gray-400 mb-2">Network Congestion</p>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-400">Gas Price</p>
-                          <p className={`text-sm font-bold ${gasLevel === 'low' ? 'text-green-400' : gasLevel === 'high' ? 'text-red-400' : 'text-yellow-400'
-                            }`}>
-                            {formatGasPrice(gasPrice)} Gwei
-                          </p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${gasLevel === 'low'
-                            ? 'bg-green-500/20 text-green-400'
-                            : gasLevel === 'high'
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'bg-yellow-500/20 text-yellow-400'
-                          }`}>
-                          {getGasLevelLabel(gasLevel)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {transactions.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-400 mb-2">Recent Activity</p>
-                        <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
-                          {transactions.map((tx) => (
-                            <a
-                              key={tx.hash}
-                              href={`https://polygonscan.com/tx/${tx.hash}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors group"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs font-mono text-gray-300 group-hover:text-purple-400">
-                                  {tx.hash.slice(0, 8)}...{tx.hash.slice(-6)}
-                                </span>
-                                <span className={`text-xs px-1.5 py-0.5 rounded ${tx.status === 'confirmed'
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : tx.status === 'pending'
-                                      ? 'bg-yellow-500/20 text-yellow-400'
-                                      : 'bg-red-500/20 text-red-400'
-                                  }`}>
-                                  {tx.status === 'confirmed' ? '✓' : tx.status === 'pending' ? '⏱' : '✕'}
-                                </span>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-1">{tx.type}</p>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Solana Tab Content */}
-              {activeTab === 'solana' && solanaPublicKey && (
-                <>
-                  <div className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-gray-900 p-6 border-b border-purple-500/20">
-                    {isMobile && (
-                      <button
-                        onClick={() => setShowDropdown(false)}
-                        className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    )}
-
-                    <div className="text-center mb-4">
-                      <p className="text-xs text-gray-400 mb-1">Solana Balance</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        {getSolanaBalanceLabel()}
-                      </p>
-                    </div>
-
-                    <div className="bg-black/30 rounded-lg p-3 border border-white/10">
-                      <p className="text-sm text-purple-400 font-medium mb-1">{typeof solanaWalletName === 'string' ? solanaWalletName : solanaWalletName?.adapter?.name || 'Solana Wallet'}</p>
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs text-gray-300 font-mono truncate">{solanaPublicKey.toBase58()}</p>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(solanaPublicKey.toBase58())
-                          }}
-                          className="px-2 py-1 text-xs bg-white/5 hover:bg-white/10 text-purple-400 rounded transition-colors flex-shrink-0"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 space-y-3">
-                    <div className="bg-gradient-to-r from-green-500/10 to-cyan-500/10 border border-green-500/20 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Network</p>
-                          <p className="text-sm font-semibold text-white">{SOLANA_NETWORKS[solanaNetwork as keyof typeof SOLANA_NETWORKS].label}</p>
-                        </div>
-                        <select
-                          value={solanaNetwork}
-                          onChange={(e) => {
-                            setSolanaNetwork(e.target.value as SolanaNetwork)
-                            solanaWallet.switchNetwork(e.target.value as SolanaNetwork)
-                          }}
-                          className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg transition-colors font-medium cursor-pointer"
-                        >
-                          <option value="mainnet-beta">Mainnet</option>
-                          <option value="devnet">Devnet</option>
-                        </select>
-                      </div>
-                      {SOLANA_NETWORKS[solanaNetwork as keyof typeof SOLANA_NETWORKS].isTestnet && (
-                        <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded text-yellow-400 text-xs">
-                          ℹ️ Using Solana Devnet (testnet)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <button
-                onClick={() => {
-                  if (activeTab === 'evm') {
-                    disconnectEVM()
-                  } else {
-                    disconnectSolana()
-                  }
-                  setShowDropdown(false)
-                }}
-                className={`w-full text-left text-red-400 hover:bg-red-900/30 transition-all duration-200 font-medium border-t border-gray-800 ${isMobile ? 'px-6 py-4 text-base' : 'px-4 py-3 text-sm'
-                  }`}
-              >
-                Disconnect Wallet
-              </button>
+  const renderEVMWallets = (dense = false) => (
+    <div className="space-y-2">
+      {connectors.map((connector) => {
+        const disabledReason = getConnectorDisabledReason(connector)
+        const key = getConnectorKey(connector)
+        const title = (connector as { name?: string }).name || key
+        return (
+          <button
+            key={connector.uid}
+            onClick={async () => {
+              try {
+                if (disabledReason) return
+                setConnectionError(null)
+                setIsConnecting(true)
+                await connectAsync({ connector: connector as Connector })
+              } catch (error) {
+                setConnectionError('Connection failed')
+              } finally {
+                setTimeout(() => setIsConnecting(false), 500)
+              }
+            }}
+            disabled={!!disabledReason}
+            className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
+              } bg-white/5 hover:bg-white/10 disabled:opacity-50`}
+          >
+            {getWalletIcon(key) && <img src={getWalletIcon(key)!} alt={title} className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />}
+            <div className="flex flex-col">
+              <span className="font-medium text-white">{title}</span>
+              <span className="text-[10px] text-white/40">{disabledReason || getConnectorSubtitle(key)}</span>
             </div>
-          </>
-        )}
-      </div>
-    )
-  }
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  const renderSolanaWallets = (dense = false) => (
+    <div className="space-y-2">
+      {/* OKX Prioridad */}
+      <button
+        onClick={async () => {
+          try {
+            setConnectionError(null)
+            setIsConnecting(true)
+            const okxSolana = (window as any).okxwallet?.solana
+            if (okxSolana) {
+              await okxSolana.connect()
+              setActiveNetwork('solana')
+            } else {
+              const adapter = wallets?.find(w => w.adapter.name.toLowerCase().includes('okx'))
+              if (adapter) await selectSolanaWallet?.(adapter.adapter.name)
+            }
+          } catch (error) {
+            setConnectionError('OKX Solana failed')
+          } finally {
+            setTimeout(() => setIsConnecting(false), 500)
+          }
+        }}
+        className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
+          } bg-white/5 hover:bg-white/10`}
+      >
+        <img src={OKX_LOGO} alt="OKX" className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />
+        <div className="flex flex-col">
+          <span className="font-medium text-white">OKX Wallet</span>
+          <span className="text-[10px] text-white/40">Multi-chain support</span>
+        </div>
+      </button>
+
+      {/* Phantom */}
+      <button
+        onClick={async () => {
+          try {
+            setConnectionError(null)
+            setIsConnecting(true)
+            const phantom = (window as any).phantom?.solana
+            if (phantom) {
+              await phantom.connect()
+              setActiveNetwork('solana')
+            } else {
+              const adapter = wallets?.find(w => w.adapter.name === 'Phantom')
+              if (adapter) await selectSolanaWallet?.(adapter.adapter.name)
+            }
+          } catch (error) {
+            setConnectionError('Phantom failed')
+          } finally {
+            setTimeout(() => setIsConnecting(false), 500)
+          }
+        }}
+        className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
+          } bg-white/5 hover:bg-white/10`}
+      >
+        <img src={PHANTOM_LOGO} alt="Phantom" className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />
+        <div className="flex flex-col">
+          <span className="font-medium text-white">Phantom</span>
+          <span className="text-[10px] text-white/40">Solana & EVM wallet</span>
+        </div>
+      </button>
+    </div>
+  )
+
+  const isAnyConnected = address || solanaPublicKey
 
   return (
     <div className="relative">
       <button
         ref={buttonRef}
         onClick={() => setShowDropdown(!showDropdown)}
-        className="btn-primary w-full"
+        className="btn-primary w-full flex items-center justify-center space-x-2"
       >
-        Connect Wallet
+        {isAnyConnected && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+        <span>
+          {isAnyConnected
+            ? activeNetwork === 'evm' && address ? formatAddress(address) : solanaPublicKey ? formatAddress(solanaPublicKey.toBase58()) : 'Connected'
+            : 'Connect Wallet'
+          }
+        </span>
       </button>
+
       {showDropdown && (
         <>
-          {isMobile && (
-            <div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
-              onClick={() => setShowDropdown(false)}
-            />
-          )}
+          {isMobile && <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setShowDropdown(false)} />}
           <div
             ref={dropdownRef}
             onClick={handleDropdownClick}
-            className={`absolute z-50 overflow-hidden ${isMobile
-                ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl'
-                : 'right-0 mt-2 w-56 bg-black rounded-lg shadow-lg border border-gray-800'
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            className={`absolute z-[999] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
+              ? 'fixed bottom-0 left-0 right-0 bg-black rounded-t-2xl shadow-2xl max-h-[90vh]'
+              : 'right-0 mt-2 w-80 bg-black rounded-xl shadow-xl border border-gray-800'
               }`}
           >
             {/* Tabs */}
-            <div className="bg-gray-900 border-b border-gray-800 flex">
+            <div className="bg-gray-900 border-b border-gray-800 flex sticky top-0 z-10">
               <button
-                onClick={() => {
-                  setActiveTab('evm')
-                  setActiveNetwork('evm')
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  activeTab === 'evm'
-                    ? 'text-purple-400 border-b-2 border-purple-400 bg-black/50'
-                    : 'text-gray-400 hover:text-white'
-                }`}
+                onClick={() => { setActiveTab('evm'); setActiveNetwork('evm') }}
+                className={`flex-1 px-4 py-3 text-xs font-bold transition-all ${activeTab === 'evm' ? 'text-purple-400 border-b-2 border-purple-400 bg-white/5' : 'text-gray-500 hover:text-white'}`}
               >
-                EVM
+                POLYGON
               </button>
               <button
-                onClick={() => {
-                  setActiveTab('solana')
-                  setActiveNetwork('solana')
-                }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  activeTab === 'solana'
-                    ? 'text-purple-400 border-b-2 border-purple-400 bg-black/50'
-                    : 'text-gray-400 hover:text-white'
-                }`}
+                onClick={() => { setActiveTab('solana'); setActiveNetwork('solana') }}
+                className={`flex-1 px-4 py-3 text-xs font-bold transition-all ${activeTab === 'solana' ? 'text-purple-400 border-b-2 border-purple-400 bg-white/5' : 'text-gray-500 hover:text-white'}`}
               >
-                Solana
+                SOLANA
               </button>
             </div>
 
-            <div className={`border-b ${isMobile
-                ? 'p-6 border-gray-800 bg-gray-900'
-                : 'p-3 border-gray-800 bg-gray-900'
-              }`}>
-              {isMobile && (
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-white">
-                    {activeTab === 'evm' ? 'Connect EVM Wallet' : 'Connect Solana Wallet'}
-                  </h3>
-                  <button
-                    onClick={() => setShowDropdown(false)}
-                    className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-              <p className={`font-medium ${isMobile ? 'text-base text-white' : 'text-sm text-white'
-                }`}>Select Wallet</p>
-            </div>
+            {/* Error Message */}
+            {connectionError && (
+              <div className="m-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-xs text-red-400 font-medium">{connectionError}</p>
+              </div>
+            )}
 
-            <div className={isMobile ? 'p-4 space-y-3' : 'p-2'}>
-              {connectionError && (
-                <div className={`rounded-lg p-3 bg-yellow-500/10 border border-yellow-500/30 ${isMobile ? 'text-sm' : 'text-xs'}`}>
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg">ℹ️</span>
-                    <div>
-                      <p className="text-yellow-300 font-medium">
-                        {connectionError}
-                      </p>
-                      <p className="text-yellow-200/60 mt-1 text-xs">
-                        Select another wallet to try again
-                      </p>
+            {/* Content: EVM */}
+            {activeTab === 'evm' && (
+              address ? (
+                <div className="p-4 space-y-4">
+                  <div className="text-center py-4 bg-gradient-to-b from-purple-500/10 to-transparent rounded-xl">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Balance</p>
+                    <p className="text-2xl font-bold text-white">{getEVMBalanceLabel()}</p>
+                    {getUSDBalanceLabel() && <p className="text-xs text-gray-400 mt-1">{getUSDBalanceLabel()} USD</p>}
+                  </div>
+
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-lg flex items-center justify-between">
+                    <div className="flex flex-col truncate mr-2">
+                      {ensName && <span className="text-[10px] text-purple-400 font-medium mb-0.5">{ensName}</span>}
+                      <span className="text-xs font-mono text-gray-400 truncate">{address}</span>
                     </div>
+                    <button onClick={() => navigator.clipboard.writeText(address)} className="text-[10px] text-purple-400 hover:text-white transition-colors">Copy</button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs px-1">
+                      <span className="text-gray-500">Network</span>
+                      <span className="text-white font-medium">{chain?.name || 'Polygon'}</span>
+                    </div>
+                    {gasPrice && (
+                      <div className="flex items-center justify-between text-xs px-1">
+                        <span className="text-gray-500">Gas Price</span>
+                        <span className={`font-medium ${gasLevel === 'high' ? 'text-red-400' : 'text-green-400'}`}>
+                          {formatGasPrice(gasPrice)} Gwei ({getGasLevelLabel(gasLevel)})
+                        </span>
+                      </div>
+                    )}
+                    {!isPolygonNetwork && (
+                      <button onClick={() => switchChain({ chainId: polygon.id })} className="w-full py-2 bg-orange-500/20 text-orange-400 text-xs rounded-lg border border-orange-500/20 hover:bg-orange-500/30 transition-all">Switch to Polygon</button>
+                    )}
+                  </div>
+
+                  {transactions.length > 0 && (
+                    <div className="pt-2 border-t border-white/5">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Recent Activity</p>
+                      <div className="space-y-2">
+                        {transactions.map(tx => (
+                          <div key={tx.hash} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-[10px]">
+                            <span className="text-gray-300 font-mono">{tx.hash.slice(0, 8)}...</span>
+                            <span className={tx.status === 'confirmed' ? 'text-green-400' : 'text-yellow-400'}>{tx.type} ({tx.status === 'confirmed' ? '✓' : '⏱'})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4">
+                  {/* Sync Logic for Multi-Chain Wallets (Solana -> EVM) */}
+                  {solanaPublicKey && (getConnectorKey({ name: solanaWalletName?.adapter?.name }) === 'okx' || getConnectorKey({ name: solanaWalletName?.adapter?.name }) === 'phantom') ? (
+                    <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-center">
+                      <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">Sync with {getConnectorKey({ name: solanaWalletName?.adapter?.name }) === 'okx' ? 'OKX' : 'Phantom'}</p>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const walletKey = getConnectorKey({ name: solanaWalletName?.adapter?.name })
+                            setConnectionError(null)
+                            setIsConnecting(true)
+                            const connector = connectors.find(c => getConnectorKey(c) === walletKey)
+                            if (connector) {
+                              await connectAsync({ connector })
+                              setActiveNetwork('evm')
+                              setActiveTab('evm')
+                            } else {
+                              throw new Error(`${walletKey} EVM connector not found`)
+                            }
+                          } catch (err) {
+                            setConnectionError('Sync failed. Please use manual selection.')
+                          } finally {
+                            setTimeout(() => setIsConnecting(false), 500)
+                          }
+                        }}
+                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      >
+                        Quick Connect Polygon
+                      </button>
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                        <span className="text-[10px] text-white/20">or select manually</span>
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4 text-center">
+                      <p className="text-xs font-bold text-purple-400">Connect EVM Wallet</p>
+                      <p className="text-[10px] text-gray-500">Manage Polygon assets</p>
+                    </div>
+                  )}
+                  {renderEVMWallets(true)}
+                </div>
+              )
+            )}
+
+            {/* Content: Solana */}
+            {activeTab === 'solana' && (
+              solanaPublicKey ? (
+                <div className="p-4 space-y-4">
+                  <div className="text-center py-4 bg-gradient-to-b from-purple-500/10 to-transparent rounded-xl">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Total Balance</p>
+                    <p className="text-2xl font-bold text-white">{getSolanaBalanceLabel()}</p>
+                    {getUSDBalanceLabel() && <p className="text-xs text-gray-400 mt-1">{getUSDBalanceLabel()} USD</p>}
+                  </div>
+
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-lg flex items-center justify-between">
+                    <div className="flex flex-col truncate mr-2">
+                      <span className="text-[10px] text-purple-400 font-medium mb-0.5">{solanaWalletName?.adapter?.name || 'Solana'}</span>
+                      <span className="text-xs font-mono text-gray-400 truncate">{solanaPublicKey.toBase58()}</span>
+                    </div>
+                    <button onClick={() => navigator.clipboard.writeText(solanaPublicKey.toBase58())} className="text-[10px] text-purple-400 hover:text-white transition-colors">Copy</button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs px-1">
+                      <span className="text-gray-500">Network</span>
+                      <span className="text-white font-medium">
+                        {solanaNetwork === 'mainnet-beta' ? 'Solana Mainnet' : 'Solana Devnet'}
+                      </span>
+                    </div>
+                    {prioritizationFee !== null && (
+                      <div className="flex items-center justify-between text-xs px-1">
+                        <span className="text-gray-500">Gas Price (Fee)</span>
+                        <span className={`font-medium ${solanaGasLevel === 'high' ? 'text-red-400' : 'text-green-400'}`}>
+                          {solanaGasLevel.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-
-              {/* EVM Wallets */}
-              {activeTab === 'evm' && (
-                <>
-                  {connectors.map((connector) => {
-                    const disabledReason = getConnectorDisabledReason(connector)
-                    const isDisabled = Boolean(disabledReason)
-                    const key = getConnectorKey(connector)
-                    const title = (connector as { name?: string }).name || key
-
-                    return (
+              ) : (
+                <div className="p-4">
+                  {/* Sync Logic for Multi-Chain Wallets */}
+                  {isConnected && activeConnector && (getConnectorKey(activeConnector) === 'okx' || getConnectorKey(activeConnector) === 'phantom') ? (
+                    <div className="mb-4 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-center">
+                      <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">Sync with {getConnectorKey(activeConnector) === 'okx' ? 'OKX' : 'Phantom'}</p>
                       <button
-                        key={connector.uid}
                         onClick={async () => {
                           try {
-                            if (isDisabled) return
-
+                            const walletKey = getConnectorKey(activeConnector)
                             setConnectionError(null)
-                            setShowDropdown(false)
                             setIsConnecting(true)
 
-                            if (key === 'walletconnect') {
-                              console.log(`✅ [WalletConnect] Opening QR modal for WalletConnect...`)
+                            const adapter = wallets.find(w =>
+                              w.adapter.name.toLowerCase().includes(walletKey === 'okx' ? 'okx' : 'phantom')
+                            )
+
+                            if (adapter) {
+                              await selectSolanaWallet(adapter.adapter.name)
+                              // Attempt to connect immediately via the adapter
+                              try {
+                                await adapter.adapter.connect()
+                              } catch (connectErr) {
+                                console.warn('[Solana Sync] Adapter connect failed, falling back to Context connect', connectErr)
+                                await connectSolanaWallet()
+                              }
                             } else {
-                              console.log(`🔌 [Connector] Attempting to connect with: ${key}`)
+                              // Fallback direct provider
+                              const provider = walletKey === 'okx' ? (window as any).okxwallet?.solana : (window as any).phantom?.solana
+                              if (provider) await provider.connect()
+                              else throw new Error(`${walletKey} Solana module not found`)
                             }
 
-                            await connectAsync({ connector: connector as Connector })
-
-                            console.log(`✅ [WalletConnect] Successfully connected with: ${key}`)
-                          } catch (error) {
-                            const errorMessage = error instanceof Error ? error.message : String(error)
-                            console.error(`❌ [WalletConnect] Error connecting with ${key}:`, errorMessage)
-
-                            let friendlyMessage = 'Connection failed. Please try again.'
-
-                            if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
-                              friendlyMessage = 'You cancelled the connection'
-                            } else if (errorMessage.includes('reset') || errorMessage.includes('closed')) {
-                              friendlyMessage = 'Connection was closed. Please try again.'
-                            } else if (errorMessage.includes('timeout')) {
-                              friendlyMessage = 'Connection timed out. Please try again.'
-                            } else if (errorMessage.includes('network')) {
-                              friendlyMessage = 'Network error. Please check your connection.'
-                            }
-
-                            setConnectionError(friendlyMessage)
-                          } finally {
-                            setTimeout(() => setIsConnecting(false), 500)
-                          }
-                        }}
-                        disabled={isDisabled}
-                        className={`w-full text-left rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isMobile
-                            ? 'px-4 py-4 text-base text-white bg-gray-800 hover:bg-gray-700 border border-gray-700'
-                            : 'px-3 py-2 text-sm text-white/80 hover:bg-gray-700'
-                          }`}
-                      >
-                        <div className="flex flex-col">
-                          <div className="font-medium text-white">{title}</div>
-                          <div className="text-xs text-white/60 mt-0.5">
-                            {disabledReason ?? getConnectorSubtitle(key)}
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </>
-              )}
-
-              {/* Solana Wallets */}
-              {activeTab === 'solana' && (
-                <>
-                  {/* Phantom - Conexión directa */}
-                  {hasPhantom && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          setConnectionError(null)
-                          setShowDropdown(false)
-                          setIsConnecting(true)
-
-                          // Intentar conexión directa con window.phantom.solana
-                          const phantom = window.phantom?.solana
-                          if (phantom && typeof phantom.connect === 'function') {
-                            const response = await phantom.connect()
-                            console.log('✅ [Phantom] Connected:', response)
                             setActiveNetwork('solana')
-                          } else {
-                            // Fallback a selectSolanaWallet si está disponible
-                            const phantomWallet = wallets?.find(w => w.adapter.name === 'Phantom')
-                            if (phantomWallet) {
-                              await selectSolanaWallet?.(phantomWallet.adapter.name)
-                              setActiveNetwork('solana')
-                            } else {
-                              throw new Error('Phantom wallet not found')
-                            }
-                          }
-                        } catch (error) {
-                          const errorMessage = error instanceof Error ? error.message : String(error)
-                          console.error(`❌ [Phantom] Error connecting:`, errorMessage)
-
-                          let friendlyMessage = 'Connection failed. Please try again.'
-                          if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
-                            friendlyMessage = 'You cancelled the connection'
-                          }
-
-                          setConnectionError(friendlyMessage)
-                        } finally {
-                          setTimeout(() => setIsConnecting(false), 500)
-                        }
-                      }}
-                      className={`w-full text-left rounded transition-colors ${isMobile
-                          ? 'px-4 py-4 text-base text-white bg-gray-800 hover:bg-gray-700 border border-gray-700'
-                          : 'px-3 py-2 text-sm text-white/80 hover:bg-gray-700'
-                        }`}
-                    >
-                      <div className="flex flex-col">
-                        <div className="font-medium text-white">Phantom</div>
-                        <div className="text-xs text-white/60 mt-0.5">
-                          Solana wallet - Auto-detected
-                        </div>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* Otros wallets Solana */}
-                  {wallets?.filter(w => w.readyState === 'Installed' && w.adapter.name !== 'Phantom').map((wallet) => (
-                    <button
-                      key={wallet.adapter.name}
-                      onClick={async () => {
-                        try {
-                          setConnectionError(null)
-                          setShowDropdown(false)
-                          setIsConnecting(true)
-
-                          await selectSolanaWallet?.(wallet.adapter.name)
-
-                          console.log(`✅ [Solana] Connected with ${wallet.adapter.name}`)
-                        } catch (error) {
-                          const errorMessage = error instanceof Error ? error.message : String(error)
-                          console.error(`❌ [Solana] Error connecting with ${wallet.adapter.name}:`, errorMessage)
-
-                          let friendlyMessage = 'Connection failed. Please try again.'
-                          if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
-                            friendlyMessage = 'You cancelled the connection'
-                          }
-
-                          setConnectionError(friendlyMessage)
-                        } finally {
-                          setTimeout(() => setIsConnecting(false), 500)
-                        }
-                      }}
-                      className={`w-full text-left rounded transition-colors ${isMobile
-                          ? 'px-4 py-4 text-base text-white bg-gray-800 hover:bg-gray-700 border border-gray-700'
-                          : 'px-3 py-2 text-sm text-white/80 hover:bg-gray-700'
-                        }`}
-                    >
-                      <div className="flex flex-col">
-                        <div className="font-medium text-white">{wallet.adapter.name}</div>
-                        <div className="text-xs text-white/60 mt-0.5">
-                          Solana wallet
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-
-                  {/* OKX Wallet - Conexión directa */}
-                  {typeof window !== 'undefined' && window.okxwallet?.solana && (
-                    <div className="border-t border-gray-700 pt-3 mt-3">
-                      <p className="text-xs text-gray-400 mb-2 px-2">OKX Wallet</p>
-                      <button
-                        onClick={async () => {
-                          try {
-                            setConnectionError(null)
-                            setShowDropdown(false)
-                            setIsConnecting(true)
-
-                            // Conectar directamente con OKX Solana
-                            const okxSolana = window.okxwallet?.solana
-                            if (okxSolana && typeof okxSolana.connect === 'function') {
-                              await okxSolana.connect()
-                              console.log('✅ [OKX] Connected to Solana')
-                              setActiveNetwork('solana')
-                            } else {
-                              throw new Error('OKX Wallet Solana provider not available')
-                            }
-                          } catch (error) {
-                            const errorMessage = error instanceof Error ? error.message : String(error)
-                            console.error(`❌ [OKX] Error connecting:`, errorMessage)
-
-                            let friendlyMessage = 'Connection failed. Please try again.'
-                            if (errorMessage.includes('rejected') || errorMessage.includes('denied')) {
-                              friendlyMessage = 'You cancelled the connection'
-                            } else if (errorMessage.includes('not available')) {
-                              friendlyMessage = 'OKX Wallet Solana module not found. Please ensure OKX Wallet is installed.'
-                            }
-
-                            setConnectionError(friendlyMessage)
+                            setActiveTab('solana')
+                          } catch (err) {
+                            setConnectionError('Sync failed. Please use manual selection.')
                           } finally {
                             setTimeout(() => setIsConnecting(false), 500)
                           }
                         }}
-                        className={`w-full text-left rounded transition-colors ${isMobile
-                            ? 'px-4 py-4 text-base text-white bg-green-900/30 hover:bg-green-900/50 border border-green-700'
-                            : 'px-3 py-2 text-sm text-white/80 hover:bg-green-900/30 border border-green-700/30'
-                          }`}
+                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                       >
-                        <div className="flex flex-col">
-                          <div className="font-medium text-green-400">OKX Wallet - Solana</div>
-                          <div className="text-xs text-green-300/60 mt-0.5">
-                            Connect to Solana network
-                          </div>
-                        </div>
+                        Quick Connect Solana
                       </button>
+                      <div className="mt-3 flex items-center gap-2">
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                        <span className="text-[10px] text-white/20">or select manually</span>
+                        <div className="h-[1px] flex-1 bg-white/5"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4 text-center">
+                      <p className="text-xs font-bold text-purple-400">Connect Solana Wallet</p>
+                      <p className="text-[10px] text-gray-500">Manage SOL assets</p>
                     </div>
                   )}
-                </>
-              )}
+                  {renderSolanaWallets(true)}
+                </div>
+              )
+            )}
+
+            {/* Action Area */}
+            <div className="p-2 border-t border-white/5 bg-gray-900/50">
+              <button
+                onClick={() => {
+                  if (activeTab === 'evm' && address) disconnectEVM()
+                  else if (activeTab === 'solana' && solanaPublicKey) disconnectSolana()
+                  else setShowDropdown(false)
+                }}
+                className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all ${(activeTab === 'evm' && address) || (activeTab === 'solana' && solanaPublicKey)
+                  ? 'text-red-400 hover:bg-red-500/10'
+                  : 'text-gray-500 hover:text-white'
+                  }`}
+              >
+                {(activeTab === 'evm' && address) || (activeTab === 'solana' && solanaPublicKey) ? 'Disconnect Wallet' : 'Close'}
+              </button>
             </div>
           </div>
         </>

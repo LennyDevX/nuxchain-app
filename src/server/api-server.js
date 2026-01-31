@@ -44,8 +44,8 @@ function setCached(key, data) {
 
 // Health check
 app.get('/api/health/status', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     service: 'Market Data API (CoinGecko)',
     environment: 'development'
@@ -60,10 +60,10 @@ async function fetchMarketData() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
+
     const response = await fetch(
       'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h',
-      { 
+      {
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
@@ -71,13 +71,13 @@ async function fetchMarketData() {
         }
       }
     );
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -90,44 +90,44 @@ app.get('/api/market/prices', async (req, res) => {
   try {
     const { action, symbol, symbols, limit = '10' } = req.query;
     const limitNum = parseInt(limit, 10);
-    
+
     // Check cache first
     const cacheKey = `market_${action || 'all'}_${limit}_${symbol || symbols || ''}`;
     const cached = getCached(cacheKey);
-    
+
     if (cached) {
       return res.json(cached);
     }
-    
+
     // Fetch fresh data
     const marketData = await fetchMarketData();
-    
+
     // Si no hay acción, retornar todo
     if (!action) {
       const gainers = marketData
         .filter(coin => coin.price_change_percentage_24h > 0)
         .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
         .slice(0, limitNum);
-      
+
       const losers = marketData
         .filter(coin => coin.price_change_percentage_24h < 0)
         .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
         .slice(0, limitNum);
-      
+
       const trending = marketData
         .sort((a, b) => (b.total_volume / b.market_cap) - (a.total_volume / a.market_cap))
         .slice(0, limitNum);
-      
+
       const result = {
         success: true,
         timestamp: Date.now(),
         data: { gainers, losers, trending, total: marketData.length }
       };
-      
+
       setCached(cacheKey, result);
       return res.json(result);
     }
-    
+
     // Manejo de acciones específicas
     switch (action) {
       case 'gainers': {
@@ -135,7 +135,7 @@ app.get('/api/market/prices', async (req, res) => {
           .filter(coin => coin.price_change_percentage_24h > 0)
           .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
           .slice(0, limitNum);
-        
+
         const result = {
           success: true,
           timestamp: Date.now(),
@@ -144,13 +144,13 @@ app.get('/api/market/prices', async (req, res) => {
         setCached(cacheKey, result);
         return res.json(result);
       }
-      
+
       case 'losers': {
         const losers = marketData
           .filter(coin => coin.price_change_percentage_24h < 0)
           .sort((a, b) => a.price_change_percentage_24h - b.price_change_percentage_24h)
           .slice(0, limitNum);
-        
+
         const result = {
           success: true,
           timestamp: Date.now(),
@@ -159,12 +159,12 @@ app.get('/api/market/prices', async (req, res) => {
         setCached(cacheKey, result);
         return res.json(result);
       }
-      
+
       case 'volume': {
         const highVolume = marketData
           .sort((a, b) => (b.total_volume / b.market_cap) - (a.total_volume / a.market_cap))
           .slice(0, limitNum);
-        
+
         const result = {
           success: true,
           timestamp: Date.now(),
@@ -173,19 +173,19 @@ app.get('/api/market/prices', async (req, res) => {
         setCached(cacheKey, result);
         return res.json(result);
       }
-      
+
       case 'price': {
         if (!symbol) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             error: 'Bad request',
             message: 'Symbol parameter is required for price action'
           });
         }
-        
+
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${symbol.toLowerCase()}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`
         );
-        
+
         const priceData = await response.json();
         const result = {
           success: true,
@@ -195,19 +195,19 @@ app.get('/api/market/prices', async (req, res) => {
         setCached(cacheKey, result);
         return res.json(result);
       }
-      
+
       case 'prices': {
         if (!symbols) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             error: 'Bad request',
             message: 'Symbols parameter is required for prices action'
           });
         }
-        
+
         const response = await fetch(
           `https://api.coingecko.com/api/v3/simple/price?ids=${symbols}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`
         );
-        
+
         const pricesData = await response.json();
         const result = {
           success: true,
@@ -217,17 +217,17 @@ app.get('/api/market/prices', async (req, res) => {
         setCached(cacheKey, result);
         return res.json(result);
       }
-      
+
       default:
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Bad request',
           message: `Unknown action: ${action}. Available: gainers, losers, volume, price, prices`
         });
     }
-    
+
   } catch (error) {
     console.error('[Market API Error]', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       message: error.message,
       timestamp: Date.now()
@@ -249,31 +249,31 @@ async function fetchBTCPriceFromCoinGecko() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
+
     const response = await fetch(
       'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-      { 
+      {
         signal: controller.signal,
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
       }
     );
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     const price = data.bitcoin?.usd;
-    
+
     if (price && !isNaN(price)) {
       console.log(`✓ Got real BTC price from CoinGecko: $${price.toFixed(2)}`);
       return price;
     }
-    
+
     throw new Error('Invalid price data from CoinGecko');
   } catch (error) {
     console.warn(`⚠ CoinGecko API failed: ${error.message}`);
@@ -286,25 +286,25 @@ async function fetchBTCHistoryFromCoinGecko() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
-    
+
     const response = await fetch(
       'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1&interval=hourly',
-      { 
+      {
         signal: controller.signal,
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
       }
     );
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`CoinGecko API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (data.prices && Array.isArray(data.prices)) {
       const history = data.prices.map(([timestamp, price]) => ({
         timestamp,
@@ -313,7 +313,7 @@ async function fetchBTCHistoryFromCoinGecko() {
       console.log(`✓ Got ${history.length} hours of BTC history from CoinGecko`);
       return history;
     }
-    
+
     throw new Error('Invalid history data from CoinGecko');
   } catch (error) {
     console.warn(`⚠ CoinGecko history API failed: ${error.message}`);
@@ -332,11 +332,11 @@ function generateSimulatedPrice() {
 function generateSimulatedHistory() {
   const history = [];
   const now = Date.now();
-  
+
   // Generar 24 puntos de datos (uno por hora) con variaciones más realistas
   for (let i = 23; i >= 0; i--) {
     const timestamp = now - (i * 3600000); // 1 hora en ms
-    
+
     // Variación más realista basada en:
     // 1. Onda sinusoidal (simula ciclos de mercado)
     // 2. Ruido aleatorio (volatilidad)
@@ -345,16 +345,16 @@ function generateSimulatedHistory() {
     const sinWave = Math.sin(hourProgress * Math.PI * 4) * 800; // ±$800
     const noise = (Math.random() - 0.5) * 600; // ±$300
     const trend = (hourProgress - 0.5) * 400; // Tendencia de ±$200
-    
+
     const totalVariation = sinWave + noise + trend;
     const price = BTC_BASE_PRICE + totalVariation;
-    
-    history.push({ 
-      timestamp, 
-      price: parseFloat(price.toFixed(2)) 
+
+    history.push({
+      timestamp,
+      price: parseFloat(price.toFixed(2))
     });
   }
-  
+
   console.log(`✓ Generated simulated price history: ${history.length} data points`);
   return history;
 }
@@ -362,20 +362,20 @@ function generateSimulatedHistory() {
 async function getCurrentPrice() {
   const cacheKey = 'btc_price';
   const cached = gridBotCache.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
 
   // Intentar CoinGecko primero
   let price = await fetchBTCPriceFromCoinGecko();
-  
+
   if (price === null) {
     // Fallback a precio simulado
     console.log('⚠ Falling back to simulated price');
     price = generateSimulatedPrice();
   }
-  
+
   gridBotCache.set(cacheKey, { data: price, timestamp: Date.now() });
   return price;
 }
@@ -383,20 +383,20 @@ async function getCurrentPrice() {
 async function getPriceHistory() {
   const cacheKey = 'btc_history';
   const cached = gridBotCache.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
 
   // Intentar CoinGecko primero
   let history = await fetchBTCHistoryFromCoinGecko();
-  
+
   if (history === null) {
     // Fallback a historial simulado
     console.log('⚠ Falling back to simulated history');
     history = generateSimulatedHistory();
   }
-  
+
   gridBotCache.set(cacheKey, { data: history, timestamp: Date.now() });
   return history;
 }
@@ -444,14 +444,14 @@ app.get('/api/gridbot/data', async (req, res) => {
         res.json({ price, history, success: false, fallback: true });
       }
     } else {
-      res.status(400).json({ 
+      res.status(400).json({
         error: 'Invalid type parameter. Use: current, history, or all',
         success: false
       });
     }
   } catch (error) {
     console.error('[Grid Bot API] Unexpected error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error',
       success: false
@@ -461,7 +461,7 @@ app.get('/api/gridbot/data', async (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Not found',
     path: req.path,
     method: req.method,

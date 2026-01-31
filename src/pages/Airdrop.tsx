@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useConnect } from 'wagmi';
+import { useAccount } from 'wagmi';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { db } from '../components/firebase/config';
 import { submitAirdropRegistration, getRegisteredUsersCount } from '../components/forms/airdrop-service';
 import GlobalBackground from '../ui/gradientBackground';
@@ -9,8 +10,11 @@ import NuxCoinDisplay from '../components/airdrop/NuxCoinDisplay';
 import '../styles/nux-coin-display.css';
 
 function Airdrop() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  // EVM wallet hooks
+  const { address: evmAddress, isConnected: evmConnected } = useAccount();
+  
+  // Solana wallet hooks
+  const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -26,12 +30,13 @@ function Airdrop() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [registeredUsers, setRegisteredUsers] = useState(0);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
+  const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
 
   // Constantes del airdrop
-  const TOKENS_PER_USER = 50000; // 50K NUX tokens por usuario
-  const MAX_AIRDROP_POOL = 50000000; // 50M NUX tokens máximo
+  const TOKENS_PER_USER = 75000; // 75K NUX tokens por usuario
+  const MAX_AIRDROP_POOL = 75000000; // 75M NUX tokens máximo
   const MAX_USERS = MAX_AIRDROP_POOL / TOKENS_PER_USER; // 1000 usuarios máximo
-  const POL_BONUS_PER_USER = 20; // 20 POL por usuario para staking
+  const POL_BONUS_PER_USER = 10; // 10 POL por usuario para staking
 
   // Cargar número de usuarios registrados
   useEffect(() => {
@@ -54,15 +59,22 @@ function Airdrop() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-fill wallet cuando se conecta
+  // Auto-fill wallet cuando se conecta (prioridad Solana)
   useEffect(() => {
-    if (isConnected && address) {
-      setFormData(prev => ({ ...prev, wallet: address }));
+    if (solanaConnected && solanaPublicKey) {
+      const solanaAddress = solanaPublicKey.toBase58();
+      setFormData(prev => ({ ...prev, wallet: solanaAddress }));
+      setDetectedNetwork('solana');
+    } else if (evmConnected && evmAddress) {
+      setFormData(prev => ({ ...prev, wallet: evmAddress }));
+      setDetectedNetwork('evm');
+    } else {
+      setDetectedNetwork(null);
     }
-  }, [isConnected, address]);
+  }, [solanaConnected, solanaPublicKey, evmConnected, evmAddress]);
 
   useEffect(() => {
-    document.title = 'Nuxchain | NUX Token Airdrop - Get 50K NUX Tokens';
+    document.title = 'Nuxchain | NUX Token Airdrop - Get 75K NUX Tokens';
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,13 +83,6 @@ function Airdrop() {
     // Clear error when user starts typing
     if (submitStatus.type === 'error') {
       setSubmitStatus({ type: null, message: '' });
-    }
-  };
-
-  const handleConnectWallet = () => {
-    const injectedConnector = connectors.find(c => c.id === 'injected');
-    if (injectedConnector) {
-      connect({ connector: injectedConnector });
     }
   };
 
@@ -99,7 +104,7 @@ function Airdrop() {
       return false;
     }
 
-    if (!formData.wallet || !formData.wallet.startsWith('0x') || formData.wallet.length !== 42) {
+    if (!formData.wallet || formData.wallet.trim().length === 0) {
       setSubmitStatus({
         type: 'error',
         message: 'Please connect your wallet or enter a valid wallet address',
@@ -130,7 +135,7 @@ function Airdrop() {
 
       setSubmitStatus({
         type: 'success',
-        message: 'Successfully registered! You will receive 50,000 NUX tokens + 20 POL for staking.',
+        message: 'Successfully registered! You will receive 75,000 NUX tokens + 10 POL for staking.',
       });
       setShowSuccess(true);
       
@@ -141,7 +146,11 @@ function Airdrop() {
       setFormData({
         name: '',
         email: '',
-        wallet: isConnected && address ? address : '',
+        wallet: solanaConnected && solanaPublicKey 
+          ? solanaPublicKey.toBase58() 
+          : evmConnected && evmAddress 
+          ? evmAddress 
+          : '',
       });
 
       // Hide success message after 8 seconds
@@ -161,8 +170,8 @@ function Airdrop() {
     }
   };
 
-  // Countdown target date - February 10, 2026 23:59:59 (Airdrop distribution date)
-  const airdropEndDate = new Date(2026, 1, 10, 23, 59, 59);
+  // Countdown target date - February 14, 2026 23:59:59 (Airdrop distribution date)
+  const airdropEndDate = new Date(2026, 1, 14, 23, 59, 59);
 
   // Calcular usuarios restantes y estadísticas
   const usersRemaining = MAX_USERS - registeredUsers;
@@ -184,10 +193,10 @@ function Airdrop() {
               $NUX Token Airdrop
             </h1>
             <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-2">
-              Register now and receive <span className="font-bold text-purple-400">50,000 NUX tokens</span>
+              Register now and receive <span className="font-bold text-purple-400">75,000 NUX tokens</span>
             </p>
             <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-6">
-              Plus <span className="font-bold text-pink-400">20 POL tokens</span> bonus for staking
+              Plus <span className="font-bold text-pink-400">10 POL tokens</span> bonus for staking
             </p>
 
             {/* Token Info Cards */}
@@ -215,9 +224,9 @@ function Airdrop() {
 
             {/* Launch Info */}
             <div className="flex flex-wrap gap-2 justify-center text-sm text-gray-400">
-              <span>🚀 Token Launch: <strong className="text-purple-300">February 1, 2026</strong></span>
+              <span>🚀 Token Launch: <strong className="text-purple-300">February 10, 2026</strong></span>
               <span className="text-gray-600">|</span>
-              <span>🎁 Airdrop Date: <strong className="text-pink-300">February 10, 2026</strong></span>
+              <span>🎁 Airdrop Date: <strong className="text-pink-300">February 14, 2026</strong></span>
             </div>
           </div>
 
@@ -282,29 +291,22 @@ function Airdrop() {
                       name="wallet"
                       value={formData.wallet}
                       onChange={handleInputChange}
-                      placeholder="0x..."
+                      placeholder="Solana or Polygon address"
                       className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                      disabled={isSubmitting || (isConnected && !!address)}
+                      disabled={isSubmitting || (solanaConnected && !!solanaPublicKey) || (evmConnected && !!evmAddress)}
                       required
-                      pattern="^0x[a-fA-F0-9]{40}$"
                     />
-                    {isConnected && address && (
+                    {(solanaConnected || evmConnected) && (
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-400">Connected</span>
+                        <span className="text-xs text-green-400">
+                          {detectedNetwork === 'solana' ? 'Solana' : 'Polygon'}
+                        </span>
                       </div>
                     )}
                   </div>
                   
-                  {!isConnected && (
-                    <button
-                      type="button"
-                      onClick={handleConnectWallet}
-                      className="mt-2 w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
-                    >
-                      Connect Wallet to Auto-fill
-                    </button>
-                  )}
+                  
                 </div>
 
                 {/* Info Box */}
@@ -315,8 +317,8 @@ function Airdrop() {
                   <div className="text-sm text-gray-300">
                     <p className="font-medium text-purple-300 mb-1">What you'll receive:</p>
                     <ul className="list-disc list-inside space-y-1 text-gray-400">
-                      <li><strong className="text-white">50,000 NUX tokens</strong> on Solana network</li>
-                      <li><strong className="text-white">20 POL tokens</strong> bonus for staking</li>
+                      <li><strong className="text-white">75,000 NUX tokens</strong> on Solana network</li>
+                      <li><strong className="text-white">10 POL tokens</strong> bonus for staking</li>
                       <li>Early access to Nuxchain ecosystem</li>
                     </ul>
                   </div>
@@ -431,11 +433,11 @@ function Airdrop() {
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
                       <span className="text-gray-400 text-sm">NUX per User</span>
-                      <span className="text-purple-400 font-semibold">50,000</span>
+                      <span className="text-purple-400 font-semibold">75,000</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
                       <span className="text-gray-400 text-sm">Total NUX Pool</span>
-                      <span className="text-white font-semibold">50M</span>
+                      <span className="text-white font-semibold">75M</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50 bg-pink-500/5 -mx-2 px-2 py-2 rounded-lg">
                       <span className="text-gray-400 text-sm flex items-center gap-2">
@@ -469,13 +471,13 @@ function Airdrop() {
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">50K NUX tokens</strong> - Launch price allocation</span>
+                      <span><strong className="text-white">75K NUX tokens</strong> - Launch price allocation</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">20 POL bonus</strong> for staking rewards</span>
+                      <span><strong className="text-white">10 POL bonus</strong> for staking rewards</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -565,18 +567,18 @@ function Airdrop() {
                     <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span><strong className="text-purple-300">50,000 NUX tokens</strong></span>
+                    <span><strong className="text-purple-300">75,000 NUX tokens</strong></span>
                   </li>
                   <li className="flex items-center gap-2">
                     <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span><strong className="text-pink-300">20 POL tokens</strong> bonus</span>
+                    <span><strong className="text-pink-300">10 POL tokens</strong> bonus</span>
                   </li>
                 </ul>
               </div>
               <p className="text-sm text-gray-400 mb-6">
-                Distribution on <strong className="text-purple-300">February 10, 2026</strong>
+                Distribution on <strong className="text-purple-300">February 14, 2026</strong>
               </p>
               <button
                 onClick={() => setShowSuccess(false)}

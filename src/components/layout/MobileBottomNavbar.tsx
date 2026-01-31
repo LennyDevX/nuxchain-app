@@ -57,10 +57,10 @@ const MobileBottomNavbar: React.FC = () => {
   const bottomNavbar = useBottomNavbar();
   const chatNavbar = useChatNavbar();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   // ✅ Haptic feedback
   const triggerHaptic = useTapFeedback();
-  
+
   // Usar el hook apropiado según la página
   const { isVisible, isMobile } = isInChat ? chatNavbar : bottomNavbar;
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
@@ -85,9 +85,8 @@ const MobileBottomNavbar: React.FC = () => {
   return (
     <>
       <motion.nav
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 ${
-          isVisible ? '' : 'pointer-events-none'
-        }`}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 ${isVisible ? '' : 'pointer-events-none'
+          }`}
         initial={{ y: isVisible ? 0 : 100 }}
         animate={{ y: isVisible ? 0 : 100 }}
         transition={{
@@ -101,7 +100,7 @@ const MobileBottomNavbar: React.FC = () => {
           {navItems.map((item, index) => {
             const IconComponent = item.icon;
             const active = isActive(item.path);
-            
+
             return (
               <motion.div
                 key={item.path}
@@ -120,11 +119,10 @@ const MobileBottomNavbar: React.FC = () => {
                     triggerHaptic('light');
                     if (isInChat) hideNavbar?.();
                   }}
-                  className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${
-                    active
+                  className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${active
                       ? 'bg-pink-500/20 scale-105 shadow-lg shadow-pink-500/20'
                       : 'hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   {active && (
                     <motion.div
@@ -137,11 +135,10 @@ const MobileBottomNavbar: React.FC = () => {
                       }}
                     />
                   )}
-                  
-                  <motion.div 
-                    className={`p-1 rounded-lg transition-all duration-200 relative z-10 ${
-                      active ? 'bg-pink-500/30' : ''
-                    }`}
+
+                  <motion.div
+                    className={`p-1 rounded-lg transition-all duration-200 relative z-10 ${active ? 'bg-pink-500/30' : ''
+                      }`}
                     animate={{
                       scale: active ? 1.1 : 1,
                       rotate: active ? 5 : 0
@@ -154,11 +151,10 @@ const MobileBottomNavbar: React.FC = () => {
                   >
                     <IconComponent isActive={active} />
                   </motion.div>
-                  
+
                   <motion.span
-                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${
-                      active ? 'text-pink-400' : 'text-gray-400'
-                    }`}
+                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
+                      }`}
                     animate={{
                       scale: active ? 1.05 : 1,
                       opacity: active ? 1 : 0.7
@@ -170,7 +166,7 @@ const MobileBottomNavbar: React.FC = () => {
               </motion.div>
             );
           })}
-          
+
           {/* Botón de menú hamburguesa */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -191,7 +187,7 @@ const MobileBottomNavbar: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <motion.div 
+              <motion.div
                 className="p-1 rounded-lg transition-all duration-200"
                 animate={{ rotate: 0 }}
               >
@@ -201,10 +197,10 @@ const MobileBottomNavbar: React.FC = () => {
                 Menú
               </span>
               {/* Indicador de notificación */}
-              <motion.div 
+              <motion.div
                 className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"
                 animate={{ scale: [1, 1.3, 1] }}
-                transition={{ 
+                transition={{
                   repeat: Infinity,
                   duration: 2,
                   ease: "easeInOut"
@@ -213,12 +209,12 @@ const MobileBottomNavbar: React.FC = () => {
             </motion.button>
           </motion.div>
         </div>
-        
+
         {/* Indicador de página activa */}
-        <motion.div 
+        <motion.div
           className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent opacity-50"
           animate={{ opacity: [0.3, 0.7, 0.3] }}
-          transition={{ 
+          transition={{
             repeat: Infinity,
             duration: 3,
             ease: "easeInOut"
@@ -229,7 +225,7 @@ const MobileBottomNavbar: React.FC = () => {
       {/* Mobile Menu Overlay with AnimatePresence */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-[100] flex items-end"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -237,16 +233,16 @@ const MobileBottomNavbar: React.FC = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             {/* Backdrop with blur */}
-            <motion.div 
+            <motion.div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsMenuOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-            
+
             {/* Menu Panel */}
-            <motion.div 
+            <motion.div
               className="relative w-full bg-black/90 backdrop-blur-md border-t border-white/20 rounded-t-3xl"
               initial={{ y: 500, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -260,7 +256,7 @@ const MobileBottomNavbar: React.FC = () => {
             >
               <div className="p-6 space-y-6">
                 {/* Close button */}
-                <motion.div 
+                <motion.div
                   className="flex justify-between items-center"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -280,14 +276,14 @@ const MobileBottomNavbar: React.FC = () => {
                 </motion.div>
 
                 {/* Menu Items */}
-                <motion.div 
+                <motion.div
                   className="space-y-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15, staggerChildren: 0.05 }}
                 >
                   {/* Connect Wallet */}
-                  <motion.div 
+                  <motion.div
                     className="p-4 rounded-xl bg-white/5 border border-white/10"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -321,14 +317,14 @@ const MobileBottomNavbar: React.FC = () => {
                     </Link>
                   </motion.div>
 
-                  {/* Airdrops */}
+                  {/* Airdrop */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
                     <Link
-                      to="/airdrops"
+                      to="/airdrop"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                     >

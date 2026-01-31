@@ -4,9 +4,12 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { registerSW } from 'virtual:pwa-register'
 import { getMobileOptimizationConfig } from './utils/mobile/performanceOptimization'
 import { logEnvironmentDiagnostics } from './utils/env/validateEnvironment'
+import { SOLANA_NETWORKS, DEFAULT_SOLANA_NETWORK } from './constants/solana'
 
 // ✅ Log environment diagnostics at app startup (helps debug production issues)
 if (typeof window !== 'undefined') {
@@ -31,7 +34,7 @@ if (typeof window !== 'undefined') {
     if (litModule && typeof litModule === 'object' && 'setIsDevMode' in litModule) {
       (litModule as { setIsDevMode?: (isDev: boolean) => void }).setIsDevMode?.(false);
     }
-    
+
     // Also suppress via global flag
     (globalThis as Record<string, unknown>).litIssuedWarnings = new Set(['change-in-update']);
   } catch {
@@ -45,6 +48,14 @@ import './styles/responsive-grid.css'
 import './styles/walletconnect.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
+
+// ✅ Solana wallet adapters configuration
+// Note: Standard wallets like Phantom and OKX are automatically detected 
+// by the browser and don't need manual adapters anymore.
+const solanaWallets: any[] = []
+
+// Get Solana RPC URL
+const solanaRpcUrl = SOLANA_NETWORKS[DEFAULT_SOLANA_NETWORK].rpcUrl
 
 // ✅ Register Service Worker for PWA functionality
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -62,7 +73,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     },
     onRegistered(registration: ServiceWorkerRegistration | undefined) {
       console.log('✅ Service Worker registered:', registration);
-      
+
       // Check for updates every hour
       setInterval(() => {
         registration?.update();
@@ -79,12 +90,12 @@ const queryClient = new QueryClient({
       // Cache configuration - OPTIMIZED for mobile
       staleTime: mobileOptConfig.reduceAnimations ? 10 * 60 * 1000 : 5 * 60 * 1000,
       gcTime: mobileOptConfig.reduceAnimations ? 60 * 60 * 1000 : 30 * 60 * 1000,
-      
+
       // Refetch behavior - CRITICAL for tab navigation performance
       refetchOnWindowFocus: false, // Don't refetch when switching tabs/windows
       refetchOnMount: false, // Use cache when component remounts
       refetchOnReconnect: false, // Don't refetch on reconnect
-      
+
       // Error handling
       retry: mobileOptConfig.reduceAnimations ? 1 : 2, // Fewer retries on low-end devices
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
@@ -98,11 +109,18 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-        <Analytics />
-        <SpeedInsights />
-      </QueryClientProvider>
+      <ConnectionProvider endpoint={solanaRpcUrl}>
+        <WalletProvider wallets={solanaWallets} autoConnect>
+          <WalletModalProvider>
+            <QueryClientProvider client={queryClient}>
+              <App />
+              <Analytics />
+              <SpeedInsights />
+            </QueryClientProvider>
+          </WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
     </WagmiProvider>
   </StrictMode>,
 )
+

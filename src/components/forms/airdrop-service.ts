@@ -1,4 +1,39 @@
 import { collection, addDoc, serverTimestamp, query, where, getDocs, getCountFromServer, type Firestore } from 'firebase/firestore';
+import { PublicKey } from '@solana/web3.js';
+
+/**
+ * Validate if a string is a valid Solana address (Base58)
+ */
+function isValidSolanaAddress(address: string): boolean {
+  try {
+    const pubkey = new PublicKey(address);
+    return PublicKey.isOnCurve(pubkey.toBytes());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Validate if a string is a valid EVM address (0x...)
+ */
+function isValidEVMAddress(address: string): boolean {
+  const hexRegex = /^0x[a-fA-F0-9]{40}$/;
+  return hexRegex.test(address);
+}
+
+/**
+ * Detect wallet network type
+ */
+function detectWalletNetwork(wallet: string): 'solana' | 'evm' | null {
+  if (wallet.startsWith('0x') && wallet.length === 42) {
+    return isValidEVMAddress(wallet) ? 'evm' : null;
+  }
+  // Solana addresses are typically 32-44 characters in Base58
+  if (wallet.length >= 32 && wallet.length <= 44 && !wallet.startsWith('0x')) {
+    return isValidSolanaAddress(wallet) ? 'solana' : null;
+  }
+  return null;
+}
 
 /**
  * Get total count of registered users for airdrop
@@ -64,30 +99,24 @@ export async function submitAirdropRegistration(
     }
 
     // ========================================
-    // VALIDATE WALLET ADDRESS
+    // VALIDATE WALLET ADDRESS (SOLANA OR EVM)
     // ========================================
     if (!wallet || typeof wallet !== 'string') {
       throw new Error('Wallet address is required');
     }
 
-    if (!wallet.startsWith('0x')) {
-      throw new Error('Wallet must start with 0x');
-    }
-
-    if (wallet.length !== 42) {
-      throw new Error('Wallet must be 42 characters (0x + 40 hex chars)');
-    }
-
-    // Verify it's valid hex
-    const hexRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!hexRegex.test(wallet)) {
-      throw new Error('Wallet contains invalid characters. Must be 0x followed by 40 hexadecimal characters');
+    const walletNetwork = detectWalletNetwork(wallet);
+    
+    if (!walletNetwork) {
+      throw new Error('Invalid wallet address. Please provide a valid Solana or Polygon (EVM) address.');
     }
 
     // Normalize data
     const normalizedEmail = trimmedEmail.toLowerCase();
-    const normalizedWallet = wallet.toLowerCase();
+    const normalizedWallet = wallet; // Keep original case for Solana addresses
     const finalName = name.trim();
+
+    console.log('✅ Wallet validation passed:', { wallet: normalizedWallet, network: walletNetwork });
 
     console.log('✅ All client-side validations passed');
 
@@ -129,9 +158,11 @@ export async function submitAirdropRegistration(
       name: finalName,
       email: normalizedEmail,
       wallet: normalizedWallet,
+      network: walletNetwork, // Store network type
       createdAt: serverTimestamp(),
       status: 'pending',
-      airdropAmount: '20',
+      airdropAmount: '75000', // 75K NUX tokens
+      polBonus: '10', // 10 POL bonus
     };
 
     console.log('📤 Sending to Firestore:', airdropData);

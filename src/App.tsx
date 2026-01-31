@@ -1,6 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { POLPriceProvider } from './context/POLPriceContext'
+import { NetworkProvider } from './context/NetworkContext'
 import { useScrollToTop } from './hooks/navigation/useScrollToTop'
 import Navbar from './components/layout/Navbar'
 import MobileBottomNavbar from './components/layout/MobileBottomNavbar'
@@ -52,9 +53,11 @@ function AppContent() {
 function App() {
   return (
     <POLPriceProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <NetworkProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </NetworkProvider>
     </POLPriceProvider>
   )
 }

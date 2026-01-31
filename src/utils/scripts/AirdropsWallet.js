@@ -26,9 +26,9 @@ const chalk = require('chalk');
 // ============================================
 
 const FIRESTORE_COLLECTION = 'nuxchainAirdropRegistrations';
-const TOKENS_PER_USER = 50000;
-const MAX_AIRDROP_POOL = 50000000;
-const POL_BONUS_PER_USER = 20;
+const TOKENS_PER_USER = 75000;
+const MAX_AIRDROP_POOL = 75000000;
+const POL_BONUS_PER_USER = 10;
 const OUTPUT_DIR = path.join(__dirname, 'airdrop-exports');
 
 // Crear directorio de salida si no existe

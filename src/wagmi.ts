@@ -1,6 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { polygon, polygonAmoy } from 'wagmi/chains'
 import { injected, metaMask, walletConnect } from 'wagmi/connectors'
+import { DEFAULT_SOLANA_NETWORK, SOLANA_NETWORKS } from './constants/solana'
 
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined
 const alchemyApiKey = import.meta.env.VITE_ALCHEMY as string | undefined
@@ -11,6 +12,7 @@ if (import.meta.env.DEV) {
   if (!projectId) {
     console.warn('[Wagmi Config] ⚠️ WalletConnect ProjectID is missing - WalletConnect connector will be disabled')
   }
+  console.log('[Wagmi Config] Default Solana Network:', DEFAULT_SOLANA_NETWORK)
 }
 
 const appName = 'Nuxchain'

@@ -54,6 +54,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => `/server${path}`
       },
+      '/api/market': {
+        target: 'http://localhost:3003',
+        changeOrigin: true
+        // No rewrite, server now handles /api prefix
+      },
       '/api': {
         target: 'http://localhost:3002',
         changeOrigin: true,

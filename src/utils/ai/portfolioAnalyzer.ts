@@ -55,6 +55,32 @@ export interface RiskMetrics {
 }
 
 /**
+ * Balance-aware recommendation for new staking positions
+ */
+export interface BalanceRecommendation {
+  action: 'stake' | 'wait' | 'add-funds';
+  suggestedAmount: number;
+  suggestedLockup: number;
+  expectedAPY: number;
+  projectedMonthlyReward: number;
+  reasoning: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+/**
+ * Extended portfolio analysis with wallet balance context
+ */
+export interface EnhancedPortfolioAnalysis extends PortfolioAnalysis {
+  walletBalance: {
+    available: number;
+    canStake: boolean;
+    suggestedStakeAmount: number;
+  };
+  balanceRecommendations: BalanceRecommendation[];
+  opportunityScore: number; // 0-100 based on available funds vs portfolio gaps
+}
+
+/**
  * Clasifica posiciones por período de lock
  */
 function classifyPositions(positions: StakingPosition[]): PortfolioAnalysis['positionDistribution'] {
@@ -66,17 +92,28 @@ function classifyPositions(positions: StakingPosition[]): PortfolioAnalysis['pos
   };
 
   positions.forEach(pos => {
+    console.log(`[portfolioAnalyzer] Classifying position:`, {
+      depositId: pos.depositId.toString(),
+      lockupDuration: pos.lockupDuration,
+      isLocked: pos.isLocked
+    });
+    
     if (pos.lockupDuration === 0) {
       distribution.flexible++;
+      console.log(`  → Classified as FLEXIBLE (lockupDuration = 0)`);
     } else if (pos.lockupDuration <= 30) {
       distribution.short++;
+      console.log(`  → Classified as SHORT (lockupDuration <= 30 days)`);
     } else if (pos.lockupDuration <= 90) {
       distribution.medium++;
+      console.log(`  → Classified as MEDIUM (lockupDuration <= 90 days)`);
     } else {
       distribution.long++;
+      console.log(`  → Classified as LONG (lockupDuration > 90 days)`);
     }
   });
 
+  console.log(`[portfolioAnalyzer] Distribution:`, distribution);
   return distribution;
 }
 
@@ -499,4 +536,264 @@ export function evaluatePortfolioEfficiency(
   }
 
   return { score: Math.round(score), rating, feedback };
+}
+
+// APY rates by lockup duration
+const APY_BY_LOCKUP: Record<number, number> = {
+  0: 43.80,      // Flexible
+  30: 87.60,     // 30 days
+  90: 122.64,    // 90 days
+  180: 149.28,   // 180 days
+  365: 219.00,   // 365 days
+};
+
+const MIN_STAKE = 5;
+const MAX_STAKE = 10000;
+
+/**
+ * Generate balance-aware recommendations for new staking positions
+ */
+export function generateBalanceRecommendations(
+  availableBalance: number,
+  portfolioAnalysis: PortfolioAnalysis | null
+): BalanceRecommendation[] {
+  const recommendations: BalanceRecommendation[] = [];
+
+  // Not enough to stake
+  if (availableBalance < MIN_STAKE) {
+    recommendations.push({
+      action: 'add-funds',
+      suggestedAmount: MIN_STAKE - availableBalance,
+      suggestedLockup: 0,
+      expectedAPY: 0,
+      projectedMonthlyReward: 0,
+      reasoning: `Need ${(MIN_STAKE - availableBalance).toFixed(2)} more POL to meet minimum stake of ${MIN_STAKE} POL.`,
+      priority: 'high',
+    });
+    return recommendations;
+  }
+
+  // No existing portfolio - recommend starting positions
+  if (!portfolioAnalysis || portfolioAnalysis.totalValue === 0n) {
+    // First stake recommendation
+    const stakeAmount = Math.min(availableBalance * 0.5, MAX_STAKE);
+    const expectedAPY = APY_BY_LOCKUP[0];
+    
+    recommendations.push({
+      action: 'stake',
+      suggestedAmount: stakeAmount,
+      suggestedLockup: 0,
+      expectedAPY,
+      projectedMonthlyReward: (stakeAmount * expectedAPY / 100) / 12,
+      reasoning: 'Start with a flexible stake to familiarize yourself with the platform. You can withdraw anytime.',
+      priority: 'high',
+    });
+
+    // If enough balance, suggest a locked position too
+    const remaining = availableBalance - stakeAmount;
+    if (remaining >= MIN_STAKE) {
+      const lockedAmount = Math.min(remaining * 0.7, MAX_STAKE);
+      const lockAPY = APY_BY_LOCKUP[90];
+      
+      recommendations.push({
+        action: 'stake',
+        suggestedAmount: lockedAmount,
+        suggestedLockup: 90,
+        expectedAPY: lockAPY,
+        projectedMonthlyReward: (lockedAmount * lockAPY / 100) / 12,
+        reasoning: '90-day lock offers excellent APY with moderate commitment. Good for beginners.',
+        priority: 'medium',
+      });
+    }
+
+    return recommendations;
+  }
+
+  // Has existing portfolio - analyze gaps and optimize
+  const { positionDistribution, diversificationScore, liquidityRatio, weightedAPY } = portfolioAnalysis;
+
+  // 1. Fix low diversification
+  if (diversificationScore < 50 && availableBalance >= MIN_STAKE) {
+    // Find missing lockup tiers
+    const tiersByPriority: { tier: number; name: string; apy: number }[] = [];
+    
+    if (positionDistribution.flexible === 0) {
+      tiersByPriority.push({ tier: 0, name: 'Flexible', apy: APY_BY_LOCKUP[0] });
+    }
+    if (positionDistribution.short === 0) {
+      tiersByPriority.push({ tier: 30, name: '30-day', apy: APY_BY_LOCKUP[30] });
+    }
+    if (positionDistribution.medium === 0) {
+      tiersByPriority.push({ tier: 90, name: '90-day', apy: APY_BY_LOCKUP[90] });
+    }
+    if (positionDistribution.long === 0) {
+      tiersByPriority.push({ tier: 180, name: '180-day', apy: APY_BY_LOCKUP[180] });
+    }
+
+    // Sort by APY descending
+    tiersByPriority.sort((a, b) => b.apy - a.apy);
+
+    for (const tier of tiersByPriority.slice(0, 2)) {
+      const amount = Math.min(availableBalance / tiersByPriority.length, MAX_STAKE);
+      if (amount >= MIN_STAKE) {
+        recommendations.push({
+          action: 'stake',
+          suggestedAmount: amount,
+          suggestedLockup: tier.tier,
+          expectedAPY: tier.apy,
+          projectedMonthlyReward: (amount * tier.apy / 100) / 12,
+          reasoning: `Add a ${tier.name} position to improve diversification. Currently missing this tier.`,
+          priority: 'high',
+        });
+      }
+    }
+  }
+
+  // 2. Fix low liquidity
+  if (liquidityRatio < 20 && positionDistribution.flexible === 0 && availableBalance >= MIN_STAKE) {
+    const amount = Math.min(availableBalance * 0.3, MAX_STAKE);
+    
+    recommendations.push({
+      action: 'stake',
+      suggestedAmount: amount,
+      suggestedLockup: 0,
+      expectedAPY: APY_BY_LOCKUP[0],
+      projectedMonthlyReward: (amount * APY_BY_LOCKUP[0] / 100) / 12,
+      reasoning: `Your liquidity is only ${liquidityRatio.toFixed(0)}%. Add flexible stake for emergency access to funds.`,
+      priority: 'high',
+    });
+  }
+
+  // 3. Optimize yield if lots of flexible
+  if (liquidityRatio > 60 && availableBalance >= MIN_STAKE) {
+    const amount = Math.min(availableBalance * 0.6, MAX_STAKE);
+    const targetLockup = weightedAPY < 100 ? 90 : 180;
+    
+    recommendations.push({
+      action: 'stake',
+      suggestedAmount: amount,
+      suggestedLockup: targetLockup,
+      expectedAPY: APY_BY_LOCKUP[targetLockup],
+      projectedMonthlyReward: (amount * APY_BY_LOCKUP[targetLockup] / 100) / 12,
+      reasoning: `High liquidity (${liquidityRatio.toFixed(0)}%). Lock funds for ${targetLockup} days to boost APY from ${weightedAPY.toFixed(1)}% to ~${APY_BY_LOCKUP[targetLockup]}%.`,
+      priority: 'medium',
+    });
+  }
+
+  // 4. General growth recommendation if portfolio is healthy
+  if (recommendations.length === 0 && availableBalance >= MIN_STAKE * 2) {
+    // Find weakest tier and strengthen it
+    const tiers = [
+      { key: 'flexible', count: positionDistribution.flexible, lockup: 0 },
+      { key: 'short', count: positionDistribution.short, lockup: 30 },
+      { key: 'medium', count: positionDistribution.medium, lockup: 90 },
+      { key: 'long', count: positionDistribution.long, lockup: 180 },
+    ];
+    
+    // Sort by count ascending to find weakest
+    tiers.sort((a, b) => a.count - b.count);
+    const weakestTier = tiers[0];
+    
+    const amount = Math.min(availableBalance * 0.4, MAX_STAKE);
+    
+    recommendations.push({
+      action: 'stake',
+      suggestedAmount: amount,
+      suggestedLockup: weakestTier.lockup,
+      expectedAPY: APY_BY_LOCKUP[weakestTier.lockup],
+      projectedMonthlyReward: (amount * APY_BY_LOCKUP[weakestTier.lockup] / 100) / 12,
+      reasoning: `Strengthen your ${weakestTier.key} tier for better balance. Your portfolio is healthy but could grow.`,
+      priority: 'low',
+    });
+  }
+
+  // 5. Max APY opportunity
+  if (availableBalance >= MIN_STAKE * 3 && !recommendations.some(r => r.suggestedLockup === 365)) {
+    const amount = Math.min(availableBalance * 0.25, MAX_STAKE);
+    
+    recommendations.push({
+      action: 'stake',
+      suggestedAmount: amount,
+      suggestedLockup: 365,
+      expectedAPY: APY_BY_LOCKUP[365],
+      projectedMonthlyReward: (amount * APY_BY_LOCKUP[365] / 100) / 12,
+      reasoning: `Lock ${amount.toFixed(0)} POL for 1 year at ${APY_BY_LOCKUP[365]}% APY for maximum passive income.`,
+      priority: 'low',
+    });
+  }
+
+  return recommendations;
+}
+
+/**
+ * Calculate opportunity score based on available balance and portfolio gaps
+ */
+export function calculateOpportunityScore(
+  availableBalance: number,
+  portfolioAnalysis: PortfolioAnalysis | null
+): number {
+  if (availableBalance < MIN_STAKE) return 0;
+
+  let score = 0;
+  const maxOpportunity = 100;
+
+  // Base score from having funds available (up to 30 points)
+  const fundScore = Math.min((availableBalance / 100) * 30, 30);
+  score += fundScore;
+
+  if (!portfolioAnalysis) {
+    // No portfolio = maximum opportunity to start
+    return Math.min(score + 70, maxOpportunity);
+  }
+
+  // Diversification opportunity (up to 30 points)
+  const diversificationGap = 100 - portfolioAnalysis.diversificationScore;
+  score += (diversificationGap / 100) * 30;
+
+  // Liquidity optimization opportunity (up to 20 points)
+  if (portfolioAnalysis.liquidityRatio < 20 || portfolioAnalysis.liquidityRatio > 60) {
+    score += 20;
+  } else if (portfolioAnalysis.liquidityRatio < 30 || portfolioAnalysis.liquidityRatio > 50) {
+    score += 10;
+  }
+
+  // APY improvement opportunity (up to 20 points)
+  const apyGap = Math.max(0, 150 - portfolioAnalysis.weightedAPY);
+  score += (apyGap / 150) * 20;
+
+  return Math.min(Math.round(score), maxOpportunity);
+}
+
+/**
+ * Enhanced portfolio analysis with wallet balance context
+ */
+export function analyzePortfolioWithBalance(
+  positions: StakingPosition[],
+  availableBalance: number
+): EnhancedPortfolioAnalysis {
+  // Get base analysis
+  const baseAnalysis = analyzePortfolio(positions);
+  
+  // Generate balance-aware recommendations
+  const balanceRecommendations = generateBalanceRecommendations(availableBalance, baseAnalysis);
+  
+  // Calculate opportunity score
+  const opportunityScore = calculateOpportunityScore(availableBalance, baseAnalysis);
+  
+  // Determine suggested stake amount
+  const canStake = availableBalance >= MIN_STAKE;
+  const suggestedStakeAmount = canStake 
+    ? Math.min(availableBalance * 0.5, MAX_STAKE)
+    : 0;
+
+  return {
+    ...baseAnalysis,
+    walletBalance: {
+      available: availableBalance,
+      canStake,
+      suggestedStakeAmount,
+    },
+    balanceRecommendations,
+    opportunityScore,
+  };
 }

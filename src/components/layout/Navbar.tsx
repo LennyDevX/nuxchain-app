@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import WalletConnect from '../web3/WalletConnect'
+import WalletConnect from '../web3/WalletConnect.tsx'
 import { useIsMobile } from '../../hooks/mobile'
 
 function Navbar() {
@@ -11,7 +11,8 @@ function Navbar() {
     { path: '/', label: 'Home' },
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
-    { path: '/marketplace', label: 'Marketplace' },
+    { path: '/airdrop', label: 'Airdrop' },
+    { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
     { path: '/chat', label: 'Chat' }
   ]
@@ -43,14 +44,13 @@ function Navbar() {
           >
             <Link to="/" className="flex items-center group">
               <motion.div 
-                className="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center mr-3"
-                whileHover={{ scale: 1.15 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center mr-3 "
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
               >
-                <span className="text-white font-bold text-xl">NUX</span>
+              <img src="/favicon1.png" alt="NuxChain" className="w-full h-full object-contain" />
               </motion.div>
-             
             </Link>
           </motion.div>
 

@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 
-// The Graph Studio endpoint for nuxchain subgraph (v0.11 - latest with fixed activity types)
-const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain/v0.11"
+// The Graph Studio endpoint for nuxchain subgraph (v0.38 - fixed startBlocks and 429 optimization)
+const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain/v0.38"
 // Create Apollo Client instance
 export const apolloClient = new ApolloClient({
   link: new HttpLink({
@@ -12,8 +12,8 @@ export const apolloClient = new ApolloClient({
       Query: {
         fields: {
           activities: {
-            // Don't merge, always replace with fresh data from v0.0.2
-            keyArgs: false,
+            // Separate cache by filter variables (where, first, skip)
+            keyArgs: ["where", "first", "skip"],
             merge(_existing, incoming) {
               return incoming;
             },
@@ -24,12 +24,40 @@ export const apolloClient = new ApolloClient({
   }),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: 'cache-and-network',
+      fetchPolicy: 'cache-first',
       errorPolicy: 'all',
     },
     query: {
-      fetchPolicy: 'network-only',
+      fetchPolicy: 'cache-first',
       errorPolicy: 'all',
     },
   },
 });
+
+/**
+ * ✅ NEW: Function to clear Apollo Client cache after transactions
+ * Call this after successful blockchain transactions to force refetch of data
+ */
+export async function clearSubgraphCache() {
+  try {
+    await apolloClient.clearStore();
+    console.log('✅ [Apollo Client] Cache cleared successfully');
+  } catch (error) {
+    console.error('❌ [Apollo Client] Failed to clear cache:', error);
+  }
+}
+
+/**
+ * ✅ NEW: Function to refetch specific queries after transactions
+ * More granular than clearing entire cache
+ */
+export async function refetchQueries(queryNames: string[]) {
+  try {
+    await apolloClient.refetchQueries({
+      include: queryNames,
+    });
+    console.log(`✅ [Apollo Client] Refetched queries: ${queryNames.join(', ')}`);
+  } catch (error) {
+    console.error('❌ [Apollo Client] Failed to refetch queries:', error);
+  }
+}

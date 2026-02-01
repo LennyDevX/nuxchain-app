@@ -1,0 +1,545 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "effectValue",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "totalBoost",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillActivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "totalBoost",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillDeactivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IEnhancedSmartStakingSkills.SkillRarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "rarityMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillRarityUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "nftIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "enum IEnhancedSmartStakingSkills.SkillRarity[]",
+        "name": "rarities",
+        "type": "uint8[]"
+      }
+    ],
+    "name": "batchSetSkillRarity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "coreStakingContract",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getActiveSkillsWithDetails",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "nftId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IEnhancedSmartStakingSkills.SkillRarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "boost",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "rarityMultiplier",
+            "type": "uint16"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint64",
+            "name": "activatedAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "cooldownEnds",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct IEnhancedSmartStakingSkills.SkillInfo[]",
+        "name": "skills",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllSkillBoosts",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType[]",
+        "name": "skillTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint16[]",
+        "name": "boosts",
+        "type": "uint16[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getSkillBoost",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "boost",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSkillRarity",
+    "outputs": [
+      {
+        "internalType": "enum IEnhancedSmartStakingSkills.SkillRarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "multiplier",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserBoosts",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "totalBoost",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "rarityMultiplier",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "effectiveBoost",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserSkillProfile",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256[]",
+            "name": "activeSkillNFTIds",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint16",
+            "name": "totalBoost",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "stakingBoostTotal",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeDiscountTotal",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "lockTimeReduction",
+            "type": "uint16"
+          },
+          {
+            "internalType": "bool",
+            "name": "hasAutoCompound",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint16",
+            "name": "rarityMultiplier",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "level",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint8",
+            "name": "activeSkillCount",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct IEnhancedSmartStakingSkills.UserSkillProfile",
+        "name": "profile",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isSkillActive",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isActive",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "marketplaceContract",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "effectValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "notifySkillActivation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      }
+    ],
+    "name": "notifySkillDeactivation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_coreStaking",
+        "type": "address"
+      }
+    ],
+    "name": "setCoreStakingContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_marketplace",
+        "type": "address"
+      }
+    ],
+    "name": "setMarketplaceContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "nftId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum IEnhancedSmartStakingSkills.SkillRarity",
+        "name": "rarity",
+        "type": "uint8"
+      }
+    ],
+    "name": "setSkillRarity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "newBoost",
+        "type": "uint16"
+      }
+    ],
+    "name": "updateSkillBoost",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

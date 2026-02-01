@@ -9,8 +9,6 @@ interface StakingStatsProps {
   uniqueUsersCount: bigint
   totalDeposit: bigint
   pendingRewards: bigint
-  contractVersion: bigint | undefined
-  contractBalance: bigint | undefined
 }
 
 const StakingStats: React.FC<StakingStatsProps> = memo(({
@@ -18,8 +16,6 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
   uniqueUsersCount,
   totalDeposit,
   pendingRewards,
-  contractVersion,
-  contractBalance,
 }) => {
   const isMobile = useIsMobile()
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -33,7 +29,7 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
     {
       title: 'Total Pool',
       value: totalPoolBalance ? parseFloat(formatEther(totalPoolBalance)).toFixed(2) : '0',
-      subtitle: 'POL staked',
+      subtitle: isMobile ? 'POL staked' : 'Total Value Locked',
       emoji: '💰'
     },
     {
@@ -50,23 +46,11 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
     },
     {
       title: 'Rewards',
-      value: pendingRewards ? parseFloat(formatEther(pendingRewards)).toFixed(6) : '0',
+      value: pendingRewards ? parseFloat(formatEther(pendingRewards)).toFixed(6) : '0.000000',
       subtitle: isMobile ? 'Pending' : 'Pending rewards',
       emoji: '🎁'
-    },
-    {
-      title: 'Contract Version',
-      value: contractVersion ? `v${contractVersion.toString()}` : 'v2',
-      subtitle: 'Smart contract',
-      emoji: '📄'
-    },
-    {
-      title: 'Contract Balance',
-      value: contractBalance ? parseFloat(formatEther(contractBalance)).toFixed(4) : '0',
-      subtitle: 'Available funds',
-      emoji: '🏦'
     }
-  ], [totalPoolBalance, uniqueUsersCount, totalDeposit, pendingRewards, contractVersion, contractBalance, isMobile])
+  ], [totalPoolBalance, uniqueUsersCount, totalDeposit, pendingRewards, isMobile])
 
   const totalSlides = Math.ceil(statsData.length / 2)
   const itemsPerSlide = 2
@@ -118,22 +102,21 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
       <motion.div 
         className="mb-8 w-full"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        viewport={{ once: true }}
       >
         {/* Carousel Container */}
         <div className="relative">
           <div
             ref={carouselRef}
             onScroll={handleCarouselScroll}
-            className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide gap-0"
+            className={'flex overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide gap-0'}
             style={{
               scrollBehavior: 'smooth',
               WebkitOverflowScrolling: 'touch',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
-              gap: `${spacing}px` // ✅ Espaciado adaptativo
+              gap: `${spacing}px`
             }}
           >
             {Array.from({ length: totalSlides }).map((_, slideIndex) => (
@@ -141,9 +124,8 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
                 key={slideIndex}
                 className="snap-start flex-none w-full px-1"
                 initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: slideIndex * 0.1 }}
-                viewport={{ once: true }}
               >
                 <div className="grid grid-cols-2 gap-3" style={{ gap: `${spacing * 0.75}px` }}>
                   {statsData
@@ -151,11 +133,10 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
                     .map((stat, index) => (
                       <motion.div
                         key={slideIndex * itemsPerSlide + index}
-                        className="card-stats p-4 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105"
+                        className={'card-stats p-4 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105'}
                         initial={{ opacity: 0, y: 15 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: slideIndex * 0.1 + index * 0.08 }}
-                        viewport={{ once: true }}
                         whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -189,18 +170,16 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
           <motion.div 
             className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-black/40 to-transparent pointer-events-none z-10"
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
           />
 
           {/* Gradient Fade Effect - Right */}
           <motion.div 
             className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-black/40 to-transparent pointer-events-none z-10"
             initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            viewport={{ once: true }}
           />
         </div>
 
@@ -208,9 +187,8 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
         <motion.div 
           className="flex justify-center items-center gap-2 mt-6 py-3"
           initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
-          viewport={{ once: true }}
         >
           {Array.from({ length: totalSlides }).map((_, index) => (
             <motion.button
@@ -237,20 +215,18 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
 
   return (
     <motion.div 
-      className="grid gap-4 mb-8 grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6"
+      className={'grid gap-6 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
     >
       {statsData.map((stat, index) => (
         <motion.div
           key={index}
-          className="card-stats bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105"
+          className={'card-stats bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105'}
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.08 }}
-          viewport={{ once: true }}
           whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
           whileTap={{ scale: 0.98 }}
         >
@@ -267,9 +243,8 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
             <motion.h3 
               className="text-xl font-bold text-white truncate"
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: index * 0.08 + 0.2 }}
-              viewport={{ once: true }}
             >
               {stat.value}
             </motion.h3>

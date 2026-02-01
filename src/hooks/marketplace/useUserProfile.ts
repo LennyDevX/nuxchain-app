@@ -1,10 +1,17 @@
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
-import { useMemo, useCallback, useEffect } from 'react';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import { useMemo, useCallback } from 'react';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
+import LevelingSystemABI from '../../abi/LevelingSystem/LevelingSystem.json';
 import type { UserProfile } from '../../types/contracts';
-import { showXPNotification, injectXPNotificationStyles } from '../../utils/notifications/xpNotification';
+import { xpToasts } from '../../utils/toasts/xpToasts';
 
 const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
+
+// ✅ Validación de configuración del contrato en tiempo de carga
+if (!MARKETPLACE_CONTRACT_ADDRESS) {
+  console.error('❌ CRITICAL ERROR: VITE_GAMEIFIED_MARKETPLACE_PROXY no está configurado');
+  console.error('Este valor es requerido en variables de entorno para el funcionamiento del Marketplace');
+}
 
 interface UseUserProfileReturn {
   userProfile: UserProfile | null;
@@ -25,27 +32,35 @@ interface UseUserProfileReturn {
  * - Refetch más agresivo: cada 15 segundos
  * - Invalidación de cache cuando hay eventos
  * - Notificaciones cuando se gana XP
+ * - Validación de dirección del contrato en producción
+ * - Usa sistema modular: LevelingSystem para perfiles
  */
 export function useUserProfile(): UseUserProfileReturn {
   const { address, isConnected } = useAccount();
 
-  // Initialize notification styles once
-  useEffect(() => {
-    injectXPNotificationStyles();
-  }, []);
-
-  const contractConfig = {
+  const marketplaceConfig = {
     address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
     abi: GameifiedMarketplaceCoreABI.abi,
   };
 
-  // Get user profile
+  // ✅ STEP 1: Get LevelingSystem address from marketplace contract
+  const { data: levelingSystemAddress } = useReadContract({
+    ...marketplaceConfig,
+    functionName: 'levelingSystemAddress',
+    query: { 
+      enabled: !!MARKETPLACE_CONTRACT_ADDRESS,
+      staleTime: Infinity, // Address doesn't change
+    }
+  });
+
+  // ✅ STEP 2: Get user profile from LevelingSystem contract
   const { data: profileData, isLoading, error, refetch } = useReadContract({
-    ...contractConfig,
+    address: levelingSystemAddress as `0x${string}`,
+    abi: LevelingSystemABI.abi,
     functionName: 'userProfiles',
     args: [address],
     query: { 
-      enabled: !!address && isConnected,
+      enabled: !!address && isConnected && !!levelingSystemAddress,
       staleTime: 10000,
       refetchInterval: 15000,
       refetchIntervalInBackground: true
@@ -62,11 +77,7 @@ export function useUserProfile(): UseUserProfileReturn {
       const amount = (log.args as Record<string, unknown>)?.amount ? Number((log.args as Record<string, unknown>).amount) : 0;
       const reason = (log.args as Record<string, unknown>)?.reason ? String((log.args as Record<string, unknown>).reason) : 'ACTIVITY';
       
-      showXPNotification({
-        type: 'xp_gained',
-        amount,
-        reason
-      });
+      xpToasts.xpGained(amount, reason);
     }
     
     // Refetch inmediato cuando se gane XP
@@ -76,12 +87,13 @@ export function useUserProfile(): UseUserProfileReturn {
   }, [refetch]);
 
   useWatchContractEvent({
-    address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: GameifiedMarketplaceCoreABI.abi,
+    address: levelingSystemAddress as `0x${string}`,
+    abi: LevelingSystemABI.abi,
     eventName: 'XPGained',
     args: {
       user: address
     },
+    enabled: !!levelingSystemAddress,
     onLogs: onXPGainedLogs
   });
 
@@ -94,11 +106,7 @@ export function useUserProfile(): UseUserProfileReturn {
       const newLevel = (log.args as Record<string, unknown>)?.newLevel ? Number((log.args as Record<string, unknown>).newLevel) : 1;
       const nextLevelXP = ((newLevel + 1) ** 2 * 100);
       
-      showXPNotification({
-        type: 'level_up',
-        level: newLevel,
-        nextLevelXP
-      });
+      xpToasts.levelUp(newLevel, nextLevelXP);
     }
     
     // Refetch inmediato cuando suba de nivel
@@ -108,12 +116,13 @@ export function useUserProfile(): UseUserProfileReturn {
   }, [refetch]);
 
   useWatchContractEvent({
-    address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-    abi: GameifiedMarketplaceCoreABI.abi,
+    address: levelingSystemAddress as `0x${string}`,
+    abi: LevelingSystemABI.abi,
     eventName: 'LevelUp',
     args: {
       user: address
     },
+    enabled: !!levelingSystemAddress,
     onLogs: onLevelUpLogs
   });
 
@@ -122,14 +131,15 @@ export function useUserProfile(): UseUserProfileReturn {
 
     return {
       totalXP: BigInt(profileData[0] || 0),
-      // ✅ Allow level 0 when appropriate (no default fallback to 1)
       level: Number(profileData[1] ?? 0),
       nftsCreated: BigInt(profileData[2] || 0),
-      nftsSold: BigInt(profileData[3] || 0),
-      nftsBought: BigInt(profileData[4] || 0),
-      referralCount: BigInt(profileData[5] || 0),
-      totalEarnings: BigInt(profileData[6] || 0),
-      lastActivityTime: BigInt(profileData[7] || 0),
+      nftsOwned: BigInt(profileData[3] || 0),
+      nftsSold: BigInt(profileData[4] || 0),
+      nftsBought: BigInt(profileData[5] || 0),
+      // Legacy fields for compatibility
+      referralCount: BigInt(0),
+      totalEarnings: BigInt(0),
+      lastActivityTime: BigInt(0),
     } as UserProfile;
   }, [profileData]);
 

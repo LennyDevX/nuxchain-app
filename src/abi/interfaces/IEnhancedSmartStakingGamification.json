@@ -1,0 +1,727 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IEnhancedSmartStakingGamification",
+  "sourceName": "contracts/interfaces/IEnhancedSmartStakingGamification.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "achievementId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AchievementUnlocked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "AutoCompoundDisabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AutoCompoundEnabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AutoCompoundExecuted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "QuestCompleted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "rewardType",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardExpired",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newXP",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "newLevel",
+          "type": "uint16"
+        }
+      ],
+      "name": "XPUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "users",
+          "type": "address[]"
+        }
+      ],
+      "name": "batchAutoCompound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "xp",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateLevel",
+      "outputs": [
+        {
+          "internalType": "uint16",
+          "name": "level",
+          "type": "uint16"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "checkAutoCompound",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "shouldCompound",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "compoundAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "achievementId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimAchievementReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        }
+      ],
+      "name": "claimQuestReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expirationDays",
+          "type": "uint256"
+        }
+      ],
+      "name": "completeQuest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "disableAutoCompound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "minAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "enableAutoCompound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "achievementIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "expireAchievementRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "questIds",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "expireQuestRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "achievementId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAchievementReward",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expirationTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "claimed",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.AchievementReward",
+          "name": "reward",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getAllAchievementRewards",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "achievementIds",
+          "type": "uint256[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expirationTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "claimed",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.AchievementReward[]",
+          "name": "rewards",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getAllQuestRewards",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "questIds",
+          "type": "uint256[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expirationTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "claimed",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.QuestReward[]",
+          "name": "rewards",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getAutoCompoundConfig",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "enabled",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastCompoundTime",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.AutoCompoundConfig",
+          "name": "config",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "offset",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAutoCompoundUsersPage",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "users",
+          "type": "address[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "enabled",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "minAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "lastCompoundTime",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.AutoCompoundConfig[]",
+          "name": "configs",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getQuestReward",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "expirationTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "claimed",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IEnhancedSmartStakingGamification.QuestReward",
+          "name": "reward",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserXPInfo",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "xp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint16",
+          "name": "level",
+          "type": "uint16"
+        },
+        {
+          "internalType": "uint256",
+          "name": "xpToNextLevel",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint16",
+          "name": "level",
+          "type": "uint16"
+        }
+      ],
+      "name": "getXPForLevel",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "xp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "performAutoCompound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        }
+      ],
+      "name": "setQuestClaimed",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "xp",
+          "type": "uint256"
+        }
+      ],
+      "name": "setUserXP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "achievementId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expirationDays",
+          "type": "uint256"
+        }
+      ],
+      "name": "unlockAchievement",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint8",
+          "name": "actionType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateUserXP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

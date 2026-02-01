@@ -26,15 +26,15 @@
   ],
   "icons": [
     {
-      "src": "/LogoNuxchain.svg",
+      "src": "/favicon.svg?v=2",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/Nuxchain-logo.jpg",
-      "sizes": "512x512",
-      "type": "image/jpeg",
+      "src": "/favicon1.png?v=2",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     }
   ],
@@ -46,7 +46,7 @@
       "url": "/marketplace?utm_source=pwa_shortcut",
       "icons": [
         {
-          "src": "/LogoNuxchain.svg",
+          "src": "/favicon.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }
@@ -59,7 +59,7 @@
       "url": "/staking?utm_source=pwa_shortcut",
       "icons": [
         {
-          "src": "/LogoNuxchain.svg",
+          "src": "/favicon.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }
@@ -72,7 +72,7 @@
       "url": "/airdrops?utm_source=pwa_shortcut",
       "icons": [
         {
-          "src": "/LogoNuxchain.svg",
+          "src": "/favicon.svg",
           "sizes": "any",
           "type": "image/svg+xml"
         }

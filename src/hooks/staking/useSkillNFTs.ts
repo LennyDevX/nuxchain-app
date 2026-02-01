@@ -1,6 +1,7 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import EnhancedSmartStakingABI from '../../abi/EnhancedSmartStaking.json';
+import EnhancedSmartStakingSkillsABI from '../../abi/SmartStaking/EnhancedSmartStakingSkills.json';
+import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
 import type { SkillType, UserSkillProfile, NFTSkill } from '../../types/contracts';
 
 // ✅ Add BigInt serialization support for React DevTools
@@ -35,16 +36,16 @@ interface UseSkillNFTsReturn {
 export function useSkillNFTs(): UseSkillNFTsReturn {
   const { address, isConnected } = useAccount();
 
-  // ✅ Memoize contract config to prevent recreating on every render
-  const contractConfig = useMemo(() => ({
+  // ✅ Memoize contract config for View module
+  const viewConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
+    abi: EnhancedSmartStakingViewABI.abi,
   }), []);
 
-  // ✅ Get user skill profile with optimized cache strategy
+  // ✅ Get user skill profile from View module
   const { data: profileData, isLoading: profileLoading, error: profileError } = useReadContract({
-    ...contractConfig,
-    functionName: 'userSkillProfiles',
+    ...viewConfig,
+    functionName: 'getUserSkillProfile',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
@@ -56,10 +57,10 @@ export function useSkillNFTs(): UseSkillNFTsReturn {
     }
   });
 
-  // ✅ Get active skills count with same optimized strategy
+  // ✅ Get active skills from View module
   const { data: activeSkillsData, isLoading: skillsLoading } = useReadContract({
-    ...contractConfig,
-    functionName: 'getUserActiveSkills',
+    ...viewConfig,
+    functionName: 'getActiveSkillsWithDetails',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
@@ -111,15 +112,15 @@ export function useSkillNFTs(): UseSkillNFTsReturn {
  * Hook para obtener detalles de un NFT skill específico
  */
 export function useNFTSkillDetails(tokenId: bigint | null) {
-  // ✅ Memoize contract config
-  const contractConfig = useMemo(() => ({
+  // ✅ Memoize contract config - use Skills module
+  const skillsConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
+    abi: EnhancedSmartStakingSkillsABI.abi,
   }), []);
 
   const { data: skillData, isLoading } = useReadContract({
-    ...contractConfig,
-    functionName: 'nftSkills',
+    ...skillsConfig,
+    functionName: 'getNFTSkill',
     args: [tokenId],
     query: { 
       enabled: !!tokenId,

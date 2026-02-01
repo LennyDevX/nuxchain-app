@@ -1,0 +1,524 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IStakingIntegration",
+  "sourceName": "contracts/interfaces/IStakingIntegration.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "compoundedAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AutoCompoundTriggered",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "nftId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum IStakingIntegration.SkillType",
+          "name": "skillType",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "effectValue",
+          "type": "uint16"
+        }
+      ],
+      "name": "SkillActivated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "nftId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum IStakingIntegration.SkillType",
+          "name": "skillType",
+          "type": "uint8"
+        }
+      ],
+      "name": "SkillDeactivated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "level",
+          "type": "uint16"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "maxActiveSkills",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint16",
+          "name": "stakingBoostTotal",
+          "type": "uint16"
+        }
+      ],
+      "name": "SkillProfileUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseAPY",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateBoostedAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateFeeDiscount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseLockTime",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateReducedLockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "checkAutoCompound",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "upkeepNeeded",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "performData",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getActiveSkills",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "enum IStakingIntegration.SkillType",
+              "name": "skillType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "effectValue",
+              "type": "uint16"
+            },
+            {
+              "internalType": "enum IStakingIntegration.Rarity",
+              "name": "rarity",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint64",
+              "name": "activatedAt",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "cooldownEnds",
+              "type": "uint64"
+            },
+            {
+              "internalType": "bool",
+              "name": "isActive",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IStakingIntegration.NFTSkill[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserSkillProfile",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "activeNFTIds",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalXP",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint16",
+              "name": "level",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint8",
+              "name": "maxActiveSkills",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint16",
+              "name": "stakingBoostTotal",
+              "type": "uint16"
+            },
+            {
+              "internalType": "uint16",
+              "name": "feeDiscountTotal",
+              "type": "uint16"
+            },
+            {
+              "internalType": "bool",
+              "name": "hasAutoCompound",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IStakingIntegration.UserSkillProfile",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "hasAutoCompound",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "achievementId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "notifyAchievementUnlocked",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "questId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "notifyQuestCompletion",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nftId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "enum IStakingIntegration.SkillType",
+          "name": "skillType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint16",
+          "name": "effectValue",
+          "type": "uint16"
+        }
+      ],
+      "name": "notifySkillActivation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nftId",
+          "type": "uint256"
+        }
+      ],
+      "name": "notifySkillDeactivation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "performData",
+          "type": "bytes"
+        }
+      ],
+      "name": "performAutoCompound",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "marketplaceAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setMarketplaceAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum IStakingIntegration.SkillType",
+          "name": "skillType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "name": "setSkillEnabled",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "stakingAddress",
+          "type": "address"
+        }
+      ],
+      "name": "setStakingAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "enum IStakingIntegration.SkillType",
+          "name": "skillType",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint16",
+          "name": "newEffectValue",
+          "type": "uint16"
+        }
+      ],
+      "name": "updateSkillEffect",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "xpGained",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateUserXP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

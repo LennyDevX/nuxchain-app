@@ -42,7 +42,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
     const columnsCount = Math.max(1, Math.floor((containerWidth + gap) / (minCardWidth + gap)));
     const cardWidth = (containerWidth - (gap * (columnsCount - 1))) / columnsCount;
     const cardHeight = cardWidth * 1.5; // Updated aspect ratio 3:4.5
-    
+
     return {
       columnsCount,
       cardWidth,
@@ -56,9 +56,9 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
   const GridItem = ({ columnIndex, rowIndex, style }: { columnIndex: number; rowIndex: number; style: React.CSSProperties }) => {
     const itemIndex = rowIndex * gridConfig.columnsCount + columnIndex;
     const nft = nfts[itemIndex];
-    
+
     if (!nft) return null;
-    
+
     return (
       <div style={{
         ...style,
@@ -84,13 +84,13 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
 
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         className="text-center py-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <motion.div 
+        <motion.div
           className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4"
           whileHover={{ scale: 1.1 }}
         >
@@ -100,7 +100,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
         </motion.div>
         <h3 className="text-2xl font-bold text-white mb-2">Error Loading NFTs</h3>
         <p className="text-white/60 mb-6">{error}</p>
-        <motion.button 
+        <motion.button
           onClick={() => window.location.reload()}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -114,13 +114,13 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
 
   if (nfts.length === 0) {
     return (
-      <motion.div 
+      <motion.div
         className="text-center py-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <motion.div 
+        <motion.div
           className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mx-auto mb-6"
           animate={{ rotate: [0, 5, -5, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -131,7 +131,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
         </motion.div>
         <h3 className="text-2xl font-bold text-white mb-2">You don't have any NFTs yet</h3>
         <p className="text-white/60 mb-6">Create your first NFT and start your collection</p>
-        <motion.button 
+        <motion.button
           onClick={onCreateNFT}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -146,7 +146,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
   // Use virtualization only for large collections (>20 items)
   if (nfts.length > 20) {
     const rowCount = Math.ceil(nfts.length / gridConfig.columnsCount);
-    
+
     return (
       <div className="w-full">
         <FixedSizeGrid
@@ -166,20 +166,19 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
 
   // For smaller collections, use regular grid but keep consistent card heights
   return (
-    <motion.div 
+    <motion.div
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 30 }}
     >
-      {nfts.map((nft, idx) => (
+      {nfts.map((nft) => (
         <motion.div
           key={nft.uniqueId || nft.tokenId}
           className="flex items-stretch"
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: idx * 0.05, type: 'spring', stiffness: 300, damping: 30 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
         >
           <NFTCard
             nft={nft}

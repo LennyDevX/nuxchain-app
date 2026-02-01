@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
+import { tokenizationToasts } from '../../utils/toasts';
 
 interface FileUploadProps {
   selectedFile: File | null;
@@ -17,6 +18,15 @@ export default function FileUpload({
   error
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+      tokenizationToasts.fileSelected(file.name, sizeInMB);
+    }
+    onFileSelect(event);
+  };
 
   return (
     <motion.div 
@@ -115,7 +125,7 @@ export default function FileUpload({
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={onFileSelect}
+        onChange={handleFileSelect}
         className="hidden"
       />
 

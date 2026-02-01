@@ -11,14 +11,23 @@ import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { useChatNavbar } from '../hooks/mobile/useChatNavbar'
 import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimization'
+import { chatLogger } from '../utils/log/chatLogger'
 
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
-  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB } = useChatStreaming()
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
+
+  // Loguear inicio de sesión
+  React.useEffect(() => {
+    chatLogger.logSessionStart()
+    return () => {
+      chatLogger.logSessionEnd()
+    }
+  }, [])
 
 
 
@@ -32,10 +41,27 @@ function Chat() {
     }
 
     try {
+      chatLogger.logMessageEvent(
+        {
+          type: 'SEND',
+          messageId: `user_${Date.now()}`,
+          sender: 'user',
+          contentPreview: message.trim(),
+          timestamp: new Date().toISOString()
+        },
+        'Chat'
+      )
       await sendMessage(message.trim())
       setMessage('')
     } catch (error) {
-      console.error('Error sending message:', error)
+      chatLogger.logError(
+        'Error al enviar mensaje',
+        'Chat',
+        {
+          message: message.trim().substring(0, 50)
+        },
+        error as Error
+      )
       toast.error('Error al enviar el mensaje. Asegúrate de que el servidor esté ejecutándose.')
     }
   }
@@ -44,10 +70,25 @@ function Chat() {
     setShowWelcome(false)
     // Auto-send the selected question
     try {
+      chatLogger.logMessageEvent(
+        {
+          type: 'SEND',
+          messageId: `user_${Date.now()}`,
+          sender: 'user',
+          contentPreview: question,
+          timestamp: new Date().toISOString()
+        },
+        'WelcomeScreen'
+      )
       await sendMessage(question)
       setMessage('') // Clear the input after sending
     } catch (error) {
-      console.error('Error sending selected question:', error)
+      chatLogger.logError(
+        'Error al enviar pregunta seleccionada',
+        'WelcomeScreen',
+        { question: question.substring(0, 50) },
+        error as Error
+      )
       toast.error('Error sending the selected question.')
     }
   }
@@ -75,13 +116,13 @@ function Chat() {
 
         {/* Input Area */}
         <motion.div 
-          className={`fixed left-0 right-0 z-10 bottom-0 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
+          className={`fixed left-0 right-0 z-10 bottom-2 ${optimizationConfig.reduceAnimations ? '' : 'transition-all duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
           style={{
             transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none'
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
         >
           <div className="max-w-4xl mx-auto w-full">
             <div className={`${isMobile ? 'px-3 py-3 safe-area-inset-bottom' : 'px-6 py-4'}`}>
@@ -92,16 +133,59 @@ function Chat() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.25 }}
               >
-                {/* URL analysis indicator */}
+                {/* \ud83d\udd17 URL analysis indicator */}
                 {isUsingUrlContext && (
                   <motion.div 
-                    className="mb-2 flex items-center justify-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="px-3 py-1.5 border border-blue-500/30 rounded-lg bg-blue-900/20 flex items-center space-x-2 text-blue-400 animate-pulse">
-                      <span className={`font-medium ${isMobile ? 'text-xs' : 'text-xs'}`}>Analyzing URL content...</span>
+                    <div className="px-4 py-2 border border-cyan-500/30 rounded-xl bg-cyan-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                      </div>
+                      <span className="text-cyan-300 font-medium text-sm">Analyzing URL content...</span>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* 🔗 Blockchain action indicator */}
+                {blockchainAction && (
+                  <motion.div 
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="px-4 py-2 border border-purple-500/30 rounded-xl bg-purple-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                      </div>
+                      <span className="text-purple-300 font-medium text-sm">{blockchainAction}</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* 📚 Knowledge Base search indicator */}
+                {isSearchingKB && !blockchainAction && (
+                  <motion.div 
+                    className="mb-4 flex items-center justify-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="px-4 py-2 border border-blue-500/30 rounded-xl bg-blue-900/20 backdrop-blur-sm flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping absolute"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      </div>
+                      <span className="text-blue-300 font-medium text-sm">Searching in KB...</span>
                     </div>
                   </motion.div>
                 )}

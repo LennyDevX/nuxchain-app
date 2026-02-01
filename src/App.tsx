@@ -1,11 +1,13 @@
 import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { POLPriceProvider } from './context/POLPriceContext'
+import { NetworkProvider } from './context/NetworkContext'
 import { useScrollToTop } from './hooks/navigation/useScrollToTop'
 import Navbar from './components/layout/Navbar'
 import MobileBottomNavbar from './components/layout/MobileBottomNavbar'
 import GlobalBackground from './ui/gradientBackground'
 import AppRoutes from './router/routes'
+import NetworkAlert from './components/web3/NetworkAlert'
 
 /**
  * Inner component para que useScrollToTop funcione dentro del Router
@@ -15,6 +17,7 @@ function AppContent() {
 
   return (
     <GlobalBackground>
+      <NetworkAlert />
       <Navbar />
       <AppRoutes />
       <MobileBottomNavbar />
@@ -50,9 +53,11 @@ function AppContent() {
 function App() {
   return (
     <POLPriceProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <NetworkProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </NetworkProvider>
     </POLPriceProvider>
   )
 }

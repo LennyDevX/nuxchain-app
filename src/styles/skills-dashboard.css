@@ -1,0 +1,242 @@
+/* Skills Dashboard - Responsive Styles */
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .skills-dashboard-hero {
+    padding: 1.5rem 1rem;
+  }
+
+  .skills-dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .skills-dashboard-table {
+    font-size: 0.75rem;
+  }
+
+  .skills-dashboard-table th,
+  .skills-dashboard-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .pricing-tier-badge {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .skills-info-card {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+
+  .skills-info-card .icon {
+    font-size: 2rem;
+  }
+
+  .skills-info-card h3 {
+    font-size: 1rem;
+  }
+
+  .skills-info-card p {
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .skills-dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skills-dashboard-table {
+    font-size: 0.875rem;
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .skills-dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .skills-dashboard-table {
+    font-size: 1rem;
+  }
+}
+
+/* Shared styles */
+.skills-dashboard-section {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive table scroll */
+.skills-dashboard-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Info cards responsive */
+.skills-info-card {
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.skills-info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Pricing tiers responsive layout */
+.pricing-tier-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pricing-tier-item:last-child {
+  border-bottom: none;
+}
+
+.pricing-tier-badge {
+  display: inline-block;
+  border-radius: 9999px;
+  font-weight: 700;
+  color: white;
+  padding: 0.375rem 0.75rem;
+}
+
+/* Hero section gradients */
+.skills-dashboard-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top left, rgba(168, 85, 247, 0.2), transparent 50%),
+              radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.2), transparent 50%);
+  border-radius: 1rem;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.skills-dashboard-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Button group responsive */
+.skills-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .skills-button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .skills-button-group button {
+    width: 100%;
+  }
+}
+
+/* Content sections */
+.skills-section-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .skills-section-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Impact cards */
+.impact-card {
+  padding: 2rem;
+  border-radius: 1rem;
+  border-width: 1px;
+  transition: all 0.3s ease;
+}
+
+.impact-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.impact-card ul {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.impact-card li {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Utility classes for responsive text */
+.text-responsive-lg {
+  font-size: clamp(1.5rem, 5vw, 3rem);
+}
+
+.text-responsive-md {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+}
+
+.text-responsive-sm {
+  font-size: clamp(0.75rem, 2vw, 1rem);
+}
+
+/* Accessibility improvements */
+.skills-dashboard button:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(168, 85, 247);
+}
+
+.skills-dashboard a:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+/* Dark mode optimization */
+@media (prefers-color-scheme: dark) {
+  .skills-dashboard-section {
+    background: rgba(17, 24, 39, 0.6);
+    border: 1px solid rgba(75, 85, 99, 0.2);
+  }
+}
+
+/* Print styles */
+@media print {
+  .skills-dashboard-hero button,
+  .skills-button-group {
+    display: none;
+  }
+
+  .skills-dashboard-section {
+    page-break-inside: avoid;
+  }
+}

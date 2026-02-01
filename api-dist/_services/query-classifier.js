@@ -142,13 +142,23 @@ export function getConversationContext() {
 export function needsKnowledgeBase(query, options = {}) {
     const { includeContext = true, debugMode = false } = options;
     if (!query || typeof query !== 'string') {
-        const result = { needsKB: false, reason: 'empty_query', score: 0 };
+        const result = {
+            needsKB: false,
+            reason: 'empty_query',
+            score: 0,
+            reasoning: [],
+            keywordMatches: 0,
+            matchedKeywords: [],
+            isCapabilityQuestion: false,
+            hasNumericPattern: false,
+            hasNuxchainContext: false
+        };
         if (debugMode)
             console.log(`[CLASSIFIER] Invalid query:`, result);
         return result;
     }
     const lowerQuery = query.toLowerCase().trim();
-    let reasoning = [];
+    const reasoning = [];
     let finalScore = 0;
     // Paso 1: Detectar si es una pregunta completamente genérica
     // que NO sea sobre capacidades de Nuxchain
@@ -162,7 +172,12 @@ export function needsKnowledgeBase(query, options = {}) {
                 needsKB: false,
                 reason: 'generic_question',
                 score: 0.1,
-                reasoning
+                reasoning,
+                keywordMatches: 0,
+                matchedKeywords: [],
+                isCapabilityQuestion: false,
+                hasNumericPattern: false,
+                hasNuxchainContext: false
             };
         }
     }

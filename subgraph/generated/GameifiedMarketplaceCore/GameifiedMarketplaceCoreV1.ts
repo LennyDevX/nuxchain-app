@@ -168,28 +168,6 @@ export class Initialized__Params {
   }
 }
 
-export class LevelUp extends ethereum.Event {
-  get params(): LevelUp__Params {
-    return new LevelUp__Params(this);
-  }
-}
-
-export class LevelUp__Params {
-  _event: LevelUp;
-
-  constructor(event: LevelUp) {
-    this._event = event;
-  }
-
-  get user(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get newLevel(): i32 {
-    return this._event.parameters[1].value.toI32();
-  }
-}
-
 export class LikeToggled extends ethereum.Event {
   get params(): LikeToggled__Params {
     return new LikeToggled__Params(this);
@@ -305,6 +283,36 @@ export class Paused__Params {
 
   get account(): Address {
     return this._event.parameters[0].value.toAddress();
+  }
+}
+
+export class PlatformFeeTransferred extends ethereum.Event {
+  get params(): PlatformFeeTransferred__Params {
+    return new PlatformFeeTransferred__Params(this);
+  }
+}
+
+export class PlatformFeeTransferred__Params {
+  _event: PlatformFeeTransferred;
+
+  constructor(event: PlatformFeeTransferred) {
+    this._event = event;
+  }
+
+  get from(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get to(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+
+  get operation(): string {
+    return this._event.parameters[3].value.toString();
   }
 }
 
@@ -578,55 +586,43 @@ export class Upgraded__Params {
   }
 }
 
-export class XPGained extends ethereum.Event {
-  get params(): XPGained__Params {
-    return new XPGained__Params(this);
-  }
-}
-
-export class XPGained__Params {
-  _event: XPGained;
-
-  constructor(event: XPGained) {
-    this._event = event;
+export class GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct extends ethereum.Tuple {
+  get creator(): Address {
+    return this[0].toAddress();
   }
 
-  get user(): Address {
-    return this._event.parameters[0].value.toAddress();
+  get uri(): string {
+    return this[1].toString();
   }
 
-  get amount(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
+  get category(): string {
+    return this[2].toString();
   }
 
-  get reason(): string {
-    return this._event.parameters[2].value.toString();
-  }
-}
-
-export class GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct extends ethereum.Tuple {
-  get totalXP(): BigInt {
-    return this[0].toBigInt();
-  }
-
-  get level(): i32 {
-    return this[1].toI32();
-  }
-
-  get nftsCreated(): BigInt {
-    return this[2].toBigInt();
-  }
-
-  get nftsOwned(): BigInt {
+  get createdAt(): BigInt {
     return this[3].toBigInt();
   }
 
-  get nftsSold(): BigInt {
+  get royaltyPercentage(): BigInt {
     return this[4].toBigInt();
   }
+}
 
-  get nftsBought(): BigInt {
-    return this[5].toBigInt();
+export class GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct extends ethereum.Tuple {
+  get offeror(): Address {
+    return this[0].toAddress();
+  }
+
+  get amount(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get expiresInDays(): i32 {
+    return this[2].toI32();
+  }
+
+  get timestamp(): BigInt {
+    return this[3].toBigInt();
   }
 }
 
@@ -746,69 +742,6 @@ export class GameifiedMarketplaceCoreV1__royaltyInfoResult {
 
   getValue1(): BigInt {
     return this.value1;
-  }
-}
-
-export class GameifiedMarketplaceCoreV1__userProfilesResult {
-  value0: BigInt;
-  value1: i32;
-  value2: BigInt;
-  value3: BigInt;
-  value4: BigInt;
-  value5: BigInt;
-
-  constructor(
-    value0: BigInt,
-    value1: i32,
-    value2: BigInt,
-    value3: BigInt,
-    value4: BigInt,
-    value5: BigInt,
-  ) {
-    this.value0 = value0;
-    this.value1 = value1;
-    this.value2 = value2;
-    this.value3 = value3;
-    this.value4 = value4;
-    this.value5 = value5;
-  }
-
-  toMap(): TypedMap<string, ethereum.Value> {
-    let map = new TypedMap<string, ethereum.Value>();
-    map.set("value0", ethereum.Value.fromUnsignedBigInt(this.value0));
-    map.set(
-      "value1",
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(this.value1)),
-    );
-    map.set("value2", ethereum.Value.fromUnsignedBigInt(this.value2));
-    map.set("value3", ethereum.Value.fromUnsignedBigInt(this.value3));
-    map.set("value4", ethereum.Value.fromUnsignedBigInt(this.value4));
-    map.set("value5", ethereum.Value.fromUnsignedBigInt(this.value5));
-    return map;
-  }
-
-  getTotalXP(): BigInt {
-    return this.value0;
-  }
-
-  getLevel(): i32 {
-    return this.value1;
-  }
-
-  getNftsCreated(): BigInt {
-    return this.value2;
-  }
-
-  getNftsOwned(): BigInt {
-    return this.value3;
-  }
-
-  getNftsSold(): BigInt {
-    return this.value4;
-  }
-
-  getNftsBought(): BigInt {
-    return this.value5;
   }
 }
 
@@ -979,6 +912,135 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
+  getListedNFTs(): Array<BigInt> {
+    let result = super.call("getListedNFTs", "getListedNFTs():(uint256[])", []);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getListedNFTs(): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getListedNFTs",
+      "getListedNFTs():(uint256[])",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getNFTComments(_tokenId: BigInt): Array<string> {
+    let result = super.call(
+      "getNFTComments",
+      "getNFTComments(uint256):(string[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toStringArray();
+  }
+
+  try_getNFTComments(_tokenId: BigInt): ethereum.CallResult<Array<string>> {
+    let result = super.tryCall(
+      "getNFTComments",
+      "getNFTComments(uint256):(string[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toStringArray());
+  }
+
+  getNFTLikeCount(_tokenId: BigInt): BigInt {
+    let result = super.call(
+      "getNFTLikeCount",
+      "getNFTLikeCount(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_getNFTLikeCount(_tokenId: BigInt): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "getNFTLikeCount",
+      "getNFTLikeCount(uint256):(uint256)",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  getNFTMetadata(
+    _tokenId: BigInt,
+  ): GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct {
+    let result = super.call(
+      "getNFTMetadata",
+      "getNFTMetadata(uint256):((address,string,string,uint256,uint96))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return changetype<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct>(
+      result[0].toTuple(),
+    );
+  }
+
+  try_getNFTMetadata(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct> {
+    let result = super.tryCall(
+      "getNFTMetadata",
+      "getNFTMetadata(uint256):((address,string,string,uint256,uint96))",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      changetype<GameifiedMarketplaceCoreV1__getNFTMetadataResultValue0Struct>(
+        value[0].toTuple(),
+      ),
+    );
+  }
+
+  getNFTOffers(
+    _tokenId: BigInt,
+  ): Array<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct> {
+    let result = super.call(
+      "getNFTOffers",
+      "getNFTOffers(uint256):((address,uint256,uint8,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+
+    return result[0].toTupleArray<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>();
+  }
+
+  try_getNFTOffers(
+    _tokenId: BigInt,
+  ): ethereum.CallResult<
+    Array<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>
+  > {
+    let result = super.tryCall(
+      "getNFTOffers",
+      "getNFTOffers(uint256):((address,uint256,uint8,uint256)[])",
+      [ethereum.Value.fromUnsignedBigInt(_tokenId)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      value[0].toTupleArray<GameifiedMarketplaceCoreV1__getNFTOffersResultValue0Struct>(),
+    );
+  }
+
   getRoleAdmin(role: Bytes): Bytes {
     let result = super.call("getRoleAdmin", "getRoleAdmin(bytes32):(bytes32)", [
       ethereum.Value.fromFixedBytes(role),
@@ -1000,37 +1062,48 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytes());
   }
 
-  getUserProfile(
-    _user: Address,
-  ): GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct {
+  getUserCreatedNFTs(_user: Address): Array<BigInt> {
     let result = super.call(
-      "getUserProfile",
-      "getUserProfile(address):((uint256,uint8,uint256,uint256,uint32,uint32))",
+      "getUserCreatedNFTs",
+      "getUserCreatedNFTs(address):(uint256[])",
       [ethereum.Value.fromAddress(_user)],
     );
 
-    return changetype<GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct>(
-      result[0].toTuple(),
-    );
+    return result[0].toBigIntArray();
   }
 
-  try_getUserProfile(
-    _user: Address,
-  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct> {
+  try_getUserCreatedNFTs(_user: Address): ethereum.CallResult<Array<BigInt>> {
     let result = super.tryCall(
-      "getUserProfile",
-      "getUserProfile(address):((uint256,uint8,uint256,uint256,uint32,uint32))",
+      "getUserCreatedNFTs",
+      "getUserCreatedNFTs(address):(uint256[])",
       [ethereum.Value.fromAddress(_user)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(
-      changetype<GameifiedMarketplaceCoreV1__getUserProfileResultValue0Struct>(
-        value[0].toTuple(),
-      ),
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
+  getUserNFTs(_user: Address): Array<BigInt> {
+    let result = super.call("getUserNFTs", "getUserNFTs(address):(uint256[])", [
+      ethereum.Value.fromAddress(_user),
+    ]);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getUserNFTs(_user: Address): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall(
+      "getUserNFTs",
+      "getUserNFTs(address):(uint256[])",
+      [ethereum.Value.fromAddress(_user)],
     );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
   }
 
   hasRole(role: Bytes, account: Address): boolean {
@@ -1097,6 +1170,29 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBoolean());
+  }
+
+  levelingSystemAddress(): Address {
+    let result = super.call(
+      "levelingSystemAddress",
+      "levelingSystemAddress():(address)",
+      [],
+    );
+
+    return result[0].toAddress();
+  }
+
+  try_levelingSystemAddress(): ethereum.CallResult<Address> {
+    let result = super.tryCall(
+      "levelingSystemAddress",
+      "levelingSystemAddress():(address)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
   listedPrice(param0: BigInt): BigInt {
@@ -1368,20 +1464,20 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBytes());
   }
 
-  questsContractAddress(): Address {
+  referralSystemAddress(): Address {
     let result = super.call(
-      "questsContractAddress",
-      "questsContractAddress():(address)",
+      "referralSystemAddress",
+      "referralSystemAddress():(address)",
       [],
     );
 
     return result[0].toAddress();
   }
 
-  try_questsContractAddress(): ethereum.CallResult<Address> {
+  try_referralSystemAddress(): ethereum.CallResult<Address> {
     let result = super.tryCall(
-      "questsContractAddress",
-      "questsContractAddress():(address)",
+      "referralSystemAddress",
+      "referralSystemAddress():(address)",
       [],
     );
     if (result.reverted) {
@@ -1457,29 +1553,6 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toAddress());
   }
 
-  stakingContractAddress(): Address {
-    let result = super.call(
-      "stakingContractAddress",
-      "stakingContractAddress():(address)",
-      [],
-    );
-
-    return result[0].toAddress();
-  }
-
-  try_stakingContractAddress(): ethereum.CallResult<Address> {
-    let result = super.tryCall(
-      "stakingContractAddress",
-      "stakingContractAddress():(address)",
-      [],
-    );
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(value[0].toAddress());
-  }
-
   supportsInterface(interfaceId: Bytes): boolean {
     let result = super.call(
       "supportsInterface",
@@ -1537,18 +1610,20 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toString());
   }
 
-  userBalance(param0: Address): BigInt {
-    let result = super.call("userBalance", "userBalance(address):(uint256)", [
-      ethereum.Value.fromAddress(param0),
-    ]);
+  totalCreators(param0: Address): BigInt {
+    let result = super.call(
+      "totalCreators",
+      "totalCreators(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
 
     return result[0].toBigInt();
   }
 
-  try_userBalance(param0: Address): ethereum.CallResult<BigInt> {
+  try_totalCreators(param0: Address): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "userBalance",
-      "userBalance(address):(uint256)",
+      "totalCreators",
+      "totalCreators(address):(uint256)",
       [ethereum.Value.fromAddress(param0)],
     );
     if (result.reverted) {
@@ -1558,47 +1633,182 @@ export class GameifiedMarketplaceCoreV1 extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  userProfiles(
-    param0: Address,
-  ): GameifiedMarketplaceCoreV1__userProfilesResult {
+  totalNFTsSold(): BigInt {
+    let result = super.call("totalNFTsSold", "totalNFTsSold():(uint256)", []);
+
+    return result[0].toBigInt();
+  }
+
+  try_totalNFTsSold(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalNFTsSold",
+      "totalNFTsSold():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalRoyaltiesPaid(): BigInt {
     let result = super.call(
-      "userProfiles",
-      "userProfiles(address):(uint256,uint8,uint256,uint256,uint32,uint32)",
+      "totalRoyaltiesPaid",
+      "totalRoyaltiesPaid():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalRoyaltiesPaid(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalRoyaltiesPaid",
+      "totalRoyaltiesPaid():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  totalTradingVolume(): BigInt {
+    let result = super.call(
+      "totalTradingVolume",
+      "totalTradingVolume():(uint256)",
+      [],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_totalTradingVolume(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "totalTradingVolume",
+      "totalTradingVolume():(uint256)",
+      [],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userNFTsBought(param0: Address): BigInt {
+    let result = super.call(
+      "userNFTsBought",
+      "userNFTsBought(address):(uint256)",
       [ethereum.Value.fromAddress(param0)],
     );
 
-    return new GameifiedMarketplaceCoreV1__userProfilesResult(
-      result[0].toBigInt(),
-      result[1].toI32(),
-      result[2].toBigInt(),
-      result[3].toBigInt(),
-      result[4].toBigInt(),
-      result[5].toBigInt(),
-    );
+    return result[0].toBigInt();
   }
 
-  try_userProfiles(
-    param0: Address,
-  ): ethereum.CallResult<GameifiedMarketplaceCoreV1__userProfilesResult> {
+  try_userNFTsBought(param0: Address): ethereum.CallResult<BigInt> {
     let result = super.tryCall(
-      "userProfiles",
-      "userProfiles(address):(uint256,uint8,uint256,uint256,uint32,uint32)",
+      "userNFTsBought",
+      "userNFTsBought(address):(uint256)",
       [ethereum.Value.fromAddress(param0)],
     );
     if (result.reverted) {
       return new ethereum.CallResult();
     }
     let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new GameifiedMarketplaceCoreV1__userProfilesResult(
-        value[0].toBigInt(),
-        value[1].toI32(),
-        value[2].toBigInt(),
-        value[3].toBigInt(),
-        value[4].toBigInt(),
-        value[5].toBigInt(),
-      ),
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userNFTsSold(param0: Address): BigInt {
+    let result = super.call("userNFTsSold", "userNFTsSold(address):(uint256)", [
+      ethereum.Value.fromAddress(param0),
+    ]);
+
+    return result[0].toBigInt();
+  }
+
+  try_userNFTsSold(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userNFTsSold",
+      "userNFTsSold(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
     );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userPurchaseVolume(param0: Address): BigInt {
+    let result = super.call(
+      "userPurchaseVolume",
+      "userPurchaseVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userPurchaseVolume(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userPurchaseVolume",
+      "userPurchaseVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userRoyaltiesEarned(param0: Address): BigInt {
+    let result = super.call(
+      "userRoyaltiesEarned",
+      "userRoyaltiesEarned(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userRoyaltiesEarned(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userRoyaltiesEarned",
+      "userRoyaltiesEarned(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+
+  userSalesVolume(param0: Address): BigInt {
+    let result = super.call(
+      "userSalesVolume",
+      "userSalesVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+
+    return result[0].toBigInt();
+  }
+
+  try_userSalesVolume(param0: Address): ethereum.CallResult<BigInt> {
+    let result = super.tryCall(
+      "userSalesVolume",
+      "userSalesVolume(address):(uint256)",
+      [ethereum.Value.fromAddress(param0)],
+    );
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 }
 
@@ -1924,10 +2134,6 @@ export class ListTokenForSaleCall__Inputs {
   get _price(): BigInt {
     return this._call.inputValues[1].value.toBigInt();
   }
-
-  get value2(): string {
-    return this._call.inputValues[2].value.toString();
-  }
 }
 
 export class ListTokenForSaleCall__Outputs {
@@ -2180,32 +2386,62 @@ export class SetApprovalForAllCall__Outputs {
   }
 }
 
-export class SetQuestsContractCall extends ethereum.Call {
-  get inputs(): SetQuestsContractCall__Inputs {
-    return new SetQuestsContractCall__Inputs(this);
+export class SetLevelingSystemCall extends ethereum.Call {
+  get inputs(): SetLevelingSystemCall__Inputs {
+    return new SetLevelingSystemCall__Inputs(this);
   }
 
-  get outputs(): SetQuestsContractCall__Outputs {
-    return new SetQuestsContractCall__Outputs(this);
+  get outputs(): SetLevelingSystemCall__Outputs {
+    return new SetLevelingSystemCall__Outputs(this);
   }
 }
 
-export class SetQuestsContractCall__Inputs {
-  _call: SetQuestsContractCall;
+export class SetLevelingSystemCall__Inputs {
+  _call: SetLevelingSystemCall;
 
-  constructor(call: SetQuestsContractCall) {
+  constructor(call: SetLevelingSystemCall) {
     this._call = call;
   }
 
-  get _questsAddress(): Address {
+  get _addr(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 }
 
-export class SetQuestsContractCall__Outputs {
-  _call: SetQuestsContractCall;
+export class SetLevelingSystemCall__Outputs {
+  _call: SetLevelingSystemCall;
 
-  constructor(call: SetQuestsContractCall) {
+  constructor(call: SetLevelingSystemCall) {
+    this._call = call;
+  }
+}
+
+export class SetReferralSystemCall extends ethereum.Call {
+  get inputs(): SetReferralSystemCall__Inputs {
+    return new SetReferralSystemCall__Inputs(this);
+  }
+
+  get outputs(): SetReferralSystemCall__Outputs {
+    return new SetReferralSystemCall__Outputs(this);
+  }
+}
+
+export class SetReferralSystemCall__Inputs {
+  _call: SetReferralSystemCall;
+
+  constructor(call: SetReferralSystemCall) {
+    this._call = call;
+  }
+
+  get _addr(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class SetReferralSystemCall__Outputs {
+  _call: SetReferralSystemCall;
+
+  constructor(call: SetReferralSystemCall) {
     this._call = call;
   }
 }
@@ -2227,7 +2463,7 @@ export class SetSkillsContractCall__Inputs {
     this._call = call;
   }
 
-  get _skillsAddress(): Address {
+  get _addr(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 }
@@ -2236,36 +2472,6 @@ export class SetSkillsContractCall__Outputs {
   _call: SetSkillsContractCall;
 
   constructor(call: SetSkillsContractCall) {
-    this._call = call;
-  }
-}
-
-export class SetStakingContractCall extends ethereum.Call {
-  get inputs(): SetStakingContractCall__Inputs {
-    return new SetStakingContractCall__Inputs(this);
-  }
-
-  get outputs(): SetStakingContractCall__Outputs {
-    return new SetStakingContractCall__Outputs(this);
-  }
-}
-
-export class SetStakingContractCall__Inputs {
-  _call: SetStakingContractCall;
-
-  constructor(call: SetStakingContractCall) {
-    this._call = call;
-  }
-
-  get _stakingAddress(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-}
-
-export class SetStakingContractCall__Outputs {
-  _call: SetStakingContractCall;
-
-  constructor(call: SetStakingContractCall) {
     this._call = call;
   }
 }
@@ -2424,40 +2630,6 @@ export class UpdatePriceCall__Outputs {
   _call: UpdatePriceCall;
 
   constructor(call: UpdatePriceCall) {
-    this._call = call;
-  }
-}
-
-export class UpdateUserXPCall extends ethereum.Call {
-  get inputs(): UpdateUserXPCall__Inputs {
-    return new UpdateUserXPCall__Inputs(this);
-  }
-
-  get outputs(): UpdateUserXPCall__Outputs {
-    return new UpdateUserXPCall__Outputs(this);
-  }
-}
-
-export class UpdateUserXPCall__Inputs {
-  _call: UpdateUserXPCall;
-
-  constructor(call: UpdateUserXPCall) {
-    this._call = call;
-  }
-
-  get _user(): Address {
-    return this._call.inputValues[0].value.toAddress();
-  }
-
-  get _amount(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-}
-
-export class UpdateUserXPCall__Outputs {
-  _call: UpdateUserXPCall;
-
-  constructor(call: UpdateUserXPCall) {
     this._call = call;
   }
 }

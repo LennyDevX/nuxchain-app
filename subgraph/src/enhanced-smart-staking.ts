@@ -4,12 +4,12 @@ import {
   Withdrawn,
   WithdrawAll,
   Compounded,
-  RewardsCompounded,
-  AutoCompounded,
+  AutoCompoundTriggered,
   SkillActivated,
   SkillDeactivated,
   SkillProfileUpdated,
-  SkillUpgraded
+  CommissionPaid,
+  EmergencyWithdrawal
 } from "../generated/EnhancedSmartStaking/EnhancedSmartStaking"
 import {
   User,
@@ -73,6 +73,7 @@ function getOrCreateUserStats(userAddress: Bytes, timestamp: BigInt): UserStats 
     stats.totalMarketplaceVolume = BigInt.fromI32(0)
     stats.level = 1
     stats.xp = BigInt.fromI32(0)
+    stats.lastActivityAt = timestamp
     stats.createdAt = timestamp
     stats.updatedAt = timestamp
   }
@@ -233,38 +234,6 @@ export function handleWithdrawn(event: Withdrawn): void {
   activity.save()
 }
 
-export function handleRewardsCompounded(event: RewardsCompounded): void {
-  const user = loadOrCreateUser(event.params.user, event.block.timestamp)
-  
-  // Create compound entity
-  const compound = new Compound(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  compound.user = user.id
-  compound.amount = event.params.amount
-  compound.timestamp = event.block.timestamp
-  compound.transactionHash = event.transaction.hash
-  compound.blockNumber = event.block.number
-  compound.save()
-  
-  // Update user totals
-  user.totalCompounded = user.totalCompounded.plus(event.params.amount)
-  user.updatedAt = event.block.timestamp
-  user.save()
-  
-  // Create activity
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
-  )
-  activity.type = "STAKING_COMPOUND"
-  activity.user = user.id
-  activity.amount = event.params.amount
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
-}
-
 export function handleWithdrawAll(event: WithdrawAll): void {
   const user = loadOrCreateUser(event.params.user, event.block.timestamp)
   
@@ -280,6 +249,7 @@ export function handleWithdrawAll(event: WithdrawAll): void {
   withdrawal.save()
   
   // Update user totals
+  user.withdrawalCount += 1
   user.totalWithdrawn = user.totalWithdrawn.plus(event.params.totalAmount)
   user.updatedAt = event.block.timestamp
   user.save()
@@ -311,10 +281,31 @@ export function handleCompounded(event: Compounded): void {
   compound.blockNumber = event.block.number
   compound.save()
   
-  // Update user totals
+  // ✅ OPTIMIZADO: Actualizar contadores
+  user.compoundCount += 1
   user.totalCompounded = user.totalCompounded.plus(event.params.amount)
   user.updatedAt = event.block.timestamp
   user.save()
+  
+  // ✅ OPTIMIZADO: Actualizar UserStats
+  const userStats = getOrCreateUserStats(event.params.user, event.block.timestamp)
+  userStats.totalRewardsEarned = userStats.totalRewardsEarned.plus(event.params.amount)
+  userStats.lastActivityAt = event.block.timestamp
+  userStats.updatedAt = event.block.timestamp
+  userStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar GlobalStats
+  const globalStats = getOrCreateGlobalStats(event.block.timestamp)
+  globalStats.totalCompounded = globalStats.totalCompounded.plus(event.params.amount)
+  globalStats.lastUpdatedBlock = event.block.number
+  globalStats.updatedAt = event.block.timestamp
+  globalStats.save()
+  
+  // ✅ OPTIMIZADO: Actualizar DailyStats
+  const dailyStats = getOrCreateDailyStats(event.block.timestamp)
+  dailyStats.totalCompounded = dailyStats.totalCompounded.plus(event.params.amount)
+  dailyStats.updatedAt = event.block.timestamp
+  dailyStats.save()
   
   // Create activity
   const activity = new Activity(
@@ -329,7 +320,7 @@ export function handleCompounded(event: Compounded): void {
   activity.save()
 }
 
-export function handleAutoCompounded(event: AutoCompounded): void {
+export function handleAutoCompoundTriggered(event: AutoCompoundTriggered): void {
   const user = loadOrCreateUser(event.params.user, event.block.timestamp)
   
   // Create compound entity
@@ -337,14 +328,14 @@ export function handleAutoCompounded(event: AutoCompounded): void {
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
   compound.user = user.id
-  compound.amount = event.params.amount
+  compound.amount = event.params.compoundedAmount
   compound.timestamp = event.block.timestamp
   compound.transactionHash = event.transaction.hash
   compound.blockNumber = event.block.number
   compound.save()
   
   // Update user totals
-  user.totalCompounded = user.totalCompounded.plus(event.params.amount)
+  user.totalCompounded = user.totalCompounded.plus(event.params.compoundedAmount)
   user.updatedAt = event.block.timestamp
   user.save()
   
@@ -352,9 +343,9 @@ export function handleAutoCompounded(event: AutoCompounded): void {
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "STAKING_AUTO_COMPOUND"
+  activity.type = "AUTO_COMPOUND_TRIGGERED"
   activity.user = user.id
-  activity.amount = event.params.amount
+  activity.amount = event.params.compoundedAmount
   activity.timestamp = event.block.timestamp
   activity.transactionHash = event.transaction.hash
   activity.blockNumber = event.block.number
@@ -416,15 +407,54 @@ export function handleSkillProfileUpdated(event: SkillProfileUpdated): void {
   user.save()
 }
 
-export function handleSkillUpgraded(event: SkillUpgraded): void {
+export function handleCommissionPaid(event: CommissionPaid): void {
+  const user = loadOrCreateUser(event.params.receiver, event.block.timestamp)
+  
+  // Create activity for commission payments
+  const activity = new Activity(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
+  )
+  activity.type = "COMMISSION_PAID"
+  activity.user = user.id
+  activity.amount = event.params.amount
+  activity.timestamp = event.block.timestamp
+  activity.transactionHash = event.transaction.hash
+  activity.blockNumber = event.block.number
+  activity.save()
+  
+  // Update user stats
+  const userStats = getOrCreateUserStats(event.params.receiver, event.block.timestamp)
+  userStats.totalRoyaltiesReceived = userStats.totalRoyaltiesReceived.plus(event.params.amount)
+  userStats.updatedAt = event.block.timestamp
+  userStats.save()
+}
+
+export function handleEmergencyWithdrawal(event: EmergencyWithdrawal): void {
   const user = loadOrCreateUser(event.params.user, event.block.timestamp)
+  
+  // Create withdrawal entity for emergency withdrawal
+  const withdrawal = new Withdrawal(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
+  )
+  withdrawal.user = user.id
+  withdrawal.amount = event.params.amount
+  withdrawal.timestamp = event.block.timestamp
+  withdrawal.transactionHash = event.transaction.hash
+  withdrawal.blockNumber = event.block.number
+  withdrawal.save()
+  
+  // Update user totals
+  user.totalWithdrawn = user.totalWithdrawn.plus(event.params.amount)
+  user.updatedAt = event.block.timestamp
+  user.save()
   
   // Create activity
   const activity = new Activity(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   )
-  activity.type = "SKILL_UPGRADED"
+  activity.type = "EMERGENCY_WITHDRAWAL"
   activity.user = user.id
+  activity.amount = event.params.amount
   activity.timestamp = event.block.timestamp
   activity.transactionHash = event.transaction.hash
   activity.blockNumber = event.block.number

@@ -1,0 +1,2497 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_treasuryAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "CannotTransferActiveSkill",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "required",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "current",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientStakingBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidAddress",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "level",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidLevel",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidMetadata",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expected",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "provided",
+        "type": "uint256"
+      }
+    ],
+    "name": "InvalidPrice",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "rarity",
+        "type": "uint8"
+      }
+    ],
+    "name": "InvalidRarity",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "InvalidSkillType",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "max",
+        "type": "uint8"
+      }
+    ],
+    "name": "MaxActiveSkillsReached",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotSkillOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expiresAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillAlreadyExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SkillIsActive",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SkillNotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "expiresAt",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillNotExpired",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillNotInList",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "StakingNotificationFailed",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "BasePriceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "admin",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "EmergencyWithdrawal",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "IndividualSkillActivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "IndividualSkillDeactivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "IndividualSkillExpired",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      }
+    ],
+    "name": "IndividualSkillPurchased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newExpiryTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "IndividualSkillRenewed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "IndividualSkillTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "RarityEffectMultiplierUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "previousAdminRole",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "newAdminRole",
+        "type": "bytes32"
+      }
+    ],
+    "name": "RoleAdminChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "RoleGranted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "RoleRevoked",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillCleanedUp",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newEffectValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillEffectValueUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint8",
+        "name": "level",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "SkillLevelMultiplierUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "basePrice",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "rarityMultiplier",
+        "type": "uint256"
+      }
+    ],
+    "name": "SkillPricingUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "operation",
+        "type": "string"
+      }
+    ],
+    "name": "SkillPurchaseProcessed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldStaking",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newStaking",
+        "type": "address"
+      }
+    ],
+    "name": "StakingContractUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "oldTreasury",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newTreasury",
+        "type": "address"
+      }
+    ],
+    "name": "TreasuryAddressUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "Unpaused",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "ADMIN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "DEFAULT_ADMIN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "activateIndividualSkill",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "basePricePerRarity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "claimExpiredIndividualSkill",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "deactivateIndividualSkill",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "emergencyWithdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "emergencyWithdrawAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getActiveIndividualSkills",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "activeSkillIds",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllSkillsPricing",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType[]",
+        "name": "skillTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint8[]",
+        "name": "categories",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[][]",
+        "name": "prices",
+        "type": "uint256[][]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCurrentBasePrices",
+    "outputs": [
+      {
+        "internalType": "uint256[5]",
+        "name": "prices",
+        "type": "uint256[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getIndividualSkill",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      }
+    ],
+    "name": "getIndividualSkillPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getIndividualSkillsMarketStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "skillsSold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activeSkills",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "revenue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averagePricePerSkill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "uniqueBuyers",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getLevelMultipliers",
+    "outputs": [
+      {
+        "internalType": "uint16[3]",
+        "name": "multipliers",
+        "type": "uint16[3]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getRarityEffectMultipliers",
+    "outputs": [
+      {
+        "internalType": "uint16[5]",
+        "name": "multipliers",
+        "type": "uint16[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRoleAdmin",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSkillAdoptionRates",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType[]",
+        "name": "skillTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "userCounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "percentages",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getSkillEffectValuesAllRarities",
+    "outputs": [
+      {
+        "internalType": "uint16[5]",
+        "name": "effectValues",
+        "type": "uint16[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      }
+    ],
+    "name": "getSkillPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getSkillPricesAllRarities",
+    "outputs": [
+      {
+        "internalType": "uint256[5]",
+        "name": "prices",
+        "type": "uint256[5]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSkillRevenueByRarity",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.Rarity[]",
+        "name": "rarities",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "revenue",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "salesCount",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSkillRevenueByType",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType[]",
+        "name": "skillTypes",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "revenue",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "salesCount",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "getUserActiveIndividualSkills",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserActiveSkillCount",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "count",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserIndividualSkills",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserIndividualSkillsDetailed",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "skills",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isActive",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserPlatformSkills",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "skills",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isActive",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isExpired",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserSkillSpending",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalSpent",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "skillsPurchased",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "averageSpentPerSkill",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "mostPurchasedType",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserSkillStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalSkills",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalStakingSkills",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalPlatformSkills",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "activeCount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expiredCount",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserSkillsByCategory",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "stakingSkills",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "activeSkills",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserSkillsComprehensive",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "allSkills",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isActive",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isExpired",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "expiresIn",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "categoryNames",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "getUserStakingSkills",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum IStakingIntegration.SkillType",
+            "name": "skillType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum IStakingIntegration.Rarity",
+            "name": "rarity",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "level",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "purchasedAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "expiresAt",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "metadata",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "createdAt",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct IIndividualSkills.IndividualSkill[]",
+        "name": "skills",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isActive",
+        "type": "bool[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "isExpired",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "grantRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "hasRole",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "individualSkills",
+    "outputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "level",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "purchasedAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expiresAt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isActive",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "metadata",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "createdAt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "levelMultiplier",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_level",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_metadata",
+        "type": "string"
+      }
+    ],
+    "name": "purchaseIndividualSkill",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "skillId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "rarityEffectMultiplier",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      }
+    ],
+    "name": "renewIndividualSkill",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "renounceRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "resetSkillPricingToDefaults",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "revenueByRarity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "revenueBySkillType",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "revokeRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_rarityIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_newPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBasePricePerRarity",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_levelIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "setLevelMultiplier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "_rarityIndex",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_newMultiplier",
+        "type": "uint16"
+      }
+    ],
+    "name": "setRarityEffectMultiplier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_effectValue",
+        "type": "uint16"
+      }
+    ],
+    "name": "setSkillEffectValue",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_commonEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_uncommonEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_rareEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_epicEffect",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_legendaryEffect",
+        "type": "uint16"
+      }
+    ],
+    "name": "setSkillEffectValuesAllRarities",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_stakingAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setStakingContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_treasuryAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setTreasuryAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillEffectValues",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillLevelCount",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillPrices",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillsSoldByRarity",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "skillsSoldByType",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stakingContractAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
+      }
+    ],
+    "name": "supportsInterface",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalRevenue",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalSkillsSold",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_skillId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      }
+    ],
+    "name": "transferIndividualSkill",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "treasuryAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unpause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_commonPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_uncommonPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_rarePrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_epicPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_legendaryPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateActiveSkillsPricing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum IStakingIntegration.SkillType",
+        "name": "_skillType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum IStakingIntegration.Rarity",
+        "name": "_rarity",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_price",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateSkillPrice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_commonPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_uncommonPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_rarePrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_epicPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_legendaryPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateStakingSkillsPricing",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userActiveSkillCount",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userActiveSkills",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "userIndividualSkills",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "userTotalSpent",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
+]

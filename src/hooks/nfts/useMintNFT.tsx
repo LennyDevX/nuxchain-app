@@ -3,8 +3,10 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress } from 'viem';
 import type { Abi } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
-import GameifiedMarketplaceSkillsABI from '../../abi/GameifiedMarketplaceSkills.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
+// Ensure the JSON file exists at the specified path.
+// If you still get type errors, add a declaration for '*.json' imports in your project.
+import GameifiedMarketplaceSkillsABI from '../../abi/GameifiedMarketplaceSkillsV2/GameifiedMarketplaceSkillsV2.json';
 import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
 
 interface MintNFTParams {
@@ -13,6 +15,7 @@ interface MintNFTParams {
   description: string;
   category: string;
   royalty: number;
+  count?: number; // Number of copies to mint
   skills?: Array<{
     skillType: number;  // 0-17: All 18 official skills
     rarity: number;     // 0-4: COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
@@ -70,13 +73,14 @@ export default function useMintNFT() {
   }, []);
 
   // Mint NFT using new modular architecture
-  const mintNFT = useCallback(async ({ 
-    file, 
-    name, 
-    description, 
-    category, 
-    royalty, 
-    skills = [] 
+  const mintNFT = useCallback(async ({
+    file,
+    name,
+    description,
+    category,
+    royalty,
+    count = 1,
+    skills = []
   }: MintNFTParams): Promise<MintNFTResult> => {
     setLoading(true);
     setError(null);
@@ -85,17 +89,17 @@ export default function useMintNFT() {
 
     try {
       console.log("🎨 Starting NFT minting process (New Architecture)");
-      
+
       // Validate addresses
       if (!validatedProxyAddress || !validatedSkillsAddress) {
         throw new Error('Contract addresses not configured. Check .env file.');
       }
-      
+
       // Check wallet connection
       if (!walletClient || !address) {
         throw new Error('Please connect your wallet to mint NFTs');
       }
-      
+
       console.log("✅ Wallet connected:", address);
       console.log("📍 Proxy Address:", validatedProxyAddress);
       console.log("📍 Skills Address:", validatedSkillsAddress);
@@ -160,29 +164,33 @@ export default function useMintNFT() {
         client: { public: publicClient, wallet: walletClient }
       });
 
-      // Step 4: Mint Standard NFT (Core contract)
-      console.log("🔨 Minting Standard NFT...");
       const royaltyBasisPoints = Math.floor(royalty || 250); // 2.5% default
 
-      // Estimate gas for core minting
+      // Decide which function to call based on count
+      const isBatch = count > 1;
+      const mintFunctionName = isBatch ? 'createStandardNFTBatch' : 'createStandardNFT';
+      const mintArgs = isBatch
+        ? [metadataUrl, normalizedCategory, royaltyBasisPoints, BigInt(count)]
+        : [metadataUrl, normalizedCategory, royaltyBasisPoints];
+
+      console.log(`🔨 Minting ${isBatch ? count + ' copies' : 'Standard NFT'}...`);
+
+      // Estimate gas for minting
       let gasEstimate = 500000n;
-      try {
-        const estimated = await coreContract.estimateGas.createStandardNFT([
-          metadataUrl,
-          normalizedCategory,
-          royaltyBasisPoints
-        ]);
-        gasEstimate = (estimated * 120n) / 100n; // 20% buffer
-        console.log("⛽ Gas estimate:", gasEstimate.toString());
-      } catch {
-        console.warn("⚠️ Gas estimation failed, using default");
+      if (isBatch) {
+        // Adjust gas for batch: base + (per item extra)
+        gasEstimate = 300000n + (BigInt(count) * 200000n);
       }
 
-      const tx = await coreContract.write.createStandardNFT([
-        metadataUrl,
-        normalizedCategory,
-        royaltyBasisPoints
-      ], {
+      try {
+        const estimated = await coreContract.estimateGas[mintFunctionName](mintArgs);
+        gasEstimate = (estimated * 130n) / 100n; // 30% buffer for batching
+        console.log("⛽ Gas estimate:", gasEstimate.toString());
+      } catch {
+        console.warn("⚠️ Gas estimation failed, using fallback:", gasEstimate.toString());
+      }
+
+      const tx = await coreContract.write[mintFunctionName](mintArgs, {
         gas: gasEstimate
       });
 
@@ -192,19 +200,24 @@ export default function useMintNFT() {
       // Step 5: Wait for confirmation
       console.log("⏳ Waiting for confirmation...");
       const receipt = await publicClient?.waitForTransactionReceipt({ hash: tx });
-      
+
       if (!receipt || receipt.status !== 'success') {
         throw new Error('Transaction failed on blockchain');
       }
 
-      // Extract token ID from logs
+      // Extract token ID from logs (first one in case of batch)
       let tokenId: number | null = null;
       try {
         // TokenCreated event: TokenCreated(address indexed creator, uint256 indexed tokenId, string uri)
-        const tokenCreatedLog = receipt.logs.find(log => log.topics.length >= 3);
-        if (tokenCreatedLog && tokenCreatedLog.topics[2]) {
-          tokenId = parseInt(tokenCreatedLog.topics[2], 16);
-          console.log("🎟️ Token ID:", tokenId);
+        const tokenCreatedLogs = receipt.logs.filter(log => log.topics.length >= 3);
+        if (tokenCreatedLogs.length > 0) {
+          // If batch, we might have many. For simplicity, we return the first one or a range
+          const firstLog = tokenCreatedLogs[0];
+          const topic2 = firstLog.topics[2];
+          if (topic2) {
+            tokenId = parseInt(topic2, 16);
+            console.log(isBatch ? `🎟️ Batch Minted! First Token ID: ${tokenId} (+ ${count - 1} more)` : `🎟️ Token ID: ${tokenId}`);
+          }
         }
       } catch {
         console.warn("⚠️ Could not extract token ID from logs");
@@ -263,32 +276,32 @@ export default function useMintNFT() {
         tokenId: tokenId,
         imageUrl: imageUrl,
         metadataUrl: metadataUrl,
-        contractAddress: validatedProxyAddress
+        contractAddress: validatedProxyAddress as string
       };
 
     } catch (err: unknown) {
       console.error('❌ Error in mintNFT:', err);
-      
+
       const error = err as { message?: string; data?: string; code?: string | number };
       let errorMessage = 'An unexpected error occurred while minting.';
-      
+
       // User rejected transaction
-      if (error.message?.includes('user rejected') || 
-          error.message?.includes('User rejected') ||
-          error.message?.includes('user denied') ||
-          error.code === 4001 ||
-          error.code === 'ACTION_REJECTED') {
+      if (error.message?.includes('user rejected') ||
+        error.message?.includes('User rejected') ||
+        error.message?.includes('user denied') ||
+        error.code === 4001 ||
+        error.code === 'ACTION_REJECTED') {
         errorMessage = 'Transaction cancelled by user.';
-      } 
+      }
       // Insufficient funds
-      else if (error.message?.includes('insufficient funds') || 
-               error.message?.includes('insufficient balance')) {
+      else if (error.message?.includes('insufficient funds') ||
+        error.message?.includes('insufficient balance')) {
         errorMessage = 'Insufficient MATIC balance.';
-      } 
+      }
       // IPFS errors
       else if (error.message?.includes('IPFS') || error.message?.includes('Pinata')) {
         errorMessage = 'Failed to upload to IPFS. Check your connection.';
-      } 
+      }
       // Contract errors
       else if (error.message?.includes('execution reverted')) {
         errorMessage = 'Transaction rejected by contract.';
@@ -297,7 +310,7 @@ export default function useMintNFT() {
       else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       console.error('Error for user:', errorMessage);
       setError(errorMessage);
       throw new Error(errorMessage);

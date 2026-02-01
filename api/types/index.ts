@@ -232,6 +232,66 @@ export interface StreamResponse {
 }
 
 // ========================================
+// Token Counting Types (Phase 3 - Cost Optimization)
+// ========================================
+
+export interface TokenCountResult {
+  totalTokens: number;
+  estimatedCost: number;
+  charCount?: number;
+  tokensPerChar?: number;
+  isEstimate?: boolean;
+}
+
+export interface MultiPartTokenResult {
+  totalTokens: number;
+  systemTokens: number;
+  contextTokens: number;
+  messageTokens: number;
+  historyTokens: number;
+  isEstimate?: boolean;
+}
+
+export interface OptimizedContextResult {
+  optimizedContext: string;
+  tokenCount: number;
+  wasTruncated: boolean;
+  originalTokens?: number;
+  reduction?: string;
+  isEstimate?: boolean;
+}
+
+export interface CostEstimate {
+  inputCost: number;
+  outputCost: number;
+  cachedCost: number;
+  totalCost: number;
+  savings: number;
+}
+
+export interface CacheWorthiness {
+  isWorthy: boolean;
+  estimatedTokens: number;
+  minRequired: number;
+  reason: string;
+}
+
+export interface TokenStats {
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCachedTokens: number;
+  requestCount: number;
+  averageInputTokens: number;
+  estimatedCostSavings: number;
+}
+
+export interface UsageMetadata {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  cachedContentTokenCount?: number;
+}
+
+// ========================================
 // Analytics Service Types (Phase 2)
 // ========================================
 export interface RequestMetrics {
@@ -258,7 +318,7 @@ export interface PerformanceMetric {
   name: string;
   value: number;
   timestamp: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ServiceStats {
@@ -299,7 +359,7 @@ export interface SystemInstruction {
 // ========================================
 // Context Cache Service Types (Phase 3)
 // ========================================
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   value: T;
   expiresAt: number;
   createdAt: number;
@@ -325,7 +385,7 @@ export interface ScrapedContent {
   url: string;
   title?: string;
   content?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   error?: string;
 }
 
@@ -334,7 +394,7 @@ export interface UrlContentMetadata {
   extractedAt: string;
   contentLength: number;
   originalLength: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ProcessedUrlContent {
@@ -466,3 +526,27 @@ export type Middleware = (
   res: ExpressResponse,
   next: () => void
 ) => void | Promise<void>;
+
+// ============================================
+// Airdrop Service Types
+// ============================================
+
+export interface AirdropRegistration {
+  name: string;
+  email: string;
+  wallet: string;
+  timestamp?: number;
+  createdAt?: any; // Firestore serverTimestamp
+}
+
+export interface AirdropRegistrationRequest {
+  name: string;
+  email: string;
+  wallet: string;
+}
+
+export interface AirdropRegistrationResponse {
+  success: boolean;
+  id?: string;
+  message?: string;
+}

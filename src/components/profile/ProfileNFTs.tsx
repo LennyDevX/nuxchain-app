@@ -20,15 +20,18 @@ const ProfileNFTs: React.FC = () => {
   const isMobile = useIsMobile();
   const prevNftsRef = useRef<NFTData[]>([]);
 
-  // Cache NFTs to prevent flash during refresh - FIXED: Use ref to track previous value
+  // Cache NFTs to prevent flash during refresh - FIXED: Deep check for actual changes
   useEffect(() => {
     if (nfts && nfts.length > 0) {
-      // Only update if NFTs actually changed (check by length and first tokenId)
+      // Check if NFTs actually changed (length, tokenId, or sale status)
       const nftsChanged = 
         prevNftsRef.current.length !== nfts.length ||
-        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId);
+        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId) ||
+        (nfts[0] && prevNftsRef.current[0]?.isForSale !== nfts[0].isForSale) ||
+        (nfts[0] && prevNftsRef.current[0]?.price !== nfts[0].price);
       
       if (nftsChanged) {
+        console.log('🔄 [ProfileNFTs] NFTs data changed, updating cache');
         setCachedNfts(nfts);
         prevNftsRef.current = nfts;
       }
@@ -57,6 +60,17 @@ const ProfileNFTs: React.FC = () => {
       setIsRefreshing(false);
     }
   }, [isRefreshing, refreshNFTs]);
+
+  // Listen for NFT listing changes from other components
+  useEffect(() => {
+    const handleListingChange = () => {
+      console.log('🔔 [ProfileNFTs] NFT listing changed, refreshing...');
+      refreshNFTs();
+    };
+
+    window.addEventListener('nft-listing-changed', handleListingChange);
+    return () => window.removeEventListener('nft-listing-changed', handleListingChange);
+  }, [refreshNFTs]);
 
   // Determine which NFTs to display
   const displayNfts = isRefreshing && cachedNfts.length > 0 ? cachedNfts : nfts;
@@ -101,11 +115,11 @@ const ProfileNFTs: React.FC = () => {
       ) : error ? (
         <div className="card-content text-center py-16 space-y-4">
           <div className="text-6xl mb-4">⚠️</div>
-          {error.includes('indexing') || error.includes('v0.11') ? (
+          {error.includes('indexing') || error.includes('v0.19') ? (
             <>
               <p className="text-yellow-400 font-semibold text-lg">Subgraph is updating...</p>
               <p className="text-gray-400 max-w-md mx-auto">
-                The Graph v0.11 is syncing. 
+                The Graph v0.19 is syncing. 
                 This page will automatically refresh every 30 seconds.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-gray-500">

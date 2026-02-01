@@ -98,21 +98,52 @@ export type QuestType = typeof QuestType[keyof typeof QuestType];
 // 📌 NOTA: Estos direcciones se cargan desde .env y se validan en tiempo de ejecución
 // Usar siempre VITE_GAMEIFIED_MARKETPLACE_PROXY para interactuar con el core
 
+// ✅ Validar variables de entorno críticas
+const validateContractAddress = (address: string | undefined, name: string): string => {
+  if (!address) {
+    const errorMsg = `❌ CRITICAL ERROR: ${name} no está configurado en variables de entorno`;
+    console.error(errorMsg);
+    if (typeof window !== 'undefined') {
+      console.error(`📌 Asegúrate de que ${name} está definido en:`, {
+        location: 'Vercel Environment Variables o .env file',
+        value: 'debe ser una dirección válida 0x...'
+      });
+    }
+    return '0x0000000000000000000000000000000000000000'; // Fallback dummy address
+  }
+  return address;
+};
+
 export const CONTRACT_ADDRESSES: ContractAddresses = {
   // 📌 DIRECCIÓN DEL PROXY (PERMANENTE - USA ESTA PARA INTERACTUAR)
   // Este es el punto de entrada principal - es upgradeable via UUPS
-  GameifiedMarketplaceProxy: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY,
+  GameifiedMarketplaceProxy: validateContractAddress(
+    import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY,
+    'VITE_GAMEIFIED_MARKETPLACE_PROXY'
+  ),
   
   // Implementation contract (para upgrades, no usar directamente)
   // Solo útil para verificación en explorer, el proxy redirecciona
-  GameifiedMarketplaceCore: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_CORE,
+  GameifiedMarketplaceCore: validateContractAddress(
+    import.meta.env.VITE_GAMEIFIED_MARKETPLACE_CORE,
+    'VITE_GAMEIFIED_MARKETPLACE_CORE'
+  ),
   
   // Módulos satelite - usar estos para funciones específicas
-  GameifiedMarketplaceSkills: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS,
-  GameifiedMarketplaceQuests: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS,
+  GameifiedMarketplaceSkills: validateContractAddress(
+    import.meta.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS,
+    'VITE_GAMEIFIED_MARKETPLACE_SKILLS'
+  ),
+  GameifiedMarketplaceQuests: validateContractAddress(
+    import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS,
+    'VITE_GAMEIFIED_MARKETPLACE_QUESTS'
+  ),
   
   // Staking - sincronizado con Marketplace
-  EnhancedSmartStaking: import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS
+  EnhancedSmartStaking: validateContractAddress(
+    import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS,
+    'VITE_ENHANCED_SMARTSTAKING_ADDRESS'
+  )
 };
 
 // ============================================

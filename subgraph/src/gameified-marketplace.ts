@@ -101,17 +101,37 @@ export function handleTokenSold(event: TokenSold): void {
   buyer.updatedAt = event.block.timestamp
   buyer.save()
 
-  const activity = new Activity(
-    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
+  // ✅ ACTIVITY FOR SELLER (NFT_SALE)
+  const sellerActivity = new Activity(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-seller"
   )
-  activity.type = "NFT_SALE"
-  activity.user = seller.id
-  activity.tokenId = event.params.tokenId
-  activity.amount = event.params.price
-  activity.timestamp = event.block.timestamp
-  activity.transactionHash = event.transaction.hash
-  activity.blockNumber = event.block.number
-  activity.save()
+  sellerActivity.type = "NFT_SALE"
+  sellerActivity.user = seller.id
+  sellerActivity.buyer = buyer.id
+  sellerActivity.seller = seller.id
+  sellerActivity.tokenId = event.params.tokenId
+  sellerActivity.amount = event.params.price
+  sellerActivity.category = "nft"
+  sellerActivity.timestamp = event.block.timestamp
+  sellerActivity.transactionHash = event.transaction.hash
+  sellerActivity.blockNumber = event.block.number
+  sellerActivity.save()
+
+  // ✅ ACTIVITY FOR BUYER (NFT_PURCHASE) - THIS WAS MISSING!
+  const buyerActivity = new Activity(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString() + "-buyer"
+  )
+  buyerActivity.type = "NFT_PURCHASE"
+  buyerActivity.user = buyer.id
+  buyerActivity.buyer = buyer.id
+  buyerActivity.seller = seller.id
+  buyerActivity.tokenId = event.params.tokenId
+  buyerActivity.amount = event.params.price
+  buyerActivity.category = "nft"
+  buyerActivity.timestamp = event.block.timestamp
+  buyerActivity.transactionHash = event.transaction.hash
+  buyerActivity.blockNumber = event.block.number
+  buyerActivity.save()
 }
 
 export function handleTokenUnlisted(event: TokenUnlisted): void {

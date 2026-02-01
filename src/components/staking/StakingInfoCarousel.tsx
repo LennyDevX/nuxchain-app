@@ -93,7 +93,7 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
   const handleEnd = useCallback(() => {
     if (!isDragging) return
     setIsDragging(false)
-    
+
     const threshold = 50
     if (translateX > threshold) {
       prevSlide()
@@ -162,21 +162,19 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
   if (!isMobile) {
     // Desktop: Show all components in a grid
     return (
-      <motion.div 
+      <motion.div
         className="grid grid-cols-1 lg:grid-cols-3 gap-6"
         initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        viewport={{ once: true }}
       >
         {slides.map((slide, index) => (
-          <motion.div 
-            key={slide.id} 
+          <motion.div
+            key={slide.id}
             className="w-full"
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
-            viewport={{ once: true }}
           >
             {slide.component}
           </motion.div>
@@ -187,12 +185,11 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
 
   // Mobile: Carousel view
   return (
-    <motion.div 
+    <motion.div
       className="w-full"
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      viewport={{ once: true }}
     >
       {/* Carousel Container */}
       <div className="relative overflow-hidden rounded-xl">
@@ -228,22 +225,20 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       </div>
 
       {/* Dots Indicator */}
-      <motion.div 
+      <motion.div
         className="flex justify-center mt-4 space-x-2"
         initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
-        viewport={{ once: true }}
       >
         {slides.map((_, index) => (
           <motion.button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${
-              index === currentSlide
+            className={`w-2 h-2 rounded-full transition-all duration-200 ${index === currentSlide
                 ? 'bg-blue-400 w-6'
                 : 'bg-white/30 hover:bg-white/50'
-            }`}
+              }`}
             aria-label={`Go to slide ${index + 1}`}
             whileHover={{ scale: 1.3 }}
             whileTap={{ scale: 0.9 }}
@@ -253,7 +248,7 @@ const StakingInfoCarousel: React.FC<StakingInfoCarouselProps> = ({
       </motion.div>
 
       {/* Slide Title */}
-      <motion.div 
+      <motion.div
         className="text-center mt-3"
         key={currentSlide}
         initial={{ opacity: 0, y: -10 }}

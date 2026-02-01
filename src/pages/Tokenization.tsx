@@ -24,6 +24,7 @@ interface FormData {
   description: string;
   category: string;
   royaltyPercentage: number;
+  count: number;
   attributes: Array<{
     trait_type: string;
     value: string;
@@ -36,18 +37,19 @@ function Tokenization() {
   const { isConnected } = useAccount();
   const { mintNFT, loading, error: mintError } = useMintNFT();
   const { totalStaked } = useUserStaking();
-  
+
   // Form state
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     category: 'art',
     royaltyPercentage: 250, // 2.5% default
+    count: 1, // Default to 1 copy
     attributes: [{ trait_type: '', value: '' }],
     nftType: 'standard',
     skills: []
   });
-  
+
   // File and upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -60,19 +62,30 @@ function Tokenization() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isConnected) {
       setError('Please connect your wallet first');
       return;
     }
-    
+
     if (!selectedFile) {
       setError('Please select an image file');
       return;
     }
-    
+
     if (!formData.name.trim() || !formData.description.trim()) {
       setError('Please fill in all required fields');
+      return;
+    }
+
+    // Limit to 500 copies maximum
+    if (formData.count > 500) {
+      setError('You cannot mint more than 500 copies at once.');
+      return;
+    }
+
+    if (formData.count < 1) {
+      setError('Minimum 1 copy required');
       return;
     }
 
@@ -93,7 +106,7 @@ function Tokenization() {
 
     try {
       setError(null);
-      
+
       // Show loading toast while minting
       const mintToastId = toast.loading('Minting NFT...', {
         position: 'top-center',
@@ -107,19 +120,20 @@ function Tokenization() {
           boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
         }
       });
-      
+
       const result = await mintNFT({
         file: selectedFile,
         name: formData.name,
         description: formData.description,
         category: formData.category,
         royalty: formData.royaltyPercentage,
+        count: formData.count,
         skills: formData.skills
       });
-      
+
       // Dismiss loading toast
       toast.dismiss(mintToastId);
-      
+
       if (result.success) {
         // Show only one success toast notification
         toast.success(`NFT #${result.tokenId} Minted`, {
@@ -135,7 +149,7 @@ function Tokenization() {
             boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
           }
         });
-        
+
         // Clear form after success
         setTimeout(() => {
           setFormData({
@@ -143,6 +157,7 @@ function Tokenization() {
             description: '',
             category: 'art',
             royaltyPercentage: 250,
+            count: 1,
             attributes: [{ trait_type: '', value: '' }],
             nftType: 'standard',
             skills: []
@@ -151,14 +166,14 @@ function Tokenization() {
           setImagePreview(null);
         }, 2000);
       }
-      
+
     } catch (err) {
       console.error('Error creating NFT:', err);
       toast.dismiss();
-      
+
       const errorMsg = err instanceof Error ? err.message : 'Failed to create NFT';
       setError(errorMsg || mintError);
-      
+
       // Show error toast - simple message
       toast.error('Minting failed', {
         duration: 4000,
@@ -186,7 +201,7 @@ function Tokenization() {
       return () => clearTimeout(timer);
     }
   }, [error]);
-  
+
 
 
   // Add attribute field
@@ -209,7 +224,7 @@ function Tokenization() {
   const updateAttribute = (index: number, field: 'trait_type' | 'value', value: string) => {
     setFormData(prev => ({
       ...prev,
-      attributes: prev.attributes.map((attr, i) => 
+      attributes: prev.attributes.map((attr, i) =>
         i === index ? { ...attr, [field]: value } : attr
       )
     }));
@@ -224,16 +239,16 @@ function Tokenization() {
         setError('Please select a valid image file');
         return;
       }
-      
+
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setError('File size must be less than 10MB');
         return;
       }
-      
+
       setSelectedFile(file);
       setError(null);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -290,7 +305,7 @@ function Tokenization() {
                   error={error}
                 />
               </div>
-              
+
               <div className="lg:col-span-1">
                 <NFTDetails
                   formData={formData}
@@ -316,14 +331,14 @@ function Tokenization() {
 
         {/* Status Messages and Progress */}
         <div className="space-y-6">
-            {/* Show errors only if any */}
-            {(error || mintError) && (
-              <div className="w-full">
-                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
-                  <p className="text-red-200">{error || mintError}</p>
-                </div>
+          {/* Show errors only if any */}
+          {(error || mintError) && (
+            <div className="w-full">
+              <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4">
+                <p className="text-red-200">{error || mintError}</p>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -332,4 +347,3 @@ function Tokenization() {
 
 export default Tokenization;
 
-        

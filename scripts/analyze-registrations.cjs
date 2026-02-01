@@ -24,7 +24,7 @@ const MIN_SOL_BALANCE = 0.001; // Suspicious if less than this
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 
 // ⚠️ SAFETY: Set to true to actually delete records
-const DELETE_MODE = true;
+const DELETE_MODE = false;
 const DRY_RUN = !DELETE_MODE;
 
 // ============================================================================

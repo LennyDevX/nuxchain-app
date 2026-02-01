@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBottomNavbar } from '../../hooks/mobile';
 import { useChatNavbar } from '../../hooks/mobile/useChatNavbar';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
-import WalletConnect from '../web3/WalletConnect';
+import WalletConnect from '../web3/WalletConnect.tsx';
 
 // Iconos SVG
 const HomeIcon = ({ isActive }: { isActive: boolean }) => (

@@ -196,21 +196,50 @@ export async function submitAirdropRegistration(
     if (walletNetwork === 'solana') {
       try {
         console.log('🔍 Checking wallet balance for bot protection...');
-        const connection = new Connection(SOLANA_RPC_FALLBACKS[DEFAULT_SOLANA_NETWORK][0], 'confirmed');
-        const pubkey = new PublicKey(wallet);
-        const balance = await connection.getBalance(pubkey);
-        const solBalance = balance / LAMPORTS_PER_SOL;
-
-        const MIN_SOL_BALANCE = 0.001; // Minimum SOL to be considered "human"
-        if (solBalance < MIN_SOL_BALANCE) {
-          console.warn('⚠️ Insufficient balance for airdrop:', solBalance);
-          throw new Error(`Insufficient balance. To prevent bots, your wallet must have at least ${MIN_SOL_BALANCE} SOL to participate.`);
+        
+        // Try multiple RPC endpoints with fallback
+        let balance = 0;
+        let rpcSuccess = false;
+        const rpcEndpoints = SOLANA_RPC_FALLBACKS[DEFAULT_SOLANA_NETWORK];
+        
+        for (let i = 0; i < rpcEndpoints.length && !rpcSuccess; i++) {
+          try {
+            console.log(`🔌 Attempting RPC connection ${i + 1}/${rpcEndpoints.length}: ${rpcEndpoints[i]}`);
+            const connection = new Connection(rpcEndpoints[i], 'confirmed');
+            const pubkey = new PublicKey(wallet);
+            balance = await connection.getBalance(pubkey);
+            rpcSuccess = true;
+            console.log(`✅ RPC connection successful on attempt ${i + 1}`);
+          } catch (rpcError) {
+            console.warn(`⚠️ RPC endpoint ${i + 1} failed:`, rpcError);
+            if (i === rpcEndpoints.length - 1) {
+              console.error('❌ All RPC endpoints failed. Proceeding without balance check.');
+              // Allow registration to proceed if RPC is unavailable
+            }
+          }
         }
-        console.log(`✅ Wallet balance check passed: ${solBalance} SOL`);
-      } catch (error: any) {
-        if (error.message.includes('Insufficient balance')) throw error;
+        
+        if (rpcSuccess) {
+          const solBalance = balance / LAMPORTS_PER_SOL;
+          const MIN_SOL_BALANCE = 0.001; // Minimum SOL to be considered "human"
+          
+          console.log(`💰 Wallet balance: ${solBalance} SOL (minimum required: ${MIN_SOL_BALANCE} SOL)`);
+          
+          if (solBalance < MIN_SOL_BALANCE) {
+            console.warn('⚠️ Insufficient balance for airdrop:', solBalance);
+            throw new Error(`Insufficient balance. To prevent bots, your wallet must have at least ${MIN_SOL_BALANCE} SOL to participate. Current balance: ${solBalance.toFixed(4)} SOL`);
+          }
+          console.log(`✅ Wallet balance check passed: ${solBalance} SOL`);
+        } else {
+          console.warn('⚠️ Could not verify balance due to RPC issues. Proceeding with registration...');
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('Insufficient balance')) {
+          throw error; // Re-throw balance errors
+        }
         console.error('❌ Error checking Solana balance:', error);
-        // If RPC fails, we let it pass but log it, or we could be stricter
+        console.log('ℹ️ Proceeding with registration despite balance check failure');
+        // Allow registration to proceed if balance check fails for technical reasons
       }
     }
 
@@ -247,43 +276,72 @@ export async function submitAirdropRegistration(
 
     console.log('📤 Sending to Firestore:', airdropData);
 
-    // Timeout protection
+    // Timeout protection (30 seconds to allow for slower connections)
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout. Please check your connection.')), 10000);
+      setTimeout(() => {
+        console.error('❌ Timeout after 30 seconds');
+        reject(new Error('Request timeout after 30 seconds. Please check your internet connection and try again.'));
+      }, 30000);
     });
 
     const addDocPromise = addDoc(collection(db, 'nuxchainAirdropRegistrations'), airdropData);
 
+    console.log('⏳ Waiting for Firestore response...');
     const docRef = await Promise.race([addDocPromise, timeoutPromise]);
 
-    console.log('✅ Successfully registered for airdrop:', docRef.id);
+    console.log('✅ Successfully registered for airdrop! Document ID:', docRef.id);
+    console.log('🎉 Registration complete. User will receive 6000 NUX tokens.');
     return { success: true, id: docRef.id };
 
   } catch (error) {
     console.error('❌ Error in submitAirdropRegistration:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
 
     if (error instanceof Error) {
       // Permission errors
       if (error.message.includes('permission-denied') || error.message.includes('PERMISSION_DENIED')) {
-        throw new Error('Access denied. Please contact support or check Firestore rules.');
+        console.error('🚫 Firestore permission denied');
+        throw new Error('Access denied. Please contact support or verify your connection.');
       }
 
       // Firebase config errors
       if (error.message.includes('not initialized') || error.message.includes('Firebase') || error.message.includes('app/invalid-credential')) {
-        throw new Error('Database configuration error. Please refresh and try again.');
+        console.error('🔧 Firebase configuration issue');
+        throw new Error('Database configuration error. Please refresh the page and try again.');
       }
 
       // Network errors
-      if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('timeout')) {
+      if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('timeout') || error.message.includes('Failed to fetch')) {
+        console.error('🌐 Network connectivity issue');
         throw new Error('Network error. Please check your internet connection and try again.');
       }
 
-      // Validation errors - pass through
-      if (error.message.includes('Invalid') || error.message.includes('required') || error.message.includes('already registered')) {
+      // Validation errors - pass through with original message
+      if (
+        error.message.includes('Invalid') || 
+        error.message.includes('required') || 
+        error.message.includes('already registered') ||
+        error.message.includes('Insufficient balance') ||
+        error.message.includes('must be at least') ||
+        error.message.includes('pool is now')
+      ) {
+        console.log('ℹ️ Validation error (user-facing):', error.message);
         throw error;
+      }
+
+      // CORS errors
+      if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+        console.error('🔒 CORS issue detected');
+        throw new Error('Security error. Please disable ad blockers or VPN and try again.');
       }
     }
 
-    throw new Error('Failed to submit airdrop registration. Please try again later.');
+    // Generic fallback with more helpful message
+    console.error('❓ Unknown error type. Showing generic message.');
+    throw new Error('Failed to submit airdrop registration. Please try again in a few moments. If the problem persists, contact support.');
   }
 }

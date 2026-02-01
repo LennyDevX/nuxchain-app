@@ -9,10 +9,31 @@ function NFTSection() {
   return (
     <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 lg:grid-cols-2 gap-12'} items-center`}>
-        {/* Información - Izquierda */}
+        {/* Imagen NFT - Izquierda - Ahora visible en desktop */}
+        {!isMobile && (
+          <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0, x: -30, y: 0 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            <ResponsiveImage
+              src="/DragonixCardMinting.jpg"
+              alt="Dragonix NFT Card"
+              mobileSize="w-92 h-92"
+              tabletSize="md:w-92 md:h-92"
+              desktopSize="lg:w-92 lg:h-92"
+              className="rounded-2xl shadow-lg"
+              objectFit="contain"
+              priority
+            />
+          </motion.div>
+        )}
+
+        {/* Información - Derecha */}
         <motion.div
           className={`animate-slide-up ${isMobile ? 'text-center' : ''}`}
-          initial={{ opacity: 0, x: isMobile ? 0 : -30, y: isMobile ? 20 : 0 }}
+          initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
         >
@@ -71,28 +92,6 @@ function NFTSection() {
             </Link>
           </motion.div>
         </motion.div>
-
-        {/* Imagen NFT - Derecha - Solo en desktop */}
-        {/* Imagen NFT - Derecha - Solo en desktop */}
-        {!isMobile && (
-          <motion.div
-            className="flex justify-center"
-            initial={{ opacity: 0, x: 30, y: 0 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-          >
-            <ResponsiveImage
-              src="/NeoHumanNFT.webp"
-              alt="Nuxchain NFT"
-              mobileSize="w-92 h-92"
-              tabletSize="md:w-92 md:h-92"
-              desktopSize="lg:w-92 lg:h-92"
-              className="rounded-2xl shadow-lg"
-              objectFit="contain"
-              priority
-            />
-          </motion.div>
-        )}
       </div>
     </div>
   );

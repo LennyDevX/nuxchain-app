@@ -172,6 +172,14 @@ function Airdrop() {
     }
 
     try {
+      console.log('🚀 Submitting airdrop registration...');
+      console.log('Form data:', {
+        name: formData.name,
+        email: formData.email,
+        wallet: formData.wallet,
+        network: 'solana'
+      });
+
       await submitAirdropRegistration(
         db,
         formData.name,
@@ -180,6 +188,8 @@ function Airdrop() {
         formData.website // Pass honeypot to service for extra verification
       );
 
+      console.log('✅ Registration successful!');
+      
       setSubmitStatus({
         type: 'success',
         message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens.`,
@@ -205,8 +215,15 @@ function Airdrop() {
       }, 8000);
 
     } catch (error) {
-      console.error('Registration error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to register. Please try again.';
+      console.error('❌ Registration error:', error);
+      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to register. Please try again.';
+      
+      console.error('Showing error message to user:', errorMessage);
+      
       setSubmitStatus({
         type: 'error',
         message: errorMessage,

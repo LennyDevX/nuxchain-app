@@ -1,5 +1,5 @@
 import { BaseWalletAdapter, scopePollingDetectionStrategy, WalletReadyState, type WalletName, WalletError } from '@solana/wallet-adapter-base';
-import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { PublicKey, Transaction, VersionedTransaction, type Connection, type SendOptions } from '@solana/web3.js';
 
 export const OKX_WALLET_NAME = 'OKX Wallet' as WalletName<'OKX Wallet'>;
 
@@ -20,7 +20,7 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
 
             // Still poll to see if it's actually installed as extension
             scopePollingDetectionStrategy(() => {
-                const okxwallet = (window as any).okxwallet;
+                const okxwallet = (window as Window & { okxwallet?: { solana?: unknown } }).okxwallet;
                 if (okxwallet?.solana) {
                     this._readyState = WalletReadyState.Installed;
                     this.emit('readyStateChange', this._readyState);
@@ -49,24 +49,17 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
             if (this.readyState !== WalletReadyState.Installed) throw new Error('Wallet not installed');
 
             this._connecting = true;
-            const solana = (window as any).okxwallet?.solana;
+            const solana = (window as Window & { okxwallet?: { solana?: { publicKey: { toString: () => string } } } }).okxwallet?.solana;
 
             if (!solana) {
-                // If on mobile and no provider, attempt deep link
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                if (isMobile) {
-                    const dappUrl = encodeURIComponent(window.location.href);
-                    const deepLink = `https://www.okx.com/download?deeplink=okx://main/web3/dapp/details?dappUrl=${dappUrl}`;
-                    window.location.href = deepLink;
-                    // We don't throw here immediately to avoid UI error flash before redirect
-                    return;
-                }
-                throw new Error('OKX Wallet Solana provider not found. Please open in OKX App.');
+                // We no longer redirect automatically here because of autoConnect.
+                // Redirection should be handled by the UI component on explicit user action.
+                throw new Error('OKX Wallet Solana provider not found. If you are on mobile, please open this site inside the OKX App.');
             }
             this._publicKey = new PublicKey(solana.publicKey.toString());
             this.emit('connect', this._publicKey);
-        } catch (error: any) {
-            const walletError = new WalletError(error?.message || error);
+        } catch (error: unknown) {
+            const walletError = new WalletError(error instanceof Error ? error.message : String(error));
             this.emit('error', walletError);
             throw walletError;
         } finally {
@@ -75,7 +68,7 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
     }
 
     async disconnect(): Promise<void> {
-        const solana = (window as any).okxwallet?.solana;
+        const solana = (window as Window & { okxwallet?: { solana?: { disconnect?: () => Promise<void> } } }).okxwallet?.solana;
         if (solana && typeof solana.disconnect === 'function') {
             await solana.disconnect();
         }
@@ -83,35 +76,35 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
         this.emit('disconnect');
     }
 
-    async sendTransaction(transaction: Transaction | VersionedTransaction, connection: any, options: any = {}): Promise<string> {
+    async sendTransaction(transaction: Transaction | VersionedTransaction, connection: Connection, options: SendOptions = {}): Promise<string> {
         try {
-            const solana = (window as any).okxwallet?.solana;
+            const solana = (window as Window & { okxwallet?: { solana?: unknown } }).okxwallet?.solana;
             if (!solana) throw new Error('Wallet not connected');
 
             const signed = await this.signTransaction(transaction);
-            const rawTransaction = (signed as any).serialize();
+            const rawTransaction = (signed as Transaction & { serialize: () => Uint8Array }).serialize();
             return await connection.sendRawTransaction(rawTransaction, options);
-        } catch (error: any) {
-            const walletError = new WalletError(error?.message || error);
+        } catch (error: unknown) {
+            const walletError = new WalletError(error instanceof Error ? error.message : String(error));
             this.emit('error', walletError);
             throw walletError;
         }
     }
 
     async signTransaction<T extends Transaction | VersionedTransaction>(transaction: T): Promise<T> {
-        const solana = (window as any).okxwallet?.solana;
+        const solana = (window as Window & { okxwallet?: { solana?: { signTransaction?: (tx: T) => Promise<T> } } }).okxwallet?.solana;
         if (!solana || typeof solana.signTransaction !== 'function') throw new Error('Wallet not connected');
         return await solana.signTransaction(transaction);
     }
 
     async signAllTransactions<T extends Transaction | VersionedTransaction>(transactions: T[]): Promise<T[]> {
-        const solana = (window as any).okxwallet?.solana;
+        const solana = (window as Window & { okxwallet?: { solana?: { signAllTransactions?: (txs: T[]) => Promise<T[]> } } }).okxwallet?.solana;
         if (!solana || typeof solana.signAllTransactions !== 'function') throw new Error('Wallet not connected');
         return await solana.signAllTransactions(transactions);
     }
 
     async signMessage(message: Uint8Array): Promise<Uint8Array> {
-        const solana = (window as any).okxwallet?.solana;
+        const solana = (window as Window & { okxwallet?: { solana?: { signMessage?: (msg: Uint8Array) => Promise<{ signature: Uint8Array }> } } }).okxwallet?.solana;
         if (!solana || typeof solana.signMessage !== 'function') throw new Error('Wallet not connected');
         const { signature } = await solana.signMessage(message);
         return signature;

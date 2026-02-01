@@ -108,8 +108,8 @@ function HeroSection() {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <ResponsiveImage
-                    src="/NFT-Coin.webp"
-                    alt="Nuxchain NFT"
+                    src="/DragonixCardNFTs.png"
+                    alt="Dragonix NFT Card"
                     mobileSize="w-32 h-32"
                     tabletSize="w-32 h-32"
                     desktopSize="w-32 h-32"
@@ -270,8 +270,8 @@ function HeroSection() {
                   }}
                 >
                   <ResponsiveImage
-                    src="/NFT-Coin.webp"
-                    alt="Nuxchain NFT"
+                    src="/DragonixCardNFTs.png"
+                    alt="Dragonix NFT Card"
                     mobileSize="w-full h-full"
                     tabletSize="md:w-full md:h-full"
                     desktopSize="lg:w-full lg:h-full"

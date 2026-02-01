@@ -106,8 +106,6 @@ const TokenizationSection: React.FC = () => {
           )}
         </div>
       </div>
-
-
     </section>
   );
 };

@@ -270,9 +270,13 @@ export default async function handler(req, res) {
     }
     catch (error) {
         console.error('[Market API Error]', error);
-        res.status(500).json({
-            error: 'Internal server error',
+        // Si hay un error, retornar un 200 con success:false en lugar de un 500
+        // Esto evita que el frontend rompa y permite reintentos silenciosos
+        res.status(200).json({
+            success: false,
+            error: 'External API error or rate limit',
             message: error instanceof Error ? error.message : 'Unknown error occurred',
+            data: {}, // Retornar data vacía para seguridad del frontend
             timestamp: Date.now()
         });
     }

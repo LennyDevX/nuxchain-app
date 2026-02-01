@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import WalletConnect from '../web3/WalletConnect'
+import WalletConnect from '../web3/WalletConnect.tsx'
 import { useIsMobile } from '../../hooks/mobile'
 
 function Navbar() {

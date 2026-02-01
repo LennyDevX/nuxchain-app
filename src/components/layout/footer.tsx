@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <span className="px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
-                Public Beta v0.2
+                Public Beta v1.0
               </span>
             </div>
           </div>
@@ -32,9 +32,9 @@ const Footer: React.FC = () => {
             <ul className="space-y-2">
               <li><Link to="/staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</Link></li>
               <li><Link to="/nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</Link></li>
-              <li><Link to="/marketplace" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</Link></li>
+              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</Link></li>
               <li><Link to="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</Link></li>
-              <li><Link to="/airdrops" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</Link></li>
+              <li><Link to="/airdrop" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</Link></li>
               <li><Link to="/roadmap" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Roadmap</Link></li>
             </ul>
           </div>
@@ -43,11 +43,11 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Resources</h4>
             <ul className="space-y-2">
-              <li><Link to="/blog" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</Link></li>
-              <li><Link to="/dev-hub" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</Link>
+              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</Link></li>
+              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</Link>
                 <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
-              <li><Link to="/labs" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</Link>
+              <li><Link to="#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</Link>
                 <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
             </ul>
@@ -113,7 +113,7 @@ const Footer: React.FC = () => {
         <div className="mt-12 pt-8 border-t border-gray-800/50">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>© 2025 Nuxchain. All rights reserved.</span>
+              <span>© 2026 Nuxchain. All rights reserved.</span>
               <span className="hidden md:inline">•</span>
               <a href="#privacy" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
               <span className="hidden md:inline">•</span>

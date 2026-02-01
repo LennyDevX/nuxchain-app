@@ -27,6 +27,41 @@ function detectWalletNetwork(wallet: string): 'solana' | null {
 }
 
 /**
+ * Check if a user is already registered by wallet or email
+ */
+export async function checkUserRegistration(
+  db: Firestore,
+  wallet?: string,
+  email?: string
+): Promise<boolean> {
+  try {
+    if (!db) return false;
+    if (!wallet && !email) return false;
+
+    const registrationCollection = collection(db, 'nuxchainAirdropRegistrations');
+
+    // Check by wallet
+    if (wallet) {
+      const qWallet = query(registrationCollection, where('wallet', '==', wallet));
+      const walletSnapshot = await getDocs(qWallet);
+      if (!walletSnapshot.empty) return true;
+    }
+
+    // Check by email
+    if (email) {
+      const qEmail = query(registrationCollection, where('email', '==', email.toLowerCase().trim()));
+      const emailSnapshot = await getDocs(qEmail);
+      if (!emailSnapshot.empty) return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('❌ Error checking registration status:', error);
+    return false;
+  }
+}
+
+/**
  * Get total count of registered users for airdrop
  */
 export async function getRegisteredUsersCount(db: Firestore): Promise<number> {

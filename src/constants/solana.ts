@@ -11,8 +11,12 @@ export type SolanaNetwork = 'mainnet-beta' | 'devnet'
 
 // RPC URLs - Updated with more reliable public endpoints to avoid 403 Forbidden errors
 export const SOLANA_RPC_URLS = {
-  'mainnet-beta': import.meta.env.VITE_SOLANA_RPC_MAINNET || 'https://solana-rpc.publicnode.com' || 'https://api.mainnet-beta.solana.com',
-  devnet: import.meta.env.VITE_SOLANA_RPC_DEVNET || 'https://api.devnet.solana.com',
+  'mainnet-beta': (import.meta.env.VITE_SOLANA_RPC_MAINNET && import.meta.env.VITE_SOLANA_RPC_MAINNET.trim())
+    ? import.meta.env.VITE_SOLANA_RPC_MAINNET
+    : 'https://solana-rpc.publicnode.com',
+  devnet: (import.meta.env.VITE_SOLANA_RPC_DEVNET && import.meta.env.VITE_SOLANA_RPC_DEVNET.trim())
+    ? import.meta.env.VITE_SOLANA_RPC_DEVNET
+    : 'https://api.devnet.solana.com',
 } as const
 
 // Lista de fallbacks para rotación si uno falla

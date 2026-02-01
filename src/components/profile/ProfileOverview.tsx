@@ -37,12 +37,16 @@ const ProfileOverview: React.FC = () => {
 
   const isMobile = useIsMobile();
 
+  // Removed auto-refetch on mount to prevent 429 errors
+  // The hooks already fetch data when address/isConnected change
+  /*
   useEffect(() => {
     if (isConnected && address) {
       refreshNFTs();
       refreshActivities();
     }
   }, [isConnected, address, refreshNFTs, refreshActivities]);
+  */
 
   // Clear Apollo cache and force refresh
   const handleClearCacheAndRefresh = async () => {
@@ -52,10 +56,10 @@ const ProfileOverview: React.FC = () => {
       console.log('🧹 [Apollo] Clearing cache...');
       await clearSubgraphCache(); // Use new centralized cache clearing function
       await Promise.all([
-        refreshActivities(), // Fetch fresh data from The Graph v0.34
+        refreshActivities(), // Fetch fresh data from The Graph v0.38
         refreshNFTs(), // Also refresh NFTs
       ]);
-      console.log('✅ [Apollo] Data refreshed from The Graph v0.34');
+      console.log('✅ [Apollo] Data refreshed from The Graph v0.38');
     } catch (err) {
       console.error('❌ [Apollo] Error clearing cache:', err);
     } finally {

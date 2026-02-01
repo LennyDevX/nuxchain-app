@@ -265,20 +265,14 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           'color: #ffffff;'
         );
 
-        // ✅ DIAGNOSTIC: Log if no purchases found
+        // ✅ DIAGNOSTIC: Log if no purchases found (Silent log, not a warning for empty state)
         if ((purchasesData?.activities?.length || 0) === 0) {
-          console.warn(
-            `%c📌 [The Graph] No NFT purchases found!%c\n` +
-            `├─ User Address: ${address}\n` +
-            `├─ Query Type: NFT_PURCHASE\n` +
-            `├─ Raw Response: ${JSON.stringify(purchasesData)}\n` +
-            `├─ Possible Causes:\n` +
-            `│  1. User hasn't purchased any NFTs yet\n` +
-            `│  2. Subgraph hasn't indexed NFT_PURCHASE activities\n` +
-            `│  3. Subgraph is on old version (need redeploy)\n` +
-            `└─ Solution: Check if new NFT_PURCHASE activities are being created in subgraph handler`,
-            'color: #ff0000; font-weight: bold;',
-            'color: #ffffff;'
+          console.log(
+            `%cℹ️ [The Graph] No NFT purchases found%c\n` +
+            `├─ User: ${address}\n` +
+            `└─ Note: This is normal if the user hasn't bought NFTs yet`,
+            'color: #888888; font-weight: bold;',
+            'color: #888888;'
           );
         } else {
           console.log(

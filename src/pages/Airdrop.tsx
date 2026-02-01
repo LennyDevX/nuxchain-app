@@ -20,6 +20,7 @@ function Airdrop() {
     name: '',
     email: '',
     wallet: '',
+    website: '', // Honeypot field
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,11 +32,11 @@ function Airdrop() {
   const [registeredUsers, setRegisteredUsers] = useState(0);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
   const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
+  const [mountTime] = useState(Date.now());
 
   // Constantes del airdrop
-  const TOKENS_PER_USER = 5000; // 5K NUX tokens por usuario
+  const TOKENS_PER_USER = 6000; // 6K NUX tokens por usuario
   const MAX_USERS = 10000; // 10,000 usuarios máximo
-  const POL_BONUS_PER_USER = 10; // 10 POL por usuario para staking
 
   // Cargar número de usuarios registrados
   useEffect(() => {
@@ -134,17 +135,37 @@ function Airdrop() {
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: '' });
 
+    // Bot Protection: Honeypot check
+    if (formData.website) {
+      console.warn('Bot detected: Honeypot filled');
+      // Artificial delay to mimic real processing and confuse bots
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setSubmitStatus({ type: 'success', message: 'Registration submitted successfully!' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Bot Protection: Timing check (min 3 seconds)
+    const timeToSubmit = Date.now() - mountTime;
+    if (timeToSubmit < 3000) {
+      console.warn('Bot detected: Fast submission', timeToSubmit);
+      setSubmitStatus({ type: 'error', message: 'Something went wrong. Please try again in a few seconds.' });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       await submitAirdropRegistration(
         db,
         formData.name,
         formData.email,
-        formData.wallet
+        formData.wallet,
+        formData.website // Pass honeypot to service for extra verification
       );
 
       setSubmitStatus({
         type: 'success',
-        message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens + 10 POL for staking.`,
+        message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens.`,
       });
       setShowSuccess(true);
 
@@ -158,6 +179,7 @@ function Airdrop() {
         wallet: solanaConnected && solanaPublicKey
           ? solanaPublicKey.toBase58()
           : '',
+        website: '',
       });
 
       // Hide success message after 8 seconds
@@ -183,7 +205,6 @@ function Airdrop() {
   // Calcular usuarios restantes y estadísticas
   const isPoolFull = registeredUsers >= MAX_USERS;
   const usersRemaining = Math.max(0, MAX_USERS - registeredUsers);
-  const totalPolBonus = registeredUsers * POL_BONUS_PER_USER;
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
 
   return (
@@ -202,9 +223,6 @@ function Airdrop() {
             </h1>
             <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto mb-2">
               Register now and receive <span className="font-bold text-purple-400">{TOKENS_PER_USER.toLocaleString()} NUX tokens</span>
-            </p>
-            <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-6">
-              Plus <span className="font-bold text-pink-400">10 POL tokens</span> bonus for staking
             </p>
 
             {/* Token Info Cards */}
@@ -250,22 +268,69 @@ function Airdrop() {
               <div className="lg:col-span-7">
                 <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-xl rounded-3xl border border-gray-700/50 p-6 sm:p-8 lg:p-10 shadow-2xl">
                   {isPoolFull ? (
-                    <div className="text-center py-12 px-6 bg-red-500/5 border border-red-500/20 rounded-2xl">
-                      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m13-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold text-white mb-3">Airdrop Pool Full!</h3>
-                      <p className="text-gray-400 text-sm mb-6 max-w-sm mx-auto">
-                        All {MAX_USERS.toLocaleString()} slots have been filled. Registration is now closed. Thank you for your interest!
-                      </p>
-                      <div className="inline-block px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-xs font-bold uppercase tracking-widest">
-                        Sold Out
+                    <div className="relative overflow-hidden group">
+                      {/* Decorative Background Elements */}
+                      <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-colors duration-500"></div>
+                      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl group-hover:bg-blue-600/30 transition-colors duration-500"></div>
+
+                      <div className="relative z-10 text-center py-16 px-8 sm:py-20 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl">
+                        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-full mb-8 shadow-inner border border-red-500/20 animate-pulse">
+                          <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+
+                        <h3 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight uppercase">
+                          <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">Waitlist Initialized</span>
+                        </h3>
+
+                        <p className="text-xl text-white font-medium mb-6">You missed the first wave!</p>
+
+                        <div className="max-w-md mx-auto space-y-4 text-gray-400 text-base leading-relaxed mb-10">
+                          <p>
+                            All <span className="text-white font-bold">{MAX_USERS.toLocaleString()}</span> early adopter slots have been claimed in record time.
+                          </p>
+                          <p className="text-sm">
+                            The demand for <span className="text-purple-400 font-semibold">$NUX</span> is unprecedented. Don't let the next opportunity slip away.
+                          </p>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                          <div className="px-6 py-3 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                            <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                            Sold Out
+                          </div>
+                          <a
+                            href="https://x.com/nuxchain"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-full font-bold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center gap-2"
+                          >
+                            Follow for Phase 2
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z" /></svg>
+                          </a>
+                        </div>
+
+                        <p className="mt-12 text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">
+                          Official $NUX ecosystem registration
+                        </p>
                       </div>
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
+                      {/* Honeypot field - invisible to humans */}
+                      <div className="hidden" aria-hidden="true">
+                        <label htmlFor="website">Website</label>
+                        <input
+                          type="text"
+                          id="website"
+                          name="website"
+                          value={formData.website}
+                          onChange={handleInputChange}
+                          tabIndex={-1}
+                          autoComplete="off"
+                        />
+                      </div>
                       {/* Name Input */}
                       <div className="space-y-2">
                         <label htmlFor="name" className="block text-sm font-medium text-gray-300">
@@ -354,7 +419,6 @@ function Airdrop() {
                           <p className="font-medium text-purple-300 mb-1">What you'll receive:</p>
                           <ul className="list-disc list-inside space-y-1 text-gray-400">
                             <li><strong className="text-white">{TOKENS_PER_USER.toLocaleString()} NUX tokens</strong> on Solana network</li>
-                            <li><strong className="text-white">10 POL tokens</strong> bonus for staking</li>
                             <li>Early access to Nuxchain ecosystem</li>
                           </ul>
                         </div>
@@ -473,19 +537,7 @@ function Airdrop() {
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
                       <span className="text-gray-400 text-sm">Total NUX Pool</span>
-                      <span className="text-white font-semibold">50M</span>
-                    </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-700/50 bg-pink-500/5 -mx-2 px-2 py-2 rounded-lg">
-                      <span className="text-gray-400 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                        </svg>
-                        Total POL Bonus
-                      </span>
-                      <span className="text-pink-300 font-bold">
-                        {isLoadingCount ? '...' : totalPolBonus.toLocaleString()} POL
-                      </span>
+                      <span className="text-white font-semibold">60M</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Airdrop Date</span>
@@ -508,12 +560,6 @@ function Airdrop() {
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                       <span><strong className="text-white">{(TOKENS_PER_USER / 1000).toLocaleString()}K NUX tokens</strong> - Launch price allocation</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span><strong className="text-white">10 POL bonus</strong> for staking rewards</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -547,16 +593,6 @@ function Airdrop() {
 
             {/* Additional Info - Mobile */}
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:hidden">
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 text-center">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-white mb-2">Start Staking</h3>
-                <p className="text-sm text-gray-400">Use your 20 POL to earn rewards through staking</p>
-              </div>
-
               <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 text-center">
                 <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -604,12 +640,6 @@ function Airdrop() {
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span><strong className="text-purple-300">{TOKENS_PER_USER.toLocaleString()} NUX tokens</strong></span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span><strong className="text-pink-300">10 POL tokens</strong> bonus</span>
                   </li>
                 </ul>
               </div>

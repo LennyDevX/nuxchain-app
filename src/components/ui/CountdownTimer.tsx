@@ -73,7 +73,7 @@ function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
         <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
           Registration Ends In
         </h3>
-        <p className="text-sm text-gray-400">Don't miss out on your 20 POL tokens!</p>
+        <p className="text-sm text-gray-400">Don't miss out on your airdrop allocation!</p>
       </div>
 
       <div className="grid grid-cols-4 gap-2 sm:gap-4">
@@ -93,7 +93,7 @@ function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
                 {unit.label}
               </div>
             </div>
-            
+
             {/* Animated glow effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl sm:rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
           </div>

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, Connection } from '@solana/web3.js'
 import { DEFAULT_SOLANA_NETWORK, SOLANA_RPC_FALLBACKS, type SolanaNetwork } from '../../constants/solana'
+import { useIsMobile } from '../mobile/useIsMobile'
 
 interface SolanaAccount {
   address: string | null
@@ -121,12 +122,13 @@ export const useSolanaWallet = (): SolanaWalletState => {
  */
 export const useSolanaWalletDetection = () => {
   const { wallets } = useWallet()
+  const isMobile = useIsMobile()
 
-  const hasPhantom = useMemo(() => !!(window.phantom?.solana?.isPhantom), [])
-  const hasOKX = useMemo(() => !!(window.okxwallet?.solana), [])
+  const hasPhantom = useMemo(() => wallets.some(w => w.adapter.name === 'Phantom' && (w.readyState === 'Installed' || w.readyState === 'Loadable')), [wallets])
+  const hasOKX = useMemo(() => wallets.some(w => w.adapter.name.includes('OKX') && (w.readyState === 'Installed' || w.readyState === 'Loadable')), [wallets])
   const availableWallets = useMemo(
-    () => wallets?.filter((w) => w.readyState === 'Installed').map((w) => w.adapter.name) || [],
-    [wallets]
+    () => wallets?.filter((w) => w.readyState === 'Installed' || w.readyState === 'Loadable' || (isMobile && (w.adapter.name === 'Phantom' || w.adapter.name.includes('OKX')))).map((w) => w.adapter.name) || [],
+    [wallets, isMobile]
   )
 
   return {

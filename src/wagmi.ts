@@ -1,7 +1,7 @@
 import { http, createConfig } from 'wagmi'
 import { polygon, polygonAmoy } from 'wagmi/chains'
 import { injected, metaMask, walletConnect } from 'wagmi/connectors'
-import { DEFAULT_SOLANA_NETWORK, SOLANA_NETWORKS } from './constants/solana'
+import { DEFAULT_SOLANA_NETWORK } from './constants/solana'
 
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined
 const alchemyApiKey = import.meta.env.VITE_ALCHEMY as string | undefined

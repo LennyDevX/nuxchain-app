@@ -1,5 +1,6 @@
 import { collection, addDoc, serverTimestamp, query, where, getDocs, getCountFromServer, type Firestore } from 'firebase/firestore';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { DEFAULT_SOLANA_NETWORK, SOLANA_RPC_FALLBACKS } from '../../constants/solana';
 
 /**
  * Validate if a string is a valid Solana address (Base58)
@@ -52,7 +53,8 @@ export async function submitAirdropRegistration(
   db: Firestore,
   name: string,
   email: string,
-  wallet: string
+  wallet: string,
+  honeypot?: string
 ) {
   try {
     console.log('📝 Starting airdrop registration...');
@@ -111,6 +113,18 @@ export async function submitAirdropRegistration(
     console.log('✅ All client-side validations passed');
 
     // ========================================
+    // SERVER-SIDE LIMIT CHECK
+    // ========================================
+    console.log('🔍 Verifying pool capacity...');
+    const MAX_USERS = 10000; // MUST match frontend
+    const currentCount = await getRegisteredUsersCount(db);
+
+    if (currentCount >= MAX_USERS) {
+      console.warn('⚠️ Registration attempted on full pool:', currentCount);
+      throw new Error('Airdrop pool is now completely full. Registration is closed.');
+    }
+
+    // ========================================
     // CHECK FOR DUPLICATES (BEFORE WRITE)
     // ========================================
     console.log('🔍 Checking for duplicate wallet...');
@@ -142,6 +156,47 @@ export async function submitAirdropRegistration(
     console.log('✅ No duplicates found, proceeding with registration');
 
     // ========================================
+    // BOT PROTECTION: SOLANA BALANCE CHECK
+    // ========================================
+    if (walletNetwork === 'solana') {
+      try {
+        console.log('🔍 Checking wallet balance for bot protection...');
+        const connection = new Connection(SOLANA_RPC_FALLBACKS[DEFAULT_SOLANA_NETWORK][0], 'confirmed');
+        const pubkey = new PublicKey(wallet);
+        const balance = await connection.getBalance(pubkey);
+        const solBalance = balance / LAMPORTS_PER_SOL;
+
+        const MIN_SOL_BALANCE = 0.001; // Minimum SOL to be considered "human"
+        if (solBalance < MIN_SOL_BALANCE) {
+          console.warn('⚠️ Insufficient balance for airdrop:', solBalance);
+          throw new Error(`Insufficient balance. To prevent bots, your wallet must have at least ${MIN_SOL_BALANCE} SOL to participate.`);
+        }
+        console.log(`✅ Wallet balance check passed: ${solBalance} SOL`);
+      } catch (error: any) {
+        if (error.message.includes('Insufficient balance')) throw error;
+        console.error('❌ Error checking Solana balance:', error);
+        // If RPC fails, we let it pass but log it, or we could be stricter
+      }
+    }
+
+    // Bot check (honeypot redundant but good to have)
+    if (honeypot) {
+      throw new Error('Bot detected.');
+    }
+
+    // ========================================
+    // GET CLIENT IP (for bot identification)
+    // ========================================
+    let ipAddress = 'unknown';
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipResponse.json();
+      ipAddress = ipData.ip;
+    } catch (ipError) {
+      console.warn('⚠️ Could not fetch client IP:', ipError);
+    }
+
+    // ========================================
     // CREATE DOCUMENT
     // ========================================
     const airdropData = {
@@ -149,10 +204,10 @@ export async function submitAirdropRegistration(
       email: normalizedEmail,
       wallet: normalizedWallet,
       network: walletNetwork, // Store network type
+      ipAddress: ipAddress, // Store IP for bot farm detection
       createdAt: serverTimestamp(),
       status: 'pending',
-      airdropAmount: '5000', // 5K NUX tokens
-      polBonus: '10', // 10 POL bonus
+      airdropAmount: '6000', // 6K NUX tokens
     };
 
     console.log('📤 Sending to Firestore:', airdropData);

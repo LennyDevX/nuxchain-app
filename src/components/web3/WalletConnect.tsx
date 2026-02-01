@@ -205,9 +205,16 @@ function WalletConnect() {
                 if (disabledReason) return
                 setConnectionError(null)
                 setIsConnecting(true)
+
+                // Mobile deep linking logic for MetaMask
+                if (isMobile && key === 'metamask') {
+                  console.log('[EVM Connect] Attempting MetaMask mobile connection...')
+                }
+
                 await connectAsync({ connector: connector as Connector })
-              } catch (error) {
-                setConnectionError('Connection failed')
+              } catch (error: any) {
+                console.error('[EVM Connect] Error:', error)
+                setConnectionError(`Connection failed: ${error.message || 'Check your wallet app'}`)
               } finally {
                 setTimeout(() => setIsConnecting(false), 500)
               }
@@ -227,69 +234,66 @@ function WalletConnect() {
     </div>
   )
 
-  const renderSolanaWallets = (dense = false) => (
-    <div className="space-y-2">
-      {/* OKX Prioridad */}
-      <button
-        onClick={async () => {
-          try {
-            setConnectionError(null)
-            setIsConnecting(true)
-            const okxSolana = (window as any).okxwallet?.solana
-            if (okxSolana) {
-              await okxSolana.connect()
-              setActiveNetwork('solana')
-            } else {
-              const adapter = wallets?.find(w => w.adapter.name.toLowerCase().includes('okx'))
-              if (adapter) await selectSolanaWallet?.(adapter.adapter.name)
-            }
-          } catch (error) {
-            setConnectionError('OKX Solana failed')
-          } finally {
-            setTimeout(() => setIsConnecting(false), 500)
-          }
-        }}
-        className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
-          } bg-white/5 hover:bg-white/10`}
-      >
-        <img src={OKX_LOGO} alt="OKX" className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />
-        <div className="flex flex-col">
-          <span className="font-medium text-white">OKX Wallet</span>
-          <span className="text-[10px] text-white/40">Multi-chain support</span>
-        </div>
-      </button>
+  const renderSolanaWallets = (dense = false) => {
+    // Filter to show specific wallets or all available from adapter
+    const displayWallets = wallets.filter(w =>
+      ['Phantom', 'OKX Wallet', 'Solflare'].includes(w.adapter.name)
+    )
 
-      {/* Phantom */}
-      <button
-        onClick={async () => {
-          try {
-            setConnectionError(null)
-            setIsConnecting(true)
-            const phantom = (window as any).phantom?.solana
-            if (phantom) {
-              await phantom.connect()
-              setActiveNetwork('solana')
-            } else {
-              const adapter = wallets?.find(w => w.adapter.name === 'Phantom')
-              if (adapter) await selectSolanaWallet?.(adapter.adapter.name)
-            }
-          } catch (error) {
-            setConnectionError('Phantom failed')
-          } finally {
-            setTimeout(() => setIsConnecting(false), 500)
-          }
-        }}
-        className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
-          } bg-white/5 hover:bg-white/10`}
-      >
-        <img src={PHANTOM_LOGO} alt="Phantom" className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />
-        <div className="flex flex-col">
-          <span className="font-medium text-white">Phantom</span>
-          <span className="text-[10px] text-white/40">Solana & EVM wallet</span>
-        </div>
-      </button>
-    </div>
-  )
+    return (
+      <div className="space-y-2">
+        {displayWallets.length > 0 ? (
+          displayWallets.map((wallet) => (
+            <button
+              key={wallet.adapter.name}
+              onClick={async () => {
+                try {
+                  setConnectionError(null)
+                  setIsConnecting(true)
+
+                  // If on mobile and not installed, it might trigger a deep link if correctly handled by adapter
+                  if (wallet.readyState === 'NotDetected' && isMobile) {
+                    if (wallet.adapter.name === 'Phantom') {
+                      const dappUrl = encodeURIComponent(window.location.href);
+                      const deepLink = `https://phantom.app/ul/browse/${dappUrl}?ref=${encodeURIComponent(window.location.origin)}`;
+                      window.location.href = deepLink;
+                      return;
+                    }
+                    // For others like OKX, we rely on the adapter's connect() redirection implemented above
+                    await selectSolanaWallet(wallet.adapter.name)
+                  } else {
+                    await selectSolanaWallet(wallet.adapter.name)
+                  }
+
+                  // Automatically try to connect after selection
+                  if (wallet.readyState === 'Installed' || wallet.readyState === 'Loadable') {
+                    await wallet.adapter.connect()
+                  }
+                } catch (error: any) {
+                  setConnectionError(`${wallet.adapter.name} connection failed: ${error.message || 'Unknown error'}`)
+                  console.error(`[Solana Connect] ${wallet.adapter.name} error:`, error)
+                } finally {
+                  setTimeout(() => setIsConnecting(false), 500)
+                }
+              }}
+              className={`w-full text-left rounded-lg transition-colors flex items-center gap-3 border border-white/5 ${dense ? 'px-3 py-2 text-sm' : 'px-4 py-4 text-base'
+                } bg-white/5 hover:bg-white/10`}
+            >
+              <img src={wallet.adapter.icon} alt={wallet.adapter.name} className="w-8 h-8 rounded-lg bg-white/5 p-1 object-contain" />
+              <div className="flex flex-col">
+                <span className="font-medium text-white">{wallet.adapter.name}</span>
+                <span className="text-[10px] text-white/40">
+                  {wallet.readyState === 'Installed' ? 'Installed' : 'App / Extension'}
+                </span>
+              </div>
+            </button>
+          ))
+        ) : (
+          <p className="text-[10px] text-white/40 text-center py-2">No Solana wallets found. Please install Phantom or OKX.</p>
+        )}
+      </div>
+    )
+  }
 
   const isAnyConnected = address || solanaPublicKey
 

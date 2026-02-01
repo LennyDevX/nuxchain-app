@@ -6,7 +6,7 @@ export const OKX_WALLET_NAME = 'OKX Wallet' as WalletName<'OKX Wallet'>;
 export class OkxWalletAdapter extends BaseWalletAdapter {
     name = OKX_WALLET_NAME;
     url = 'https://www.okx.com/web3';
-    icon = 'https://static.okx.com/cdn/assets/imgs/221/9811C61F1E67C948.png';
+    icon = '/OKXLogo.webp';
     supportedTransactionVersions = new Set(['legacy', 0] as const);
 
     private _publicKey: PublicKey | null = null;
@@ -16,7 +16,9 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
     constructor() {
         super();
         if (typeof window !== 'undefined') {
-            this._readyState = WalletReadyState.Loadable;
+            this._readyState = WalletReadyState.Installed; // Default to Installed to show it on mobile
+
+            // Still poll to see if it's actually installed as extension
             scopePollingDetectionStrategy(() => {
                 const okxwallet = (window as any).okxwallet;
                 if (okxwallet?.solana) {
@@ -48,13 +50,19 @@ export class OkxWalletAdapter extends BaseWalletAdapter {
 
             this._connecting = true;
             const solana = (window as any).okxwallet?.solana;
-            if (!solana) throw new Error('OKX Wallet Solana provider not found');
 
-            if (!solana.isConnected && typeof solana.connect === 'function') {
-                await solana.connect();
+            if (!solana) {
+                // If on mobile and no provider, attempt deep link
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    const dappUrl = encodeURIComponent(window.location.href);
+                    const deepLink = `https://www.okx.com/download?deeplink=okx://main/web3/dapp/details?dappUrl=${dappUrl}`;
+                    window.location.href = deepLink;
+                    // We don't throw here immediately to avoid UI error flash before redirect
+                    return;
+                }
+                throw new Error('OKX Wallet Solana provider not found. Please open in OKX App.');
             }
-
-            if (!solana.publicKey) throw new Error('Wallet connection failed');
             this._publicKey = new PublicKey(solana.publicKey.toString());
             this.emit('connect', this._publicKey);
         } catch (error: any) {

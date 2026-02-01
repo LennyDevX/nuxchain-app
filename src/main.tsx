@@ -7,6 +7,8 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { registerSW } from 'virtual:pwa-register'
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets'
+import { OkxWalletAdapter } from './wallets/OkxSolanaAdapter'
 import { getMobileOptimizationConfig } from './utils/mobile/performanceOptimization'
 import { logEnvironmentDiagnostics } from './utils/env/validateEnvironment'
 import { SOLANA_NETWORKS, DEFAULT_SOLANA_NETWORK } from './constants/solana'
@@ -50,9 +52,13 @@ import App from './App.tsx'
 import { config } from './wagmi.ts'
 
 // ✅ Solana wallet adapters configuration
-// Note: Standard wallets like Phantom and OKX are automatically detected 
-// by the browser and don't need manual adapters anymore.
-const solanaWallets: any[] = []
+// We include adapter instances to support mobile deep linking and 
+// proper detection in non-extension environments.
+const solanaWallets = [
+  new PhantomWalletAdapter(),
+  new OkxWalletAdapter(),
+  new SolflareWalletAdapter(),
+]
 
 // Get Solana RPC URL
 const solanaRpcUrl = SOLANA_NETWORKS[DEFAULT_SOLANA_NETWORK].rpcUrl

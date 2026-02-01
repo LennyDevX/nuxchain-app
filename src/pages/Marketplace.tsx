@@ -179,7 +179,10 @@ function Marketplace() {
   }, []);
 
   const handleBuy = useCallback((nft: MarketplaceNFT) => {
-    console.log('Comprando NFT:', nft);
+    console.log('🛒 [Marketplace] NFT purchased, refreshing marketplace...', {
+      tokenId: nft.tokenId,
+      nftName: nft.name
+    });
     setShowBuyModal(false);
     setSelectedNFT(null);
     refreshNFTs();
@@ -334,7 +337,7 @@ function Marketplace() {
                   ) : (
                     filteredNFTs.map((nft, index) => (
                       <NFTCardMemo
-                        key={nft.tokenId || index}
+                        key={nft.uniqueId || `${nft.tokenId}-${index}`}
                         nft={nft}
                         index={index}
                         onBuy={handleBuyNFT}

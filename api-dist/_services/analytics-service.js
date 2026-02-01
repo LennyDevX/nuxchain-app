@@ -70,7 +70,9 @@ class AnalyticsService {
             error: {
                 message: error.message,
                 name: error.name,
-                stack: error.stack
+                stack: error.stack || '',
+                code: 'ERROR',
+                timestamp: Date.now()
             }
         };
         this.metrics.requests.set(requestMetrics.id, failedMetrics);
@@ -108,6 +110,8 @@ class AnalyticsService {
             return {
                 service: service,
                 totalRequests: 0,
+                successfulRequests: 0,
+                failedRequests: 0,
                 successRate: 0,
                 averageDuration: 0,
                 averageMemoryDelta: 0
@@ -157,7 +161,7 @@ class AnalyticsService {
                 return Math.round(usage.heapUsed / 1024 / 1024 * 100) / 100; // MB con 2 decimales
             }
         }
-        catch (error) {
+        catch {
             // En entornos donde process no está disponible
         }
         return 0;

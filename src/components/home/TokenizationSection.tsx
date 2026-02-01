@@ -17,19 +17,17 @@ const TokenizationSection: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'lg:grid-cols-2 gap-12'} items-center`}>
           {/* Left side - Content */}
-          <motion.div 
+          <motion.div
             className={`space-y-6 animate-fade-in-left ${isMobile ? 'text-center' : ''}`}
             initial={{ opacity: 0, x: isMobile ? 0 : -30, y: isMobile ? 20 : 0 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            viewport={{ once: true }}
           >
-            <motion.div 
+            <motion.div
               className="space-y-4"
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
             >
               <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl lg:text-5xl'} font-bold text-gradient ${isMobile ? 'text-center' : ''}`}>
                 Tokenization
@@ -38,49 +36,46 @@ const TokenizationSection: React.FC = () => {
                 Turn Your Images into NFTs
               </h3>
             </motion.div>
-            
-            <motion.p 
+
+            <motion.p
               className={`${isMobile ? 'text-base mb-4' : 'text-lg mb-6'} text-gray-300 leading-relaxed ${isMobile ? 'text-center' : ''}`}
               initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
-              viewport={{ once: true }}
             >
-              {isMobile 
+              {isMobile
                 ? 'Transform your digital images into unique NFTs with our simple and secure platform.'
                 : 'Transform your digital images into unique and irreplaceable tokens. Our tokenization platform allows you to create NFTs in a simple and secure way, giving real value to your digital art.'
               }
             </motion.p>
-            
-            <motion.div 
+
+            <motion.div
               className={`space-y-${isMobile ? '3' : '4'} ${isMobile ? 'flex flex-col items-center' : ''}`}
               initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              viewport={{ once: true }}
             >
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                 <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Simplified tokenization process</span>
               </div>
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                 <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Blockchain authenticity certification</span>
               </div>
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-                <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
                 <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Integrated marketplace for sales</span>
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className={`${isMobile ? 'flex justify-center' : ''}`}
               initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.35 }}
-              viewport={{ once: true }}
             >
-              <button 
+              <button
                 onClick={handleTokenizeClick}
                 className={`group relative ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} btn-primary`}
               >
@@ -88,15 +83,14 @@ const TokenizationSection: React.FC = () => {
               </button>
             </motion.div>
           </motion.div>
-          
+
           {/* Right side - Image - Solo en desktop */}
           {!isMobile && (
-            <motion.div 
+            <motion.div
               className="flex justify-center"
               initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              viewport={{ once: true }}
             >
               <ResponsiveImage
                 src="/tokenization.webp"
@@ -112,8 +106,6 @@ const TokenizationSection: React.FC = () => {
           )}
         </div>
       </div>
-      
-
     </section>
   );
 };

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts/nftToasts';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
 interface ListingModalProps {
@@ -16,6 +18,7 @@ const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_
 export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: ListingModalProps) {
   const [listingPrice, setListingPrice] = useState('');
   const [category, setCategory] = useState('art');
+  const [loadingToastId, setLoadingToastId] = useState<string | null>(null);
   const { isConnected } = useAccount();
 
   // 🎯 Accessibility: Focus trap and keyboard navigation
@@ -30,45 +33,88 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
 
   // Handle successful listing
   useEffect(() => {
-    if (isListSuccess) {
-      onSuccess();
-      onClose();
+    if (isListSuccess && loadingToastId) {
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
+      nftToasts.listingSuccess(`NFT #${tokenId}`, 'Listed successfully');
+      
+      // Reset and close after showing success
+      setTimeout(() => {
+        setLoadingToastId(null);
+        onSuccess();
+        onClose();
+      }, 100);
     }
-  }, [isListSuccess, onSuccess, onClose]);
+  }, [isListSuccess, onSuccess, onClose, tokenId, loadingToastId]);
 
   // Handle listing error
   useEffect(() => {
-    if (listError) {
+    if (listError && loadingToastId) {
       console.error('Listing error:', listError);
-      alert(`Error listing NFT: ${listError.message || 'Unknown error'}`);
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
+      nftToasts.listingError(listError.message || 'Failed to list NFT');
+      
+      setTimeout(() => {
+        setLoadingToastId(null);
+      }, 0);
     }
-  }, [listError]);
+  }, [listError, loadingToastId]);
 
   const handleConfirmListing = async () => {
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      nftToasts.walletNotConnected();
       return;
     }
     
     if (!tokenId || !listingPrice || parseFloat(listingPrice) < 50) {
-      alert('Please enter a valid price (minimum 50 POL)');
+      nftToasts.error('Enter valid price (minimum 50 POL)');
       return;
     }
 
     try {
+      // Dismiss any existing loading toasts
+      toast.dismiss();
+      
+      const toastId = toast.loading('📋 Listing NFT...', {
+        position: 'top-center',
+        style: {
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+          color: '#fff',
+          fontSize: '14px',
+          fontWeight: '600',
+          borderRadius: '12px',
+          padding: '16px 24px',
+          boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
+          border: '1px solid rgba(139, 92, 246, 0.5)'
+        }
+      });
+      setLoadingToastId(toastId);
+      
       await writeListContract({
         address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
         abi: GameifiedMarketplaceCoreABI.abi,
         functionName: 'listTokenForSale',
-        args: [BigInt(tokenId), parseEther(listingPrice), category],
+        args: [BigInt(tokenId), parseEther(listingPrice)],
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error initiating listing:', error);
-      alert('Failed to initiate listing. Please try again.');
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId ?? undefined);
+      setLoadingToastId(null);
+      
+      // No mostrar aquí porque el useEffect de listError ya lo maneja
+      // El error será procesado por el useEffect cuando listError se actualice
     }
   };
 
   const handleCancel = () => {
+    // Dismiss all toasts when canceling
+    toast.dismiss();
+    setLoadingToastId(null);
     setListingPrice('');
     setCategory('art');
     onClose();
@@ -135,7 +181,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
             disabled={isListPending || isListConfirming}
             aria-label="Cancel listing"
             aria-disabled={isListPending || isListConfirming}
-            className="flex-1 bg-gray-600/20 border border-gray-600 text-gray-300 hover:bg-gray-600/30 py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 btn-secondary"
           >
             Cancel
           </button>

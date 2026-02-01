@@ -59,7 +59,7 @@ try {
         // persistence: true
     });
     if (isDevelopment) console.log('✅ Firestore configured with network fallbacks');
-} catch (error) {
+} catch {
     if (isDevelopment) console.warn('ℹ️ Firestore might already be configured, using existing instance');
     firestore = getFirestore(app);
 }

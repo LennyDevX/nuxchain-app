@@ -10,6 +10,14 @@
     "api/health/status.ts": {
       "maxDuration": 10,
       "memory": 256
+    },
+    "api/market/prices.ts": {
+      "maxDuration": 10,
+      "memory": 512
+    },
+    "api/price/pol.ts": {
+      "maxDuration": 10,
+      "memory": 256
     }
   },
   "rewrites": [

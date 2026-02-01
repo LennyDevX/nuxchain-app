@@ -32,43 +32,53 @@ function Home() {
   return (
     <div className="min-h-screen">
       <HeroSection />
-      
-      <LazySection>
-        <Suspense fallback={<SectionLoader />}>
-          <StakingSection />
-        </Suspense>
-      </LazySection>
-      
+
+
+
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <NFTSection />
         </Suspense>
       </LazySection>
-      
+
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <AISection />
         </Suspense>
       </LazySection>
-      
+
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <TokenizationSection />
         </Suspense>
       </LazySection>
-      
+
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <AirdropsInfo />
         </Suspense>
       </LazySection>
-      
+
+      <LazySection>
+        <Suspense fallback={<SectionLoader />}>
+          <StakingSection />
+        </Suspense>
+      </LazySection>
+
+      <LazySection>
+        <Suspense fallback={<SectionLoader />}>
+          <div className="w-full py-20 px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+
+          </div>
+        </Suspense>
+      </LazySection>
+
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <BenefitsSection />
         </Suspense>
       </LazySection>
-      
+
       <Footer />
     </div>
   )

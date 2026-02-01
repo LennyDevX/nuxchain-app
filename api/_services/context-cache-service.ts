@@ -16,7 +16,7 @@
 import type { CacheEntry, CacheStats } from '../types/index.js';
 
 class ContextCacheService {
-  private cache: Map<string, CacheEntry>;
+  private cache: Map<string, CacheEntry<unknown>>;
   private maxSize: number;
   private defaultTTL: number;
 
@@ -32,7 +32,7 @@ class ContextCacheService {
   /**
    * Guardar en cache con TTL
    */
-  set<T = any>(key: string, value: T, ttl: number = this.defaultTTL): boolean {
+  set<T = unknown>(key: string, value: T, ttl: number = this.defaultTTL): boolean {
     try {
       // Si el cache está lleno, eliminar el más antiguo
       if (this.cache.size >= this.maxSize) {
@@ -51,8 +51,9 @@ class ContextCacheService {
 
       console.log(`💾 Cache SET: ${key} (TTL: ${ttl}ms)`);
       return true;
-    } catch (error) {
-      console.error('❌ Error en cache SET:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error en cache SET:', message);
       return false;
     }
   }
@@ -60,9 +61,9 @@ class ContextCacheService {
   /**
    * Obtener del cache (con validación de expiración)
    */
-  get<T = any>(key: string): T | null {
+  get<T = unknown>(key: string): T | null {
     try {
-      const entry = this.cache.get(key);
+      const entry = this.cache.get(key) as CacheEntry<T> | undefined;
       
       if (!entry) {
         console.log(`❌ Cache MISS: ${key}`);
@@ -78,8 +79,9 @@ class ContextCacheService {
 
       console.log(`✅ Cache HIT: ${key}`);
       return entry.value;
-    } catch (error) {
-      console.error('❌ Error en cache GET:', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('❌ Error en cache GET:', message);
       return null;
     }
   }
@@ -129,7 +131,7 @@ class ContextCacheService {
     let expiredEntries = 0;
     const now = Date.now();
 
-    for (const [key, entry] of this.cache.entries()) {
+    for (const [, entry] of this.cache.entries()) {
       if (now > entry.expiresAt) {
         expiredEntries++;
       } else {
@@ -170,9 +172,9 @@ class ContextCacheService {
    * Obtener o crear (lazy loading)
    * Útil para evitar llamadas duplicadas en la misma función
    */
-  async getOrSet<T = any>(key: string, fetchFn: () => Promise<T>, ttl: number = this.defaultTTL): Promise<T> {
+  async getOrSet<T = unknown>(key: string, fetchFn: () => Promise<T>, ttl: number = this.defaultTTL): Promise<T> {
     // Intentar obtener del cache
-    const cached = this.get(key);
+    const cached = this.get<T>(key);
     if (cached !== null) {
       return cached;
     }
@@ -186,8 +188,9 @@ class ContextCacheService {
       this.set(key, value, ttl);
       
       return value;
-    } catch (error) {
-      console.error(`❌ Error en getOrSet para ${key}:`, error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error en getOrSet para ${key}:`, message);
       throw error;
     }
   }

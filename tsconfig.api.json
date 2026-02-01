@@ -14,7 +14,7 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": false,
     "noEmit": false,
-    "outDir": "./api",
+    "outDir": "./api-dist",
     "types": ["node", "@vercel/node"],
     "allowJs": true,
     "checkJs": false,

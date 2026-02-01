@@ -335,7 +335,7 @@ function cosineSimilarity(vecA, vecB) {
 // ============================================================================
 export async function searchSimilar(indexName, query, limit = 5, options = {}) {
     try {
-        const { knowledgeBase } = await import('./knowledge-base.ts');
+        const { knowledgeBase } = await import('./knowledge-base.js');
         if (!knowledgeBase || knowledgeBase.length === 0) {
             console.warn('⚠️ Knowledge base is empty');
             return [];
@@ -531,7 +531,7 @@ async function precomputeWithSmartBatching(knowledgeBase) {
 }
 export async function precomputeKnowledgeBaseEmbeddings() {
     try {
-        const { knowledgeBase } = await import('./knowledge-base.ts');
+        const { knowledgeBase } = await import('./knowledge-base.js');
         if (!process.env.GEMINI_API_KEY) {
             return { precomputed: 0 };
         }
@@ -604,7 +604,7 @@ export async function getRelevantContext(query, options = {}) {
 }
 export async function initializeKnowledgeBaseForVercel(precompute = false) {
     try {
-        const { knowledgeBase } = await import('./knowledge-base.ts');
+        const { knowledgeBase } = await import('./knowledge-base.js');
         const hasApiKey = Boolean(process.env.GEMINI_API_KEY);
         console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);
         console.log(`🔑 Gemini API Key: ${hasApiKey ? 'Available' : 'Missing'}`);

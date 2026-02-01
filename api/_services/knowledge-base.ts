@@ -9,9 +9,9 @@ import type { KnowledgeBaseItem, ScoredKnowledgeItem } from '../types/index.js';
 const knowledgeBase: KnowledgeBaseItem[] = [
   // === GENERAL INFORMATION ===
   {
-    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking contracts, NFT marketplace, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), and tokenization tools.",
+    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes EnhancedSmartStaking v4.0 contracts with gamification features (XP, levels, quests, achievements), GameifiedMarketplace v2.0 with Skills NFT system, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), Developer Hub with Web3 infrastructure tools, and tokenization tools. Built with React 19, Vite 7.1, TypeScript 5.7, TailwindCSS 4.0, Wagmi v2 and Viem 2.38 for blockchain interactions.",
     metadata: { type: "general", category: "platform", topic: "overview" },
-    commands: ['Nuxchain', 'Nuxchain platform', 'Nuxchain general']
+    commands: ['Nuxchain', 'Nuxchain platform', 'Nuxchain general', 'what is Nuxchain']
   },
   {
     content: "Nuxchain Vision: To develop innovative services and products using cutting-edge technologies like blockchain, AI, and dApps. Our mission is to bring the power of security and decentralization to the masses in all possible forms, driving a powerful economy guided by user sentiment and dedication.",
@@ -31,12 +31,12 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['Nuxchain smart contract', 'Nuxchain SmartStaking', 'Nuxchain functions']
   },
   {
-    content: "Nuxchain SmartStaking has deposit limits: minimum 5 POL and maximum 10000 POL per deposit. Maximum 300 deposits per user. Daily withdrawal limit is 1000 POL for security. The contract includes custom errors like AlreadyMigrated, DailyWithdrawalLimitExceeded, NoRewardsAvailable for better error handling.",
+    content: "Nuxchain SmartStaking has deposit limits: minimum 10 POL and maximum 100000 POL per deposit. Maximum 400 deposits per user. Daily withdrawal limit is 2000 POL for security. The contract includes custom errors like AlreadyMigrated, DailyWithdrawalLimitExceeded, NoRewardsAvailable for better error handling.",
     metadata: { type: "smart-contract", category: "staking", topic: "limits" },
     commands: ['Nuxchain limits', 'Nuxchain deposit minimum', 'Nuxchain errors']
   },
   {
-    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 1000 POL for security. Commission rate is 6% on rewards.",
+    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 2000 POL for security. Commission rate is 6% on rewards.",
     metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" },
     commands: ['Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup']
   },
@@ -81,6 +81,60 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     content: "Staking risks in Nuxchain: Smart contract risk (mitigated by audits), lockup period restrictions (funds locked for chosen duration), market volatility of POL token. Platform has emergency functions for security. During lockup period, you cannot withdraw your principal amount until the period expires.",
     metadata: { type: "staking", category: "guide", topic: "risks" },
     commands: ['Nuxchain risks']
+  },
+
+  // === ENHANCED SMART STAKING V4.0 - GAMIFICATION ===
+  {
+    content: "EnhancedSmartStaking v4.0 includes advanced gamification features that reward user engagement and participation. The system includes: XP (Experience Points) system where users earn points for staking activities, deposits, and quest completion. Level System with 100 levels where users level up by accumulating XP (e.g., Level 1 requires 100 XP, Level 10 requires 10,000 XP). Quest System with different quest types (STAKE_POL, COMPOUND_REWARDS, ACTIVATE_SKILL, etc.) that reward users with XP and POL bonuses. Achievement System tracking milestones like 'First Deposit', 'Level 10 Reached', '1000 POL Staked'. Badge System displaying earned achievements. Auto-Compound feature allowing automatic reinvestment of rewards. Integration with GameifiedMarketplace for cross-platform progression.",
+    metadata: { type: "staking", category: "gamification", topic: "features" },
+    commands: ['Nuxchain gamification', 'Nuxchain XP', 'Nuxchain levels', 'Nuxchain quests', 'Nuxchain achievements', 'staking gamification']
+  },
+  {
+    content: "Nuxchain XP (Experience Points) System: Users earn XP through various platform activities. XP is awarded for: staking deposits (proportional to amount staked), completing quests (varies by quest difficulty), claiming rewards, compounding rewards, activating skills, reaching staking milestones, maintaining active stakes, and participating in community governance. XP accumulates over time and determines user level. Higher levels unlock special perks, increased quest rewards, achievement milestones, and platform status. Level calculation: Level = sqrt(totalXP / 100), meaning Level 1 requires 100 XP, Level 10 requires 10,000 XP, Level 50 requires 250,000 XP. XP never decreases and persists across deposits. Each level-up awards bonus POL rewards to the user.",
+    metadata: { type: "staking", category: "gamification", topic: "xp-system" },
+    commands: ['Nuxchain XP', 'experience points', 'how to earn XP', 'XP system', 'level up']
+  },
+  {
+    content: "Nuxchain Quest System: Quests are challenges users can complete to earn XP and POL rewards. Quest types include: STAKE_POL (stake a specific amount), COMPOUND_REWARDS (compound your rewards), ACTIVATE_SKILL (activate a Skill NFT), REACH_LEVEL (achieve a certain level), HOLD_STAKE (maintain stake for duration), CLAIM_REWARDS (claim rewards X times), REFER_USER (invite friends), and COMPLETE_ACHIEVEMENT (earn specific achievements). Each quest has: unique ID, name and description, required action and target amount, XP reward (e.g., 500 XP), POL bonus reward (optional), active status (can be deactivated by admins), completion tracking per user. Users can track quest progress in their profile dashboard. Completing quests contributes to XP accumulation and leveling up. Quest rewards are claimable through the staking interface.",
+    metadata: { type: "staking", category: "gamification", topic: "quest-system" },
+    commands: ['Nuxchain quests', 'quest system', 'how to complete quests', 'quest rewards', 'quest types']
+  },
+  {
+    content: "Nuxchain Achievement System: Achievements are milestones that recognize user accomplishments on the platform. Achievement categories include: First Steps (First Deposit, First Claim, First Compound), Staking Milestones (100 POL Staked, 1000 POL Staked, 10,000 POL Staked), Level Milestones (Reach Level 5, Level 10, Level 25, Level 50, Level 100), Quest Completion (Complete 5 Quests, 10 Quests, 50 Quests), Skill Master (Activate First Skill, Activate 3 Skills), Time-Based (30-Day Streak, 90-Day Streak, 365-Day Streak), and Community (Refer 5 Users, Refer 20 Users). Each achievement awards: XP bonus, optional POL reward, collectible badge displayed on profile, exclusive user status. Achievements unlock progressively and are permanently recorded on-chain. Badge collection showcases user dedication and activity level.",
+    metadata: { type: "staking", category: "gamification", topic: "achievement-system" },
+    commands: ['Nuxchain achievements', 'achievement system', 'badges', 'milestones', 'how to earn achievements']
+  },
+  {
+    content: "Nuxchain Auto-Compound Feature: Integrated in EnhancedSmartStaking v4.0, allows users to automate reward reinvestment. Users can enable auto-compound in their staking settings with configuration options: minimum amount threshold (e.g., only compound when rewards >= 10 POL), compound frequency (daily, weekly, or when threshold met), lockup period for compounded amount (flexible or match original deposit). Benefits include: maximize compound interest effect, reduce gas costs by batching, hands-free portfolio growth, optimal reinvestment timing. Auto-compound triggers when conditions are met and executes compound() function automatically. Users maintain full control and can disable anytime. Compounded amounts start earning immediately based on selected lockup period. This feature is especially powerful when combined with high APY tiers and long-term staking strategies.",
+    metadata: { type: "staking", category: "advanced", topic: "auto-compound" },
+    commands: ['Nuxchain auto compound', 'auto compounding', 'automated reinvestment', 'compound automation']
+  },
+
+  // === SKILLS NFT SYSTEM ===
+  {
+    content: "Nuxchain Skills NFT System powered by GameifiedMarketplaceSkillsV2: Revolutionary NFT system where skills provide real utility for staking and marketplace activities. Skills are divided into two categories: STAKING SKILLS (Types 1-7) that enhance staking rewards and reduce fees, and ACTIVE SKILLS (Types 8-16) that unlock platform features. Each skill has a rarity (COMMON, UNCOMMON, RARE, EPIC, LEGENDARY) affecting its power and price. Skills have 30-day duration and can be renewed at 50% discount. Users can have maximum 3 active skills simultaneously. Minimum 250 POL staking required to activate any skill. Skills can be purchased, gifted, transferred, and traded as NFTs on the marketplace.",
+    metadata: { type: "skills", category: "nft", topic: "overview" },
+    commands: ['Nuxchain skills', 'Skills NFT', 'skill system', 'what are skills', 'NFT skills']
+  },
+  {
+    content: "Nuxchain Staking Skills (Types 1-7): These skills enhance your staking performance and rewards. STAKE_BOOST_I (Type 1): Increases staking APY by 5-20% based on rarity. STAKE_BOOST_II (Type 2): Increases staking APY by 8-25% based on rarity. STAKE_BOOST_III (Type 3): Increases staking APY by 10-30% based on rarity. AUTO_COMPOUND (Type 4): Enables automatic reward compounding at optimal intervals. LOCK_REDUCER (Type 5): Reduces lockup period by 10-40% while maintaining same APY tier. FEE_REDUCER_I (Type 6): Reduces staking commission fees by 1-3% based on rarity. FEE_REDUCER_II (Type 7): Reduces staking commission fees by 2-5% based on rarity. Prices for staking skills: COMMON 50 POL, UNCOMMON 80 POL, RARE 100 POL, EPIC 150 POL, LEGENDARY 220 POL. Higher rarity provides stronger effects. Skills stack with base APY rates for maximum returns.",
+    metadata: { type: "skills", category: "staking", topic: "staking-skills" },
+    commands: ['staking skills', 'skill types', 'stake boost', 'auto compound skill', 'fee reducer', 'lock reducer']
+  },
+  {
+    content: "Nuxchain Active Skills (Types 8-16): Platform feature skills that unlock advanced marketplace capabilities. PRIORITY_LISTING (Type 8): NFT listings appear at top of marketplace, increasing visibility. BATCH_MINTER (Type 9): Mint multiple NFTs in single transaction, saving gas fees. VERIFIED_CREATOR (Type 10): Verified badge on profile, building trust and credibility. ANALYTICS_ACCESS (Type 11): Access advanced marketplace analytics and insights. CUSTOM_ROYALTY (Type 12): Set custom royalty rates on NFT sales. BULK_TRANSFER (Type 13): Transfer multiple NFTs at once, reducing transaction costs. FEATURED_COLLECTION (Type 14): Collection featured prominently on homepage. EARLY_ACCESS (Type 15): Get early access to new features and drops. DISCOUNT_MASTER (Type 16): Receive marketplace fee discounts (2-10% based on rarity). Active Skills pricing: 30% markup over staking skills - COMMON 65 POL, UNCOMMON 104 POL, RARE 130 POL, EPIC 195 POL, LEGENDARY 286 POL. These skills enhance marketplace experience and provide competitive advantages.",
+    metadata: { type: "skills", category: "marketplace", topic: "active-skills" },
+    commands: ['active skills', 'marketplace skills', 'priority listing', 'verified creator', 'batch minter', 'analytics access']
+  },
+  {
+    content: "Skills NFT Purchase and Renewal System: Skills can be purchased from the Nuxchain Store as NFTs. Purchase process: 1) Browse skills by category (Staking/Active) or rarity, 2) Select desired skill and rarity tier, 3) Pay price in POL (prices vary by type and rarity), 4) Receive Skill NFT in wallet, 5) Activate skill in staking dashboard (requires min 250 POL staked). Skill Duration: 30 days from activation. Renewal System: After 30 days, skills expire and become inactive. Renewal cost: 50% of original purchase price (e.g., RARE Stake Boost originally 100 POL, renewal 50 POL). Renewal extends skill for another 30 days. Users can renew anytime after expiration. Max Active Skills: 3 skills total can be active simultaneously per user. Skills can be deactivated and reactivated (deactivation requires 25% fee). Unopened/unactivated skills can be transferred or gifted to other users.",
+    metadata: { type: "skills", category: "purchase", topic: "buying-renewal" },
+    commands: ['buy skills', 'purchase skills', 'skill renewal', 'renew skill', 'skill expiration', 'skill activation']
+  },
+  {
+    content: "Skills NFT Rarities and Power Levels: Each skill comes in 5 rarity tiers affecting its effectiveness and price. COMMON (Rarity 0): Base effect, most affordable. Example: Stake Boost I +5% APY, costs 50 POL for staking skills or 65 POL for active skills. UNCOMMON (Rarity 1): Enhanced effect, moderate price. Example: Stake Boost I +10% APY, costs 80 POL staking / 104 POL active. RARE (Rarity 2): Strong effect, premium price. Example: Stake Boost I +15% APY, costs 100 POL staking / 130 POL active. EPIC (Rarity 3): Very strong effect, high price. Example: Stake Boost I +18% APY, costs 150 POL staking / 195 POL active. LEGENDARY (Rarity 4): Maximum effect, highest price. Example: Stake Boost I +20% APY, costs 220 POL staking / 286 POL active. Rarity affects skill effectiveness proportionally - higher rarity = more powerful effect. Choose rarity based on budget and desired impact on staking/marketplace performance.",
+    metadata: { type: "skills", category: "rarity", topic: "power-tiers" },
+    commands: ['skill rarity', 'skill tiers', 'legendary skills', 'epic skills', 'common skills', 'skill power']
   },
 
   // === MARKETPLACE ===
@@ -156,6 +210,33 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     content: "Nuxchain provides comprehensive tokenization tools for creating and managing digital assets. Features include: ERC-20 token creation with customizable parameters, ERC-721 NFT minting with metadata management, batch minting capabilities, royalty settings for creators, and whitelist management for exclusive launches. The tokenization section offers step-by-step guides and templates for different token types. Integration with IPFS for decentralized metadata storage. All tokenization transactions require POL for gas fees.",
     metadata: { type: "tokenization", category: "tools", topic: "overview" },
     commands: ['Nuxchain tokenization', 'Nuxchain create token', 'Nuxchain mint NFT', 'Nuxchain whitelist']
+  },
+
+  // === SMART CONTRACTS V4.0  ===
+  {
+    content: "Nuxchain Smart Contracts Architecture v4.0: The platform uses a modular architecture with multiple specialized contracts. EnhancedSmartStaking v4.0 consists of 4 modules: Core (deposits, withdrawals), Rewards (reward calculations, claims), Skills (NFT skill integration), and Gamification (XP, quests, achievements). GameifiedMarketplace v2.0 includes: Core (NFT minting, listing, buying), Quests (quest management), Skills V2 (skill NFT system), and Leveling (level progression). All contracts are deployed on Polygon network, verified on Polygonscan, and use OpenZeppelin libraries for security (AccessControl, ReentrancyGuard, Pausable). Contract addresses and ABIs are publicly available. Contracts interact through interfaces (IStakingIntegration, IGameifiedMarketplaceCore) enabling cross-contract communication and synchronized gamification features.",
+    metadata: { type: "smart-contract", category: "architecture", topic: "contracts-v4" },
+    commands: ['Nuxchain contracts', 'smart contracts v4', 'contract architecture', 'modular contracts', 'contract modules']
+  },
+  {
+    content: "EnhancedSmartStaking v2.0 Contract Details: Address on Polygon: [deployed address]. This is the main staking contract with 4 specialized modules. Core Module handles: deposit() for staking with lockup selection, withdraw() for partial withdrawals respecting lockup, withdrawAll() for complete withdrawal, emergencyWithdraw() for emergencies, and contract migration. Rewards Module handles: calculateRewards() for real-time calculation, claimRewards() for reward claims, compound() for reinvestment, getRewardsInfo() for user reward data. Skills Module handles: activateSkill() to activate owned skill NFTs, deactivateSkill() to deactivate skills, getActiveSkills() to query user's active skills, applySkillBoost() to calculate boosted APY. Gamification Module handles: updateXP() for XP awards, completeQuest() for quest completion, claimQuestReward() for claiming quest rewards, checkAutoCompound() for automation. Key Features: Multi-lockup support (flexible, 30, 90, 180, 365 days), skill-boosted APY, XP and level progression, quest integration, achievement tracking, auto-compound capability.",
+    metadata: { type: "smart-contract", category: "staking", topic: "enhanced-staking-v4" },
+    commands: ['EnhancedSmartStaking', 'staking contract', 'staking v4', 'staking modules', 'contract functions']
+  },
+  {
+    content: "GameifiedMarketplace v2.0 Contract Details: Comprehensive marketplace system with gamification. Core Module (GameifiedMarketplaceCoreV1) handles: createNFT() for minting new NFTs, listNFT() for listing NFTs for sale, buyNFT() for purchasing listed NFTs, unlistNFT() for removing listings, createOffer() and acceptOffer() for offer system, updateUserXP() for awarding XP on marketplace activities. Quests Module (GameifiedMarketplaceQuests) handles: createQuest() for quest creation by admins, updateQuestProgress() tracking user progress, completeQuest() for quest completion, getQuestInfo() for quest details, getUserQuests() for user's quest history. Skills V2 Module (GameifiedMarketplaceSkillsV2) handles: purchaseSkill() to buy skill NFTs, renewSkill() to renew expired skills, activateSkill() to activate owned skills, transferSkill() to gift/transfer skills, getSkillInfo() for skill details, getUserSkills() for user's skill collection. All marketplace transactions are in POL. Marketplace fee: 2.5%. Creator royalties supported via ERC-2981.",
+    metadata: { type: "smart-contract", category: "marketplace", topic: "gamified-marketplace-v3" },
+    commands: ['GameifiedMarketplace', 'marketplace contract', 'marketplace v3', 'NFT contract', 'marketplace modules']
+  },
+  {
+    content: "Nuxchain Subgraph - The Graph Integration: Nuxchain uses The Graph protocol for efficient blockchain data indexing and querying. The subgraph indexes events from all Nuxchain contracts (EnhancedSmartStaking, GameifiedMarketplace, Skills, Quests, Leveling) and makes data available via GraphQL API. Indexed Entities include: User (address, totalXP, level, totalStaked, nftsOwned), Stake (id, user, amount, lockupDuration, startTime, APY, activeSkills), NFT (tokenId, owner, creator, price, isListed, rarity, metadata), Quest (id, questType, name, xpReward, polReward, isActive), Achievement (id, user, achievementType, timestamp, rewardClaimed), Activity (user, activityType, timestamp, details). Subgraph provides real-time data synchronization, historical data queries, aggregated statistics, efficient pagination, and reduced RPC calls. Access via Apollo Client in frontend with GraphQL queries. Subgraph deployed on The Graph Network with public endpoint.",
+    metadata: { type: "technical", category: "subgraph", topic: "the-graph-integration" },
+    commands: ['Nuxchain subgraph', 'The Graph', 'GraphQL', 'blockchain indexing', 'subgraph queries']
+  },
+  {
+    content: "Nuxchain Subgraph GraphQL Query Examples: Users can query blockchain data efficiently using GraphQL. Example queries: 1) Get user stakes: query GetUserStakes($user: Bytes!) { stakes(where: {user: $user}, orderBy: timestamp, orderDirection: desc) { id amount lockupDuration startTime apy activeSkills { skillType rarity } } }. 2) Get user quests: query GetUserQuests($user: Bytes!) { questCompletions(where: {user: $user}) { quest { name questType xpReward polReward } completionTime rewardClaimed } }. 3) Get marketplace NFTs: query GetMarketplaceNFTs($limit: Int!, $skip: Int!) { nfts(where: {isListed: true}, first: $limit, skip: $skip, orderBy: listingTime, orderDirection: desc) { tokenId owner price rarity metadata } }. 4) Get user achievements: query GetAchievements($user: Bytes!) { achievements(where: {user: $user}) { achievementType timestamp rewardAmount rewardClaimed } }. Subgraph enables complex queries, filtering, sorting, and pagination without heavy RPC calls.",
+    metadata: { type: "technical", category: "subgraph", topic: "graphql-queries" },
+    commands: ['GraphQL queries', 'subgraph examples', 'query blockchain', 'how to query subgraph']
   },
 
   // === TECHNICAL INFORMATION ===
@@ -326,7 +407,7 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['Nuxchain staking rewards', 'Nuxchain APY calculation', 'Nuxchain compound rewards']
   },
   {
-    content: "FAQ - POL Token: POL is Polygon's native token used for all transactions on Nuxchain. You need POL for: gas fees on all transactions, staking deposits to earn rewards, purchasing NFTs in the marketplace, paying marketplace fees. You can acquire POL from exchanges like Binance, Coinbase, or KuCoin, then bridge it to Polygon network. Always keep some POL in your wallet for gas fees. Minimum staking amount is 5 POL, maximum is 10,000 POL per deposit.",
+    content: "FAQ - POL Token: POL is Polygon's native token used for all transactions on Nuxchain. You need POL for: gas fees on all transactions, staking deposits to earn rewards, purchasing NFTs in the marketplace, paying marketplace fees. You can acquire POL from exchanges like Binance, Coinbase, or KuCoin, then bridge it to Polygon network. Always keep some POL in your wallet for gas fees. Minimum staking amount is 10 POL, maximum is 100,000 POL per deposit. Maximum 400 deposits per user.",
     metadata: { type: "faq", category: "token", topic: "pol-usage" },
     commands: ['Nuxchain POL', 'Nuxchain Polygon token', 'What is POL', 'How to get POL']
   },
@@ -360,14 +441,14 @@ const knowledgeBase: KnowledgeBaseItem[] = [
 
   // === TECHNICAL ARCHITECTURE ===
   {
-    content: "Nuxchain App is built with modern technologies: React 19 for user interface with advanced hooks and concurrent features, Vite 7.1 as build tool for fast development and hot module replacement, TypeScript 5.0 for static typing and better developer experience, TailwindCSS 4.0 for utility styles and responsive design, Wagmi v2 for optimized React hooks for Ethereum, Viem 2.38 as TypeScript library for blockchain interactions, Express 5 for backend services, and TanStack Query for server state management and caching.",
+    content: "Nuxchain App Technical Stack (Beta 7.0 - November 2025): Built with cutting-edge technologies for performance, security, and scalability. Frontend: React 19 with latest concurrent features, Vite 7.1 as ultra-fast build tool with hot module replacement, TypeScript 5.7 for full type safety, TailwindCSS 4.0 for utility-first responsive design, Framer Motion for smooth animations, React Query 5.90 for intelligent server state management and caching. Web3 & Blockchain: Wagmi v2 for React hooks for Ethereum with optimized performance, Viem 2.38 as TypeScript-first Ethereum library replacing ethers.js, WalletConnect for multi-wallet connection support, The Graph for blockchain data indexing via subgraph. Backend & AI: Express 5 as API server deployed on Vercel Serverless, Google Gemini API v2.5 Flash Lite for AI integration with streaming responses, Node.js 20+ runtime. Development: ESLint & Prettier for code quality, Lighthouse CI for performance audits (target 90+ score), TypeScript compiler for strict type checking.",
     metadata: { type: "technical", category: "architecture", topic: "tech-stack" },
-    commands: ['Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain React', 'Nuxchain Vite']
+    commands: ['Nuxchain architecture', 'Nuxchain tech stack', 'Nuxchain React', 'Nuxchain Vite', 'tech stack', 'technologies used']
   },
   {
-    content: "Nuxchain project structure: React frontend with main pages (Home, Staking, Marketplace, NFTs, Airdrops, Chat, Tokenization), components organized by functionality, custom hooks for reusable logic, services for APIs and blockchain, centralized configuration, and routing system with React Router. Backend with Express.js, embedding services, web scraping, and Gemini AI controllers. Deployment on Vercel with serverless functions.",
-    metadata: { type: "technical", category: "architecture", topic: "project-structure" },
-    commands: ['Nuxchain project structure', 'Nuxchain frontend', 'Nuxchain backend']
+    content: "Nuxchain Frontend Architecture - React 19 & Modern Patterns: Component-based architecture with functional components and React hooks. Main pages include: Home (landing with ecosystem overview), Staking (deposit/withdraw with gamification dashboard), Marketplace (NFT browse/buy/sell with advanced filters), NFTs (personal collection management), Profile (user stats, XP, levels, achievements, active skills), Chat (Nuxbee AI assistant), Tokenization (NFT/token creation tools), Store (Skills NFT shop), DevHub (developer tools), Labs (AI innovation hub). Components organized by functionality in /src/components with reusable UI components in /components/ui. Custom hooks in /src/hooks organized by category (staking, marketplace, nfts, cache, performance, mobile, accessibility). Services for APIs and blockchain interactions. Centralized routing with React Router and lazy loading for code splitting. State management: React Query for server state, Zustand for UI state, Context API for global app state.",
+    metadata: { type: "technical", category: "architecture", topic: "frontend-structure" },
+    commands: ['Nuxchain frontend', 'React architecture', 'component structure', 'frontend organization']
   },
   {
     content: "Nuxchain development configuration: npm scripts for development (dev, dev:server, dev:full with concurrently), build for production, linting with ESLint, preview for local testing. Environment variables for different environments (development vs production), automatic API configuration based on environment, support for localhost and production domains. Hot reload and fast refresh enabled for efficient development.",

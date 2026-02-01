@@ -4,7 +4,7 @@ import { useUserStaking } from '../../hooks/staking/useUserStaking';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useReadContract } from 'wagmi';
-import SmartStakingABI from '../../abi/EnhancedSmartStaking.json';
+import SmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStaking.json';
 import { formatEther } from 'viem';
 
 const ProfileStaking: React.FC = () => {
@@ -23,48 +23,54 @@ const ProfileStaking: React.FC = () => {
     query: { enabled: !!address }
   });
 
-  // Calculate estimated APY based on pending rewards and total staked
+  // Calculate estimated APY based on lockup period
   const estimatedAPY = useMemo(() => {
     try {
       const staked = parseFloat(totalStaked) || 0;
-      const rewards = parseFloat(pendingRewards) || 0;
       
-      // If there are active positions but no rewards yet, show default APY based on lockup
+      // If no stake, return 0
       if (staked === 0) return '0.00';
       
-      // Check if there are deposits to determine the APY
+      // Check if there are deposits to determine the APY based on lockup period
       const deposits = (userDeposits as typeof userDeposits) || [];
       if (deposits && Array.isArray(deposits) && deposits.length > 0) {
         const lastDeposit = deposits[0];
         if (lastDeposit && 'lockupDuration' in lastDeposit) {
-          const lockupDays = Number(lastDeposit.lockupDuration) / (24 * 60 * 60);
+          const lockupSeconds = Number(lastDeposit.lockupDuration);
+          const lockupDays = lockupSeconds / (24 * 60 * 60);
           
-          // Return estimated APY based on lockup period
-          const apyMap: { [key: number]: string } = {
-            0: '43.80',     // Flexible: 0.005%/hour
-            30: '87.60',    // 30 days: 0.010%/hour
-            90: '122.64',   // 90 days: 0.014%/hour
-            180: '149.28',  // 180 days: 0.017%/hour
-            365: '219.00'   // 365 days: 0.025%/hour
+          // APY rates based on actual contract rates (hourly → annual)
+          // Formula: hourlyRate% * 24 * 365 = annual APY
+          const apyMap: { [key: number]: number } = {
+            0: 43.80,       // Flexible: 0.005%/hour → 43.8% APY
+            30: 87.60,      // 30 days: 0.010%/hour → 87.6% APY
+            90: 122.64,     // 90 days: 0.014%/hour → 122.64% APY
+            180: 149.28,    // 180 days: 0.017%/hour → 149.28% APY
+            365: 219.00     // 365 days: 0.025%/hour → 219% APY
           };
           
-          return apyMap[lockupDays] || '43.80';
+          // Find the closest matching APY for the lockup period
+          let closestAPY = 43.80; // Default to flexible
+          let closestDiff = Math.abs(lockupDays - 0);
+          
+          for (const [days, apy] of Object.entries(apyMap)) {
+            const diff = Math.abs(lockupDays - Number(days));
+            if (diff < closestDiff) {
+              closestDiff = diff;
+              closestAPY = apy;
+            }
+          }
+          
+          return closestAPY.toFixed(2);
         }
       }
       
-      // If we have actual rewards, calculate from them
-      if (rewards > 0) {
-        const dailyRate = (rewards / staked) * 100;
-        const annualAPY = dailyRate * 365;
-        return Math.min(annualAPY, 219.00).toFixed(2);
-      }
-      
-      // Default to flexible rate if nothing else applies
+      // Default to flexible rate (0.005%/hour = 43.8% APY) if no lockup info
       return '43.80';
     } catch {
       return '0.00';
     }
-  }, [totalStaked, pendingRewards, userDeposits]);
+  }, [totalStaked, userDeposits]);
 
   // Calculate available to withdraw considering lockup periods
   const calculateAvailableToWithdraw = () => {

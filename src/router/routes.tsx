@@ -10,7 +10,6 @@ import Home from '../pages/Home';
 const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
 const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
 const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
-const Airdrops = lazy(() => import(/* webpackChunkName: "airdrops" */ '../pages/Airdrops'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
@@ -18,6 +17,11 @@ const Profile = lazy(() => import(/* webpackChunkName: "profile" */ '../pages/Pr
 const Blog = lazy(() => import(/* webpackChunkName: "blog" */ '../pages/Blog'));
 const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevHub'));
 const Roadmap = lazy(() => import(/* webpackChunkName: "roadmap" */ '../pages/Roadmap'));
+const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skills'));
+const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
+const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
+const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
+const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/Airdrop'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -54,14 +58,18 @@ function AppRoutes() {
         <Route path="/staking" element={<Staking />} />
         <Route path="/nfts" element={<NFTs />} />
         <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/airdrops" element={<Airdrops />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/create-my-nfts" element={<Tokenization />} />
         <Route path="/tokenization" element={<Tokenization />} />
         <Route path="/labs" element={<Labs />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dev-hub" element={<CTAHub />} />
+        <Route path="/investments" element={<Investments />} />
+        <Route path="/market" element={<Market />} />
+        <Route path="/airdrop" element={<Airdrop />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

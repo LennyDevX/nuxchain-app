@@ -9,14 +9,13 @@ const AirdropsInfo = () => {
   return (
     <section className={`${isMobile ? 'py-12 px-4' : 'py-20'} relative z-10`}>
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'flex flex-col items-center text-center' : 'flex flex-col md:flex-row items-center justify-between'} gap-12`}>
-        {/* Image Section - Hidden on mobile */}
+        {/* Image Section - Left */}
         {!isMobile && (
-          <motion.div 
+          <motion.div
             className="md:w-1/2 flex justify-center relative"
             initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
           >
             <div className="relative rounded-2xl overflow-hidden shadow-lg">
               <img src="/Airdrops.webp" alt="NFT Airdrops" className="w-92 h-92 object-cover mx-auto" />
@@ -24,46 +23,42 @@ const AirdropsInfo = () => {
           </motion.div>
         )}
 
-        {/* Text Content Section */}
-        <motion.div 
+        {/* Text Content Section - Right */}
+        <motion.div
           className={`${isMobile ? 'w-full text-center' : 'md:w-1/2 text-center md:text-left'}`}
           initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
-          whileInView={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.7, delay: isMobile ? 0.1 : 0.2 }}
-          viewport={{ once: true }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
         >
-          <motion.h2 
+          <motion.h2
             className={`${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 text-center`}
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
-            viewport={{ once: true }}
           >
             Exclusive <span className="text-gradient">NFT Airdrops</span>
           </motion.h2>
-          <motion.p 
+          <motion.p
             className={`${isMobile ? 'text-lg' : 'text-xl'} text-gray-300 mb-8 text-center`}
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            viewport={{ once: true }}
           >
             Discover how Nuxchain rewards active users with unique NFT airdrops, unlocking unparalleled opportunities within our ecosystem. These NFTs provide greater opportunities to grow, sell/exchange assets, gain special utilities, and extra bonuses.
           </motion.p>
-          <motion.div 
+          <motion.div
             className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} gap-4 justify-center`}
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            viewport={{ once: true }}
           >
-            <button 
+            <button
               onClick={() => navigate('/airdrops')}
               className={`bg-white text-purple-600 ${isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'} btn-primary`}
             >
               Explore Airdrops
             </button>
-            <button 
+            <button
               onClick={() => navigate('/nfts')}
               className={`border-2 border-white text-white ${isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'} btn-secondary`}
             >

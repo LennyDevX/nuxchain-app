@@ -4,29 +4,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBottomNavbar } from '../../hooks/mobile';
 import { useChatNavbar } from '../../hooks/mobile/useChatNavbar';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
-import WalletConnect from '../web3/WalletConnect';
+import WalletConnect from '../web3/WalletConnect.tsx';
 
 // Iconos SVG
 const HomeIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-pink-300' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-6 h-6 ${isActive ? 'text-blue-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
   </svg>
 );
 
 const StakingIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-pink-300' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-6 h-6 ${isActive ? 'text-emerald-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const NFTIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-pink-300' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-6 h-6 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
   </svg>
 );
 
 const MarketplaceIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-pink-300' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+  <svg className={`w-6 h-6 ${isActive ? 'text-pink-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
   </svg>
 );
@@ -34,6 +34,13 @@ const MarketplaceIcon = ({ isActive }: { isActive: boolean }) => (
 const MenuIcon = ({ isActive }: { isActive: boolean }) => (
   <svg className={`w-6 h-6 ${isActive ? 'text-pink-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+// Icono de Store enfocado en Skills (estrella)
+const StoreIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-yellow-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17.75L6.16 21l1.12-6.54L2 9.75l6.58-.96L12 3.5l3.42 5.29 6.58.96-5.28 4.71 1.12 6.54z" />
   </svg>
 );
 
@@ -50,10 +57,10 @@ const MobileBottomNavbar: React.FC = () => {
   const bottomNavbar = useBottomNavbar();
   const chatNavbar = useChatNavbar();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   // ✅ Haptic feedback
   const triggerHaptic = useTapFeedback();
-  
+
   // Usar el hook apropiado según la página
   const { isVisible, isMobile } = isInChat ? chatNavbar : bottomNavbar;
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
@@ -62,7 +69,8 @@ const MobileBottomNavbar: React.FC = () => {
     { path: '/', label: 'Home', icon: HomeIcon },
     { path: '/staking', label: 'Staking', icon: StakingIcon },
     { path: '/nfts', label: 'NFTs', icon: NFTIcon },
-    { path: '/marketplace', label: 'Market', icon: MarketplaceIcon }
+    { path: '/marketplace', label: 'Market', icon: MarketplaceIcon },
+    { path: '/store', label: 'Store', icon: StoreIcon }
   ];
 
   const isActive = (path: string) => {
@@ -77,9 +85,8 @@ const MobileBottomNavbar: React.FC = () => {
   return (
     <>
       <motion.nav
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 ${
-          isVisible ? '' : 'pointer-events-none'
-        }`}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 ${isVisible ? '' : 'pointer-events-none'
+          }`}
         initial={{ y: isVisible ? 0 : 100 }}
         animate={{ y: isVisible ? 0 : 100 }}
         transition={{
@@ -93,7 +100,7 @@ const MobileBottomNavbar: React.FC = () => {
           {navItems.map((item, index) => {
             const IconComponent = item.icon;
             const active = isActive(item.path);
-            
+
             return (
               <motion.div
                 key={item.path}
@@ -112,11 +119,10 @@ const MobileBottomNavbar: React.FC = () => {
                     triggerHaptic('light');
                     if (isInChat) hideNavbar?.();
                   }}
-                  className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${
-                    active
+                  className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${active
                       ? 'bg-pink-500/20 scale-105 shadow-lg shadow-pink-500/20'
                       : 'hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   {active && (
                     <motion.div
@@ -129,11 +135,10 @@ const MobileBottomNavbar: React.FC = () => {
                       }}
                     />
                   )}
-                  
-                  <motion.div 
-                    className={`p-1 rounded-lg transition-all duration-200 relative z-10 ${
-                      active ? 'bg-pink-500/30' : ''
-                    }`}
+
+                  <motion.div
+                    className={`p-1 rounded-lg transition-all duration-200 relative z-10 ${active ? 'bg-pink-500/30' : ''
+                      }`}
                     animate={{
                       scale: active ? 1.1 : 1,
                       rotate: active ? 5 : 0
@@ -146,11 +151,10 @@ const MobileBottomNavbar: React.FC = () => {
                   >
                     <IconComponent isActive={active} />
                   </motion.div>
-                  
+
                   <motion.span
-                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${
-                      active ? 'text-pink-400' : 'text-gray-400'
-                    }`}
+                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
+                      }`}
                     animate={{
                       scale: active ? 1.05 : 1,
                       opacity: active ? 1 : 0.7
@@ -162,7 +166,7 @@ const MobileBottomNavbar: React.FC = () => {
               </motion.div>
             );
           })}
-          
+
           {/* Botón de menú hamburguesa */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -183,7 +187,7 @@ const MobileBottomNavbar: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <motion.div 
+              <motion.div
                 className="p-1 rounded-lg transition-all duration-200"
                 animate={{ rotate: 0 }}
               >
@@ -193,10 +197,10 @@ const MobileBottomNavbar: React.FC = () => {
                 Menú
               </span>
               {/* Indicador de notificación */}
-              <motion.div 
+              <motion.div
                 className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"
                 animate={{ scale: [1, 1.3, 1] }}
-                transition={{ 
+                transition={{
                   repeat: Infinity,
                   duration: 2,
                   ease: "easeInOut"
@@ -205,12 +209,12 @@ const MobileBottomNavbar: React.FC = () => {
             </motion.button>
           </motion.div>
         </div>
-        
+
         {/* Indicador de página activa */}
-        <motion.div 
+        <motion.div
           className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent opacity-50"
           animate={{ opacity: [0.3, 0.7, 0.3] }}
-          transition={{ 
+          transition={{
             repeat: Infinity,
             duration: 3,
             ease: "easeInOut"
@@ -221,7 +225,7 @@ const MobileBottomNavbar: React.FC = () => {
       {/* Mobile Menu Overlay with AnimatePresence */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-[100] flex items-end"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -229,16 +233,16 @@ const MobileBottomNavbar: React.FC = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             {/* Backdrop with blur */}
-            <motion.div 
+            <motion.div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsMenuOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-            
+
             {/* Menu Panel */}
-            <motion.div 
+            <motion.div
               className="relative w-full bg-black/90 backdrop-blur-md border-t border-white/20 rounded-t-3xl"
               initial={{ y: 500, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -252,7 +256,7 @@ const MobileBottomNavbar: React.FC = () => {
             >
               <div className="p-6 space-y-6">
                 {/* Close button */}
-                <motion.div 
+                <motion.div
                   className="flex justify-between items-center"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -272,14 +276,14 @@ const MobileBottomNavbar: React.FC = () => {
                 </motion.div>
 
                 {/* Menu Items */}
-                <motion.div 
+                <motion.div
                   className="space-y-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15, staggerChildren: 0.05 }}
                 >
                   {/* Connect Wallet */}
-                  <motion.div 
+                  <motion.div
                     className="p-4 rounded-xl bg-white/5 border border-white/10"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -313,14 +317,14 @@ const MobileBottomNavbar: React.FC = () => {
                     </Link>
                   </motion.div>
 
-                  {/* Airdrops */}
+                  {/* Airdrop */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
                     <Link
-                      to="/airdrops"
+                      to="/airdrop"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
                     >

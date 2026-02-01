@@ -18,7 +18,8 @@ export type ActivityType =
   | 'NFT_UNLIST'
   | 'OFFER_MADE'
   | 'OFFER_ACCEPTED'
-  | 'OFFER_REJECTED';
+  | 'OFFER_REJECTED'
+  | 'SKILL_PURCHASED';
 
 export interface Activity {
   id: string;

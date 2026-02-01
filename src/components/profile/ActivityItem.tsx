@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Activity } from '../../hooks/activity/useRecentActivities';
+import type { Activity } from '../../hooks/activity/useRecentActivitiesGraph';
 
 interface ActivityItemProps {
   activity: Activity;

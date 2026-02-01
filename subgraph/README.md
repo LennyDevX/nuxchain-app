@@ -5,9 +5,9 @@ Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedM
 ## Contratos Indexados
 
 ### EnhancedSmartStaking (v4.0.0)
-- **Address**: `0xae57acBf4efE2F6536D992F86145a20e11DB8C3D`
+- **Address**: `0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3`
 - **Network**: Polygon (matic)
-- **Start Block**: 64419650
+- **Start Block**: 78897900
 - **Features**:
   - Depósitos y retiros con lockup
   - Auto-compound
@@ -15,16 +15,31 @@ Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedM
   - Quests y Achievements
   - Gamificación con XP y niveles
 
-### GameifiedMarketplace (v2.0)
-- **Address**: `0xB948cC766CBE97Ce822bF4c915D2319fbc48Ad38`
+### GameifiedMarketplace (v3.0 - PROXY)
+- **Address**: `0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e`
 - **Network**: Polygon (matic)
-- **Start Block**: 64419800
+- **Start Block**: 78899500
 - **Features**:
   - Mint, list, buy/sell NFTs
   - Sistema de ofertas
   - Royalties automáticas
   - Perfil de usuario con XP y niveles
   - Tracking de actividades
+
+### Individual Skills Contract
+- **Address**: `0x33Bf614459a5Eeef31803153f20342C707582364`
+- **Network**: Polygon (matic)
+- **Start Block**: 78900000
+
+### Marketplace Skills V2
+- **Address**: `0x9d67c269d17cf330ed3C5f6f5Ff130AE9d2d012C`
+- **Network**: Polygon (matic)
+- **Start Block**: 78900000
+
+### Marketplace Quests
+- **Address**: `0xDE4Ad382b2E0A3C1dF2185EDd7d7b966c775E169`
+- **Network**: Polygon (matic)
+- **Start Block**: 78900000
 
 ## Instalación
 

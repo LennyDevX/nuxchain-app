@@ -20,9 +20,6 @@ interface Document {
   };
 }
 
-// Reuse Document for local compatibility with existing code
-type LocalDocument = Document;
-
 interface SearchResult {
   content: string;
   metadata?: Document['metadata'];

@@ -1,5 +1,76 @@
 import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 import { withSecurity } from '../_middlewares/serverless-security.js';
+import WebScraperService from '../_services/web-scraper.js';
+// Lazy imports for blockchain services
+let blockchainService = null;
+let blockchainTools = null;
+/**
+ * Detecta URLs en el mensaje del usuario
+ */
+function detectUrls(text) {
+    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+    const urls = text.match(urlRegex) || [];
+    // Validate URLs
+    return urls.filter(url => {
+        try {
+            new URL(url);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    });
+}
+/**
+ * Detecta si el mensaje requiere llamadas a funciones blockchain
+ */
+function detectBlockchainQuery(message) {
+    const text = message.toLowerCase();
+    const functions = [];
+    // Detectar queries de precio POL - MEJORADO: más keywords
+    if ((text.includes('pol') || text.includes('matic') || text.includes('polygon')) &&
+        (text.includes('precio') || text.includes('price') || text.includes('cotiza') ||
+            text.includes('vale') || text.includes('cuesta') || text.includes('actual') ||
+            text.includes('cuánto') || text.includes('cuanto') || text.includes('costo'))) {
+        functions.push('get_pol_price');
+    }
+    // Detectar queries de staking
+    if (text.includes('staking') || text.includes('stake') || text.includes('stakear') ||
+        text.includes('stakeado') || text.includes('apr') || text.includes('apy')) {
+        functions.push('get_staking_info');
+        // Si el usuario pide optimizar o pide datos propios (mis depósitos/rewards), traer posición on-chain
+        const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera)\b/i.test(text);
+        const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar)\b/i.test(text);
+        const mentionsRewardsOrDeposits = /(reward|recompens|ganancia|pendiente|acumulad|deposit|dep[oó]sit|bloquead|locked|unlock|retirable|withdraw)\b/i.test(text);
+        if (isUserIntent || isOptimizationIntent || mentionsRewardsOrDeposits) {
+            functions.push('get_user_staking_position');
+        }
+    }
+    // Detectar queries de NFT listings
+    if ((text.includes('nft') || text.includes('marketplace')) &&
+        (text.includes('lista') || text.includes('venta') || text.includes('disponible') || text.includes('comprar'))) {
+        functions.push('get_nft_listings');
+    }
+    // Detectar queries de wallet/balance - MEJORADO: detectar "mi balance", "my wallet", etc
+    if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
+        (text.includes('0x') || text.includes('direccion') || text.includes('address') ||
+            text.includes('mi ') || text.includes('my ') || text.includes('tengo') || text.includes('revisa'))) {
+        functions.push('check_wallet_balance');
+    }
+    // Detectar queries de reward estimation
+    if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
+        (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
+        functions.push('estimate_staking_reward');
+    }
+    // Log para debug
+    if (functions.length > 0) {
+        console.log(`🔗 Blockchain detection: "${text.substring(0, 50)}..." → [${functions.join(', ')}]`);
+    }
+    return {
+        isBlockchain: functions.length > 0,
+        functions
+    };
+}
 // ============================================================================
 // MÉTRICAS Y VALIDACIÓN
 // ============================================================================
@@ -7,7 +78,10 @@ const metrics = {
     total: 0,
     success: 0,
     errors: 0,
-    avgResponseTime: 0
+    avgResponseTime: 0,
+    totalTokensUsed: 0,
+    totalTokensSaved: 0,
+    estimatedCostSavings: 0
 };
 /**
  * Valida la estructura y contenido del mensaje
@@ -114,13 +188,15 @@ async function streamHandler(req, res) {
         console.log('📦 Loading services...');
         let needsKnowledgeBase, updateConversationContext, getRelevantContext;
         let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
+        let tokenCountingService;
         try {
             const modules = await Promise.all([
                 import('../_services/query-classifier.js').catch(e => { console.error('Error loading query-classifier:', e.message); throw e; }),
                 import('../_services/embeddings-service.js').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
                 import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
                 import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
-                import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; })
+                import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; }),
+                import('../_services/token-counting-service.js').catch(e => { console.error('Error loading token-counting:', e.message); throw e; })
             ]);
             needsKnowledgeBase = modules[0].needsKnowledgeBase;
             updateConversationContext = modules[0].updateConversationContext;
@@ -128,6 +204,7 @@ async function streamHandler(req, res) {
             buildSystemInstructionWithContext = modules[2].buildSystemInstructionWithContext;
             formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
             semanticStreamingService = modules[4].default;
+            tokenCountingService = modules[5].default;
             console.log('✅ All services loaded successfully');
         }
         catch (importError) {
@@ -169,13 +246,31 @@ async function streamHandler(req, res) {
             console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason || 'unknown'}`);
         }
         // Truncar contexto para evitar límites de tokens
-        const MAX_CONTEXT_LENGTH = 8000;
-        if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-            relevantContext = {
-                ...relevantContext,
-                context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
-            };
-            console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars`);
+        // 🆕 Use Token Counting Service for smart truncation
+        const MAX_CONTEXT_TOKENS = 4000;
+        if (relevantContext.context && relevantContext.context.length > 0) {
+            try {
+                const optimizedContext = await tokenCountingService.optimizeContextLength(relevantContext.context, MAX_CONTEXT_TOKENS, 'gemini-2.5-flash-lite');
+                if (optimizedContext.wasTruncated) {
+                    console.log(`✂️ Context optimized: ${optimizedContext.originalTokens} → ${optimizedContext.tokenCount} tokens (${optimizedContext.reduction})`);
+                    relevantContext = {
+                        ...relevantContext,
+                        context: optimizedContext.optimizedContext
+                    };
+                }
+            }
+            catch {
+                // Fallback to simple character truncation
+                console.warn('⚠️ Token optimization failed, using character limit');
+                const MAX_CONTEXT_LENGTH = 8000;
+                if (relevantContext.context.length > MAX_CONTEXT_LENGTH) {
+                    relevantContext = {
+                        ...relevantContext,
+                        context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
+                    };
+                    console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars (fallback)`);
+                }
+            }
         }
         if (relevantContext.context) {
             console.log(`✅ KB found: ${relevantContext.context.length} chars, score: ${relevantContext.score.toFixed(3)}`);
@@ -187,13 +282,225 @@ async function streamHandler(req, res) {
         const systemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0);
         // Inicializar Gemini
         const client = new GoogleGenAI({ apiKey });
-        console.log('🤖 Generating response...');
-        // Generar stream
+        // 🔗 URL CONTEXT: Detectar URLs en el mensaje
+        const detectedUrls = detectUrls(messageContent);
+        const hasUrls = detectedUrls.length > 0;
+        if (hasUrls) {
+            console.log(`🔗 URLs detected in message: ${detectedUrls.length}`);
+            console.log(`🔗 URLs: ${detectedUrls.join(', ')}`);
+        }
+        // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
+        const blockchainDetection = detectBlockchainQuery(messageContent);
+        let blockchainContext = '';
+        if (blockchainDetection.isBlockchain) {
+            console.log(`🔗 Blockchain query detected. Functions: ${blockchainDetection.functions.join(', ')}`);
+            try {
+                // Lazy load blockchain services
+                if (!blockchainService) {
+                    blockchainService = await import('../_services/blockchain-service.js');
+                }
+                if (!blockchainTools) {
+                    blockchainTools = await import('../_services/blockchain-tools.js');
+                }
+                const functionResults = [];
+                // Get connected wallet address from request body
+                const requestBody = req.body;
+                const connectedWallet = requestBody.walletAddress;
+                // Ejecutar funciones blockchain detectadas
+                for (const funcName of blockchainDetection.functions) {
+                    try {
+                        // Extraer argumentos básicos del mensaje si es necesario
+                        let args = {};
+                        // Para check_wallet_balance, usar wallet conectada o extraer del mensaje
+                        if (funcName === 'check_wallet_balance') {
+                            const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+                            if (addressMatch) {
+                                // Si el usuario especifica una dirección explícita, usarla
+                                args = { address: addressMatch[0] };
+                            }
+                            else if (connectedWallet) {
+                                // Si no, usar la wallet conectada del usuario
+                                args = { address: connectedWallet };
+                                console.log(`🔗 Using connected wallet: ${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}`);
+                            }
+                            else {
+                                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                                continue;
+                            }
+                        }
+                        // Para get_user_staking_position, igual que wallet: dirección explícita o wallet conectada
+                        if (funcName === 'get_user_staking_position') {
+                            const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+                            if (addressMatch) {
+                                args = { address: addressMatch[0] };
+                            }
+                            else if (connectedWallet) {
+                                args = { address: connectedWallet };
+                                console.log(`🔗 Using connected wallet for staking: ${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}`);
+                            }
+                            else {
+                                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                                continue;
+                            }
+                        }
+                        // Para estimate_staking_reward, intentar extraer cantidad
+                        if (funcName === 'estimate_staking_reward') {
+                            const amountMatch = messageContent.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
+                            if (amountMatch) {
+                                args = { amount: parseFloat(amountMatch[1]) };
+                            }
+                            else {
+                                args = { amount: 100 }; // Default amount for estimation
+                            }
+                        }
+                        console.log(`🔗 Executing ${funcName} with args:`, args);
+                        const result = await blockchainService.executeBlockchainFunction(funcName, args);
+                        functionResults.push({
+                            name: funcName,
+                            args,
+                            result
+                        });
+                        console.log(`✅ ${funcName} completed successfully`);
+                    }
+                    catch (funcError) {
+                        console.error(`❌ Error executing ${funcName}:`, funcError);
+                    }
+                }
+                // Construir contexto blockchain para incluir en el prompt
+                if (functionResults.length > 0) {
+                    blockchainContext = `\n\n**DATOS BLOCKCHAIN EN TIEMPO REAL:**\n${functionResults.map(fr => {
+                        const data = fr.result;
+                        if (data.success) {
+                            if (fr.name === 'get_pol_price') {
+                                return `- Precio POL: $${data.price?.toFixed(4) || 'N/A'} USD ${data.change24h ? `(${data.change24h > 0 ? '+' : ''}${data.change24h.toFixed(2)}% 24h)` : ''}${data.volume24h ? ` | Volumen: $${(data.volume24h / 1e6).toFixed(2)}M` : ''}`;
+                            }
+                            if (fr.name === 'get_staking_info') {
+                                return `- Staking Pool: ${data.totalStaked || 'N/A'} (~$${data.totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}% | Participantes: ${data.totalParticipants || 'N/A'} | Recompensas: ${data.totalRewardsPaid || 'N/A'}`;
+                            }
+                            if (fr.name === 'get_nft_listings') {
+                                const count = Array.isArray(data.activeListings) ? data.activeListings.length : (data.activeListings || 0);
+                                return `- NFT Marketplace: ${count} listados activos de ${data.totalListings || 0} total${data.floorPrice ? ` | Floor: ${data.floorPrice}` : ''}${data.note ? `\n  Info: ${data.note}` : ''}`;
+                            }
+                            if (fr.name === 'check_wallet_balance') {
+                                return `- Wallet ${data.address?.slice(0, 6)}...${data.address?.slice(-4)}:\n  Balance: ${data.balancePOL || 'N/A'} (~$${data.balanceUSD?.toFixed(2) || 'N/A'} USD)${data.stakedAmount ? ` | Staked: ${data.stakedAmount}` : ''}${data.pendingRewards ? ` | Rewards: ${data.pendingRewards}` : ''}`;
+                            }
+                            if (fr.name === 'get_user_staking_position') {
+                                // Build deposit summary with amounts and detect locked deposits
+                                let depositSummaryText = '';
+                                let hasLockedDeposits = false;
+                                if (data.depositSummary) {
+                                    const flexible = (data.depositSummary.flexible || {});
+                                    const locked30 = (data.depositSummary.locked30 || {});
+                                    const locked90 = (data.depositSummary.locked90 || {});
+                                    const locked180 = (data.depositSummary.locked180 || {});
+                                    const locked365 = (data.depositSummary.locked365 || {});
+                                    hasLockedDeposits = (locked30.count || 0) + (locked90.count || 0) + (locked180.count || 0) + (locked365.count || 0) > 0;
+                                    const deposits = [];
+                                    if ((flexible.count || 0) > 0) {
+                                        deposits.push(`    🔓 Flexible: ${flexible.count} depósito${flexible.count > 1 ? 's' : ''} (${flexible.totalAmountPOL?.toFixed(2) || '0'} POL) - Retirable cuando quieras`);
+                                    }
+                                    if ((locked30.count || 0) > 0) {
+                                        deposits.push(`    🔒 Locked 30d: ${locked30.count} depósito${locked30.count > 1 ? 's' : ''} (${locked30.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked30?.toFixed(2)}%`);
+                                    }
+                                    if ((locked90.count || 0) > 0) {
+                                        deposits.push(`    🔒 Locked 90d: ${locked90.count} depósito${locked90.count > 1 ? 's' : ''} (${locked90.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked90?.toFixed(2)}%`);
+                                    }
+                                    if ((locked180.count || 0) > 0) {
+                                        deposits.push(`    🔒 Locked 180d: ${locked180.count} depósito${locked180.count > 1 ? 's' : ''} (${locked180.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked180?.toFixed(2)}%`);
+                                    }
+                                    if ((locked365.count || 0) > 0) {
+                                        deposits.push(`    🔒 Locked 365d: ${locked365.count} depósito${locked365.count > 1 ? 's' : ''} (${locked365.totalAmountPOL?.toFixed(2) || '0'} POL) - APY: ${data.apyRates?.locked365?.toFixed(2)}%`);
+                                    }
+                                    if (deposits.length > 0) {
+                                        depositSummaryText = `\n  Tus Depósitos:\n${deposits.join('\n')}`;
+                                    }
+                                }
+                                // Only show next unlock if there are locked deposits
+                                const unlockText = (hasLockedDeposits && data.nextUnlockTime)
+                                    ? `\n  📅 Próximo desbloqueo: ${data.nextUnlockTime}`
+                                    : '';
+                                const recs = Array.isArray(data.recommendations) && data.recommendations.length
+                                    ? `\n  💡 Recomendaciones:\n${data.recommendations.map((rec, idx) => `    ${idx + 1}. ${rec}`).join('\n')}`
+                                    : '';
+                                return `- Posición Staking:\n  Total depositado: ${data.totalDepositedPOL || 'N/A'}\n  Número de depósitos: ${data.depositCount ?? 'N/A'}\n  Rewards acumulados: ${data.pendingRewardsPOL || 'N/A'}\n  Auto-Compound: ${typeof data.hasAutoCompound === 'boolean' ? (data.hasAutoCompound ? '✅ Activado' : '❌ Desactivado') : 'N/A'}${unlockText}${depositSummaryText}${recs}`;
+                            }
+                            if (fr.name === 'estimate_staking_reward') {
+                                return `- Estimación Staking: ${data.amount} por ${data.duration}\n  Recompensa: ${data.estimatedReward || 'N/A'} (~$${data.estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}%${data.lockBonus ? ` (+${data.lockBonus}% bonus lock)` : ''}`;
+                            }
+                            return `- ${fr.name}: ${JSON.stringify(data)}`;
+                        }
+                        return `- ${fr.name}: Error o sin datos`;
+                    }).join('\n')}\n`;
+                    console.log(`📊 Blockchain context added: ${blockchainContext.length} chars`);
+                }
+            }
+            catch (blockchainError) {
+                console.error('❌ Blockchain service error:', blockchainError);
+                // Continue without blockchain context
+            }
+        }
+        // Enriquecer mensaje con contexto blockchain si existe
+        const isStakingAdviceQuery = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar).*(staking|stake|rewards|recompens)/i.test(messageContent);
+        const stakingAdvicePreamble = isStakingAdviceQuery
+            ? 'INSTRUCCIONES: Usa los datos on-chain del usuario en el CONTEXTO BLOCKCHAIN. Da 3-5 recomendaciones accionables y concretas (qué hacer y por qué), y menciona si hay Auto-Compound, rewards pendientes y si conviene mover Flexible -> Locked segun APY y liquidez.\n\n'
+            : '';
+        // \ud83d\udd17 Build enriched message with all contexts
+        let enrichedMessage = messageContent;
+        let urlContext = '';
+        // Extract URL content if URLs detected
+        if (hasUrls) {
+            console.log('\ud83d\udd17 Extracting content from URLs:', detectedUrls);
+            const webScraper = new WebScraperService();
+            try {
+                const urlContents = [];
+                for (const url of detectedUrls) {
+                    try {
+                        const result = await webScraper.extractContent(url, { maxContentLength: 4000 });
+                        if (result.success && result.content) {
+                            urlContents.push(`\n[URL: ${url}]\n${result.content}`);
+                            console.log(`\u2705 URL content extracted: ${result.content.length} chars from ${url}`);
+                        }
+                    }
+                    catch (urlError) {
+                        console.warn(`\u26a0\ufe0f Failed to extract ${url}:`, urlError);
+                    }
+                }
+                if (urlContents.length > 0) {
+                    urlContext = urlContents.join('\n\n');
+                }
+            }
+            catch (error) {
+                console.error('Error extracting URL content:', error);
+            }
+        }
+        // Add blockchain context if available
+        if (blockchainContext) {
+            enrichedMessage = `${stakingAdvicePreamble}${enrichedMessage}\n\n[CONTEXTO BLOCKCHAIN ACTUAL - USA ESTOS DATOS PARA RESPONDER]:\n${blockchainContext}`;
+        }
+        else if (stakingAdvicePreamble) {
+            enrichedMessage = `${stakingAdvicePreamble}${enrichedMessage}`;
+        }
+        // Add URL content context if available
+        if (urlContext) {
+            enrichedMessage = `${enrichedMessage}\n\n[CONTENIDO DE URL - ANALIZA ESTE CONTENIDO PARA RESPONDER]:\n${urlContext}`;
+            console.log(`\ud83d\udcc4 URL context added: ${urlContext.length} chars`);
+        }
+        console.log('\ud83e\udd16 Generating response...');
+        // \ud83d\udd17 Configure tools (keep URL context tool for additional support)
+        // Note: We now extract content ourselves for better accuracy, but keep tool as fallback
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const configTools = hasUrls ? [{ url_context: {} }] : undefined;
+        if (hasUrls) {
+            console.log('\u2705 URL context: explicit content + tool enabled as fallback');
+            console.log('\ud83d\udd17 URLs processed:', detectedUrls.length);
+        }
+        // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
         const streamResponse = await client.models.generateContentStream({
             model: "gemini-2.5-flash-lite",
-            contents: messageContent,
+            contents: enrichedMessage,
             config: {
                 systemInstruction,
+                ...(configTools && { tools: configTools }), // Solo incluir tools si hay URLs
                 safetySettings: [
                     {
                         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -224,17 +531,37 @@ async function streamHandler(req, res) {
         let fullResponse = '';
         // Recolectar respuesta completa del stream
         console.log('📥 Collecting response from Gemini...');
+        let urlContextMetadata = null;
         for await (const chunk of streamResponse) {
             const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (!chunkText) {
-                console.warn('⚠️ Empty chunk received, skipping...');
+                console.warn('\u26a0\ufe0f Empty chunk received, skipping...');
                 continue;
             }
             fullResponse += chunkText;
             totalChars += chunkText.length;
             chunks++;
+            // \ud83d\udd17 Extract URL context metadata if available
+            if (hasUrls && chunk.candidates?.[0]?.urlContextMetadata) {
+                urlContextMetadata = chunk.candidates[0].urlContextMetadata;
+            }
         }
-        console.log(`✅ Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+        console.log(`\u2705 Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
+        // \ud83d\udd17 Log URL context results
+        if (hasUrls && urlContextMetadata) {
+            const urlMetadata = urlContextMetadata.url_metadata || [];
+            const successful = urlMetadata.filter((m) => m.url_retrieval_status === 'URL_RETRIEVAL_STATUS_SUCCESS').length;
+            const failed = urlMetadata.length - successful;
+            console.log(`\ud83d\udd17 URL Context Results: ${successful} successful, ${failed} failed`);
+            if (failed > 0) {
+                console.warn('\u26a0\ufe0f Some URLs could not be retrieved');
+            }
+        }
+        // 🆕 TOKEN TRACKING: Update token metrics
+        const estimatedInputTokens = tokenCountingService.quickEstimate(messageContent);
+        const estimatedOutputTokens = tokenCountingService.quickEstimate(fullResponse);
+        metrics.totalTokensUsed += estimatedInputTokens + estimatedOutputTokens;
+        console.log(`📊 Token estimate: ~${estimatedInputTokens} input, ~${estimatedOutputTokens} output`);
         // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
         // This guarantees that both local dev and production responses have proper markdown structure
         const formattedResponse = formatResponseForMarkdown(fullResponse);
@@ -258,9 +585,10 @@ async function streamHandler(req, res) {
         metrics.success++;
         metrics.avgResponseTime = (metrics.avgResponseTime * (metrics.success - 1) + duration) / metrics.success;
         console.log(`✅ Stream completed: ${chunks} chunks, ${totalChars} chars, ${duration}ms`);
-        // Log de métricas cada 50 requests
+        // Log de métricas cada 50 requests (enhanced with token stats)
         if (metrics.total % 50 === 0) {
             console.log(`📊 [METRICS] Total: ${metrics.total}, Success: ${metrics.success}, Errors: ${metrics.errors}, Avg: ${Math.round(metrics.avgResponseTime)}ms`);
+            console.log(`📊 [TOKENS] Total Used: ${metrics.totalTokensUsed}, Saved: ${metrics.totalTokensSaved}, Est. Savings: $${metrics.estimatedCostSavings.toFixed(4)}`);
         }
     }
     catch (error) {

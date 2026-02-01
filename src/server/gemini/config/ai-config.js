@@ -48,51 +48,119 @@ export function getSafeModel(requestedModel) {
   return modelName;
 }
 
-export const defaultFunctionDeclaration = {
-  name: 'controlLight',
-  description: 'Set the brightness and color temperature of a room light.',
+// ============================================================================
+// BLOCKCHAIN FUNCTION DECLARATIONS
+// ============================================================================
+
+export const getPolPriceFunctionDeclaration = {
+  name: 'get_pol_price',
+  description: `Get the current POL (Polygon/MATIC) token price and market data.
+Use when user asks about POL price, market cap, volume, or 24h change.
+Returns: price in USD, 24h change percentage, market cap, volume.`,
+  parameters: {
+    type: 'object',
+    properties: {},
+    required: [],
+  },
+};
+
+export const getStakingInfoFunctionDeclaration = {
+  name: 'get_staking_info',
+  description: `Get Nuxchain smart staking contract statistics.
+Use when user asks about staking APY, total staked, participants, or rewards.
+Returns: total staked amount, APY (125%), participant count, rewards paid.`,
+  parameters: {
+    type: 'object',
+    properties: {},
+    required: [],
+  },
+};
+
+export const getNftListingsFunctionDeclaration = {
+  name: 'get_nft_listings',
+  description: `Get NFT marketplace listings from Nuxchain Skills marketplace.
+Use when user asks about NFTs for sale, floor price, or marketplace activity.
+Returns: active listings with prices, floor price, total volume.`,
   parameters: {
     type: 'object',
     properties: {
-      brightness: {
+      limit: {
+        type: 'integer',
+        description: 'Max listings to return (1-50). Default: 10',
+      },
+      sort_by: {
+        type: 'string',
+        enum: ['price', 'recent'],
+        description: 'Sort by price or recent. Default: recent',
+      },
+    },
+    required: [],
+  },
+};
+
+export const checkWalletBalanceFunctionDeclaration = {
+  name: 'check_wallet_balance',
+  description: `Check POL balance and staking info for a wallet address.
+ONLY use when user explicitly provides a wallet address (0x...).
+Do NOT ask for wallet addresses - respect privacy.
+Returns: POL balance, USD value, staked amount, pending rewards.`,
+  parameters: {
+    type: 'object',
+    properties: {
+      address: {
+        type: 'string',
+        description: 'Ethereum/Polygon wallet address (must start with 0x)',
+      },
+    },
+    required: ['address'],
+  },
+};
+
+export const estimateStakingRewardFunctionDeclaration = {
+  name: 'estimate_staking_reward',
+  description: `Calculate estimated staking rewards for amount and duration.
+Use when user asks "how much would I earn staking X POL for Y days?"
+Considers base APY (125%) and lock bonus (+25% for locked).
+Returns: estimated reward in POL and USD, effective APY, lock bonus.`,
+  parameters: {
+    type: 'object',
+    properties: {
+      amount: {
         type: 'number',
-        description: 'Light level from 0 to 100. Zero is off and 100 is full brightness.'
+        description: 'Amount of POL to stake (must be > 0)',
       },
-      colorTemperature: {
-        type: 'string',
-        description: 'Color temperature: daylight, cool, or warm.'
-      }
-    },
-    required: ['brightness', 'colorTemperature']
-  }
-};
-
-// URL Context tool declaration
-export const urlContextFunctionDeclaration = {
-  name: 'urlContext',
-  description: 'Fetch and analyze content from a URL to provide context for the conversation.',
-  parameters: {
-    type: 'object',
-    properties: {
-      url: {
-        type: 'string',
-        description: 'The URL to fetch content from. Must be a valid HTTP or HTTPS URL.'
+      duration_days: {
+        type: 'integer',
+        description: 'Number of days to stake (1-365)',
       },
-      includeImages: {
+      is_locked: {
         type: 'boolean',
-        description: 'Whether to include images from the URL in the analysis. Default is false.'
-      }
+        description: 'Use locked staking (+25% bonus). Default: false',
+      },
     },
-    required: ['url']
-  }
+    required: ['amount', 'duration_days'],
+  },
 };
 
-
-
-// Combined function declarations for tools
-export const allFunctionDeclarations = [
-  defaultFunctionDeclaration,
-  urlContextFunctionDeclaration
+// Combined blockchain function declarations
+export const blockchainFunctionDeclarations = [
+  getPolPriceFunctionDeclaration,
+  getStakingInfoFunctionDeclaration,
+  getNftListingsFunctionDeclaration,
+  checkWalletBalanceFunctionDeclaration,
+  estimateStakingRewardFunctionDeclaration,
 ];
+
+// All function names for tool config
+export const blockchainFunctionNames = [
+  'get_pol_price',
+  'get_staking_info',
+  'get_nft_listings',
+  'check_wallet_balance',
+  'estimate_staking_reward',
+];
+
+// Combined all function declarations (for backwards compatibility)
+export const allFunctionDeclarations = blockchainFunctionDeclarations;
 
 export default ai;

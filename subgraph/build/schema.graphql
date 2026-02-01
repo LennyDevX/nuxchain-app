@@ -14,10 +14,20 @@ type User @entity(immutable: false) {
   nftBoughtCount: Int!
   offersMadeCount: Int!
   
+  # Skill & Quest counters (nullable for backward compatibility)
+  skillPurchaseCount: Int
+  skillRenewalCount: Int
+  skillSwitchCount: Int
+  questCompletionCount: Int
+  questRewardClaimCount: Int
+  
   # Totales agregados
   totalDeposited: BigInt!
   totalWithdrawn: BigInt!
   totalCompounded: BigInt!
+  totalEarnings: BigInt
+  totalSpent: BigInt
+  totalQuestRewards: BigInt
   
   # Métricas de gamificación
   level: Int!
@@ -25,6 +35,32 @@ type User @entity(immutable: false) {
   
   createdAt: BigInt!
   updatedAt: BigInt!
+}
+
+"""
+Quest Reward Claim - When user claims quest rewards from Rewards module
+"""
+type QuestRewardClaim @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  questId: BigInt!
+  amount: BigInt!
+  boostApplied: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Reward Funding - When rewards contract is funded
+"""
+type RewardFunding @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  funder: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
 }
 
 """
@@ -313,8 +349,14 @@ enum ActivityType {
   OFFER_ACCEPTED
   OFFER_CANCELLED
   ROYALTY_PAID
+  COMMISSION_PAID
   XP_GAINED
   LEVEL_UP
+  AUTO_COMPOUND_ENABLED
+  AUTO_COMPOUND_DISABLED
+  AUTO_COMPOUND_EXECUTED
+  STAKING_WITHDRAW_ALL
+  EMERGENCY_WITHDRAWAL
 }
 
 """
@@ -391,4 +433,83 @@ type NFTStats @entity(immutable: false) {
   lastSaleAt: BigInt
   holdersCount: Int!
   updatedAt: BigInt!
+}
+
+"""
+Individual Skill - User's individual skill from IIndividualSkills contract
+"""
+type IndividualSkill @entity(immutable: false) {
+  id: ID! # skillId
+  user: User!
+  skillId: BigInt!
+  skillType: Int!
+  rarity: Int!
+  level: BigInt!
+  owner: Bytes!
+  purchasedAt: BigInt!
+  expiresAt: BigInt!
+  isActive: Boolean!
+  metadata: String!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Skill Renewal - Record of skill renewal events
+"""
+type SkillRenewal @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  skillId: BigInt!
+  newExpiryTime: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Skill Switch - Record of user switching skills
+"""
+type SkillSwitch @entity(immutable: true) {
+  id: ID! # tx hash + log index
+  user: User!
+  oldTokenId: BigInt!
+  newTokenId: BigInt!
+  skillType: Int!
+  switchFee: BigInt!
+  timestamp: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Quest - Quest definition from GameifiedMarketplaceQuests
+"""
+type Quest @entity(immutable: false) {
+  id: ID! # questId
+  questId: BigInt!
+  questType: Int!
+  title: String!
+  description: String!
+  requirement: BigInt!
+  xpReward: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+  blockNumber: BigInt!
+}
+
+"""
+Quest Progress - User's progress on a specific quest
+"""
+type QuestProgress @entity(immutable: false) {
+  id: ID! # user address + questId
+  user: User!
+  questId: BigInt!
+  currentProgress: BigInt!
+  completed: Boolean!
+  completedAt: BigInt
+  transactionHash: Bytes!
+  blockNumber: BigInt!
 }

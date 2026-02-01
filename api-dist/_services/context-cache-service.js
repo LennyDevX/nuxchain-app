@@ -44,7 +44,8 @@ class ContextCacheService {
             return true;
         }
         catch (error) {
-            console.error('❌ Error en cache SET:', error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error('❌ Error en cache SET:', message);
             return false;
         }
     }
@@ -68,7 +69,8 @@ class ContextCacheService {
             return entry.value;
         }
         catch (error) {
-            console.error('❌ Error en cache GET:', error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error('❌ Error en cache GET:', message);
             return null;
         }
     }
@@ -112,7 +114,7 @@ class ContextCacheService {
         let validEntries = 0;
         let expiredEntries = 0;
         const now = Date.now();
-        for (const [key, entry] of this.cache.entries()) {
+        for (const [, entry] of this.cache.entries()) {
             if (now > entry.expiresAt) {
                 expiredEntries++;
             }
@@ -163,7 +165,8 @@ class ContextCacheService {
             return value;
         }
         catch (error) {
-            console.error(`❌ Error en getOrSet para ${key}:`, error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`❌ Error en getOrSet para ${key}:`, message);
             throw error;
         }
     }

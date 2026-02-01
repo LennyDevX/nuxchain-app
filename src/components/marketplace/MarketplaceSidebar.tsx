@@ -10,9 +10,14 @@ import { SkeletonLoader } from '../ui/SkeletonLoader';
  */
 export default function MarketplaceSidebar() {
   const { address, isConnected } = useAccount();
-  const { userProfile, level, isLoading, refetch } = useUserProfile();
+  const { userProfile, level, isLoading, refetch, error } = useUserProfile();
   const { progress, xpRemaining, currentXP } = useXPProgress();
   const { totalUnlocked, completionPercentage } = useAchievements();
+
+  // ✅ Manejo de errores de configuración
+  if (error) {
+    console.warn('⚠️ MarketplaceSidebar error:', error.message);
+  }
 
   if (!isConnected) {
     return null;
@@ -31,6 +36,20 @@ export default function MarketplaceSidebar() {
   }
 
   if (!userProfile) {
+    // ✅ Mostrar mensaje de error si no hay perfil y no es por loading
+    if (!isLoading && error) {
+      return (
+        <aside className="card-unified h-full">
+          <div className="space-y-4 p-4">
+            <div className="text-center">
+              <p className="text-sm text-yellow-400 mb-2">⚠️ Configuration Issue</p>
+              <p className="text-xs text-white/60">{error.message}</p>
+              <p className="text-xs text-white/40 mt-2">Please check environment variables</p>
+            </div>
+          </div>
+        </aside>
+      );
+    }
     return null;
   }
 
@@ -39,14 +58,14 @@ export default function MarketplaceSidebar() {
   };
 
   return (
-    <motion.aside 
+    <motion.aside
       className="card-unified sticky top-8 space-y-6"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, type: 'spring', stiffness: 200, damping: 25 }}
     >
       {/* User Profile Header */}
-      <motion.div 
+      <motion.div
         className="text-center pb-6 border-b border-white/10"
         initial={{ opacity: 0, scale: 0.8, y: -20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -68,7 +87,7 @@ export default function MarketplaceSidebar() {
       </motion.div>
 
       {/* XP Progress */}
-      <motion.div 
+      <motion.div
         className="space-y-3"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
@@ -117,7 +136,7 @@ export default function MarketplaceSidebar() {
       </motion.div>
 
       {/* Stats Grid */}
-      <motion.div 
+      <motion.div
         className="space-y-3 pt-4 border-t border-white/10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -129,12 +148,11 @@ export default function MarketplaceSidebar() {
 
         <div className="space-y-2">
           {/* NFTs Created */}
-          <motion.div 
+          <motion.div
             className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-white/5"
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
-            viewport={{ once: true }}
             whileHover={{ x: 4, boxShadow: '0 0 20px rgba(59, 130, 246, 0.2)' }}
           >
             <div className="flex items-center space-x-3">
@@ -147,12 +165,11 @@ export default function MarketplaceSidebar() {
           </motion.div>
 
           {/* NFTs Sold */}
-          <motion.div 
+          <motion.div
             className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-white/5"
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.08, type: 'spring', stiffness: 300, damping: 25 }}
-            viewport={{ once: true }}
             whileHover={{ x: 4, boxShadow: '0 0 20px rgba(168, 85, 247, 0.2)' }}
           >
             <div className="flex items-center space-x-3">
@@ -165,12 +182,11 @@ export default function MarketplaceSidebar() {
           </motion.div>
 
           {/* NFTs Bought */}
-          <motion.div 
+          <motion.div
             className="flex items-center justify-between p-3 bg-gradient-to-r from-pink-500/10 to-red-500/10 rounded-lg border border-white/5"
             initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.16, type: 'spring', stiffness: 300, damping: 25 }}
-            viewport={{ once: true }}
             whileHover={{ x: 4, boxShadow: '0 0 20px rgba(236, 72, 153, 0.2)' }}
           >
             <div className="flex items-center space-x-3">
@@ -185,12 +201,11 @@ export default function MarketplaceSidebar() {
       </motion.div>
 
       {/* Achievements */}
-      <motion.div 
+      <motion.div
         className="pt-4 border-t border-white/10"
         initial={{ opacity: 0, rotateY: -20, y: 20 }}
-        whileInView={{ opacity: 1, rotateY: 0, y: 0 }}
+        animate={{ opacity: 1, rotateY: 0, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4, type: 'spring', stiffness: 250, damping: 28 }}
-        viewport={{ once: true }}
         whileHover={{ scale: 1.02 }}
       >
         <div className="flex items-center justify-between mb-3">
@@ -215,12 +230,11 @@ export default function MarketplaceSidebar() {
 
       {/* Referral Section */}
       {userProfile.referralCount && (typeof userProfile.referralCount === 'bigint' ? userProfile.referralCount > BigInt(0) : userProfile.referralCount > 0) && (
-        <motion.div 
+        <motion.div
           className="pt-4 border-t border-white/10"
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.45, type: 'spring', stiffness: 250, damping: 28 }}
-          viewport={{ once: true }}
           whileHover={{ scale: 1.03 }}
         >
           <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
@@ -241,7 +255,7 @@ export default function MarketplaceSidebar() {
       )}
 
       {/* Activity Indicator */}
-      <motion.div 
+      <motion.div
         className="pt-4 border-t border-white/10"
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}

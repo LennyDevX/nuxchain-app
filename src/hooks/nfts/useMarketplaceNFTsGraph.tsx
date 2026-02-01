@@ -250,6 +250,11 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
       isForSale,
       userAddress: userOnly ? address : undefined
     }],
+    staleTime: 5 * 60 * 1000, 
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false, 
+    refetchOnMount: false,
+    retry: 2,
     queryFn: async ({ pageParam = 0 }) => {
       const skip = pageParam;
 
@@ -284,7 +289,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                   first: limit,
                   skip: skip
                 },
-                fetchPolicy: 'network-only'
+                fetchPolicy: 'cache-first'
               });
             } catch (fallbackError) {
               console.warn('⚠️ QUERY_USER_NFTS failed, trying simple query...', fallbackError);
@@ -295,7 +300,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                   first: limit,
                   skip: skip
                 },
-                fetchPolicy: 'network-only'
+                fetchPolicy: 'cache-first'
               });
             }
             
@@ -314,49 +319,49 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                 first: limit,
                 skip: skip
               },
-              fetchPolicy: 'network-only'
+              fetchPolicy: 'cache-first'
             });
             
             const saleActivities = saleResult.data?.activities || [];
             
             // Query 3: Check ALL NFTs to find purchased ones (via on-chain ownerOf)
-            // ⚠️ Since subgraph doesn't save buyer field correctly in TOKEN_SALE events
-            const allNFTsResult = await apolloClient.query({
-              query: QUERY_ALL_NFTS,
-              variables: {
-                first: 100, // Check up to 100 NFTs
-                skip: 0
-              },
-              fetchPolicy: 'network-only'
-            });
-            
-            const allNFTs = allNFTsResult.data?.activities || [];
-            console.log(`🔍 Checking ownership of ${allNFTs.length} NFTs to find purchases...`);
-            
-            // Check ownership on-chain for ALL NFTs to find purchased ones
-            const purchasedActivities = [];
-            for (const nft of allNFTs) {
-              try {
-                const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
-                const currentOwner = await publicClient.readContract({
-                  address: PROXY_ADDRESS,
-                  abi: OWNER_OF_ABI,
-                  functionName: 'ownerOf',
-                  args: [BigInt(nft.tokenId)]
-                });
-                
-                // If current user owns this NFT but didn't create it, it's a purchased NFT
-                if (currentOwner.toLowerCase() === address.toLowerCase() && 
-                    nft.user?.toLowerCase() !== address.toLowerCase()) {
-                  purchasedActivities.push(nft);
-                  console.log(`✅ Found purchased NFT #${nft.tokenId}: owner=${currentOwner.slice(0, 10)}, creator=${nft.user?.slice(0, 10)}`);
+            // ✅ Only check on the first page to minimize rate limits
+            let purchasedActivities = [];
+            if (skip === 0) {
+              const allNFTsResult = await apolloClient.query({
+                query: QUERY_ALL_NFTS,
+                variables: {
+                  first: 50, // Reduced from 100 to save bandwidth/rate limits
+                  skip: 0
+                },
+                fetchPolicy: 'cache-first'
+              });
+              
+              const allNFTs = allNFTsResult.data?.activities || [];
+              console.log(`🔍 Checking ownership of ${allNFTs.length} NFTs to find purchases...`);
+              
+              // Check ownership on-chain for ALL NFTs to find purchased ones
+              for (const nft of allNFTs) {
+                try {
+                  const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
+                  const currentOwner = await publicClient.readContract({
+                    address: PROXY_ADDRESS,
+                    abi: OWNER_OF_ABI,
+                    functionName: 'ownerOf',
+                    args: [BigInt(nft.tokenId)]
+                  });
+                  
+                  // If current user owns this NFT but didn't create it, it's a purchased NFT
+                  if (currentOwner.toLowerCase() === address.toLowerCase() && 
+                      nft.user?.toLowerCase() !== address.toLowerCase()) {
+                    purchasedActivities.push(nft);
+                  }
+                } catch {
+                  // Skip NFTs that cause errors
                 }
-              } catch {
-                // Skip NFTs that cause errors (might be burned or invalid)
               }
+              console.log(`✅ Found ${purchasedActivities.length} purchased NFTs via ownerOf verification`);
             }
-            
-            console.log(`✅ Found ${purchasedActivities.length} purchased NFTs via ownerOf verification`);
             
             // Combine all three queries - deduplicate by tokenId
             const tokenIdSet = new Set<string>();
@@ -404,7 +409,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                 first: limit,
                 skip: skip
               },
-              fetchPolicy: 'network-only'
+              fetchPolicy: 'cache-first'
             });
             nftSource = result.data?.activities || [];
           } catch (activitiesError) {
@@ -425,7 +430,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                 first: limit,
                 skip: skip
               },
-              fetchPolicy: 'network-only'
+              fetchPolicy: 'cache-first'
             });
             nftSource = result.data?.activities || [];
             console.log(`✅ Found ${nftSource.length} all NFTs (NFT_MINT)`);
@@ -801,8 +806,15 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           hasMore,
           total: filteredItems.length
         };
-        } catch (error) {
-        console.error('❌ Error fetching NFTs from subgraph v0.19:', error);
+      } catch (error) {
+        // ✅ Handle 429 Specifically
+        const isRateLimit = error instanceof Error && error.message.includes('429');
+        if (isRateLimit) {
+          console.warn('⚠️ [useMarketplaceNFTsGraph] Rate limited (429) by The Graph. Adding delay before retry...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        console.error('❌ Error fetching NFTs from subgraph:', error);
         throw error;
       }
     },
@@ -811,11 +823,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
       if (!lastPage.hasMore || !lastPage.nextCursor) return undefined;
       return parseInt(lastPage.nextCursor, 10);
     },
-    enabled: enabled && (!userOnly || !!address),
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
-    gcTime: 10 * 60 * 1000, // 10 minutes cache
-    retry: 2,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000)
+    enabled: enabled && (!userOnly || !!address)
   });
 
   // Flatten all pages
@@ -860,9 +868,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      query.refetch().catch(() => {
-        // Silent fail
-      });
+      // Removed manual refetch to avoid 429 loops
     };
 
     const handleOffline = () => setIsOnline(false);

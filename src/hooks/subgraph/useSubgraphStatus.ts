@@ -36,7 +36,7 @@ export function useSubgraphStatus(): UseSubgraphStatusReturn {
       
       const { data, errors } = await apolloClient.query<{ _meta: { block: { number: number; hash: string; timestamp: number; }; deployment: string; hasIndexingErrors: boolean; } }>({
         query: GET_SUBGRAPH_STATUS,
-        fetchPolicy: 'network-only',
+        fetchPolicy: 'cache-first', // Use cache first to reduce network requests
       });
 
       if (errors && errors.length > 0) {
@@ -85,7 +85,7 @@ export function useSubgraphStatus(): UseSubgraphStatusReturn {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 30000); // Poll every 30 seconds
+    const interval = setInterval(fetchStatus, 60000); // Poll every 60 seconds (optimized for 429)
 
     return () => clearInterval(interval);
   }, [fetchStatus]);

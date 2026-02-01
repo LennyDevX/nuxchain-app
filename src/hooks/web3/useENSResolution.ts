@@ -13,7 +13,7 @@ export function useENSResolution(address: string | undefined) {
   const publicClient = usePublicClient()
 
   const resolveENS = useCallback(async () => {
-    if (!address || !publicClient) return
+    if (!address || !publicClient || publicClient.chain?.id !== 1) return
 
     // Verificar cache primero
     if (address in ENS_CACHE) {

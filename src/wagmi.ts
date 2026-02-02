@@ -56,15 +56,17 @@ export const config = createConfig({
       : []),
   ],
   transports: {
-    [polygon.id]: http(alchemyApiKey ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}` : undefined, {
-      batch: true, // Habilitar batching para reducir el número de peticiones
+    [polygon.id]: http(alchemyApiKey ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}` : 'https://polygon-rpc.com', {
+      batch: true, // Enable batching to reduce request count
       retryCount: 3,
       retryDelay: 1000,
+      timeout: 10000, // ⚡ Increased timeout for rate limited responses
     }),
     [polygonAmoy.id]: http(undefined, {
       batch: true,
       retryCount: 3,
       retryDelay: 1000,
+      timeout: 10000,
     }),
   },
 })

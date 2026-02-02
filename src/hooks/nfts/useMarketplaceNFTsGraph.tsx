@@ -250,11 +250,12 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
       isForSale,
       userAddress: userOnly ? address : undefined
     }],
-    staleTime: 5 * 60 * 1000, 
-    gcTime: 10 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // ⚡ INCREASED from 5min to 30min - avoid excessive refetches
+    gcTime: 60 * 60 * 1000, // 1 hour cache
     refetchOnWindowFocus: false, 
     refetchOnMount: false,
-    retry: 2,
+    retry: 1, // ⚡ REDUCED from 2 to 1 - fail faster on rate limits
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // ⚡ Exponential backoff: 1s, 2s, 4s...
     queryFn: async ({ pageParam = 0 }) => {
       const skip = pageParam;
 
@@ -331,7 +332,7 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               const allNFTsResult = await apolloClient.query({
                 query: QUERY_ALL_NFTS,
                 variables: {
-                  first: 50, // Reduced from 100 to save bandwidth/rate limits
+                  first: 10, // ⚡ REDUCED from 50 to 10 to avoid 429 rate limits
                   skip: 0
                 },
                 fetchPolicy: 'cache-first'
@@ -340,8 +341,9 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               const allNFTs = allNFTsResult.data?.activities || [];
               console.log(`🔍 Checking ownership of ${allNFTs.length} NFTs to find purchases...`);
               
-              // Check ownership on-chain for ALL NFTs to find purchased ones
-              for (const nft of allNFTs) {
+              // ⚡ OPTIMIZED: Batch check ownership with delay to avoid RPC rate limits
+              for (let i = 0; i < allNFTs.length; i++) {
+                const nft = allNFTs[i];
                 try {
                   const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
                   const currentOwner = await publicClient.readContract({
@@ -355,6 +357,11 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
                   if (currentOwner.toLowerCase() === address.toLowerCase() && 
                       nft.user?.toLowerCase() !== address.toLowerCase()) {
                     purchasedActivities.push(nft);
+                  }
+                  
+                  // ⚡ Add delay every 3 RPC calls to avoid rate limiting
+                  if ((i + 1) % 3 === 0 && i < allNFTs.length - 1) {
+                    await new Promise(r => setTimeout(r, 500)); // 500ms delay every 3 calls
                   }
                 } catch {
                   // Skip NFTs that cause errors

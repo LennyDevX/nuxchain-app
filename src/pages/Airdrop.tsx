@@ -7,7 +7,65 @@ import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
 import CountdownTimer from '../components/ui/CountdownTimer';
 import NuxCoinDisplay from '../components/airdrop/NuxCoinDisplay';
+import MaintenancePage from './MaintenancePage';
+import { MAINTENANCE_CONFIG, isMaintenanceMode } from '../config/maintenance';
 import '../styles/nux-coin-display.css';
+
+// Utility functions for device fingerprinting
+function generateFingerprint(): string {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return Math.random().toString();
+  
+  ctx.textBaseline = 'top';
+  ctx.font = '14px Arial';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#f60';
+  ctx.fillRect(125, 1, 62, 20);
+  ctx.fillStyle = '#069';
+  ctx.fillText('Browser Fingerprint', 2, 15);
+  
+  return canvas.toDataURL();
+}
+
+function getBrowserInfo() {
+  const ua = navigator.userAgent;
+  let browserName = 'Unknown';
+  let browserVersion = 'Unknown';
+  let osName = 'Unknown';
+
+  // Detect browser
+  if (ua.indexOf('Firefox') > -1) {
+    browserName = 'Firefox';
+    browserVersion = ua.split('Firefox/')[1];
+  } else if (ua.indexOf('Chrome') > -1) {
+    browserName = 'Chrome';
+    browserVersion = ua.split('Chrome/')[1];
+  } else if (ua.indexOf('Safari') > -1) {
+    browserName = 'Safari';
+    browserVersion = ua.split('Version/')[1];
+  } else if (ua.indexOf('Edge') > -1) {
+    browserName = 'Edge';
+    browserVersion = ua.split('Edge/')[1];
+  }
+
+  // Detect OS
+  if (ua.indexOf('Win') > -1) osName = 'Windows';
+  else if (ua.indexOf('Mac') > -1) osName = 'MacOS';
+  else if (ua.indexOf('Linux') > -1) osName = 'Linux';
+  else if (ua.indexOf('Android') > -1) osName = 'Android';
+  else if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) osName = 'iOS';
+
+  return {
+    browserName,
+    browserVersion: browserVersion?.split(';')[0] || 'Unknown',
+    osName,
+    deviceType: /Mobile|Android|iPhone|iPad/i.test(ua) ? 'mobile' : 'desktop',
+    screenResolution: `${window.screen.width}x${window.screen.height}`,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    language: navigator.language,
+  };
+}
 
 function Airdrop() {
   // EVM wallet hooks
@@ -35,6 +93,9 @@ function Airdrop() {
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
   const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
   const [mountTime] = useState(Date.now());
+  const [deviceFingerprint] = useState(() => generateFingerprint());
+  const [userAgent] = useState(navigator.userAgent);
+  const [browserInfo] = useState(() => getBrowserInfo());
 
   // Constantes del airdrop
   const TOKENS_PER_USER = 6000; // 6K NUX tokens por usuario
@@ -185,7 +246,14 @@ function Airdrop() {
         formData.name,
         formData.email,
         formData.wallet,
-        formData.website // Pass honeypot to service for extra verification
+        formData.website, // Pass honeypot to service for extra verification
+        {
+          userAgent,
+          fingerprint: deviceFingerprint,
+          browserInfo,
+          submitTime: Date.now(),
+          pageLoadTime: mountTime
+        }
       );
 
       console.log('✅ Registration successful!');
@@ -240,6 +308,16 @@ function Airdrop() {
   const isPoolFull = registeredUsers >= MAX_USERS;
   const usersRemaining = Math.max(0, MAX_USERS - registeredUsers);
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
+
+  // Check for maintenance mode - must be after all hooks
+  if (isMaintenanceMode()) {
+    return (
+      <MaintenancePage 
+        estimatedTime={MAINTENANCE_CONFIG.estimatedTime}
+        message={MAINTENANCE_CONFIG.message}
+      />
+    );
+  }
 
   return (
     <GlobalBackground>

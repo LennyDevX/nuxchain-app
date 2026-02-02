@@ -158,7 +158,10 @@ export const CHAIN_CONFIG = {
     decimals: 18
   },
   rpcUrls: [
-    'https://polygon-mainnet.g.alchemy.com/v2/Oyk0XqXD7K2HQO4bkbDm1w8iZQ6fHulV'
+    // ⚡ Use environment variable instead of hardcoded key
+    import.meta.env.VITE_ALCHEMY 
+      ? `https://polygon-mainnet.g.alchemy.com/v2/${import.meta.env.VITE_ALCHEMY}`
+      : 'https://polygon-rpc.com' // Fallback to public RPC
   ],
   blockExplorerUrls: ['https://polygonscan.com']
 };

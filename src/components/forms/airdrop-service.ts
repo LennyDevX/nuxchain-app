@@ -89,7 +89,22 @@ export async function submitAirdropRegistration(
   name: string,
   email: string,
   wallet: string,
-  honeypot?: string
+  honeypot?: string,
+  deviceData?: {
+    userAgent: string;
+    fingerprint: string;
+    browserInfo: {
+      browserName: string;
+      browserVersion: string;
+      osName: string;
+      deviceType: string;
+      screenResolution: string;
+      timezone: string;
+      language: string;
+    };
+    submitTime: number;
+    pageLoadTime: number;
+  }
 ) {
   try {
     console.log('📝 Starting airdrop registration...');
@@ -272,6 +287,17 @@ export async function submitAirdropRegistration(
       createdAt: serverTimestamp(),
       status: 'pending',
       airdropAmount: '6000', // 6K NUX tokens
+      // New data capture fields
+      userAgent: deviceData?.userAgent || 'unknown',
+      fingerprint: deviceData?.fingerprint || 'unknown',
+      browserName: deviceData?.browserInfo?.browserName || 'unknown',
+      browserVersion: deviceData?.browserInfo?.browserVersion || 'unknown',
+      osName: deviceData?.browserInfo?.osName || 'unknown',
+      deviceType: deviceData?.browserInfo?.deviceType || 'unknown',
+      screenResolution: deviceData?.browserInfo?.screenResolution || 'unknown',
+      timezone: deviceData?.browserInfo?.timezone || 'unknown',
+      language: deviceData?.browserInfo?.language || 'unknown',
+      timeToSubmit: deviceData ? (deviceData.submitTime - deviceData.pageLoadTime) : 0,
     };
 
     console.log('📤 Sending to Firestore:', airdropData);

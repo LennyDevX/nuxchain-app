@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import HeroSection from '../components/home/HeroSection'
 import Footer from '../components/layout/footer'
+import AnnouncementModal from '../components/home/AnnouncementModal'
 import { useLazyRender } from '../hooks/performance/useLazyRender'
 import { HeroSkeletonLoader } from '../components/ui/SkeletonLoader'
 
@@ -31,6 +32,7 @@ const LazySection = ({ children }: { children: React.ReactNode }) => {
 function Home() {
   return (
     <div className="min-h-screen">
+      <AnnouncementModal />
       <HeroSection />
 
 

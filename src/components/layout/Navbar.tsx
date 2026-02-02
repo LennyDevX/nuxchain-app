@@ -79,13 +79,19 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`inline-block px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-block px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${
                         isActive(link.path)
                           ? 'bg-blue-100 text-blue-700 shadow-sm'
                           : 'text-white/80 hover:text-white hover:bg-white/10'
                       }`}
                     >
                       {link.label}
+                      {link.path === '/airdrop' && (
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-slate-900"></span>
+                        </span>
+                      )}
                     </Link>
                   </motion.div>
                 </motion.div>

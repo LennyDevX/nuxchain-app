@@ -53,7 +53,9 @@ export const validateApiKey = (req, res, next) => {
     '/api/chat/stream',
     '/api/chat/stream-with-tools',
     '/api/embeddings',
-    '/api/scraper'
+    '/api/scraper',
+    '/api/airdrop/validate',
+    '/api/airdrop/submit'
   ];
   
   const isPublicEndpoint = publicEndpoints.some(endpoint => 

@@ -4,9 +4,11 @@ const { Connection, PublicKey } = require('@solana/web3.js');
 const fs = require('fs');
 const path = require('path');
 
-const SERVICE_ACCOUNT_PATH = '../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json';
+const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json');
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
-const QUICKNODE_RPC = process.env.SOLANA_RPC || 'https://clean-omniscient-fog.solana-mainnet.quiknode.pro/6ccde27c30a475ed14ef4a9f25c02de8c2e8e0e8/';
+
+require('dotenv').config();
+const SOLANA_RPC = process.env.SOLANA_RPC_ALCHEMY || process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 
 // Risk-based thresholds
 const RISK_THRESHOLDS = {
@@ -59,31 +61,39 @@ function parseCSV(csvContent) {
 }
 
 async function loadAnalysisData() {
-    // Load the CSV analysis to get risk scores
-    const csvFile = path.join(__dirname, 'all-wallets-analysis-2026-02-02.csv');
-    if (!fs.existsSync(csvFile)) {
-        console.warn('⚠️  Analysis CSV not found. Operating without risk scores.');
+    // Automatically find the most recent analysis CSV
+    const files = fs.readdirSync(path.join(__dirname, '../'))
+        .filter(f => f.startsWith('airdrop-analysis-hybrid-') && f.endsWith('.csv'))
+        .sort()
+        .reverse();
+
+    if (files.length === 0) {
+        console.warn('⚠️  No airdrop-analysis-hybrid-*.csv found. Operating without risk scores.');
         return new Map();
     }
     
-    const content = fs.readFileSync(csvFile, 'utf-8');
+    const latestFile = path.join(__dirname, '../', files[0]);
+    console.log(`📂 Using analysis report: ${files[0]}`);
+    
+    const content = fs.readFileSync(latestFile, 'utf-8');
     const records = parseCSV(content);
     
     const riskMap = new Map();
     records.forEach(record => {
-        if (record.wallet) {
-            riskMap.set(record.wallet, {
+        const wallet = record.wallet || record.walletAddress;
+        if (wallet) {
+            riskMap.set(wallet, {
                 riskScore: parseInt(record.riskScore) || 0,
                 classification: record.classification || '',
                 email: record.email || '',
-                ipRegistrationCount: parseInt(record.ipRegistrationCount) || 0,
+                ipRegistrationCount: parseInt(record.ipCount) || 0,
                 tokenAccountCount: parseInt(record.tokenAccountCount) || 0,
-                walletExists: record.walletExists === 'Yes'
+                walletExists: record.exists === 'Yes'
             });
         }
     });
     
-    console.log(`📊 Loaded risk analysis for ${riskMap.size} wallets from CSV`);
+    console.log(`📊 Loaded risk analysis for ${riskMap.size} wallets`);
     return riskMap;
 }
 
@@ -127,7 +137,7 @@ async function wipeBots(dryRun = true) {
     const serviceAccount = require(SERVICE_ACCOUNT_PATH);
     initializeApp({ credential: cert(serviceAccount) });
     const db = getFirestore();
-    const connection = new Connection(QUICKNODE_RPC, 'confirmed');
+    const connection = new Connection(SOLANA_RPC, 'confirmed');
 
     console.log('\n══════════════════════════════════════════════════════════════════════');
     console.log(`🚀 Starting Bot Purge (DRY RUN: ${dryRun ? 'YES' : 'NO'})...`);
@@ -228,30 +238,27 @@ async function wipeBots(dryRun = true) {
     console.log(`   Likely Bot (score 45+): ${deletion.likelyBot.length}`);
     console.log(`   Suspicious (score 65+): ${deletion.suspicious.length}`);
     
-    const totalToDelete = Object.values(deletion).reduce((sum, arr) => sum + arr.length, 0) - deletion.keepRealUsers.length;
+    const allToDelete = [
+        ...deletion.evmAddresses,
+        ...deletion.invalidWallets,
+        ...deletion.nonExistentWallets,
+        ...deletion.zeroBalance,
+        ...deletion.noTransactions,
+        ...deletion.disposableEmail,
+        ...deletion.ipFarm,
+        ...deletion.likelyBot,
+        ...deletion.suspicious
+    ];
+
+    const totalToDelete = allToDelete.length;
     console.log(`\n   💥 TOTAL TO DELETE:     ${totalToDelete}`);
     console.log(`   ✅ KEEP REAL USERS:     ${deletion.keepRealUsers.length}`);
-    console.log(`\n══════════════════════════════════════════════════════════════════════\n`);
+    console.log('\n══════════════════════════════════════════════════════════════════════\n');
 
     // Only proceed with deletion if explicitly NOT a dry run
     if (!dryRun && totalToDelete > 0) {
         console.log('⚠️  WARNING: This will permanently delete records from Firebase!');
-        console.log('   Type "DELETE" to confirm, or Ctrl+C to abort.\n');
-        
-        // In production, add user confirmation here
         console.log('🗑️ Deleting in Firestore batches...');
-        
-        const allToDelete = [
-            ...deletion.evmAddresses,
-            ...deletion.invalidWallets,
-            ...deletion.nonExistentWallets,
-            ...deletion.zeroBalance,
-            ...deletion.noTransactions,
-            ...deletion.disposableEmail,
-            ...deletion.ipFarm,
-            ...deletion.likelyBot,
-            ...deletion.suspicious
-        ];
 
         for (let i = 0; i < allToDelete.length; i += 400) {
             const batch = db.batch();
@@ -265,6 +272,8 @@ async function wipeBots(dryRun = true) {
     } else if (dryRun) {
         console.log('📌 DRY RUN MODE: No deletions performed.');
         console.log('   Run with: DRY_RUN=false node scripts/wipe-bots.cjs\n');
+    } else if (totalToDelete === 0) {
+        console.log('✨ No bots detected to delete. Database is clean!');
     }
 }
 

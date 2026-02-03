@@ -18,6 +18,14 @@
     "api/price/pol.ts": {
       "maxDuration": 10,
       "memory": 256
+    },
+    "api/airdrop/validate.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/airdrop/submit.ts": {
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [

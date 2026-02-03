@@ -108,7 +108,7 @@ export const isValidSolanaAddress = (address: string): boolean => {
 
   try {
     // Solana addresses son base58 encoded, típicamente 34-44 caracteres
-    const regex = /^[1-9A-HJ-NP-Z]{32,44}$/
+    const regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/
     return regex.test(address)
   } catch {
     return false

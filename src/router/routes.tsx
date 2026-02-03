@@ -8,8 +8,8 @@ import Home from '../pages/Home';
 
 // 🚀 Lazy-loaded pages with optimized code splitting
 const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
-const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
-const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
+const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTsMaintenance'));
+const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/NFTsMaintenance'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
@@ -21,7 +21,7 @@ const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skil
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
 const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
-const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/Airdrop'));
+const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle

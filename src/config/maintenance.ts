@@ -4,14 +4,14 @@
  */
 
 export const MAINTENANCE_CONFIG = {
-  // Set to true to enable maintenance mode
-  enabled: true,
+  // Set to true to enable maintenance mode (or use VITE_AIRDROP_MAINTENANCE in .env)
+  enabled: false, // import.meta.env.VITE_AIRDROP_MAINTENANCE === 'true',
   
   // Estimated time until maintenance is complete (in minutes)
-  estimatedTime: 150,
+  estimatedTime: 120,
   
   // Custom maintenance message
-  message: 'We are performing critical system maintenance to enhance security and remove fraudulent accounts. Our team is working hard to purge bot registrations and ensure a fair airdrop distribution. Thank you for your patience!',
+  message: 'We are upgrading our anti-bot security system and deploying enhanced wallet validation. This ensures only real users can participate in the airdrop. The system will be back online shortly. Thank you for your patience!',  
   
   // Start time of maintenance (ISO string)
   startTime: new Date().toISOString(),

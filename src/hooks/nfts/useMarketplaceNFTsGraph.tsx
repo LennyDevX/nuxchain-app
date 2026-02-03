@@ -7,6 +7,8 @@ import { nftLogger } from '../../utils/log/nftLogger';
 import { createPublicClient, http } from 'viem';
 import { polygon } from 'viem/chains';
 import { contractReadQueue } from '../../utils/queue/RequestQueue';
+import { requestQueue } from '../../lib/request-queue';
+import { NFTCacheManager } from '../../utils/cache/nft-cache-manager';
 import { fetchTokenMetadata } from '../../utils/ipfs/ipfsUtils';
 
 export interface NFTAttribute {
@@ -280,29 +282,33 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           // We'll use on-chain ownerOf verification later to include purchased NFTs
           
           try {
-            // Query 1: User's created NFTs
+            // Query 1: User's created NFTs (usando requestQueue)
             let mintResult;
             try {
-              mintResult = await apolloClient.query({
-                query: QUERY_USER_NFTS,
-                variables: {
-                  user: address.toLowerCase(),
-                  first: limit,
-                  skip: skip
-                },
-                fetchPolicy: 'cache-first'
-              });
+              mintResult = await requestQueue.enqueue(() =>
+                apolloClient.query({
+                  query: QUERY_USER_NFTS,
+                  variables: {
+                    user: address.toLowerCase(),
+                    first: limit,
+                    skip: skip
+                  },
+                  fetchPolicy: 'cache-first'
+                })
+              );
             } catch (fallbackError) {
               console.warn('⚠️ QUERY_USER_NFTS failed, trying simple query...', fallbackError);
               // Fallback to simple query without user filter
-              mintResult = await apolloClient.query({
-                query: QUERY_ALL_NFTS,
-                variables: {
-                  first: limit,
-                  skip: skip
-                },
-                fetchPolicy: 'cache-first'
-              });
+              mintResult = await requestQueue.enqueue(() =>
+                apolloClient.query({
+                  query: QUERY_ALL_NFTS,
+                  variables: {
+                    first: limit,
+                    skip: skip
+                  },
+                  fetchPolicy: 'cache-first'
+                })
+              );
             }
             
             const allMintActivities = mintResult.data?.activities || [];
@@ -312,65 +318,27 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
               activity.user?.toLowerCase() === address.toLowerCase()
             );
             
-            // Query 2: User's listed NFTs
-            const saleResult = await apolloClient.query({
-              query: QUERY_USER_NFTs_FOR_SALE,
-              variables: {
-                user: address.toLowerCase(),
-                first: limit,
-                skip: skip
-              },
-              fetchPolicy: 'cache-first'
-            });
+            // Query 2: User's listed NFTs (usando requestQueue)
+            const saleResult = await requestQueue.enqueue(() =>
+              apolloClient.query({
+                query: QUERY_USER_NFTs_FOR_SALE,
+                variables: {
+                  user: address.toLowerCase(),
+                  first: limit,
+                  skip: skip
+                },
+                fetchPolicy: 'cache-first'
+              })
+            );
             
             const saleActivities = saleResult.data?.activities || [];
             
-            // Query 3: Check ALL NFTs to find purchased ones (via on-chain ownerOf)
-            // ✅ Only check on the first page to minimize rate limits
-            let purchasedActivities = [];
-            if (skip === 0) {
-              const allNFTsResult = await apolloClient.query({
-                query: QUERY_ALL_NFTS,
-                variables: {
-                  first: 10, // ⚡ REDUCED from 50 to 10 to avoid 429 rate limits
-                  skip: 0
-                },
-                fetchPolicy: 'cache-first'
-              });
-              
-              const allNFTs = allNFTsResult.data?.activities || [];
-              console.log(`🔍 Checking ownership of ${allNFTs.length} NFTs to find purchases...`);
-              
-              // ⚡ OPTIMIZED: Batch check ownership with delay to avoid RPC rate limits
-              for (let i = 0; i < allNFTs.length; i++) {
-                const nft = allNFTs[i];
-                try {
-                  const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY as `0x${string}`;
-                  const currentOwner = await publicClient.readContract({
-                    address: PROXY_ADDRESS,
-                    abi: OWNER_OF_ABI,
-                    functionName: 'ownerOf',
-                    args: [BigInt(nft.tokenId)]
-                  });
-                  
-                  // If current user owns this NFT but didn't create it, it's a purchased NFT
-                  if (currentOwner.toLowerCase() === address.toLowerCase() && 
-                      nft.user?.toLowerCase() !== address.toLowerCase()) {
-                    purchasedActivities.push(nft);
-                  }
-                  
-                  // ⚡ Add delay every 3 RPC calls to avoid rate limiting
-                  if ((i + 1) % 3 === 0 && i < allNFTs.length - 1) {
-                    await new Promise(r => setTimeout(r, 500)); // 500ms delay every 3 calls
-                  }
-                } catch {
-                  // Skip NFTs that cause errors
-                }
-              }
-              console.log(`✅ Found ${purchasedActivities.length} purchased NFTs via ownerOf verification`);
-            }
+            // 🔥 OPTIMIZATION: Removed Query 3 (ownership verification)
+            // Reason: Causes 10 RPC calls + rate limiting. User's NFTs come from Query 1+2.
+            // Purchased NFTs will appear when user creates a TRANSFER activity (already in subgraph)
+            const purchasedActivities: any[] = [];
             
-            // Combine all three queries - deduplicate by tokenId
+            // Combine queries - deduplicate by tokenId
             const tokenIdSet = new Set<string>();
             nftSource = [];
             
@@ -410,14 +378,16 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           // Show only NFTs that are listed for sale (NFT_LIST activities)
           
           try {
-            const result = await apolloClient.query({
-              query: QUERY_NFTs_FOR_SALE,
-              variables: {
-                first: limit,
-                skip: skip
-              },
-              fetchPolicy: 'cache-first'
-            });
+            const result = await requestQueue.enqueue(() =>
+              apolloClient.query({
+                query: QUERY_NFTs_FOR_SALE,
+                variables: {
+                  first: limit,
+                  skip: skip
+                },
+                fetchPolicy: 'cache-first'
+              })
+            );
             nftSource = result.data?.activities || [];
           } catch (activitiesError) {
             console.error('❌ FOR_SALE query FAILED:', {
@@ -431,14 +401,16 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           // Show all NFTs (all NFT_MINT activities)
           
           try {
-            const result = await apolloClient.query({
-              query: QUERY_ALL_NFTS,
-              variables: {
-                first: limit,
-                skip: skip
-              },
-              fetchPolicy: 'cache-first'
-            });
+            const result = await requestQueue.enqueue(() =>
+              apolloClient.query({
+                query: QUERY_ALL_NFTS,
+                variables: {
+                  first: limit,
+                  skip: skip
+                },
+                fetchPolicy: 'cache-first'
+              })
+            );
             nftSource = result.data?.activities || [];
             console.log(`✅ Found ${nftSource.length} all NFTs (NFT_MINT)`);
           } catch (activitiesError) {
@@ -804,6 +776,17 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           userOnly
         });
 
+        // 💾 Save to localStorage cache for 429 fallback
+        const cacheKey = `nft_cache_${userOnly ? address : 'all'}_${category}_${isForSale}`;
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            items: filteredItems,
+            timestamp: Date.now()
+          }));
+        } catch (e) {
+          console.warn('Failed to save to cache:', e);
+        }
+
         const hasMore = filteredItems.length === limit;
         const nextCursor = hasMore ? skip + limit : null;
 
@@ -814,11 +797,33 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
           total: filteredItems.length
         };
       } catch (error) {
-        // ✅ Handle 429 Specifically
+        // 🔥 CRITICAL: Handle 429 rate limits - try localStorage cache first
         const isRateLimit = error instanceof Error && error.message.includes('429');
         if (isRateLimit) {
-          console.warn('⚠️ [useMarketplaceNFTsGraph] Rate limited (429) by The Graph. Adding delay before retry...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          console.warn('⚠️ [useMarketplaceNFTsGraph] Rate limited (429), trying localStorage cache...');
+          
+          // Try to load from localStorage cache
+          const cacheKey = `nft_cache_${userOnly ? address : 'all'}_${category}_${isForSale}`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              const cachedData = JSON.parse(cached);
+              const age = Date.now() - cachedData.timestamp;
+              // Use cache even if old during 429 errors
+              console.log(`✅ Using cached data (${Math.floor(age/1000)}s old)`);
+              return {
+                items: cachedData.items || [],
+                nextCursor: null,
+                hasMore: false,
+                total: cachedData.items?.length || 0
+              };
+            } catch (e) {
+              console.error('Failed to parse cache:', e);
+            }
+          }
+          
+          console.error('⛔ [useMarketplaceNFTsGraph] Rate limited (429) and no cache available. Please wait 30-60 seconds.');
+          throw new Error('Rate limited by The Graph API. Please wait before trying again.');
         }
         
         console.error('❌ Error fetching NFTs from subgraph:', error);
@@ -830,7 +835,12 @@ export function useMarketplaceNFTsGraph(options: UseMarketplaceNFTsOptions = {})
       if (!lastPage.hasMore || !lastPage.nextCursor) return undefined;
       return parseInt(lastPage.nextCursor, 10);
     },
-    enabled: enabled && (!userOnly || !!address)
+    enabled: enabled && (!userOnly || !!address),
+    retry: false, // 🔥 CRITICAL: Disable automatic retries to prevent 429 loops
+    staleTime: 5 * 60 * 1000, // Cache data for 5 minutes (longer to avoid API calls)
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // 🔥 Don't refetch on window focus to avoid 429s
+    refetchOnReconnect: false, // 🔥 Don't refetch on reconnect
   });
 
   // Flatten all pages

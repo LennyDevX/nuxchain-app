@@ -24,10 +24,11 @@ const ProfileOverview: React.FC = () => {
   const triggerHaptic = useTapFeedback();
   
   // ✅ NEW: Auto-refresh activities after any blockchain transaction
+  // 🔥 OPTIMIZATION: Removed clearCache to prevent unnecessary refetches
   useTransactionWatcher(async () => {
     await Promise.all([refreshActivities(), refreshNFTs()]);
   }, {
-    clearCache: true,
+    clearCache: false, // Trust Apollo cache, only refresh specific queries
     delay: 3000, // Wait 3 seconds for subgraph to index
   });
   

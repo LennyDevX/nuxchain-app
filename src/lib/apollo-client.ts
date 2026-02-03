@@ -2,21 +2,21 @@ import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 
-// The Graph Studio endpoint for nuxchain subgraph (v0.39 - fixed startBlocks and 429 optimization)
-const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain/v0.39"
+// The Graph Studio endpoint for nuxchain subgraph (v0.40 - improved rate limiting and fixes)
+const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain/v0.40"
 
 // ⚡ RATE LIMIT PROTECTION: Retry link with exponential backoff
 const retryLink = new RetryLink({
   delay: {
-    initial: 1000,  // Start with 1s delay
-    max: 10000,     // Max 10s delay
-    jitter: true    // Add randomness to prevent thundering herd
+    initial: 5000,    // 5 segundos (aumentado desde 1s)
+    max: 30000,       // 30 segundos máximo (aumentado desde 10s)
+    jitter: true      // Add randomness to prevent thundering herd
   },
   attempts: {
-    max: 3,
+    max: 1,           // 🔥 REDUCIDO: Solo 1 reintento en lugar de 3 para evitar retry storms
     retryIf: (error) => {
-      // Only retry on 429 rate limit errors
-      return !!error && error.statusCode === 429;
+      // Solo reintentar en errores de red, NO en 429 (rate limit)
+      return !!error && error.statusCode !== 429;
     }
   }
 });

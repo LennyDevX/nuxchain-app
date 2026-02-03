@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 interface BuyNFTParams {
   tokenId: string | number | bigint;
@@ -76,7 +76,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -85,13 +85,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error buying NFT');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   // Make an offer for a listed NFT
   const makeOffer = useCallback(async ({ tokenId, offerAmount, expiresInDays }: MakeOfferParams) => {
@@ -107,7 +107,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -119,13 +119,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error making offer');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   // Accept an offer
   const acceptOffer = useCallback(async ({ offerId }: AcceptOfferParams) => {
@@ -137,7 +137,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -146,13 +146,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error accepting offer');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   // Cancel an offer
   const cancelOffer = useCallback(async ({ offerId }: CancelOfferParams) => {
@@ -164,7 +164,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -173,13 +173,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error cancelling offer');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   // Update price of a listed NFT
   const updatePrice = useCallback(async ({ tokenId, newPrice }: UpdatePriceParams) => {
@@ -194,7 +194,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -205,13 +205,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error updating price');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   // Unlist NFT
   const unlistNFT = useCallback(async ({ tokenId }: UnlistNFTParams) => {
@@ -225,7 +225,7 @@ export default function useListedNFT() {
 
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
 
@@ -236,13 +236,13 @@ export default function useListedNFT() {
       await publicClient.waitForTransactionReceipt({ hash: txHash });
       return { txHash };
     } catch (err: unknown) {
-      const error = err as any;
+      const error = err as Error;
       setError(error instanceof Error ? error.message : 'Error unlisting NFT');
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient]);
 
   return {
     buyNFT,

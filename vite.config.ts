@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -7,6 +8,21 @@ export default defineConfig({
     react({
       jsxRuntime: 'automatic',
       jsxImportSource: 'react'
+    }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      includeAssets: ['favicon.ico', 'robots.txt', 'offline.html', 'icon.svg'],
+      manifest: false, // Use existing public/manifest.json
+      devOptions: {
+        enabled: false, // Disable in dev for faster HMR
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+      },
     })
   ],
   resolve: {
@@ -37,6 +53,11 @@ export default defineConfig({
         target: 'http://localhost:3002',
         changeOrigin: true,
         rewrite: (path) => `/server${path}`
+      },
+      '/api/market': {
+        target: 'http://localhost:3003',
+        changeOrigin: true
+        // No rewrite, server now handles /api prefix
       },
       '/api': {
         target: 'http://localhost:3002',

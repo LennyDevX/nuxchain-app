@@ -1,0 +1,398 @@
+import { useState, useCallback, useMemo } from 'react';
+import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { getContract, isAddress, keccak256, toHex } from 'viem';
+import type { Abi } from 'viem';
+import GameifiedMarketplaceCoreABI from '../../abi/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceSkillsABI from '../../abi/GameifiedMarketplaceSkills.json';
+import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
+
+interface MintNFTParams {
+  file: File;
+  name: string;
+  description: string;
+  category: string;
+  royalty: number;
+  skills?: Array<{
+    skillType: number;  // 0-5: CODING, DESIGN, MARKETING, TRADING, COMMUNITY, WRITING
+    rarity: number;     // 0-4: COMMON, UNCOMMON, RARE, EPIC, LEGENDARY
+    level: number;      // Nivel de la skill (1-100)
+  }>;
+}
+
+interface MintNFTResult {
+  success: boolean;
+  txHash: string;
+  tokenId: number | null;
+  imageUrl: string;
+  metadataUrl: string;
+  contractAddress: string;
+}
+
+// Nueva arquitectura: Proxy + Core + Skills
+const PROXY_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
+const SKILLS_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS;
+
+// Move category map outside component to prevent recreation on each render
+const categoryMap: Record<string, string> = {
+  'art': 'arte',
+  'artwork': 'arte',
+  'collectible': 'coleccionables',
+  'collectibles': 'coleccionables',
+  'photography': 'fotografia',
+  'photo': 'fotografia',
+  'music': 'musica',
+  'audio': 'musica',
+  'video': 'video',
+  'item': 'collectible',
+  'document': 'collectible',
+  'generic': 'coleccionables'
+};
+
+// Local fallback for when IPFS upload fails - moved outside to avoid recreation
+const createLocalDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        resolve('data:application/octet-stream;base64,' + btoa(String.fromCharCode(...new Uint8Array(reader.result as ArrayBuffer || new ArrayBuffer(0)))));
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+export default function useMintNFT() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
+
+  // Memoize contract addresses validation
+  const validatedProxyAddress = useMemo(() => {
+    if (!PROXY_ADDRESS) return null;
+    return isAddress(PROXY_ADDRESS) ? PROXY_ADDRESS : null;
+  }, []);
+
+  const validatedSkillsAddress = useMemo(() => {
+    if (!SKILLS_ADDRESS) return null;
+    return isAddress(SKILLS_ADDRESS) ? SKILLS_ADDRESS : null;
+  }, []);
+
+  // Mint NFT using enhanced IPFS functions from blockchainUtils
+  const mintNFT = useCallback(async ({ file, name, description, category, royalty, skills = [] }: MintNFTParams): Promise<MintNFTResult> => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+    setTxHash(null);
+
+    try {
+      console.log("Starting NFT minting process");
+      
+      // Use memoized contract address
+      if (!validatedContractAddress) {
+        throw new Error('Invalid contract address. Please check your environment configuration.');
+      }
+      
+      console.log("Using contract address:", validatedContractAddress);
+      
+      // Normaliza la categoría a inglés y español
+      const normalizedCategory = categoryMap[category] || 'coleccionables';
+      const categoryToSend = normalizedCategory;
+      console.log("Category normalized:", category, "->", normalizedCategory);
+
+      // Check if wallet is connected
+      if (!walletClient || !address) {
+        throw new Error('Please connect your wallet to mint NFTs');
+      }
+      
+      console.log("Connected wallet:", address);
+
+      // Validate Skills if present
+      if (skills && skills.length > 0) {
+        // Validation: Max 5 skills per NFT
+        if (skills.length > 5) {
+          throw new Error('Maximum 5 skills allowed per NFT');
+        }
+
+        // Validation: Check skill types are valid (0-6)
+        const invalidSkills = skills.filter(s => typeof s.skillType !== 'number' || s.skillType < 0 || s.skillType > 6);
+        if (invalidSkills.length > 0) {
+          throw new Error('Invalid skill type. Allowed types: 0-6 (Stake Boost I/II/III, Auto Compound, Lock Reducer, Fee Reducer I/II)');
+        }
+
+        // Validation: Check effect values are in range (1-100)
+        const invalidEffects = skills.filter(s => typeof s.effectValue !== 'number' || s.effectValue < 1 || s.effectValue > 100);
+        if (invalidEffects.length > 0) {
+          throw new Error('Invalid effect value. Must be between 1 and 100');
+        }
+
+        // Validation: Check rarity values are valid (0-4)
+        const invalidRarities = skills.filter(s => typeof s.rarity !== 'number' || s.rarity < 0 || s.rarity > 4);
+        if (invalidRarities.length > 0) {
+          throw new Error('Invalid rarity level. Allowed: 0-4 (Common to Legendary)');
+        }
+
+        console.log("Skills validation passed:", {
+          count: skills.length,
+          types: skills.map(s => s.skillType),
+          rarities: skills.map(s => s.rarity),
+        });
+      }
+
+      // Create contract instance
+      const contract = getContract({
+        address: validatedContractAddress as `0x${string}`,
+        abi: GameifiedMarketplaceABI.abi as Abi,
+        client: { public: publicClient, wallet: walletClient }
+      });
+
+      // Step 1: Upload image to IPFS
+      console.log("Uploading image to IPFS...");
+      let imageUrl;
+      try {
+        imageUrl = await uploadFileToIPFS(file);
+        console.log("Image uploaded to IPFS:", imageUrl);
+      } catch (ipfsError: unknown) {
+        console.warn("IPFS upload failed, using local data URL:", ipfsError);
+        imageUrl = await createLocalDataUrl(file);
+      }
+
+      // Step 2: Create metadata object
+      const metadata = {
+        name: name || "Untitled NFT",
+        description: description || "A unique digital asset",
+        image: imageUrl,
+        attributes: [
+          {
+            trait_type: "Category",
+            value: category
+          },
+          {
+            trait_type: "Creator",
+            value: address
+          },
+          {
+            trait_type: "Created",
+            value: new Date().toISOString()
+          }
+        ]
+      };
+
+      // Step 3: Upload metadata to IPFS
+      console.log("Uploading metadata to IPFS...");
+      let metadataUrl;
+      try {
+        metadataUrl = await uploadJsonToIPFS(metadata);
+        console.log("Metadata uploaded to IPFS:", metadataUrl);
+      } catch (metadataError: unknown) {
+        console.warn("Metadata IPFS upload failed:", metadataError);
+        // Create a simple data URL for metadata as fallback
+        const metadataJson = JSON.stringify(metadata);
+        const blob = new Blob([metadataJson], { type: 'application/json' });
+        metadataUrl = URL.createObjectURL(blob);
+      }
+
+      // Step 4: Prepare skill arrays
+      // IMPORTANT: El contrato createSkillNFT REQUIERE al menos 1 skill
+      // El primer skill es GRATIS, skills adicionales cuestan POL
+      const skillTypes = skills.map(s => s.skillType);
+      const effectValues = skills.map(s => s.effectValue);
+      const rarities = skills.map(s => s.rarity);
+      
+      // Validar que haya al menos 1 skill (requerido por contrato)
+      if (skillTypes.length === 0) {
+        const errorMsg = "Contract Requirement: You must add at least one skill to mint an NFT. The first skill is FREE!";
+        setError(errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      console.log("Skills configuration:", { skillTypes, effectValues, rarities });
+
+      // Step 5: Estimate gas for the transaction
+      console.log("Estimating gas for minting...");
+      const royaltyBasisPoints = Math.floor((royalty || 250));
+      
+      let gasEstimate = 500000n;
+      try {
+        // createSkillNFT with skill arrays (empty for standard NFT)
+        const estimated = await contract.estimateGas.createSkillNFT([
+          metadataUrl,
+          normalizedCategory,
+          royaltyBasisPoints,
+          skillTypes,
+          effectValues,
+          rarities
+        ]);
+        gasEstimate = (estimated * 120n) / 100n; // Add 20% buffer
+        console.log("Gas estimate with 20% buffer:", gasEstimate.toString());
+      } catch (estimateError: unknown) {
+        console.warn("Gas estimation failed, using default:", estimateError);
+        gasEstimate = 1000000n; // Increased default gas limit
+      }
+
+      // Step 6: Execute the minting transaction using createSkillNFT
+      console.log("Executing minting transaction...");
+      console.log("Parameters being sent to createSkillNFT:", {
+        tokenURI: metadataUrl,
+        category: categoryToSend,
+        royaltyPercentage: royaltyBasisPoints,
+        skillTypesCount: skillTypes.length,
+        effectValuesCount: effectValues.length,
+        raritiesCount: rarities.length
+      });
+
+      const txHash = await contract.write.createSkillNFT([
+        metadataUrl,
+        categoryToSend,
+        royaltyBasisPoints,
+        skillTypes,
+        effectValues,
+        rarities
+      ], {
+        gas: gasEstimate
+      });
+
+      console.log("Transaction submitted:", txHash);
+      setTxHash(txHash);
+
+      // Step 6: Wait for transaction confirmation
+      console.log("Waiting for transaction confirmation...");
+      const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+      
+      console.log("Transaction receipt received:", {
+        status: receipt.status,
+        blockNumber: receipt.blockNumber,
+        logsLength: receipt.logs?.length || 0,
+        gasUsed: receipt.gasUsed?.toString()
+      });
+      
+      if (receipt.status === 'success') {
+        console.log("Transaction confirmed:", receipt);
+        
+        // Extract token ID from transaction receipt
+        let tokenId: number | null = null;
+        
+        console.log("Receipt logs count:", receipt.logs?.length || 0);
+        
+        if (receipt.logs && receipt.logs.length > 0) {
+          try {
+            // Log all events for debugging
+            console.log("All events in receipt:", receipt.logs.map((log, i) => ({
+              index: i,
+              topics: log.topics,
+              address: log.address,
+              data: log.data?.slice(0, 66) + '...'
+            })));
+
+            // Look for Transfer event (0xddf252ad...)
+            const transferEventSignature = keccak256(toHex("Transfer(address,address,uint256)"));
+            console.log("Looking for Transfer event signature:", transferEventSignature);
+            
+            const transferEvent = receipt.logs.find(log => 
+              log.topics[0] === transferEventSignature && 
+              log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000' // from = 0x0 (mint)
+            );
+            
+            if (transferEvent && transferEvent.topics[3]) {
+              tokenId = parseInt(transferEvent.topics[3], 16);
+              console.log("Token ID extracted from Transfer event:", tokenId);
+            } else {
+              // If not found, try any Transfer event (not just mints)
+              const anyTransferEvent = receipt.logs.find(log => 
+                log.topics[0] === transferEventSignature
+              );
+              if (anyTransferEvent && anyTransferEvent.topics[3]) {
+                tokenId = parseInt(anyTransferEvent.topics[3], 16);
+                console.log("Token ID extracted from any Transfer event:", tokenId);
+              }
+            }
+          } catch (eventError: unknown) {
+            console.warn("Could not extract token ID from event:", eventError);
+          }
+        }
+
+        console.log("Final result - tokenId:", tokenId, "txHash:", txHash);
+        setSuccess(true);
+        
+        return {
+          success: true,
+          txHash: txHash,
+          tokenId: tokenId,
+          imageUrl: imageUrl,
+          metadataUrl: metadataUrl,
+          contractAddress: validatedContractAddress
+        };
+      } else {
+        throw new Error('Transaction failed on blockchain');
+      }
+
+    } catch (err: unknown) {
+      console.error('Error in mintNFT:', err);
+      
+      const error = err as { message?: string; data?: string; code?: string | number };
+      let errorMessage = 'An unexpected error occurred while minting.';
+      
+      // User rejected transaction
+      if (error.message?.includes('user rejected') || 
+          error.message?.includes('User rejected') ||
+          error.message?.includes('user denied') ||
+          error.code === 4001 ||
+          error.code === 'ACTION_REJECTED') {
+        errorMessage = 'Transaction cancelled by user.';
+      } 
+      // Insufficient funds
+      else if (error.message?.includes('insufficient funds') || 
+               error.message?.includes('insufficient balance')) {
+        errorMessage = 'Insufficient MATIC balance to complete transaction.';
+      } 
+      // Invalid contract address
+      else if (error.message?.includes('Invalid contract address')) {
+        errorMessage = 'Marketplace contract not configured. Please contact support.';
+      } 
+      // IPFS errors
+      else if (error.message?.includes('IPFS') || error.message?.includes('Pinata')) {
+        errorMessage = 'Failed to upload to IPFS. Check your connection.';
+      } 
+      // Contract execution errors
+      else if (error.message?.includes('execution reverted') || error.data) {
+        const reason = error.data as string || error.message || '';
+        
+        if (reason.includes('InvalidSkillConfiguration') || reason.includes('Must have at least 1 skill')) {
+          errorMessage = 'You must add at least 1 skill. First skill is FREE!';
+        } else if (reason.includes('MaxSkillsReached')) {
+          errorMessage = 'Maximum 5 skills per NFT.';
+        } else if (reason.includes('InsufficientStakingBalance')) {
+          errorMessage = 'Need 200 POL staked to create NFTs. Visit Staking page.';
+        } else if (reason.includes('InsufficientPOLForFee')) {
+          errorMessage = 'Not enough POL for additional skills. First skill is free, extras cost POL.';
+        } else if (reason.includes('InvalidSkillType')) {
+          errorMessage = 'Invalid skill type selected.';
+        } else {
+          errorMessage = 'Transaction rejected by contract.';
+        }
+      } 
+      // Network errors
+      else if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        errorMessage = 'Network error. Check your connection.';
+      }
+      // Generic error with message
+      else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('Error for user:', errorMessage);
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [validatedContractAddress, walletClient, address, publicClient]);
+
+  return { mintNFT, loading, error, success, txHash };
+}

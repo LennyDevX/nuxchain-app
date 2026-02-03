@@ -1,0 +1,243 @@
+/**
+ * 📱 Responsive Breakpoints
+ * Centralized breakpoint definitions matching Tailwind defaults
+ * 
+ * Usage in CSS:
+ * @import './breakpoints.css';
+ * 
+ * .my-element {
+ *   @apply-mobile { ... }
+ * }
+ * 
+ * Or use custom properties:
+ * @media (max-width: var(--screen-md)) { ... }
+ */
+
+:root {
+  /* Screen size breakpoints (max-width) */
+  --screen-sm: 640px;   /* Small devices - phones */
+  --screen-md: 768px;   /* Medium devices - tablets */
+  --screen-lg: 1024px;  /* Large devices - laptops */
+  --screen-xl: 1280px;  /* Extra large - desktops */
+  --screen-2xl: 1536px; /* 2X Extra large - large desktops */
+  
+  /* Container max-widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  /* Touch target sizes (WCAG 2.1 AA) */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  
+  /* Spacing scale for responsive design */
+  --space-mobile: 1rem;    /* 16px */
+  --space-tablet: 1.5rem;  /* 24px */
+  --space-desktop: 2rem;   /* 32px */
+}
+
+/**
+ * Reusable breakpoint mixins
+ * Note: CSS doesn't support @apply-* natively
+ * These are for documentation - use @media queries
+ */
+
+/* Mobile First Approach (min-width) - RECOMMENDED */
+
+/* @media (min-width: 640px) { ... } - Small screens and up */
+@media (min-width: 640px) {
+  :root {
+    --current-breakpoint: 'sm';
+  }
+}
+
+/* @media (min-width: 768px) { ... } - Tablets and up */
+@media (min-width: 768px) {
+  :root {
+    --current-breakpoint: 'md';
+  }
+}
+
+/* @media (min-width: 1024px) { ... } - Laptops and up */
+@media (min-width: 1024px) {
+  :root {
+    --current-breakpoint: 'lg';
+  }
+}
+
+/* @media (min-width: 1280px) { ... } - Desktops and up */
+@media (min-width: 1280px) {
+  :root {
+    --current-breakpoint: 'xl';
+  }
+}
+
+/* @media (min-width: 1536px) { ... } - Large desktops */
+@media (min-width: 1536px) {
+  :root {
+    --current-breakpoint: '2xl';
+  }
+}
+
+/* Desktop First Approach (max-width) - Use only when necessary */
+
+/* @media (max-width: 1535px) { ... } - Below 2xl */
+/* @media (max-width: 1279px) { ... } - Below xl */
+/* @media (max-width: 1023px) { ... } - Below lg */
+/* @media (max-width: 767px) { ... } - Below md (mobile) */
+/* @media (max-width: 639px) { ... } - Below sm (small mobile) */
+
+/**
+ * Common responsive patterns
+ */
+
+/* Mobile-only styles */
+@media (max-width: 767px) {
+  .mobile-only {
+    display: block;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+}
+
+/* Desktop-only styles */
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* Responsive container */
+.container-responsive {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-mobile);
+  padding-right: var(--space-mobile);
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: var(--container-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: var(--container-md);
+    padding-left: var(--space-tablet);
+    padding-right: var(--space-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: var(--container-lg);
+    padding-left: var(--space-desktop);
+    padding-right: var(--space-desktop);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: var(--container-xl);
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-responsive {
+    max-width: var(--container-2xl);
+  }
+}
+
+/**
+ * Responsive text sizes
+ */
+.text-responsive-sm {
+  font-size: 0.875rem; /* 14px */
+}
+
+@media (min-width: 768px) {
+  .text-responsive-sm {
+    font-size: 1rem; /* 16px */
+  }
+}
+
+.text-responsive-base {
+  font-size: 1rem; /* 16px */
+}
+
+@media (min-width: 768px) {
+  .text-responsive-base {
+    font-size: 1.125rem; /* 18px */
+  }
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem; /* 18px */
+}
+
+@media (min-width: 768px) {
+  .text-responsive-lg {
+    font-size: 1.25rem; /* 20px */
+  }
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem; /* 20px */
+}
+
+@media (min-width: 768px) {
+  .text-responsive-xl {
+    font-size: 1.5rem; /* 24px */
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-responsive-xl {
+    font-size: 1.875rem; /* 30px */
+  }
+}
+
+/**
+ * Responsive spacing helpers
+ */
+.spacing-mobile {
+  padding: var(--space-mobile);
+}
+
+@media (min-width: 768px) {
+  .spacing-tablet {
+    padding: var(--space-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .spacing-desktop {
+    padding: var(--space-desktop);
+  }
+}
+
+/**
+ * Touch-friendly button sizes
+ */
+.btn-touch {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: 0.75rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .btn-touch {
+    min-height: var(--touch-target-comfortable);
+    padding: 0.875rem 1.75rem;
+  }
+}

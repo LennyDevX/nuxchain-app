@@ -515,8 +515,8 @@
     0 0 50px currentColor;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive: Smaller logo on mobile */
+@media (max-width: 767px) {
   .ai-sphere-gradient-1,
   .ai-sphere-gradient-2,
   .ai-sphere-gradient-3 {

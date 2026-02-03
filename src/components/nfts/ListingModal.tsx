@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts/nftToasts';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
+import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
 interface ListingModalProps {
   isOpen: boolean;
@@ -10,12 +13,17 @@ interface ListingModalProps {
   onSuccess: () => void;
 }
 
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: ListingModalProps) {
   const [listingPrice, setListingPrice] = useState('');
   const [category, setCategory] = useState('art');
+  const [loadingToastId, setLoadingToastId] = useState<string | null>(null);
   const { isConnected } = useAccount();
+
+  // 🎯 Accessibility: Focus trap and keyboard navigation
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+  const handleBackdropClick = useModalBackdrop(onClose);
 
   // Contract interaction hooks
   const { writeContract: writeListContract, data: listHash, isPending: isListPending, error: listError } = useWriteContract();
@@ -25,45 +33,88 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
 
   // Handle successful listing
   useEffect(() => {
-    if (isListSuccess) {
-      onSuccess();
-      onClose();
+    if (isListSuccess && loadingToastId) {
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
+      nftToasts.listingSuccess(`NFT #${tokenId}`, 'Listed successfully');
+      
+      // Reset and close after showing success
+      setTimeout(() => {
+        setLoadingToastId(null);
+        onSuccess();
+        onClose();
+      }, 100);
     }
-  }, [isListSuccess, onSuccess, onClose]);
+  }, [isListSuccess, onSuccess, onClose, tokenId, loadingToastId]);
 
   // Handle listing error
   useEffect(() => {
-    if (listError) {
+    if (listError && loadingToastId) {
       console.error('Listing error:', listError);
-      alert(`Error listing NFT: ${listError.message || 'Unknown error'}`);
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+      
+      nftToasts.listingError(listError.message || 'Failed to list NFT');
+      
+      setTimeout(() => {
+        setLoadingToastId(null);
+      }, 0);
     }
-  }, [listError]);
+  }, [listError, loadingToastId]);
 
   const handleConfirmListing = async () => {
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      nftToasts.walletNotConnected();
       return;
     }
     
     if (!tokenId || !listingPrice || parseFloat(listingPrice) < 50) {
-      alert('Please enter a valid price (minimum 50 POL)');
+      nftToasts.error('Enter valid price (minimum 50 POL)');
       return;
     }
 
     try {
+      // Dismiss any existing loading toasts
+      toast.dismiss();
+      
+      const toastId = toast.loading('📋 Listing NFT...', {
+        position: 'top-center',
+        style: {
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+          color: '#fff',
+          fontSize: '14px',
+          fontWeight: '600',
+          borderRadius: '12px',
+          padding: '16px 24px',
+          boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
+          border: '1px solid rgba(139, 92, 246, 0.5)'
+        }
+      });
+      setLoadingToastId(toastId);
+      
       await writeListContract({
         address: MARKETPLACE_CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi,
+        abi: GameifiedMarketplaceCoreABI.abi,
         functionName: 'listTokenForSale',
-        args: [BigInt(tokenId), parseEther(listingPrice), category],
+        args: [BigInt(tokenId), parseEther(listingPrice)],
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error initiating listing:', error);
-      alert('Failed to initiate listing. Please try again.');
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId ?? undefined);
+      setLoadingToastId(null);
+      
+      // No mostrar aquí porque el useEffect de listError ya lo maneja
+      // El error será procesado por el useEffect cuando listError se actualice
     }
   };
 
   const handleCancel = () => {
+    // Dismiss all toasts when canceling
+    toast.dismiss();
+    setLoadingToastId(null);
     setListingPrice('');
     setCategory('art');
     onClose();
@@ -72,15 +123,25 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 max-w-md w-full">
-        <h3 className="text-2xl font-bold text-white mb-6">List NFT for Sale</h3>
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="listing-modal-title"
+      aria-describedby="listing-modal-description"
+    >
+      <div ref={modalRef} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 max-w-md w-full">
+        <h3 id="listing-modal-title" className="text-2xl font-bold text-white mb-6">List NFT for Sale</h3>
         
-        <div className="mb-6">
-          <label className="block text-white font-medium mb-2">Category *</label>
+        <div id="listing-modal-description" className="mb-6">
+          <label htmlFor="category-select" className="block text-white font-medium mb-2">Category *</label>
           <select
+            id="category-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            aria-label="Select NFT category"
+            aria-required="true"
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [&>option]:bg-gray-800 [&>option]:text-white"
             required
           >
@@ -93,18 +154,23 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
         </div>
         
         <div className="mb-6">
-          <label className="block text-white font-medium mb-2">Price (POL) *</label>
+          <label htmlFor="listing-price-input" className="block text-white font-medium mb-2">Price (POL) *</label>
           <input
+            id="listing-price-input"
             type="number"
             step="50"
             min="50"
             value={listingPrice}
             onChange={(e) => setListingPrice(e.target.value)}
+            aria-label="Enter listing price in POL"
+            aria-required="true"
+            aria-describedby="price-hint"
+            aria-invalid={listingPrice !== '' && parseFloat(listingPrice) < 50}
             className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             placeholder="50"
             required
           />
-          <p className="text-white/60 text-sm mt-1">
+          <p id="price-hint" className="text-white/60 text-sm mt-1">
             💰 Minimum price: 50 POL
           </p>
         </div>
@@ -113,13 +179,18 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
           <button
             onClick={handleCancel}
             disabled={isListPending || isListConfirming}
-            className="flex-1 bg-gray-600/20 border border-gray-600 text-gray-300 hover:bg-gray-600/30 py-3 px-4 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Cancel listing"
+            aria-disabled={isListPending || isListConfirming}
+            className="flex-1 btn-secondary"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirmListing}
             disabled={isListPending || isListConfirming || !listingPrice || parseFloat(listingPrice) < 50}
+            aria-label={isListPending ? 'Listing NFT in progress' : isListConfirming ? 'Confirming transaction' : 'List NFT for sale'}
+            aria-busy={isListPending || isListConfirming}
+            aria-disabled={isListPending || isListConfirming || !listingPrice || parseFloat(listingPrice) < 50}
             className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed hover:scale-105 transform"
           >
             {isListPending ? (

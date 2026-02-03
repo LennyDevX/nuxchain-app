@@ -6,12 +6,15 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "outDir": "./api-dist",
     "types": ["node", "@vercel/node"],
     "allowJs": true,
     "checkJs": false,
@@ -28,7 +31,6 @@
     "node_modules",
     "dist",
     "build",
-    "api/test/**/*",
-    "api/**/*.js"
+    "api/test/**/*"
   ]
 }

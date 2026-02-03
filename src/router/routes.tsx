@@ -6,32 +6,49 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 // Home page loaded eagerly for optimal FCP (First Contentful Paint)
 import Home from '../pages/Home';
 
-// Lazy-loaded pages - code splitting for better performance
-// ⚡ OPTIMIZATION: Preload critical pages (NFTs, Marketplace, Profile)
-const Staking = lazy(() => import('../pages/Staking'));
-const NFTs = lazy(() => import('../pages/NFTs'));
-const Marketplace = lazy(() => import('../pages/Marketplace'));
-const Airdrops = lazy(() => import('../pages/Airdrops'));
-const Chat = lazy(() => import('../pages/Chat'));
-const Tokenization = lazy(() => import('../pages/Tokenization'));
-const Labs = lazy(() => import('../pages/Labs'));
-const Profile = lazy(() => import('../pages/Profile'));
-const Blog = lazy(() => import('../pages/Blog'));
-const CTAHub = lazy(() => import('../pages/DevHub'));
-const Roadmap = lazy(() => import('../pages/Roadmap'));
+// 🚀 Lazy-loaded pages with optimized code splitting
+const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
+const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTsMaintenance'));
+const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/NFTsMaintenance'));
+const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
+const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
+const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
+const Profile = lazy(() => import(/* webpackChunkName: "profile" */ '../pages/Profile'));
+const Blog = lazy(() => import(/* webpackChunkName: "blog" */ '../pages/Blog'));
+const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevHub'));
+const Roadmap = lazy(() => import(/* webpackChunkName: "roadmap" */ '../pages/Roadmap'));
+const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skills'));
+const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
+const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
+const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
+const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
 
 function AppRoutes() {
-  // ⚡ Preload critical pages after initial render (low priority)
+  // ⚡ Smart preloading: Only preload on fast connections and after idle
   useEffect(() => {
-    // Wait 2 seconds after initial load, then preload most visited pages
-    const preloadTimer = setTimeout(() => {
-      // Preload in order of importance
-      import('../pages/Marketplace'); // Most visited
-      import('../pages/NFTs'); // Second most visited
-      import('../pages/Profile'); // Common after connecting wallet
-    }, 2000);
+    // Check connection speed using Network Information API
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+    const isSlowConnection = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
+    
+    if (isSlowConnection) {
+      console.log('⚠️ [Performance] Slow connection detected, skipping preload');
+      return;
+    }
 
-    return () => clearTimeout(preloadTimer);
+    // Use requestIdleCallback for non-blocking preload
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        // Preload critical pages after 2 seconds
+        const preloadTimer = setTimeout(() => {
+          console.log('🚀 [Performance] Starting smart preload');
+          import('../pages/Marketplace');
+          setTimeout(() => import('../pages/NFTs'), 1000);
+          setTimeout(() => import('../pages/Profile'), 2000);
+        }, 2000);
+
+        return () => clearTimeout(preloadTimer);
+      });
+    }
   }, []);
 
   return (
@@ -41,14 +58,18 @@ function AppRoutes() {
         <Route path="/staking" element={<Staking />} />
         <Route path="/nfts" element={<NFTs />} />
         <Route path="/marketplace" element={<Marketplace />} />
-        <Route path="/airdrops" element={<Airdrops />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/create-my-nfts" element={<Tokenization />} />
         <Route path="/tokenization" element={<Tokenization />} />
         <Route path="/labs" element={<Labs />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dev-hub" element={<CTAHub />} />
+        <Route path="/investments" element={<Investments />} />
+        <Route path="/market" element={<Market />} />
+        <Route path="/airdrop" element={<Airdrop />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

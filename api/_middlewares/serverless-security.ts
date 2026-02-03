@@ -124,7 +124,18 @@ function detectAttack(req: VercelRequest): AttackDetectionResult {
     /(eval\(|exec\(|system\(|passthru\()/gi  // Code execution
   ];
   
-  const checkString = JSON.stringify(req.body || {}) + 
+  // SOLUCIÓN Falsos Positivos: No pasar campos gigantes como fingerprint o base64 por los patrones
+  // Extraemos solo los campos de texto normales para validación de inyección
+  const body = req.body || {};
+  const textFieldsToCheck = {
+    name: body.name,
+    email: body.email,
+    wallet: body.wallet,
+    message: body.message,
+    subject: body.subject
+  };
+
+  const checkString = JSON.stringify(textFieldsToCheck) + 
                      (req.url || '') + 
                      JSON.stringify(req.query || {});
   

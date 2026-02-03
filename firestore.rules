@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ================================================================
+    // AIRDROP REGISTRATIONS - CRITICAL SECURITY
+    // ================================================================
+    // Allow PUBLIC reads (count, list) but NO writes from clients
+    // ALL writes must go through Cloud Function (server-side validation)
+    // ================================================================
+    match /nuxchainAirdropRegistrations/{document=**} {
+      // Allow public reads (for counting registered users, etc.)
+      allow read: if true;
+      
+      // DENY ALL direct writes from clients
+      // All registrations MUST go through Cloud Function validation
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ================================================================
+    // PENDING VERIFICATIONS - For future email verification
+    // ================================================================
+    match /pendingVerifications/{document=**} {
+      allow read: if request.auth.uid == resource.data.userId;
+      allow create: if false;  // Only Cloud Function can create
+      allow update: if false;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // ================================================================
+    // DEFAULT - Deny all other access
+    // ================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

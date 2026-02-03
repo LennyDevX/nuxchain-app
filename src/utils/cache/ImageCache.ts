@@ -35,24 +35,37 @@ class ImageCache {
       return this.loadingPromises.get(url)!;
     }
 
-    // Create new loading promise
-    const loadingPromise = new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      
-      img.onload = () => {
-        this.addToCache(url, img);
-        this.loadingPromises.delete(url);
-        resolve(img);
+    // Create new loading promise with retry logic
+    const loadingPromise = new Promise<HTMLImageElement>((resolve) => {
+      const tryLoad = (attempt: number = 0) => {
+        const img = new Image();
+        
+        img.onload = () => {
+          this.addToCache(url, img);
+          this.loadingPromises.delete(url);
+          resolve(img);
+        };
+        
+        img.onerror = () => {
+          // Retry up to 3 times with exponential backoff for 429 errors
+          if (attempt < 3) {
+            const backoffMs = Math.min(500 * Math.pow(2, attempt), 4000);
+            setTimeout(() => tryLoad(attempt + 1), backoffMs);
+          } else {
+            this.loadingPromises.delete(url);
+            // Fail silently and return empty image (will show placeholder)
+            this.addToCache(url, new Image());
+            resolve(new Image());
+          }
+        };
+        
+        // ✅ Don't force CORS - let browsers handle it naturally
+        // Pinata gateway may not support CORS, so we remove this
+        // img.crossOrigin = 'anonymous';
+        img.src = url;
       };
       
-      img.onerror = () => {
-        this.loadingPromises.delete(url);
-        reject(new Error(`Failed to load image: ${url}`));
-      };
-      
-      // Set crossOrigin to handle CORS issues with IPFS images
-      img.crossOrigin = 'anonymous';
-      img.src = url;
+      tryLoad();
     });
 
     this.loadingPromises.set(url, loadingPromise);

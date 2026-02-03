@@ -1,15 +1,24 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
-import SmartStakingABI from '../../abi/SmartStaking.json';
+import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json';
+import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
 
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2;
+// ✅ Add BigInt serialization support for React DevTools
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
 
-interface DepositData {
-  amount: bigint;
-  timestamp: bigint;
-  lastClaimTime: bigint;
-  lockupDuration: bigint;
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
+const STAKING_VIEW_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS;
+
+// ✅ Add BigInt serialization support for React DevTools
+if (typeof BigInt.prototype.toJSON === 'undefined') {
+  BigInt.prototype.toJSON = function() {
+    return this.toString();
+  };
 }
 
 interface UserStakingData {
@@ -27,97 +36,96 @@ export function useUserStaking(): UserStakingData {
   const { address, isConnected } = useAccount();
   const [error] = useState<string | null>(null);
 
-  const contractConfig = {
+  // ✅ Memoize contract config
+  const coreConfig = useMemo(() => ({
     address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: SmartStakingABI.abi,
-  };
+    abi: EnhancedSmartStakingCoreABI.abi,
+  }), []);
 
-  // Get total deposit
+  // ✅ View contract config for read-only functions
+  const viewConfig = useMemo(() => ({
+    address: STAKING_VIEW_CONTRACT_ADDRESS as `0x${string}`,
+    abi: EnhancedSmartStakingViewABI.abi,
+  }), []);
+
+  // ✅ Get total deposit with optimized cache - using View contract
   const { data: totalDeposit, isLoading: loadingDeposit } = useReadContract({
-    ...contractConfig,
+    ...viewConfig,
     functionName: 'getTotalDeposit',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 30000
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
-  // Get pending rewards
+  // ✅ Get pending rewards with faster update (financial data)
   const { data: pendingRewards, isLoading: loadingRewards } = useReadContract({
-    ...contractConfig,
+    ...coreConfig,
     functionName: 'calculateRewards',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 15000,
-      refetchInterval: 15000
+      staleTime: 30000, // 30 seconds for rewards
+      gcTime: 3 * 60 * 1000, // 3 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
-  // Get user deposits to count active positions
-  const { data: userDeposits, isLoading: loadingDeposits } = useReadContract({
-    ...contractConfig,
+  // ✅ Get user deposit info (not individual deposits array) - using View contract
+  const { data: userDepositInfo, isLoading: loadingDeposits } = useReadContract({
+    ...viewConfig,
     functionName: 'getUserDeposits',
     args: [address],
     query: { 
       enabled: !!address && isConnected,
-      staleTime: 30000,
-      refetchInterval: 30000
+      staleTime: 60000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchInterval: false, // ✅ Disable auto-refetch
+      refetchOnWindowFocus: true,
+      refetchOnMount: false,
     }
   });
 
   const totalStakedBigInt = (totalDeposit as bigint) || 0n;
   const pendingRewardsBigInt = (pendingRewards as bigint) || 0n;
   
-  const deposits = useMemo(() => {
-    return (userDeposits as DepositData[]) || [];
-  }, [userDeposits]);
+  // Extract deposit count from userDepositInfo struct
+  const depositCount = useMemo(() => {
+    if (!userDepositInfo || typeof userDepositInfo !== 'object') return 0;
+    // userDepositInfo is a tuple: [totalDeposited, totalRewards, depositCount, lastWithdrawTime]
+    const info = userDepositInfo as unknown as [bigint, bigint, bigint, bigint];
+    return Number(info[2] || 0n); // depositCount is the 3rd element
+  }, [userDepositInfo]);
 
-  // Count active positions (deposits with amount > 0)
-  const activePositions = deposits.filter((deposit: DepositData) => 
-    deposit && deposit.amount && BigInt(deposit.amount) > 0n
-  ).length;
+  // Since we don't have individual deposit details, we'll use depositCount as activePositions
+  const activePositions = depositCount;
 
   // Calculate APY - more accurate calculation
   const calculateAPY = useCallback(() => {
     try {
       const stakedAmount = parseFloat(formatEther(totalStakedBigInt));
-      const rewardsAmount = parseFloat(formatEther(pendingRewardsBigInt));
       
-      if (stakedAmount === 0 || rewardsAmount === 0) return '0.00';
+      // If no stake at all, return 0
+      if (stakedAmount === 0) return '0.00';
       
-      // Get the lock duration from deposits to estimate APY
-      if (deposits.length > 0) {
-        const lastDeposit = deposits[0];
-        const lockupDays = Number(lastDeposit.lockupDuration) / (24 * 60 * 60);
-        
-        // Different rates based on lockup period
-        const rates: { [key: number]: number } = {
-          0: 0.01 / 24,    // Flexible: 0.01%/hour = ~87.6% APY
-          30: 0.012 / 24,  // 30 days: ~105.12% APY
-          90: 0.016 / 24,  // 90 days: ~140.16% APY
-          180: 0.02 / 24,  // 180 days: ~175.2% APY
-          365: 0.03 / 24   // 365 days: ~262.8% APY
-        };
-        
-        const hourlyRate = rates[lockupDays] || (0.01 / 24);
-        const dailyRate = hourlyRate * 24;
-        const apy = dailyRate * 365 * 100;
-        
-        return apy > 250 ? '87.6' : apy.toFixed(2);
-      }
+      // Use flexible rate as default (0 days lockup = 43.8% APY)
+      // Future: Get actual lockup duration from individual deposits
+      const hourlyPercentage = 0.005; // Flexible: 0.005%/hour = ~43.8% APY
+      const apy = hourlyPercentage * 24 * 365;
       
-      // Fallback: calculate from actual rewards
-      const dailyRate = (rewardsAmount / stakedAmount);
-      const apy = dailyRate * 365 * 100;
-      
-      return apy > 250 ? '87.6' : apy.toFixed(2);
-    } catch {
+      return apy.toFixed(2);
+    } catch (err) {
+      console.error('Error calculating APY:', err);
       return '0.00';
     }
-  }, [totalStakedBigInt, pendingRewardsBigInt, deposits]);
+  }, [totalStakedBigInt]);
 
   return {
     totalStaked: formatEther(totalStakedBigInt),

@@ -1,0 +1,58 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IGameifiedMarketplaceCore",
+  "sourceName": "contracts/Marketplace/GameifiedMarketplaceSkillsNft.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_tokenURI",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_category",
+          "type": "string"
+        },
+        {
+          "internalType": "uint96",
+          "name": "_royaltyPercentage",
+          "type": "uint96"
+        }
+      ],
+      "name": "createStandardNFT",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateUserXP",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

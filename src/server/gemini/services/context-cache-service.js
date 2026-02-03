@@ -1,9 +1,18 @@
 import ai from '../config/ai-config.js';
 import env from '../config/environment.js';
+import tokenCountingService from './token-counting-service.js';
 
 /**
- * Servicio de Context Caching Inteligente para Gemini
- * Reduce costos de API hasta 50% y mejora tiempos de respuesta
+ * 🚀 Enhanced Context Caching Service for Gemini API
+ * 
+ * Features (Updated Dec 2024):
+ * - Explicit caching with Gemini API (90% token cost savings)
+ * - Implicit caching support (automatic for Gemini 2.5)
+ * - Token counting integration for smart caching decisions
+ * - System instruction + KB context caching
+ * - TTL management and automatic cleanup
+ * 
+ * Based on: https://ai.google.dev/gemini-api/docs/caching
  */
 
 class ContextCacheService {
@@ -13,11 +22,18 @@ class ContextCacheService {
       hits: 0,
       misses: 0,
       created: 0,
-      errors: 0
+      errors: 0,
+      tokensSaved: 0,          // NEW: Track tokens saved
+      costSavings: 0           // NEW: Track cost savings in USD
     };
     this.contextCaches = new Map(); // Store de context caches activos
+    this.systemInstructionCache = null; // NEW: Dedicated cache for system instruction
+    this.knowledgeBaseCache = null;     // NEW: Dedicated cache for KB context
     this.maxCacheAge = 60 * 60 * 1000; // 1 hora
     this.maxCacheSize = 100; // Máximo número de caches
+    this.minTokensForCache = 1024; // Minimum tokens for Gemini 2.5 Flash caching
+    
+    console.log('✅ Enhanced Context Cache Service initialized');
   }
 
   /**
@@ -40,7 +56,120 @@ class ContextCacheService {
   }
 
   /**
-   * Crea un context cache en Gemini API
+   * 🆕 Create cache for system instruction + KB context (EXPLICIT CACHING)
+   * This is the recommended way to cache static content for cost savings
+   * 
+   * @param {string} systemInstruction - System instruction text
+   * @param {string} knowledgeContext - Knowledge base context
+   * @param {string} model - Model name (must use explicit version like gemini-2.5-flash-lite)
+   * @param {number} ttlSeconds - Cache TTL in seconds (default 5 minutes)
+   * @returns {Promise<Object|null>} Cache info or null if failed
+   */
+  async createSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite', ttlSeconds = 300) {
+    try {
+      if (!env.geminiApiKey) {
+        throw new Error('API key no configurada');
+      }
+
+      // Combine system instruction and KB context
+      const combinedContent = knowledgeContext 
+        ? `${systemInstruction}\n\n--- Knowledge Base Context ---\n${knowledgeContext}`
+        : systemInstruction;
+
+      // Check if content meets minimum token threshold
+      const cacheCheck = tokenCountingService.isCacheWorthy(combinedContent, model);
+      
+      if (!cacheCheck.isWorthy) {
+        console.log(`⚠️ Content too small for caching: ${cacheCheck.reason}`);
+        return null;
+      }
+
+      console.log(`🔄 Creating system cache: ${cacheCheck.estimatedTokens} estimated tokens`);
+
+      // Create explicit cache using Gemini API
+      // Note: Must use explicit version suffix like "gemini-2.5-flash-lite"
+      const cacheResponse = await ai.caches.create({
+        model: `models/${model}`,
+        config: {
+          displayName: 'nuxchain-system-instruction',
+          systemInstruction: combinedContent,
+          contents: [], // System instruction only, no content parts
+          ttl: `${ttlSeconds}s`
+        }
+      });
+
+      const cacheInfo = {
+        cacheName: cacheResponse.name,
+        model,
+        createdAt: Date.now(),
+        ttlSeconds,
+        expiresAt: Date.now() + (ttlSeconds * 1000),
+        estimatedTokens: cacheCheck.estimatedTokens,
+        type: 'system_instruction'
+      };
+
+      this.systemInstructionCache = cacheInfo;
+      this.cacheStats.created++;
+
+      console.log(`✅ System cache created: ${cacheResponse.name} (TTL: ${ttlSeconds}s)`);
+      
+      // 🆕 Log con chat logger
+      if (typeof chatLogger !== 'undefined' && chatLogger.logCacheOperation) {
+        chatLogger.logCacheOperation('CREATE', {
+          cacheName: cacheResponse.name,
+          type: 'system_instruction',
+          ttl: ttlSeconds,
+          estimatedTokens: cacheCheck.estimatedTokens
+        });
+      }
+      
+      return cacheInfo;
+
+    } catch (error) {
+      console.error('❌ Error creating system cache:', error.message);
+      this.cacheStats.errors++;
+      return null;
+    }
+  }
+
+  /**
+   * 🆕 Get or create system instruction cache
+   * Returns existing cache if valid, creates new one otherwise
+   */
+  async getOrCreateSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite') {
+    // Check if existing cache is still valid
+    if (this.systemInstructionCache) {
+      if (Date.now() < this.systemInstructionCache.expiresAt) {
+        this.cacheStats.hits++;
+        console.log(`🚀 Using existing system cache: ${this.systemInstructionCache.cacheName}`);
+        
+        // 🆕 Log cache hit con chat logger
+        if (typeof chatLogger !== 'undefined' && chatLogger.logCacheOperation) {
+          chatLogger.logCacheOperation('HIT', {
+            cacheName: this.systemInstructionCache.cacheName,
+            type: this.systemInstructionCache.type,
+            estimatedTokens: this.systemInstructionCache.estimatedTokens
+          });
+        }
+        
+        return this.systemInstructionCache;
+      } else {
+        // Cache expired, clean up
+        try {
+          await ai.caches.delete(this.systemInstructionCache.cacheName);
+        } catch (e) {
+          console.warn('Failed to delete expired cache:', e.message);
+        }
+        this.systemInstructionCache = null;
+      }
+    }
+
+    this.cacheStats.misses++;
+    return await this.createSystemCache(systemInstruction, knowledgeContext, model);
+  }
+
+  /**
+   * Crea un context cache en Gemini API (for conversation history)
    */
   async createContextCache(messages, model = 'gemini-2.5-flash-lite', ttlSeconds = 3600) {
     try {
@@ -56,15 +185,22 @@ class ContextCacheService {
       // Preparar contenido para el cache (excluir último mensaje)
       const cacheContent = messages.slice(0, -1);
       
+      // Check token count before caching
+      const contentText = cacheContent.map(m => m.parts?.[0]?.text || '').join('\n');
+      const cacheCheck = tokenCountingService.isCacheWorthy(contentText, model);
+      
+      if (!cacheCheck.isWorthy) {
+        console.log(`⚠️ Conversation too small for caching: ${cacheCheck.reason}`);
+        return null;
+      }
+
       // Crear context cache usando la API de Gemini
       const cacheResponse = await ai.caches.create({
-        model,
-        contents: cacheContent,
-        ttlSeconds,
-        systemInstruction: {
-          parts: [{
-            text: "You are a helpful AI assistant. Maintain context from previous messages and provide coherent responses."
-          }]
+        model: `models/${model}`,
+        config: {
+          displayName: 'nuxchain-conversation',
+          contents: cacheContent,
+          ttl: `${ttlSeconds}s`
         }
       });
 
@@ -78,7 +214,9 @@ class ContextCacheService {
         createdAt: Date.now(),
         ttlSeconds,
         messageCount: cacheContent.length,
-        expiresAt: Date.now() + (ttlSeconds * 1000)
+        expiresAt: Date.now() + (ttlSeconds * 1000),
+        estimatedTokens: cacheCheck.estimatedTokens,
+        type: 'conversation'
       };
 
       this.contextCaches.set(contextHash, cacheInfo);
@@ -182,12 +320,91 @@ class ContextCacheService {
   }
 
   /**
+   * 🆕 Generate content with system cache (RECOMMENDED)
+   * Uses cached system instruction for cost savings
+   */
+  async generateWithSystemCache(message, systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite', params = {}) {
+    try {
+      // Get or create system cache
+      const systemCache = await this.getOrCreateSystemCache(systemInstruction, knowledgeContext, model);
+      
+      if (systemCache) {
+        console.log(`🚀 Generating with system cache: ${systemCache.cacheName}`);
+        
+        // Track tokens saved
+        const tokensSaved = systemCache.estimatedTokens || 0;
+        this.cacheStats.tokensSaved += tokensSaved;
+        this.cacheStats.costSavings += (tokensSaved / 1000000) * 0.075 * 0.75; // 75% savings
+        
+        // 🆕 Log tokens saved con chat logger
+        if (typeof chatLogger !== 'undefined' && chatLogger.logCacheOperation) {
+          chatLogger.logCacheOperation('HIT', {
+            cacheName: systemCache.cacheName,
+            type: systemCache.type,
+            tokensSaved: tokensSaved
+          });
+        }
+        
+        const response = await ai.models.generateContentStream({
+          model,
+          contents: message,
+          config: {
+            cachedContent: systemCache.cacheName,
+            temperature: params.temperature || 0.3,
+            topK: params.topK || 20,
+            topP: params.topP || 0.85,
+            maxOutputTokens: params.maxOutputTokens || 1024,
+          }
+        });
+
+        return {
+          stream: response,
+          usedCache: true,
+          cacheInfo: systemCache,
+          tokensSaved
+        };
+      } else {
+        // Fallback: generate without cache
+        console.log('📝 Generating without system cache (content too small or cache unavailable)');
+        
+        const fullSystemInstruction = knowledgeContext 
+          ? `${systemInstruction}\n\n--- Knowledge Base Context ---\n${knowledgeContext}`
+          : systemInstruction;
+        
+        const response = await ai.models.generateContentStream({
+          model,
+          contents: message,
+          config: {
+            systemInstruction: fullSystemInstruction,
+            temperature: params.temperature || 0.3,
+            topK: params.topK || 20,
+            topP: params.topP || 0.85,
+            maxOutputTokens: params.maxOutputTokens || 1024,
+          }
+        });
+
+        return {
+          stream: response,
+          usedCache: false,
+          cacheInfo: null,
+          tokensSaved: 0
+        };
+      }
+
+    } catch (error) {
+      console.error('Error in generateWithSystemCache:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Limpia caches expirados
    */
   async cleanupExpiredCaches() {
     const now = Date.now();
     const expiredCaches = [];
 
+    // Check conversation caches
     for (const [hash, cacheInfo] of this.contextCaches.entries()) {
       if (now > cacheInfo.expiresAt) {
         expiredCaches.push(hash);
@@ -206,6 +423,17 @@ class ContextCacheService {
       this.contextCaches.delete(hash);
     }
 
+    // Check system instruction cache
+    if (this.systemInstructionCache && now > this.systemInstructionCache.expiresAt) {
+      try {
+        await ai.caches.delete(this.systemInstructionCache.cacheName);
+        console.log(`🗑️ System cache eliminado: ${this.systemInstructionCache.cacheName}`);
+      } catch (error) {
+        console.warn('Error eliminando system cache:', error.message);
+      }
+      this.systemInstructionCache = null;
+    }
+
     return expiredCaches.length;
   }
 
@@ -221,7 +449,12 @@ class ContextCacheService {
       ...this.cacheStats,
       hitRate: `${hitRate}%`,
       activeCaches: this.contextCaches.size,
-      estimatedSavings: `${(this.cacheStats.hits * 0.5 * 100).toFixed(0)}% cost reduction`
+      hasSystemCache: !!this.systemInstructionCache,
+      systemCacheExpiry: this.systemInstructionCache 
+        ? new Date(this.systemInstructionCache.expiresAt).toISOString() 
+        : null,
+      estimatedSavings: `$${this.cacheStats.costSavings.toFixed(4)} saved`,
+      tokensSaved: this.cacheStats.tokensSaved
     };
   }
 
@@ -239,8 +472,18 @@ class ContextCacheService {
       }
     }
 
+    // Clear system cache
+    if (this.systemInstructionCache) {
+      try {
+        await ai.caches.delete(this.systemInstructionCache.cacheName);
+      } catch (error) {
+        console.warn('Error eliminando system cache:', error.message);
+      }
+      this.systemInstructionCache = null;
+    }
+
     this.contextCaches.clear();
-    this.cacheStats = { hits: 0, misses: 0, created: 0, errors: 0 };
+    this.cacheStats = { hits: 0, misses: 0, created: 0, errors: 0, tokensSaved: 0, costSavings: 0 };
     
     return deletedCount;
   }
@@ -257,8 +500,33 @@ class ContextCacheService {
       return sum + (msg.parts?.[0]?.text?.length || 0);
     }, 0);
 
-    // Crear cache solo si el contexto es sustancial (>8000 caracteres ≈ 2048 tokens)
-    return totalLength > 8000;
+    // Use token counting service for accurate decision
+    // Minimum 1024 tokens for Gemini 2.5 Flash
+    const estimatedTokens = totalLength * 0.25;
+    return estimatedTokens >= this.minTokensForCache;
+  }
+
+  /**
+   * 🆕 Get list of active caches from Gemini API
+   */
+  async listActiveCaches() {
+    try {
+      const caches = [];
+      for await (const cache of ai.caches.list()) {
+        caches.push({
+          name: cache.name,
+          model: cache.model,
+          displayName: cache.displayName,
+          createTime: cache.createTime,
+          expireTime: cache.expireTime,
+          usageMetadata: cache.usageMetadata
+        });
+      }
+      return caches;
+    } catch (error) {
+      console.error('Error listing caches:', error.message);
+      return [];
+    }
   }
 }
 

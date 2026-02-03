@@ -4,17 +4,25 @@ interface NFTAttribute {
   trait_type: string;
   value: string | number;
 }
+
+// Helper: Check if NFT has skill attributes
+function hasSkill(attributes: NFTAttribute[] | undefined): boolean {
+  return (attributes || []).some(attr => 
+    attr.trait_type.toLowerCase() === 'skill' ||
+    attr.trait_type.toLowerCase() === 'skilltype'
+  );
+}
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import InfiniteScrollNFTGrid from '../components/nfts/InfiniteScrollNFTGrid';
 import NFTFilters from '../components/nfts/NFTFilters';
 import NFTStats from '../components/nfts/NFTStats';
 import ListingModal from '../components/nfts/ListingModal';
-import { useMarketplaceNFTs } from '../hooks/nfts/useReactQueryNFTs';
+import { useMarketplaceNFTsGraph } from '../hooks/nfts/useMarketplaceNFTsGraph';
 import useListNFT from '../hooks/nfts/useListNFT';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import ConnectWallet from '../ui/ConnectWalletAlert';
-import { nftLogger } from '../utils/nftLogger';
+import { nftLogger } from '../utils/log/nftLogger';
 
 
 
@@ -35,7 +43,7 @@ function NFTs() {
     loadMoreNFTs,
     totalCount,
     loadedCount 
-  } = useMarketplaceNFTs({
+  } = useMarketplaceNFTsGraph({
     userOnly: true, // Show only user's NFTs
     enabled: isConnected
   });
@@ -60,13 +68,14 @@ function NFTs() {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [nftType, setNFTType] = useState('all'); // 'all' | 'skill' | 'standard' - NEW
   const [sortBy, setSortBy] = useState('date');
   const [listingTokenId, setListingTokenId] = useState<string | null>(null);
   const [showListingModal, setShowListingModal] = useState(false);
   
   // Remove unused effect - listError is handled by the ListingModal component
 
-  // Filter NFTs based on search term, category, and status - optimized with early returns
+  // Filter NFTs based on search term, category, status, and NFT type - optimized with early returns
   const filteredNFTs = useMemo(() => {
     // Early return if no NFTs
     if (userNFTs.length === 0) return [];
@@ -79,6 +88,13 @@ function NFTs() {
       if (filter !== 'all') {
         if (filter === 'listed' && !nft.isForSale) return false;
         if (filter === 'unlisted' && nft.isForSale) return false;
+      }
+      
+      // NFT Type filter (NEW) - Check if has skill attribute
+      if (nftType !== 'all') {
+        const hasSkillAttr = hasSkill(nft.attributes);
+        if (nftType === 'skill' && !hasSkillAttr) return false;
+        if (nftType === 'standard' && hasSkillAttr) return false;
       }
       
       // Search filter
@@ -124,12 +140,13 @@ function NFTs() {
         search: searchTerm,
         category: selectedCategory,
         status: filter,
+        nftType, // NEW
         sortBy
       }
     });
 
     return sorted;
-  }, [userNFTs, searchTerm, selectedCategory, filter, sortBy]);
+  }, [userNFTs, searchTerm, selectedCategory, filter, nftType, sortBy]);
 
   // Get unique categories from NFTs for dynamic filtering
   const availableCategories = useMemo(() => {
@@ -168,10 +185,10 @@ function NFTs() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Header */}
         <div className={`text-center mb-6 md:mb-8 ${isMobile ? 'px-2' : ''}`}>
-          <h1 className={`font-bold text-white mb-3 md:mb-4 ${
+          <h1 className={`font-bold text-white mb-3 md:mb-4 text-gradient ${
             isMobile ? 'text-2xl' : 'text-4xl'
           }`}>
-            My NFTs
+            My Collection
           </h1>
           <p className={`text-white/60 max-w-3xl mx-auto ${
             isMobile ? 'text-base px-4' : 'text-xl'
@@ -200,6 +217,8 @@ function NFTs() {
               onCategoryChange={setSelectedCategory}
               filter={filter}
               onFilterChange={setFilter}
+              nftType={nftType}
+              onNFTTypeChange={setNFTType}
               availableCategories={availableCategories}
               onCreateNFT={handleCreateNFT}
               isLoading={loading}

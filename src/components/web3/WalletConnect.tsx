@@ -9,6 +9,7 @@ import { useGasPrice } from '../../hooks/web3/useGasPrice'
 import { useSolanaWallet, useSolanaWalletDetection } from '../../hooks/web3/useSolanaWallet'
 import { useNetworkContext } from '../../hooks/web3/useNetworkContext'
 import { SOLANA_NETWORKS } from '../../constants/solana'
+import './WalletConnect.css'
 
 function WalletConnect() {
   // EVM Wallet
@@ -34,6 +35,7 @@ function WalletConnect() {
 
   // State
   const [showDropdown, setShowDropdown] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const [activeTab, setActiveTab] = useState<'evm' | 'solana'>('evm')
   const [touchStartY, setTouchStartY] = useState(0)
   const [isConnecting, setIsConnecting] = useState(false)
@@ -111,7 +113,7 @@ function WalletConnect() {
   }, [isConnected, address, solanaPublicKey, activeNetwork, chain, balance, solanaWalletName, solanaNetwork, solanaWallet.balance])
 
   useEffect(() => {
-    if (!showDropdown) return;
+    if (!showDropdown && !isClosing) return;
 
     function handleClickOutside(event: MouseEvent) {
       if (isConnecting) return;
@@ -121,7 +123,7 @@ function WalletConnect() {
         return;
       }
       if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setShowDropdown(false);
+        closeDropdownWithAnimation();
       }
     }
 
@@ -129,7 +131,7 @@ function WalletConnect() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside, true);
     };
-  }, [showDropdown, isConnecting]);
+  }, [showDropdown, isClosing, isConnecting]);
 
   useEffect(() => {
     if (!isConnecting) return;
@@ -148,12 +150,21 @@ function WalletConnect() {
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (isMobile && e.changedTouches[0].clientY - touchStartY > 100) {
-      setShowDropdown(false)
+      closeDropdownWithAnimation()
     }
   }
 
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+  }
+
+  // Close dropdown with animation
+  const closeDropdownWithAnimation = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setShowDropdown(false)
+      setIsClosing(false)
+    }, 350) // Duration of slideOutDown animation
   }
 
   const isPolygonNetwork = chain?.id === polygon.id
@@ -187,23 +198,6 @@ function WalletConnect() {
     if (haystack.includes('okx')) return 'okx'
     if (haystack.includes('injected')) return 'injected'
     return 'unknown'
-  }
-
-  const getConnectorSubtitle = (key: string) => {
-    switch (key) {
-      case 'injected':
-        return 'Browser wallet extension'
-      case 'metamask':
-        return 'MetaMask extension / mobile'
-      case 'phantom':
-        return 'Phantom extension - multichain support'
-      case 'walletconnect':
-        return 'Scan QR with WalletConnect'
-      case 'okx':
-        return 'OKX Wallet extension - supports EVM & Solana'
-      default:
-        return 'Wallet connector'
-    }
   }
 
   const getConnectorDisabledReason = (connector: unknown) => {
@@ -274,8 +268,10 @@ function WalletConnect() {
         <>
           {isMobile && (
             <div
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
-              onClick={() => setShowDropdown(false)}
+              className={`wallet-backdrop ${
+                isClosing ? 'wallet-backdrop-exit' : 'wallet-backdrop-enter'
+              } fixed inset-0 bg-black/70 backdrop-blur-sm z-40`}
+              onClick={() => closeDropdownWithAnimation()}
             />
           )}
           <div
@@ -283,7 +279,9 @@ function WalletConnect() {
             onClick={handleDropdownClick}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
-            className={`absolute z-[999] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
+            className={`wallet-dropdown ${
+              isClosing ? 'wallet-dropdown-exit' : 'wallet-dropdown-enter'
+            } absolute z-[999] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
                 ? 'fixed bottom-0 left-0 right-0 bg-[#080808] rounded-t-[2.5rem] shadow-2xl max-h-[92vh] max-w-full pb-safe-bottom'
                 : 'right-0 mt-3 w-[440px] bg-[#050505] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5'
               }`}
@@ -342,7 +340,7 @@ function WalletConnect() {
                     <div className="bg-gradient-to-br from-purple-900/20 via-gray-900 to-gray-900 p-6 border-b border-white/5">
                       {isMobile && (
                         <button
-                          onClick={() => setShowDropdown(false)}
+                          onClick={() => closeDropdownWithAnimation()}
                           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
                         >
                           ✕
@@ -425,7 +423,7 @@ function WalletConnect() {
                       <button
                         onClick={() => {
                           disconnectEVM()
-                          setShowDropdown(false)
+                          closeDropdownWithAnimation()
                         }}
                         className="w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 font-black uppercase tracking-[0.3em] text-[11px] border-t border-white/5 py-6 mt-2"
                       >
@@ -440,79 +438,72 @@ function WalletConnect() {
                       <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM Wallet</p>
                       <div className="h-px w-full bg-white/5" />
                     </div>
-                    {connectors.map((connector) => {
-                      const disabledReason = getConnectorDisabledReason(connector)
-                      const isWC = getConnectorKey(connector) === 'walletconnect'
-                      const isDisabled = Boolean(disabledReason) && !isWC
-                      const key = getConnectorKey(connector)
-                      const title = (connector as { name?: string }).name || key
-                      const walletLogos: Record<string, string> = {
-                        metamask: '/MetaMaskLogo.png',
-                        phantom: '/PhantomLogo.png',
-                        okx: '/OKXLogo.webp',
-                        walletconnect: '/WalletConnect.png',
-                        injected: '💼'
-                      }
-                      const logoUrl = walletLogos[key]
-                      // Si el usuario ya conectó OKX en Solana, sugerimos OKX aquí
-                      // Priorizar WalletConnect en móvil si no hay OKX sugerido
-                      const isRecommended = (lastUsedWallet === 'okx' && key === 'okx') || (isMobile && key === 'walletconnect' && lastUsedWallet !== 'okx')
+                    <div className="grid grid-cols-2 gap-3">
+                      {connectors.map((connector) => {
+                        const disabledReason = getConnectorDisabledReason(connector)
+                        const isWC = getConnectorKey(connector) === 'walletconnect'
+                        const isDisabled = Boolean(disabledReason) && !isWC
+                        const key = getConnectorKey(connector)
+                        const title = (connector as { name?: string }).name || key
+                        const walletLogos: Record<string, string> = {
+                          metamask: '/MetaMaskLogo.png',
+                          phantom: '/PhantomLogo.png',
+                          okx: '/OKXLogo.webp',
+                          walletconnect: '/WalletConnect.png',
+                          injected: '💼'
+                        }
+                        const logoUrl = walletLogos[key]
+                        // Si el usuario ya conectó OKX en Solana, sugerimos OKX aquí
+                        // Priorizar WalletConnect en móvil si no hay OKX sugerido
+                        const isRecommended = (lastUsedWallet === 'okx' && key === 'okx') || (isMobile && key === 'walletconnect' && lastUsedWallet !== 'okx')
 
-                      return (
-                        <button
-                          key={connector.uid}
-                          onClick={async () => {
-                            try {
-                              if (isDisabled) return
-                              setConnectionError(null)
-                              setIsConnecting(true)
-                              // Si es móvil y no es WalletConnect, y falla la conexión normal,
-                              // advertimos al usuario que use WalletConnect
-                              await connectAsync({ connector: connector as Connector })
-                              saveWalletUsage('evm', key)
-                              setShowDropdown(false)
-                            } catch {
-                              if (isMobile && key !== 'walletconnect') {
-                                setConnectionError('Mobile browser limitation: Try using the "WalletConnect" option below for a direct app link.')
-                              } else {
-                                setConnectionError('Connection failed. Please try again.')
+                        return (
+                          <button
+                            key={connector.uid}
+                            onClick={async () => {
+                              try {
+                                if (isDisabled) return
+                                setConnectionError(null)
+                                setIsConnecting(true)
+                                // Si es móvil y no es WalletConnect, y falla la conexión normal,
+                                // advertimos al usuario que use WalletConnect
+                                await connectAsync({ connector: connector as Connector })
+                                saveWalletUsage('evm', key)
+                                setShowDropdown(false)
+                              } catch {
+                                if (isMobile && key !== 'walletconnect') {
+                                  setConnectionError('Mobile browser limitation: Try using the "WalletConnect" option below for a direct app link.')
+                                } else {
+                                  setConnectionError('Connection failed. Please try again.')
+                                }
+                              } finally {
+                                setIsConnecting(false)
                               }
-                            } finally {
-                              setIsConnecting(false)
-                            }
-                          }}
-                          disabled={isDisabled}
-                          className={`w-full text-left rounded-2xl transition-all duration-300 mb-3 ${
-                            isRecommended && !isDisabled
-                              ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:bg-purple-500/30'
-                              : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-purple-500/30 hover:scale-[1.02]'
-                          } px-5 py-4`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center p-1.5 bg-black/40 rounded-xl border border-white/10">
+                            }}
+                            disabled={isDisabled}
+                            className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center ${
+                              isRecommended && !isDisabled
+                                ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:bg-purple-500/30'
+                                : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-purple-500/30 hover:scale-[1.02]'
+                            }`}
+                          >
+                            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center p-1.5 bg-black/40 rounded-xl border border-white/10 mb-2">
                               {logoUrl && logoUrl.startsWith('/') ? (
-                                <img src={logoUrl} alt={title} className="w-9 h-9 object-contain" />
+                                <img src={logoUrl} alt={title} className="w-7 h-7 object-contain" />
                               ) : (
-                                <span className="text-2xl">{logoUrl || '💼'}</span>
+                                <span className="text-xl">{logoUrl || '💼'}</span>
                               )}
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3">
-                                <span className="font-black text-white text-base tracking-tight">{title}</span>
-                                {isRecommended && (
-                                  <span className="text-[10px] uppercase font-black tracking-[0.1em] bg-purple-600 text-white px-2.5 py-1 rounded-full shadow-lg shadow-purple-900/40 italic">
-                                    {isWC ? 'Universal' : 'Suggested'}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[12px] text-white/40 mt-1 font-bold italic tracking-wide">
-                                {disabledReason || getConnectorSubtitle(key)}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      )
-                    })}
+                            <span className="font-black text-white text-xs tracking-tight line-clamp-1">{title}</span>
+                            {isRecommended && (
+                              <span className="text-[8px] uppercase font-black tracking-[0.08em] bg-purple-600 text-white px-1.5 py-0.5 rounded-full shadow-lg shadow-purple-900/40 italic mt-1">
+                                {isWC ? 'Universal' : 'Best'}
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               )}
@@ -524,7 +515,7 @@ function WalletConnect() {
                     <div className="bg-gradient-to-br from-purple-900/20 via-gray-900 to-gray-900 p-6 border-b border-white/5">
                       {isMobile && (
                         <button
-                          onClick={() => setShowDropdown(false)}
+                          onClick={() => closeDropdownWithAnimation()}
                           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-300 hover:bg-gray-700 transition-colors"
                         >
                           ✕
@@ -573,7 +564,7 @@ function WalletConnect() {
                       <button
                         onClick={() => {
                           disconnectSolana()
-                          setShowDropdown(false)
+                          closeDropdownWithAnimation()
                         }}
                         className="w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 font-black uppercase tracking-[0.3em] text-[11px] border-t border-white/5 py-6 mt-4"
                       >
@@ -601,123 +592,114 @@ function WalletConnect() {
                       <div className="h-px w-full bg-white/5" />
                     </div>
 
-                    {/* Phantom / Solflare / Trust / OKX (Solana list - copy from original) */}
-                    {/* Phantom Inline */}
-                    {(hasPhantom || isMobile) && (
+                    {/* Solana Wallets Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Phantom / Solflare / Trust / OKX (Solana list - copy from original) */}
+                      {/* Phantom Inline */}
+                      {(hasPhantom || isMobile) && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              setConnectionError(null); setIsConnecting(true)
+                              const phantomAdapter = solanaWallets.find(w => w.adapter.name === 'Phantom')
+                              if (phantomAdapter) {
+                                selectSolanaWallet(phantomAdapter.adapter.name)
+                                await connectSolana()
+                                saveWalletUsage('solana', 'phantom')
+                                setActiveNetwork('solana')
+                                setShowDropdown(false)
+                              } else {
+                                // Fallback direct window if adapter not found (unlikely but safe)
+                                const win = window as unknown as { phantom?: { solana?: { connect: () => Promise<void> } } }
+                                if (win.phantom?.solana?.connect) {
+                                  await win.phantom.solana.connect()
+                                  saveWalletUsage('solana', 'phantom')
+                                  setActiveNetwork('solana')
+                                  setShowDropdown(false)
+                                } else if (isMobile) {
+                                  window.open('https://phantom.app/ul/browse/' + window.location.host + window.location.pathname, '_blank')
+                                }
+                              }
+                            } catch { 
+                              setConnectionError('Phantom failed to connect. Ensure the app is installed.') 
+                            } finally { 
+                              setIsConnecting(false) 
+                            }
+                          }}
+                          className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center bg-gradient-to-br from-purple-600/10 to-indigo-600/5 border border-purple-500/30 hover:scale-[1.02]`}
+                        >
+                          <img src="/PhantomLogo.png" className="w-10 h-10 mb-2" />
+                          <span className="font-black text-white text-xs tracking-tight">Phantom</span>
+                          <span className="text-[8px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full uppercase mt-1">Popular</span>
+                        </button>
+                      )}
+
+                      {/* OKX Solana Sync */}
                       <button
                         onClick={async () => {
                           try {
                             setConnectionError(null); setIsConnecting(true)
-                            const phantomAdapter = solanaWallets.find(w => w.adapter.name === 'Phantom')
-                            if (phantomAdapter) {
-                              selectSolanaWallet(phantomAdapter.adapter.name)
+                            const okxAdapter = solanaWallets.find(w => w.adapter.name.toLowerCase().includes('okx'))
+                            if (okxAdapter && okxAdapter.readyState === 'Installed') {
+                              selectSolanaWallet(okxAdapter.adapter.name)
                               await connectSolana()
-                              saveWalletUsage('solana', 'phantom')
+                              saveWalletUsage('solana', 'okx')
                               setActiveNetwork('solana')
                               setShowDropdown(false)
                             } else {
-                              // Fallback direct window if adapter not found (unlikely but safe)
-                              const win = window as unknown as { phantom?: { solana?: { connect: () => Promise<void> } } }
-                              if (win.phantom?.solana?.connect) {
-                                await win.phantom.solana.connect()
-                                saveWalletUsage('solana', 'phantom')
+                              const win = window as unknown as { okxwallet?: { solana?: { connect: () => Promise<void> } } }
+                              if (win.okxwallet?.solana?.connect) {
+                                await win.okxwallet.solana.connect()
+                                saveWalletUsage('solana', 'okx')
                                 setActiveNetwork('solana')
                                 setShowDropdown(false)
                               } else if (isMobile) {
-                                window.open('https://phantom.app/ul/browse/' + window.location.host + window.location.pathname, '_blank')
+                                  // En móvil, si no se detecta, sugerimos usar WalletConnect en la pestaña EVM 
+                                  // ya que OKX Solana se sincroniza mejor así o vía deep link
+                                  setConnectionError('OKX App not detected. Tip: Use "WalletConnect" in the EVM tab to link OKX Wallet on mobile.')
                               }
                             }
                           } catch { 
-                            setConnectionError('Phantom failed to connect. Ensure the app is installed.') 
+                            setConnectionError('OKX Solana sync failed. Is the app open?') 
                           } finally { 
                             setIsConnecting(false) 
                           }
                         }}
-                        className={`w-full text-left rounded-2xl transition-all duration-300 ${isMobile ? 'bg-gradient-to-br from-purple-600/10 to-indigo-600/5' : 'bg-gradient-to-br from-purple-600/20 to-indigo-600/10'} border border-purple-500/30 px-5 py-4 hover:scale-[1.02] mb-3`}
+                        className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center bg-black border ${address && lastUsedWallet === 'okx' ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500/50' : 'border-white/10'} hover:scale-[1.02]`}
                       >
-                         <div className="flex items-center gap-4">
-                           <img src="/PhantomLogo.png" className="w-9 h-9" />
-                           <div className="flex-1">
-                             <div className="flex items-center gap-2"><span className="font-black text-white">Phantom</span><span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase">Popular</span></div>
-                             <p className="text-[12px] text-white/40 italic font-bold">{isMobile ? 'Open in Phantom App' : 'Connect to Solana app'}</p>
-                           </div>
-                         </div>
+                        <img src="/OKXLogo.webp" className="w-10 h-10 mb-2" />
+                        <span className="font-black text-white text-xs tracking-tight">OKX Wallet</span>
+                        {address && lastUsedWallet === 'okx' && <span className="text-[8px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full uppercase italic mt-1">Sync</span>}
                       </button>
-                    )}
 
-                    {/* OKX Solana Sync */}
-                    <button
-                      onClick={async () => {
-                        try {
-                          setConnectionError(null); setIsConnecting(true)
-                          const okxAdapter = solanaWallets.find(w => w.adapter.name.toLowerCase().includes('okx'))
-                          if (okxAdapter && okxAdapter.readyState === 'Installed') {
-                            selectSolanaWallet(okxAdapter.adapter.name)
-                            await connectSolana()
-                            saveWalletUsage('solana', 'okx')
-                            setActiveNetwork('solana')
-                            setShowDropdown(false)
-                          } else {
-                            const win = window as unknown as { okxwallet?: { solana?: { connect: () => Promise<void> } } }
-                            if (win.okxwallet?.solana?.connect) {
-                              await win.okxwallet.solana.connect()
-                              saveWalletUsage('solana', 'okx')
+                      {/* Solflare */}
+                      <button
+                        onClick={async () => {
+                          try {
+                            setConnectionError(null); setIsConnecting(true)
+                            const solflare = solanaWallets.find(w => w.adapter.name === 'Solflare')
+                            if (solflare && solflare.readyState === 'Installed') {
+                              selectSolanaWallet(solflare.adapter.name)
+                              await connectSolana()
+                              saveWalletUsage('solana', 'solflare')
                               setActiveNetwork('solana')
                               setShowDropdown(false)
                             } else if (isMobile) {
-                                // En móvil, si no se detecta, sugerimos usar WalletConnect en la pestaña EVM 
-                                // ya que OKX Solana se sincroniza mejor así o vía deep link
-                                setConnectionError('OKX App not detected. Tip: Use "WalletConnect" in the EVM tab to link OKX Wallet on mobile.')
+                               window.open('https://solflare.com/ul/v1/browse/' + window.location.host + window.location.pathname, '_blank')
                             }
+                          } catch { 
+                            setConnectionError('Solflare connection failed') 
+                          } finally { 
+                            setIsConnecting(false) 
                           }
-                        } catch { 
-                          setConnectionError('OKX Solana sync failed. Is the app open?') 
-                        } finally { 
-                          setIsConnecting(false) 
-                        }
-                      }}
-                      className={`w-full text-left rounded-2xl transition-all duration-300 bg-black border ${address && lastUsedWallet === 'okx' ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500/50' : 'border-white/10'} px-5 py-4 hover:scale-[1.02] mb-3`}
-                    >
-                       <div className="flex items-center gap-4">
-                         <img src="/OKXLogo.webp" className="w-9 h-9" />
-                         <div className="flex-1">
-                           <div className="flex items-center gap-2"><span className="font-black text-white">OKX Wallet</span>{address && lastUsedWallet === 'okx' && <span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase italic">Smart Sync</span>}</div>
-                           <p className="text-[12px] text-white/40 italic font-bold">{isMobile ? 'Unified Mobile Sync' : 'Unified EVM + Solana'}</p>
-                         </div>
-                       </div>
-                    </button>
-
-                    {/* Solflare */}
-                    <button
-                      onClick={async () => {
-                        try {
-                          setConnectionError(null); setIsConnecting(true)
-                          const solflare = solanaWallets.find(w => w.adapter.name === 'Solflare')
-                          if (solflare && solflare.readyState === 'Installed') {
-                            selectSolanaWallet(solflare.adapter.name)
-                            await connectSolana()
-                            saveWalletUsage('solana', 'solflare')
-                            setActiveNetwork('solana')
-                            setShowDropdown(false)
-                          } else if (isMobile) {
-                             window.open('https://solflare.com/ul/v1/browse/' + window.location.host + window.location.pathname, '_blank')
-                          }
-                        } catch { 
-                          setConnectionError('Solflare connection failed') 
-                        } finally { 
-                          setIsConnecting(false) 
-                        }
-                      }}
-                      className="w-full text-left rounded-2xl transition-all duration-300 bg-white/[0.03] border border-white/5 px-5 py-4 hover:scale-[1.02]"
-                    >
-                       <div className="flex items-center gap-4">
-                         <div className="w-9 h-9 flex items-center justify-center bg-orange-500/20 rounded-lg">☀️</div>
-                         <div className="flex-1">
-                           <span className="font-black text-white">Solflare</span>
-                           <p className="text-[12px] text-white/40 italic font-bold">Fast and secure Solana wallet</p>
-                         </div>
-                       </div>
-                    </button>
+                        }}
+                        className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center bg-white/[0.03] border border-white/5 hover:scale-[1.02]`}
+                      >
+                        <div className="w-10 h-10 flex items-center justify-center bg-orange-500/20 rounded-lg mb-2 text-lg">☀️</div>
+                        <span className="font-black text-white text-xs tracking-tight">Solflare</span>
+                        <p className="text-[10px] text-white/40 italic font-bold mt-1">Fast & secure</p>
+                      </button>
+                    </div>
                   </div>
                 )
               )}

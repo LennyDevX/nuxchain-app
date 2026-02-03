@@ -8,8 +8,8 @@ import Home from '../pages/Home';
 
 // 🚀 Lazy-loaded pages with optimized code splitting
 const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
-const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTsMaintenance'));
-const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/NFTsMaintenance'));
+const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
+const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));

@@ -278,4 +278,56 @@ export const CpuIcon: React.FC<CustomIconProps> = ({ className }) => (
   </svg>
 );
 
-export default { BrainIcon, BarChart3Icon, LockIcon, LineChartIcon, MaximizeIcon, ZapIcon, ExternalLinkIcon, GithubIcon, GlobeIcon, CodeIcon, CheckIcon, CalendarIcon, DatabaseIcon, CpuIcon, AIIcon };
+// Copy icon
+export const CopyIcon: React.FC<CustomIconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+// X icon (Close)
+export const XIcon: React.FC<CustomIconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18 6l-12 12" />
+    <path d="M6 6l12 12" />
+  </svg>
+);
+
+// Repeat icon
+export const RepeatIcon: React.FC<CustomIconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polyline points="23 4 23 10 17 10" />
+    <polyline points="1 20 1 14 7 14" />
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36M20.49 15a9 9 0 0 1-14.85 3.36" />
+  </svg>
+);
+
+export default { BrainIcon, BarChart3Icon, LockIcon, LineChartIcon, MaximizeIcon, ZapIcon, ExternalLinkIcon, GithubIcon, GlobeIcon, CodeIcon, CheckIcon, CalendarIcon, DatabaseIcon, CpuIcon, AIIcon, CopyIcon, XIcon, RepeatIcon };

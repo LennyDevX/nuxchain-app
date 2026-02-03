@@ -98,9 +98,7 @@ export const apiKeyAuth = (req, res, next) => {
     '/server/embeddings',
     '/chat/stream',
     '/chat/stream-with-tools',
-    '/gemini/stream',
-    '/airdrop/validate',
-    '/airdrop/submit'
+    '/gemini/stream'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público
@@ -172,24 +170,13 @@ export const inputValidation = (req, res, next) => {
 export const attackDetection = (req, res, next) => {
   const suspiciousPatterns = [
     /(\<script\>|\<\/script\>)/gi, // XSS básico
-    /(\bunion\b|\bselect\b|\binsert\b|\bdelete\b|\bupdate\b|\bdrop\b|\bcreate\b|\balter\b)/gi, // SQL Injection (más específicos con \b)
+    /(union|select|insert|delete|update|drop|create|alter)/gi, // SQL Injection
     /(\.\.\/|\.\.\\)/g, // Path Traversal
     /(\${|<%|%>)/g, // Template Injection
     /(eval\(|exec\(|system\()/gi // Code Injection
   ];
   
-  // SOLUCIÓN Falsos Positivos: No pasar campos gigantes como fingerprint o base64 por los patrones
-  // Extraemos solo campos de texto normales para validación
-  const body = req.body || {};
-  const textFieldsToCheck = {
-    name: body.name,
-    email: body.email,
-    wallet: body.wallet,
-    subject: body.subject,
-    message: body.message
-  };
-
-  const checkString = JSON.stringify(textFieldsToCheck) + req.url + JSON.stringify(req.query);
+  const checkString = JSON.stringify(req.body) + req.url + JSON.stringify(req.query);
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(checkString)) {

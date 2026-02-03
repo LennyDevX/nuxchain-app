@@ -36,8 +36,6 @@ function WalletConnect() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [activeTab, setActiveTab] = useState<'evm' | 'solana'>('evm')
   const [touchStartY, setTouchStartY] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0)
-  const [isClosing, setIsClosing] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
   const [lastUsedWallet, setLastUsedWallet] = useState<string | null>(null)
@@ -145,44 +143,12 @@ function WalletConnect() {
   }, [isConnecting]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    const target = e.target as HTMLElement
-    // Solo permitir drag desde el área del handle o header
-    if (target.closest('.drag-handle') || target.closest('.wallet-modal-header')) {
-      setTouchStartY(e.touches[0].clientY)
-      setDragOffset(0)
-    }
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY === 0) return
-    const currentY = e.touches[0].clientY
-    const diff = currentY - touchStartY
-    
-    // Solo permitir arrastrar hacia abajo
-    if (diff > 0) {
-      setDragOffset(diff)
-    }
+    setTouchStartY(e.touches[0].clientY)
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY === 0) return
-    
-    const finalY = e.changedTouches[0].clientY
-    const diff = finalY - touchStartY
-    
-    // Si se arrastró más de 120px, cerrar con animación
-    if (isMobile && diff > 120) {
-      setIsClosing(true)
-      setTimeout(() => {
-        setShowDropdown(false)
-        setIsClosing(false)
-        setDragOffset(0)
-        setTouchStartY(0)
-      }, 250)
-    } else {
-      // Volver a posición original con animación
-      setDragOffset(0)
-      setTouchStartY(0)
+    if (isMobile && e.changedTouches[0].clientY - touchStartY > 100) {
+      setShowDropdown(false)
     }
   }
 
@@ -316,27 +282,19 @@ function WalletConnect() {
             ref={dropdownRef}
             onClick={handleDropdownClick}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            style={isMobile ? {
-              transform: isClosing 
-                ? 'translateY(100%)' 
-                : `translateY(${Math.min(dragOffset, 300)}px)`,
-              transition: dragOffset === 0 || isClosing ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
-              opacity: isClosing ? 0 : Math.max(1 - (dragOffset / 400), 0.5)
-            } : {}}
             className={`absolute z-[999] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
                 ? 'fixed bottom-0 left-0 right-0 bg-[#080808] rounded-t-[2.5rem] shadow-2xl max-h-[92vh] max-w-full pb-safe-bottom'
                 : 'right-0 mt-3 w-[440px] bg-[#050505] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5'
               }`}
           >
             {isMobile && (
-              <div className="drag-handle w-full flex justify-center pt-3 pb-1 cursor-grab active:cursor-grabbing">
-                <div className="w-12 h-1.5 rounded-full bg-white/20 transition-colors" />
+              <div className="w-full flex justify-center pt-3 pb-1">
+                <div className="w-12 h-1.5 rounded-full bg-white/10" />
               </div>
             )}
             {/* Header Section (Consolidated Switcher) */}
-            <div className={`wallet-modal-header bg-gradient-to-b from-gray-900/40 to-transparent backdrop-blur-3xl border-b border-white/5 ${isMobile ? 'px-6 pt-2 pb-0' : 'p-5 pb-0'}`}>
+            <div className={`bg-gradient-to-b from-gray-900/40 to-transparent backdrop-blur-3xl border-b border-white/5 ${isMobile ? 'px-6 pt-2 pb-0' : 'p-5 pb-0'}`}>
               <div className={`flex flex-col gap-1 ${isMobile ? 'mb-4 mt-0 ml-0 text-center' : 'mb-6 mt-1 ml-1'}`}>
                 <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white tracking-tighter leading-none uppercase italic`}>Multichain Hub</p>
                 <p className="text-[10px] text-purple-400/60 font-black uppercase tracking-[0.3em] mb-1">Select Network to Manage</p>
@@ -478,11 +436,10 @@ function WalletConnect() {
                 ) : (
                   <div className="p-5 pb-10">
                     {/* Render EVM Wallet List (Reuse connection logic) */}
-                    <div className="flex items-center gap-4 mb-5 px-1">
-                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM</p>
+                    <div className="flex items-center gap-4 mb-4 px-1">
+                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM Wallet</p>
                       <div className="h-px w-full bg-white/5" />
                     </div>
-                    <div className={isMobile ? 'grid grid-cols-2 gap-3' : 'flex flex-col'}>
                     {connectors.map((connector) => {
                       const disabledReason = getConnectorDisabledReason(connector)
                       const isWC = getConnectorKey(connector) === 'walletconnect'
@@ -501,18 +458,6 @@ function WalletConnect() {
                       // Priorizar WalletConnect en móvil si no hay OKX sugerido
                       const isRecommended = (lastUsedWallet === 'okx' && key === 'okx') || (isMobile && key === 'walletconnect' && lastUsedWallet !== 'okx')
 
-                      // Subtítulos compactos para móvil
-                      const getCompactSubtitle = (k: string) => {
-                        switch (k) {
-                          case 'injected': return 'Browser'
-                          case 'metamask': return 'Extension / App'
-                          case 'phantom': return 'Multichain'
-                          case 'walletconnect': return 'Scan QR'
-                          case 'okx': return 'EVM & Solana'
-                          default: return 'Connector'
-                        }
-                      }
-
                       return (
                         <button
                           key={connector.uid}
@@ -528,54 +473,46 @@ function WalletConnect() {
                               setShowDropdown(false)
                             } catch {
                               if (isMobile && key !== 'walletconnect') {
-                                setConnectionError('Mobile: Try "WalletConnect" option')
+                                setConnectionError('Mobile browser limitation: Try using the "WalletConnect" option below for a direct app link.')
                               } else {
-                                setConnectionError('Connection failed. Try again.')
+                                setConnectionError('Connection failed. Please try again.')
                               }
                             } finally {
                               setIsConnecting(false)
                             }
                           }}
                           disabled={isDisabled}
-                          className={`${isMobile ? 'w-full' : 'w-full mb-3'} text-left rounded-2xl transition-all duration-300 ${
+                          className={`w-full text-left rounded-2xl transition-all duration-300 mb-3 ${
                             isRecommended && !isDisabled
-                              ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:bg-purple-500/30'
-                              : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-purple-500/30 active:scale-95'
-                          } ${isMobile ? 'p-3' : 'px-5 py-4'} relative overflow-hidden`}
+                              ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:bg-purple-500/30'
+                              : 'bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-purple-500/30 hover:scale-[1.02]'
+                          } px-5 py-4`}
                         >
-                          {(isRecommended || key === 'okx') && (
-                            <div className="absolute top-3 right-3 z-20">
-                              <div className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,1)] animate-pulse border-2 border-[#0a0a0a]" />
-                            </div>
-                          )}
-                          <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-center gap-4'}`}>
-                            <div className={`${isMobile ? 'w-12 h-12' : 'w-12 h-12'} flex-shrink-0 flex items-center justify-center p-1.5 bg-black/40 rounded-xl border border-white/10`}>
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center p-1.5 bg-black/40 rounded-xl border border-white/10">
                               {logoUrl && logoUrl.startsWith('/') ? (
                                 <img src={logoUrl} alt={title} className="w-9 h-9 object-contain" />
                               ) : (
                                 <span className="text-2xl">{logoUrl || '💼'}</span>
                               )}
                             </div>
-                            <div className={isMobile ? 'w-full' : 'flex-1'}>
-                              <div className={`flex ${isMobile ? 'flex-col' : 'items-center gap-3'}`}>
-                                <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'} tracking-tight truncate`}>
-                                  {isMobile && title.length > 12 ? title.slice(0, 12) : title}
-                                </span>
-                                {isRecommended && !isMobile && (
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3">
+                                <span className="font-black text-white text-base tracking-tight">{title}</span>
+                                {isRecommended && (
                                   <span className="text-[10px] uppercase font-black tracking-[0.1em] bg-purple-600 text-white px-2.5 py-1 rounded-full shadow-lg shadow-purple-900/40 italic">
-                                    {isWC ? 'Universal' : 'Top'}
+                                    {isWC ? 'Universal' : 'Suggested'}
                                   </span>
                                 )}
                               </div>
-                              <div className={`${isMobile ? 'text-[9px]' : 'text-[12px]'} text-white/40 ${isMobile ? 'mt-0.5' : 'mt-1'} font-bold italic tracking-wide truncate`}>
-                                {disabledReason || (isMobile ? getCompactSubtitle(key) : getConnectorSubtitle(key))}
+                              <div className="text-[12px] text-white/40 mt-1 font-bold italic tracking-wide">
+                                {disabledReason || getConnectorSubtitle(key)}
                               </div>
                             </div>
                           </div>
                         </button>
                       )
                     })}
-                    </div>
                   </div>
                 )
               )}
@@ -645,179 +582,142 @@ function WalletConnect() {
                     </div>
                   </>
                 ) : (
-                  <div className="p-5 pb-12">
+                  <div className="p-5 pb-12 space-y-4">
                     {/* Multichain Suggestion logic when on Solana tab but not connected */}
                     {address && lastUsedWallet === 'okx' && (
-                      <div className="mb-5 p-4 rounded-2xl bg-gradient-to-br from-purple-600/30 via-pink-600/10 to-transparent border border-purple-400/50 shadow-2xl animate-pulse-slow text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1.5">
-                          <span className="text-lg">✨</span>
-                          <p className="text-xs font-black text-white uppercase tracking-wider italic">Smart Sync</p>
+                      <div className="mb-6 p-5 rounded-2xl bg-gradient-to-br from-purple-600/30 via-pink-600/10 to-transparent border border-purple-400/50 shadow-2xl animate-pulse-slow text-center">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <span className="text-xl">✨</span>
+                          <p className="text-sm font-black text-white uppercase tracking-wider italic">Smart Sync</p>
                         </div>
-                        <p className="text-[11px] text-purple-200/90 leading-relaxed font-bold">
-                          <span className="text-white">OKX</span> on Polygon detected. Sync Solana below!
+                        <p className="text-[13px] text-purple-200/90 leading-relaxed font-bold">
+                          You're using <span className="text-white">OKX Wallet</span> on Polygon. Press the button below to sync with Solana!
                         </p>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 mb-5 px-1">
-                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Solana</p>
+                    <div className="flex items-center gap-4 mb-4 px-1">
+                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Solana Wallets</p>
                       <div className="h-px w-full bg-white/5" />
                     </div>
 
-                    {/* Grid 2x2 para móvil */}
-                    <div className={isMobile ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
-                      {/* Phantom Inline */}
-                      {(hasPhantom || isMobile) && (
-                        <button
-                          onClick={async () => {
-                            try {
-                              setConnectionError(null); setIsConnecting(true)
-                              const phantomAdapter = solanaWallets.find(w => w.adapter.name === 'Phantom')
-                              if (phantomAdapter) {
-                                selectSolanaWallet(phantomAdapter.adapter.name)
-                                await connectSolana()
-                                saveWalletUsage('solana', 'phantom')
-                                setActiveNetwork('solana')
-                                setShowDropdown(false)
-                              } else {
-                                const win = window as unknown as { phantom?: { solana?: { connect: () => Promise<void> } } }
-                                if (win.phantom?.solana?.connect) {
-                                  await win.phantom.solana.connect()
-                                  saveWalletUsage('solana', 'phantom')
-                                  setActiveNetwork('solana')
-                                  setShowDropdown(false)
-                                } else if (isMobile) {
-                                  window.open('https://phantom.app/ul/browse/' + window.location.host + window.location.pathname, '_blank')
-                                }
-                              }
-                            } catch { 
-                              setConnectionError('Phantom: App not installed') 
-                            } finally { 
-                              setIsConnecting(false) 
-                            }
-                          }}
-                          className={`${isMobile ? 'w-full' : 'w-full'} text-left rounded-2xl transition-all duration-300 ${isMobile ? 'bg-gradient-to-br from-purple-600/10 to-indigo-600/5' : 'bg-gradient-to-br from-purple-600/20 to-indigo-600/10'} border border-purple-500/30 ${isMobile ? 'p-3' : 'px-5 py-4'} active:scale-95 relative overflow-hidden`}
-                        >
-                          {/* Indicador de notificación Phantom */}
-                          <div className="absolute top-3 right-3 z-20">
-                            <div className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,1)] animate-pulse border-2 border-[#0a0a0a]" />
-                          </div>
-                          <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-center gap-4'}`}>
-                            <img src="/PhantomLogo.png" className={isMobile ? 'w-12 h-12' : 'w-9 h-9'} />
-                            <div className={isMobile ? 'w-full' : 'flex-1'}>
-                              <div className="flex items-center gap-2 justify-center">
-                                <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'}`}>Phantom</span>
-                                {!isMobile && <span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase">Top</span>}
-                              </div>
-                              <p className={`${isMobile ? 'text-[9px]' : 'text-[12px]'} text-white/40 italic font-bold ${isMobile ? 'mt-0.5' : 'mt-1'} truncate`}>
-                                {isMobile ? 'Solana App' : 'Connect to Solana app'}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                      )}
-
-                      {/* OKX Solana Sync */}
+                    {/* Phantom / Solflare / Trust / OKX (Solana list - copy from original) */}
+                    {/* Phantom Inline */}
+                    {(hasPhantom || isMobile) && (
                       <button
                         onClick={async () => {
                           try {
                             setConnectionError(null); setIsConnecting(true)
-                            const okxAdapter = solanaWallets.find(w => w.adapter.name.toLowerCase().includes('okx'))
-                            if (okxAdapter && okxAdapter.readyState === 'Installed') {
-                              selectSolanaWallet(okxAdapter.adapter.name)
+                            const phantomAdapter = solanaWallets.find(w => w.adapter.name === 'Phantom')
+                            if (phantomAdapter) {
+                              selectSolanaWallet(phantomAdapter.adapter.name)
                               await connectSolana()
-                              saveWalletUsage('solana', 'okx')
+                              saveWalletUsage('solana', 'phantom')
                               setActiveNetwork('solana')
                               setShowDropdown(false)
                             } else {
-                              const win = window as unknown as { okxwallet?: { solana?: { connect: () => Promise<void> } } }
-                              if (win.okxwallet?.solana?.connect) {
-                                await win.okxwallet.solana.connect()
-                                saveWalletUsage('solana', 'okx')
+                              // Fallback direct window if adapter not found (unlikely but safe)
+                              const win = window as unknown as { phantom?: { solana?: { connect: () => Promise<void> } } }
+                              if (win.phantom?.solana?.connect) {
+                                await win.phantom.solana.connect()
+                                saveWalletUsage('solana', 'phantom')
                                 setActiveNetwork('solana')
                                 setShowDropdown(false)
                               } else if (isMobile) {
-                                setConnectionError('OKX: Use WalletConnect in EVM tab')
+                                window.open('https://phantom.app/ul/browse/' + window.location.host + window.location.pathname, '_blank')
                               }
                             }
                           } catch { 
-                            setConnectionError('OKX: Is app open?') 
+                            setConnectionError('Phantom failed to connect. Ensure the app is installed.') 
                           } finally { 
                             setIsConnecting(false) 
                           }
                         }}
-                        className={`${isMobile ? 'w-full' : 'w-full'} text-left rounded-2xl transition-all duration-300 bg-black border ${address && lastUsedWallet === 'okx' ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500/50' : 'border-white/10'} ${isMobile ? 'p-3' : 'px-5 py-4'} active:scale-95 relative overflow-hidden`}
+                        className={`w-full text-left rounded-2xl transition-all duration-300 ${isMobile ? 'bg-gradient-to-br from-purple-600/10 to-indigo-600/5' : 'bg-gradient-to-br from-purple-600/20 to-indigo-600/10'} border border-purple-500/30 px-5 py-4 hover:scale-[1.02] mb-3`}
                       >
-                        {/* Indicador de notificación OKX */}
-                        <div className="absolute top-3 right-3 z-20">
-                          <div className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,1)] animate-pulse border-2 border-[#0a0a0a]" />
-                        </div>
-                        <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-center gap-4'}`}>
-                          <img src="/OKXLogo.webp" className={isMobile ? 'w-12 h-12' : 'w-9 h-9'} />
-                          <div className={isMobile ? 'w-full' : 'flex-1'}>
-                            <div className="flex items-center gap-2 justify-center">
-                              <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'} truncate`}>OKX</span>
-                              {address && lastUsedWallet === 'okx' && !isMobile && <span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase italic">Sync</span>}
-                            </div>
-                            <p className={`${isMobile ? 'text-[9px]' : 'text-[12px]'} text-white/40 italic font-bold ${isMobile ? 'mt-0.5' : 'mt-1'} truncate`}>
-                              {isMobile ? 'Multichain' : 'Unified EVM + Solana'}
-                            </p>
-                          </div>
-                        </div>
+                         <div className="flex items-center gap-4">
+                           <img src="/PhantomLogo.png" className="w-9 h-9" />
+                           <div className="flex-1">
+                             <div className="flex items-center gap-2"><span className="font-black text-white">Phantom</span><span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase">Popular</span></div>
+                             <p className="text-[12px] text-white/40 italic font-bold">{isMobile ? 'Open in Phantom App' : 'Connect to Solana app'}</p>
+                           </div>
+                         </div>
                       </button>
+                    )}
 
-                      {/* Solflare */}
-                      <button
-                        onClick={async () => {
-                          try {
-                            setConnectionError(null); setIsConnecting(true)
-                            const solflare = solanaWallets.find(w => w.adapter.name === 'Solflare')
-                            if (solflare && solflare.readyState === 'Installed') {
-                              selectSolanaWallet(solflare.adapter.name)
-                              await connectSolana()
-                              saveWalletUsage('solana', 'solflare')
+                    {/* OKX Solana Sync */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          setConnectionError(null); setIsConnecting(true)
+                          const okxAdapter = solanaWallets.find(w => w.adapter.name.toLowerCase().includes('okx'))
+                          if (okxAdapter && okxAdapter.readyState === 'Installed') {
+                            selectSolanaWallet(okxAdapter.adapter.name)
+                            await connectSolana()
+                            saveWalletUsage('solana', 'okx')
+                            setActiveNetwork('solana')
+                            setShowDropdown(false)
+                          } else {
+                            const win = window as unknown as { okxwallet?: { solana?: { connect: () => Promise<void> } } }
+                            if (win.okxwallet?.solana?.connect) {
+                              await win.okxwallet.solana.connect()
+                              saveWalletUsage('solana', 'okx')
                               setActiveNetwork('solana')
                               setShowDropdown(false)
                             } else if (isMobile) {
-                              window.open('https://solflare.com/ul/v1/browse/' + window.location.host + window.location.pathname, '_blank')
+                                // En móvil, si no se detecta, sugerimos usar WalletConnect en la pestaña EVM 
+                                // ya que OKX Solana se sincroniza mejor así o vía deep link
+                                setConnectionError('OKX App not detected. Tip: Use "WalletConnect" in the EVM tab to link OKX Wallet on mobile.')
                             }
-                          } catch { 
-                            setConnectionError('Solflare: Failed') 
-                          } finally { 
-                            setIsConnecting(false) 
                           }
-                        }}
-                        className={`${isMobile ? 'w-full' : 'w-full'} text-left rounded-2xl transition-all duration-300 bg-white/[0.03] border border-white/5 ${isMobile ? 'p-3' : 'px-5 py-4'} active:scale-95`}
-                      >
-                        <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-center gap-4'}`}>
-                          <div className={`${isMobile ? 'w-12 h-12' : 'w-9 h-9'} flex items-center justify-center bg-orange-500/20 rounded-lg text-2xl`}>☀️</div>
-                          <div className={isMobile ? 'w-full' : 'flex-1'}>
-                            <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'} block truncate`}>Solflare</span>
-                            <p className={`${isMobile ? 'text-[9px]' : 'text-[12px]'} text-white/40 italic font-bold ${isMobile ? 'mt-0.5' : 'mt-1'} truncate`}>
-                              {isMobile ? 'Fast & Secure' : 'Fast and secure Solana wallet'}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
+                        } catch { 
+                          setConnectionError('OKX Solana sync failed. Is the app open?') 
+                        } finally { 
+                          setIsConnecting(false) 
+                        }
+                      }}
+                      className={`w-full text-left rounded-2xl transition-all duration-300 bg-black border ${address && lastUsedWallet === 'okx' ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500/50' : 'border-white/10'} px-5 py-4 hover:scale-[1.02] mb-3`}
+                    >
+                       <div className="flex items-center gap-4">
+                         <img src="/OKXLogo.webp" className="w-9 h-9" />
+                         <div className="flex-1">
+                           <div className="flex items-center gap-2"><span className="font-black text-white">OKX Wallet</span>{address && lastUsedWallet === 'okx' && <span className="text-[9px] bg-purple-600 text-white px-2 py-0.5 rounded-full uppercase italic">Smart Sync</span>}</div>
+                           <p className="text-[12px] text-white/40 italic font-bold">{isMobile ? 'Unified Mobile Sync' : 'Unified EVM + Solana'}</p>
+                         </div>
+                       </div>
+                    </button>
 
-                      {/* WalletConnect Solana - agregado para completar el grid */}
-                      <button
-                        onClick={() => {
-                          setConnectionError('Use WalletConnect in EVM tab for universal support')
-                        }}
-                        className={`${isMobile ? 'w-full' : 'w-full'} text-left rounded-2xl transition-all duration-300 bg-white/[0.02] border border-white/5 ${isMobile ? 'p-3' : 'px-5 py-4'} active:scale-95 opacity-60`}
-                      >
-                        <div className={`flex ${isMobile ? 'flex-col items-center text-center gap-2' : 'items-center gap-4'}`}>
-                          <img src="/WalletConnect.png" className={isMobile ? 'w-12 h-12' : 'w-9 h-9'} />
-                          <div className={isMobile ? 'w-full' : 'flex-1'}>
-                            <span className={`font-black text-white ${isMobile ? 'text-xs' : 'text-base'} block truncate`}>Connect</span>
-                            <p className={`${isMobile ? 'text-[9px]' : 'text-[12px]'} text-white/40 italic font-bold ${isMobile ? 'mt-0.5' : 'mt-1'} truncate`}>
-                              {isMobile ? 'Via EVM Tab' : 'Use EVM tab'}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
+                    {/* Solflare */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          setConnectionError(null); setIsConnecting(true)
+                          const solflare = solanaWallets.find(w => w.adapter.name === 'Solflare')
+                          if (solflare && solflare.readyState === 'Installed') {
+                            selectSolanaWallet(solflare.adapter.name)
+                            await connectSolana()
+                            saveWalletUsage('solana', 'solflare')
+                            setActiveNetwork('solana')
+                            setShowDropdown(false)
+                          } else if (isMobile) {
+                             window.open('https://solflare.com/ul/v1/browse/' + window.location.host + window.location.pathname, '_blank')
+                          }
+                        } catch { 
+                          setConnectionError('Solflare connection failed') 
+                        } finally { 
+                          setIsConnecting(false) 
+                        }
+                      }}
+                      className="w-full text-left rounded-2xl transition-all duration-300 bg-white/[0.03] border border-white/5 px-5 py-4 hover:scale-[1.02]"
+                    >
+                       <div className="flex items-center gap-4">
+                         <div className="w-9 h-9 flex items-center justify-center bg-orange-500/20 rounded-lg">☀️</div>
+                         <div className="flex-1">
+                           <span className="font-black text-white">Solflare</span>
+                           <p className="text-[12px] text-white/40 italic font-bold">Fast and secure Solana wallet</p>
+                         </div>
+                       </div>
+                    </button>
                   </div>
                 )
               )}

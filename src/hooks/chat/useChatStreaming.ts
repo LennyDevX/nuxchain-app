@@ -1,4 +1,5 @@
 import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
@@ -15,7 +16,12 @@ const detectUrls = (text: string): string[] => {
   // FIXED: Character class doesn't need escaped +
   const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
   const urls = text.match(urlRegex) || [];
-  console.log('🔍 [FRONTEND] URLs detected:', urls);
+  
+  // Solo log en desarrollo y si hay URLs
+  if (import.meta.env.DEV && urls.length > 0) {
+    console.log('🔍 [FRONTEND] URLs detected:', urls);
+  }
+  
   return urls.filter(url => {
     try {
       new URL(url);
@@ -24,6 +30,74 @@ const detectUrls = (text: string): string[] => {
       return false;
     }
   });
+};
+
+// 🔗 Function to detect blockchain queries
+interface BlockchainDetection {
+  isBlockchain: boolean;
+  action: string | null;
+  requiresWallet?: boolean; // Flag to indicate if query needs connected wallet
+}
+
+const detectBlockchainQuery = (text: string, hasConnectedWallet = false): BlockchainDetection => {
+  const lowerText = text.toLowerCase();
+  
+  // Detectar precio POL/MATIC
+  if ((lowerText.includes('pol') || lowerText.includes('matic') || lowerText.includes('polygon')) &&
+      (lowerText.includes('precio') || lowerText.includes('price') || lowerText.includes('cotiza') || 
+       lowerText.includes('vale') || lowerText.includes('cuesta') || lowerText.includes('actual') ||
+       lowerText.includes('cuánto') || lowerText.includes('cuanto'))) {
+    return { isBlockchain: true, action: 'Fetching POL price...' };
+  }
+  
+  // Detectar staking info general (APY, pool stats)
+  if (lowerText.includes('staking') || lowerText.includes('stake') || lowerText.includes('stakear') ||
+      lowerText.includes('apr') || lowerText.includes('apy')) {
+    // Si menciona "mi" o "my", es query de posición personal
+    const isPersonalQuery = /\b(mi|mis|my|tengo|cuánto|cuanto)\b/.test(lowerText);
+    if (isPersonalQuery && hasConnectedWallet) {
+      return { isBlockchain: true, action: 'Checking your staking position...', requiresWallet: true };
+    }
+    return { isBlockchain: true, action: 'Querying staking data...' };
+  }
+  
+  // Detectar NFT
+  if ((lowerText.includes('nft') || lowerText.includes('marketplace')) &&
+      (lowerText.includes('lista') || lowerText.includes('venta') || lowerText.includes('disponible') ||
+       lowerText.includes('listing') || lowerText.includes('available') || lowerText.includes('comprar'))) {
+    return { isBlockchain: true, action: 'Searching NFT listings...' };
+  }
+  
+  // 🆕 MEJORADO: Detectar wallet/balance - ahora soporta frases naturales
+  // Detecta: "mi balance", "my wallet", "cuántos POL tengo", "revisa mi saldo", etc.
+  const hasWalletKeywords = lowerText.includes('wallet') || lowerText.includes('balance') || 
+                            lowerText.includes('saldo') || lowerText.includes('cartera');
+  const hasExplicitAddress = lowerText.includes('0x');
+  const hasPersonalIndicator = /\b(mi|mis|my|tengo|revisa|check|cuánto|cuanto|what.*my|cuál.*mi)\b/.test(lowerText);
+  const askingAboutPOL = (lowerText.includes('pol') || lowerText.includes('matic')) && 
+                         /\b(tengo|have|cuántos?|how many|cuál|what)\b/.test(lowerText);
+  
+  // Caso 1: Tiene dirección 0x explícita
+  if (hasWalletKeywords && hasExplicitAddress) {
+    return { isBlockchain: true, action: 'Checking wallet balance...' };
+  }
+  
+  // Caso 2: Pregunta personal con wallet conectada
+  if ((hasWalletKeywords || askingAboutPOL) && hasPersonalIndicator) {
+    if (hasConnectedWallet) {
+      return { isBlockchain: true, action: 'Checking your connected wallet...', requiresWallet: true };
+    }
+    // Sin wallet conectada, aún detectamos pero el backend manejará el caso
+    return { isBlockchain: true, action: 'Wallet query detected (connect wallet for data)', requiresWallet: true };
+  }
+  
+  // Detectar rewards
+  if ((lowerText.includes('reward') || lowerText.includes('recompensa') || lowerText.includes('ganancia')) &&
+      (lowerText.includes('staking') || lowerText.includes('pol'))) {
+    return { isBlockchain: true, action: 'Calculating rewards...' };
+  }
+  
+  return { isBlockchain: false, action: null };
 };
 
 // Google Search functionality removed - only URL context remains
@@ -64,6 +138,8 @@ interface UseChatStreamingReturn {
   clearMessages: () => void;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
+  blockchainAction: string | null;
+  isSearchingKB: boolean;
   pauseStream: () => void;
 }
 
@@ -91,6 +167,7 @@ interface RequestBody {
   maxTokens: number;
   stream: boolean;
   urls?: string[];
+  walletAddress?: string;
 }
 
 export function useChatStreaming(): UseChatStreamingReturn {
@@ -98,6 +175,11 @@ export function useChatStreaming(): UseChatStreamingReturn {
   const streamingServiceRef = useRef<StreamingService | null>(null);
   const lastUserMessageRef = useRef<string>('');
   const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
+  const [blockchainAction, setBlockchainAction] = useState<string | null>(null);
+  const [isSearchingKB, setIsSearchingKB] = useState(false);
+  
+  // Get connected wallet address
+  const { address: connectedWallet } = useAccount();
 
   // Initialize streaming service
   useEffect(() => {
@@ -126,13 +208,51 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
     dispatch({ type: 'ADD_USER_MESSAGE', payload: userMessage });
     dispatch({ type: 'START_STREAMING' });
+    
+    // \ud83d\udd17 Detectar URLs en el mensaje
+    const detectedUrls = detectUrls(messageText);
+    const hasUrls = detectedUrls.length > 0;
+    
+    // 🔗 Detectar si es una query blockchain para mostrar feedback
+    // Pasamos flag de wallet conectada para detectar queries personales como "mi balance"
+    const hasConnectedWallet = Boolean(connectedWallet);
+    const blockchainDetection = detectBlockchainQuery(messageText, hasConnectedWallet);
+    
+    if (hasUrls) {
+      // Si hay URLs, mostrar indicador de URL context
+      setIsUsingUrlContext(true);
+      setBlockchainAction(null);
+      setIsSearchingKB(false);
+      if (import.meta.env.DEV) {
+        console.log('🔗 [FRONTEND] URLs detected:', detectedUrls.length);
+      }
+    } else if (blockchainDetection.isBlockchain) {
+      setBlockchainAction(blockchainDetection.action);
+      setIsSearchingKB(false);
+      setIsUsingUrlContext(false);
+      if (import.meta.env.DEV) {
+        console.log('🔗 [FRONTEND] Blockchain query detected:', blockchainDetection.action);
+      }
+    } else {
+      // 📚 For non-blockchain queries, show KB search indicator
+      setIsSearchingKB(true);
+      setBlockchainAction(null);
+      setIsUsingUrlContext(false);
+      if (import.meta.env.DEV) {
+        console.log('📚 [FRONTEND] Searching knowledge base...');
+      }
+    }
 
     try {
       // Prepare conversation history for Gemini API
-      const conversationHistory = state.messages.map((msg: ChatMessage) => ({
-        role: msg.sender === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.text }]
-      }));
+      // FIXED: Filter out messages with null/empty text to avoid Gemini API error
+      // "required oneof field 'data' must have one initialized field"
+      const conversationHistory = state.messages
+        .filter((msg: ChatMessage) => msg.text && msg.text.trim() !== '')
+        .map((msg: ChatMessage) => ({
+          role: msg.sender === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.text }]
+        }));
 
       // Add current message
       conversationHistory.push({
@@ -140,15 +260,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
         parts: [{ text: messageText }]
       });
 
-      // Automatically detect URLs
-      const detectedUrls = detectUrls(messageText);
-      
-      // CAMBIO: Siempre usar el endpoint stream.js principal
-      // El backend maneja URLs automáticamente si están presentes
+      // Use main stream endpoint (URLs already detected above)
       const endpoint = API_ENDPOINTS.gemini.stream;
-      
-      console.log('🔍 [FRONTEND] Selected endpoint:', endpoint);
-      console.log('🔍 [FRONTEND] - URLs detected:', detectedUrls.length);
       
       //Tipo específico en lugar de any
       const requestBody: RequestBody = {
@@ -159,14 +272,19 @@ export function useChatStreaming(): UseChatStreamingReturn {
         stream: true
       };
       
-      // Si hay URLs, agregarlas al contexto
-      if (detectedUrls.length > 0) {
-        requestBody.urls = detectedUrls;
-        setIsUsingUrlContext(true);
-        console.log('🔗 [FRONTEND] URLs incluidas en el request:', detectedUrls);
+      // Include connected wallet address for blockchain queries
+      if (connectedWallet) {
+        requestBody.walletAddress = connectedWallet;
       }
       
-      console.log('🔍 [FRONTEND] Complete request body:', JSON.stringify(requestBody, null, 2));
+      // Log request details in development (URL context already set above)
+      if (import.meta.env.DEV && hasUrls) {
+        console.log('🔗 [FRONTEND] Sending message with URLs:', {
+          endpoint,
+          urlCount: detectedUrls.length,
+          urls: detectedUrls
+        });
+      }
       
       // Make streaming request to backend
       // ✅ No API Key header needed - backend handles Gemini authentication internally
@@ -226,6 +344,10 @@ export function useChatStreaming(): UseChatStreamingReturn {
           },
           onFinish: () => {
             dispatch({ type: 'FINISH_STREAM' });
+            // Reset all feedback indicators
+            setBlockchainAction(null);
+            setIsUsingUrlContext(false);
+            setIsSearchingKB(false);
           },
           onError: (error: Error, _onRetry: () => void, messageId: string) => {
             // FIXED: Type assertion correcta
@@ -324,7 +446,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Resetear estado de herramientas
       setIsUsingUrlContext(false);
     }
-  }, [state.messages, state.status, state.conversationId]);
+  }, [state.messages, state.status, state.conversationId, connectedWallet]);
 
   const clearMessages = useCallback(() => {
     dispatch({ type: 'RESET_CONVERSATION' });
@@ -363,6 +485,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     clearMessages,
     retryLastMessage,
     isUsingUrlContext,
+    blockchainAction,
+    isSearchingKB,
     pauseStream
   };
 }

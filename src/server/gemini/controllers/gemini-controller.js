@@ -8,6 +8,7 @@ import {
   executeFunctionCall,
   clearCache as clearGeminiCache 
 } from '../services/gemini-service.js';
+import { executeBlockchainFunction } from '../services/blockchain-service.js';
 import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
@@ -26,6 +27,284 @@ const webScraperService = new WebScraperService();
 
 // === Configuración ===
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB, cambiar aquí para ajustar el límite
+
+// === 🔗 BLOCKCHAIN DETECTION ===
+/**
+ * Detecta si el mensaje requiere llamadas a funciones blockchain
+ */
+function detectBlockchainQuery(message) {
+  const text = message.toLowerCase();
+  const functions = [];
+
+  const isUserIntent =
+    text.includes('mi ') ||
+    text.includes('mis ') ||
+    text.includes('mio') ||
+    text.includes('mía') ||
+    text.includes('revisa') ||
+    text.includes('tengo');
+
+  const isOptimizationIntent =
+    text.includes('optimiza') ||
+    text.includes('optimizar') ||
+    text.includes('mejorar') ||
+    text.includes('mejora') ||
+    text.includes('recomend') ||
+    text.includes('consej') ||
+    text.includes('estrateg');
+  
+  // Detectar queries de precio POL
+  if ((text.includes('pol') || text.includes('matic') || text.includes('polygon')) &&
+      (text.includes('precio') || text.includes('price') || text.includes('cotiza') || 
+       text.includes('vale') || text.includes('cuesta') || text.includes('actual') ||
+       text.includes('cuánto') || text.includes('cuanto') || text.includes('costo'))) {
+    functions.push('get_pol_price');
+  }
+  
+  // Detectar queries de staking
+  if (text.includes('staking') || text.includes('stake') || text.includes('stakear') || 
+      text.includes('stakeado') || text.includes('apr') || text.includes('apy')) {
+    functions.push('get_staking_info');
+  }
+
+  // Detectar queries de staking del usuario (depositos/recompensas/optimizacion)
+  if ((text.includes('staking') || text.includes('stake') || text.includes('stakear') || text.includes('stakeado')) &&
+      (isUserIntent || isOptimizationIntent || text.includes('recompensa') || text.includes('rewards') || text.includes('deposit') || text.includes('deposito') || text.includes('acumulad'))) {
+    functions.push('get_user_staking_position');
+  }
+  
+  // Detectar queries de NFT listings
+  if ((text.includes('nft') || text.includes('marketplace')) && 
+      (text.includes('lista') || text.includes('venta') || text.includes('disponible') || text.includes('comprar'))) {
+    functions.push('get_nft_listings');
+  }
+  
+  // Detectar queries de wallet/balance - incluir "mi balance", "mi wallet", etc.
+  if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
+      (text.includes('0x') || text.includes('direccion') || text.includes('address') ||
+       text.includes('mi ') || text.includes('mio') || text.includes('tengo') || text.includes('revisa'))) {
+    functions.push('check_wallet_balance');
+  }
+  
+  // Detectar queries de reward estimation
+  if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
+      (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
+    functions.push('estimate_staking_reward');
+  }
+  
+  if (functions.length > 0) {
+    console.log(`🔗 [LOCAL] Blockchain detection: "${text.substring(0, 50)}..." → [${functions.join(', ')}]`);
+  }
+  
+  return {
+    isBlockchain: functions.length > 0,
+    functions
+  };
+}
+
+/**
+ * Detecta URLs en el mensaje del usuario
+ */
+function detectUrls(text) {
+  const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/g;
+  const urls = text.match(urlRegex) || [];
+  
+  // Validate URLs
+  return urls.filter(url => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
+ * Ejecuta las funciones blockchain detectadas y retorna el contexto
+ * @param {string} messageText - Mensaje del usuario
+ * @param {string[]} functions - Funciones blockchain a ejecutar
+ * @param {string|undefined} connectedWallet - Wallet conectada del usuario (opcional)
+ */
+async function executeBlockchainFunctions(messageText, functions, connectedWallet = null) {
+  const results = [];
+  
+  for (const funcName of functions) {
+    try {
+      let args = {};
+      
+      // Extraer argumentos si es necesario
+      if (funcName === 'check_wallet_balance') {
+        // Primero intentar extraer direccion del mensaje
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { walletAddress: addressMatch[0] };
+        } else if (connectedWallet) {
+          // Si no hay direccion en el mensaje, usar la wallet conectada
+          args = { connectedWallet: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          // No hay direccion disponible
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found and no connected wallet`);
+          results.push({ 
+            name: funcName, 
+            result: { 
+              success: false, 
+              error: 'Para ver tu balance, conecta tu wallet o proporciona una direccion (ej: 0x1234...)' 
+            } 
+          });
+          continue;
+        }
+      }
+
+      if (funcName === 'get_user_staking_position') {
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { walletAddress: addressMatch[0] };
+        } else if (connectedWallet) {
+          args = { connectedWallet: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet (staking): ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found and no connected wallet`);
+          results.push({
+            name: funcName,
+            result: {
+              success: false,
+              error: 'Para ver tus depositos/recompensas de staking, conecta tu wallet o proporciona una direccion (ej: 0x1234...)'
+            }
+          });
+          continue;
+        }
+      }
+      
+      if (funcName === 'estimate_staking_reward') {
+        const amountMatch = messageText.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
+        args = { amount: amountMatch ? parseFloat(amountMatch[1]) : 100 };
+      }
+      
+      console.log(`[LOCAL] Executing ${funcName}...`);
+      const result = await executeBlockchainFunction(funcName, args);
+      console.log(`[LOCAL] Result for ${funcName}:`, JSON.stringify(result, null, 2));
+      results.push({ name: funcName, result });
+      console.log(`[LOCAL] ${funcName} completed successfully`);
+    } catch (error) {
+      console.error(`[LOCAL] Error in ${funcName}:`, error.message);
+    }
+  }
+  
+  if (results.length === 0) {
+    console.log('⚠️ [LOCAL] No blockchain results to return');
+    return '';
+  }
+  
+  // Helper function to get source label (sin emojis para mejor compatibilidad)
+  const getSourceLabel = (source) => {
+    const sources = {
+      'coingecko': 'CoinGecko API',
+      'binance': 'Binance API',
+      'diadata': 'DIA Data Oracle',
+      'polygon': 'Polygon RPC',
+      'contract': 'Smart Contract',
+      'fallback': 'Datos Estimados'
+    };
+    return sources[source] || source || 'Blockchain';
+  };
+
+  // Formatear los resultados - los datos vienen directamente en result, no en result.data
+  const formattedContext = `\n\n**DATOS BLOCKCHAIN EN TIEMPO REAL:**\n${results.map(r => {
+    if (r.result && r.result.success) {
+      // Extraer los campos relevantes según el tipo de función
+      if (r.name === 'get_pol_price') {
+        const { price, change24h, volume24h, marketCap } = r.result;
+        const changeEmoji = change24h > 0 ? '📈' : change24h < 0 ? '📉' : '➡️';
+        return `\n**💰 Precio POL:**\n  • Precio actual: $${price?.toFixed(4) || 'N/A'} USD\n  • Cambio 24h: ${changeEmoji} ${change24h ? `${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%` : 'N/A'}${volume24h ? `\n  • Volumen 24h: $${(volume24h/1e6).toFixed(2)}M USD` : ''}${marketCap ? `\n  • Market Cap: $${(marketCap/1e6).toFixed(2)}M USD` : ''}\n`;
+      }
+      if (r.name === 'get_staking_info') {
+        const { totalStaked, totalStakedUSD, apy, apyRates, totalParticipants, totalRewardsPaid } = r.result;
+        const apyDetails = apyRates ? `\n    • Flexible: ${apyRates.flexible?.toFixed(2)}%\n    • 30 días: ${apyRates.locked30?.toFixed(2)}%\n    • 90 días: ${apyRates.locked90?.toFixed(2)}%\n    • 180 días: ${apyRates.locked180?.toFixed(2)}%\n    • 365 días: ${apyRates.locked365?.toFixed(2)}%` : '';
+        return `\n**🏦 Staking Pool Global:**\n  • Total staked: ${totalStaked || 'N/A'} (~$${totalStakedUSD?.toLocaleString() || 'N/A'} USD)\n  • APY base: ${apy?.toFixed(2) || 'N/A'}%${apyDetails}\n  • Participantes activos: ${totalParticipants?.toLocaleString() || 'N/A'}\n  • Recompensas pagadas: ${totalRewardsPaid || 'N/A'}\n`;
+      }
+      if (r.name === 'get_nft_listings') {
+        const { totalListings, activeListings, floorPrice, message, source } = r.result;
+        const count = Array.isArray(activeListings) ? activeListings.length : activeListings || 0;
+        return `\n**🎨 NFT Marketplace:**\n  • Total NFTs: ${totalListings || 0}\n  • Activos: ${count}${floorPrice ? `\n  • Floor price: ${floorPrice}` : ''}${message ? `\n  ℹ️  ${message}` : ''}\n  [Fuente: ${getSourceLabel(source || 'contract')}]\n`;
+      }
+      if (r.name === 'check_wallet_balance') {
+        const { address, balancePOL, balanceUSD, stakedAmount, pendingRewards } = r.result;
+        return `\n**👛 Tu Wallet ${address?.slice(0,6)}...${address?.slice(-4)}:**\n  • Balance disponible: ${balancePOL || 'N/A'} (~$${balanceUSD?.toFixed(2) || 'N/A'} USD)${stakedAmount && stakedAmount !== '0 POL' ? `\n  • En staking: ${stakedAmount}` : ''}${pendingRewards && pendingRewards !== '0 POL' ? `\n  • Rewards pendientes: ${pendingRewards}` : ''}\n`;
+      }
+      if (r.name === 'estimate_staking_reward') {
+        const { amount, duration, estimatedReward, estimatedRewardUSD, apy, isLocked } = r.result;
+        return `\n**📈 Estimación de Recompensas:**\n  • Monto: ${amount}\n  • Duración: ${duration}\n  • Tipo: ${isLocked ? '🔒 Locked' : '🔓 Flexible'}\n  • APY aplicado: ${apy?.toFixed(2) || 'N/A'}%\n  • Recompensa estimada: ${estimatedReward || 'N/A'} (~$${estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  [Fuente: Cálculo basado en contrato]\n`;
+      }
+
+      if (r.name === 'get_user_staking_position') {
+        const {
+          totalDepositedPOL,
+          depositCount,
+          pendingRewardsPOL,
+          hasAutoCompound,
+          nextUnlockTime,
+          apyRates,
+          recommendations,
+          depositSummary,
+        } = r.result;
+
+        // Format deposit summary with amounts and detect locked deposits
+        let depositSummaryText = '';
+        let hasLockedDeposits = false;
+        
+        if (depositSummary) {
+          const flexible = depositSummary.flexible || {};
+          const locked30 = depositSummary.locked30 || {};
+          const locked90 = depositSummary.locked90 || {};
+          const locked180 = depositSummary.locked180 || {};
+          const locked365 = depositSummary.locked365 || {};
+          
+          hasLockedDeposits = (locked30.count || 0) + (locked90.count || 0) + (locked180.count || 0) + (locked365.count || 0) > 0;
+          
+          const deposits = [];
+          if (flexible.count > 0) {
+            deposits.push(`    🔓 **Flexible:** ${flexible.count} depósito${flexible.count > 1 ? 's' : ''} (${flexible.totalAmountPOL.toFixed(2)} POL) - Retirable cuando quieras`);
+          }
+          if (locked30.count > 0) {
+            deposits.push(`    🔒 **Locked 30d:** ${locked30.count} depósito${locked30.count > 1 ? 's' : ''} (${locked30.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked30?.toFixed(2)}%`);
+          }
+          if (locked90.count > 0) {
+            deposits.push(`    🔒 **Locked 90d:** ${locked90.count} depósito${locked90.count > 1 ? 's' : ''} (${locked90.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked90?.toFixed(2)}%`);
+          }
+          if (locked180.count > 0) {
+            deposits.push(`    🔒 **Locked 180d:** ${locked180.count} depósito${locked180.count > 1 ? 's' : ''} (${locked180.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked180?.toFixed(2)}%`);
+          }
+          if (locked365.count > 0) {
+            deposits.push(`    🔒 **Locked 365d:** ${locked365.count} depósito${locked365.count > 1 ? 's' : ''} (${locked365.totalAmountPOL.toFixed(2)} POL) - APY: ${apyRates?.locked365?.toFixed(2)}%`);
+          }
+          
+          if (deposits.length > 0) {
+            depositSummaryText = `\n  **Tus Depósitos:**\n${deposits.join('\n')}`;
+          }
+        }
+
+        // Only show next unlock if there are locked deposits
+        const unlockText = (hasLockedDeposits && nextUnlockTime) 
+          ? `\n  • 📅 Próximo desbloqueo: ${nextUnlockTime}` 
+          : '';
+
+        // Format recommendations
+        const recText = Array.isArray(recommendations) && recommendations.length
+          ? `\n  **💡 Recomendaciones:**\n${recommendations.map((rec, idx) => `    ${idx + 1}. ${rec}`).join('\n')}`
+          : '';
+
+        return `\n**📊 Tu Posición de Staking:**\n  • Total depositado: ${totalDepositedPOL || 'N/A'}\n  • Número de depósitos: ${depositCount ?? 'N/A'}\n  • Rewards acumulados: ${pendingRewardsPOL || 'N/A'}\n  • Auto-Compound: ${hasAutoCompound ? '✅ Activado' : '❌ Desactivado'}${unlockText}${depositSummaryText}${recText}\n`;
+      }
+      return `- ${r.name}: ${JSON.stringify(r.result)}`;
+    }
+    return `- ${r.name}: Error o sin datos`;
+  }).join('\n')}\n`;
+  
+  console.log(`📊 [LOCAL] Formatted blockchain context: ${formattedContext}`);
+  return formattedContext;
+}
 
 // === Utilidades ===
 /**
@@ -113,10 +392,16 @@ export async function generateContent(req, res, next = null) {
   chatLogger.reset();
   
   try {
-    const { prompt, model, messages, temperature, maxTokens, stream, image } = req.body;
+    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress } = req.body;
     
-    // Get the actual query for logging
-    const queryText = prompt || messages?.[messages.length - 1]?.text || messages?.[messages.length - 1]?.parts?.[0]?.text || '';
+    // Get the actual query for logging - MEJORADO para capturar el texto correctamente
+    let queryText = prompt || '';
+    if (!queryText && messages && Array.isArray(messages) && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      queryText = lastMsg?.text || lastMsg?.parts?.[0]?.text || lastMsg?.content || '';
+    }
+    
+    console.log(`📝 [LOCAL] Query received: "${queryText.substring(0, 100)}..."`);
     
     chatLogger.logSystemInfo({
       kbEnabled: true,
@@ -238,8 +523,143 @@ export async function generateContent(req, res, next = null) {
           streaming: true
         });
         
-        // Obtener stream nativo de Gemini
-        const geminiStream = await processGeminiStreamRequest(contents, model, params);
+        // 🔗 URL CONTEXT: Detectar URLs en el mensaje y extraer contenido
+        const detectedUrls = detectUrls(queryText);
+        const hasUrls = detectedUrls.length > 0;
+        let urlContext = '';
+        
+        if (hasUrls) {
+          console.log(`\n🔗 =========== URL DETECTION ===========`);
+          console.log(`🔗 URLs detected: ${detectedUrls.length}`);
+          console.log(`🔗 URLs:`, detectedUrls);
+          console.log(`🔗 ====================================\n`);
+          
+          // Extract URL content
+          console.log(`🔗 Extracting content from URLs...`);
+          try {
+            const urlContents = [];
+            for (const url of detectedUrls) {
+              try {
+                const result = await webScraperService.extractContent(url, { maxContentLength: 4000 });
+                if (result.success && result.content) {
+                  urlContents.push(`\n[URL: ${url}]\n${result.content}`);
+                  console.log(`✅ URL content extracted: ${result.content.length} chars from ${url}`);
+                }
+              } catch (urlError) {
+                console.warn(`⚠️ Failed to extract ${url}:`, urlError.message);
+              }
+            }
+            
+            if (urlContents.length > 0) {
+              urlContext = urlContents.join('\n\n');
+              console.log(`📄 Total URL context: ${urlContext.length} chars`);
+            }
+          } catch (error) {
+            console.error('Error extracting URL content:', error);
+          }
+        }
+        
+        // 🔗 BLOCKCHAIN FUNCTION CALLING: Detectar y ejecutar funciones blockchain
+        const blockchainDetection = detectBlockchainQuery(queryText);
+        let enrichedContents = contents;
+        
+        console.log(`\n🔗 =========== BLOCKCHAIN DETECTION ===========`);
+        console.log(`🔗 Query: "${queryText}"`);
+        console.log(`🔗 Is Blockchain: ${blockchainDetection.isBlockchain}`);
+        console.log(`🔗 Functions: ${blockchainDetection.functions.join(', ') || 'none'}`);
+        console.log(`🔗 =============================================\n`);
+        
+        // Flag para indicar si es blockchain query (salta KB search)
+        let isBlockchainQuery = false;
+        
+        if (blockchainDetection.isBlockchain) {
+          isBlockchainQuery = true;
+          console.log(`[LOCAL] Blockchain query detected: ${blockchainDetection.functions.join(', ')}`);
+          const blockchainContext = await executeBlockchainFunctions(queryText, blockchainDetection.functions, walletAddress);
+          
+          console.log(`🔗 [LOCAL] Blockchain context result: "${blockchainContext}"`);
+          
+          if (blockchainContext) {
+            const isStakingAdviceQuery =
+              /(optimiza|optimizar|mejorar|recomend|consej|estrateg)/i.test(queryText) &&
+              /(stake|staking|recompens|rewards)/i.test(queryText);
+
+            // Crear instrucción específica para respuestas de datos blockchain
+            const blockchainSystemPrompt = isStakingAdviceQuery
+              ? `INSTRUCCIONES CRÍTICAS:
+1. Usa los datos on-chain proporcionados para este usuario
+2. Responde en español con 3-5 recomendaciones ACCIONABLES para optimizar rewards
+3. Menciona cifras clave (depositado, rewards pendientes, tipo de depósitos)
+4. NO busques en base de conocimiento; usa SOLO estos datos + buenas prácticas generales
+5. Sé claro y conciso
+
+DATOS EN TIEMPO REAL (USUARIO):
+${blockchainContext}
+
+Formato sugerido: 1 frase con resumen + 3-5 bullets cortos.`
+              : `INSTRUCCIONES CRÍTICAS:
+1. Responde DIRECTAMENTE con los datos proporcionados
+2. Sé BREVE y PRECISO - máximo 2-3 oraciones
+3. Muestra el dato exacto con claridad
+4. NO busques en base de conocimiento - usa SOLO los datos proporcionados
+5. NO divagues ni añadas información extra
+6. NO menciones fuentes técnicas (RPC, API, etc) al usuario
+
+DATOS EN TIEMPO REAL:
+${blockchainContext}
+
+Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
+
+
+            // Enriquecer el contenido con datos blockchain
+            if (typeof contents === 'string') {
+              enrichedContents = `${blockchainSystemPrompt}\n\nPregunta del usuario: ${contents}`;
+            } else if (Array.isArray(contents) && contents.length > 0) {
+              // Para arrays de mensajes, agregar como mensaje de sistema al inicio
+              enrichedContents = [
+                {
+                  role: 'user',
+                  parts: [{ text: blockchainSystemPrompt }]
+                },
+                {
+                  role: 'model', 
+                  parts: [{ text: 'Entendido. Responderé usando únicamente los datos blockchain proporcionados de forma breve y precisa.' }]
+                },
+                ...contents
+              ];
+            }
+            console.log(`📊 [LOCAL] Blockchain context added: ${blockchainContext.length} chars`);
+          }
+        }
+        
+        // Add URL content context if available (after blockchain context)
+        if (urlContext) {
+          const urlSystemPrompt = `[CONTENIDO DE URL - ANALIZA ESTE CONTENIDO PARA RESPONDER]:\n${urlContext}`;
+          
+          if (typeof enrichedContents === 'string') {
+            enrichedContents = `${enrichedContents}\n\n${urlSystemPrompt}`;
+          } else if (Array.isArray(enrichedContents) && enrichedContents.length > 0) {
+            // Agregar contexto de URL al último mensaje del usuario
+            const lastMessage = enrichedContents[enrichedContents.length - 1];
+            if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0]) {
+              lastMessage.parts[0].text = `${lastMessage.parts[0].text}\n\n${urlSystemPrompt}`;
+            }
+          }
+          console.log(`📄 [LOCAL] URL context added: ${urlContext.length} chars`);
+        }
+        
+        // Configurar tools si hay URLs detectadas (mantener como fallback)
+        const configTools = hasUrls ? [{ url_context: {} }] : undefined;
+        
+        if (hasUrls) {
+          console.log('✅ URL context: explicit content + tool enabled as fallback');
+        }
+        
+        // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain
+        const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { 
+          skipKnowledgeBase: isBlockchainQuery,
+          tools: configTools 
+        });
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
         let fullResponse = '';

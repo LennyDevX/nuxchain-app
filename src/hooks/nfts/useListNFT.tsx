@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress, parseEther, type Abi } from 'viem';
-import MarketplaceABI from '../../abi/Marketplace.json';
+import GameifiedMarketplaceCoreABI from '../../abi/MarketplaceCore/GameifiedMarketplaceCoreV1.json';
 import { normalizeCategory } from '../../utils/ipfs/ipfsUtils';
 
 // Use V2 contract address
-const CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
 interface ListNFTParams {
   tokenId: string | number | bigint;
@@ -22,6 +23,7 @@ export default function useListNFT() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
 
   const listNFT = useCallback(async ({ tokenId, price, category }: ListNFTParams) => {
     setLoading(true);
@@ -73,26 +75,9 @@ export default function useListNFT() {
       // Initialize contract
       const contract = getContract({
         address: CONTRACT_ADDRESS as `0x${string}`,
-        abi: MarketplaceABI.abi as Abi,
+        abi: GameifiedMarketplaceCoreABI.abi as Abi,
         client: { public: publicClient, wallet: walletClient }
       });
-
-      // --- NUEVO: Verifica si la categoría está registrada ---
-      try {
-        await contract.write.registerCategory([categoryToSend]);
-      } catch (catErr: unknown) {
-        const error = catErr as any;
-        if (
-          error?.message?.includes("already registered") ||
-          error?.message?.includes("revert") ||
-          error?.data === "0x8f563f02"
-        ) {
-          // Ya está registrada o revertió, continuar
-        } else {
-          console.warn("Error registering category:", catErr);
-        }
-      }
-      // --- FIN NUEVO ---
 
       // Verify ownership
       const owner = await contract.read.ownerOf([parsedTokenId]) as string;
@@ -102,8 +87,8 @@ export default function useListNFT() {
 
       // Check already listed
       try {
-        const listed = await contract.read.getListedToken([parsedTokenId]) as any;
-        if (listed.isForSale || listed[4]) {
+        const listed = await contract.read.getListedToken([parsedTokenId]) as [bigint, string, bigint, bigint, boolean];
+        if (listed[4] || listed[4]) {
           throw new Error('This NFT is already listed for sale');
         }
       } catch {
@@ -122,10 +107,20 @@ export default function useListNFT() {
       setTxHash(txHash);
       const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       setSuccess(true);
+      
+      // ✅ Invalidate user profile cache to force refetch of XP
+      setTimeout(() => {
+        console.log('🔄 Invalidating user profile cache after listing...');
+        queryClient.invalidateQueries({
+          queryKey: ['readContract']
+        });
+        localStorage.setItem('profile_list_complete', Date.now().toString());
+      }, 2000);
+      
       return { txHash, receipt };
     } catch (err: unknown) {
       // Mapea errores específicos del contrato si aplica
-      const error = err as any;
+      const error = err as { data?: string; message?: string };
       if (error.data) {
         const sig = error.data as string;
         const errorSignatures: Record<string, string> = {
@@ -145,7 +140,7 @@ export default function useListNFT() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [address, publicClient, walletClient, queryClient]);
 
   return { listNFT, loading, error, success, txHash };
 }

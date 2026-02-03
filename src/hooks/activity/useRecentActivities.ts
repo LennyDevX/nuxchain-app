@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { parseAbiItem, formatEther } from 'viem';
 
-const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_STAKING_ADDRESS_V2 as `0x${string}`;
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_MARKETPLACE_ADDRESS as `0x${string}`;
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
+const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS as `0x${string}`;
 
 // Tipos de actividad
 export type ActivityType = 
@@ -18,7 +18,8 @@ export type ActivityType =
   | 'NFT_UNLIST'
   | 'OFFER_MADE'
   | 'OFFER_ACCEPTED'
-  | 'OFFER_REJECTED';
+  | 'OFFER_REJECTED'
+  | 'SKILL_PURCHASED';
 
 export interface Activity {
   id: string;

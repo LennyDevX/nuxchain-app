@@ -128,23 +128,21 @@ export const useChatNavbar = (): UseChatNavbarReturn => {
     };
   }, [isMobile, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
-  // Auto-ocultar en desktop y cleanup
+  // Cleanup timeout al desmontar
   useEffect(() => {
-    if (!isMobile) {
-      setIsVisible(false);
-    }
-    
-    // Cleanup timeout al desmontar
     return () => {
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [isMobile]);
+  }, []);
+
+  // En desktop, forzamos estado visible a false sin setState en effects
+  const effectiveIsVisible = isMobile ? isVisible : false;
 
   return {
-    isVisible,
-    isHidden: !isVisible,
+    isVisible: effectiveIsVisible,
+    isHidden: !effectiveIsVisible,
     showNavbar,
     hideNavbar,
     toggleNavbar,

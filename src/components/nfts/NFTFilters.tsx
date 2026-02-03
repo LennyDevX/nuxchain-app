@@ -1,23 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, memo } from 'react';
+import { motion } from 'framer-motion';
 import ModernSelect from '../ui/ModernSelect';
-
-// Hook to detect mobile devices
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-  
-  return isMobile;
-};
+import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 interface NFTFiltersProps {
   searchTerm: string;
@@ -26,6 +11,8 @@ interface NFTFiltersProps {
   onCategoryChange: (category: string) => void;
   filter: string;
   onFilterChange: (filter: string) => void;
+  nftType: string; // 'all' | 'skill' | 'standard'
+  onNFTTypeChange: (type: string) => void;
   availableCategories: string[];
   onCreateNFT: () => void;
   isLoading?: boolean;
@@ -33,13 +20,15 @@ interface NFTFiltersProps {
   onSortChange?: (sort: string) => void;
 }
 
-export default function NFTFilters({
+export default memo(function NFTFilters({
   searchTerm,
   onSearchChange,
   selectedCategory,
   onCategoryChange,
   filter,
   onFilterChange,
+  nftType = 'all',
+  onNFTTypeChange,
   availableCategories = [],
   onCreateNFT,
   isLoading = false,
@@ -67,14 +56,21 @@ export default function NFTFilters({
     }))
   ];
 
-  // Status filter options
+  // Status filter options (listing status)
   const STATUS_OPTIONS = [
     { value: 'all', label: 'All NFTs', icon: '🎨' },
     { value: 'listed', label: 'For Sale', icon: '💸' },
     { value: 'unlisted', label: 'Not Listed', icon: '🔒' }
   ];
 
-  const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all';
+  // NFT Type filter options (skill vs standard) - NEW
+  const NFT_TYPE_OPTIONS = [
+    { value: 'all', label: 'All NFTs', icon: '📦' },
+    { value: 'skill', label: 'Skill NFTs', icon: '⚡' },
+    { value: 'standard', label: 'Standard NFTs', icon: '🖼️' }
+  ];
+
+  const hasActiveFilters = selectedCategory !== 'all' || filter !== 'all' || nftType !== 'all';
 
   // Helper function to get category icons
   function getCategoryIcon(category: string): string {
@@ -93,19 +89,19 @@ export default function NFTFilters({
   // Show skeleton while loading
   if (isLoading) {
     return (
-      <div className="space-y-3 mb-6 animate-pulse">
+      <div className="space-y-3 mb-6">
         {/* Search and Create Skeleton */}
         <div className="flex gap-2">
-          <div className="flex-1 h-11 bg-white/5 rounded-lg border border-white/10"></div>
-          <div className="w-28 h-11 bg-purple-500/10 rounded-lg border border-purple-500/20"></div>
+          <SkeletonLoader width="flex-1" height="h-11" rounded="lg" />
+          <SkeletonLoader width="w-28" height="h-11" rounded="lg" />
         </div>
         
         {/* Filters Skeleton (Desktop) */}
         {!isMobile && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
-            <div className="h-11 bg-white/5 rounded-lg border border-white/10"></div>
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
+            <SkeletonLoader width="w-full" height="h-11" rounded="lg" />
           </div>
         )}
       </div>
@@ -123,6 +119,7 @@ export default function NFTFilters({
             placeholder="Search NFTs..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
+            aria-label="Search NFTs by name or description"
             className="
               w-full h-11 pl-10 pr-4
               bg-white/5 backdrop-blur-md
@@ -147,8 +144,12 @@ export default function NFTFilters({
 
         {/* Mobile Filter Toggle */}
         {isMobile && (
-          <button
+          <motion.button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
+            aria-label={isFilterOpen ? 'Close filters menu' : 'Open filters menu'}
+            aria-expanded={isFilterOpen}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={`
               h-11 px-4 flex items-center gap-2
               rounded-lg border font-medium text-sm
@@ -165,12 +166,15 @@ export default function NFTFilters({
             {hasActiveFilters && (
               <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
             )}
-          </button>
+          </motion.button>
         )}
 
         {/* Create NFT Button */}
-        <button 
+        <motion.button 
           onClick={onCreateNFT}
+          aria-label="Create new NFT"
+          whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(168, 85, 247, 0.4)' }}
+          whileTap={{ scale: 0.95 }}
           className="
             h-11 px-4 flex items-center gap-2
             bg-gradient-to-r from-purple-500 to-purple-600
@@ -186,12 +190,12 @@ export default function NFTFilters({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span className="hidden sm:inline">Create</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Filter Pills (Desktop) */}
       {!isMobile && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <ModernSelect
             value={selectedCategory}
             onChange={onCategoryChange}
@@ -204,6 +208,13 @@ export default function NFTFilters({
             onChange={onFilterChange}
             options={STATUS_OPTIONS}
             placeholder="Status"
+          />
+
+          <ModernSelect
+            value={nftType}
+            onChange={onNFTTypeChange}
+            options={NFT_TYPE_OPTIONS}
+            placeholder="NFT Type"
           />
           
           {onSortChange && (
@@ -223,6 +234,7 @@ export default function NFTFilters({
           {selectedCategory !== 'all' && (
             <button
               onClick={() => onCategoryChange('all')}
+              aria-label={`Remove ${selectedCategory} category filter`}
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-purple-500/15 border border-purple-500/30
@@ -240,6 +252,7 @@ export default function NFTFilters({
           {filter !== 'all' && (
             <button
               onClick={() => onFilterChange('all')}
+              aria-label={`Remove ${STATUS_OPTIONS.find(s => s.value === filter)?.label} status filter`}
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-blue-500/15 border border-blue-500/30
@@ -284,6 +297,13 @@ export default function NFTFilters({
                 options={STATUS_OPTIONS}
                 placeholder="Status"
               />
+
+              <ModernSelect
+                value={nftType}
+                onChange={onNFTTypeChange}
+                options={NFT_TYPE_OPTIONS}
+                placeholder="NFT Type"
+              />
               
               {onSortChange && (
                 <ModernSelect
@@ -300,7 +320,9 @@ export default function NFTFilters({
                   onClick={() => {
                     onCategoryChange('all');
                     onFilterChange('all');
+                    onNFTTypeChange('all');
                   }}
+                  aria-label="Clear all active filters"
                   className="
                     w-full h-9 px-4
                     text-xs font-medium text-white/60
@@ -318,4 +340,4 @@ export default function NFTFilters({
       )}
     </div>
   );
-}
+});

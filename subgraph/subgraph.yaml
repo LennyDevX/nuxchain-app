@@ -2,14 +2,14 @@ specVersion: 0.0.5
 schema:
   file: ./schema.graphql
 dataSources:
-  # Smart Staking Contract
+  # Enhanced Smart Staking Contract (NEW - v5.0.0 Modular)
   - kind: ethereum
-    name: SmartStaking
+    name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0x3C1F04C671B74D98Dbb32398741aBC2211A041cc"
-      abi: SmartStaking
-      startBlock: 76030976
+      address: "0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946"
+      abi: EnhancedSmartStaking
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -20,26 +20,141 @@ dataSources:
         - Withdrawal
         - Compound
         - Activity
+        - SkillProfile
+        - NFTSkill
+        - Achievement
+        - Quest
+        - UserStats
+        - GlobalStats
+        - DailyStats
       abis:
-        - name: SmartStaking
-          file: ./abis/SmartStaking.json
+        - name: EnhancedSmartStaking
+          file: ./abis/EnhancedSmartStaking.json
       eventHandlers:
-        - event: DepositMade(indexed address,indexed uint256,uint256,uint256,indexed uint256)
-          handler: handleDepositMade
-        - event: WithdrawalMade(indexed address,uint256,uint256,indexed uint256,uint256)
-          handler: handleWithdrawalMade
-        - event: RewardsCompounded(indexed address,uint256)
-          handler: handleRewardsCompounded
-      file: ./src/smart-staking.ts
-  
-  # Marketplace Contract
+        - event: Deposited(indexed address,uint256,uint256)
+          handler: handleDeposited
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleWithdrawn
+        - event: WithdrawAll(indexed address,uint256)
+          handler: handleWithdrawAll
+        - event: Compounded(indexed address,uint256)
+          handler: handleCompounded
+        - event: AutoCompoundTriggered(indexed address,uint256)
+          handler: handleAutoCompoundTriggered
+        - event: SkillActivated(indexed address,indexed uint256,uint8,uint16)
+          handler: handleSkillActivated
+        - event: SkillDeactivated(indexed address,indexed uint256,uint8)
+          handler: handleSkillDeactivated
+        - event: SkillProfileUpdated(indexed address,uint16,uint8,uint16)
+          handler: handleSkillProfileUpdated
+        - event: CommissionPaid(indexed address,uint256,uint256)
+          handler: handleCommissionPaid
+        - event: EmergencyWithdrawal(indexed address,uint256)
+          handler: handleEmergencyWithdrawal
+      file: ./src/enhanced-smart-staking.ts
+
+  # Enhanced Smart Staking Rewards Module (v5.0.0)
   - kind: ethereum
-    name: Marketplace
+    name: EnhancedSmartStakingRewards
     network: matic
     source:
-      address: "0x58B588d29335a050732f82E6A8551d0725981518"
-      abi: Marketplace
-      startBlock: 76032389
+      address: "0x6AEd79f8567a9AAE27401E61D240fCce531561f3"
+      abi: EnhancedSmartStakingRewards
+      startBlock: 79874938
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - UserStats
+        - GlobalStats
+        - DailyStats
+        - QuestRewardClaim
+        - RewardFunding
+      abis:
+        - name: EnhancedSmartStakingRewards
+          file: ./abis/EnhancedSmartStakingRewards.json
+      eventHandlers:
+        - event: APYUpdated(indexed uint8,uint256)
+          handler: handleAPYUpdated
+        - event: QuestRewardClaimed(indexed address,indexed uint256,uint256,uint256)
+          handler: handleQuestRewardClaimed
+        - event: RewardFunded(indexed address,uint256)
+          handler: handleRewardFunded
+        - event: EmergencyWithdrawal(indexed address,uint256)
+          handler: handleRewardsEmergencyWithdrawal
+      file: ./src/staking-rewards.ts
+
+  # Enhanced Smart Staking Gamification Module
+  - kind: ethereum
+    name: EnhancedSmartStakingGamification
+    network: matic
+    source:
+      address: "0x90216d0227EfbBae880EC2b8F03695cB82326598"
+      abi: EnhancedSmartStakingGamification
+      startBlock: 79870000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Achievement
+        - Activity
+        - UserStats
+        - GlobalStats
+      abis:
+        - name: EnhancedSmartStakingGamification
+          file: ./abis/EnhancedSmartStakingGamification.json
+      eventHandlers:
+        - event: AchievementUnlocked(indexed address,uint256,uint256)
+          handler: handleAchievementUnlocked
+        - event: AutoCompoundEnabled(indexed address,uint256)
+          handler: handleAutoCompoundEnabled
+        - event: AutoCompoundDisabled(indexed address)
+          handler: handleAutoCompoundDisabled
+        - event: AutoCompoundExecuted(indexed address,uint256)
+          handler: handleAutoCompoundExecuted
+        - event: QuestCompleted(indexed address,uint256,uint256)
+          handler: handleQuestCompleted
+        - event: XPUpdated(indexed address,uint256,uint16)
+          handler: handleXPUpdated
+      file: ./src/staking-gamification.ts
+
+  # Enhanced Smart Staking Skills Module
+  - kind: ethereum
+    name: EnhancedSmartStakingSkills
+    network: matic
+    source:
+      address: "0x8Ea7278c3000a0628D0BA2925308aE0973Be3140"
+      abi: EnhancedSmartStakingSkills
+      startBlock: 79870000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - SkillProfile
+        - Activity
+        - UserStats
+      abis:
+        - name: EnhancedSmartStakingSkills
+          file: ./abis/EnhancedSmartStakingSkills.json
+      eventHandlers:
+        - event: SkillRarityUpdated(indexed uint256,uint8,uint16)
+          handler: handleSkillRarityUpdated
+      file: ./src/staking-skills.ts
+  
+  # Gamified Marketplace - NEW MODULAR ARCHITECTURE (Proxy Address)
+  # ✅ FIXED: Use proxy address instead of implementation for correct event tracking
+  - kind: ethereum
+    name: GameifiedMarketplaceCore
+    network: matic
+    source:
+      address: "0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5"
+      abi: GameifiedMarketplaceCoreV1
+      startBlock: 79870000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -54,20 +169,129 @@ dataSources:
         - OfferCreated
         - OfferAccepted
         - Activity
+        - UserStats
+        - GlobalStats
+        - DailyStats
       abis:
-        - name: Marketplace
-          file: ./abis/Marketplace.json
+        - name: GameifiedMarketplaceCoreV1
+          file: ./abis/GameifiedMarketplaceCoreV1.json
       eventHandlers:
-        - event: TokenMinted(indexed uint256,indexed address,string,string)
-          handler: handleTokenMinted
-        - event: TokenListed(indexed uint256,indexed address,uint256,string)
+        - event: TokenCreated(indexed address,indexed uint256,string)
+          handler: handleTokenCreated
+        - event: TokenListed(indexed address,indexed uint256,uint256)
           handler: handleTokenListed
-        - event: TokenSold(indexed uint256,indexed address,indexed address,uint256)
+        - event: TokenSold(indexed address,indexed address,indexed uint256,uint256)
           handler: handleTokenSold
-        - event: TokenUnlisted(indexed uint256)
+        - event: TokenUnlisted(indexed address,indexed uint256)
           handler: handleTokenUnlisted
-        - event: OfferCreated(indexed uint256,indexed uint256,indexed address,uint256,uint256)
-          handler: handleOfferCreated
-        - event: OfferAccepted(indexed uint256,indexed uint256,address,address,uint256)
+        - event: OfferMade(indexed address,indexed uint256,uint256)
+          handler: handleOfferMade
+        - event: OfferAccepted(indexed address,indexed address,indexed uint256,uint256)
           handler: handleOfferAccepted
-      file: ./src/marketplace.ts
+      file: ./src/gameified-marketplace.ts
+
+  # Individual Skills Contract (NEW - IndividualSkillsMarketplace)
+  - kind: ethereum
+    name: IndividualSkillsMarketplace
+    network: matic
+    source:
+      address: "0xB23257758B385444dF5A78aC2F315bd653470df3"
+      abi: IndividualSkillsMarketplace
+      startBlock: 79870000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - IndividualSkill
+        - Activity
+      abis:
+        - name: IndividualSkillsMarketplace
+          file: ./abis/IndividualSkillsMarketplace.json
+      eventHandlers:
+        - event: IndividualSkillActivated(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillActivated
+        - event: IndividualSkillDeactivated(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillDeactivated
+        - event: IndividualSkillExpired(indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillExpired
+        - event: IndividualSkillPurchased(indexed address,indexed uint256,uint8,uint8,uint256)
+          handler: handleIndividualSkillPurchased
+        - event: IndividualSkillRenewed(indexed address,indexed uint256,uint256)
+          handler: handleIndividualSkillRenewed
+        - event: IndividualSkillTransferred(indexed address,indexed address,indexed uint256,uint8)
+          handler: handleIndividualSkillTransferred
+      file: ./src/individual-skills.ts
+
+  # ⚠️ TEMPORALMENTE DESHABILITADO: GameifiedMarketplaceSkillsV2
+  # Motivo: El ABI contiene función getExpiringSkills con tipo tuple[][] 
+  # que graph-codegen no puede procesar (genera código inválido toTupleMatrix<>())
+  # Bug conocido de The Graph: https://github.com/graphprotocol/graph-tooling/issues
+  # Los eventos de este contrato se pueden indexar cuando se arregle el bug
+  # o se actualice el contrato sin funciones con tuple[][] en outputs
+  
+  # - kind: ethereum
+  #   name: GameifiedMarketplaceSkillsV2
+  #   network: matic
+  #   source:
+  #     address: "0x355126Fbb7f8294aaB32Be884C49102075c5D6ce"
+  #     abi: GameifiedMarketplaceSkillsV2
+  #     startBlock: 78900000
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.7
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - User
+  #       - Activity
+  #     abis:
+  #       - name: GameifiedMarketplaceSkillsV2
+  #         file: ./abis/GameifiedMarketplaceSkillsV2.json
+  #     eventHandlers:
+  #       - event: SkillAdded(indexed uint256,uint8,uint8)
+  #         handler: handleSkillAdded
+  #       - event: SkillDeactivatedManually(indexed address,indexed uint256,uint8)
+  #         handler: handleSkillDeactivatedManually
+  #       - event: SkillExpired(indexed address,indexed uint256,uint8)
+  #         handler: handleSkillExpired
+  #       - event: SkillNFTCreated(indexed address,indexed uint256,uint256,uint256)
+  #         handler: handleSkillNFTCreated
+  #       - event: SkillRenewed(indexed address,indexed uint256,uint256)
+  #         handler: handleSkillRenewed
+  #       - event: SkillSwitched(indexed address,indexed uint256,indexed uint256,uint8,uint256)
+  #         handler: handleSkillSwitched
+  #     file: ./src/marketplace-skills.ts
+
+  # Marketplace Quests Contract (NEW - GameifiedMarketplaceQuests)
+  - kind: ethereum
+    name: GameifiedMarketplaceQuests
+    network: matic
+    source:
+      address: "0x61D75d56559Cd4722870A797a17793ed9f840245"
+      abi: GameifiedMarketplaceQuests
+      startBlock: 79870000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Quest
+        - QuestProgress
+        - Activity
+      abis:
+        - name: GameifiedMarketplaceQuests
+          file: ./abis/GameifiedMarketplaceQuests.json
+      eventHandlers:
+        - event: QuestCreated(indexed uint256,uint8,string,uint256,uint256)
+          handler: handleQuestCreated
+        - event: QuestCompleted(indexed address,indexed uint256,uint256)
+          handler: handleQuestCompleted
+        - event: QuestDeactivated(indexed uint256)
+          handler: handleQuestDeactivated
+        - event: QuestProgressUpdated(indexed address,indexed uint256,uint256)
+          handler: handleQuestProgressUpdated
+        - event: SocialActionRecorded(indexed address,uint256)
+          handler: handleSocialActionRecorded
+      file: ./src/marketplace-quests.ts

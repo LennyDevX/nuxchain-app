@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useAccount } from 'wagmi';
-import { useMarketplaceNFTs, type NFTData } from '../../hooks/nfts/useReactQueryNFTs';
+import { useMarketplaceNFTsGraph, type NFTData } from '../../hooks/nfts/useMarketplaceNFTsGraph';
+import { SubgraphSyncStatus } from './SubgraphSyncStatus';
 import { ipfsToHttp } from '../../utils/ipfs/ipfsUtils';
 import LoadingSpinner from '../../ui/LoadingSpinner';
-import usePOLPrice from '../../hooks/coingecko/usePOLPrice';
+import { usePOLPrice } from '../../hooks/coingecko/usePOLPriceContext';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import '../../styles/ai-analysis-animations.css';
+import '../../styles/animations.css';
 
 const ProfileNFTs: React.FC = () => {
   const { address, isConnected } = useAccount();
-  const { nfts, loading, error, refreshNFTs, totalCount } = useMarketplaceNFTs({
+  const { nfts, loading, error, refreshNFTs, totalCount } = useMarketplaceNFTsGraph({
     userOnly: true,
     enabled: isConnected && !!address
   });
@@ -19,15 +20,18 @@ const ProfileNFTs: React.FC = () => {
   const isMobile = useIsMobile();
   const prevNftsRef = useRef<NFTData[]>([]);
 
-  // Cache NFTs to prevent flash during refresh - FIXED: Use ref to track previous value
+  // Cache NFTs to prevent flash during refresh - FIXED: Deep check for actual changes
   useEffect(() => {
     if (nfts && nfts.length > 0) {
-      // Only update if NFTs actually changed (check by length and first tokenId)
+      // Check if NFTs actually changed (length, tokenId, or sale status)
       const nftsChanged = 
         prevNftsRef.current.length !== nfts.length ||
-        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId);
+        (nfts[0] && prevNftsRef.current[0]?.tokenId !== nfts[0].tokenId) ||
+        (nfts[0] && prevNftsRef.current[0]?.isForSale !== nfts[0].isForSale) ||
+        (nfts[0] && prevNftsRef.current[0]?.price !== nfts[0].price);
       
       if (nftsChanged) {
+        console.log('🔄 [ProfileNFTs] NFTs data changed, updating cache');
         setCachedNfts(nfts);
         prevNftsRef.current = nfts;
       }
@@ -57,6 +61,17 @@ const ProfileNFTs: React.FC = () => {
     }
   }, [isRefreshing, refreshNFTs]);
 
+  // Listen for NFT listing changes from other components
+  useEffect(() => {
+    const handleListingChange = () => {
+      console.log('🔔 [ProfileNFTs] NFT listing changed, refreshing...');
+      refreshNFTs();
+    };
+
+    window.addEventListener('nft-listing-changed', handleListingChange);
+    return () => window.removeEventListener('nft-listing-changed', handleListingChange);
+  }, [refreshNFTs]);
+
   // Determine which NFTs to display
   const displayNfts = isRefreshing && cachedNfts.length > 0 ? cachedNfts : nfts;
   const shouldShowNfts = displayNfts.length > 0;
@@ -85,6 +100,9 @@ const ProfileNFTs: React.FC = () => {
         )}
       </header>
 
+      {/* Subgraph Sync Status */}
+      {isConnected && <SubgraphSyncStatus />}
+
       {!isConnected ? (
         <div className="card-content text-center py-16">
           <p className="text-gray-400">Connect your wallet to view your NFTs</p>
@@ -95,11 +113,28 @@ const ProfileNFTs: React.FC = () => {
           <p className="text-gray-400 mt-4">Loading your NFTs...</p>
         </div>
       ) : error ? (
-        <div className="card-content text-center py-16">
-          <p className="text-red-400 mb-4">Error: {error}</p>
-          <button onClick={handleRefresh} className="btn-primary">
-            Try Again
-          </button>
+        <div className="card-content text-center py-16 space-y-4">
+          <div className="text-6xl mb-4">⚠️</div>
+          {error.includes('indexing') || error.includes('v0.19') ? (
+            <>
+              <p className="text-yellow-400 font-semibold text-lg">Subgraph is updating...</p>
+              <p className="text-gray-400 max-w-md mx-auto">
+                The Graph v0.19 is syncing. 
+                This page will automatically refresh every 30 seconds.
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="animate-pulse">🔄</div>
+                <span>Auto-refreshing...</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-red-400 mb-4">Error: {error}</p>
+              <button onClick={handleRefresh} className="btn-primary">
+                Try Again
+              </button>
+            </>
+          )}
         </div>
       ) : shouldShowNfts ? (
         <section className={`grid gap-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
@@ -188,6 +223,11 @@ const ProfileNFTs: React.FC = () => {
             <svg className="w-10 h-10 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
+          </div>
+          <p className="text-gray-400 font-medium">No NFTs in your collection</p>
+          <p className="text-gray-500 text-sm mt-2">Mint your first NFT to get started!</p>
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mt-4 text-left">
+            <p className="text-blue-300 text-xs font-medium mb-1">💡 Tip:</p>
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">No NFTs Found</h3>
           <p className="text-gray-400 mb-6">You don't have any NFTs yet. Start your collection!</p>

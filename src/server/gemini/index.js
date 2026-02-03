@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
+import { initializeApp, cert } from 'firebase-admin/app';
+import path from 'path';
+import fs from 'fs';
 import env from './config/environment.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/error-handler.js';
@@ -25,6 +28,44 @@ const corsOptions = getCorsConfig(env.nodeEnv);
 
 // CORS ANTES de los middlewares de seguridad para manejar preflight
 app.use(cors(corsOptions));
+
+// Inicializar Firebase Admin SDK para entorno local
+try {
+  // Rutas conocidas del service account en este proyecto
+  const serviceAccountPaths = [
+    path.resolve(process.cwd(), 'firebase-service-account.json'),
+    path.resolve(process.cwd(), 'nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json'),
+    path.resolve(process.cwd(), 'src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json')
+  ];
+
+  let serviceAccount = null;
+  let serviceAccountPath = null;
+
+  for (const p of serviceAccountPaths) {
+    if (fs.existsSync(p)) {
+      serviceAccount = JSON.parse(fs.readFileSync(p, 'utf8'));
+      serviceAccountPath = p;
+      break;
+    }
+  }
+
+  if (serviceAccount) {
+    initializeApp({
+      credential: cert(serviceAccount)
+    });
+    console.log(`✅ Firebase Admin SDK inicializado correctamente (${path.basename(serviceAccountPath)})`);
+  } else {
+    // Si no hay archivo, intentar inicialización por defecto (para entornos con GOOGLE_APPLICATION_CREDENTIALS)
+    try {
+      initializeApp();
+      console.log('✅ Firebase Admin SDK inicializado por defecto');
+    } catch (e) {
+      console.warn('⚠️ No se encontró service account. Las funciones de airdrop local podrían fallar.');
+    }
+  }
+} catch (error) {
+  console.error('❌ Error inicializando Firebase Admin SDK:', error.message);
+}
 
 // Manejar solicitudes OPTIONS explícitamente para todas las rutas
 app.use((req, res, next) => {

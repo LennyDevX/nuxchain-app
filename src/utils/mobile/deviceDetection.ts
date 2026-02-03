@@ -62,7 +62,12 @@ export const isTouchDevice = (): boolean => {
  * Obtiene información sobre la conexión de red (si está disponible)
  */
 export const getNetworkInfo = () => {
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const connection = (navigator as any).connection || 
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (navigator as any).mozConnection || 
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (navigator as any).webkitConnection;
   
   if (!connection) {
     return {

@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import AnimatedAILogo from '../../ui/AnimatedAILogo'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
@@ -34,43 +35,121 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
 
 
   return (
-    <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} ${
-      isMobile ? 'px-3 py-2' : 'px-6 py-3'
-    }`}>
-      <div className={`${
-        isMobile ? 'max-w-[90%]' : 'max-w-[80%]'
-      } ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
-        <div className={`flex items-start ${
-          isMobile ? 'space-x-2' : 'space-x-3'
-        } ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+    <motion.div 
+      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} ${
+        isMobile ? 'px-3 py-2' : 'px-6 py-3'
+      }`}
+      initial={{ 
+        opacity: 0, 
+        x: message.role === 'user' ? 50 : -50,
+        y: 10
+      }}
+      animate={{ 
+        opacity: 1, 
+        x: 0,
+        y: 0
+      }}
+      transition={{ 
+        duration: 0.4,
+        type: 'spring',
+        stiffness: 300,
+        damping: 25
+      }}
+    >
+      <motion.div 
+        className={`${
+          isMobile ? 'max-w-[90%]' : 'max-w-[80%]'
+        } ${message.role === 'user' ? 'order-2' : 'order-1'}`}
+        initial={{ scale: 0.95 }}
+        animate={{ scale: 1 }}
+        transition={{ 
+          duration: 0.3,
+          delay: 0.1
+        }}
+      >
+        <motion.div 
+          className={`flex items-start ${
+            isMobile ? 'space-x-2' : 'space-x-3'
+          } ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
           {/* Avatar */}
           {message.role === 'user' ? (
-            <div className={`rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0 ${
-              isMobile ? 'w-6 h-6' : 'w-8 h-8'
-            }`}>
+            <motion.div 
+              className={`rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0 ${
+                isMobile ? 'w-6 h-6' : 'w-8 h-8'
+              }`}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                duration: 0.4,
+                delay: 0.05,
+                type: 'spring',
+                stiffness: 400,
+                damping: 30
+              }}
+              whileHover={{ scale: 1.1 }}
+            >
               <svg className={`text-white ${
                 isMobile ? 'w-3 h-3' : 'w-5 h-5'
               }`} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
-            </div>
+            </motion.div>
           ) : (
-            <AnimatedAILogo 
-              size={isMobile ? "small" : "small"} 
-              className="flex-shrink-0" 
-            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ 
+                duration: 0.4,
+                delay: 0.05,
+                type: 'spring',
+                stiffness: 400,
+                damping: 30
+              }}
+              whileHover={{ scale: 1.1 }}
+            >
+              <AnimatedAILogo 
+                size={isMobile ? "small" : "small"} 
+                className="flex-shrink-0" 
+              />
+            </motion.div>
           )}
           
           {/* Message Content */}
-          <div className={`rounded-2xl ${
-            isMobile ? 'px-3 py-2' : 'px-4 py-3'
-          } ${
-            message.role === 'user'
-              ? 'bg-gradient-to-r from-brand-purple-600 to-brand-purple-700 text-white shadow-lg border border-brand-purple-500/30'
-              : 'bg-white/10 text-white border border-white/20 shadow-lg backdrop-blur-md'
-          }`}>
+          <motion.div 
+            className={`rounded-2xl ${
+              isMobile ? 'px-3 py-2' : 'px-4 py-3'
+            } ${
+              message.role === 'user'
+                ? 'bg-gradient-to-r from-brand-purple-600 to-brand-purple-700 text-white shadow-lg border border-brand-purple-500/30'
+                : 'bg-white/10 text-white border border-white/20 shadow-lg backdrop-blur-md'
+            }`}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ 
+              duration: 0.4,
+              delay: 0.2,
+              type: 'spring',
+              stiffness: 280,
+              damping: 20
+            }}
+            whileHover={{ 
+              y: -2,
+              boxShadow: message.role === 'user' 
+                ? '0 10px 30px rgba(139, 92, 246, 0.3)'
+                : '0 10px 30px rgba(255, 255, 255, 0.1)'
+            }}
+          >
             {message.role === 'assistant' ? (
-              <div className="markdown-chat-container">
+              <motion.div 
+                className="markdown-chat-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
                 <MarkdownPreview
                   source={message.content}
                   style={markdownStyle}
@@ -161,23 +240,35 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                     }} />
                   }}
                 />
-              </div>
+              </motion.div>
             ) : (
-              <p className={`leading-relaxed whitespace-pre-wrap ${
-                isMobile ? 'text-xs' : 'text-sm'
-              }`}>{message.content}</p>
+              <motion.p 
+                className={`leading-relaxed whitespace-pre-wrap ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+              >
+                {message.content}
+              </motion.p>
             )}
-            <p className={`mt-2 ${
-              message.role === 'user' ? 'text-white/70' : 'text-white/50'
-            } ${
-              isMobile ? 'text-xs' : 'text-xs'
-            }`}>
+            <motion.p 
+              className={`mt-2 ${
+                message.role === 'user' ? 'text-white/70' : 'text-white/50'
+              } ${
+                isMobile ? 'text-xs' : 'text-xs'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
               {formatTime(message.timestamp)}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+            </motion.p>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 })
 

@@ -1,13 +1,43 @@
 import { gql } from '@apollo/client';
 
 /**
- * Query to get user's recent activities
- * Returns all activity types sorted by timestamp (most recent first)
+ * Query to get user's recent activities (as ACTOR - creator, lister, seller, etc.)
+ * Returns all activity types where user is the actor, sorted by timestamp
  */
 export const GET_USER_ACTIVITIES = gql`
   query GetUserActivities($userAddress: Bytes!, $first: Int!, $skip: Int!) {
     activities(
       where: { user: $userAddress }
+      first: $first
+      skip: $skip
+      orderBy: timestamp
+      orderDirection: desc
+    ) {
+      id
+      type
+      timestamp
+      transactionHash
+      blockNumber
+      amount
+      tokenId
+      lockupDuration
+      category
+      buyer
+      seller
+      offerId
+    }
+  }
+`;
+
+/**
+ * Query to get user's PURCHASE activities (NFT_PURCHASE where user is BUYER)
+ * This captures NFTs purchased by the user from other sellers
+ * ✅ FIXED: Now queries for NFT_PURCHASE type (created for buyer in subgraph)
+ */
+export const GET_USER_PURCHASE_ACTIVITIES = gql`
+  query GetUserPurchaseActivities($userAddress: Bytes!, $first: Int!, $skip: Int!) {
+    activities(
+      where: { user: $userAddress, type: "NFT_PURCHASE" }
       first: $first
       skip: $skip
       orderBy: timestamp
@@ -39,7 +69,21 @@ export const GET_USER_STATS = gql`
       totalDeposited
       totalWithdrawn
       totalCompounded
-      nftCount
+      totalEarnings
+      totalSpent
+      nftMintedCount
+      nftSoldCount
+      nftBoughtCount
+      offersMadeCount
+      depositCount
+      withdrawalCount
+      compoundCount
+      skillPurchaseCount
+      skillRenewalCount
+      skillSwitchCount
+      questCompletionCount
+      level
+      totalXP
       createdAt
       updatedAt
     }
@@ -88,7 +132,7 @@ export const GET_USER_WITHDRAWALS = gql`
 `;
 
 /**
- * Query to get user's NFTs minted
+ * Query to get user's NFTs minted (v0.0.7 - using NFTMint entity)
  */
 export const GET_USER_NFTS = gql`
   query GetUserNFTs($userAddress: Bytes!, $first: Int!) {
@@ -100,8 +144,12 @@ export const GET_USER_NFTS = gql`
     ) {
       id
       tokenId
+      creator {
+        id
+      }
       tokenURI
       category
+      royaltyPercentage
       timestamp
       transactionHash
       blockNumber
@@ -122,6 +170,35 @@ export const GET_SUBGRAPH_STATUS = gql`
       }
       deployment
       hasIndexingErrors
+    }
+  }
+`;
+
+/**
+ * Query to get user's purchased individual skills
+ * Used for Recent Activity display (skill purchases)
+ */
+export const GET_USER_INDIVIDUAL_SKILLS = gql`
+  query GetUserIndividualSkills($userAddress: Bytes!, $first: Int!) {
+    individualSkills(
+      where: { owner: $userAddress }
+      first: $first
+      orderBy: purchasedAt
+      orderDirection: desc
+    ) {
+      id
+      skillId
+      skillType
+      rarity
+      level
+      owner
+      purchasedAt
+      expiresAt
+      isActive
+      metadata
+      createdAt
+      transactionHash
+      blockNumber
     }
   }
 `;

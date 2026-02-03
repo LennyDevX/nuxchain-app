@@ -10,7 +10,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Starting preview server..." -ForegroundColor Yellow
-$previewProcess = Start-Process -FilePath "npm" -ArgumentList "run preview" -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\vite-preview-errors.txt"
+# FIX: Use cmd.exe to run npm on Windows
+$previewProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run preview" -NoNewWindow -PassThru -RedirectStandardError "$env:TEMP\vite-preview-errors.txt"
 
 Write-Host "Waiting for server..." -ForegroundColor Cyan
 Start-Sleep -Seconds 5
@@ -36,7 +37,10 @@ for ($i = 0; $i -lt $maxRetries; $i++) {
 
 if ($serverReady -eq $false) {
     Write-Host "Server failed to respond" -ForegroundColor Red
-    Stop-Process -Id $previewProcess.Id -Force -ErrorAction SilentlyContinue
+    # FIX: Add null check before stopping process
+    if ($null -ne $previewProcess) {
+        Stop-Process -Id $previewProcess.Id -Force -ErrorAction SilentlyContinue
+    }
     exit 1
 }
 
@@ -53,13 +57,14 @@ $env:CHROME_PATH = $edgePath
 # Suppress non-critical warnings
 $env:LHCI_SUPPRESS_WARNINGS = "true"
 
-# Optional: Set GitHub token if you have it
-# $env:LHCI_GITHUB_APP_TOKEN = "your-token-here"
-
+# Run Lighthouse CI
 lhci autorun --config=./lighthouserc.cjs 2>&1 | Where-Object { $_ -notmatch "http proxy error|GitHub token not set" }
 
 Write-Host "Stopping server..." -ForegroundColor Yellow
-Stop-Process -Id $previewProcess.Id -Force -ErrorAction SilentlyContinue
+# FIX: Add null check before stopping process
+if ($null -ne $previewProcess) {
+    Stop-Process -Id $previewProcess.Id -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host "Audit completed!" -ForegroundColor Green
 
@@ -76,8 +81,5 @@ if ($reports) {
     Start-Process -FilePath "msedge.exe" -ArgumentList $latestReport.FullName
 }
 else {
-    Write-Host "No HTML reports found" -ForegroundColor Yellow
+    Write-Host "No reports found in .lighthouseci/" -ForegroundColor Red
 }
-
-Write-Host ""
-Write-Host "Done! Check the reports for performance and SEO analysis" -ForegroundColor Green

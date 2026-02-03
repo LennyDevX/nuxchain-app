@@ -5,14 +5,30 @@
 export type ActivityType =
   | 'STAKING_DEPOSIT'
   | 'STAKING_WITHDRAW'
+  | 'STAKING_WITHDRAW_ALL'
   | 'STAKING_COMPOUND'
+  | 'STAKING_AUTO_COMPOUND'
+  | 'EMERGENCY_WITHDRAWAL'
+  | 'SKILL_ACTIVATED'
+  | 'SKILL_DEACTIVATED'
+  | 'SKILL_UPGRADED'
+  | 'QUEST_COMPLETED'
+  | 'ACHIEVEMENT_UNLOCKED'
   | 'NFT_MINT'
   | 'NFT_LIST'
   | 'NFT_SALE'
   | 'NFT_PURCHASE'
   | 'NFT_UNLIST'
   | 'OFFER_MADE'
-  | 'OFFER_ACCEPTED';
+  | 'OFFER_ACCEPTED'
+  | 'OFFER_CANCELLED'
+  | 'ROYALTY_PAID'
+  | 'COMMISSION_PAID'
+  | 'XP_GAINED'
+  | 'LEVEL_UP'
+  | 'AUTO_COMPOUND_ENABLED'
+  | 'AUTO_COMPOUND_DISABLED'
+  | 'AUTO_COMPOUND_EXECUTED';
 
 export interface GraphQLActivity {
   id: string;
@@ -34,7 +50,21 @@ export interface GraphQLUser {
   totalDeposited: string; // BigInt as string
   totalWithdrawn: string; // BigInt as string
   totalCompounded: string; // BigInt as string
-  nftCount: number;
+  totalEarnings?: string; // BigInt as string (optional)
+  totalSpent?: string; // BigInt as string (optional)
+  nftMintedCount: number;
+  nftSoldCount: number;
+  nftBoughtCount: number;
+  offersMadeCount: number;
+  depositCount: number;
+  withdrawalCount: number;
+  compoundCount: number;
+  skillPurchaseCount?: number; // optional for backward compatibility
+  skillRenewalCount?: number; // optional
+  skillSwitchCount?: number; // optional
+  questCompletionCount?: number; // optional
+  level: number;
+  totalXP: string; // BigInt as string
   createdAt: string; // BigInt as string (timestamp)
   updatedAt: string; // BigInt as string (timestamp)
 }
@@ -59,9 +89,29 @@ export interface GraphQLWithdrawal {
 export interface GraphQLNFTMint {
   id: string;
   tokenId: string; // BigInt as string
+  creator: {
+    id: string; // Bytes as hex string
+  };
   tokenURI: string;
   category: string;
+  royaltyPercentage: string; // BigInt as string
   timestamp: string; // BigInt as string
+  transactionHash: string; // Bytes as hex string
+  blockNumber: string; // BigInt as string
+}
+
+export interface GraphQLIndividualSkill {
+  id: string;
+  skillId: string; // BigInt as string
+  skillType: number; // Int (changed from string)
+  rarity: number; // Int (changed from string)
+  level: string; // BigInt as string
+  owner: string; // Bytes as hex string (wallet address)
+  purchasedAt: string; // BigInt as string (timestamp)
+  expiresAt: string; // BigInt as string (timestamp)
+  isActive: boolean;
+  metadata: string; // Required in schema
+  createdAt: string; // BigInt as string (new field)
   transactionHash: string; // Bytes as hex string
   blockNumber: string; // BigInt as string
 }
@@ -89,6 +139,10 @@ export interface GetUserStatsResponse {
 
 export interface GetUserDepositsResponse {
   deposits: GraphQLDeposit[];
+}
+
+export interface GetUserIndividualSkillsResponse {
+  individualSkills: GraphQLIndividualSkill[];
 }
 
 export interface GetUserWithdrawalsResponse {

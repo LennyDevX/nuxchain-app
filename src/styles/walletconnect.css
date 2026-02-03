@@ -1,0 +1,31 @@
+/* WalletConnect Modal Styles */
+/* Ensure WalletConnect modal appears above all other elements */
+
+/* WalletConnect v2 modal wrapper */
+wcm-modal,
+w3m-modal,
+[id^="wcm-modal"],
+[id^="w3m-modal"] {
+  z-index: 99999 !important;
+}
+
+/* WalletConnect backdrop */
+wcm-modal::part(overlay),
+w3m-modal::part(overlay) {
+  z-index: 99998 !important;
+}
+
+/* Ensure modal content is visible */
+wcm-modal::part(container),
+w3m-modal::part(container) {
+  z-index: 99999 !important;
+}
+
+/* Fix for potential conflicts with other modals */
+.walletconnect-modal__base {
+  z-index: 99999 !important;
+}
+
+.walletconnect-qrcode__base {
+  z-index: 100000 !important;
+}

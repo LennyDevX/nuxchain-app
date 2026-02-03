@@ -1,0 +1,92 @@
+{
+  "name": "Nuxchain App",
+  "short_name": "Nuxchain",
+  "description": "Advanced blockchain platform for Web3 ecosystem. Explore NFTs, staking, airdrops, tokenization and more with intelligent chat support.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#9333ea",
+  "prefer_related_applications": false,
+  "categories": ["productivity", "finance"],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/screenshot-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg?v=2",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon1.png?v=2",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Marketplace",
+      "short_name": "NFT Market",
+      "description": "Browse and trade NFTs",
+      "url": "/marketplace?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Staking",
+      "short_name": "Staking",
+      "description": "View and manage staking positions",
+      "url": "/staking?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Airdrops",
+      "short_name": "Airdrops",
+      "description": "Discover and claim airdrops",
+      "url": "/airdrops?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

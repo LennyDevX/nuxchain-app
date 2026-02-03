@@ -1,96 +1,188 @@
-import { useEffect, useState } from 'react';
-import { apolloClient } from '../../lib/apollo-client';
-import { GET_SUBGRAPH_STATUS } from '../../lib/graphql/queries';
-import type { GraphQLSubgraphMeta } from '../../lib/graphql/types';
+import { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useSubgraphStatus } from '../../hooks/subgraph/useSubgraphStatus';
 
 interface SubgraphSyncStatusProps {
   className?: string;
+  showDetails?: boolean;
 }
 
-export function SubgraphSyncStatus({ className = '' }: SubgraphSyncStatusProps) {
-  const [syncStatus, setSyncStatus] = useState<{
-    blockNumber: number;
-    timestamp: number;
-    isSyncing: boolean;
-    hasErrors: boolean;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function SubgraphSyncStatus({ className = '', showDetails = false }: SubgraphSyncStatusProps) {
+  const { status, isLoading, error, refetch } = useSubgraphStatus();
+  const [showPopup, setShowPopup] = useState(false);
 
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const { data } = await apolloClient.query<GraphQLSubgraphMeta>({
-          query: GET_SUBGRAPH_STATUS,
-          fetchPolicy: 'network-only',
-        });
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
-        if (data?._meta) {
-          setSyncStatus({
-            blockNumber: data._meta.block.number,
-            timestamp: data._meta.block.timestamp,
-            isSyncing: true, // If query succeeds, subgraph is syncing
-            hasErrors: data._meta.hasIndexingErrors,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch subgraph status:', error);
-        setSyncStatus(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkStatus();
-    const interval = setInterval(checkStatus, 30000); // Check every 30s
-
-    return () => clearInterval(interval);
-  }, []);
-
-  if (isLoading || !syncStatus) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className={`flex items-center gap-2 text-xs animate-pulse ${className}`}>
+        <div className="w-2 h-2 rounded-full bg-blue-400" />
+        <span className="text-gray-400">Checking sync...</span>
+      </div>
+    );
   }
 
-  const blockAge = Date.now() - syncStatus.timestamp * 1000;
-  const minutesAgo = Math.floor(blockAge / 60000);
-  const hoursAgo = Math.floor(minutesAgo / 60);
+  if (error || !status) {
+    return (
+      <div 
+        className={`flex items-center gap-2 text-xs cursor-pointer hover:text-red-300 transition-colors ${className}`}
+        onClick={handleRefresh}
+        title="Click to retry"
+      >
+        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span className="text-red-400">Subgraph unavailable</span>
+        <span className="text-red-400/60 text-[10px]">Click to retry</span>
+      </div>
+    );
+  }
 
-  const timeAgoText = hoursAgo > 0 
-    ? `${hoursAgo}h ago` 
-    : minutesAgo > 0 
-    ? `${minutesAgo}m ago` 
-    : 'Just now';
+  const statusColor = status.hasIndexingErrors
+    ? 'bg-red-500'
+    : status.isUpToDate
+    ? 'bg-green-500'
+    : status.isRecentlyUpdated
+    ? 'bg-yellow-500'
+    : 'bg-orange-500';
+
+  const statusText = status.hasIndexingErrors
+    ? 'Indexing errors'
+    : status.isUpToDate
+    ? 'Live'
+    : status.isRecentlyUpdated
+    ? 'Syncing'
+    : 'Behind';
+
+  const statusColor2 = status.hasIndexingErrors
+    ? 'text-red-400'
+    : status.isUpToDate
+    ? 'text-green-400'
+    : status.isRecentlyUpdated
+    ? 'text-yellow-400'
+    : 'text-orange-400';
+
+  const shouldAnimate = !status.isUpToDate;
 
   return (
-    <div className={`flex items-center gap-2 text-xs ${className}`}>
-      {/* Status indicator */}
-      <div className="flex items-center gap-1.5">
-        <div
-          className={`w-2 h-2 rounded-full ${
-            syncStatus.hasErrors
-              ? 'bg-red-400 animate-pulse'
-              : blockAge < 60000
-              ? 'bg-green-400 animate-pulse'
-              : 'bg-yellow-400'
-          }`}
-        />
+    <div className="relative">
+      <div
+        className={`flex items-center gap-2 text-xs cursor-pointer ${className}`}
+        onClick={() => setShowPopup(!showPopup)}
+        title="Click for details"
+      >
+        {/* Status indicator */}
+        <div className="flex items-center gap-1.5">
+          <div
+            className={`w-2 h-2 rounded-full ${statusColor} ${shouldAnimate ? 'animate-pulse' : ''}`}
+          />
+          <span className={statusColor2}>
+            {statusText}
+          </span>
+        </div>
+
+        {/* Separator */}
+        <span className="text-gray-500">•</span>
+
+        {/* Block info */}
         <span className="text-gray-400">
-          {syncStatus.hasErrors
-            ? 'Indexing errors'
-            : blockAge < 60000
-            ? 'Live'
-            : 'Syncing'}
+          Block {status.blockNumber.toLocaleString()}
         </span>
+
+        {/* Time ago */}
+        <span className="text-gray-500">•</span>
+        <span className="text-gray-400">{status.timeAgo}</span>
       </div>
 
-      {/* Block info */}
-      <span className="text-gray-500">•</span>
-      <span className="text-gray-400">
-        Block {syncStatus.blockNumber.toLocaleString()}
-      </span>
+      {/* Detailed popup - using Portal to escape parent overflow */}
+      {showPopup && createPortal(
+        <>
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={() => setShowPopup(false)}
+          />
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gray-900 border border-gray-700 rounded-lg p-4 w-80 shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-700">
+                <h3 className="font-semibold text-white text-sm">Subgraph Status</h3>
+                <button
+                  onClick={() => setShowPopup(false)}
+                  className="text-gray-400 hover:text-white text-lg leading-none"
+                >
+                  ×
+                </button>
+              </div>
 
-      {/* Time ago */}
-      <span className="text-gray-500">•</span>
-      <span className="text-gray-400">{timeAgoText}</span>
+              {/* Status indicator */}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${statusColor} ${shouldAnimate ? 'animate-pulse' : ''}`}
+                />
+                <div>
+                  <p className={`text-sm font-semibold ${statusColor2}`}>
+                    {statusText}
+                  </p>
+                  {status.hasIndexingErrors && (
+                    <p className="text-xs text-red-300 mt-1">
+                      The subgraph has indexing errors. Data may be incomplete.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Block info */}
+              <div className="space-y-1 text-xs">
+                <p className="text-gray-400">
+                  <span className="text-gray-500">Block:</span>{' '}
+                  <span className="text-white font-mono">{status.blockNumber.toLocaleString()}</span>
+                </p>
+                <p className="text-gray-400">
+                  <span className="text-gray-500">Updated:</span>{' '}
+                  <span className="text-white">{status.timeAgo}</span>
+                </p>
+                {showDetails && (
+                  <>
+                    <p className="text-gray-400">
+                      <span className="text-gray-500">Hash:</span>{' '}
+                      <span className="text-white font-mono text-[10px] break-all">{status.blockHash.slice(0, 20)}...</span>
+                    </p>
+                    <p className="text-gray-400">
+                      <span className="text-gray-500">Age:</span>{' '}
+                      <span className="text-white">{Math.floor(status.blockAge / 1000)}s</span>
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Info messages */}
+              {!status.isUpToDate && (
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-2">
+                  <p className="text-xs text-yellow-400">
+                    ⚠️ Subgraph is catching up. New activities may take a moment to appear.
+                  </p>
+                </div>
+              )}
+
+              {status.isRecentlyUpdated && !status.isUpToDate && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+                  <p className="text-xs text-blue-400">
+                    💡 Try refreshing if your recent activities aren't showing yet.
+                  </p>
+                </div>
+              )}
+
+              {/* Refresh button */}
+              <button
+                onClick={handleRefresh}
+                className="w-full mt-3 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded text-xs font-semibold text-white transition-colors"
+              >
+                Refresh Activities
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </div>
   );
 }

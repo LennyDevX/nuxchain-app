@@ -22,6 +22,7 @@ const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'
 const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
+const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="/investments" element={<Investments />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
+        <Route path="/tutorial" element={<Tutorial />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

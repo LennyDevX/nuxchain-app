@@ -199,15 +199,25 @@ export default function NFTDetails({
               </button>
             </div>
           </div>
-          <div className="flex justify-between mt-2">
+          <div className="flex flex-col gap-1.5 mt-2">
             <p className="text-white/60 text-xs">
               {formData.count === 1
                 ? "This will create a single, unique NFT."
-                : `This will create ${formData.count} identical copies in one transaction.`}
+                : `This will create ${formData.count} identical copies in one batch transaction (gas optimized).`}
             </p>
+            {formData.count > 1 && formData.count <= 50 && (
+              <p className="text-green-300 text-[11px] font-medium bg-green-500/10 px-2 py-1 rounded border border-green-500/30 flex items-center gap-1">
+                <span>✅</span> Batch minting saves ~{Math.round((formData.count - 1) * 30)}% gas vs individual mints
+              </p>
+            )}
+            {formData.count > 50 && formData.count <= 100 && (
+              <p className="text-yellow-300 text-[11px] font-semibold bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/30 flex items-center gap-1">
+                <span>⚡</span> Large batch: Estimated gas ~{Math.round((300000 + formData.count * 200000) / 1000000)} million. Recommended: ≤50 copies
+              </p>
+            )}
             {formData.count > 100 && (
               <p className="text-orange-300 text-[11px] font-semibold bg-orange-500/10 px-2 py-1 rounded border border-orange-500/30 flex items-center gap-1">
-                <span>⚠️</span> High supply: Higher gas costs. Max 500 copies.
+                <span>⚠️</span> Very large batch: High gas costs. Max 500 copies. Consider splitting into smaller batches.
               </p>
             )}
           </div>

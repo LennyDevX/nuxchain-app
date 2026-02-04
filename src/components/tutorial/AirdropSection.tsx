@@ -34,21 +34,21 @@ function AirdropSection() {
   ]
 
   return (
-    <section className="w-full relative py-12 lg:py-24 overflow-hidden border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section className="w-full relative py-8 md:py-16 lg:py-24 overflow-hidden border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           {/* Left: Image - Focused and fully visible */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="order-2 lg:order-1 -mx-8 lg:mx-0"
+            className="order-2 md:order-1 -mx-4 sm:-mx-6 md:mx-0 aspect-square md:aspect-auto flex items-center justify-center"
           >
             <ResponsiveImage
               src="/DragonixPassportCard.jpg"
               alt="Airdrop Passport Card"
-              className="w-full h-auto object-contain scale-210"
+              className="w-full h-auto object-contain md:scale-110 lg:scale-125"
             />
           </motion.div>
 
@@ -63,26 +63,26 @@ function AirdropSection() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 mb-6">
                 <span className="text-xl">🎁</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Rewards Program</span>
+                <span className="text-xs font-black uppercase tracking-widest text-red-400">Rewards Program</span>
               </div>
 
-              <h2 className="text-4xl lg:text-6xl font-black leading-[1.1] mb-6 tracking-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black leading-tight mb-4 md:mb-6 tracking-tight">
                 <span className="text-gradient">Frequent Free Airdrops</span>
               </h2>
 
-              <p className="text-gray-400 text-lg leading-relaxed max-w-xl">
+              <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-xl">
                 Join our ecosystem and receive rewards for your activities. We reward loyalty, creativity, and active participation with frequent token distributions.
               </p>
             </div>
 
-            {/* Airdrop Types Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Airdrop Types Grid - 2x2 mobile */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {airdropTypes.slice(0, 4).map((type, index) => (
-                <div key={index} className="flex gap-4 p-5 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 transition-all group">
-                  <span className="text-3xl grayscale group-hover:grayscale-0 transition-all duration-500">{type.emoji}</span>
+                <div key={index} className="flex gap-4 p-5 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 transition-all group min-h-[48px]">
+                  <span className="text-3xl group-hover:scale-110 transition-all duration-500">{type.emoji}</span>
                   <div>
                     <h3 className="text-white font-bold text-sm mb-1">{type.title}</h3>
-                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-wider">{type.frequency}</p>
+                    <p className="text-gray-500 text-xs md:text-sm font-black uppercase tracking-wider">{type.frequency}</p>
                   </div>
                 </div>
               ))}

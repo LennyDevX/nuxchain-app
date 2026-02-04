@@ -47,7 +47,7 @@ export function ResponsiveImage({
   objectFit = 'cover',
   priority = false,
   srcSet,
-  sizes,
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw',
   onLoad,
   onError
 }: ResponsiveImageProps) {

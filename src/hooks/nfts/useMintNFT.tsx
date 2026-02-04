@@ -27,6 +27,7 @@ interface MintNFTResult {
   success: boolean;
   txHash: string;
   tokenId: number | null;
+  tokenIds?: number[];
   imageUrl: string;
   metadataUrl: string;
   contractAddress: string;
@@ -205,22 +206,47 @@ export default function useMintNFT() {
         throw new Error('Transaction failed on blockchain');
       }
 
-      // Extract token ID from logs (first one in case of batch)
+      // Extract token IDs from logs or return value
       let tokenId: number | null = null;
+      let tokenIds: number[] = [];
+      
       try {
-        // TokenCreated event: TokenCreated(address indexed creator, uint256 indexed tokenId, string uri)
-        const tokenCreatedLogs = receipt.logs.filter(log => log.topics.length >= 3);
-        if (tokenCreatedLogs.length > 0) {
-          // If batch, we might have many. For simplicity, we return the first one or a range
-          const firstLog = tokenCreatedLogs[0];
-          const topic2 = firstLog.topics[2];
-          if (topic2) {
-            tokenId = parseInt(topic2, 16);
-            console.log(isBatch ? `🎟️ Batch Minted! First Token ID: ${tokenId} (+ ${count - 1} more)` : `🎟️ Token ID: ${tokenId}`);
+        if (isBatch) {
+          // For batch minting, extract all token IDs from TokenCreated events
+          const tokenCreatedLogs = receipt.logs.filter(log => 
+            log.topics.length >= 3 && 
+            log.topics[0] === '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f' // TokenCreated event signature
+          );
+          
+          if (tokenCreatedLogs.length > 0) {
+            tokenIds = tokenCreatedLogs.map(log => parseInt(log.topics[2] || '0', 16));
+            tokenId = tokenIds[0]; // First token ID for backward compatibility
+            console.log(`🎟️ Batch Minted! Token IDs: ${tokenIds[0]}-${tokenIds[tokenIds.length - 1]} (${tokenIds.length} NFTs)`);
+          } else {
+            // Fallback: calculate range based on first token ID
+            const firstLog = receipt.logs.find(log => log.topics.length >= 3);
+            if (firstLog?.topics[2]) {
+              const firstId = parseInt(firstLog.topics[2], 16);
+              tokenIds = Array.from({ length: count }, (_, i) => firstId + i);
+              tokenId = firstId;
+              console.log(`🎟️ Batch Minted! Token IDs: ${firstId}-${firstId + count - 1} (${count} NFTs)`);
+            }
+          }
+        } else {
+          // Single NFT minting
+          const tokenCreatedLogs = receipt.logs.filter(log => log.topics.length >= 3);
+          if (tokenCreatedLogs.length > 0) {
+            const firstLog = tokenCreatedLogs[0];
+            const topic2 = firstLog.topics[2];
+            if (topic2) {
+              tokenId = parseInt(topic2, 16);
+              tokenIds = [tokenId];
+              console.log(`🎟️ Token ID: ${tokenId}`);
+            }
           }
         }
-      } catch {
-        console.warn("⚠️ Could not extract token ID from logs");
+      } catch (err) {
+        console.warn("⚠️ Could not extract token ID from logs:", err);
       }
 
       // Step 6: Register skills if provided
@@ -274,6 +300,7 @@ export default function useMintNFT() {
         success: true,
         txHash: tx,
         tokenId: tokenId,
+        tokenIds: tokenIds.length > 0 ? tokenIds : (tokenId ? [tokenId] : []),
         imageUrl: imageUrl,
         metadataUrl: metadataUrl,
         contractAddress: validatedProxyAddress as string

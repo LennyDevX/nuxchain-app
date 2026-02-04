@@ -71,10 +71,10 @@ const AnnouncementModal: React.FC = () => {
 
                             <div className="text-center mb-10">
                                 <h2 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-                                    New Horizons 🚀
+                                    Ultimate Security 🔐
                                 </h2>
                                 <p className="text-slate-400 text-sm font-medium uppercase tracking-[0.2em]">
-                                    Public Beta v2.0
+                                    Public Beta v2.5
                                 </p>
                             </div>
 
@@ -87,12 +87,12 @@ const AnnouncementModal: React.FC = () => {
                                 >
                                     <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mr-4 group-hover:scale-110 transition-transform">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                         </svg>
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Solana Network</h4>
-                                        <p className="text-slate-400 text-xs">Native integration and flash transactions.</p>
+                                        <h4 className="text-white text-sm font-bold">Ultra-Secure Airdrop</h4>
+                                        <p className="text-slate-400 text-xs">Advanced protection and real-time validation.</p>
                                     </div>
                                 </motion.div>
 
@@ -104,12 +104,12 @@ const AnnouncementModal: React.FC = () => {
                                 >
                                     <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 mr-4 group-hover:scale-110 transition-transform">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Airdrop is LIVE</h4>
-                                        <p className="text-slate-400 text-xs">Active missions and exclusive rewards online.</p>
+                                        <h4 className="text-white text-sm font-bold">Stable AI Chat</h4>
+                                        <p className="text-slate-400 text-xs">Faster responses and improved context.</p>
                                     </div>
                                 </motion.div>
 
@@ -121,21 +121,55 @@ const AnnouncementModal: React.FC = () => {
                                 >
                                     <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mr-4 group-hover:scale-110 transition-transform">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                         </svg>
                                     </div>
                                     <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Smart Rewards</h4>
-                                        <p className="text-slate-400 text-xs">Optimized staking algorithm.</p>
+                                        <h4 className="text-white text-sm font-bold">Solana Integrated</h4>
+                                        <p className="text-slate-400 text-xs">Optimized wallet connection and compatibility.</p>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div 
+                                    className="flex items-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group"
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.7 }}
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 mr-4 group-hover:scale-110 transition-transform">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-white text-sm font-bold">Optimized Contracts</h4>
+                                        <p className="text-slate-400 text-xs">Better performance and lower gas consumption.</p>
+                                    </div>
+                                </motion.div>
+
+                                <motion.div 
+                                    className="flex items-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group"
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.8 }}
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-400 mr-4 group-hover:scale-110 transition-transform">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                        </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-white text-sm font-bold">Complete Tutorial</h4>
+                                        <p className="text-slate-400 text-xs">Discover NuxChain and its ecosystem.</p>
                                     </div>
                                 </motion.div>
                             </div>
 
                             <motion.button
-                                whileHover={{ scale: 1.02, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
+                                whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handleAirdropAction}
-                                className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold rounded-2xl transition-all shadow-lg hover:shadow-blue-500/10 mb-3"
+                                className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold rounded-2xl transition-all shadow-lg hover:shadow-blue-500/10 hover:bg-blue-600/30 mb-3"
                             >
                                 Claim Airdrop Now
                             </motion.button>

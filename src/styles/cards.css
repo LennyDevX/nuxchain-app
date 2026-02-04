@@ -337,3 +337,85 @@
 .card-interactive::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.7);
 }
+
+/* ===== BUILDER/COLLABORATORS CARD STYLES ===== */
+
+/* Compact Builder Card */
+.builders-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 1.125rem;
+  padding: 1.25rem;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.builders-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(244, 63, 94, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.builders-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15), 
+              0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.builders-card:hover::before {
+  opacity: 1;
+}
+
+.builders-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* NFT Benefits Banner */
+.nft-benefits-banner {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+}
+
+.nft-benefit-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 0.875rem;
+  padding: 1.125rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nft-benefit-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.02) 0%, rgba(59, 130, 246, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.nft-benefit-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.12);
+}
+
+.nft-benefit-card:hover::before {
+  opacity: 1;
+}
+
+.nft-benefit-card > * {
+  position: relative;
+  z-index: 1;
+}

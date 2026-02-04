@@ -140,15 +140,58 @@ RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para
 ⚠️ **IMPORTANTE**: NO incluyas referencias técnicas como "Fuente: Polygon RPC", "Fuente: Smart Contract", etc. en las respuestas. Los datos ya son confiables y mencionar la fuente técnica confunde a los usuarios.`;
 
 /**
- * Construye el system instruction completo con contexto de KB
+ * Language detection result type
+ */
+export interface LanguageDetection {
+  language: string;
+  confidence: number;
+  scores?: {
+    spanish: number;
+    english: number;
+  };
+}
+
+/**
+ * Construye el system instruction completo con contexto de KB y detección de idioma
  * ✅ FORMATO CORRECTO: Google Gemini API requiere objeto con parts array
  */
-export function buildSystemInstructionWithContext(knowledgeContext: string = '', score: number = 0): SystemInstruction {
+export function buildSystemInstructionWithContext(
+  knowledgeContext: string = '', 
+  score: number = 0,
+  languageDetection: LanguageDetection | null = null
+): SystemInstruction {
   let instructionText: string;
+  
+  // Language instruction (highest priority)
+  let languageInstruction = '';
+  if (languageDetection && languageDetection.language) {
+    const { language, confidence } = languageDetection;
+    if (language === 'es') {
+      languageInstruction = `🌐 INSTRUCCIÓN DE IDIOMA (Confianza: ${(confidence * 100).toFixed(0)}%)
+═══════════════════════════════════════════════════════════
+RESPONDE SIEMPRE EN ESPAÑOL. El usuario ha escrito en español.
+- Usa terminología en español cuando sea posible
+- Mantén consistencia en el idioma durante toda la conversación
+- Solo usa inglés para términos técnicos sin traducción común (ej: "blockchain", "staking")
+═══════════════════════════════════════════════════════════
+
+`;
+    } else {
+      languageInstruction = `🌐 LANGUAGE INSTRUCTION (Confidence: ${(confidence * 100).toFixed(0)}%)
+═══════════════════════════════════════════════════════════
+ALWAYS respond in ENGLISH. The user has written in English.
+- Use English terminology throughout
+- Maintain language consistency during the entire conversation
+- Keep technical terms in English
+═══════════════════════════════════════════════════════════
+
+`;
+    }
+  }
   
   if (!knowledgeContext) {
     // ✅ SIN CONTEXTO: Permitir respuestas generales usando conocimiento del modelo
-    instructionText = `${NUXBEE_SYSTEM_INSTRUCTION}
+    instructionText = `${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
 
 ⚠️ **NO KNOWLEDGE BASE CONTEXT PROVIDED**
 
@@ -163,7 +206,7 @@ Since there is no Nuxchain-specific context available:
 - "¿Cómo funciona el staking?" → Explain staking concepts generally, mention you can provide Nuxchain-specific details if asked ✅`;
   } else {
     // ✅ CON CONTEXTO: Usar SOLO el contexto de la KB
-    instructionText = `${NUXBEE_SYSTEM_INSTRUCTION}
+    instructionText = `${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
 
 ═══════════════════════════════════════════════════════════════
 📚 NUXCHAIN KNOWLEDGE BASE CONTEXT (SCORE: ${score.toFixed(3)})

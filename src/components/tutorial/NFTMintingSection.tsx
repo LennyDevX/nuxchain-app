@@ -48,7 +48,7 @@ function NFTMintingSection() {
             <div className="space-y-4">
               {steps.map((step, index) => (
                 <div key={index} className="flex gap-4 items-center group">
-                  <div className="w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-xs font-black text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-all">
+                  <div className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-xs font-black text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-all">
                     {step.number}
                   </div>
                   <h3 className="text-white font-bold text-sm uppercase tracking-wider">{step.title}</h3>
@@ -84,12 +84,12 @@ function NFTMintingSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="order-1 lg:order-2 -mx-8 lg:mx-0"
+            className="order-1 lg:order-2 -mx-4 sm:-mx-6 lg:mx-0"
           >
             <ResponsiveImage
               src="/DragonixCardNFTs.png"
               alt="NFT Minting Dragon"
-              className="w-full h-auto object-contain scale-150"
+              className="w-full h-auto object-contain scale-110 md:scale-125 lg:scale-150"
             />
           </motion.div>
         </div>

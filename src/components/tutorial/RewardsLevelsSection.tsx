@@ -46,7 +46,7 @@ function RewardsLevelsSection() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-400/10 border border-red-500/30 mb-6">
             <span className="text-xl">🏆</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-red-100">STAKING TIERS</span>
+            <span className="text-xs font-black uppercase tracking-widest text-red-100">STAKING TIERS</span>
           </div>
 
           <h2 className="text-4xl lg:text-7xl font-black text-white leading-tight mb-8">
@@ -58,8 +58,8 @@ function RewardsLevelsSection() {
           </p>
         </motion.div>
 
-        {/* Levels Grid - 4 Columns on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Levels Grid - 2x2 on mobile, 4 columns on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {levels.map((tier, index) => (
             <motion.div
               key={index}
@@ -71,7 +71,7 @@ function RewardsLevelsSection() {
               className="group relative h-full"
             >
               {/* Card Container */}
-              <div className="relative bg-neutral-900 border border-white/10 rounded-[2.5rem] p-8 h-full flex flex-col items-center text-center transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_-12px_rgba(255,255,255,0.1)] overflow-hidden">
+              <div className="relative bg-neutral-900 border border-white/10 rounded-[2.5rem] p-8 h-full flex flex-col items-center text-center transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_-12px_rgba(255,255,255,0.1)] overflow-hidden min-h-[48px]">
                 
                 {/* Visual Accent */}
                 <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${tier.gradient}`} />
@@ -86,7 +86,7 @@ function RewardsLevelsSection() {
                 
                 {/* Min Stake Required */}
                 <div className="mb-8">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Minimum Stake</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-1">Minimum Stake</p>
                   <p className={`text-xl font-bold bg-gradient-to-r ${tier.gradient} text-transparent bg-clip-text`}>
                     {tier.minStake}
                   </p>

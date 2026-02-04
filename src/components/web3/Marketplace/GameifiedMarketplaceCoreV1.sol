@@ -152,6 +152,61 @@ contract GameifiedMarketplaceCoreV1 is
         return tokenId;
     }
 
+    /**
+     * @dev Create multiple identical NFT copies in a single transaction (gas optimized)
+     * @param _tokenURI IPFS metadata URI (same for all copies)
+     * @param _category NFT category
+     * @param _royaltyPercentage Royalty percentage in basis points (0-10000)
+     * @param _count Number of copies to mint (1-500)
+     * @return tokenIds Array of minted token IDs
+     */
+    function createStandardNFTBatch(
+        string calldata _tokenURI,
+        string calldata _category,
+        uint96 _royaltyPercentage,
+        uint256 _count
+    ) external whenNotPaused returns (uint256[] memory) {
+        require(_royaltyPercentage <= 10000, "Invalid royalty");
+        require(_count > 0 && _count <= 500, "Count must be 1-500");
+        
+        uint256[] memory tokenIds = new uint256[](_count);
+        uint256 firstTokenId = _tokenIdCounter.current();
+        
+        // Batch mint all tokens
+        for (uint256 i = 0; i < _count; i++) {
+            uint256 tokenId = _tokenIdCounter.current();
+            tokenIds[i] = tokenId;
+            _tokenIdCounter.increment();
+            
+            _safeMint(msg.sender, tokenId);
+            _setTokenURI(tokenId, _tokenURI);
+            
+            nftMetadata[tokenId] = NFTMetadata({
+                creator: msg.sender,
+                uri: _tokenURI,
+                category: _category,
+                createdAt: block.timestamp,
+                royaltyPercentage: _royaltyPercentage
+            });
+            
+            if (_royaltyPercentage > 0) {
+                _setTokenRoyalty(tokenId, msg.sender, _royaltyPercentage);
+            }
+            
+            _createdTokens[msg.sender].add(tokenId);
+            emit TokenCreated(msg.sender, tokenId, _tokenURI);
+        }
+        
+        // Update user stats (XP scaled with count)
+        userProfiles[msg.sender].nftsCreated += _count;
+        uint256 xpGained = 10 + (_count > 1 ? (_count - 1) * 5 : 0); // 10 XP + 5 per extra copy
+        userProfiles[msg.sender].totalXP += xpGained;
+        
+        emit XPGained(msg.sender, xpGained, "NFT_BATCH_CREATED");
+        
+        return tokenIds;
+    }
+
     function listTokenForSale(
         uint256 _tokenId,
         uint256 _price

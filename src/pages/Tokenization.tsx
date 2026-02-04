@@ -89,6 +89,17 @@ function Tokenization() {
       return;
     }
 
+    // Gas limit warning for large batches (estimate: 300k base + 200k per NFT)
+    if (formData.count > 50) {
+      const estimatedGas = 300000 + (formData.count * 200000);
+      const blockGasLimit = 30000000; // Polygon block gas limit
+      
+      if (estimatedGas > blockGasLimit * 0.8) {
+        setError(`⚠️ Batch size too large (${formData.count} copies). This might exceed gas limits. Try minting fewer copies (max recommended: 50 per batch).`);
+        return;
+      }
+    }
+
     // Check staking requirement for Skill NFTs (200 POL minimum)
     if (formData.nftType === 'skill') {
       const stakedAmount = parseFloat(totalStaked || '0');
@@ -135,9 +146,14 @@ function Tokenization() {
       toast.dismiss(mintToastId);
 
       if (result.success) {
-        // Show only one success toast notification
-        toast.success(`NFT #${result.tokenId} Minted`, {
-          duration: 4000,
+        // Show batch-aware success toast
+        const isBatch = formData.count > 1;
+        const tokenDisplay = isBatch && result.tokenIds && result.tokenIds.length > 1
+          ? `NFTs #${result.tokenIds[0]}-${result.tokenIds[result.tokenIds.length - 1]} (${result.tokenIds.length} copies)`
+          : `NFT #${result.tokenId}`;
+        
+        toast.success(`✨ ${tokenDisplay} Minted!`, {
+          duration: 5000,
           position: 'top-center',
           style: {
             background: '#10b981',

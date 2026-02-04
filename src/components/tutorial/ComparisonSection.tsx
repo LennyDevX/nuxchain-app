@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+import { ResponsiveImage } from '../ui/ResponsiveImage'
 
 function ComparisonSection() {
-  const isMobile = useIsMobile()
 
   const platforms = [
     {
@@ -76,40 +75,39 @@ function ComparisonSection() {
   ]
 
   return (
-    <section className="w-full relative py-12 lg:py-24 overflow-hidden border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="w-full relative py-8 md:py-16 lg:py-24 overflow-hidden border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-8 md:mb-12 lg:mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 mb-4 md:mb-6">
             <span className="text-xl">⚖️</span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Competitive Edge</span>
+            <span className="text-xs font-black uppercase tracking-widest text-blue-400">Competitive Edge</span>
           </div>
 
-          <h2 className="text-4xl lg:text-6xl font-black text-white leading-tight mb-6">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-4 md:mb-6">
             Nuxchain vs <span className="text-gradient">Marketplaces</span>
           </h2>
 
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm md:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Discover why Nuxchain is the smartest choice for creators and traders who value speed, low fees, and real rewards.
           </p>
         </motion.div>
 
-        {/* Comparison Table */}
+        {/* Comparison Table - Responsive Grid */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="overflow-x-auto pb-8 -mx-4 px-4 lg:mx-0 lg:px-0"
+          className="mb-8 md:mb-12 lg:mb-16"
         >
-          <div className="inline-block min-w-[900px] lg:min-w-full lg:w-full">
-            <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {platforms.map((platform, index) => (
                 <motion.div
                   key={index}
@@ -118,33 +116,34 @@ function ComparisonSection() {
                     platform.highlight
                       ? 'bg-neutral-900 border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.15)]'
                       : 'bg-neutral-950/50 border border-white/10'
-                  } rounded-3xl p-8 backdrop-blur-sm transition-all duration-500`}
+                  } rounded-2xl md:rounded-3xl p-6 md:p-8 backdrop-blur-sm transition-all duration-500`}
                 >
                   {/* ... same content ... */}
 
                   {/* Highlight Badge */}
                   {platform.highlight && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg">
+                    <div className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg text-center mb-4">
                       ⭐ Best Choice
                     </div>
                   )}
 
                   {/* Platform Header */}
-                  <div className="text-center mb-6 mt-2">
-                    <div className="w-24 h-24 mx-auto mb-3 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50">
+                  <div className="text-center mb-6">
+                    <div className="aspect-square w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 mx-auto mb-3 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 overflow-hidden">
                       {typeof platform.logo === 'string' && platform.logo.startsWith('/') ? (
-                        <img
+                        <ResponsiveImage
                           src={platform.logo}
                           alt={platform.name}
-                          className="w-20 h-20 rounded-full object-cover"
+                          className="w-full h-full rounded-full object-cover"
+                          mobileSize="w-16 h-16"
+                          tabletSize="md:w-24 md:h-24"
+                          desktopSize="lg:w-32 lg:h-32"
                         />
                       ) : (
-                        <div className="text-5xl">{platform.logo}</div>
+                        <div className="text-3xl md:text-5xl lg:text-6xl">{platform.logo}</div>
                       )}
                     </div>
-                    <h3 className={`text-2xl font-black ${platform.highlight ? 'text-purple-300' : 'text-white'}`}>
-                      {platform.name}
-                    </h3>
+                    <h3 className={`text-xl md:text-2xl font-black ${platform.highlight ? 'text-purple-300' : 'text-white'}`}>{platform.name}</h3>
                   </div>
 
                   {/* Features List */}
@@ -181,7 +180,7 @@ function ComparisonSection() {
                       whileInView={{ opacity: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: 0.6 }}
-                      className="block mt-6 px-6 py-2.5 btn-primary rounded-full font-bold text-white text-center shadow-lg hover:shadow-purple-500/50 transition-all duration-300"
+                      className="block mt-6 px-6 py-3 btn-primary rounded-full font-bold text-white text-center shadow-lg hover:shadow-purple-500/50 transition-all duration-300 text-sm md:text-base min-h-[44px]"
                     >
                       Explore Marketplace
                     </motion.a>
@@ -189,20 +188,19 @@ function ComparisonSection() {
                 </motion.div>
               ))}
             </div>
-          </div>
         </motion.div>
 
-        {/* Advantages Grid */}
+        {/* Advantages Grid - 2x2 mobile */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.5 }}
         >
-          <h3 className="text-2xl font-black text-white text-center mb-8">
+          <h3 className="text-xl md:text-2xl font-black text-white text-center mb-6 md:mb-8">
             Why Choose Nuxchain
           </h3>
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'} gap-6`}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             {advantages.map((adv, index) => (
               <motion.div
                 key={index}
@@ -210,11 +208,11 @@ function ComparisonSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-                className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-sm text-center hover:border-purple-400/50 transition-all duration-300"
+                className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-xl p-4 md:p-6 backdrop-blur-sm text-center hover:border-purple-400/50 transition-all duration-300"
               >
-                <div className="text-4xl mb-3">{adv.icon}</div>
-                <h4 className="text-white font-bold text-base mb-2">{adv.title}</h4>
-                <p className="text-gray-400 text-sm leading-relaxed">{adv.desc}</p>
+                <div className="text-3xl md:text-4xl mb-2 md:mb-3">{adv.icon}</div>
+                <h4 className="text-white font-bold text-sm md:text-base mb-1 md:mb-2">{adv.title}</h4>
+                <p className="text-gray-300 text-xs md:text-sm leading-relaxed">{adv.desc}</p>
               </motion.div>
             ))}
           </div>

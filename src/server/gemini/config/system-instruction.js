@@ -57,15 +57,43 @@ const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for 
 `;
 
 /**
- * Builds system instruction with optional knowledge base context
+ * Builds system instruction with optional knowledge base context and language detection
  * @param {string} knowledgeContext - Optional knowledge base context
  * @param {number} contextScore - Optional relevance score of the context
+ * @param {Object} languageDetection - Optional language detection result
  * @returns {Object} - SystemInstruction object compatible with Gemini API
  */
-export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0) {
+export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0, languageDetection = null) {
   let instructionText = NUXBEE_SYSTEM_INSTRUCTION;
   
-  // If we have knowledge context, prepend it
+  // Language instruction (highest priority - prepend first)
+  let languageInstruction = '';
+  if (languageDetection && languageDetection.language) {
+    const { language, confidence } = languageDetection;
+    if (language === 'es') {
+      languageInstruction = `🌐 INSTRUCCIÓN DE IDIOMA (Confianza: ${(confidence * 100).toFixed(0)}%)
+═══════════════════════════════════════════════════════════
+RESPONDE SIEMPRE EN ESPAÑOL. El usuario ha escrito en español.
+- Usa terminología en español cuando sea posible
+- Mantén consistencia en el idioma durante toda la conversación
+- Solo usa inglés para términos técnicos sin traducción común (ej: "blockchain", "staking")
+═══════════════════════════════════════════════════════════
+
+`;
+    } else {
+      languageInstruction = `🌐 LANGUAGE INSTRUCTION (Confidence: ${(confidence * 100).toFixed(0)}%)
+═══════════════════════════════════════════════════════════
+ALWAYS respond in ENGLISH. The user has written in English.
+- Use English terminology throughout
+- Maintain language consistency during the entire conversation
+- Keep technical terms in English
+═══════════════════════════════════════════════════════════
+
+`;
+    }
+  }
+  
+  // If we have knowledge context, add it after language instruction
   if (knowledgeContext && knowledgeContext.trim()) {
     const contextPrefix = `## KNOWLEDGE BASE CONTEXT (Relevance: ${(contextScore * 100).toFixed(0)}%):
 
@@ -78,7 +106,10 @@ TEXT TO USE FOR ANSWERING - Use ONLY this context for platform-specific question
 ---
 
 `;
-    instructionText = contextPrefix + instructionText;
+    instructionText = languageInstruction + contextPrefix + instructionText;
+  } else {
+    // Just prepend language instruction
+    instructionText = languageInstruction + instructionText;
   }
   
   // Return in Gemini API format

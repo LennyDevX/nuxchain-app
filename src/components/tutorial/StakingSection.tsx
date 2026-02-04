@@ -26,21 +26,21 @@ function StakingSection() {
   ]
 
   return (
-    <section className="w-full py-20 px-4 relative">
+    <section className="w-full py-8 md:py-16 lg:py-20 px-4 sm:px-6 md:px-8 relative">
       <div className="relative max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Left: Image */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="-mx-8 lg:mx-0"
+            className="-mx-4 sm:-mx-6 md:mx-0 aspect-square md:aspect-auto flex items-center justify-center"
           >
             <ResponsiveImage
               src="/DragonixPol.jpg"
               alt="Staking POL Dragon"
-              className="w-full h-auto object-contain scale-210"
+              className="w-full h-auto object-contain md:scale-110 lg:scale-125"
             />
           </motion.div>
 
@@ -58,20 +58,20 @@ function StakingSection() {
               <span className="text-sm font-semibold text-purple-200">Staking System</span>
             </div>
 
-            <h2 className="text-4xl lg:text-5xl font-black mb-6 leading-tight">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6 leading-tight">
               <span className="text-white">Staking with </span>
               <span className="text-gradient">
                 Real Rewards
               </span>
             </h2>
 
-            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+            <p className="text-gray-300 text-base md:text-lg mb-6 md:mb-8 leading-relaxed">
               Generate passive income while strengthening the Nuxchain network. Our staking system offers 
               competitive rewards and exclusive benefits for committed holders.
             </p>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {/* Features Grid - 2x2 desde mobile */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
               {stakingFeatures.map((feature, index) => (
                 <motion.div
                   key={index}
@@ -79,7 +79,7 @@ function StakingSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl p-4 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300"
+                  className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl p-4 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300 min-h-[48px]"
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{feature.emoji}</span>

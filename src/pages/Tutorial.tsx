@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
+import { usePrefersReducedMotion } from '../hooks/accessibility/usePrefersReducedMotion'
 import Footer from '../components/layout/footer'
 import { useLazyRender } from '../hooks/performance/useLazyRender'
 import { HeroSkeletonLoader } from '../components/ui/SkeletonLoader'
@@ -32,6 +33,8 @@ const LazySection = ({ children }: { children: React.ReactNode }) => {
 
 function Tutorial() {
   const isMobile = useIsMobile()
+  const prefersReducedMotion = usePrefersReducedMotion()
+  const motionDuration = prefersReducedMotion ? 0.1 : 0.6
 
   return (
     <GlobalBackground>
@@ -62,14 +65,14 @@ function Tutorial() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: motionDuration }}
           >
             {/* Badge */}
             <motion.div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50 mb-8"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
+              transition={{ duration: motionDuration * 0.67, delay: prefersReducedMotion ? 0 : 0.2 }}
             >
               <span className="text-2xl">📚</span>
               <span className="text-sm font-semibold text-purple-200">Complete Guide</span>
@@ -80,7 +83,7 @@ function Tutorial() {
               className={`${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'} font-black mb-6 leading-tight`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: motionDuration, delay: prefersReducedMotion ? 0 : 0.3 }}
             >
               <span className="text-white">Welcome to </span>
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 text-transparent bg-clip-text">
@@ -95,7 +98,7 @@ function Tutorial() {
               } text-gray-300 max-w-3xl mx-auto mb-10 leading-relaxed`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: motionDuration, delay: prefersReducedMotion ? 0 : 0.4 }}
             >
               Your complete Web3 platform to create, trade and earn with NFTs. Discover how our 
               rewards ecosystem, staking, airdrops and much more works.
@@ -103,12 +106,10 @@ function Tutorial() {
 
             {/* Quick Nav Pills */}
             <motion.div
-              className={`flex ${
-                isMobile ? 'flex-col gap-3' : 'flex-wrap justify-center gap-4'
-              } max-w-4xl mx-auto`}
+              className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: motionDuration, delay: prefersReducedMotion ? 0 : 0.5 }}
             >
               {[
                 { label: 'Staking', icon: '🔐', href: '#staking' },
@@ -121,7 +122,7 @@ function Tutorial() {
                 <a
                   key={index}
                   href={item.href}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/40 rounded-full text-white text-sm font-semibold hover:border-purple-400/60 hover:from-purple-900/50 hover:to-pink-900/50 transition-all duration-300 backdrop-blur-sm"
+                  className="px-4 py-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/40 rounded-full text-white text-sm font-semibold hover:border-purple-400/60 hover:from-purple-900/50 hover:to-pink-900/50 transition-all duration-300 backdrop-blur-sm text-center min-h-[44px] flex items-center justify-center"
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}

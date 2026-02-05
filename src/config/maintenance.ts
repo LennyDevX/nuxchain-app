@@ -16,22 +16,22 @@ export const MAINTENANCE_CONFIG: {
   marketplace: MaintenanceRoute;
 } = {
   airdrop: {
-    // Airdrop con countdown de 48 horas (2880 minutos)
+    // Airdrop with 48-hour countdown (2880 minutes)
     enabled: true,
-    estimatedTime: 2880, // 48 horas
-    message: 'Estamos optimizando nuestro sistema para reducir el consumo de recursos y mejorar la experiencia. El Airdrop estará disponible en 48 horas. ¡Gracias por tu paciencia!',
+    estimatedTime: 2880, // 48 hours
+    message: 'We are optimizing our system to reduce resource consumption and improve your experience. The Airdrop will be available in 48 hours. Thank you for your patience!',
     startTime: new Date().toISOString(),
   },
   nfts: {
     enabled: true,
     estimatedTime: 120,
-    message: 'Estamos actualizando el NFT Hub con nuevas funcionalidades y optimizaciones. Volveremos pronto con mejoras increíbles.',
+    message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
     startTime: new Date().toISOString(),
   },
   marketplace: {
     enabled: true,
     estimatedTime: 120,
-    message: 'El Marketplace está siendo optimizado para ofrecerte una mejor experiencia de compra y venta. Regresamos muy pronto.',
+    message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
     startTime: new Date().toISOString(),
   },
 };

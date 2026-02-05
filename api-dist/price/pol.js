@@ -3,77 +3,71 @@
  *
  * Proxy para CoinGecko API que:
  * - Evita problemas de CORS desde el navegador
- * - Permite caching server-side
+ * - Permite caching server-side con Upstash KV
  * - Distribuye rate limits del servidor en lugar del cliente
  * - Agrega headers CORS correctos
  */
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos - más corto que el cliente para propagación rápida
-let priceCache = null;
-// Rate limiting básico
-const requestLog = new Map();
-const RATE_LIMIT_REQUESTS = 30;
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
-function isRateLimited(ip) {
-    const now = Date.now();
-    const clientRequests = requestLog.get(ip) || [];
-    // Limpiar requests antiguos fuera de la ventana
-    const recentRequests = clientRequests.filter(time => now - time < RATE_LIMIT_WINDOW);
-    if (recentRequests.length >= RATE_LIMIT_REQUESTS) {
-        return true;
-    }
-    // Guardar este nuevo request
-    recentRequests.push(now);
-    requestLog.set(ip, recentRequests);
-    return false;
-}
+import { kvCache } from '../_services/kv-cache-service';
+const CACHE_TTL = 60; // 60 seconds - optimized for balance between freshness and performance
 export default async function handler(req, res) {
-    // Solo GET permitido
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
     try {
-        const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
-        // Verificar rate limiting
-        if (isRateLimited(clientIp)) {
-            return res.status(429).json({
-                error: 'Rate limited',
-                message: 'Too many requests, please try again later'
-            });
-        }
-        // Verificar cache
-        if (priceCache && Date.now() - priceCache.timestamp < CACHE_DURATION) {
-            // Retornar del cache con headers CORS
-            res.setHeader('Cache-Control', 'public, max-age=60');
+        // Solo permitir GET
+        if (req.method !== 'GET') {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', 'GET');
-            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-            return res.status(200).json({
-                polPrice: priceCache.data.price,
-                priceChange24h: priceCache.data.change24h,
-                cached: true,
-                timestamp: priceCache.timestamp
+            return res.status(405).json({ error: 'Method not allowed' });
+        }
+        // Check rate limit using KV
+        const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+        const ipString = Array.isArray(clientIp) ? clientIp[0] : clientIp.toString();
+        const rateLimitKey = `rate:pol:${ipString}`;
+        const requests = await kvCache.increment(rateLimitKey, { ttl: 60 });
+        if (requests > 30) {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            return res.status(429).json({
+                error: 'Rate limit exceeded',
+                message: 'Maximum 30 requests per minute'
             });
         }
-        // Fetchar desde CoinGecko
+        // Try to get from cache using KV
+        const cacheKey = 'pol-price';
+        const cached = await kvCache.get(cacheKey, {
+            namespace: 'prices',
+            ttl: CACHE_TTL
+        });
+        if (cached) {
+            res.setHeader('Cache-Control', `public, max-age=${CACHE_TTL}`);
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('X-Cache', 'HIT');
+            return res.status(200).json({
+                polPrice: cached.price,
+                priceChange24h: cached.change24h,
+                cached: true,
+                timestamp: Date.now()
+            });
+        }
+        // Fetch from CoinGecko
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polygon-ecosystem-token&vs_currencies=usd&include_24hr_change=true', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
                 'User-Agent': 'NuxChain-Backend/1.0'
-            }
+            },
+            signal: AbortSignal.timeout(5000) // 5s timeout
         });
         if (response.status === 429) {
-            // CoinGecko rate limited - retornar cache antiguo si existe
-            if (priceCache) {
+            // Try to get stale cache
+            const staleCache = await kvCache.get(cacheKey, { namespace: 'prices' });
+            if (staleCache) {
                 console.warn('[POL Price] CoinGecko rate limited, returning stale cache');
-                res.setHeader('X-Cache', 'stale');
+                res.setHeader('X-Cache', 'STALE');
                 res.setHeader('Access-Control-Allow-Origin', '*');
                 return res.status(200).json({
-                    polPrice: priceCache.data.price,
-                    priceChange24h: priceCache.data.change24h,
+                    polPrice: staleCache.price,
+                    priceChange24h: staleCache.change24h,
                     cached: true,
                     stale: true,
-                    timestamp: priceCache.timestamp
+                    timestamp: Date.now()
                 });
             }
             return res.status(429).json({
@@ -87,25 +81,22 @@ export default async function handler(req, res) {
         const data = await response.json();
         const polData = data['polygon-ecosystem-token'];
         if (polData && typeof polData === 'object' && 'usd' in polData) {
-            const usd = polData.usd;
-            const usd_24h_change = polData.usd_24h_change;
-            // Guardar en cache
-            priceCache = {
-                data: {
-                    price: usd,
-                    change24h: usd_24h_change
-                },
-                timestamp: Date.now()
+            const priceData = {
+                price: polData.usd,
+                change24h: polData.usd_24h_change
             };
-            // Retornar con headers CORS y caching
-            res.setHeader('Cache-Control', 'public, max-age=60');
+            // Save to KV cache
+            await kvCache.set(cacheKey, priceData, {
+                namespace: 'prices',
+                ttl: CACHE_TTL
+            });
+            // Return with headers
+            res.setHeader('Cache-Control', `public, max-age=${CACHE_TTL}`);
             res.setHeader('Access-Control-Allow-Origin', '*');
-            res.setHeader('Access-Control-Allow-Methods', 'GET');
-            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-            res.setHeader('X-Cache', 'miss');
+            res.setHeader('X-Cache', 'MISS');
             return res.status(200).json({
-                polPrice: usd,
-                priceChange24h: usd_24h_change,
+                polPrice: priceData.price,
+                priceChange24h: priceData.change24h,
                 cached: false,
                 timestamp: Date.now()
             });
@@ -116,17 +107,18 @@ export default async function handler(req, res) {
     }
     catch (error) {
         console.error('[POL Price API Error]:', error);
-        // Retornar cache antiguo como fallback
-        if (priceCache) {
-            res.setHeader('X-Cache', 'stale-error');
+        // Try to get stale cache as fallback
+        const staleCache = await kvCache.get('pol-price', { namespace: 'prices' });
+        if (staleCache) {
+            res.setHeader('X-Cache', 'STALE-ERROR');
             res.setHeader('Access-Control-Allow-Origin', '*');
             return res.status(200).json({
-                polPrice: priceCache.data.price,
-                priceChange24h: priceCache.data.change24h,
+                polPrice: staleCache.price,
+                priceChange24h: staleCache.change24h,
                 cached: true,
                 stale: true,
                 error: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: priceCache.timestamp
+                timestamp: Date.now()
             });
         }
         // Fallback price if no cache

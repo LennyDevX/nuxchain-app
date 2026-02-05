@@ -1,4 +1,6 @@
 import { useState, useCallback, useMemo, lazy, Suspense, useEffect, memo } from 'react';
+import { isMaintenanceMode } from '../config/maintenance';
+import MarketplaceMaintenance from './MarketplaceMaintenance';
 import { useAccount } from 'wagmi';
 import { useMarketplaceNFTsGraph } from '../hooks/nfts/useMarketplaceNFTsGraph';
 import type { NFTData } from '../hooks/nfts/useMarketplaceNFTsGraph';
@@ -53,6 +55,11 @@ function convertToMarketplaceNFT(nft: NFTData): MarketplaceNFT {
 }
 
 function Marketplace() {
+  // Check maintenance mode first
+  if (isMaintenanceMode('marketplace')) {
+    return <MarketplaceMaintenance />;
+  }
+
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
   

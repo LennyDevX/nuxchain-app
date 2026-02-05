@@ -13,10 +13,9 @@ class WebScraperService {
 
   constructor() {
     // Configuration optimized for Vercel
-    // OPTIMIZACIÓN: Timeout reducido para Vercel
-    // En producción (Vercel): 8 segundos máximo
-    // En desarrollo: 15 segundos
-    this.timeout = process.env.VERCEL ? 8000 : 15000; // 15 seconds for better reliability
+    // OPTIMIZACIÓN: Timeout reducido de 8s a 4s para evitar timeouts en Vercel
+    // Fallback rápido a OpenGraph/meta description si la extracción completa falla
+    this.timeout = process.env.VERCEL ? 4000 : 8000; // 4s prod, 8s dev
     this.maxRetries = process.env.VERCEL ? 1 : 2; // Menos reintentos en prod
     this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NuxchainBot/1.0';
   }
@@ -53,7 +52,7 @@ class WebScraperService {
   }
 
   /**
-   * Extracts content from a URL
+   * Extracts content from a URL with fast OpenGraph fallback
    */
   async extractContent(url: string, options: WebScraperOptions = {}): Promise<WebScraperResult> {
     try {
@@ -116,8 +115,18 @@ class WebScraperService {
       };
 
     } catch (error: unknown) {
-      // Critical error logging only
+      // FAST FALLBACK: Si timeout o error, intentar extraer solo OpenGraph/meta tags
       const message = error instanceof Error ? error.message : String(error);
+      
+      if (message.includes('aborted') || message.includes('timeout')) {
+        console.warn(`⚠️  [WebScraper] Timeout on ${url}, trying fast OpenGraph extraction`);
+        try {
+          return await this.extractOpenGraphFast(url);
+        } catch (ogError) {
+          console.error(`❌ [WebScraper] OpenGraph fallback also failed for ${url}`);
+        }
+      }
+
       console.error(`❌ [WebScraper] Error extracting content from ${url}:`, message);
       return {
         success: false,
@@ -129,6 +138,57 @@ class WebScraperService {
           failed: true
         }
       };
+    }
+  }
+
+  /**
+   * Fast extraction of OpenGraph tags only (< 2s)
+   * Used as fallback when full extraction times out
+   */
+  async extractOpenGraphFast(url: string): Promise<WebScraperResult> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 2s timeout
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'User-Agent': this.userAgent },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      
+      // Only read first 50KB to extract meta tags
+      const html = await response.text();
+      const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+      const head = headMatch ? headMatch[1] : html.substring(0, 5000);
+
+      // Extract OpenGraph tags
+      const ogTitle = head.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+      const ogDesc = head.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
+      const ogImage = head.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
+      const metaDesc = head.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+      const titleTag = head.match(/<title[^>]*>([^<]+)<\/title>/i);
+
+      const title = (ogTitle?.[1] || titleTag?.[1] || 'No title').trim();
+      const content = (ogDesc?.[1] || metaDesc?.[1] || 'No description available').trim();
+
+      return {
+        success: true,
+        url: url,
+        title,
+        content,
+        metadata: {
+          domain: this.extractDomain(url),
+          extractedAt: new Date().toISOString(),
+          contentLength: content.length,
+          ogImage: ogImage?.[1],
+          fastExtraction: true
+        }
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
     }
   }
 

@@ -343,10 +343,10 @@ function Airdrop() {
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
 
   // Check for maintenance mode - must be after all hooks
-  if (isMaintenanceMode()) {
+  if (isMaintenanceMode('airdrop')) {
     return (
       <MaintenancePage 
-        message={MAINTENANCE_CONFIG.message}
+        message={MAINTENANCE_CONFIG.airdrop.message}
       />
     );
   }

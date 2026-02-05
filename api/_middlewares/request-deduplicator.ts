@@ -60,7 +60,8 @@ class RequestDeduplicator {
     ): Promise<void> => {
       // Only deduplicate GET and POST requests
       if (!['GET', 'POST'].includes(req.method || '')) {
-        return handler();
+        await handler();
+        return;
       }
 
       const requestKey = this.generateRequestKey(req);

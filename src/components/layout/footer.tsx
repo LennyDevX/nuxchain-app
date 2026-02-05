@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex items-center space-x-2 text-xs text-gray-500">
               <span className="px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
-                Public Beta v1.0
+                Public Beta v2.5
               </span>
             </div>
           </div>

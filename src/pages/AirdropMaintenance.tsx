@@ -67,8 +67,8 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
               </div>
               <div className="icon-glow"></div>
             </div>
-            <h1>Optimización del Sistema</h1>
-            <p className="maintenance-subtitle">Airdrop temporalmente no disponible</p>
+            <h1>System Optimization</h1>
+            <p className="maintenance-subtitle">Airdrop temporarily unavailable</p>
           </div>
 
           {/* Countdown Timer */}
@@ -88,7 +88,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
               WebkitTextFillColor: 'transparent',
               textAlign: 'center'
             }}>
-              El Airdrop estará disponible en:
+              Airdrop will be available in:
             </h2>
             <div style={{
               display: 'grid',
@@ -114,7 +114,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                   fontSize: '0.875rem',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
-                }}>Días</div>
+                }}>Days</div>
               </div>
               <div style={{
                 textAlign: 'center',
@@ -133,7 +133,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                   fontSize: '0.875rem',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
-                }}>Horas</div>
+                }}>Hours</div>
               </div>
               <div style={{
                 textAlign: 'center',
@@ -152,7 +152,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                   fontSize: '0.875rem',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
-                }}>Minutos</div>
+                }}>Minutes</div>
               </div>
               <div style={{
                 textAlign: 'center',
@@ -171,7 +171,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
                   fontSize: '0.875rem',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
-                }}>Segundos</div>
+                }}>Seconds</div>
               </div>
             </div>
           </div>
@@ -184,28 +184,28 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
           {/* Status Section */}
           <div className="maintenance-status-badge">
             <span className="pulse-dot"></span>
-            Estado: En Optimización
+            Status: Under Optimization
           </div>
 
           {/* Details */}
           <div className="maintenance-details">
-            <h2>Lo que estamos haciendo</h2>
+            <h2>What We're Doing</h2>
             <div className="maintenance-grid">
               <div className="grid-item">
                 <span className="icon">🔐</span>
-                <p>Mejorando protocolos de seguridad</p>
+                <p>Enhancing security protocols</p>
               </div>
               <div className="grid-item">
                 <span className="icon">⚡</span>
-                <p>Optimizando rendimiento</p>
+                <p>Optimizing performance</p>
               </div>
               <div className="grid-item">
                 <span className="icon">🤖</span>
-                <p>Eliminando cuentas bot</p>
+                <p>Removing bot accounts</p>
               </div>
               <div className="grid-item">
                 <span className="icon">✨</span>
-                <p>Garantizando equidad</p>
+                <p>Ensuring fairness</p>
               </div>
             </div>
           </div>
@@ -216,7 +216,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
               className="refresh-button"
               onClick={() => window.location.reload()}
             >
-              <span>Actualizar Página</span>
+              <span>Refresh Page</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="23 4 23 10 17 10"></polyline>
                 <path d="M20.49 15a9 9 0 1 1-2-8.83"></path>
@@ -226,7 +226,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
               className="staking-button"
               onClick={() => window.location.href = '/staking'}
             >
-              <span>Ir a Staking</span>
+              <span>Go to Staking</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
               </svg>
@@ -236,8 +236,8 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
           {/* Importance Info */}
           <div className="maintenance-importance">
             <p>
-              Estamos optimizando el sistema para reducir el consumo de recursos y mejorar la experiencia.
-              <strong> Todas las optimizaciones beneficiarán a la comunidad</strong>. ¡Gracias por tu paciencia!
+              We are optimizing the system to reduce resource consumption and improve your experience.
+              <strong> All optimizations will benefit the community</strong>. Thank you for your patience!
             </p>
           </div>
         </div>

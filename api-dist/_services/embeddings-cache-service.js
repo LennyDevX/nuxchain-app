@@ -139,7 +139,7 @@ class EmbeddingsCacheService {
      * @param _threshold - Similarity threshold (not implemented yet)
      * @param _limit - Maximum results (not implemented yet)
      */
-    async searchSimilar(queryEmbedding) {
+    async searchSimilar(_queryEmbedding) {
         // This would require scanning all cached embeddings
         // For production, consider using a vector database like Pinecone
         // For now, this is a placeholder for future implementation

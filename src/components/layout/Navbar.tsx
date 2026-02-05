@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import WalletConnect from '../web3/WalletConnect.tsx'
 import { useIsMobile } from '../../hooks/mobile'
+import { isMaintenanceMode } from '../../config/maintenance'
 
 function Navbar() {
   const location = useLocation()
@@ -79,13 +80,20 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`inline-block px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${
                         isActive(link.path)
                           ? 'bg-blue-100 text-blue-700 shadow-sm'
                           : 'text-white/80 hover:text-white hover:bg-white/10'
                       }`}
                     >
                       {link.label}
+                      {link.path === '/airdrop' && isMaintenanceMode('airdrop') && (
+                        <motion.div
+                          className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"
+                          animate={{ scale: [1, 1.3, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        />
+                      )}
                     </Link>
                   </motion.div>
                 </motion.div>

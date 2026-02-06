@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Footer from '../components/layout/footer';
 import { getMaintenanceTimeRemaining, getMaintenanceConfig, isMaintenanceMode } from '../config/maintenance';
 import '../styles/maintenance.css';
+
+// Lazy load the actual Airdrop component
+const AirdropPage = lazy(() => import('./Airdrop'));
 
 interface MaintenancePageProps {
   message?: string;
@@ -10,23 +13,36 @@ interface MaintenancePageProps {
 const MaintenancePage: React.FC<MaintenancePageProps> = ({
   message
 }) => {
+  const [isMaintenance, setIsMaintenance] = useState(isMaintenanceMode('airdrop'));
   const [timeRemaining, setTimeRemaining] = useState(getMaintenanceTimeRemaining('airdrop'));
   const config = getMaintenanceConfig('airdrop');
   const displayMessage = message || config.message;
 
   useEffect(() => {
     const interval = setInterval(() => {
+      const isInMaintenance = isMaintenanceMode('airdrop');
+      setIsMaintenance(isInMaintenance);
+      
       const remaining = getMaintenanceTimeRemaining('airdrop');
       setTimeRemaining(remaining);
       
       // Auto-redirect cuando el mantenimiento termine
-      if (remaining <= 0 && !isMaintenanceMode('airdrop')) {
+      if (remaining <= 0 && !isInMaintenance) {
         window.location.href = '/airdrop';
       }
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
+
+  // If maintenance is disabled or overridden, show the real airdrop page
+  if (!isMaintenance) {
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AirdropPage />
+      </Suspense>
+    );
+  }
 
   // Convertir segundos a días, horas, minutos, segundos
   const formatTime = (seconds: number) => {
@@ -73,16 +89,16 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
 
           {/* Countdown Timer */}
           <div className="countdown-container" style={{
-            margin: '2rem 0',
-            padding: '2rem',
+            margin: '1.5rem 0 2rem 0',
+            padding: 'clamp(1rem, 3vw, 2rem)',
             background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%)',
             borderRadius: '1rem',
             border: '1px solid rgba(139, 92, 246, 0.3)'
           }}>
             <h2 style={{
-              fontSize: '1.5rem',
+              fontSize: 'clamp(1.125rem, 5vw, 1.5rem)',
               fontWeight: '700',
-              marginBottom: '1.5rem',
+              marginBottom: '1.25rem',
               background: 'linear-gradient(to right, #a78bfa, #ec4899)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -92,83 +108,86 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
             </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '1rem',
-              maxWidth: '600px',
-              margin: '0 auto'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))',
+              gap: 'clamp(0.75rem, 2vw, 1rem)',
+              maxWidth: '100%'
             }}>
               <div style={{
                 textAlign: 'center',
-                padding: '1rem',
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 <div style={{
-                  fontSize: '2.5rem',
+                  fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
                   fontWeight: '700',
                   color: '#a78bfa',
-                  lineHeight: '1'
+                  lineHeight: '1',
+                  wordBreak: 'break-word'
                 }}>{time.days}</div>
                 <div style={{
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.625rem, 2vw, 0.875rem)',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
                 }}>Days</div>
               </div>
               <div style={{
                 textAlign: 'center',
-                padding: '1rem',
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 <div style={{
-                  fontSize: '2.5rem',
+                  fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
                   fontWeight: '700',
                   color: '#ec4899',
-                  lineHeight: '1'
+                  lineHeight: '1',
+                  wordBreak: 'break-word'
                 }}>{time.hours}</div>
                 <div style={{
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.625rem, 2vw, 0.875rem)',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
                 }}>Hours</div>
               </div>
               <div style={{
                 textAlign: 'center',
-                padding: '1rem',
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 <div style={{
-                  fontSize: '2.5rem',
+                  fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
                   fontWeight: '700',
                   color: '#60a5fa',
-                  lineHeight: '1'
+                  lineHeight: '1',
+                  wordBreak: 'break-word'
                 }}>{time.minutes}</div>
                 <div style={{
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.625rem, 2vw, 0.875rem)',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
                 }}>Minutes</div>
               </div>
               <div style={{
                 textAlign: 'center',
-                padding: '1rem',
+                padding: 'clamp(0.75rem, 2vw, 1rem)',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '0.5rem',
                 border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
                 <div style={{
-                  fontSize: '2.5rem',
+                  fontSize: 'clamp(1.5rem, 6vw, 2.5rem)',
                   fontWeight: '700',
                   color: '#34d399',
-                  lineHeight: '1'
+                  lineHeight: '1',
+                  wordBreak: 'break-word'
                 }}>{time.seconds}</div>
                 <div style={{
-                  fontSize: '0.875rem',
+                  fontSize: 'clamp(0.625rem, 2vw, 0.875rem)',
                   color: '#9ca3af',
                   marginTop: '0.5rem'
                 }}>Seconds</div>

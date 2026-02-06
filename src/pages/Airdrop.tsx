@@ -7,10 +7,8 @@ import { submitAirdropRegistration, getRegisteredUsersCount, checkUserRegistrati
 import { analyzeWalletMetrics, getWalletQualityAssessment, getWalletRiskMessage, type WalletMetrics } from '../components/forms/wallet-analysis-service';
 import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
-import CountdownTimer from '../components/ui/CountdownTimer';
 import NuxCoinDisplay from '../components/airdrop/NuxCoinDisplay';
-import MaintenancePage from './AirdropMaintenance';
-import { MAINTENANCE_CONFIG, isMaintenanceMode } from '../config/maintenance';
+import RequirementsModal from '../components/airdrop/RequirementsModal';
 import '../styles/nux-coin-display.css';
 
 // Utility functions for device fingerprinting
@@ -101,6 +99,7 @@ function Airdrop() {
   const [browserInfo] = useState(() => getBrowserInfo());
   const [walletMetrics, setWalletMetrics] = useState<WalletMetrics | null>(null);
   const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
 
   // Constantes del airdrop
   const TOKENS_PER_USER = 6000; // 6K NUX tokens por usuario
@@ -334,22 +333,14 @@ function Airdrop() {
     }
   };
 
-  // Countdown target date - February 14, 2026 23:59:59 (Airdrop distribution date)
-  const airdropEndDate = new Date(2026, 1, 14, 23, 59, 59);
+
 
   // Calcular usuarios restantes y estadísticas
   const isPoolFull = registeredUsers >= MAX_USERS;
   const usersRemaining = Math.max(0, MAX_USERS - registeredUsers);
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
 
-  // Check for maintenance mode - must be after all hooks
-  if (isMaintenanceMode('airdrop')) {
-    return (
-      <MaintenancePage 
-        message={MAINTENANCE_CONFIG.airdrop.message}
-      />
-    );
-  }
+  // Maintenance mode disabled - airdrop is now active
 
   return (
     <GlobalBackground>
@@ -394,15 +385,10 @@ function Airdrop() {
 
             {/* Launch Info */}
             <div className="flex flex-wrap gap-2 justify-center text-sm text-gray-400">
-              <span>🚀 Token Launch: <strong className="text-purple-300">February 10, 2026</strong></span>
+              <span>🚀 Token Launch: <strong className="text-purple-300">February 17, 2026</strong></span>
               <span className="text-gray-600">|</span>
-              <span>🎁 Airdrop Date: <strong className="text-pink-300">February 14, 2026</strong></span>
+              <span>🎁 Airdrop Date: <strong className="text-pink-300">February 21, 2026</strong></span>
             </div>
-          </div>
-
-          {/* Countdown Timer Section */}
-          <div className="max-w-4xl mx-auto mb-12 sm:mb-16">
-            <CountdownTimer targetDate={airdropEndDate} />
           </div>
 
           {/* Form Section - Improved Desktop Layout */}
@@ -542,9 +528,22 @@ function Airdrop() {
                       </div>
                       {/* Name Input */}
                       <div className="space-y-2">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                          Full Name *
-                        </label>
+                        <div className="flex items-center justify-between">
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+                            Full Name *
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setShowRequirementsModal(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 rounded-lg text-xs font-semibold text-purple-300 transition-all duration-200 group"
+                            title="View registration requirements"
+                          >
+                            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                            Requirements
+                          </button>
+                        </div>
                         <input
                           type="text"
                           id="name"
@@ -966,7 +965,7 @@ function Airdrop() {
                 </button>
                 
                 <p className="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-bold">
-                  Distribution: February 14, 2026
+                  Distribution: February 21, 2026
                 </p>
               </div>
             </div>
@@ -977,6 +976,13 @@ function Airdrop() {
           </div>
         </div>
       )}
+
+      {/* Requirements Modal */}
+      <RequirementsModal 
+        isOpen={showRequirementsModal} 
+        onClose={() => setShowRequirementsModal(false)} 
+      />
+      
     </GlobalBackground>
   );
 }

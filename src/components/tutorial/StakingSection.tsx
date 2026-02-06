@@ -79,7 +79,7 @@ function StakingSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                  className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl p-4 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300 min-h-[48px]"
+                  className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-xl p-4 backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300 min-h-[48px]"
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{feature.emoji}</span>

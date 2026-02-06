@@ -99,7 +99,7 @@ function ComparisonSection() {
           </p>
         </motion.div>
 
-        {/* Comparison Table - Responsive Grid */}
+        {/* Comparison Table - Responsive: Mobile Table / Desktop Grid */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -107,7 +107,94 @@ function ComparisonSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-8 md:mb-12 lg:mb-16"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* Mobile Optimized Comparison Table */}
+          <div className="block md:hidden">
+            <motion.div
+              className="bg-gradient-to-b from-neutral-900 to-neutral-950 border border-purple-500/30 rounded-2xl p-5 backdrop-blur-sm overflow-hidden"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              {/* Mobile Table Header with Platform Logos */}
+              <div className="mb-6">
+                <div className="flex justify-between items-end gap-2">
+                  <div className="flex-1 text-xs font-bold text-gray-400 uppercase tracking-wider">Features</div>
+                  {platforms.map((platform, idx) => (
+                    <div key={idx} className="text-center flex-1">
+                      {platform.highlight && (
+                        <div className="text-[10px] bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-full mb-2 whitespace-nowrap inline-block">
+                          ⭐ Best
+                        </div>
+                      )}
+                      <div className="w-12 h-12 mx-auto mb-2 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 overflow-hidden">
+                        {typeof platform.logo === 'string' && platform.logo.startsWith('/') ? (
+                          <ResponsiveImage
+                            src={platform.logo}
+                            alt={platform.name}
+                            className="w-full h-full rounded-full object-cover"
+                            mobileSize="w-12 h-12"
+                          />
+                        ) : (
+                          <div className="text-xl">{platform.logo}</div>
+                        )}
+                      </div>
+                      <div className="text-xs font-bold text-white">{platform.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Mobile Table Rows */}
+              <div className="space-y-3 border-t border-gray-700/30 pt-4">
+                {Object.keys(platforms[0].features).map((featureKey) => (
+                  <div key={featureKey} className="grid grid-cols-4 gap-2 items-center py-3 border-b border-gray-700/20 last:border-b-0">
+                    <div className="col-span-1 text-xs font-semibold text-gray-300 capitalize">
+                      {featureKey.replace('_', ' ')}
+                    </div>
+                    {platforms.map((platform, idx) => {
+                      const value = platform.features[featureKey as keyof typeof platform.features]
+                      return (
+                        <div
+                          key={idx}
+                          className={`col-span-1 text-xs font-bold text-center px-2 py-1.5 rounded-lg ${
+                            platform.highlight
+                              ? value.includes('✓')
+                                ? 'text-green-400'
+                                : value.includes('✗')
+                                ? 'text-red-400'
+                                : 'text-purple-300'
+                              : value.includes('✓')
+                              ? 'text-green-500'
+                              : value.includes('✗')
+                              ? 'text-red-500'
+                              : 'text-gray-300'
+                          } ${platform.highlight ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-gray-800/30'}`}
+                        >
+                          {value}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile CTA */}
+              <motion.a
+                href="/marketplace"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+                className="block w-full mt-6 px-6 py-3 btn-primary rounded-full font-bold text-white text-center shadow-lg hover:shadow-purple-500/50 transition-all duration-300 text-sm min-h-[44px]"
+              >
+                Explore Marketplace
+              </motion.a>
+            </motion.div>
+          </div>
+
+          {/* Desktop Grid View */}
+          <div className="hidden md:grid md:grid-cols-3 gap-4 md:gap-6">
               {platforms.map((platform, index) => (
                 <motion.div
                   key={index}
@@ -118,8 +205,6 @@ function ComparisonSection() {
                       : 'bg-neutral-950/50 border border-white/10'
                   } rounded-2xl md:rounded-3xl p-6 md:p-8 backdrop-blur-sm transition-all duration-500`}
                 >
-                  {/* ... same content ... */}
-
                   {/* Highlight Badge */}
                   {platform.highlight && (
                     <div className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg text-center mb-4">
@@ -129,13 +214,12 @@ function ComparisonSection() {
 
                   {/* Platform Header */}
                   <div className="text-center mb-6">
-                    <div className="aspect-square w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 mx-auto mb-3 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 overflow-hidden">
+                    <div className="aspect-square w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mx-auto mb-3 flex items-center justify-center rounded-full bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 overflow-hidden">
                       {typeof platform.logo === 'string' && platform.logo.startsWith('/') ? (
                         <ResponsiveImage
                           src={platform.logo}
                           alt={platform.name}
                           className="w-full h-full rounded-full object-cover"
-                          mobileSize="w-16 h-16"
                           tabletSize="md:w-24 md:h-24"
                           desktopSize="lg:w-32 lg:h-32"
                         />

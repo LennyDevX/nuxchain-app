@@ -1,0 +1,288 @@
+/* ============================================================================
+   NFT DETAILS MODAL STYLES
+   Professional, minimalist design with Nuxchain brand colors
+   ============================================================================ */
+
+/* Modal Base Styles */
+.nft-modal {
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0.95) 0%, rgba(91, 33, 182, 0.15) 100%);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+
+.nft-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  pointer-events: none;
+  background: radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%), 
+              radial-gradient(circle at 100% 100%, rgba(239, 68, 68, 0.1) 0%, transparent 50%);
+  border-radius: inherit;
+}
+
+/* Modal Header */
+.nft-modal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nft-modal-header h2 {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Modal Content Scrollable */
+.nft-modal-content {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.nft-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nft-modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.nft-modal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.6) 0%, rgba(239, 68, 68, 0.4) 100%);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.nft-modal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.8) 0%, rgba(239, 68, 68, 0.6) 100%);
+}
+
+/* Image Section */
+.nft-image-container {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1), 
+              0 0 20px rgba(255, 255, 255, 0.05);
+  height: 128px;
+}
+
+@media (min-width: 768px) {
+  .nft-image-container {
+    height: 160px;
+  }
+}
+
+.nft-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nft-image-container:hover img {
+  transform: scale(1.1);
+}
+
+/* Section Dividers */
+.nft-section-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+}
+
+/* Detail Cards */
+.nft-detail-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  padding: 0.75rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nft-detail-card:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.06) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+  transform: translateX(4px);
+}
+
+.nft-detail-card code {
+  font-family: 'Courier New', 'Courier', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* Attribute Tags */
+.nft-attribute-tag {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.875rem;
+  padding: 0.625rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.nft-attribute-tag:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.1);
+}
+
+/* Copy Button */
+.nft-copy-btn {
+  padding: 0.375rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.nft-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.15);
+}
+
+.nft-copy-btn:active {
+  transform: scale(0.9);
+}
+
+.nft-copy-btn.copied {
+  color: #10b981;
+}
+
+/* Modal Footer */
+.nft-modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Price Display */
+.nft-price {
+  font-size: 1.875rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #a78bfa 0%, #f87171 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (min-width: 768px) {
+  .nft-price {
+    font-size: 2rem;
+  }
+}
+
+/* Buy Button */
+.nft-buy-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #dc2626 100%);
+  color: white;
+  font-weight: 700;
+  border-radius: 0.875rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3), 
+              0 0 20px rgba(220, 38, 38, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nft-buy-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.nft-buy-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 20px 50px rgba(139, 92, 246, 0.4), 
+              0 0 30px rgba(220, 38, 38, 0.2);
+}
+
+.nft-buy-btn:hover::before {
+  left: 100%;
+}
+
+.nft-buy-btn:active {
+  transform: scale(0.96);
+}
+
+/* Mobile Optimized */
+@media (max-width: 640px) {
+  .nft-modal {
+    max-width: 90vw;
+  }
+
+  .nft-image-container {
+    aspect-ratio: 1;
+  }
+
+  .nft-price {
+    font-size: 1.5rem;
+  }
+
+  .nft-buy-btn {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .nft-detail-card {
+    padding: 0.625rem;
+  }
+
+  .nft-modal-content {
+    max-height: calc(90dvh - 200px) !important;
+  }
+}
+
+/* Desktop Optimized */
+@media (min-width: 1024px) {
+  .nft-modal {
+    max-width: 32rem;
+  }
+
+  .nft-image-container {
+    aspect-ratio: auto;
+  }
+
+  .nft-buy-btn {
+    padding: 0.75rem 2rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .nft-modal,
+  .nft-modal-header,
+  .nft-detail-card,
+  .nft-attribute-tag,
+  .nft-buy-btn {
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .nft-modal {
+    color-scheme: dark;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .nft-modal {
+    display: none;
+  }
+}

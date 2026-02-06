@@ -71,7 +71,7 @@ function RewardsLevelsSection() {
               className="group relative h-full"
             >
               {/* Card Container */}
-              <div className="relative bg-neutral-900 border border-white/10 rounded-[2.5rem] p-8 h-full flex flex-col items-center text-center transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_-12px_rgba(255,255,255,0.1)] overflow-hidden min-h-[48px]">
+              <div className="relative bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-[2.5rem] p-8 h-full flex flex-col items-center text-center transition-all duration-500 hover:border-purple-500/50 hover:shadow-[0_0_50px_-12px_rgba(168,85,247,0.15)] overflow-hidden min-h-[48px]">
                 
                 {/* Visual Accent */}
                 <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${tier.gradient}`} />

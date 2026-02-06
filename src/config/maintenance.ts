@@ -3,6 +3,15 @@
  * Controls maintenance mode for different routes
  */
 
+// Extend Window interface to include dev overrides
+declare global {
+  interface Window {
+    __NUX_DEV_OVERRIDES__?: {
+      airdrop?: boolean;
+    };
+  }
+}
+
 interface MaintenanceRoute {
   enabled: boolean;
   estimatedTime: number; // in minutes
@@ -10,33 +19,57 @@ interface MaintenanceRoute {
   startTime: string;
 }
 
+// Get or initialize startTime from localStorage with a persistent fixed time
+const getOrInitializeStartTime = (route: string, fallbackTime: string): string => {
+  const storageKey = `maintenance_start_time_${route}_v2`;
+  let startTime = localStorage.getItem(storageKey);
+  
+  if (!startTime) {
+    startTime = fallbackTime;
+    localStorage.setItem(storageKey, startTime);
+  }
+  
+  return startTime;
+};
+
+// Format: 2026-02-05T06:00:00Z (5 Feb 2026 01:00 AM EST = 06:00 UTC)
+// This is when the countdown was launched
+const AIRDROP_START_TIME = '2026-02-05T06:00:00Z';
+const NFTS_START_TIME = new Date().toISOString();
+const MARKETPLACE_START_TIME = new Date().toISOString();
+
 export const MAINTENANCE_CONFIG: {
   airdrop: MaintenanceRoute;
   nfts: MaintenanceRoute;
   marketplace: MaintenanceRoute;
 } = {
   airdrop: {
-    // Airdrop with 48-hour countdown (2880 minutes)
+    // Airdrop - MAINTENANCE ENABLED
     enabled: true,
     estimatedTime: 2880, // 48 hours
     message: 'We are optimizing our system to reduce resource consumption and improve your experience. The Airdrop will be available in 48 hours. Thank you for your patience!',
-    startTime: new Date().toISOString(),
+    startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),
   },
   nfts: {
     enabled: true,
     estimatedTime: 120,
     message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
-    startTime: new Date().toISOString(),
+    startTime: getOrInitializeStartTime('nfts', NFTS_START_TIME),
   },
   marketplace: {
     enabled: true,
     estimatedTime: 120,
     message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
-    startTime: new Date().toISOString(),
+    startTime: getOrInitializeStartTime('marketplace', MARKETPLACE_START_TIME),
   },
 };
 
 export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' = 'airdrop'): boolean => {
+  // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
+  // Evaluated dynamically each call to allow runtime changes
+  const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
+  if (route === 'airdrop' && devOverride) return false;
+  
   const config = MAINTENANCE_CONFIG[route];
   if (!config.enabled) return false;
   

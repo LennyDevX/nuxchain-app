@@ -78,7 +78,7 @@ function AirdropSection() {
             {/* Airdrop Types Grid - 2x2 mobile */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {airdropTypes.slice(0, 4).map((type, index) => (
-                <div key={index} className="flex gap-4 p-5 rounded-xl bg-white/5 border border-white/5 hover:border-red-500/30 transition-all group min-h-[48px]">
+                <div key={index} className="flex gap-4 p-5 rounded-xl bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 hover:border-purple-500/50 transition-all group min-h-[48px]">
                   <span className="text-3xl group-hover:scale-110 transition-all duration-500">{type.emoji}</span>
                   <div>
                     <h3 className="text-white font-bold text-sm mb-1">{type.title}</h3>

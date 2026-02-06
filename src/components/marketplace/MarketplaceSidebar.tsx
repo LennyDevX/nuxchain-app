@@ -20,7 +20,16 @@ export default function MarketplaceSidebar() {
   }
 
   if (!isConnected) {
-    return null;
+    // Mostrar un fallback en lugar de null
+    return (
+      <aside className="card-unified h-full p-6">
+        <div className="text-center space-y-4">
+          <div className="text-4xl">👛</div>
+          <p className="text-white font-semibold">Connect Your Wallet</p>
+          <p className="text-sm text-white/60">Connect your wallet to see your profile and stats</p>
+        </div>
+      </aside>
+    );
   }
 
   if (isLoading) {
@@ -35,23 +44,18 @@ export default function MarketplaceSidebar() {
     );
   }
 
-  if (!userProfile) {
-    // ✅ Mostrar mensaje de error si no hay perfil y no es por loading
-    if (!isLoading && error) {
-      return (
-        <aside className="card-unified h-full">
-          <div className="space-y-4 p-4">
-            <div className="text-center">
-              <p className="text-sm text-yellow-400 mb-2">⚠️ Configuration Issue</p>
-              <p className="text-xs text-white/60">{error.message}</p>
-              <p className="text-xs text-white/40 mt-2">Please check environment variables</p>
-            </div>
-          </div>
-        </aside>
-      );
-    }
-    return null;
-  }
+  // ✅ Usar valores por defecto cuando no haya perfil
+  const defaultProfile = {
+    totalXP: BigInt(0),
+    level: 0,
+    nftsCreated: BigInt(0),
+    nftsOwned: BigInt(0),
+    nftsSold: BigInt(0),
+    nftsBought: BigInt(0),
+    referralCount: BigInt(0),
+  };
+  
+  const profile = userProfile || defaultProfile;
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -84,6 +88,19 @@ export default function MarketplaceSidebar() {
         <p className="text-xs text-white/60 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
           {address ? formatAddress(address) : '@not_connected'}
         </p>
+        
+        {/* Información cuando es el perfil default */}
+        {!userProfile && (
+          <motion.div
+            className="mt-3 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-xs text-blue-300 text-center">
+              Create your first NFT to activate your profile
+            </p>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* XP Progress */}
@@ -160,7 +177,7 @@ export default function MarketplaceSidebar() {
               <span className="text-sm text-white/80">Created</span>
             </div>
             <span className="text-lg font-bold text-white">
-              {userProfile.nftsCreated.toString()}
+              {profile.nftsCreated.toString()}
             </span>
           </motion.div>
 
@@ -177,7 +194,7 @@ export default function MarketplaceSidebar() {
               <span className="text-sm text-white/80">Sold</span>
             </div>
             <span className="text-lg font-bold text-white">
-              {userProfile.nftsSold.toString()}
+              {profile.nftsSold.toString()}
             </span>
           </motion.div>
 
@@ -194,7 +211,7 @@ export default function MarketplaceSidebar() {
               <span className="text-sm text-white/80">Bought</span>
             </div>
             <span className="text-lg font-bold text-white">
-              {userProfile.nftsBought.toString()}
+              {profile.nftsBought.toString()}
             </span>
           </motion.div>
         </div>
@@ -229,7 +246,7 @@ export default function MarketplaceSidebar() {
       </motion.div>
 
       {/* Referral Section */}
-      {userProfile.referralCount && (typeof userProfile.referralCount === 'bigint' ? userProfile.referralCount > BigInt(0) : userProfile.referralCount > 0) && (
+      {profile.referralCount && (typeof profile.referralCount === 'bigint' ? profile.referralCount > BigInt(0) : profile.referralCount > 0) && (
         <motion.div
           className="pt-4 border-t border-white/10"
           initial={{ opacity: 0, y: 30 }}
@@ -243,7 +260,7 @@ export default function MarketplaceSidebar() {
               <div className="flex-1">
                 <div className="text-sm font-semibold text-white">Referrals</div>
                 <div className="text-xs text-white/60">
-                  {typeof userProfile.referralCount === 'bigint' ? userProfile.referralCount.toString() : userProfile.referralCount} friends invited
+                  {typeof profile.referralCount === 'bigint' ? profile.referralCount.toString() : profile.referralCount} friends invited
                 </div>
               </div>
             </div>

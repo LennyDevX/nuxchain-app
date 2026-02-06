@@ -181,7 +181,7 @@ class EmbeddingsCacheService {
    * @param _threshold - Similarity threshold (not implemented yet)
    * @param _limit - Maximum results (not implemented yet)
    */
-  async searchSimilar(_queryEmbedding: number[]): Promise<EmbeddingData[]> {
+  async searchSimilar(): Promise<EmbeddingData[]> {
     // This would require scanning all cached embeddings
     // For production, consider using a vector database like Pinecone
     // For now, this is a placeholder for future implementation

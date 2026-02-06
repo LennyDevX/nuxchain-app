@@ -59,7 +59,7 @@ function NFTMintingSection() {
             {/* Stats/Advantages Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
               {advantages.map((adv, index) => (
-                <div key={index} className="text-center p-3 rounded-xl bg-white/5 border border-white/5">
+                <div key={index} className="text-center p-3 rounded-xl bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30">
                   <div className="text-sm font-black text-white mb-1">{adv.value}</div>
                   <div className="text-[10px] text-gray-500 uppercase font-bold">{adv.label}</div>
                 </div>

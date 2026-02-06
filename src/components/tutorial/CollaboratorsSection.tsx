@@ -142,7 +142,7 @@ function CollaboratorsSection() {
                     {role.requirements.map((req, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-xs text-gray-300 font-medium hover:bg-white/10 transition-colors"
+                        className="px-2 py-0.5 bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 rounded-md text-xs text-gray-300 font-medium hover:bg-purple-900/40 transition-colors"
                       >
                         {req}
                       </span>
@@ -197,24 +197,16 @@ function CollaboratorsSection() {
               </div>
               
               <div className="flex flex-col gap-3 md:gap-4 w-full">
-                <a
-                  href="/marketplace"
-                  className="px-6 py-3 md:px-10 md:py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all active:scale-95 whitespace-nowrap text-center text-base md:text-lg min-h-[44px]"
+                <button
+                  disabled
+                  className="px-6 py-3 md:px-10 md:py-4 bg-gradient-to-r from-purple-500/50 to-pink-500/50 text-white font-bold rounded-xl cursor-not-allowed opacity-60 whitespace-nowrap text-center text-base md:text-lg min-h-[44px]"
                 >
-                  🎫 GET BUILDER NFT
-                </a>
-                <a
-                  href="https://discord.gg/nuxchain"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 md:px-10 md:py-4 bg-white/5 border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all whitespace-nowrap text-center text-base md:text-lg min-h-[44px]"
-                >
-                  📋 APPLY AS BUILDER
-                </a>
+                  🎫 Builder NFTs Coming Soon
+                </button>
               </div>
               
-              <p className="text-gray-400 text-xs uppercase tracking-widest font-bold text-center leading-relaxed">
-                Builder NFTs are verified on-chain.<br/>Instant access upon purchase.
+              <p className="text-gray-500 text-xs uppercase tracking-widest font-bold text-center leading-relaxed">
+                Available soon on marketplace.
               </p>
             </div>
           </div>

@@ -8,7 +8,7 @@ Herramientas avanzadas para depurar y analizar wallets registradas en el airdrop
 ```bash
 npm run wallet:search
 # o
-node scripts/search-wallet-advanced.cjs
+node scripts/analysis/search-wallet-advanced.cjs
 ```
 
 **Ejemplo de uso:**
@@ -23,7 +23,7 @@ node scripts/search-wallet-advanced.cjs
 ```bash
 npm run wallet:analyze
 # o
-node scripts/bulk-wallet-analysis.cjs
+node scripts/analysis/bulk-wallet-analysis.cjs
 ```
 
 **Genera automáticamente:**
@@ -36,7 +36,7 @@ node scripts/bulk-wallet-analysis.cjs
 ```bash
 npm run wallet:wipe-bots
 # o
-node scripts/wipe-bots.cjs
+node scripts/maintenance/wipe-bots.cjs
 ```
 
 > ⚠️ **ADVERTENCIA**: Este script elimina registros. Usa solo después de confirmar que deseas hacerlo.
@@ -86,11 +86,13 @@ node scripts/wipe-bots.cjs
 
 | Archivo | Propósito |
 |---------|-----------|
-| `search-wallet-advanced.cjs` | Búsqueda individual interactiva |
-| `bulk-wallet-analysis.cjs` | Análisis masivo de todas las wallets |
-| `analyze-registrations.cjs` | Analizador de registraciones (original) |
-| `wipe-bots.cjs` | Eliminador de bots (original) |
-| `search-wallet.cjs` | Búsqueda simple (deprecated) |
+| `analysis/search-wallet-advanced.cjs` | Búsqueda individual interactiva |
+| `analysis/bulk-wallet-analysis.cjs` | Análisis masivo de todas las wallets |
+| `analysis/analyze-registrations.cjs` | Analizador de registraciones (original) |
+| `maintenance/wipe-bots.cjs` | Eliminador de bots (original) |
+| `analysis/search-wallet.cjs` | Búsqueda simple (deprecated) |
+| `maintenance/CleanCacheDist.js` | Limpieza de cache y dist |
+| `setup/check-env.js` | Verificación de entorno |
 
 ---
 

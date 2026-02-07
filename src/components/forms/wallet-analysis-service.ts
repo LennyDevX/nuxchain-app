@@ -222,7 +222,15 @@ export async function analyzeWalletMetrics(walletAddress: string): Promise<Walle
     if (transactionCount > 10) approvalReasons.push(`Active wallet (${transactionCount} transactions)`);
     if (transactionCount >= 3 && transactionCount <= 10) approvalReasons.push(`Verified activity (${transactionCount} transactions)`);
     if (solBalance > 1) approvalReasons.push(`Substantial balance (${solBalance.toFixed(3)} SOL)`);
+    // Show minimum balance met for wallets with low balance but approved
+    if (solBalance >= WALLET_THRESHOLDS.MIN_BALANCE && solBalance <= 1) {
+      approvalReasons.push(`Meets minimum balance (${solBalance.toFixed(3)} SOL ≥ 0.01 SOL)`);
+    }
     if (finalTokenAccounts > 5) approvalReasons.push(`Diverse token portfolio (${finalTokenAccounts} tokens)`);
+    // Show automatic approval reason for low-balance but active wallets
+    if (solBalance < WALLET_THRESHOLDS.MIN_BALANCE && transactionCount > 0) {
+      approvalReasons.push(`Auto-approved: Confirmed transactions (${transactionCount} txs)`);
+    }
     if (!approvalReasons.length) approvalReasons.push('Account meets security requirements');
 
     return {

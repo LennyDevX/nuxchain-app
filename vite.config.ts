@@ -69,7 +69,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: 'esbuild',
-    sourcemap: true,
+    sourcemap: process.env.NODE_ENV !== 'production',
     // Disable modulePreload to prevent parallel loading that causes race conditions
     modulePreload: false,
     rollupOptions: {
@@ -84,6 +84,7 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 3000,
+    reportCompressedSize: false, // Skip gzip size report (saves time)
   },
   esbuild: {
     jsx: 'automatic',

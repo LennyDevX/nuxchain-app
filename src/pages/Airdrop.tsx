@@ -1,17 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { db } from '../components/firebase/config';
 import { submitAirdropRegistration, getRegisteredUsersCount, checkUserRegistration } from '../components/forms/airdrop-service';
-import { analyzeWalletMetrics, getWalletQualityAssessment, type WalletMetrics } from '../components/forms/wallet-analysis-service';
+import { analyzeWalletMetrics, type WalletMetrics } from '../components/forms/wallet-analysis-service';
 import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
-import CountdownTimer from '../components/ui/CountdownTimer';
-import NuxCoinDisplay from '../components/airdrop/NuxCoinDisplay';
+import AirdropHeader from '../components/airdrop/AirdropHeader';
+import AirdropForm from '../components/airdrop/AirdropForm';
+import AirdropFeatures from '../components/airdrop/AirdropFeatures';
+// import WalletMetricsDisplay from '../components/airdrop/WalletMetrics'; // Integrated in form
+import AirdropModals from '../components/airdrop/AirdropModals';
+import RequirementsModal from '../components/airdrop/RequirementsModal';
 import '../styles/nux-coin-display.css';
 
-// Utility functions for device fingerprinting
+// Configuration constants
+const MAX_USERS = 10000;
+const TOKENS_PER_USER = 6000;
+
+// Memoized fingerprint generation to avoid recreating on every render
 function generateFingerprint(): string {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -68,13 +76,14 @@ function getBrowserInfo() {
 }
 
 function Airdrop() {
-  const navigate = useNavigate();
+  
   // EVM wallet hooks
   const { isConnected: evmConnected } = useAccount();
 
   // Solana wallet hooks
   const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
 
+  // Form and UI states
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -88,31 +97,24 @@ function Airdrop() {
     message: string;
   }>({ type: null, message: '' });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isRequirementsOpen, setIsRequirementsOpen] = useState(false);
   const [registeredUsers, setRegisteredUsers] = useState(0);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
   const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
+  const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
+  const [walletMetrics, setWalletMetrics] = useState<WalletMetrics | null>(null);
+
+  // Browser and device tracking
   const [mountTime] = useState(Date.now());
   const [deviceFingerprint] = useState(() => generateFingerprint());
   const [userAgent] = useState(navigator.userAgent);
   const [browserInfo] = useState(() => getBrowserInfo());
-  const [walletMetrics, setWalletMetrics] = useState<WalletMetrics | null>(null);
-  const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
-  const [showRequirements, setShowRequirements] = useState(false);
 
-  // Refs for infinite loop protection in checkStatus
-  const lastCheckedAddressRef = useRef<string>('');
-  const checkInProgressRef = useRef(false);
-
-  // Constantes del airdrop
-  const TOKENS_PER_USER = 6000; // 6K NUX tokens por usuario
-  const MAX_USERS = 10000; // 10,000 usuarios máximo
-
-  // Cargar número de usuarios registrados
+  // Load registered users count
   useEffect(() => {
     const loadUsersCount = async () => {
-      setIsLoadingCount(true);
       try {
         const count = await getRegisteredUsersCount(db);
         setRegisteredUsers(count);
@@ -124,95 +126,72 @@ function Airdrop() {
     };
 
     loadUsersCount();
-
-    // Actualizar cada 30 segundos
-    const interval = setInterval(loadUsersCount, 30000);
-    return () => clearInterval(interval);
   }, []);
 
-  // Auto-fill wallet y check de registro cuando se conecta (SOLANA ONLY)
+  // Wallet analysis effect
   useEffect(() => {
-    const checkStatus = async () => {
-      if (checkInProgressRef.current) return;
-
-      if (solanaConnected && solanaPublicKey) {
-        const solanaAddress = solanaPublicKey.toBase58();
-        
-        // Skip if address hasn't changed
-        if (lastCheckedAddressRef.current === solanaAddress) return;
-        
-        lastCheckedAddressRef.current = solanaAddress;
-        checkInProgressRef.current = true;
-
-        setFormData(prev => {
-          if (prev.wallet !== solanaAddress) {
-            return { ...prev, wallet: solanaAddress };
-          }
-          return prev;
-        });
-        setDetectedNetwork('solana');
-
-        // Parallel checks
-        setIsCheckingRegistration(true);
+    if (solanaConnected && solanaPublicKey && formData.wallet) {
+      const analyzeWallet = async () => {
         setIsAnalyzingWallet(true);
-        
         try {
-          // Check if already registered
-          const registered = await checkUserRegistration(db, solanaAddress);
-          setIsAlreadyRegistered(registered);
+          const metrics = await analyzeWalletMetrics(formData.wallet);
+          setWalletMetrics(metrics);
+        } catch (error) {
+          console.error('Error analyzing wallet:', error);
+        } finally {
+          setIsAnalyzingWallet(false);
+        }
+      };
 
-          // Only analyze wallet if NOT already registered (saves RPC calls)
-          if (!registered) {
-            const metrics = await analyzeWalletMetrics(solanaAddress);
-            setWalletMetrics(metrics);
-            
-            // Log wallet quality
-            console.log('📊 Wallet Analysis:', {
-              address: solanaAddress,
-              riskScore: metrics.riskScore,
-              isLegit: metrics.isLegit,
-              riskFactors: metrics.riskFactors,
-            });
-          } else {
-            console.log('✅ Wallet already registered, skipping analysis');
-            setIsAnalyzingWallet(false);
-          }
+      analyzeWallet();
+    }
+  }, [formData.wallet, solanaConnected, solanaPublicKey]);
 
-        } catch (err) {
-          console.error('Error during wallet checks:', err);
+  // Wallet connection effect
+  useEffect(() => {
+    if (solanaConnected && solanaPublicKey) {
+      const walletAddress = solanaPublicKey.toBase58();
+      setFormData(prev => ({ ...prev, wallet: walletAddress }));
+      setDetectedNetwork('solana');
+      
+      // Check if already registered
+      const checkRegistration = async () => {
+        setIsCheckingRegistration(true);
+        try {
+          const isRegistered = await checkUserRegistration(db, walletAddress);
+          setIsAlreadyRegistered(isRegistered);
+        } catch (error) {
+          console.error('Error checking registration:', error);
         } finally {
           setIsCheckingRegistration(false);
-          setIsAnalyzingWallet(false);
-          checkInProgressRef.current = false;
         }
-      } else if (evmConnected) {
-        setDetectedNetwork('evm');
-        setIsAlreadyRegistered(false);
-        lastCheckedAddressRef.current = 'evm';
-      } else {
-        setDetectedNetwork(null);
-        setIsAlreadyRegistered(false);
-        lastCheckedAddressRef.current = '';
-      }
-    };
-
-    checkStatus();
+      };
+      
+      checkRegistration();
+    } else if (evmConnected) {
+      setDetectedNetwork('evm');
+    } else {
+      setDetectedNetwork(null);
+      setFormData(prev => ({ ...prev, wallet: '' }));
+      setIsAlreadyRegistered(false);
+      setWalletMetrics(null);
+    }
   }, [solanaConnected, evmConnected, solanaPublicKey]);
 
   useEffect(() => {
     document.title = `Nuxchain | NUX Token Airdrop - Get ${TOKENS_PER_USER.toLocaleString()} NUX Tokens`;
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (submitStatus.type === 'error') {
       setSubmitStatus({ type: null, message: '' });
     }
-  };
+  }, [submitStatus.type]);
 
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     if (!formData.name || formData.name.trim().length < 3) {
       setSubmitStatus({
         type: 'error',
@@ -248,13 +227,10 @@ function Airdrop() {
       return false;
     }
 
-    // NOTE: No longer strictly blocking wallets - we warn but allow registration
-    // This is more flexible and user-friendly while still detecting obvious bots
-    
     return true;
-  };
+  }, [formData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -314,16 +290,16 @@ function Airdrop() {
         message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens.`,
       });
       
-      // Actualizar contador
+      // Update counter
       setRegisteredUsers(prev => prev + 1);
       
-      // MARCAR COMO REGISTRADO INMEDIATAMENTE para cambiar la UI al componente de éxito
+      // Mark as registered immediately to change UI
       setIsAlreadyRegistered(true);
       
-      // Mostrar el modal mejorado
+      // Show success modal
       setShowSuccess(true);
 
-      // Hide success message/modal after 15 seconds (giving more time to read the new design)
+      // Hide success message/modal after 15 seconds
       setTimeout(() => {
         setShowSuccess(false);
       }, 15000);
@@ -345,12 +321,12 @@ function Airdrop() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [formData, validateForm, mountTime, userAgent, deviceFingerprint, browserInfo]);
 
-  // Countdown target date - February 28, 2026 23:59:59 (Updated per instructions)
+  // Countdown target date - February 28, 2026 23:59:59
   const airdropEndDate = new Date(2026, 1, 28, 23, 59, 59);
 
-  // Calcular usuarios restantes y estadísticas
+  // Calculate remaining users and statistics
   const isPoolFull = registeredUsers >= MAX_USERS;
   const usersRemaining = Math.max(0, MAX_USERS - registeredUsers);
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
@@ -359,39 +335,11 @@ function Airdrop() {
     <GlobalBackground>
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          {/* Header Section - Minimal Mobile Design */}
-          <div className="flex flex-col items-center text-center mb-6 sm:mb-10 animate-fadeIn">
-            
-            {/* 1. NUX Coin Display (Smaller on Mobile) */}
-            <div className="mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-500 scale-75 sm:scale-100">
-              <NuxCoinDisplay size="xl" className="nux-coin-container drop-shadow-[0_0_35px_rgba(168,85,247,0.4)]" />
-            </div>
-
-            {/* 2. Title */}
-            <h1 className="text-3xl sm:text-5xl lg:text-8xl font-black bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-4 sm:mb-6 tracking-tighter italic">
-              $NUX Airdrop
-            </h1>
-
-            {/* 3. Compact Info Pills */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center items-center mb-4 sm:mb-6 max-w-4xl">
-              <div className="flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full px-3 sm:px-5 py-1.5 sm:py-2">
-                <span className="text-purple-400 text-xs sm:text-sm font-bold">SOLANA</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-3 sm:px-5 py-1.5 sm:py-2">
-                <span className="text-blue-400 text-xs sm:text-sm font-bold">Pre-sale Live</span>
-              </div>
-            </div>
-
-            {/* 4. Compact Timer */}
-            <div className="w-full max-w-md transform scale-75 sm:scale-100 -my-6 sm:my-0">
-               <CountdownTimer targetDate={airdropEndDate} compact={true} />
-            </div>
-
-            <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-gray-400 max-w-2xl font-light">
-              Get <span className="text-white font-semibold">{TOKENS_PER_USER.toLocaleString()} NUX</span>
-            </p>
-          </div>
+          {/* Header Section - Modular Component */}
+          <AirdropHeader 
+            tokensPerUser={TOKENS_PER_USER} 
+            airdropEndDate={airdropEndDate} 
+          />
 
           {/* Form Section - Improved Desktop Layout */}
           <div className="max-w-6xl mx-auto">
@@ -409,7 +357,6 @@ function Airdrop() {
                     </div>
                   ) : isAlreadyRegistered ? (
                     <div className="relative overflow-hidden group">
-                      {/* Decorative Background Elements */}
                       <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-colors duration-500"></div>
                       <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-colors duration-500"></div>
 
@@ -453,7 +400,6 @@ function Airdrop() {
                     </div>
                   ) : isPoolFull ? (
                     <div className="relative overflow-hidden group">
-                      {/* Decorative Background Elements */}
                       <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-colors duration-500"></div>
                       <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl group-hover:bg-blue-600/30 transition-colors duration-500"></div>
 
@@ -501,414 +447,44 @@ function Airdrop() {
                       </div>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                      {/* Honeypot field - invisible to humans */}
-                      <div className="hidden" aria-hidden="true">
-                        <label htmlFor="website">Website</label>
-                        <input
-                          type="text"
-                          id="website"
-                          name="website"
-                          value={formData.website}
-                          onChange={handleInputChange}
-                          tabIndex={-1}
-                          autoComplete="off"
-                        />
-                      </div>
-                      {/* Name Input */}
-                      <div className="space-y-1.5">
-                        <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-300">
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="Full name"
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                          disabled={isSubmitting}
-                          required
-                          minLength={3}
-                        />
-                      </div>
+                    <div>
+                      <AirdropForm
+                        formData={formData}
+                        isSubmitting={isSubmitting}
+                        submitStatus={submitStatus}
+                        solanaConnected={solanaConnected}
+                        handleInputChange={handleInputChange}
+                        handleSubmit={handleSubmit}
+                        onOpenRequirements={() => setIsRequirementsOpen(true)}
+                        walletMetrics={walletMetrics}
+                      />
+                      
+                      {/* Wallet Metrics Display - REMOVED (integrated in form) */}
+                      {/* <WalletMetricsDisplay walletMetrics={walletMetrics} /> */}
 
-                      {/* Email Input */}
-                      <div className="space-y-1.5">
-                        <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-300">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="email@example.com"
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                          disabled={isSubmitting}
-                          required
-                        />
-                      </div>
-
-                      {/* Wallet Input */}
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap justify-between items-end gap-1.5 px-1">
-                          <label htmlFor="wallet" className="block text-xs sm:text-sm font-medium text-gray-300">
-                            Wallet Address *
-                          </label>
-                          {solanaConnected && (
-                            <div className="flex items-center gap-1.5 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                              <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest leading-none">
-                                Solana Connected
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            id="wallet"
-                            name="wallet"
-                            value={formData.wallet}
-                            onChange={handleInputChange}
-                            placeholder="Enter your Solana (SOL) address"
-                            className={`w-full px-4 py-3 bg-gray-900/50 border rounded-xl text-white text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${detectedNetwork === 'evm' ? 'border-orange-500/50' : 'border-gray-700'
-                              }`}
-                            disabled={isSubmitting || (solanaConnected && !!solanaPublicKey)}
-                            required
-                          />
-                        </div>
-
-                        {/* Consolidated Wallet Analysis - Single Card Solution */}
-                        {walletMetrics && (
-                          <div className={`mt-3 p-4 sm:p-5 rounded-lg sm:rounded-xl border animate-fadeIn ${
-                            walletMetrics.isLegit 
-                              ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/15 border-green-500/50' 
-                              : 'bg-gradient-to-br from-yellow-500/20 to-orange-500/15 border-yellow-500/50'
-                          }`}>
-                            {/* Header with Status and Trust Score */}
-                            <div className="flex items-start justify-between gap-3 mb-4">
-                              <div className="flex items-start gap-2.5">
-                                {walletMetrics.isLegit ? (
-                                  <svg className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5 animate-bounce" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                                <div className="flex-1">
-                                  <p className={`text-xs font-black uppercase tracking-widest ${
-                                    walletMetrics.isLegit ? 'text-green-300' : 'text-yellow-300'
-                                  }`}>
-                                    {walletMetrics.isLegit ? '✓ Eligible' : '⚠️ Status'}
-                                  </p>
-                                  <p className="text-sm sm:text-base font-bold text-white mt-1">{getWalletQualityAssessment(walletMetrics)}</p>
-                                </div>
-                              </div>
-                              {walletMetrics.trustScore !== undefined && (
-                                <div className={`px-3 py-2 rounded-lg flex flex-col items-center border flex-shrink-0 ${
-                                  walletMetrics.isLegit
-                                    ? 'bg-green-500/20 border-green-500/40'
-                                    : 'bg-yellow-500/20 border-yellow-500/40'
-                                }`}>
-                                  <span className={`text-sm font-black ${
-                                    walletMetrics.isLegit ? 'text-green-300' : 'text-yellow-300'
-                                  }`}>{walletMetrics.trustScore}%</span>
-                                  <span className={`text-[9px] font-bold ${
-                                    walletMetrics.isLegit ? 'text-green-400' : 'text-yellow-400'
-                                  }`}>Ready</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Key Metrics - Consolidated, No Age */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                              <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Balance</p>
-                                <p className="text-sm font-bold text-white mt-1">{walletMetrics.balance.toFixed(3)} SOL</p>
-                              </div>
-                              <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Activity</p>
-                                <p className="text-sm font-bold text-white mt-1">{walletMetrics.transactionCount} {walletMetrics.transactionCount === 1 ? 'tx' : 'txs'}</p>
-                              </div>
-                              {walletMetrics.tokenAccountCount > 0 && (
-                                <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Tokens</p>
-                                  <p className="text-sm font-bold text-white mt-1">{walletMetrics.tokenAccountCount}</p>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Approval Reasons Badge */}
-                            {walletMetrics.approvalReasons && walletMetrics.approvalReasons.length > 0 && (
-                              <div className="space-y-2">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status Details:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {walletMetrics.approvalReasons.slice(0, 3).map((reason, idx) => (
-                                    <div key={idx} className={`text-xs px-2.5 py-1.5 rounded-full font-medium flex items-center gap-1.5 border ${
-                                      walletMetrics.isLegit
-                                        ? 'bg-green-500/15 border-green-500/40 text-green-300'
-                                        : 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300'
-                                    }`}>
-                                      <span className={walletMetrics.isLegit ? 'text-green-400' : 'text-yellow-400'}>✓</span>
-                                      {reason}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Helper message for non-legit wallets */}
-                            {!walletMetrics.isLegit && (
-                              <div className="mt-3 p-3 bg-yellow-500/10 rounded border border-yellow-500/30">
-                                <p className="text-xs text-yellow-200 leading-relaxed">
-                                  💡 <strong>You can still register!</strong> Try adding balance, making a transaction, or checking back soon to increase eligibility.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {isAnalyzingWallet && (
-                          <div className="mt-3 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center gap-2">
-                            <svg className="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span className="text-sm text-blue-300">Analyzing wallet security...</span>
-                          </div>
-                        )}
-
-                        {/* Alert for EVM users */}
-                        {detectedNetwork === 'evm' && !solanaConnected && (
-                          <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl flex gap-3 animate-fadeIn">
-                            <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            <p className="text-xs text-orange-200/80">
-                              <strong className="text-orange-400 block mb-0.5">Solana Required!</strong>
-                              This airdrop is exclusively for the <span className="text-white font-bold">Solana Network</span>. Please connect a Solana wallet (like Phantom, Solflare or OKX) to claim your tokens.
-                            </p>
-                          </div>
-                        )}
-
-
-                      </div>
-
-                      {/* Airdrop Checklist - Dropdown Version */}
-                      <div className="bg-gray-900/40 border border-purple-500/20 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden group transition-all duration-500">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-purple-600/5 rounded-full blur-3xl group-hover:bg-purple-600/10 transition-colors duration-700"></div>
-                        
-                        <div className="relative z-10">
-                          {/* Dropdown Toggle Header */}
-                          <button 
-                            type="button"
-                            onClick={() => setShowRequirements(!showRequirements)}
-                            className="w-full text-left p-3 sm:p-6 focus:outline-none flex items-center justify-between group/btn gap-3"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.15em] rounded border border-purple-500/20">Qualify</span>
-                              </div>
-                              <h3 className="text-sm sm:text-lg font-black text-white tracking-tight italic uppercase truncate">
-                                What You Need
-                              </h3>
-                              <p className="text-[10px] sm:text-xs text-gray-400 font-medium mt-0.5 truncate">
-                                {showRequirements ? 'Hide' : 'Show'} requirements
-                              </p>
-                            </div>
-                            
-                            <div className={`shrink-0 p-1.5 sm:p-2 rounded-full bg-white/5 border border-white/10 transition-transform duration-500 ${showRequirements ? 'rotate-180 bg-purple-500/20 border-purple-500/30' : ''}`}>
-                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </div>
-                          </button>
-
-                          {/* Expandable Content */}
-                          <div className={`transition-all duration-700 ease-in-out overflow-hidden ${showRequirements ? 'max-h-[1000px] opacity-100 pb-4 sm:pb-6 px-3 sm:px-6' : 'max-h-0 opacity-0'}`}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
-                              {/* Personal Card */}
-                              <div className="p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                                <div className="flex items-start gap-4">
-                                  <span className="text-2xl">👤</span>
-                                  <div>
-                                    <h4 className="text-sm font-bold text-white mb-2 italic uppercase tracking-wider">Information</h4>
-                                    <ul className="space-y-2">
-                                      <li className="text-xs text-gray-400 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                        Name (min 3 characters)
-                                      </li>
-                                      <li className="text-xs text-gray-400 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                        Real & Unique Email 
-                                      </li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Wallet Card */}
-                              <div className="p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all duration-300">
-                                <div className="flex items-start gap-4">
-                                  <span className="text-2xl">💰</span>
-                                  <div>
-                                    <h4 className="text-sm font-bold text-white mb-2 italic uppercase tracking-wider text-blue-300">Solana Eligibility</h4>
-                                    <ul className="space-y-2">
-                                      <li className="text-xs text-gray-400 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                        Min Balance: <strong className="text-white">0.01 SOL</strong>
-                                      </li>
-                                      <li className="text-xs text-gray-400 flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                        Wallet Age: <strong className="text-white">2+ Days</strong> <span className="text-[9px] text-green-400">(OR any activity)</span>
-                                      </li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Security Pro Card - Full Width on Mobile */}
-                              <div className="md:col-span-2 p-5 bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-2xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-2 opacity-20">
-                                  <svg className="w-12 h-12 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                                  </svg>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                  <span className="text-2xl">✨</span>
-                                  <div className="flex-1">
-                                    <h4 className="text-sm font-bold text-blue-300 mb-2 flex items-center gap-2 uppercase tracking-wider">
-                                      Instant Approval Options
-                                    </h4>
-                                    <div className="space-y-2 text-[11px] text-gray-400 leading-relaxed">
-                                      <p>
-                                        <strong className="text-white">✅ CEX Pass:</strong> New wallets funded from <strong className="text-white">Coinbase, Kraken, or Binance</strong> get instant approval.
-                                      </p>
-                                      <p>
-                                        <strong className="text-white">✅ High Balance Pass:</strong> Wallets with <strong className="text-white">0.1+ SOL</strong> (~$15-20 USD) bypass age requirements - clear sign of a real user.
-                                      </p>
-                                      <p className="text-[10px] text-blue-300/60">Our security protocol verifies transactions on-chain to identify real users vs bot farms.</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Anti-Bot Rules Card */}
-                              <div className="md:col-span-2 p-4 bg-white/5 border border-white/5 rounded-xl flex items-center justify-between gap-4">
-                                 <div className="flex items-center gap-3">
-                                   <span className="text-xl">⚡</span>
-                                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none">
-                                     Wait 3 seconds • Rate limit 3/min • One per IP/Email • Max {MAX_USERS.toLocaleString()} users
-                                   </p>
-                                 </div>
-                                 <div className="hidden sm:block px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black rounded border border-green-500/20">V2.4 SECURE</div>
-                              </div>
-
-                              {/* Security Limitations Card */}
-                              <div className="md:col-span-2 p-4 bg-gradient-to-br from-orange-900/30 to-red-900/20 border border-orange-500/30 rounded-xl">
-                                <div className="flex items-start gap-3">
-                                  <span className="text-lg flex-shrink-0">⚠️</span>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-xs font-bold text-orange-300 mb-2 uppercase tracking-wider">Security Limitations</h4>
-                                    <ul className="space-y-1 text-[10px] text-gray-400">
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>3 attempts/minute</strong> - Brute force protection</span></li>
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>1 email only</strong> - Prevent account farming</span></li>
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>Max 3 per IP</strong> - Prevent IP farms</span></li>
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>1 device</strong> - Device fingerprinting enabled</span></li>
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>No disposable emails</strong> - Only legitimate providers accepted (Gmail, Proton Mail, Outlook, Yahoo, Tutanota, etc)</span></li>
-                                      <li className="flex items-start gap-2"><span className="text-orange-400">•</span><span><strong>No VPN/Proxy IPs</strong> - Data center detection enabled</span></li>
-                                    </ul>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-6 flex items-center justify-center gap-2 py-3 border-t border-white/5">
-                               <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                                 <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                               </svg>
-                               <span className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-black">Powered by Nuxchain Security Protocol</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Status Messages */}
-                      {submitStatus.type && (
-                        <div
-                          className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border text-sm ${submitStatus.type === 'success'
-                            ? 'bg-green-500/10 border-green-500/30 text-green-300'
-                            : 'bg-red-500/10 border-red-500/30 text-red-300'
-                            } animate-fadeIn`}
-                        >
-                          <div className="flex items-start gap-2">
-                            {submitStatus.type === 'success' ? (
-                              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                            ) : (
-                              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                            <p className="text-sm">{submitStatus.message}</p>
-                          </div>
+                      {isAnalyzingWallet && (
+                        <div className="mt-3 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center gap-2">
+                          <svg className="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span className="text-sm text-blue-300">Analyzing wallet security...</span>
                         </div>
                       )}
 
-                      {/* Wallet Requirements Warning */}
-                      {walletMetrics && !walletMetrics.isLegit && (
-                        <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-start gap-2.5 animate-fadeIn text-sm">
-                          <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      {/* Alert for EVM users */}
+                      {detectedNetwork === 'evm' && !solanaConnected && (
+                        <div className="mt-3 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl flex gap-3 animate-fadeIn">
+                          <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          <div className="text-sm text-yellow-200/80">
-                            <p className="font-semibold text-yellow-300 mb-1">📝 Quick Tips to Get Approved</p>
-                            <p className="text-xs mb-2">Your wallet is still eligible! Try one of these to improve your approval status:</p>
-                            <ul className="text-xs space-y-1 text-yellow-200">
-                              <li>• ⏳ Wait 1-2 more days for your wallet to age</li>
-                              <li>• 💰 Add a small amount of SOL (even 0.01)</li>
-                              <li>• 🔄 Make a transaction on your wallet</li>
-                              <li>• 🏦 Use a wallet funded from Coinbase or Binance</li>
-                            </ul>
-                          </div>
+                          <p className="text-xs text-orange-200/80">
+                            <strong className="text-orange-400 block mb-0.5">Solana Required!</strong>
+                            This airdrop is exclusively for the <span className="text-white font-bold">Solana Network</span>. Please connect a Solana wallet (like Phantom, Solflare or OKX) to claim your tokens.
+                          </p>
                         </div>
                       )}
-
-                      {/* Submit Button */}
-                      <button
-                        type="submit"
-                        disabled={isSubmitting || detectedNetwork === 'evm'}
-                        className="w-full py-3 sm:py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-lg sm:rounded-xl font-semibold text-white text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span>Registering...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Register for Airdrop</span>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          </>
-                        )}
-                      </button>
-
-                      <p className="text-[10px] sm:text-xs text-center text-gray-500">
-                        By registering you agree to our airdrop terms
-                      </p>
-                    </form>
+                    </div>
                   )}
                 </div>
               </div>
@@ -934,49 +510,27 @@ function Airdrop() {
                       <div
                         className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full transition-all duration-500 animate-gradient-shift"
                         style={{ width: `${poolProgress}%` }}
-                      />
+                      ></div>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
-                      <span className="text-gray-400 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                        </svg>
-                        Registered Users
-                      </span>
-                      <span className="text-white font-semibold">
-                        {isLoadingCount ? (
-                          <span className="animate-pulse">...</span>
-                        ) : (
-                          <>{registeredUsers} / {MAX_USERS}</>
-                        )}
-                      </span>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Registered</p>
+                      <p className="text-2xl font-bold text-white">{isLoadingCount ? '...' : registeredUsers.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
-                      <span className="text-gray-400 text-sm flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                        </svg>
-                        Slots Available
-                      </span>
-                      <span className="text-green-400 font-semibold">
-                        {isLoadingCount ? '...' : usersRemaining}
-                      </span>
+                    <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Remaining</p>
+                      <p className="text-2xl font-bold text-white">{isLoadingCount ? '...' : usersRemaining.toLocaleString()}</p>
                     </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
-                      <span className="text-gray-400 text-sm">NUX per User</span>
-                      <span className="text-purple-400 font-semibold">{TOKENS_PER_USER.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-gray-700/50">
-                      <span className="text-gray-400 text-sm">Total NUX Pool</span>
-                      <span className="text-white font-semibold">60M</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Airdrop Date</span>
-                      <span className="text-purple-400 font-semibold">Feb 10, 2026</span>
-                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500 mb-2">Token Distribution</p>
+                    <p className="text-sm text-purple-400 font-semibold">
+                        Deadline: <span className="text-purple-400 font-semibold">Feb 28, 2026</span>
+                    </p>
                   </div>
                 </div>
 
@@ -1010,41 +564,8 @@ function Airdrop() {
                   </ul>
                 </div>
 
-                {/* Security Badge */}
-                <div className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 backdrop-blur-xl rounded-2xl border border-green-500/30 p-6">
-                  <div className="flex items-start gap-2.5">
-                    <svg className="w-7 h-7 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <div>
-                      <h4 className="text-white font-semibold mb-0.5 text-sm">Secure & Verified</h4>
-                      <p className="text-xs text-gray-400">Limited to {MAX_USERS.toLocaleString()} users</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Info - Mobile */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:hidden">
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 text-center">
-                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-white mb-2">No Gas Fees</h3>
-                <p className="text-sm text-gray-400">Registration is completely free with no hidden costs</p>
-              </div>
-
-              <div className="bg-gray-800/40 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 text-center">
-                <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-pink-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-white mb-2">One Per User</h3>
-                <p className="text-sm text-gray-400">Each wallet and email can register only once</p>
+                {/* Additional Features - Modular Component */}
+                <AirdropFeatures />
               </div>
             </div>
           </div>
@@ -1052,74 +573,18 @@ function Airdrop() {
         <Footer />
       </div>
 
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop with extreme blur and dark tint */}
-          <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn"
-            onClick={() => setShowSuccess(false)}
-          />
-          
-          <div className="relative bg-black/60 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 p-1 max-w-lg w-full shadow-[0_0_100px_-20px_rgba(147,51,234,0.3)] animate-scaleIn overflow-hidden">
-            {/* Animated Glow backgrounds */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50 shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
-            
-            <div className="p-8 sm:p-10 text-center relative z-10">
-              {/* Success Icon with complex animation */}
-              <div className="relative w-24 h-24 mx-auto mb-8">
-                <div className="absolute inset-0 bg-purple-500/30 rounded-full animate-ping opacity-20"></div>
-                <div className="absolute inset-0 bg-gradient-to-tr from-purple-600 to-pink-600 rounded-full blur-xl opacity-40 animate-pulse"></div>
-                <div className="relative bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full w-full h-full flex items-center justify-center shadow-lg border border-white/20">
-                  <svg className="w-12 h-12 text-white animate-bounceIn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
+      {/* Success Modal - Modular Component */}
+      <AirdropModals
+        showSuccess={showSuccess}
+        setShowSuccess={setShowSuccess}
+        tokensPerUser={TOKENS_PER_USER}
+      />
 
-              <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
-                Welcome to <br/>
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">The Universe</span>
-              </h2>
-              
-              <p className="text-gray-400 text-lg mb-8 font-medium">
-                Your presence in the Nuxchain ecosystem has been verified and registered.
-              </p>
-
-              <div className="relative group p-6 rounded-3xl bg-white/5 border border-white/10 mb-8 transition-transform duration-500 hover:scale-[1.02]">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Allocation Secured</p>
-                <div className="flex flex-col items-center">
-                  <span className="text-5xl font-black text-white tracking-tighter">
-                    {TOKENS_PER_USER.toLocaleString()}
-                  </span>
-                  <span className="text-purple-400 font-black text-xl tracking-widest mt-1">$NUX</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <button
-                  onClick={() => setShowSuccess(false)}
-                  className="w-full py-4 sm:py-5 bg-white text-black rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all duration-300 hover:bg-gray-200 active:scale-95 shadow-[0_20px_40px_-15px_rgba(255,255,255,0.2)]"
-                >
-                  Close
-                </button>
-
-                <button
-                  onClick={() => navigate('/staking')}
-                  className="w-full py-4 sm:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all duration-300 hover:from-purple-500 hover:to-pink-500 active:scale-95 shadow-[0_20px_40px_-15px_rgba(147,51,234,0.3)]"
-                >
-                  Staking
-                </button>
-              </div>
-            </div>
-
-            {/* Decorative Corner Gradients */}
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-purple-600/20 rounded-full blur-3xl"></div>
-            <div className="absolute -top-10 -left-10 w-32 h-32 bg-blue-600/20 rounded-full blur-3xl"></div>
-          </div>
-        </div>
-      )}
+      {/* Requirements Modal */}
+      <RequirementsModal 
+        isOpen={isRequirementsOpen} 
+        onClose={() => setIsRequirementsOpen(false)} 
+      />
     </GlobalBackground>
   );
 }

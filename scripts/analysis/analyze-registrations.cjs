@@ -225,8 +225,8 @@ async function analyzeRegistrations() {
     const total = snapshot.size;
     console.log(`📊 Total registrations found: ${total}`);
 
-    const suspicious = [];
-    const valid = [];
+    let suspicious = [];
+    let valid = [];
 
     let processed = 0; // Initialize processed count
 

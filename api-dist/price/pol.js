@@ -7,7 +7,7 @@
  * - Distribuye rate limits del servidor en lugar del cliente
  * - Agrega headers CORS correctos
  */
-import { kvCache } from '../_services/kv-cache-service';
+import { kvCache } from '../_services/kv-cache-service.js';
 const CACHE_TTL = 60; // 60 seconds - optimized for balance between freshness and performance
 export default async function handler(req, res) {
     try {

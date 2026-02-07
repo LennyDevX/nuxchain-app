@@ -19,21 +19,26 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({
   const displayMessage = message || config.message;
 
   useEffect(() => {
+    let wasInMaintenance = isMaintenance;
+
     const interval = setInterval(() => {
-      const isInMaintenance = isMaintenanceMode('airdrop');
-      setIsMaintenance(isInMaintenance);
-      
+      const currentMaintenanceStatus = isMaintenanceMode('airdrop');
       const remaining = getMaintenanceTimeRemaining('airdrop');
+      
+      setIsMaintenance(currentMaintenanceStatus);
       setTimeRemaining(remaining);
       
-      // Auto-redirect cuando el mantenimiento termine
-      if (remaining <= 0 && !isInMaintenance) {
-        window.location.href = '/airdrop';
+      // Solo redirigir si el mantenimiento ESTABA activo y ahora terminó
+      if (remaining <= 0 && !currentMaintenanceStatus && wasInMaintenance) {
+        clearInterval(interval);
+        window.location.reload();
       }
+      
+      wasInMaintenance = currentMaintenanceStatus;
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isMaintenance]);
 
   // If maintenance is disabled or overridden, show the real airdrop page
   if (!isMaintenance) {

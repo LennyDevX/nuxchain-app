@@ -5,7 +5,7 @@
  * Ejecutar UNA VEZ después del primer deploy para cachear embeddings
  * del knowledge base (staking, NFT, marketplace, airdrop, gamification)
  */
-import { embeddingsCache } from '../_services/embeddings-cache-service';
+import { embeddingsCache } from '../_services/embeddings-cache-service.js';
 export default async function handler(req, res) {
     // Solo permitir GET
     if (req.method !== 'GET') {

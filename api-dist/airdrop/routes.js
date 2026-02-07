@@ -3,7 +3,7 @@
  * Handles registration validation and submission
  */
 import { Router } from 'express';
-import { validateAirdropRegistration, submitAirdropRegistration, } from './validate-and-register';
+import { validateAirdropRegistration, submitAirdropRegistration, } from './validate-and-register.js';
 const router = Router();
 // POST /api/airdrop/validate - Validate registration
 router.post('/validate', validateAirdropRegistration);

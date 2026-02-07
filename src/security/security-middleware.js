@@ -98,7 +98,11 @@ export const apiKeyAuth = (req, res, next) => {
     '/server/embeddings',
     '/chat/stream',
     '/chat/stream-with-tools',
-    '/gemini/stream'
+    '/gemini/stream',
+    '/airdrop/validate',
+    '/airdrop/submit',
+    '/api/airdrop/validate',
+    '/api/airdrop/submit'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público
@@ -170,13 +174,15 @@ export const inputValidation = (req, res, next) => {
 export const attackDetection = (req, res, next) => {
   const suspiciousPatterns = [
     /(\<script\>|\<\/script\>)/gi, // XSS básico
-    /(union|select|insert|delete|update|drop|create|alter)/gi, // SQL Injection
+    /\b(union|select|insert|delete|update|drop|create|alter)\b/gi, // SQL Injection con word boundaries
     /(\.\.\/|\.\.\\)/g, // Path Traversal
     /(\${|<%|%>)/g, // Template Injection
-    /(eval\(|exec\(|system\()/gi // Code Injection
+    /\b(eval|exec|system|passthru)\(/gi // Code Injection con paréntesis
   ];
   
-  const checkString = JSON.stringify(req.body) + req.url + JSON.stringify(req.query);
+  // SOLUCIÓN Falsos Positivos: No pasar el URL completo si contiene palabras como "airdrop"
+  // Solo verificamos el body y query para inyecciones
+  const checkString = JSON.stringify(req.body || {}) + JSON.stringify(req.query || {});
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(checkString)) {

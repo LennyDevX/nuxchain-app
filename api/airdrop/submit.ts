@@ -4,7 +4,7 @@
  */
 
 import { type VercelRequest, type VercelResponse } from '@vercel/node';
-import { submitAirdropRegistration } from './validate-and-register';
+import { submitAirdropRegistration } from './validate-and-register.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST

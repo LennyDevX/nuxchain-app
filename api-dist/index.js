@@ -4,7 +4,7 @@
  */
 import express from 'express';
 import cors from 'cors';
-import airdropRoutes from './airdrop/routes';
+import airdropRoutes from './airdrop/routes.js';
 const app = express();
 // ============================================================================
 // MIDDLEWARE

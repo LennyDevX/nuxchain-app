@@ -43,20 +43,46 @@ type SecurityHandler = (
 ) => Promise<void | VercelResponse>;
 
 // ============================================================================
-// CORS CONFIGURATION
+// CORS CONFIGURATION - RESTRICTED TO AUTHORIZED DOMAINS
 // ============================================================================
-const CORS_HEADERS: CorsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+const ALLOWED_ORIGINS = [
+  'https://nuxchain.com',
+  'https://www.nuxchain.com',
+  'https://app.nuxchain.com',
+  'https://nuxchain.vercel.app',
+  'http://localhost:3000',      // Development
+  'http://localhost:5173',       // Vite dev server
+];
+
+const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-Requested-With',
   'Access-Control-Max-Age': '86400',
 };
 
 // ============================================================================
-// SECURITY HEADERS
+// SECURITY HEADERS - Apply CORS based on origin
 // ============================================================================
-function applySecurityHeaders(res: VercelResponse): void {
-  // CORS
+function applySecurityHeaders(req: VercelRequest, res: VercelResponse): void {
+  const origin = req.headers.origin || req.headers.referer || '';
+  
+  // Check if origin is allowed
+  let allowedOrigin = '';
+  if (ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed))) {
+    allowedOrigin = origin;
+  } else if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview') {
+    // Allow all origins in development/preview
+    allowedOrigin = '*';
+  }
+  
+  // Apply CORS headers
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    if (allowedOrigin !== '*') {
+      res.setHeader('Vary', 'Origin');
+    }
+  }
+  
   Object.entries(CORS_HEADERS).forEach(([key, value]) => {
     res.setHeader(key, value);
   });
@@ -136,7 +162,6 @@ function detectAttack(req: VercelRequest): AttackDetectionResult {
   };
 
   const checkString = JSON.stringify(textFieldsToCheck) + 
-                     (req.url || '') + 
                      JSON.stringify(req.query || {});
   
   for (const pattern of suspiciousPatterns) {
@@ -189,8 +214,8 @@ function validateInput(req: VercelRequest): InputValidationResult {
 export function withSecurity(handler: SecurityHandler): SecurityHandler {
   return async (req: VercelRequest, res: VercelResponse) => {
     try {
-      // 1. Aplicar headers de seguridad
-      applySecurityHeaders(res);
+      // 1. Aplicar headers de seguridad (CORS restrictivo)
+      applySecurityHeaders(req, res);
       
       // 2. Manejar preflight OPTIONS
       if (req.method === 'OPTIONS') {

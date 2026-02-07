@@ -20,6 +20,25 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // RATE LIMITS - For distributed rate limiting (Feb 2026)
+    // ================================================================
+    match /rateLimits/{document=**} {
+      // Only server can read/write (Cloud Functions and API endpoints)
+      allow read: if false;
+      allow write: if false;
+    }
+
+    // ================================================================
+    // AUDIT LOGS - For security event logging (Feb 2026)
+    // ================================================================
+    match /auditLogs/{document=**} {
+      // Only server can write logs
+      // Admins can read (implement admin auth if needed)
+      allow read: if false;  // TODO: Add admin authentication
+      allow write: if false; // Only Cloud Functions write
+    }
+
+    // ================================================================
     // PENDING VERIFICATIONS - For future email verification
     // ================================================================
     match /pendingVerifications/{document=**} {

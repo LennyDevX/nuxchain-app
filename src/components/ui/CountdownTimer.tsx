@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 interface CountdownTimerProps {
   targetDate: Date;
   onExpire?: () => void;
+  compact?: boolean;
 }
 
 interface TimeLeft {
@@ -27,7 +28,7 @@ const calculateTimeLeft = (targetDate: Date): TimeLeft => {
   };
 };
 
-function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
+function CountdownTimer({ targetDate, onExpire, compact = false }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft(targetDate));
   const onExpireCalledRef = useRef(false);
 
@@ -56,6 +57,32 @@ function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
     return (
       <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
         <p className="text-red-300 font-semibold text-lg">Airdrop Registration Closed</p>
+      </div>
+    );
+  }
+
+  // Compact mode for header
+  if (compact) {
+    return (
+      <div className="flex gap-2 sm:gap-4 justify-center items-center">
+        {[
+          { label: 'd', value: timeLeft.days },
+          { label: 'h', value: timeLeft.hours },
+          { label: 'm', value: timeLeft.minutes },
+          { label: 's', value: timeLeft.seconds },
+        ].map((unit, index) => (
+          <div key={unit.label} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-900/60 backdrop-blur-md rounded-lg px-2 sm:px-3 py-1 border border-gray-700/50">
+                <span className="text-lg sm:text-2xl font-bold bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent tabular-nums">
+                  {String(unit.value).padStart(2, '0')}
+                </span>
+                <span className="ml-1 text-[10px] sm:text-xs text-purple-400 font-bold uppercase">{unit.label}</span>
+              </div>
+            </div>
+            {index < 3 && <span className="ml-2 sm:ml-4 text-gray-600 font-light opacity-50">:</span>}
+          </div>
+        ))}
       </div>
     );
   }

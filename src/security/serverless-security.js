@@ -55,7 +55,9 @@ export const validateApiKey = (req, res, next) => {
     '/api/embeddings',
     '/api/scraper',
     '/api/airdrop/validate',
-    '/api/airdrop/submit'
+    '/api/airdrop/submit',
+    '/airdrop/validate',
+    '/airdrop/submit'
   ];
   
   const isPublicEndpoint = publicEndpoints.some(endpoint => 
@@ -123,14 +125,13 @@ export const serverlessRateLimit = (options = {}) => {
 export const basicAttackDetection = (req, res, next) => {
   const suspiciousPatterns = [
     /(\<script\>|\<\/script\>)/gi,
-    /(union|select|insert|delete|update|drop)/gi,
+    /\b(union|select|insert|delete|update|drop)\b/gi, // Word boundaries para evitar falsos positivos con "airdrop"
     /(\.\.\/|\.\.\\)/g,
     /(\${|<%|%>)/g
   ];
   
   const checkString = JSON.stringify(req.body || {}) + 
-                     (req.url || '') + 
-                     JSON.stringify(req.query || {});
+                     JSON.stringify(req.query || {}); // Eliminamos req.url para evitar match con "/api/airdrop"
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(checkString)) {

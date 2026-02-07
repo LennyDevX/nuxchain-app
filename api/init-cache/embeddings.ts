@@ -7,7 +7,7 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { embeddingsCache } from '../_services/embeddings-cache-service';
+import { embeddingsCache } from '../_services/embeddings-cache-service.js';
 
 export default async function handler(
   req: VercelRequest,

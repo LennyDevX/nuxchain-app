@@ -44,8 +44,8 @@ export const MAINTENANCE_CONFIG: {
   marketplace: MaintenanceRoute;
 } = {
   airdrop: {
-    // Airdrop - MAINTENANCE ENABLED
-    enabled: true,
+    // Airdrop - MAINTENANCE DISABLED FOR DEV
+    enabled: false,
     estimatedTime: 2880, // 48 hours
     message: 'We are optimizing our system to reduce resource consumption and improve your experience. The Airdrop will be available in 48 hours. Thank you for your patience!',
     startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),

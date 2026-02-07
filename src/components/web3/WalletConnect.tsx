@@ -87,6 +87,8 @@ function WalletConnect() {
   }, [solanaPublicKey, address, setActiveNetwork])
 
   // Log successful connection
+  // Intentionally exclude 'balance' and 'solanaWallet.balance' from dependencies to prevent
+  // infinite reconnection loops when balance updates.
   useEffect(() => {
     if (activeNetwork === 'evm' && isConnected && address) {
       setShowDropdown(false)
@@ -110,7 +112,8 @@ function WalletConnect() {
         balance: solanaWallet.balance ? `${solanaWallet.balance} SOL` : 'Loading...',
       })
     }
-  }, [isConnected, address, solanaPublicKey, activeNetwork, chain, balance, solanaWalletName, solanaNetwork, solanaWallet.balance])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, address, solanaPublicKey, activeNetwork, chain, solanaWalletName, solanaNetwork])
 
   useEffect(() => {
     if (!showDropdown && !isClosing) return;

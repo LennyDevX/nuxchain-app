@@ -75,11 +75,25 @@ export async function validateRegistrationOnServer(
       }),
     });
 
-    const result = (await response.json()) as { success: boolean; error?: string };
+    let result;
+    try {
+      // Read the response body as text first to avoid "stream already read" errors
+      const responseText = await response.text();
+      
+      // Then parse it as JSON
+      if (!responseText) {
+        throw new Error('Empty response from server');
+      }
+      
+      result = JSON.parse(responseText) as { success: boolean; error?: string };
+    } catch (parseError) {
+      console.error('❌ Failed to parse response as JSON:', parseError);
+      throw new Error(`Server returned invalid response: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+    }
 
     if (!response.ok) {
       console.warn('❌ Server validation failed:', result.error);
-      throw new Error(result.error || 'Validation failed');
+      throw new Error(result.error || `Validation failed (${response.status})`);
     }
 
     console.log('✅ Server validation passed');
@@ -204,11 +218,25 @@ export async function submitAirdropRegistration(
       }),
     });
 
-    const submitResult = (await response.json()) as { success: boolean; message?: string; error?: string; docId?: string };
+    let submitResult;
+    try {
+      // Read response as text first to avoid "stream already read" errors
+      const responseText = await response.text();
+      
+      // Then parse it as JSON
+      if (!responseText) {
+        throw new Error('Empty response from server');
+      }
+      
+      submitResult = JSON.parse(responseText) as { success: boolean; message?: string; error?: string; docId?: string };
+    } catch (parseError) {
+      console.error('❌ Failed to parse submit response as JSON:', parseError);
+      throw new Error(`Server returned invalid response: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+    }
 
     if (!response.ok) {
       console.error('❌ Submission failed:', submitResult.error);
-      throw new Error(submitResult.error || 'Registration failed');
+      throw new Error(submitResult.error || `Registration failed (${response.status})`);
     }
 
     console.log('✅ Registration completed successfully');

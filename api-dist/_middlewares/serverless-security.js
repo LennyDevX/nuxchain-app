@@ -4,19 +4,42 @@
  * Versión ligera optimizada para api/ serverless
  */
 // ============================================================================
-// CORS CONFIGURATION
+// CORS CONFIGURATION - RESTRICTED TO AUTHORIZED DOMAINS
 // ============================================================================
+const ALLOWED_ORIGINS = [
+    'https://nuxchain.com',
+    'https://www.nuxchain.com',
+    'https://app.nuxchain.com',
+    'https://nuxchain.vercel.app',
+    'http://localhost:3000', // Development
+    'http://localhost:5173', // Vite dev server
+];
 const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-Requested-With',
     'Access-Control-Max-Age': '86400',
 };
 // ============================================================================
-// SECURITY HEADERS
+// SECURITY HEADERS - Apply CORS based on origin
 // ============================================================================
-function applySecurityHeaders(res) {
-    // CORS
+function applySecurityHeaders(req, res) {
+    const origin = req.headers.origin || req.headers.referer || '';
+    // Check if origin is allowed
+    let allowedOrigin = '';
+    if (ALLOWED_ORIGINS.some(allowed => origin.startsWith(allowed))) {
+        allowedOrigin = origin;
+    }
+    else if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview') {
+        // Allow all origins in development/preview
+        allowedOrigin = '*';
+    }
+    // Apply CORS headers
+    if (allowedOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+        if (allowedOrigin !== '*') {
+            res.setHeader('Vary', 'Origin');
+        }
+    }
     Object.entries(CORS_HEADERS).forEach(([key, value]) => {
         res.setHeader(key, value);
     });
@@ -83,7 +106,6 @@ function detectAttack(req) {
         subject: body.subject
     };
     const checkString = JSON.stringify(textFieldsToCheck) +
-        (req.url || '') +
         JSON.stringify(req.query || {});
     for (const pattern of suspiciousPatterns) {
         if (pattern.test(checkString)) {
@@ -126,8 +148,8 @@ function validateInput(req) {
 export function withSecurity(handler) {
     return async (req, res) => {
         try {
-            // 1. Aplicar headers de seguridad
-            applySecurityHeaders(res);
+            // 1. Aplicar headers de seguridad (CORS restrictivo)
+            applySecurityHeaders(req, res);
             // 2. Manejar preflight OPTIONS
             if (req.method === 'OPTIONS') {
                 return res.status(200).end();

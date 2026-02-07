@@ -9,7 +9,7 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kvCache } from '../_services/kv-cache-service';
+import { kvCache } from '../_services/kv-cache-service.js';
 
 interface PriceData {
   price: number;

@@ -3,7 +3,7 @@
  * Precomputes and caches frequently used knowledge base embeddings
  * Reduces Gemini API calls by ~60% for common queries
  */
-import { kvCache } from './kv-cache-service';
+import { kvCache } from './kv-cache-service.js';
 // Precomputed knowledge base queries
 const KNOWLEDGE_BASE = [
     // Staking queries

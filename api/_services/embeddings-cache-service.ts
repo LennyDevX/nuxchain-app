@@ -4,7 +4,7 @@
  * Reduces Gemini API calls by ~60% for common queries
  */
 
-import { kvCache } from './kv-cache-service';
+import { kvCache } from './kv-cache-service.js';
 
 interface EmbeddingData {
   text: string;

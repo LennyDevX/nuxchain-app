@@ -362,7 +362,7 @@ async function validateWalletOnChain(wallet: string): Promise<{
     // Frontend allows `isLegit = true` if `hasConfirmedTransactions = true`
     // Backend must do the same for consistency!
     // ============================================================================
-    const MIN_SOL_BALANCE = 0.0005; // Reduced from 0.001 for legacy users
+    const MIN_SOL_BALANCE = 0.01; // Minimum 0.01 SOL - synchronized with frontend
     const MIN_WALLET_AGE = 3; 
     const MIN_TRANSACTIONS = 1;
     const LEGACY_WALLET_AGE = 90; // Wallets older than 90 days are "Legacy"
@@ -411,8 +411,8 @@ async function validateWalletOnChain(wallet: string): Promise<{
     }
 
     // Validation: Minimum balance for wallets with no history
-    // Exception: Even lower balance required for legacy wallets
-    const effectiveMinBalance = walletAgeDays >= LEGACY_WALLET_AGE ? 0.0001 : MIN_SOL_BALANCE;
+    // Exception: Lower balance required for legacy wallets (90+ days old)
+    const effectiveMinBalance = walletAgeDays >= LEGACY_WALLET_AGE ? 0.001 : MIN_SOL_BALANCE;
 
     if (solBalance < effectiveMinBalance) {
       return {

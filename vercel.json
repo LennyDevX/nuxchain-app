@@ -2,6 +2,12 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "ignoreCommand": "git diff --quiet HEAD~ HEAD -- src/ api/ public/ package.json package-lock.json tsconfig.json tsconfig.api.json vite.config.ts tailwind.config.js postcss.config.js eslint.config.js",
+  "installCommand": "npm install --include=dev",
+  "crons": [],
+  "env": {
+    "CI": "true"
+  },
   "functions": {
     "api/chat/stream.ts": {
       "maxDuration": 60,
@@ -100,11 +106,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "CI": "true"
   },
-  "build": {
-    "env": {
-      "NODE_ENV": "production"
-    }
-  }
+  "build": {}
 }

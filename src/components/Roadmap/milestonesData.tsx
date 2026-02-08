@@ -92,7 +92,7 @@ export const milestones: Milestone[] = [
     status: 'achieved',
     category: 'Technology'
   },
-  
+
   // In Progress Milestones
   {
     title: 'Nuxbee AI Platform 1.0',
@@ -126,7 +126,23 @@ export const milestones: Milestone[] = [
     status: 'in-progress',
     category: 'Governance'
   },
-  
+  {
+    title: 'Tokenomics',
+    description: 'Working on the economy of the upcoming $NUX token.',
+    date: 'Q1 2026',
+    icon: <BarChart3Icon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Technology'
+  },
+  {
+    title: 'NFTs Wave 4',
+    description: 'Updating tokenization and marketplace contracts to provide a better user experience.',
+    date: 'Q1 2026',
+    icon: <ZapIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Technology'
+  },
+
   // Upcoming Milestones
   {
     title: 'Nuxbee AI Platform 2.0',
@@ -144,7 +160,7 @@ export const milestones: Milestone[] = [
     status: 'upcoming',
     category: 'Innovation'
   },
-  
+
   {
     title: 'Nuxchain Kit',
     description: 'Comprehensive SDK and developer toolkit for building blockchain applications with Nuxchain technology. Empower developers to create custom ecosystems and dApps with our modular, open-source components and utilities.',

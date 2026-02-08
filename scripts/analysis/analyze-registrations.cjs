@@ -3,7 +3,7 @@
  * Airdrop Registration Analyzer & Cleanup Script
  * This script analyzes registrations in Firebase to identify bots.
  */
-
+  
 const path = require('path');
 const fs = require('fs');
 const { initializeApp, cert } = require('firebase-admin/app');

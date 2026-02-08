@@ -284,8 +284,13 @@ async function validateWalletOnChain(wallet) {
                 walletAgeDays = Math.max(walletAgeDays, 90);
             }
         }
-        // Smart validation rules (Option B: Hybrid approach)
-        const MIN_SOL_BALANCE = 0.0005; // Reduced from 0.001 for legacy users
+        // ============================================================================
+        // VALIDATION RULES - Synchronized with frontend for consistency
+        // CRITICAL: If wallet has ANY confirmed transactions, it's a REAL USER
+        // Frontend allows `isLegit = true` if `hasConfirmedTransactions = true`
+        // Backend must do the same for consistency!
+        // ============================================================================
+        const MIN_SOL_BALANCE = 0.01; // Minimum 0.01 SOL - synchronized with frontend
         const MIN_WALLET_AGE = 3;
         const MIN_TRANSACTIONS = 1;
         const LEGACY_WALLET_AGE = 90; // Wallets older than 90 days are "Legacy"
@@ -294,20 +299,28 @@ async function validateWalletOnChain(wallet) {
         const ACTIVE_WALLET_BALANCE_THRESHOLD = 0.02; // Reduced from 0.05 - More reasonable for new users
         // High balance threshold - users with significant SOL are clearly legitimate
         const HIGH_BALANCE_THRESHOLD = 0.1; // 0.1 SOL = ~$15-20 USD - real user investment
-        // Validation: Minimum balance
-        // Exception: Even lower balance required for legacy wallets
-        const effectiveMinBalance = walletAgeDays >= LEGACY_WALLET_AGE ? 0.0001 : MIN_SOL_BALANCE;
-        if (solBalance < effectiveMinBalance) {
+        // 🔑 KEY INSIGHT: If wallet has ANY confirmed transactions, it's a REAL wallet
+        // This matches frontend logic which allows any wallet with confirmed activity
+        const hasConfirmedTransactions = signatures.length > 0;
+        // ========================================
+        // PRE-CHECK: Real users with any transaction history get a pass
+        // This aligns with frontend's lenient treatment of active wallets
+        // ========================================
+        if (hasConfirmedTransactions) {
+            // Any wallet with confirmed transactions is considered legitimate
+            console.log(`✅ [REAL USER] Wallet has ${transactionCount} confirmed transactions - auto-approved`);
             return {
-                isValid: false,
+                isValid: true,
                 exists: true,
                 balance: solBalance,
                 transactionCount,
                 walletAgeDays,
-                reason: `Wallet balance too low: ${solBalance.toFixed(6)} SOL (min ${effectiveMinBalance} SOL for ${walletAgeDays >= LEGACY_WALLET_AGE ? 'legacy' : 'new'} wallets)`,
             };
         }
-        // Validation: Minimum transactions (critical for all wallets)
+        // ========================================
+        // STRICT VALIDATION: Only for wallets with NO transaction history
+        // ========================================
+        // Validation: Minimum transactions (critical for wallets with no history)
         if (transactionCount < MIN_TRANSACTIONS) {
             return {
                 isValid: false,
@@ -316,6 +329,19 @@ async function validateWalletOnChain(wallet) {
                 transactionCount: 0,
                 walletAgeDays: 0,
                 reason: 'Wallet has no transaction history',
+            };
+        }
+        // Validation: Minimum balance for wallets with no history
+        // Exception: Lower balance required for legacy wallets (90+ days old)
+        const effectiveMinBalance = walletAgeDays >= LEGACY_WALLET_AGE ? 0.001 : MIN_SOL_BALANCE;
+        if (solBalance < effectiveMinBalance) {
+            return {
+                isValid: false,
+                exists: true,
+                balance: solBalance,
+                transactionCount,
+                walletAgeDays,
+                reason: `Wallet balance too low: ${solBalance.toFixed(6)} SOL (min ${effectiveMinBalance} SOL)`,
             };
         }
         // Smart age validation with active wallet exception

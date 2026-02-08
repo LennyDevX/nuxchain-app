@@ -51,13 +51,13 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),
   },
   nfts: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 120,
     message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
     startTime: getOrInitializeStartTime('nfts', NFTS_START_TIME),
   },
   marketplace: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 120,
     message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
     startTime: getOrInitializeStartTime('marketplace', MARKETPLACE_START_TIME),

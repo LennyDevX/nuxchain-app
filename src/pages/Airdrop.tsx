@@ -367,10 +367,6 @@ function Airdrop() {
                           </span>
                         </h3>
 
-                        <p className="text-lg sm:text-xl font-bold text-white mb-6 opacity-90 tracking-wide">
-                          of Nuxchain
-                        </p>
-
                         <div className="max-w-md mx-auto space-y-4 text-gray-200 text-sm sm:text-base leading-relaxed mb-8">
                           <p className="opacity-90 font-medium">
                             Your registration has been detected in our database. You're already part of the early adopter elite!

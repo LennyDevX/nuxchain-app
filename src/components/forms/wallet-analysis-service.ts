@@ -7,12 +7,32 @@
 import { Connection, PublicKey, LAMPORTS_PER_SOL, type ConfirmedSignatureInfo } from '@solana/web3.js';
 
 // Multiple RPC endpoints with fallback strategy
-// Ordered by reliability from testing (PublicNode works best from browsers)
-const RPC_ENDPOINTS = [
-  'https://solana-rpc.publicnode.com', // PublicNode (most stable, CORS-friendly)
-  'https://api.mainnet-beta.solana.com', // Official (sometimes rate-limited)
-  'https://rpc.ankr.com/solana', // Ankr (backup)
-];
+// CRITICAL: Use same RPC as backend for consistent wallet validation
+// Primary: QuickNode (configured in env) - most reliable
+// Fallbacks: Public endpoints for browser CORS compatibility
+const getRpcEndpoints = (): string[] => {
+  const quicknodeRpc = import.meta.env.VITE_SOLANA_RPC_QUICKNODE || 
+                       import.meta.env.VITE_SOLANA_RPC_ALCHEMY;
+  
+  // If custom RPC configured, use it as primary with fallbacks
+  if (quicknodeRpc) {
+    return [
+      quicknodeRpc, // PRIMARY: Use same RPC as backend
+      'https://solana-rpc.publicnode.com', // Fallback: PublicNode
+      'https://api.mainnet-beta.solana.com', // Fallback: Official API
+      'https://rpc.ankr.com/solana', // Fallback: Ankr
+    ];
+  }
+  
+  // Default fallback chain if no custom RPC configured
+  return [
+    'https://solana-rpc.publicnode.com', // PublicNode (most stable, CORS-friendly)
+    'https://api.mainnet-beta.solana.com', // Official (sometimes rate-limited)
+    'https://rpc.ankr.com/solana', // Ankr (backup)
+  ];
+};
+
+const RPC_ENDPOINTS = getRpcEndpoints();
 
 let currentRpcIndex = 0;
 let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], {
@@ -48,6 +68,9 @@ const CEX_HOT_WALLETS = new Set([
   // OKX / High Volume Senders (verified)
   '5VCwKtCXgCJ6kit5FybXjvriW3xELsFDhYrPSqtJNmcD',
   'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2',
+
+  // Kraken (verified Feb 2026)
+  'DtDZCnXEN69n5W6rN5Bvmk3k5h5dGGJmJY8JxH1xDFnL',
 ]);
 
 export interface WalletMetrics {

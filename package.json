@@ -22,6 +22,8 @@
     "lighthouse:edge": "powershell -ExecutionPolicy Bypass -File ./lighthouse-audit.ps1",
     "wallet:search": "node scripts/analysis/search-wallet-advanced.cjs",
     "wallet:analyze": "node scripts/analysis/bulk-wallet-analysis.cjs",
+    "wallet:debug": "node scripts/analysis/wallet-debug.cjs",
+    "test:api": "node scripts/analysis/test-api.cjs",
     "wallet:wipe-bots": "node scripts/maintenance/wipe-bots.cjs",
     "server:install": "cd src/server && npm install",
     "subgraph:install": "cd subgraph && npm install",

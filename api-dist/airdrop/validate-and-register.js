@@ -19,7 +19,7 @@ import { logAuditEvent, logRegistrationAttempt, logSecurityViolation, LogLevel, 
 // CONFIGURATION
 // ============================================================================
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
-const SOLANA_RPC = process.env.SOLANA_RPC || 'https://solana-rpc.publicnode.com';
+const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC || 'https://solana-rpc.publicnode.com';
 const connection = new Connection(SOLANA_RPC, 'confirmed');
 // CEX wallets are now fetched from centralized endpoint
 let CEX_HOT_WALLETS = null;

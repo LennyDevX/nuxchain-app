@@ -58,10 +58,10 @@ const Footer: React.FC = () => {
             <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI 🤖</Link>
+                <Link to="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI</Link>
               </li>
               <li>
-                <Link to="/skills" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Skill NFTs 🎯</Link>
+                <Link to="/skills" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Skill NFTs</Link>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">Market Analysis</span>

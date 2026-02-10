@@ -15,6 +15,7 @@ function Navbar() {
     { path: '/airdrop', label: 'Airdrop' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
+    { path: '/tokenomics', label: 'Tokenomics' },
     { path: '/chat', label: 'Chat' }
   ]
 
@@ -28,7 +29,7 @@ function Navbar() {
   }
 
   return (
-    <motion.nav 
+    <motion.nav
       className="backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -37,26 +38,36 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-18">
           {/* Logo */}
-          <motion.div 
+          <motion.div
             className="flex-shrink-0"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <Link to="/" className="flex items-center group">
-              <motion.div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center mr-3 "
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              <motion.div
+                className="flex items-center"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
               >
-              <img src="/favicon1.png" alt="NuxChain" className="w-full h-full object-contain" />
+                <div className="relative w-10 h-10 mr-2 group">
+                  <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg group-hover:bg-blue-500/40 transition-colors"></div>
+                  <img
+                    src="/favicon1.png"
+                    alt="Nuxchain Logo"
+                    className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]"
+                  />
+                </div>
+                <span className="text-xl font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-pink-400 transition-all duration-300 antialiased">
+                  Nuxchain
+                </span>
               </motion.div>
             </Link>
           </motion.div>
 
           {/* Navigation Links */}
-          <motion.div 
+          <motion.div
             className="hidden md:block"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -68,8 +79,8 @@ function Navbar() {
                   key={link.path}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.4, 
+                  transition={{
+                    duration: 0.4,
                     delay: 0.15 + index * 0.05
                   }}
                 >
@@ -80,11 +91,10 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${
-                        isActive(link.path)
-                          ? 'bg-blue-100 text-blue-700 shadow-sm'
-                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                      }`}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${isActive(link.path)
+                        ? 'bg-blue-100 text-blue-700 shadow-sm'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                        }`}
                     >
                       {link.label}
                       {link.path === '/airdrop' && isMaintenanceMode('airdrop') && (
@@ -92,6 +102,16 @@ function Navbar() {
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"
                           animate={{ scale: [1, 1.3, 1] }}
                           transition={{ duration: 1, repeat: Infinity }}
+                        />
+                      )}
+                      {link.path === '/tokenomics' && isMaintenanceMode('tokenomics') && (
+                        <motion.div
+                          className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]"
+                          animate={{
+                            scale: [1, 1.4, 1],
+                            opacity: [0.8, 1, 0.8]
+                          }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
                         />
                       )}
                     </Link>
@@ -102,7 +122,7 @@ function Navbar() {
           </motion.div>
 
           {/* Wallet Connect + Profile */}
-          <motion.div 
+          <motion.div
             className="flex items-center space-x-3"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -113,9 +133,9 @@ function Navbar() {
               whileTap={{ scale: 0.9 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
-              <Link 
-                to="/profile" 
-                className="p-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center group" 
+              <Link
+                to="/profile"
+                className="p-2 rounded-lg hover:bg-white/10 transition-all duration-200 flex items-center group"
                 aria-label="Profile"
               >
                 <svg className="w-7 h-7 text-white/80 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +143,7 @@ function Navbar() {
                 </svg>
               </Link>
             </motion.div>
-            <motion.div 
+            <motion.div
               className="flex items-center"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}

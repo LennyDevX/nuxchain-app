@@ -4,7 +4,7 @@ const { Connection, PublicKey } = require('@solana/web3.js');
 const fs = require('fs');
 const path = require('path');
 
-const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json');
+const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json');
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 
 require('dotenv').config();
@@ -19,7 +19,7 @@ const RISK_THRESHOLDS = {
 
 // Disposable email domains (common bot registrations)
 const DISPOSABLE_DOMAINS = [
-    'spamok.com', 'tempmail.com', '10minutemail.com', 
+    'spamok.com', 'tempmail.com', '10minutemail.com',
     'mailinator.com', 'guerrillamail.com', 'fakeinbox.com'
 ];
 
@@ -28,15 +28,15 @@ function parseCSV(csvContent) {
     const lines = csvContent.split('\n');
     const headers = lines[0].split(',').map(h => h.trim());
     const records = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
-        
+
         // Handle quoted fields in CSV
         const values = [];
         let current = '';
         let inQuotes = false;
-        
+
         for (let j = 0; j < lines[i].length; j++) {
             const char = lines[i][j];
             if (char === '"') {
@@ -49,35 +49,37 @@ function parseCSV(csvContent) {
             }
         }
         values.push(current.trim());
-        
+
         const record = {};
         headers.forEach((h, idx) => {
             record[h] = values[idx] || '';
         });
         records.push(record);
     }
-    
+
     return records;
 }
 
 async function loadAnalysisData() {
-    // Automatically find the most recent analysis CSV
-    const files = fs.readdirSync(path.join(__dirname, '../'))
+    // Automatically find the most recent analysis CSV in the 'scripts' folder
+    const scriptsDir = path.join(__dirname, '../');
+    const files = fs.readdirSync(scriptsDir)
         .filter(f => f.startsWith('airdrop-analysis-hybrid-') && f.endsWith('.csv'))
         .sort()
         .reverse();
 
     if (files.length === 0) {
-        console.warn('⚠️  No airdrop-analysis-hybrid-*.csv found. Operating without risk scores.');
+        console.warn('⚠️  No airdrop-analysis-hybrid-*.csv found in scripts/ directory!');
+        console.warn('⚠️  CRITICAL: Script will only delete basic invalid filters (EVM wallets).');
         return new Map();
     }
-    
-    const latestFile = path.join(__dirname, '../', files[0]);
+
+    const latestFile = path.join(scriptsDir, files[0]);
     console.log(`📂 Using analysis report: ${files[0]}`);
-    
+
     const content = fs.readFileSync(latestFile, 'utf-8');
     const records = parseCSV(content);
-    
+
     const riskMap = new Map();
     records.forEach(record => {
         const wallet = record.wallet || record.walletAddress;
@@ -86,13 +88,14 @@ async function loadAnalysisData() {
                 riskScore: parseInt(record.riskScore) || 0,
                 classification: record.classification || '',
                 email: record.email || '',
-                ipRegistrationCount: parseInt(record.ipCount) || 0,
+                ipRegistrationCount: parseInt(record.ipCount) || 1, // Default to 1 if not found but in list
                 tokenAccountCount: parseInt(record.tokenAccountCount) || 0,
-                walletExists: record.exists === 'Yes'
+                walletExists: record.exists === 'Yes',
+                indicators: record.indicators || ''
             });
         }
     });
-    
+
     console.log(`📊 Loaded risk analysis for ${riskMap.size} wallets`);
     return riskMap;
 }
@@ -113,15 +116,15 @@ async function withRetry(fn, maxRetries = 5) {
 async function validateWalletOnChain(wallet, connection) {
     try {
         const pubkey = new PublicKey(wallet);
-        
+
         // Check if wallet exists and has activity
         const balance = await withRetry(() => connection.getBalance(pubkey));
-        
+
         // Get transaction history (limited to recent)
-        const signatures = await withRetry(() => 
+        const signatures = await withRetry(() =>
             connection.getSignaturesForAddress(pubkey, { limit: 1 })
         );
-        
+
         return {
             exists: true,
             balance: balance / 1e9,
@@ -146,10 +149,10 @@ async function wipeBots(dryRun = true) {
     const snapshot = await db.collection(COLLECTION_NAME).get();
     const docs = snapshot.docs;
     const total = docs.length;
-    
+
     // Load risk analysis data
     const riskMap = await loadAnalysisData();
-    
+
     console.log(`📊 Found ${total} total registrations in Firebase\n`);
 
     const deletion = {
@@ -171,6 +174,7 @@ async function wipeBots(dryRun = true) {
         const data = doc.data();
         const wallet = data.wallet;
         const email = data.email || '';
+        const riskData = riskMap.get(wallet);
 
         // 1. EVM Filter
         if (wallet && wallet.startsWith('0x')) {
@@ -184,39 +188,38 @@ async function wipeBots(dryRun = true) {
             continue;
         }
 
-        // 3. Check Risk Score (primary filter - use analysis CSV)
-        const riskData = riskMap.get(wallet);
+        // 3. EXTREME SYBIL DETECTOR (Professional Farms)
+        const indicators = (riskData?.indicators || '').toLowerCase();
+        const isProfessionalFarm = indicators.includes('lethal sybil farm') ||
+            indicators.includes('farm-restricted') ||
+            (riskData?.ipRegistrationCount > 3);
+
+        if (isProfessionalFarm) {
+            deletion.ipFarm.push({ id: doc.id, wallet, email, indicators: riskData?.indicators, ipCount: riskData?.ipRegistrationCount });
+            continue;
+        }
+
+        // 4. Risk Score Classification
         if (riskData) {
-            if (riskData.riskScore >= RISK_THRESHOLDS.AUTO_DELETE_SUSPICIOUS) {
-                deletion.suspicious.push({ id: doc.id, wallet, email, score: riskData.riskScore, ipCount: riskData.ipRegistrationCount });
+            if (riskData.classification === 'Likely Bot' || riskData.riskScore >= 80) {
+                deletion.likelyBot.push({ id: doc.id, wallet, email, score: riskData.riskScore });
                 continue;
             }
-            if (riskData.riskScore >= RISK_THRESHOLDS.AUTO_DELETE_LIKELY_BOT) {
-                deletion.likelyBot.push({ id: doc.id, wallet, email, score: riskData.riskScore, ipCount: riskData.ipRegistrationCount });
-                continue;
-            }
+            // Optional: You can choose to keep suspicious for manual review or delete them
+            // if (riskData.classification === 'Suspicious' || riskData.riskScore >= 60) {
+            //     deletion.suspicious.push({ id: doc.id, wallet, email, score: riskData.riskScore });
+            //     continue;
+            // }
         } else {
-            // If not in analysis (should be rare), mark as invalid for safety
-            deletion.invalidWallets.push({ id: doc.id, wallet, email });
-            continue;
-        }
-
-        // 4. Disposable Email (only if not already flagged)
-        const hasBadEmail = DISPOSABLE_DOMAINS.some(domain => email.toLowerCase().endsWith(domain));
-        if (hasBadEmail) {
-            deletion.disposableEmail.push({ id: doc.id, wallet, email });
-            continue;
-        }
-
-        // 5. IP Farm (multiple registrations from same IP - strong signal)
-        if (riskData.ipRegistrationCount > 5) {
-            deletion.ipFarm.push({ id: doc.id, wallet, email, ipCount: riskData.ipRegistrationCount });
+            // IF NO RISK DATA FOUND (CSV MISSING OR NEW USER):
+            // Safety first: KEEP THE USER instead of deleting them.
+            deletion.keepRealUsers.push({ id: doc.id, wallet, email, reason: 'no-analysis-data' });
             continue;
         }
 
         // Keep as real user
         deletion.keepRealUsers.push({ id: doc.id, wallet, email });
-        
+
         if ((i + 1) % 1000 === 0) {
             console.log(`⏳ Processed ${i + 1}/${docs.length}...`);
         }
@@ -226,7 +229,7 @@ async function wipeBots(dryRun = true) {
     console.log('\n══════════════════════════════════════════════════════════════════════');
     console.log('📋 PURGE ANALYSIS REPORT');
     console.log('══════════════════════════════════════════════════════════════════════\n');
-    
+
     console.log('🗑️  FLAGGED FOR DELETION:');
     console.log(`   EVM Addresses:          ${deletion.evmAddresses.length}`);
     console.log(`   Invalid Wallets:        ${deletion.invalidWallets.length}`);
@@ -237,7 +240,7 @@ async function wipeBots(dryRun = true) {
     console.log(`   IP Farm (>5 regs):      ${deletion.ipFarm.length}`);
     console.log(`   Likely Bot (score 45+): ${deletion.likelyBot.length}`);
     console.log(`   Suspicious (score 65+): ${deletion.suspicious.length}`);
-    
+
     const allToDelete = [
         ...deletion.evmAddresses,
         ...deletion.invalidWallets,
@@ -267,7 +270,7 @@ async function wipeBots(dryRun = true) {
             await batch.commit();
             console.log(`✓ Deleted ${Math.min(i + 400, allToDelete.length)}/${allToDelete.length}`);
         }
-        
+
         console.log('✨ CLEANUP COMPLETE!');
     } else if (dryRun) {
         console.log('📌 DRY RUN MODE: No deletions performed.');

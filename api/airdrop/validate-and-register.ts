@@ -23,8 +23,54 @@ import { logAuditEvent, logRegistrationAttempt, logSecurityViolation, LogLevel, 
 // ============================================================================
 
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
-const SOLANA_RPC = process.env.SOLANA_RPC || 'https://solana-rpc.publicnode.com';
-const connection = new Connection(SOLANA_RPC, 'confirmed');
+// Multiple RPC endpoints for redundancy (match frontend strategy)
+const RPC_ENDPOINTS = [
+  process.env.SOLANA_RPC_QUICKNODE,
+  process.env.SOLANA_RPC,
+  'https://solana-rpc.publicnode.com',
+  'https://api.mainnet-beta.solana.com',
+  'https://rpc.ankr.com/solana'
+].filter(Boolean) as string[];
+
+// Randomize starting index to distribute load across public nodes in serverless env
+let currentRpcIndex = Math.floor(Math.random() * RPC_ENDPOINTS.length);
+let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], 'confirmed');
+
+/**
+ * 🔄 Rotate to next RPC endpoint
+ */
+function rotateRpc() {
+  currentRpcIndex = (currentRpcIndex + 1) % RPC_ENDPOINTS.length;
+  connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], 'confirmed');
+  console.log(`🔄 [API] Rotated to RPC: ${RPC_ENDPOINTS[currentRpcIndex]} (Index: ${currentRpcIndex})`);
+  return connection;
+}
+
+/**
+ * 🔄 Helper for RPC retries with endpoint rotation
+ */
+async function withRetry<T>(fn: (conn: Connection) => Promise<T>, retries = 3, delay = 500): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn(connection);
+    } catch (error: any) {
+      lastError = error;
+      const isRateLimited = error?.message?.includes('429') || error?.status === 429;
+      
+      if (isRateLimited || i > 0) {
+        rotateRpc();
+      }
+
+      if (i < retries - 1) {
+        console.warn(`⚠️ RPC attempt ${i + 1} failed, retrying in ${delay}ms... (Node: ${RPC_ENDPOINTS[currentRpcIndex]})`);
+        await new Promise((r) => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
+  }
+  throw lastError;
+}
 
 // CEX wallets are now fetched from centralized endpoint
 let CEX_HOT_WALLETS: Set<string> | null = null;
@@ -190,10 +236,10 @@ async function isFundedByCEX(wallet: string, oldestSignature: string): Promise<b
   try {
     const cexWallets = await getCEXWallets();
     
-    const tx = await connection.getParsedTransaction(oldestSignature, {
+    const tx = await withRetry((conn) => conn.getParsedTransaction(oldestSignature, {
       maxSupportedTransactionVersion: 0,
-      commitment: 'confirmed'
-    });
+      commitment: 'confirmed',
+    }));
 
     if (!tx || !tx.transaction.message.accountKeys) return false;
 
@@ -315,43 +361,42 @@ async function validateWalletOnChain(wallet: string): Promise<{
   transactionCount: number;
   walletAgeDays: number;
   reason?: string;
+  rpcVerified?: boolean;
 }> {
   try {
     const pubkey = new PublicKey(wallet);
 
     // Get balance
-    const balance = await connection.getBalance(pubkey);
+    const balance = await withRetry((conn) => conn.getBalance(pubkey));
     const solBalance = balance / LAMPORTS_PER_SOL;
 
-    // Fetch larger sample of transactions (1000 = max per RPC call)
-    // This gets accurate age for 95% of wallets without pagination
+    // Reliable history check via signatures
     let signatures: Array<{ signature: string; blockTime?: number | null }> = [];
+    let rpcError = false;
+
     try {
-      signatures = await connection.getSignaturesForAddress(pubkey, { limit: 1000 });
-    } catch {
-      // If error getting signatures, wallet might be empty
-      signatures = [];
+      // Pass 1: Get signatures for detailed analysis (age, specific activities)
+      // On Solana, this is the standard way to verify account "activity"
+      signatures = await withRetry((conn) => conn.getSignaturesForAddress(pubkey, { limit: 1000 }));
+    } catch (e) {
+      console.error(`❌ [API] RPC failed to fetch signatures for ${wallet}:`, (e as Error).message);
+      rpcError = true;
     }
 
-    const transactionCount = signatures.length;
+    let transactionCount = signatures.length;
+    let walletAgeDays = 0;
 
     // Calculate wallet age from oldest transaction in sample
-    let walletAgeDays = 0;
     if (signatures.length > 0) {
       // Signatures are returned in descending order (newest first)
-      // Last element is the oldest transaction in this batch
-      const oldestSignature = signatures[signatures.length - 1];
+      const validSignatures = signatures.filter(s => s.blockTime).sort((a, b) => (a.blockTime || 0) - (b.blockTime || 0));
       
-      if (oldestSignature.blockTime) {
-        // Use blockTime directly from signature info (faster than fetching full tx)
-        walletAgeDays = Math.floor((Date.now() - oldestSignature.blockTime * 1000) / (1000 * 60 * 60 * 24));
+      if (validSignatures.length > 0 && validSignatures[0].blockTime) {
+        walletAgeDays = Math.floor((Date.now() - validSignatures[0].blockTime * 1000) / (1000 * 60 * 60 * 24));
       }
 
-      // 🚀 WHALE/ACTIVE USER BONUS:
-      // If we hit the 1,000 transaction limit, the wallet is likely much older,
-      // but the RPC limit prevents us from seeing further back.
-      // We'll treat 1,000+ tx wallets as Legacy (90+ days) automatically.
-      if (transactionCount >= 1000) {
+      // Bonus: Si llegamos al límite de 1,000 txs, es una wallet muy activa/vieja
+      if (signatures.length >= 1000) {
         walletAgeDays = Math.max(walletAgeDays, 90);
       }
     }
@@ -374,15 +419,12 @@ async function validateWalletOnChain(wallet: string): Promise<{
     // High balance threshold - users with significant SOL are clearly legitimate
     const HIGH_BALANCE_THRESHOLD = 0.1; // 0.1 SOL = ~$15-20 USD - real user investment
 
-    // 🔑 KEY INSIGHT: If wallet has ANY confirmed transactions, it's a REAL wallet
-    // This matches frontend logic which allows any wallet with confirmed activity
-    const hasConfirmedTransactions = signatures.length > 0;
-
     // ========================================
     // PRE-CHECK: Real users with any transaction history get a pass
-    // This aligns with frontend's lenient treatment of active wallets
     // ========================================
-    if (hasConfirmedTransactions) {
+    const hasHistory = transactionCount > 0;
+
+    if (hasHistory) {
       // Any wallet with confirmed transactions is considered legitimate
       console.log(`✅ [REAL USER] Wallet has ${transactionCount} confirmed transactions - auto-approved`);
       return {
@@ -391,6 +433,33 @@ async function validateWalletOnChain(wallet: string): Promise<{
         balance: solBalance,
         transactionCount,
         walletAgeDays,
+      };
+    }
+
+    // 📡 [RPC FALLBACK] Graceful handling of network outages
+    // If the signature check failed but the wallet has ANY SOL balance,
+    // we give them the benefit of the doubt rather than rejecting.
+    if (rpcError && solBalance > 0.001) {
+      console.log(`⚠️ [RPC ERROR] Verification unavailable for ${wallet} (Bal: ${solBalance}), but allowing due to non-zero balance`);
+      return {
+        isValid: true,
+        exists: true,
+        balance: solBalance,
+        transactionCount: 0, // Unknown
+        walletAgeDays: 0,   // Unknown
+        rpcVerified: false
+      };
+    }
+
+    // IF RPC COMPLETELY FAILED AND NO BALANCE FOUND
+    if (rpcError && solBalance <= 0.001) {
+      return {
+        isValid: false,
+        exists: true,
+        balance: solBalance,
+        transactionCount: 0,
+        walletAgeDays: 0,
+        reason: 'Service Connectivity Error: Could not verify wallet status. Please try again with a slightly higher balance or wait a few minutes.',
       };
     }
 
@@ -657,20 +726,18 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
 
     if (!walletValidation.isValid) {
       // SECURITY: Generic error message to prevent wallet enumeration
-      await logAuditEvent({
-        level: LogLevel.WARN,
-        eventType: EventType.WALLET_TOO_NEW,
-        message: 'Wallet validation failed',
-        wallet,
+      await logSecurityViolation(
+        EventType.WALLET_TOO_NEW,
+        `Rejection: ${walletValidation.reason}`,
         ipAddress,
         email,
-        metadata: {
-          reason: walletValidation.reason, // Keep detailed reason in logs only
+        wallet,
+        {
           balance: walletValidation.balance,
           transactionCount: walletValidation.transactionCount,
           walletAgeDays: walletValidation.walletAgeDays,
-        },
-      });
+        }
+      );
       
       return res.status(400).json({
         success: false,

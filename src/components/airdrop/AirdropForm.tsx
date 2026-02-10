@@ -105,7 +105,7 @@ function AirdropForm({
             </div>
           )}
         </div>
-        
+
         {!solanaConnected ? (
           <div className="relative">
             <div className="w-full px-4 py-3 bg-gray-800/50 border border-dashed border-gray-600 rounded-xl text-gray-400 text-sm placeholder-gray-500 cursor-not-allowed flex items-center justify-between">
@@ -153,7 +153,7 @@ function AirdropForm({
               </svg>
             ) : (
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 00-1.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             )}
             <p className="text-sm">{submitStatus.message}</p>

@@ -23,6 +23,7 @@ const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
 const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
+const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -30,7 +31,7 @@ function AppRoutes() {
     // Check connection speed using Network Information API
     const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
     const isSlowConnection = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
-    
+
     if (isSlowConnection) {
       console.log('⚠️ [Performance] Slow connection detected, skipping preload');
       return;
@@ -72,6 +73,7 @@ function AppRoutes() {
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
         <Route path="/tutorial" element={<Tutorial />} />
+        <Route path="/tokenomics" element={<Tokenomics />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

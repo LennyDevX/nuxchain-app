@@ -37,11 +37,13 @@ const getOrInitializeStartTime = (route: string, fallbackTime: string): string =
 const AIRDROP_START_TIME = '2026-02-05T06:00:00Z';
 const NFTS_START_TIME = new Date().toISOString();
 const MARKETPLACE_START_TIME = new Date().toISOString();
+const TOKENOMICS_START_TIME = new Date().toISOString();
 
 export const MAINTENANCE_CONFIG: {
   airdrop: MaintenanceRoute;
   nfts: MaintenanceRoute;
   marketplace: MaintenanceRoute;
+  tokenomics: MaintenanceRoute;
 } = {
   airdrop: {
     // Airdrop - MAINTENANCE DISABLED FOR DEV
@@ -51,36 +53,40 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),
   },
   nfts: {
-    enabled: false,
-    estimatedTime: 120,
+    enabled: true,
+    estimatedTime: 4320, // 3 days
     message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
     startTime: getOrInitializeStartTime('nfts', NFTS_START_TIME),
   },
   marketplace: {
-    enabled: false,
-    estimatedTime: 120,
+    enabled: true,
+    estimatedTime: 4320, // 3 days
     message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
     startTime: getOrInitializeStartTime('marketplace', MARKETPLACE_START_TIME),
   },
+  tokenomics: {
+    enabled: true,
+    estimatedTime: 4320, // 3 days (3 * 24 * 60)
+    message: 'Major Protocol Update: We are optimizing the $NUX Tokenomics to improve long-term sustainability and community rewards. Tokenomics 2.0 details arriving soon.',
+    startTime: getOrInitializeStartTime('tokenomics', TOKENOMICS_START_TIME),
+  },
 };
 
-export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' = 'airdrop'): boolean => {
+export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): boolean => {
   // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
-  // Evaluated dynamically each call to allow runtime changes
   const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
   if (route === 'airdrop' && devOverride) return false;
   
   const config = MAINTENANCE_CONFIG[route];
   if (!config.enabled) return false;
   
-  // Auto-disable después del tiempo estimado (solo para airdrop con 48h)
-  if (route === 'airdrop') {
+  // Auto-disable después del tiempo estimado (para airdrop y tokenomics)
+  if (route === 'airdrop' || route === 'tokenomics') {
     const startTime = new Date(config.startTime).getTime();
     const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
     const now = Date.now();
     
     if (now >= estimatedEndTime) {
-      // El tiempo expiró, desactivar mantenimiento automáticamente
       return false;
     }
   }
@@ -88,7 +94,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' = 'a
   return config.enabled;
 };
 
-export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'nfts' | 'marketplace' = 'airdrop'): number => {
+export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): number => {
   const config = MAINTENANCE_CONFIG[route];
   const startTime = new Date(config.startTime).getTime();
   const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
@@ -98,6 +104,6 @@ export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'nfts' | 'marketp
   return Math.ceil(remaining / 1000); // Return in seconds
 };
 
-export const getMaintenanceConfig = (route: 'airdrop' | 'nfts' | 'marketplace'): MaintenanceRoute => {
+export const getMaintenanceConfig = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics'): MaintenanceRoute => {
   return MAINTENANCE_CONFIG[route];
 };

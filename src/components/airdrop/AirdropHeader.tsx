@@ -9,34 +9,35 @@ interface AirdropHeaderProps {
 function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
   return (
     <div className="flex flex-col items-center text-center mb-6 sm:mb-10 animate-fadeIn">
-      {/* 1. NUX Coin Display (Smaller on Mobile) */}
-      <div className="mb-4 sm:mb-6 transform hover:scale-110 transition-transform duration-500 scale-75 sm:scale-100">
-        <NuxCoinDisplay size="xl" className="nux-coin-container drop-shadow-[0_0_35px_rgba(168,85,247,0.4)]" />
+      {/* 1. NUX Coin Display (Improved Mobile sizing) */}
+      <div className="mb-2 sm:mb-6 transform hover:scale-110 transition-transform duration-500 scale-[0.85] sm:scale-100">
+        <NuxCoinDisplay size="xl" className="nux-coin-container drop-shadow-[0_0_45px_rgba(168,85,247,0.5)]" />
       </div>
 
       {/* 2. Title */}
-      <h1 className="text-3xl sm:text-5xl lg:text-8xl font-black bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-4 sm:mb-6 tracking-tighter italic">
+      <h1 className="text-4xl sm:text-6xl lg:text-8xl font-black bg-gradient-to-b from-white via-purple-200 to-purple-400 bg-clip-text text-transparent mb-6 sm:mb-8 tracking-tighter italic drop-shadow-2xl">
         $NUX Airdrop
       </h1>
 
       {/* 3. Compact Info Pills */}
-      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center items-center mb-4 sm:mb-6 max-w-4xl">
-        <div className="flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full px-3 sm:px-5 py-1.5 sm:py-2">
-          <span className="text-purple-400 text-xs sm:text-sm font-bold">SOLANA</span>
+      <div className="flex flex-wrap gap-2.5 sm:gap-4 justify-center items-center px-4 py-2 mb-6 sm:mb-10 max-w-4xl">
+        <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 rounded-full px-4 sm:px-6 py-2 shadow-[0_0_20px_rgba(168,85,247,0.15)] backdrop-blur-md">
+          <span className="text-purple-400 text-xs sm:text-sm font-black tracking-widest">SOLANA</span>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full px-3 sm:px-5 py-1.5 sm:py-2">
-          <span className="text-blue-400 text-xs sm:text-sm font-bold">Pre-sale 18 Feb</span>
+        <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-full px-4 sm:px-6 py-2 shadow-[0_0_20px_rgba(59,130,246,0.15)] backdrop-blur-md">
+          <span className="text-blue-400 text-xs sm:text-sm font-bold tracking-tight">Pre-sale 18 Feb</span>
         </div>
       </div>
 
       {/* 4. Compact Timer */}
-      <div className="w-full max-w-md transform scale-75 sm:scale-100 -my-6 sm:my-0">
-         <CountdownTimer targetDate={airdropEndDate} compact={true} />
+      <div className="w-full max-w-md transform scale-[0.85] sm:scale-100 my-4 sm:my-8 relative">
+        <div className="absolute -inset-4 bg-purple-500/5 blur-3xl rounded-full -z-10 animate-pulse"></div>
+        <CountdownTimer targetDate={airdropEndDate} compact={true} />
       </div>
 
-      <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-gray-400 max-w-2xl font-light">
-        Get <span className="text-white font-semibold">{tokensPerUser.toLocaleString()} NUX</span>
+      <p className="mt-6 sm:mt-10 text-base sm:text-xl text-gray-400 max-w-2xl font-light tracking-wide">
+        Get <span className="text-white font-bold mx-1">{tokensPerUser.toLocaleString()} NUX</span>
       </p>
     </div>
   );

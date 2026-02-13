@@ -3,6 +3,8 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IEnhancedSmartStakingGamification.sol";
+import "../interfaces/ITreasuryManager.sol";
+import "../interfaces/IStakingIntegration.sol";
 
 /**
  * @title EnhancedSmartStakingGamification
@@ -15,11 +17,11 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     // CONSTANTS
     // ============================================
     
-    /// @notice XP per level (every 1000 XP = 1 level)
-    uint256 private constant XP_PER_LEVEL = 1000;
+    /// @notice Base XP for level calculation (Exponential: XP = 50 * Level^2)
+    uint256 private constant XP_BASE = 50;
     
-    /// @notice Maximum XP (1M = level 1000)
-    uint256 private constant MAX_XP = 1000000;
+    /// @notice Maximum Level Cap
+    uint256 private constant MAX_LEVEL_CAP = 100;
     
     /// @notice Reward expiration period (30 days default)
     uint256 private constant REWARD_EXPIRATION = 30 days;
@@ -29,6 +31,32 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     
     /// @notice Minimum compound amount (0.01 ether)
     uint256 private constant MIN_COMPOUND_AMOUNT = 0.01 ether;
+
+    // ============================================
+    // XP REWARDS - REDUCED FOR PLATFORM STABILITY
+    // ============================================
+    
+    /// @notice Staking XP divisor: 1 XP per 2 POL (reduced from 1 per POL)
+    uint256 private constant STAKING_XP_DIVISOR = 2;
+    
+    /// @notice Compound XP: 3 XP fixed (reduced from 5)
+    uint256 private constant COMPOUND_XP = 3;
+    
+    /// @notice Quest XP minimum (dynamic range 10-25)
+    uint256 private constant MIN_QUEST_XP = 10;
+    
+    /// @notice Quest XP maximum (dynamic range 10-25)
+    uint256 private constant MAX_QUEST_XP = 25;
+    
+    /// @notice Achievement XP: 100 XP fixed (reduced from 200)
+    uint256 private constant ACHIEVEMENT_XP = 100;
+
+    struct Badge {
+        uint256 id;
+        string name;
+        string description;
+        uint256 dateEarned;
+    }
     
     // ============================================
     // STATE VARIABLES
@@ -39,6 +67,15 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     
     /// @notice Address of the core staking contract
     address public coreStakingContract;
+    
+    /// @notice Address of the leveling system contract (for dynamic level-up rewards)
+    address public levelingSystemAddress;
+    
+    /// @notice Address of the Treasury Manager (for reward funding)
+    ITreasuryManager public treasuryManager;
+    
+    /// @notice Tracks if user has earned specific badge (by name hash)
+    mapping(address => mapping(bytes32 => bool)) private _userHasBadge;
     
     /// @notice Maps user address to their XP
     mapping(address => uint256) private _userXP;
@@ -69,6 +106,14 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     
     /// @notice Maps user to whether they're in auto-compound list
     mapping(address => bool) private _isInAutoCompoundList;
+
+    /// @notice Maps user to their badges
+    mapping(address => Badge[]) private _userBadges;
+
+    event RewardPaid(address indexed user, uint256 amount);
+    event RewardDeferred(address indexed user, uint16 level, uint256 amount, string reason);
+    event BadgeEarned(address indexed user, uint256 badgeId, string name);
+    event TreasuryManagerUpdated(address indexed oldAddress, address indexed newAddress);
     
     // ============================================
     // MODIFIERS
@@ -97,6 +142,8 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     // ============================================
     
     constructor() {}
+
+    receive() external payable {}
     
     // ============================================
     // ADMIN FUNCTIONS
@@ -120,6 +167,26 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
         coreStakingContract = _coreStaking;
     }
     
+    /**
+     * @notice Set the leveling system contract address
+     * @param _levelingSystem The leveling system contract address
+     */
+    function setLevelingSystemAddress(address _levelingSystem) external onlyOwner {
+        require(_levelingSystem != address(0), "Invalid address");
+        levelingSystemAddress = _levelingSystem;
+    }
+    
+    /**
+     * @notice Set the treasury manager contract address
+     * @param _treasuryManager The treasury manager contract address
+     */
+    function setTreasuryManager(address _treasuryManager) external onlyOwner {
+        require(_treasuryManager != address(0), "Invalid address");
+        address oldAddress = address(treasuryManager);
+        treasuryManager = ITreasuryManager(_treasuryManager);
+        emit TreasuryManagerUpdated(oldAddress, _treasuryManager);
+    }
+    
     // ============================================
     // XP & LEVEL FUNCTIONS
     // ============================================
@@ -138,37 +205,100 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     function _updateUserXP(address user, uint8 actionType, uint256 amount) internal {
         uint256 xpGained = 0;
 
-        // Calculate XP based on action type
+        // Calculate XP based on action type - REDUCED RATES FOR STABILITY
         if (actionType == 0) {
-            // Stake: 1 XP per 0.1 ether
-            xpGained = amount / 0.1 ether;
+            // Stake: 1 XP per 2 POL (reduced for stability, motivates larger deposits)
+            xpGained = amount / (STAKING_XP_DIVISOR * 1 ether);
+            require(xpGained > 0, "Stake amount too small for XP");
         } else if (actionType == 1) {
-            // Compound: 2 XP per 0.1 ether
-            xpGained = (amount * 2) / 0.1 ether;
+            // Compound: 3 XP fixed (reduced from 5)
+            xpGained = COMPOUND_XP;
         } else if (actionType == 2) {
-            // Quest: Fixed 100 XP
-            xpGained = 100;
+            // Quest: Dynamic 10-25 XP (passed via amount parameter)
+            require(amount >= MIN_QUEST_XP && amount <= MAX_QUEST_XP, "Quest XP out of range (10-25)");
+            xpGained = amount;
         } else if (actionType == 3) {
-            // Achievement: Fixed 250 XP
-            xpGained = 250;
+            // Achievement: Fixed 100 XP (reduced from 200)
+            xpGained = ACHIEVEMENT_XP;
         }
 
-        // Add XP with cap
+        // Add XP
         uint256 newXP = _userXP[user] + xpGained;
-        if (newXP > MAX_XP) {
-            newXP = MAX_XP;
-        }
         _userXP[user] = newXP;
 
-        // Calculate new level
-        uint16 newLevel = uint16(newXP / XP_PER_LEVEL);
+        // Calculate new level using Exponential Formula: Level = Sqrt(XP / 50)
+        uint16 newLevel = 0;
+        if (newXP >= XP_BASE) {
+            newLevel = uint16(_sqrt(newXP / XP_BASE));
+        }
+        
+        if (newLevel > MAX_LEVEL_CAP) {
+            newLevel = uint16(MAX_LEVEL_CAP);
+        }
+
         uint16 oldLevel = _userLevel[user];
 
         if (newLevel > oldLevel) {
             _userLevel[user] = newLevel;
+            emit LevelUp(user, newLevel);
+            _distributeLevelUpReward(user, newLevel);
+            
+            // Award milestone badges automatically
+            _checkAndAwardBadges(user, newLevel);
         }
 
         emit XPUpdated(user, newXP, newLevel);
+    }
+
+    function _distributeLevelUpReward(address user, uint16 newLevel) internal {
+        // Calculate reward based on LevelingSystem formula (1-5 POL per level)
+        uint256 rewardAmount = _calculateLevelUpReward(newLevel);
+
+        // Try to pay from contract balance first
+        if (address(this).balance >= rewardAmount) {
+            (bool success, ) = payable(user).call{value: rewardAmount}("");
+            if (success) {
+                emit RewardPaid(user, rewardAmount);
+                return;
+            }
+        }
+        
+        // If contract balance insufficient, try to request from Treasury
+        if (address(treasuryManager) != address(0)) {
+            try treasuryManager.requestRewardFunds(rewardAmount) returns (bool funded) {
+                if (funded && address(this).balance >= rewardAmount) {
+                    (bool success, ) = payable(user).call{value: rewardAmount}("");
+                    if (success) {
+                        emit RewardPaid(user, rewardAmount);
+                        return;
+                    }
+                }
+            } catch {
+                // Treasury request failed
+            }
+        }
+        
+        // Reward deferred - insufficient funds
+        emit RewardDeferred(user, newLevel, rewardAmount, "Insufficient funds in contract and treasury");
+    }
+    
+    /**
+     * @dev Calculate dynamic level-up reward based on level (mirrors LevelingSystem logic)
+     * Recompensas escaladas: 1-5 POL basado en nivel
+     * Formula: min(5 POL, 1 POL + (nivel / 10))
+     * 
+     * Level 1-10:  1 POL
+     * Level 11-20: 2 POL
+     * Level 21-30: 3 POL
+     * Level 31-40: 4 POL
+     * Level 41-50: 5 POL (max cap)
+     */
+    function _calculateLevelUpReward(uint16 level) internal pure returns (uint256) {
+        if (level <= 10) return 1 ether;
+        if (level <= 20) return 2 ether;
+        if (level <= 30) return 3 ether;
+        if (level <= 40) return 4 ether;
+        return 5 ether; // Max cap at level 41-50
     }
     
     /**
@@ -177,11 +307,35 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
      * @param xp The XP amount to set
      */
     function setUserXP(address user, uint256 xp) external override onlyOwner {
-        require(xp <= MAX_XP, "XP exceeds max");
         _userXP[user] = xp;
-        _userLevel[user] = uint16(xp / XP_PER_LEVEL);
         
-        emit XPUpdated(user, xp, _userLevel[user]);
+        uint16 newLevel = 0;
+        if (xp >= XP_BASE) {
+            newLevel = uint16(_sqrt(xp / XP_BASE));
+        }
+        if (newLevel > MAX_LEVEL_CAP) {
+            newLevel = uint16(MAX_LEVEL_CAP);
+        }
+        
+        _userLevel[user] = newLevel;
+        
+        emit XPUpdated(user, xp, newLevel);
+    }
+
+    /**
+     * @dev Internal square root function
+     */
+    function _sqrt(uint256 y) internal pure returns (uint256 z) {
+        if (y > 3) {
+            z = y;
+            uint256 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
+        }
     }
     
     // ============================================
@@ -189,19 +343,22 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     // ============================================
     
     /**
-     * @notice Complete a quest and award reward to user
+     * @notice Complete a quest with dynamic XP reward (10-25 XP)
      * @param user The user address
      * @param questId The quest identifier
      * @param rewardAmount The reward amount in tokens
+     * @param questXP Dynamic XP reward (10-25 based on quest difficulty)
      * @param expirationDays Days until reward expires
      */
     function completeQuest(
         address user,
         uint256 questId,
         uint256 rewardAmount,
+        uint256 questXP,
         uint256 expirationDays
     ) external override onlyMarketplace {
         require(_questRewards[user][questId].amount == 0, "Quest already completed");
+        require(questXP >= MIN_QUEST_XP && questXP <= MAX_QUEST_XP, "Quest XP out of range (10-25)");
         
         _questRewards[user][questId] = QuestReward({
             amount: rewardAmount,
@@ -211,8 +368,8 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
         
         _userQuestIds[user].push(questId);
         
-        // Award XP
-        _updateUserXP(user, 2, 0);
+        // Award dynamic XP (10-25 based on quest difficulty)
+        _updateUserXP(user, 2, questXP);
         
         emit QuestCompleted(user, questId, rewardAmount);
     }
@@ -232,6 +389,19 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
         
         // Transfer would be handled by core contract
         // This just marks as claimed
+    }
+    
+    /**
+     * @notice Mark a quest as claimed (Restricted to Rewards contract)
+     * @param user The user address
+     * @param questId The quest identifier
+     */
+    function setQuestClaimed(address user, uint256 questId) external override onlyAuthorized {
+        QuestReward storage reward = _questRewards[user][questId];
+        require(reward.amount > 0, "No reward");
+        require(!reward.claimed, "Already claimed");
+        
+        reward.claimed = true;
     }
     
     /**
@@ -370,10 +540,25 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
             return (false, 0);
         }
         
-        // Would need to query rewards from core contract
-        // For now, return placeholder
-        compoundAmount = 0; // Core would provide this
-        shouldCompound = compoundAmount >= config.minAmount;
+        // Query current rewards from Core contract
+        if (coreStakingContract != address(0)) {
+            try IStakingIntegration(coreStakingContract).getUserSkillProfile(user) {
+                // If we can reach the contract, query rewards using call
+                (bool success, bytes memory data) = coreStakingContract.staticcall(
+                    abi.encodeWithSignature("calculateRewards(address)", user)
+                );
+                if (success && data.length > 0) {
+                    compoundAmount = abi.decode(data, (uint256));
+                    shouldCompound = compoundAmount >= config.minAmount;
+                    return (shouldCompound, compoundAmount);
+                }
+            } catch {
+                // If query fails, return false
+                return (false, 0);
+            }
+        }
+        
+        return (false, 0);
     }
     
     /**
@@ -385,12 +570,14 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
         
         require(config.enabled, "Auto-compound not enabled");
         
+        // Update timestamp
         config.lastCompoundTime = block.timestamp;
         
-        // Core contract would handle the actual compounding
-        // This just updates the timestamp
+        // Award XP for auto-compound action
+        _updateUserXP(user, 1, 0); // actionType 1 = compound
         
-        emit AutoCompoundExecuted(user, 0); // Amount would come from core
+        // Core contract handles the actual compounding
+        emit AutoCompoundExecuted(user, 0); // Amount provided by Core
     }
     
     /**
@@ -424,7 +611,16 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
     ) {
         xp = _userXP[user];
         level = _userLevel[user];
-        xpToNextLevel = ((level + 1) * XP_PER_LEVEL) - xp;
+        
+        // Next level XP = 50 * (level + 1)^2
+        uint256 nextLevel = level + 1;
+        uint256 nextLevelXP = XP_BASE * (nextLevel * nextLevel);
+        
+        if (xp >= nextLevelXP) {
+            xpToNextLevel = 0;
+        } else {
+            xpToNextLevel = nextLevelXP - xp;
+        }
     }
     
     /**
@@ -433,7 +629,10 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
      * @return level The calculated level
      */
     function calculateLevel(uint256 xp) external pure override returns (uint16 level) {
-        return uint16(xp / XP_PER_LEVEL);
+        if (xp < XP_BASE) return 0;
+        level = uint16(_sqrt(xp / XP_BASE));
+        if (level > MAX_LEVEL_CAP) level = uint16(MAX_LEVEL_CAP);
+        return level;
     }
     
     /**
@@ -442,7 +641,7 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
      * @return xp The XP required
      */
     function getXPForLevel(uint16 level) external pure override returns (uint256 xp) {
-        return uint256(level) * XP_PER_LEVEL;
+        return XP_BASE * (uint256(level) * uint256(level));
     }
     
     // ============================================
@@ -587,5 +786,130 @@ contract EnhancedSmartStakingGamification is Ownable, IEnhancedSmartStakingGamif
             _isInAutoCompoundList[user] = false;
             delete _autoCompoundIndex[user];
         }
+    }
+    
+    // ════════════════════════════════════════════════════════════════════════════════════════
+    // EVENTS (Inherited from IEnhancedSmartStakingGamification)
+    // ════════════════════════════════════════════════════════════════════════════════════════
+    
+    event LevelUp(address indexed user, uint16 newLevel);
+
+    /**
+     * @notice Award a badge to a user
+     * @param user The user address
+     * @param id The badge ID
+     * @param name The badge name
+     * @param description The badge description
+     */
+    function awardBadge(address user, uint256 id, string memory name, string memory description) external onlyAuthorized {
+        _userBadges[user].push(Badge({
+            id: id,
+            name: name,
+            description: description,
+            dateEarned: block.timestamp
+        }));
+        emit BadgeEarned(user, id, name);
+    }
+
+    /**
+     * @notice Get user badges
+     * @param user The user address
+     * @return badges Array of user badges
+     */
+    function getUserBadges(address user) external view returns (Badge[] memory) {
+        return _userBadges[user];
+    }
+    
+    // ============================================
+    // INTERNAL BADGE AUTOMATION
+    // ============================================
+    
+    /**
+     * @notice Check and award milestone badges automatically
+     * @param user The user address
+     * @param newLevel The new level reached
+     */
+    function _checkAndAwardBadges(address user, uint16 newLevel) internal {
+        // Level Milestone Badges
+        if (newLevel == 10 && !_hasBadge(user, "LEVEL_10")) {
+            _awardBadgeInternal(user, 1, "Level 10 Achieved", "Reached level 10 milestone");
+        }
+        
+        if (newLevel == 25 && !_hasBadge(user, "LEVEL_25")) {
+            _awardBadgeInternal(user, 2, "Level 25 Pro", "Reached level 25 milestone");
+        }
+        
+        if (newLevel == 50 && !_hasBadge(user, "LEVEL_50")) {
+            _awardBadgeInternal(user, 3, "Level 50 Legend", "Reached maximum level 50");
+        }
+        
+        if (newLevel == 100 && !_hasBadge(user, "LEVEL_100")) {
+            _awardBadgeInternal(user, 4, "Level 100 Master", "Reached ultimate level 100");
+        }
+        
+        // Quest-based badges
+        uint256 questCount = _userQuestIds[user].length;
+        if (questCount >= 10 && !_hasBadge(user, "QUEST_MASTER")) {
+            _awardBadgeInternal(user, 10, "Quest Master", "Completed 10 quests");
+        }
+        
+        if (questCount >= 50 && !_hasBadge(user, "QUEST_LEGEND")) {
+            _awardBadgeInternal(user, 11, "Quest Legend", "Completed 50 quests");
+        }
+        
+        // Achievement-based badges
+        uint256 achievementCount = _userAchievementIds[user].length;
+        if (achievementCount >= 5 && !_hasBadge(user, "ACHIEVER")) {
+            _awardBadgeInternal(user, 20, "Achiever", "Unlocked 5 achievements");
+        }
+        
+        if (achievementCount >= 20 && !_hasBadge(user, "ACHIEVEMENT_HUNTER")) {
+            _awardBadgeInternal(user, 21, "Achievement Hunter", "Unlocked 20 achievements");
+        }
+    }
+    
+    /**
+     * @notice Check if user has a specific badge
+     * @param user The user address
+     * @param badgeName The badge name identifier
+     * @return has True if user has the badge
+     */
+    function _hasBadge(address user, string memory badgeName) internal view returns (bool) {
+        bytes32 badgeHash = keccak256(bytes(badgeName));
+        return _userHasBadge[user][badgeHash];
+    }
+    
+    /**
+     * @notice Internal function to award badge
+     * @param user The user address
+     * @param id The badge ID
+     * @param name The badge name
+     * @param description The badge description
+     */
+    function _awardBadgeInternal(address user, uint256 id, string memory name, string memory description) internal {
+        bytes32 badgeHash = keccak256(bytes(name));
+        
+        // Prevent duplicate badges
+        if (_userHasBadge[user][badgeHash]) return;
+        
+        _userHasBadge[user][badgeHash] = true;
+        
+        _userBadges[user].push(Badge({
+            id: id,
+            name: name,
+            description: description,
+            dateEarned: block.timestamp
+        }));
+        
+        emit BadgeEarned(user, id, name);
+    }
+    
+    /**
+     * @notice Get total badges count for a user
+     * @param user The user address
+     * @return count Total badges earned
+     */
+    function getUserBadgeCount(address user) external view returns (uint256) {
+        return _userBadges[user].length;
     }
 }

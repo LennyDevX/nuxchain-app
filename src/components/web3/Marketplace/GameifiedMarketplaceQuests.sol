@@ -16,7 +16,7 @@ import "../interfaces/IStakingIntegration.sol";
  * - Notificar al staking sobre quests completadas
  */
 
-interface IGameifiedMarketplaceCore {
+interface ILevelingSystem {
     struct UserProfile {
         uint256 totalXP;
         uint8 level;
@@ -25,9 +25,9 @@ interface IGameifiedMarketplaceCore {
         uint32 nftsSold;
         uint32 nftsBought;
     }
-    
-    function userProfiles(address) external view returns (UserProfile memory);
-    function updateUserXP(address _user, uint256 _amount) external;
+    function getUserProfile(address user) external view returns (UserProfile memory);
+    function updateUserXP(address user, uint256 xpAmount, string memory reason) external;
+    function recordNFTCreatedBatch(address creator, uint256 count) external returns (uint256);
 }
 
 contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard {
@@ -78,6 +78,7 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
     
     address public coreContractAddress;
     address public stakingContractAddress;
+    address public levelingContractAddress;
     
     event QuestCreated(uint256 indexed questId, QuestType questType, string title, uint256 requirement, uint256 xpReward);
     event QuestCompleted(address indexed user, uint256 indexed questId, uint256 xpReward);
@@ -86,6 +87,7 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
     event SocialActionRecorded(address indexed user, uint256 newTotal);
     event CoreContractUpdated(address indexed oldCore, address indexed newCore);
     event StakingContractUpdated(address indexed oldStaking, address indexed newStaking);
+    event LevelingContractUpdated(address indexed oldLeveling, address indexed newLeveling);
 
     error QuestNotFound();
     error QuestNotActive();
@@ -95,6 +97,7 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
     error InvalidRequirement();
     error InvalidXPReward();
     error InvalidMetadata();
+    error LevelingContractNotSet();
 
     constructor(address _coreAddress) {
         if (_coreAddress == address(0)) revert InvalidAddress();
@@ -175,7 +178,9 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
         
         userCompletedQuests[msg.sender].push(_questId);
         
-        IGameifiedMarketplaceCore(coreContractAddress).updateUserXP(msg.sender, quest.xpReward);
+        if (levelingContractAddress != address(0)) {
+            ILevelingSystem(levelingContractAddress).updateUserXP(msg.sender, quest.xpReward, "QUEST_COMPLETED");
+        }
         
         // Notificar al staking sobre la quest completada
         if (stakingContractAddress != address(0)) {
@@ -217,11 +222,10 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
             return userSocialActions[_user];
         }
         
-        // Para otros tipos, consultar core contract
-        if (coreContractAddress == address(0)) return 0;
+        // Para otros tipos, consultar leveling contract
+        if (levelingContractAddress == address(0)) return 0;
         
-        IGameifiedMarketplaceCore core = IGameifiedMarketplaceCore(coreContractAddress);
-        IGameifiedMarketplaceCore.UserProfile memory profile = core.userProfiles(_user);
+        ILevelingSystem.UserProfile memory profile = ILevelingSystem(levelingContractAddress).getUserProfile(_user);
         
         if (_quest.questType == QuestType.PURCHASE) {
             return profile.nftsBought;
@@ -378,6 +382,153 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
     }
 
     // ════════════════════════════════════════════════════════════════════════════════════════
+    // DASHBOARD VIEW FUNCTIONS
+    // ════════════════════════════════════════════════════════════════════════════════════════
+
+    /**
+     * @dev Get quest system statistics
+     */
+    function getQuestSystemStats() external view returns (
+        uint256 totalQuests,
+        uint256 activeQuests,
+        uint256 totalCompletions,
+        uint256 totalXPAwarded,
+        uint256 averageCompletionRate
+    ) {
+        uint256 questCount = _questIdCounter.current();
+        totalQuests = questCount;
+        uint256 activeCount = 0;
+        uint256 completionCount = 0;
+        uint256 xpSum = 0;
+        
+        for (uint256 i = 0; i < questCount; i++) {
+            if (quests[i].active) {
+                activeCount++;
+            }
+            xpSum += quests[i].xpReward;
+        }
+        
+        activeQuests = activeCount;
+        totalXPAwarded = xpSum;
+        
+        // Count total completions (approximation)
+        for (uint256 i = 0; i < questCount; i++) {
+            // This is a simplified count - full implementation would need event tracking
+            completionCount += 0;
+        }
+        
+        totalCompletions = completionCount;
+        averageCompletionRate = questCount > 0 ? (completionCount * 100) / questCount : 0;
+    }
+
+    /**
+     * @dev Get user quest statistics
+     */
+    function getUserQuestStats(address _user) external view returns (
+        uint256 totalCompleted,
+        uint256 totalInProgress,
+        uint256 totalXPEarned,
+        uint256 completionRate,
+        QuestType favoriteType
+    ) {
+        totalCompleted = userCompletedQuests[_user].length;
+        
+        uint256 questCount = _questIdCounter.current();
+        uint256 inProgressCount = 0;
+        uint256 xpEarned = 0;
+        
+        for (uint256 i = 0; i < questCount; i++) {
+            UserQuestProgress memory progress = userQuestProgress[_user][i];
+            if (progress.completed) {
+                xpEarned += quests[i].xpReward;
+            } else if (progress.currentProgress > 0) {
+                inProgressCount++;
+            }
+        }
+        
+        totalInProgress = inProgressCount;
+        totalXPEarned = xpEarned;
+        completionRate = questCount > 0 ? (totalCompleted * 100) / questCount : 0;
+        favoriteType = QuestType.PURCHASE;
+    }
+
+    /**
+     * @dev Get most popular quests
+     */
+    function getMostPopularQuests(uint256 _limit) external view returns (
+        uint256[] memory questIds,
+        uint256[] memory completionCounts,
+        string[] memory titles
+    ) {
+        uint256 questCount = _questIdCounter.current();
+        uint256 resultSize = _limit < questCount ? _limit : questCount;
+        
+        questIds = new uint256[](resultSize);
+        completionCounts = new uint256[](resultSize);
+        titles = new string[](resultSize);
+        
+        // Simplified: return active quests (full implementation needs completion tracking)
+        uint256 index = 0;
+        for (uint256 i = 0; i < questCount && index < resultSize; i++) {
+            if (quests[i].active) {
+                questIds[index] = i;
+                completionCounts[index] = 0;
+                titles[index] = quests[i].title;
+                index++;
+            }
+        }
+    }
+
+    /**
+     * @dev Get user's incomplete quests with progress
+     */
+    function getUserIncompleteQuests(address _user) external view returns (
+        uint256[] memory questIds,
+        Quest[] memory questData,
+        uint256[] memory progressPercentages
+    ) {
+        uint256 questCount = _questIdCounter.current();
+        uint256 incompleteCount = 0;
+        
+        for (uint256 i = 0; i < questCount; i++) {
+            if (quests[i].active && !userQuestProgress[_user][i].completed) {
+                incompleteCount++;
+            }
+        }
+        
+        questIds = new uint256[](incompleteCount);
+        questData = new Quest[](incompleteCount);
+        progressPercentages = new uint256[](incompleteCount);
+        uint256 index = 0;
+        
+        for (uint256 i = 0; i < questCount; i++) {
+            if (quests[i].active && !userQuestProgress[_user][i].completed) {
+                questIds[index] = i;
+                questData[index] = quests[i];
+                
+                uint256 current = userQuestProgress[_user][i].currentProgress;
+                uint256 required = quests[i].requirement;
+                progressPercentages[index] = required > 0 ? (current * 100) / required : 0;
+                index++;
+            }
+        }
+    }
+
+    /**
+     * @dev Get quest leaderboard
+     */
+    function getQuestLeaderboard(uint256 _limit) external pure returns (
+        address[] memory users,
+        uint256[] memory completedCounts,
+        uint256[] memory totalXP
+    ) {
+        // Simplified leaderboard (returns empty arrays - needs tracking implementation)
+        users = new address[](_limit);
+        completedCounts = new uint256[](_limit);
+        totalXP = new uint256[](_limit);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════════════════
     // ADMIN FUNCTIONS
     // ════════════════════════════════════════════════════════════════════════════════════════
 
@@ -401,6 +552,17 @@ contract GameifiedMarketplaceQuests is AccessControl, Pausable, ReentrancyGuard 
         address oldStaking = stakingContractAddress;
         stakingContractAddress = _stakingAddress;
         emit StakingContractUpdated(oldStaking, _stakingAddress);
+    }
+
+    /**
+     * @dev Set leveling contract address
+     * @param _levelingAddress Address of leveling contract
+     */
+    function setLevelingContract(address _levelingAddress) external onlyRole(ADMIN_ROLE) {
+        if (_levelingAddress == address(0)) revert InvalidAddress();
+        address oldLeveling = levelingContractAddress;
+        levelingContractAddress = _levelingAddress;
+        emit LevelingContractUpdated(oldLeveling, _levelingAddress);
     }
 
     function pause() external onlyRole(ADMIN_ROLE) {

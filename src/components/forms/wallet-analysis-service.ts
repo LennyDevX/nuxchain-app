@@ -42,10 +42,11 @@ let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], {
 });
 
 // Minimum thresholds for legitimate wallets
+// SYNCHRONIZED WITH BACKEND (Feb 2026) - Must match api/airdrop/validate-and-register.ts
 export const WALLET_THRESHOLDS = {
   MIN_BALANCE: 0.01, // Minimum 0.01 SOL (very permissive)
   MIN_TX_COUNT: 1, // At least 1 transaction
-  MIN_WALLET_AGE_DAYS: 2, // Wallet must be at least 2 days old (REDUCED from 3 for flexibility)
+  MIN_WALLET_AGE_DAYS: 3, // Wallet must be at least 3 days old - SYNCED WITH BACKEND
   MIN_TX_COUNT_FOR_NEW_WALLETS: 1, // Very flexible
   MAX_LAMPORTS_PER_SOL: LAMPORTS_PER_SOL,
 };

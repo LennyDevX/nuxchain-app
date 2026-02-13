@@ -64,23 +64,35 @@ function CountdownTimer({ targetDate, onExpire, compact = false }: CountdownTime
   // Compact mode for header
   if (compact) {
     return (
-      <div className="flex gap-2 sm:gap-4 justify-center items-center">
+      <div className="flex gap-2.5 sm:gap-4 justify-center items-center">
         {[
-          { label: 'd', value: timeLeft.days },
-          { label: 'h', value: timeLeft.hours },
-          { label: 'm', value: timeLeft.minutes },
-          { label: 's', value: timeLeft.seconds },
+          { label: 'D', value: timeLeft.days },
+          { label: 'H', value: timeLeft.hours },
+          { label: 'M', value: timeLeft.minutes },
+          { label: 'S', value: timeLeft.seconds },
         ].map((unit, index) => (
           <div key={unit.label} className="flex items-center">
             <div className="flex flex-col items-center">
-              <div className="bg-gray-900/60 backdrop-blur-md rounded-lg px-2 sm:px-3 py-1 border border-gray-700/50">
-                <span className="text-lg sm:text-2xl font-bold bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent tabular-nums">
-                  {String(unit.value).padStart(2, '0')}
-                </span>
-                <span className="ml-1 text-[10px] sm:text-xs text-purple-400 font-bold uppercase">{unit.label}</span>
+              <div className="relative group overflow-hidden bg-gray-900/80 backdrop-blur-xl rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-purple-500/30 transition-all duration-300">
+                {/* Subtle internal gradient */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl sm:text-3xl font-black bg-gradient-to-b from-white via-white to-purple-200 bg-clip-text text-transparent tabular-nums drop-shadow-sm">
+                    {String(unit.value).padStart(2, '0')}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-purple-400 font-black uppercase tracking-tighter opacity-80">
+                    {unit.label}
+                  </span>
+                </div>
               </div>
             </div>
-            {index < 3 && <span className="ml-2 sm:ml-4 text-gray-600 font-light opacity-50">:</span>}
+            {index < 3 && (
+              <div className="mx-0.5 sm:mx-1 flex flex-col gap-1.5 opacity-30">
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse"></div>
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Doughnut } from 'react-chartjs-2';
 import {
@@ -200,8 +200,290 @@ const Tokenomics: React.FC = () => {
                         </motion.div>
                     </motion.div>
                 </div>
+
+                {/* Polygon Economy Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.6 }}
+                    className={`${isMobile ? 'mt-12' : 'mt-24'}`}
+                >
+                    <PolygonEconomySection isMobile={isMobile} />
+                </motion.div>
             </div>
         </GlobalBackground>
+    );
+};
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// POLYGON ECONOMY SECTION COMPONENT
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+interface EconomyFeature {
+    id: string;
+    title: string;
+    description: string;
+    metrics: { label: string; value: string; }[];
+    gradient: string;
+    icon: string;
+}
+
+const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
+    const [activeFeature, setActiveFeature] = useState<string>('staking');
+
+    const economyFeatures: EconomyFeature[] = [
+        {
+            id: 'staking',
+            title: 'Smart Staking',
+            description: 'Stake POL tokens and earn rewards with skill-based multipliers',
+            metrics: [
+                { label: 'Platform Fee', value: '6%' },
+                { label: 'Base APY', value: 'Dynamic' },
+                { label: 'Max Boost', value: '+200%' },
+            ],
+            gradient: 'from-purple-500/20 via-purple-500/10 to-transparent',
+            icon: '📈'
+        },
+        {
+            id: 'marketplace',
+            title: 'NFT Marketplace',
+            description: 'Mint, buy, and sell NFTs with integrated XP and leveling system',
+            metrics: [
+                { label: 'Platform Fee', value: '6%' },
+                { label: 'Royalties', value: 'Customizable' },
+                { label: 'Max Level', value: '50' },
+            ],
+            gradient: 'from-blue-500/20 via-blue-500/10 to-transparent',
+            icon: '🎨'
+        },
+        {
+            id: 'skills',
+            title: 'Skills System',
+            description: 'Purchase and activate skills to enhance staking rewards and marketplace features',
+            metrics: [
+                { label: 'Skill Types', value: '17' },
+                { label: 'Rarities', value: '5 Levels' },
+                { label: 'Price Range', value: '50-286 POL' },
+            ],
+            gradient: 'from-emerald-500/20 via-emerald-500/10 to-transparent',
+            icon: '⚡'
+        },
+        {
+            id: 'quests',
+            title: 'Quest Rewards',
+            description: 'Complete quests to earn XP and level up your profile',
+            metrics: [
+                { label: 'Quest Types', value: '5' },
+                { label: 'Max XP/Quest', value: '50,000' },
+                { label: 'Duration', value: 'Ongoing' },
+            ],
+            gradient: 'from-pink-500/20 via-pink-500/10 to-transparent',
+            icon: '🎯'
+        },
+    ];
+
+    const revenueStreams = [
+        { source: 'Staking Fees', percentage: 6, description: '6% fee on staking deposits', color: 'bg-purple-500' },
+        { source: 'NFT Sales', percentage: 6, description: '6% platform fee on NFT transactions', color: 'bg-blue-500' },
+        { source: 'Skills Sales', percentage: 'Variable', description: '50-286 POL per skill (17 types × 5 rarities)', color: 'bg-emerald-500' },
+        { source: 'Premium NFTs', percentage: 'Market', description: 'NFTs with pre-applied skills and bonuses', color: 'bg-pink-500' },
+    ];
+
+    return (
+        <div className="relative">
+            {/* Section Header */}
+            <div className="text-center mb-10 sm:mb-16 relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-blue-500/10 blur-[80px] sm:blur-[100px] rounded-full -z-10" />
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                >
+                    <div className="inline-block mb-4">
+                        <span className={`px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 font-bold uppercase tracking-wider ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                            Polygon Network
+                        </span>
+                    </div>
+                    <h2 className={`font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-2xl' : 'text-5xl tracking-tight'}`}>
+                        Ecosystem Economy
+                    </h2>
+                    <p className={`text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-xs px-4' : 'text-base'}`}>
+                        A comprehensive DeFi and NFT ecosystem on Polygon with staking, marketplace, skills, and gamification
+                    </p>
+                </motion.div>
+            </div>
+
+            {/* Economy Features Grid */}
+            <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-4'} mb-12`}>
+                {economyFeatures.map((feature, idx) => (
+                    <EconomyFeatureCard
+                        key={feature.id}
+                        feature={feature}
+                        isActive={activeFeature === feature.id}
+                        onClick={() => setActiveFeature(feature.id)}
+                        delay={idx * 0.1}
+                        isMobile={isMobile}
+                    />
+                ))}
+            </div>
+
+            {/* Feature Detail Panel */}
+            <motion.div
+                key={activeFeature}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className={`card-unified border-white/20 backdrop-blur-xl mb-12 ${isMobile ? 'p-6' : 'p-8'}`}
+            >
+                <EconomyDetail featureId={activeFeature} isMobile={isMobile} />
+            </motion.div>
+
+            {/* Revenue Streams */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className={`card-unified border-white/20 backdrop-blur-xl ${isMobile ? 'p-6' : 'p-8'}`}
+            >
+                <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white mb-6 flex items-center gap-3`}>
+                    <span className="text-2xl">💰</span> Revenue Streams
+                </h3>
+                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                    {revenueStreams.map((stream, idx) => (
+                        <motion.div
+                            key={stream.source}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                        >
+                            <div className={`w-1 h-full ${stream.color} rounded-full`} />
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-white`}>{stream.source}</h4>
+                                    <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-black text-emerald-400`}>{stream.percentage}{typeof stream.percentage === 'number' ? '%' : ''}</span>
+                                </div>
+                                <p className="text-slate-400 text-xs">{stream.description}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// ECONOMY FEATURE CARD
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+const EconomyFeatureCard: React.FC<{
+    feature: EconomyFeature;
+    isActive: boolean;
+    onClick: () => void;
+    delay: number;
+    isMobile: boolean;
+}> = ({ feature, isActive, onClick, delay, isMobile }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay }}
+        whileHover={{ y: -4 }}
+        onClick={onClick}
+        className={`relative overflow-hidden p-6 rounded-2xl border cursor-pointer transition-all duration-300 ${
+            isActive
+                ? 'bg-white/10 border-white/30 shadow-lg shadow-white/10'
+                : 'bg-white/5 border-white/10 hover:bg-white/8'
+        }`}
+    >
+        <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-50`} />
+        <div className="relative z-10">
+            <div className="text-4xl mb-3">{feature.icon}</div>
+            <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-white mb-2`}>{feature.title}</h3>
+            <p className="text-slate-400 text-xs mb-4 line-clamp-2">{feature.description}</p>
+            <div className="space-y-2">
+                {feature.metrics.map((metric, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs">
+                        <span className="text-slate-500">{metric.label}</span>
+                        <span className="font-bold text-white">{metric.value}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </motion.div>
+);
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// ECONOMY DETAIL PANEL
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+const EconomyDetail: React.FC<{ featureId: string; isMobile: boolean }> = ({ featureId, isMobile }) => {
+    const details: Record<string, { title: string; items: { icon: string; title: string; description: string; }[] }> = {
+        staking: {
+            title: 'Smart Staking Features',
+            items: [
+                { icon: '🔒', title: 'Flexible Lockup', description: 'Stake with customizable lockup durations for higher rewards' },
+                { icon: '⚡', title: 'Skill Multipliers', description: 'Activate staking skills to boost rewards up to 200%' },
+                { icon: '🔄', title: 'Auto-Compound', description: 'Enable auto-compounding skill for passive growth' },
+                { icon: '💎', title: 'Fee Reduction', description: 'Reduce platform fees with premium skills' },
+            ]
+        },
+        marketplace: {
+            title: 'NFT Marketplace Features',
+            items: [
+                { icon: '🎨', title: 'NFT Minting', description: 'Create and mint unique NFTs with metadata and royalties' },
+                { icon: '💰', title: 'Buy & Sell', description: 'Trade NFTs with 6% platform fee on all transactions' },
+                { icon: '⭐', title: 'XP & Leveling', description: 'Earn XP from activities and level up to unlock features' },
+                { icon: '🏆', title: 'Premium NFTs', description: 'Special NFTs with pre-applied skills and bonuses' },
+            ]
+        },
+        skills: {
+            title: 'Skills System Overview',
+            items: [
+                { icon: '📊', title: '17 Skill Types', description: '7 Staking Skills + 10 Active Skills for diverse strategies' },
+                { icon: '🌟', title: '5 Rarity Tiers', description: 'Common (50 POL) to Legendary (286 POL)' },
+                { icon: '⏰', title: '30-Day Duration', description: 'All skills expire after 30 days and can be renewed' },
+                { icon: '🎁', title: 'Transferable', description: 'Gift skills to other users within the ecosystem' },
+            ]
+        },
+        quests: {
+            title: 'Quest & Rewards System',
+            items: [
+                { icon: '🛒', title: 'Purchase Quests', description: 'Buy NFTs to complete trading quests' },
+                { icon: '✨', title: 'Creation Quests', description: 'Mint NFTs to unlock creator achievements' },
+                { icon: '❤️', title: 'Social Quests', description: 'Like and comment to build community engagement' },
+                { icon: '📈', title: 'Level Up Quests', description: 'Reach milestones to earn bonus XP' },
+            ]
+        },
+    };
+
+    const detail = details[featureId];
+
+    return (
+        <div>
+            <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white mb-6`}>{detail.title}</h3>
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                {detail.items.map((item, idx) => (
+                    <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="flex items-start gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                    >
+                        <div className="text-2xl shrink-0">{item.icon}</div>
+                        <div>
+                            <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-white mb-1`}>{item.title}</h4>
+                            <p className="text-slate-400 text-xs">{item.description}</p>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        </div>
     );
 };
 

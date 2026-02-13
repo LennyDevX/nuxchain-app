@@ -66,16 +66,18 @@ interface IEnhancedSmartStakingGamification {
     // ============================================
     
     /**
-     * @notice Complete a quest and award reward to user
+     * @notice Complete a quest with dynamic XP reward (10-25 XP)
      * @param user The user address
      * @param questId The quest identifier
      * @param rewardAmount The reward amount in tokens
+     * @param questXP Dynamic XP reward (10-25 based on quest difficulty)
      * @param expirationDays Days until reward expires
      */
     function completeQuest(
         address user,
         uint256 questId,
         uint256 rewardAmount,
+        uint256 questXP,
         uint256 expirationDays
     ) external;
     
@@ -84,6 +86,13 @@ interface IEnhancedSmartStakingGamification {
      * @param questId The quest identifier
      */
     function claimQuestReward(uint256 questId) external;
+    
+    /**
+     * @notice Mark a quest as claimed (Restricted to Rewards contract)
+     * @param user The user address
+     * @param questId The quest identifier
+     */
+    function setQuestClaimed(address user, uint256 questId) external;
     
     /**
      * @notice Check and expire unclaimed quest rewards

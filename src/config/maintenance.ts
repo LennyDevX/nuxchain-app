@@ -66,7 +66,7 @@ export const MAINTENANCE_CONFIG: {
   },
   tokenomics: {
     enabled: true,
-    estimatedTime: 4320, // 3 days (3 * 24 * 60)
+    estimatedTime: 7200, // 5 days (5 * 24 * 60)
     message: 'Major Protocol Update: We are optimizing the $NUX Tokenomics to improve long-term sustainability and community rewards. Tokenomics 2.0 details arriving soon.',
     startTime: getOrInitializeStartTime('tokenomics', TOKENOMICS_START_TIME),
   },

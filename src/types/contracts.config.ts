@@ -1,7 +1,7 @@
 /**
  * Contract Configuration para Frontend
  * Direcciones y ABIs - Polygon Mainnet
- * Fecha: 11 de Noviembre de 2025
+ * Fecha: 13 de Febrero de 2026
  */
 
 // ============================================
@@ -13,6 +13,10 @@ export interface ContractAddresses {
   GameifiedMarketplaceSkills: string; // Módulo de Skills
   GameifiedMarketplaceQuests: string; // Módulo de Quests
   EnhancedSmartStaking: string;       // Staking contract
+  EnhancedSmartStakingViewer: string; // View contract (read-only analytics)
+  DynamicAPYCalculator: string;       // Dynamic APY based on TVL
+  TreasuryManager: string;            // Treasury fund management
+  CollaboratorBadgeRewards: string;   // Collaborator rewards system
 }
 
 export interface UserProfile {
@@ -143,6 +147,30 @@ export const CONTRACT_ADDRESSES: ContractAddresses = {
   EnhancedSmartStaking: validateContractAddress(
     import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS,
     'VITE_ENHANCED_SMARTSTAKING_ADDRESS'
+  ),
+  
+  // Staking View - Analytics read-only contract
+  EnhancedSmartStakingViewer: validateContractAddress(
+    import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS,
+    'VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS'
+  ),
+  
+  // Phase 1: Dynamic APY Calculator - TVL-based APY adjustment
+  DynamicAPYCalculator: validateContractAddress(
+    import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS,
+    'VITE_DYNAMIC_APY_CALCULATOR_ADDRESS'
+  ),
+  
+  // Phase 2: Treasury Manager - Fund allocation & reserves
+  TreasuryManager: validateContractAddress(
+    import.meta.env.VITE_TREASURY_MANAGER_ADDRESS,
+    'VITE_TREASURY_MANAGER_ADDRESS'
+  ),
+  
+  // Collaborator Badge Rewards - Community rewards system
+  CollaboratorBadgeRewards: validateContractAddress(
+    import.meta.env.VITE_COLLABORATOR_BADGE_REWARDS_ADDRESS,
+    'VITE_COLLABORATOR_BADGE_REWARDS_ADDRESS'
   )
 };
 

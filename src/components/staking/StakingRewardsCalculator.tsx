@@ -1,6 +1,7 @@
 import { useState, useMemo, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatEther, parseEther } from 'viem'
+import { useDynamicAPY } from '../../hooks/apy/useDynamicAPY'
 
 interface RewardCalculation {
   dailyReward: string
@@ -14,15 +15,16 @@ interface RewardCalculation {
 interface StakingRewardsCalculatorProps {
   defaultAmount?: number
   className?: string
+  currentTVL?: bigint
 }
 
-// APY rates - Updated December 2024
+// APY rates - Updated Feb 2025 (25% reduction across all periods)
 const PERIODS = [
-  { key: 'flex', days: 0, apy: 26.3, label: '0d' },
-  { key: '30d', days: 30, apy: 43.8, label: '30d' },
-  { key: '90d', days: 90, apy: 78.8, label: '90d' },
-  { key: '180d', days: 180, apy: 105.1, label: '180d' },
-  { key: '365d', days: 365, apy: 157.7, label: '365d' }
+  { key: 'flex', days: 0, apy: 19.7, label: '0d' },
+  { key: '30d', days: 30, apy: 32.9, label: '30d' },
+  { key: '90d', days: 90, apy: 59.1, label: '90d' },
+  { key: '180d', days: 180, apy: 78.8, label: '180d' },
+  { key: '365d', days: 365, apy: 118.3, label: '365d' }
 ]
 
 // Skills that affect staking rewards - Based on IStakingIntegration.sol
@@ -36,12 +38,27 @@ const STAKING_SKILLS = [
   { id: 'FEE_REDUCER_II', name: 'Fee Reducer II', emoji: '💸', bonus: 25, type: 'fee' },
 ]
 
-const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }: StakingRewardsCalculatorProps) => {
+const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '', currentTVL }: StakingRewardsCalculatorProps) => {
   const [stakingAmount, setStakingAmount] = useState<number>(defaultAmount)
   const [inputValue, setInputValue] = useState<string>(defaultAmount.toString())
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1) // Default: 30d
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [isExpanded, setIsExpanded] = useState<boolean>(false)
+  const [useDynamic, setUseDynamic] = useState<boolean>(true)
+
+  // Phase 1: Dynamic APY from contract
+  const { dynamicRates, isEnabled: dynamicEnabled, multiplier } = useDynamicAPY(currentTVL)
+
+  // Merge dynamic rates into periods when available
+  const effectivePeriods = useMemo(() => {
+    if (useDynamic && dynamicEnabled && dynamicRates.length > 0) {
+      return PERIODS.map((p, i) => ({
+        ...p,
+        apy: dynamicRates[i]?.dynamicAPY ?? p.apy,
+      }))
+    }
+    return PERIODS
+  }, [useDynamic, dynamicEnabled, dynamicRates])
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +110,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }:
 
   // Calculate rewards
   const calculation = useMemo((): RewardCalculation => {
-    const period = PERIODS[selectedPeriod]
+    const period = effectivePeriods[selectedPeriod]
     const baseAmount = parseEther(stakingAmount.toString())
     const baseAPY = period.apy
     const effectiveAPY = baseAPY + skillBonuses.totalBonus
@@ -113,7 +130,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }:
       apy: baseAPY,
       effectiveAPY
     }
-  }, [stakingAmount, selectedPeriod, skillBonuses.totalBonus])
+  }, [stakingAmount, selectedPeriod, skillBonuses.totalBonus, effectivePeriods])
 
   const formatAmount = (value: string): string => {
     const num = parseFloat(value)
@@ -122,7 +139,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }:
     return num.toFixed(4)
   }
 
-  const period = PERIODS[selectedPeriod]
+  const period = effectivePeriods[selectedPeriod]
 
   return (
     <motion.div
@@ -137,18 +154,33 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }:
           <span className="text-indigo-400 text-lg">🧮</span>
           <h4 className="text-sm font-semibold text-white">Rewards Calculator</h4>
         </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
-        >
-          <motion.span
-            className="text-white/50 text-sm inline-block"
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+        <div className="flex items-center gap-1.5">
+          {/* Dynamic/Static toggle */}
+          {dynamicEnabled && (
+            <button
+              onClick={() => setUseDynamic(!useDynamic)}
+              className={`px-2 py-0.5 rounded-full text-[10px] font-medium transition-all border ${
+                useDynamic
+                  ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+                  : 'bg-white/5 text-white/40 border-white/10'
+              }`}
+            >
+              {useDynamic ? `⚡ ${multiplier}` : '📊 Static'}
+            </button>
+          )}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
           >
-            ▼
-          </motion.span>
-        </button>
+            <motion.span
+              className="text-white/50 text-sm inline-block"
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              ▼
+            </motion.span>
+          </button>
+        </div>
       </div>
 
       {/* Amount Input - Always visible */}
@@ -170,7 +202,7 @@ const StakingRewardsCalculator = memo(({ defaultAmount = 1000, className = '' }:
 
       {/* Period Selector */}
       <div className="flex gap-1 mb-4 p-1 bg-white/5 rounded-lg">
-        {PERIODS.map((p, index) => (
+        {effectivePeriods.map((p, index) => (
           <button
             key={p.key}
             onClick={() => setSelectedPeriod(index)}

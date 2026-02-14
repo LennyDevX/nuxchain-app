@@ -76,8 +76,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         pending: formatEther(pendingRewards),
         accumulated: formatEther(totalRewardsClaimed),
         claimed: formatEther(totalRewardsClaimed),
-        baseAPY: 26.3,
-        finalAPY: 26.3
+        baseAPY: 19.7,
+        finalAPY: 19.7
       })
     }
   }, [pendingRewards, totalRewardsClaimed])
@@ -753,51 +753,51 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 {
                   value: "0",
                   label: "Flexible",
-                  description: "0.003% per hour",
+                  description: "0.00225% per hour",
                   roi: {
-                    daily: "~0.072%",
-                    monthly: "~2.19%",
-                    annual: "~26.3%"
+                    daily: "~0.054%",
+                    monthly: "~1.62%",
+                    annual: "~19.7%"
                   }
                 },
                 {
                   value: "30",
                   label: "30 Days",
-                  description: "0.005% per hour",
+                  description: "0.00375% per hour",
                   roi: {
-                    daily: "~0.12%",
-                    monthly: "~3.65%",
-                    annual: "~43.8%"
+                    daily: "~0.09%",
+                    monthly: "~2.7%",
+                    annual: "~32.9%"
                   }
                 },
                 {
                   value: "90",
                   label: "90 Days",
-                  description: "0.009% per hour",
+                  description: "0.00675% per hour",
                   roi: {
-                    daily: "~0.216%",
-                    monthly: "~6.57%",
-                    annual: "~78.8%"
+                    daily: "~0.162%",
+                    monthly: "~4.86%",
+                    annual: "~59.1%"
                   }
                 },
                 {
                   value: "180",
                   label: "180 Days",
-                  description: "0.012% per hour",
+                  description: "0.009% per hour",
                   roi: {
-                    daily: "~0.288%",
-                    monthly: "~8.76%",
-                    annual: "~105.1%"
+                    daily: "~0.216%",
+                    monthly: "~6.48%",
+                    annual: "~78.8%"
                   }
                 },
                 {
                   value: "365",
                   label: "365 Days",
-                  description: "0.018% per hour",
+                  description: "0.0135% per hour",
                   roi: {
-                    daily: "~0.432%",
-                    monthly: "~13.14%",
-                    annual: "~157.7%"
+                    daily: "~0.324%",
+                    monthly: "~9.72%",
+                    annual: "~118.3%"
                   }
                 }
               ]}

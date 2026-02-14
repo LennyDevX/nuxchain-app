@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
 
               {/* Telegram */}
               <a
-                href="https://t.me/nuxchain1"
+                href="https://t.me/+ESghwuU2rCpiNmI5"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="card-interactive group p-3 transition-all duration-300 hover:scale-110"

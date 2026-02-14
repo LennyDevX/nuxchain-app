@@ -27,7 +27,7 @@ node scripts/analysis/bulk-wallet-analysis.cjs
 ```
 
 **Genera automáticamente:**
-- Reporte CSV completo
+- Reporte CSV en `scripts/reports/`
 - Estadísticas de riesgo
 - Top 10 wallets sospechosas
 - Análisis de IP farms
@@ -110,7 +110,7 @@ npm run wallet:search
 ```bash
 npm run wallet:analyze
 # Espera a que termine automáticamente
-# Se genera: all-wallets-analysis-FECHA.csv
+# Se genera: reports/airdrop-analysis-hybrid-FECHA.csv
 # Se muestran estadísticas en consola
 ```
 
@@ -156,16 +156,16 @@ Indicadores:
 
 ```bash
 # Encontrar solo usuarios reales
-grep "REAL USER" all-wallets-analysis*.csv > real-users.csv
+grep "REAL USER" reports/airdrop-analysis-hybrid-*.csv > real-users.csv
 
 # Encontrar bots
-grep "SUSPICIOUS" all-wallets-analysis*.csv > bots.csv
+grep "SUSPICIOUS" reports/airdrop-analysis-hybrid-*.csv > bots.csv
 
 # Contar usuarios sospechosos
-grep "SUSPICIOUS" all-wallets-analysis*.csv | wc -l
+grep "SUSPICIOUS" reports/airdrop-analysis-hybrid-*.csv | wc -l
 
 # Wallets con balance muy bajo
-awk -F',' '$11 < 0.001' all-wallets-analysis*.csv
+awk -F',' '$11 < 0.001' reports/airdrop-analysis-hybrid-*.csv
 ```
 
 ---

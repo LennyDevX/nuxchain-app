@@ -1,6 +1,5 @@
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
-const { Connection, PublicKey } = require('@solana/web3.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -8,31 +7,32 @@ const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../../src/utils/scripts/nuxch
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 
 require('dotenv').config();
-const SOLANA_RPC = process.env.SOLANA_RPC_ALCHEMY || process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 
-// Risk-based thresholds
-const RISK_THRESHOLDS = {
-    AUTO_DELETE_SUSPICIOUS: 65,    // SUSPICIOUS/BOT classification
-    AUTO_DELETE_LIKELY_BOT: 45,    // LIKELY BOT classification
-    MANUAL_REVIEW: 25,              // UNCERTAIN - flagged for review
+// ⚡ Risk-based deletion thresholds (Based on CSV analysis)
+const DELETE_RULES = {
+    AUTO_DELETE_BOT: 75,           // Likely Bot (score >= 75)
+    AUTO_DELETE_SUSPICIOUS: 65,    // Suspicious (score >= 65)
+    KEEP_UNCERTAIN: 30,            // Uncertain: Keep for manual review (30-50)
+    KEEP_REAL: 0,                  // Real User (0-30): Always keep
 };
 
-// Disposable email domains (common bot registrations)
-const DISPOSABLE_DOMAINS = [
-    'spamok.com', 'tempmail.com', '10minutemail.com',
-    'mailinator.com', 'guerrillamail.com', 'fakeinbox.com'
-];
+// ============================================================================
+// CSV PARSING & ANALYSIS LOADING
+// ============================================================================
 
-// Simple CSV parser (without external dependencies)
+/**
+ * Robust CSV parser that handles quoted fields and edge cases
+ */
 function parseCSV(csvContent) {
-    const lines = csvContent.split('\n');
+    const lines = csvContent.trim().split('\n');
+    if (lines.length < 2) return [];
+
     const headers = lines[0].split(',').map(h => h.trim());
     const records = [];
 
     for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
 
-        // Handle quoted fields in CSV
         const values = [];
         let current = '';
         let inQuotes = false;
@@ -60,229 +60,235 @@ function parseCSV(csvContent) {
     return records;
 }
 
-async function loadAnalysisData() {
-    // Automatically find the most recent analysis CSV in the 'scripts' folder
-    const scriptsDir = path.join(__dirname, '../');
-    const files = fs.readdirSync(scriptsDir)
+/**
+ * Load latest analysis report from CSV
+ * Returns Map of wallet -> {riskScore, classification, email, indicators}
+ */
+async function loadAnalysisReport() {
+    const reportsDir = path.join(__dirname, '../reports/');
+    const files = fs.readdirSync(reportsDir)
         .filter(f => f.startsWith('airdrop-analysis-hybrid-') && f.endsWith('.csv'))
         .sort()
         .reverse();
 
     if (files.length === 0) {
-        console.warn('⚠️  No airdrop-analysis-hybrid-*.csv found in scripts/ directory!');
-        console.warn('⚠️  CRITICAL: Script will only delete basic invalid filters (EVM wallets).');
-        return new Map();
+        console.warn('⚠️  No analysis report found (airdrop-analysis-hybrid-*.csv)');
+        console.warn('⚠️  Cannot proceed without analysis data.\n');
+        return null;
     }
 
-    const latestFile = path.join(scriptsDir, files[0]);
-    console.log(`📂 Using analysis report: ${files[0]}`);
+    const latestFile = path.join(reportsDir, files[0]);
+    console.log(`📂 Using analysis report: ${files[0]}\n`);
 
     const content = fs.readFileSync(latestFile, 'utf-8');
     const records = parseCSV(content);
 
     const riskMap = new Map();
     records.forEach(record => {
-        const wallet = record.wallet || record.walletAddress;
-        if (wallet) {
-            riskMap.set(wallet, {
+        const wallet = record.wallet || record.walletAddress || '';
+        if (wallet.trim()) {
+            riskMap.set(wallet.trim(), {
                 riskScore: parseInt(record.riskScore) || 0,
-                classification: record.classification || '',
-                email: record.email || '',
-                ipRegistrationCount: parseInt(record.ipCount) || 1, // Default to 1 if not found but in list
-                tokenAccountCount: parseInt(record.tokenAccountCount) || 0,
-                walletExists: record.exists === 'Yes',
-                indicators: record.indicators || ''
+                classification: record.classification || 'Unknown',
+                email: record.email || 'N/A',
+                indicators: record.indicators || '',
+                txCount: parseInt(record.txCount) || 0,
+                ageDays: parseInt(record.ageDays) || 0,
             });
         }
     });
 
-    console.log(`📊 Loaded risk analysis for ${riskMap.size} wallets`);
+    console.log(`📊 Loaded analysis for ${riskMap.size} wallets from CSV`);
     return riskMap;
 }
 
-async function withRetry(fn, maxRetries = 5) {
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            return await fn();
-        } catch (err) {
-            if (i === maxRetries - 1) throw err;
-            const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
-            console.log(`  ⏳ Retry ${i + 1}/${maxRetries - 1} after ${delay}ms...`);
-            await new Promise(r => setTimeout(r, delay));
-        }
-    }
-}
-
-async function validateWalletOnChain(wallet, connection) {
-    try {
-        const pubkey = new PublicKey(wallet);
-
-        // Check if wallet exists and has activity
-        const balance = await withRetry(() => connection.getBalance(pubkey));
-
-        // Get transaction history (limited to recent)
-        const signatures = await withRetry(() =>
-            connection.getSignaturesForAddress(pubkey, { limit: 1 })
-        );
-
-        return {
-            exists: true,
-            balance: balance / 1e9,
-            hasTransactions: signatures.length > 0,
-            tokenAccountCount: 0 // Simplified - use risk data instead
-        };
-    } catch (err) {
-        return { exists: false, balance: 0, hasTransactions: false, tokenAccountCount: 0 };
-    }
-}
+// ============================================================================
+// BOT PURGE ENGINE
+// ============================================================================
 
 async function wipeBots(dryRun = true) {
-    const serviceAccount = require(SERVICE_ACCOUNT_PATH);
-    initializeApp({ credential: cert(serviceAccount) });
-    const db = getFirestore();
-    const connection = new Connection(SOLANA_RPC, 'confirmed');
+    try {
+        const serviceAccount = require(SERVICE_ACCOUNT_PATH);
+        initializeApp({ credential: cert(serviceAccount) });
+        const db = getFirestore();
 
-    console.log('\n══════════════════════════════════════════════════════════════════════');
-    console.log(`🚀 Starting Bot Purge (DRY RUN: ${dryRun ? 'YES' : 'NO'})...`);
-    console.log('══════════════════════════════════════════════════════════════════════\n');
+        console.log('\n' + '═'.repeat(70));
+        console.log(`🚀 Bot Purge Engine - DRY RUN: ${dryRun ? 'YES ✓' : 'NO ⚠️'}`);
+        console.log('═'.repeat(70) + '\n');
 
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    const docs = snapshot.docs;
-    const total = docs.length;
-
-    // Load risk analysis data
-    const riskMap = await loadAnalysisData();
-
-    console.log(`📊 Found ${total} total registrations in Firebase\n`);
-
-    const deletion = {
-        evmAddresses: [],
-        invalidWallets: [],
-        nonExistentWallets: [],
-        zeroBalance: [],
-        noTransactions: [],
-        disposableEmail: [],
-        ipFarm: [],
-        likelyBot: [],
-        suspicious: [],
-        keepRealUsers: []
-    };
-
-    // Process wallets
-    for (let i = 0; i < docs.length; i++) {
-        const doc = docs[i];
-        const data = doc.data();
-        const wallet = data.wallet;
-        const email = data.email || '';
-        const riskData = riskMap.get(wallet);
-
-        // 1. EVM Filter
-        if (wallet && wallet.startsWith('0x')) {
-            deletion.evmAddresses.push({ id: doc.id, wallet, email });
-            continue;
+        // ====== STEP 1: Load Analysis Report ======
+        const riskMap = await loadAnalysisReport();
+        if (!riskMap || riskMap.size === 0) {
+            console.error('❌ No analysis data available. Aborting purge.\n');
+            process.exit(1);
         }
 
-        // 2. Invalid Wallet Format
-        if (!wallet || wallet.length < 32) {
-            deletion.invalidWallets.push({ id: doc.id, wallet, email });
-            continue;
-        }
+        // ====== STEP 2: Load Firebase Registrations ======
+        console.log('📥 Loading Firebase registrations...');
+        const snapshot = await db.collection(COLLECTION_NAME).get();
+        const docs = snapshot.docs;
+        console.log(`✅ Found ${docs.length} total registrations\n`);
 
-        // 3. EXTREME SYBIL DETECTOR (Professional Farms)
-        const indicators = (riskData?.indicators || '').toLowerCase();
-        const isProfessionalFarm = indicators.includes('lethal sybil farm') ||
-            indicators.includes('farm-restricted') ||
-            (riskData?.ipRegistrationCount > 3);
+        // ====== STEP 3: Classify Wallets for Deletion ======
+        const classification = {
+            toDelete: [],      // Bots & Suspicious
+            toKeep: [],        // Real users & Uncertain (for review)
+            noAnalysis: [],    // Not in analysis report
+            invalidFormat: []  // EVM or malformed
+        };
 
-        if (isProfessionalFarm) {
-            deletion.ipFarm.push({ id: doc.id, wallet, email, indicators: riskData?.indicators, ipCount: riskData?.ipRegistrationCount });
-            continue;
-        }
+        console.log('🔍 Classifying wallets...');
+        let processedCount = 0;
 
-        // 4. Risk Score Classification
-        if (riskData) {
-            if (riskData.classification === 'Likely Bot' || riskData.riskScore >= 80) {
-                deletion.likelyBot.push({ id: doc.id, wallet, email, score: riskData.riskScore });
+        for (const doc of docs) {
+            const data = doc.data();
+            const wallet = data.wallet?.trim() || '';
+
+            // 1. Invalid Format Check
+            if (!wallet || wallet.length < 32) {
+                classification.invalidFormat.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    reason: wallet?.startsWith('0x') ? 'EVM Address' : 'Invalid Format'
+                });
+                processedCount++;
                 continue;
             }
-            // Optional: You can choose to keep suspicious for manual review or delete them
-            // if (riskData.classification === 'Suspicious' || riskData.riskScore >= 60) {
-            //     deletion.suspicious.push({ id: doc.id, wallet, email, score: riskData.riskScore });
-            //     continue;
-            // }
-        } else {
-            // IF NO RISK DATA FOUND (CSV MISSING OR NEW USER):
-            // Safety first: KEEP THE USER instead of deleting them.
-            deletion.keepRealUsers.push({ id: doc.id, wallet, email, reason: 'no-analysis-data' });
-            continue;
+
+            // 2. Get Risk Analysis
+            const riskData = riskMap.get(wallet);
+
+            if (!riskData) {
+                // NOT IN ANALYSIS REPORT (Safety-first: Keep)
+                classification.noAnalysis.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A'
+                });
+                processedCount++;
+                continue;
+            }
+
+            // 3. Risk-based Classification
+            const { riskScore, classification: status } = riskData;
+
+            if (status === 'Likely Bot' || riskScore >= DELETE_RULES.AUTO_DELETE_BOT) {
+                classification.toDelete.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    reason: `Likely Bot (${riskScore}/100)`,
+                    riskScore
+                });
+            } else if (status === 'Suspicious' || riskScore >= DELETE_RULES.AUTO_DELETE_SUSPICIOUS) {
+                classification.toDelete.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    reason: `Suspicious (${riskScore}/100)`,
+                    riskScore
+                });
+            } else {
+                // Real User or Uncertain: Keep for safety
+                classification.toKeep.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    status,
+                    riskScore
+                });
+            }
+
+            processedCount++;
+            if (processedCount % 500 === 0) {
+                console.log(`  ⏳ Processed ${processedCount}/${docs.length}...`);
+            }
         }
 
-        // Keep as real user
-        deletion.keepRealUsers.push({ id: doc.id, wallet, email });
+        // ====== STEP 4: Generate Report ======
+        console.log('\n' + '═'.repeat(70));
+        console.log('📊 PURGE ANALYSIS REPORT');
+        console.log('═'.repeat(70) + '\n');
 
-        if ((i + 1) % 1000 === 0) {
-            console.log(`⏳ Processed ${i + 1}/${docs.length}...`);
-        }
-    }
+        const totalToDelete = classification.toDelete.length;
+        const totalToKeep = classification.toKeep.length;
 
-    // Print Report
-    console.log('\n══════════════════════════════════════════════════════════════════════');
-    console.log('📋 PURGE ANALYSIS REPORT');
-    console.log('══════════════════════════════════════════════════════════════════════\n');
+        console.log('🗑️  FOR DELETION:');
+        console.log(`   ${classification.invalidFormat.length.toString().padStart(4)} EVM/Invalid Wallets`);
+        console.log(`   ${totalToDelete.toString().padStart(4)} Bots & Suspicious (from analysis)`);
+        console.log(`   ${(classification.invalidFormat.length + totalToDelete).toString().padStart(4)} TOTAL DELETE\n`);
 
-    console.log('🗑️  FLAGGED FOR DELETION:');
-    console.log(`   EVM Addresses:          ${deletion.evmAddresses.length}`);
-    console.log(`   Invalid Wallets:        ${deletion.invalidWallets.length}`);
-    console.log(`   Non-existent On-Chain:  ${deletion.nonExistentWallets.length}`);
-    console.log(`   Zero Balance/No Tx:     ${deletion.zeroBalance.length}`);
-    console.log(`   No Transactions:        ${deletion.noTransactions.length}`);
-    console.log(`   Disposable Email:       ${deletion.disposableEmail.length}`);
-    console.log(`   IP Farm (>5 regs):      ${deletion.ipFarm.length}`);
-    console.log(`   Likely Bot (score 45+): ${deletion.likelyBot.length}`);
-    console.log(`   Suspicious (score 65+): ${deletion.suspicious.length}`);
+        console.log('✅ KEEPING (Safety-first):');
+        console.log(`   ${totalToKeep.toString().padStart(4)} Real Users & Uncertain`);
+        console.log(`   ${classification.noAnalysis.length.toString().padStart(4)} No analysis data (unanalyzed)\n`);
 
-    const allToDelete = [
-        ...deletion.evmAddresses,
-        ...deletion.invalidWallets,
-        ...deletion.nonExistentWallets,
-        ...deletion.zeroBalance,
-        ...deletion.noTransactions,
-        ...deletion.disposableEmail,
-        ...deletion.ipFarm,
-        ...deletion.likelyBot,
-        ...deletion.suspicious
-    ];
+        console.log(`📈 Efficiency: ${((totalToDelete / docs.length) * 100).toFixed(1)}% of DB will be cleaned\n`);
 
-    const totalToDelete = allToDelete.length;
-    console.log(`\n   💥 TOTAL TO DELETE:     ${totalToDelete}`);
-    console.log(`   ✅ KEEP REAL USERS:     ${deletion.keepRealUsers.length}`);
-    console.log('\n══════════════════════════════════════════════════════════════════════\n');
-
-    // Only proceed with deletion if explicitly NOT a dry run
-    if (!dryRun && totalToDelete > 0) {
-        console.log('⚠️  WARNING: This will permanently delete records from Firebase!');
-        console.log('🗑️ Deleting in Firestore batches...');
-
-        for (let i = 0; i < allToDelete.length; i += 400) {
-            const batch = db.batch();
-            const chunk = allToDelete.slice(i, i + 400);
-            chunk.forEach(item => batch.delete(db.collection(COLLECTION_NAME).doc(item.id)));
-            await batch.commit();
-            console.log(`✓ Deleted ${Math.min(i + 400, allToDelete.length)}/${allToDelete.length}`);
+        // ====== STEP 5: Detailed Breakdown (if not dry-run) ======
+        if (!dryRun && totalToDelete > 0) {
+            console.log('🔴 TOP BOTS FOR DELETION:');
+            classification.toDelete
+                .sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))
+                .slice(0, 10)
+                .forEach((item, idx) => {
+                    console.log(`   ${idx + 1}. ${item.wallet.substring(0, 8)}... (${item.email}) - Score: ${item.riskScore}`);
+                });
+            console.log('');
         }
 
-        console.log('✨ CLEANUP COMPLETE!');
-    } else if (dryRun) {
-        console.log('📌 DRY RUN MODE: No deletions performed.');
-        console.log('   Run with: DRY_RUN=false node scripts/wipe-bots.cjs\n');
-    } else if (totalToDelete === 0) {
-        console.log('✨ No bots detected to delete. Database is clean!');
+        // ====== STEP 6: Execute Deletion ======
+        if (!dryRun && totalToDelete > 0) {
+            console.log('⚠️  WARNING: Permanent deletion in progress...\n');
+
+            const allToDelete = [
+                ...classification.invalidFormat,
+                ...classification.toDelete
+            ];
+
+            let deletedCount = 0;
+            const batchSize = 500;
+
+            for (let i = 0; i < allToDelete.length; i += batchSize) {
+                const batch = db.batch();
+                const chunk = allToDelete.slice(i, i + batchSize);
+
+                chunk.forEach(item => {
+                    batch.delete(db.collection(COLLECTION_NAME).doc(item.id));
+                });
+
+                await batch.commit();
+                deletedCount += chunk.length;
+
+                const percent = ((deletedCount / allToDelete.length) * 100).toFixed(1);
+                console.log(
+                    `   ✓ Deleted ${deletedCount}/${allToDelete.length} (${percent}%)`
+                );
+            }
+
+            console.log(`\n✨ PURGE COMPLETE! Removed ${deletedCount} malicious registrations.\n`);
+        } else if (dryRun) {
+            console.log('📌 DRY RUN MODE: No actual deletions performed.');
+            console.log('   To execute: DRY_RUN=false node scripts/maintenance/wipe-bots.cjs\n');
+        } else if (totalToDelete === 0) {
+            console.log('✨ Database is clean! No bots detected.\n');
+        }
+
+        console.log('═'.repeat(70));
+
+    } catch (err) {
+        console.error('\n❌ Fatal error:', err.message);
+        console.error(err.stack);
+        process.exit(1);
     }
 }
 
-// Run script
+// ============================================================================
+// ENTRY POINT
+// ============================================================================
+
 const dryRun = process.env.DRY_RUN !== 'false';
 wipeBots(dryRun).catch(err => {
-    console.error('❌ Error during cleanup:', err.message);
+    console.error('\n❌ Unhandled error:', err.message);
     process.exit(1);
 });

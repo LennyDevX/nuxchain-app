@@ -33,7 +33,7 @@ const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC_AL
 const AIRDROP_MAINTENANCE = process.env.VITE_AIRDROP_MAINTENANCE === 'true';
 
 // ⚡ INTELLIGENT CONFIGURATION
-const PARALLEL_BATCH_SIZE = 6; // 6 wallets max
+const PARALLEL_BATCH_SIZE = 8; // 8 wallets max
 const BATCH_DELAY_MS = 5000; // 5 seconds between batches
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 8; // More retries for 429s
@@ -567,7 +567,7 @@ async function main() {
     // Generate report
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
     const filename = `airdrop-analysis-hybrid-${timestamp}.csv`;
-    const filepath = path.join(__dirname, '../', filename);
+    const filepath = path.join(__dirname, '../reports/', filename);
 
     const csvData = csv.stringify(results, {
       header: true,

@@ -184,20 +184,7 @@ const Tokenomics: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* CTA Box */}
-                        <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            className={`rounded-3xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-white/20 flex flex-col items-center gap-3 sm:gap-4 text-center cursor-pointer ${isMobile ? 'p-5' : 'p-6'}`}
-                            onClick={() => window.open('https://t.me/+ESghwuU2rCpiNmI5', '_blank')}
-                        >
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center">
-                                <ZapIcon className="text-yellow-400 w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-white uppercase text-xs sm:text-sm tracking-wider">Ready for the Airdrop?</h4>
-                                <p className="text-slate-400 text-[10px] sm:text-xs">Join our community to stay updated on $NUX launch events.</p>
-                            </div>
-                        </motion.div>
+                        
                     </motion.div>
                 </div>
 

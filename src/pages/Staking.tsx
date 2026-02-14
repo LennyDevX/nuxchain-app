@@ -27,11 +27,17 @@ const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
-const StakingRewardsCalculator = lazy(() => import('../components/staking/StakingRewardsCalculator'))
 
 // Analytics components - Only essential ones
-const UserRewardsProjection = lazy(() => import('../components/staking/UserRewardsProjection'))
 const StakingEfficiencyCard = lazy(() => import('../components/staking/StakingEfficiencyCard'))
+
+// Consolidated Rewards Component
+const RewardsHub = lazy(() => import('../components/staking/RewardsHub'))
+
+// Phase 1-3: New integrated components
+const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYIndicator'))
+const TreasuryHealthCard = lazy(() => import('../components/staking/TreasuryHealthCard'))
+const AdvancedUserStats = lazy(() => import('../components/staking/AdvancedUserStats'))
 
 // Interfaces
 interface DepositData {
@@ -265,15 +271,23 @@ const Staking = memo(() => {
                 />
               </Suspense>
 
-              {/* Analytics Row - Rewards + Efficiency side by side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Rewards Hub + Staking Efficiency - Side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Rewards Hub - Consolidated Projection + Calculator */}
                 <Suspense fallback={<LoadingSpinner />}>
-                  <UserRewardsProjection />
+                  <RewardsHub currentTVL={processedData.totalPoolBalance} />
                 </Suspense>
+
+                {/* Staking Efficiency Card */}
                 <Suspense fallback={<LoadingSpinner />}>
                   <StakingEfficiencyCard />
                 </Suspense>
               </div>
+
+              {/* Phase 3: Advanced Analytics */}
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdvancedUserStats />
+              </Suspense>
             </div>
 
             {/* ─────────────────────────────────────────────────────────────
@@ -292,7 +306,17 @@ const Staking = memo(() => {
                 </Suspense>
               ) : (
                 <>
-                  {/* Pool Info - Contract health & metrics */}
+                  {/* Phase 1: Dynamic APY Indicator - Most important info first */}
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <DynamicAPYIndicator currentTVL={processedData.totalPoolBalance} />
+                  </Suspense>
+
+                  {/* Phase 2: Treasury Health - Transparency elevated */}
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <TreasuryHealthCard />
+                  </Suspense>
+
+                  {/* Pool Info - Contract health & distribution */}
                   <Suspense fallback={<LoadingSpinner />}>
                     <PoolInfo
                       totalPoolBalance={processedData.totalPoolBalance}
@@ -300,27 +324,18 @@ const Staking = memo(() => {
                     />
                   </Suspense>
 
-                  {/* Contract Info - Address & status */}
+                  {/* Rewards Calculator - Moved to RewardsHub consolidated component */}
+
+                  {/* Contract Info - Compact metadata */}
                   <Suspense fallback={<LoadingSpinner />}>
                     <ContractInfo
                       contractAddress={STAKING_CONTRACT_ADDRESS}
                       isPaused={processedData.isPaused}
                     />
                   </Suspense>
-
-                  {/* Rewards Calculator - Compact sidebar version */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <StakingRewardsCalculator defaultAmount={1000} />
-                  </Suspense>
                 </>
               )}
 
-              {/* Mobile-only: Rewards Calculator */}
-              {isMobile && (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingRewardsCalculator defaultAmount={1000} />
-                </Suspense>
-              )}
             </aside>
           </div>
 

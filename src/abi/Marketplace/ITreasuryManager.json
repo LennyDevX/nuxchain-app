@@ -1,0 +1,20 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ITreasuryManager",
+  "sourceName": "contracts/Marketplace/IndividualSkillsMarketplace.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "revenueType",
+          "type": "string"
+        }
+      ],
+      "name": "receiveRevenue",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ]
+}

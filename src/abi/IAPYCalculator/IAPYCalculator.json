@@ -1,0 +1,143 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IAPYCalculator",
+  "sourceName": "contracts/interfaces/IAPYCalculator.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "currentTVL",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "baseAPY",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "dynamicAPY",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "multiplier",
+          "type": "uint256"
+        }
+      ],
+      "name": "APYCalculated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "oldMultiplier",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newMultiplier",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "compressionBps",
+          "type": "uint256"
+        }
+      ],
+      "name": "APYCompressionDetected",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "baseAPY",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "currentTVL",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateDynamicAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "dynamicAPY",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "baseAPYs",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "currentTVL",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateDynamicAPYBatch",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "dynamicAPYs",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "dynamicAPYEnabled",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "enabled",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "currentTVL",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCurrentMultiplier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "multiplier",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
+}

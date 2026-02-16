@@ -323,8 +323,8 @@ function Airdrop() {
     }
   }, [formData, validateForm, mountTime, userAgent, deviceFingerprint, browserInfo]);
 
-  // Countdown target date - February 28, 2026 23:59:59
-  const airdropEndDate = new Date(2026, 1, 28, 23, 59, 59);
+  // Countdown target date - March 15, 2026 23:59:59
+  const airdropEndDate = new Date(2026, 2, 15, 23, 59, 59);
 
   // Calculate remaining users and statistics
   const isPoolFull = registeredUsers >= MAX_USERS;
@@ -525,7 +525,7 @@ function Airdrop() {
                   <div className="text-center">
                     <p className="text-xs text-gray-500 mb-2">Token Distribution</p>
                     <p className="text-sm text-purple-400 font-semibold">
-                        Deadline: <span className="text-purple-400 font-semibold">Feb 28, 2026</span>
+                        Deadline: <span className="text-purple-400 font-semibold">Mar 15, 2026</span>
                     </p>
                   </div>
                 </div>

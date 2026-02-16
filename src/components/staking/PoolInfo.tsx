@@ -1,9 +1,9 @@
 import React, { memo } from 'react'
 import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
-import { useReadContract, useAccount } from 'wagmi'
+import { useReadContract, useAccount, useWatchContractEvent } from 'wagmi'
 import type { Abi } from 'viem'
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
+import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
 import { stakingLogger } from '../../utils/log/stakingLogger'
 
 interface PoolInfoProps {
@@ -11,66 +11,105 @@ interface PoolInfoProps {
   uniqueUsersCount?: bigint
 }
 
-// Contract addresses from environment variables
-const STAKING_VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`
+// Contract address from environment variables - using Core Contract only (View Contract functions are reverting)
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`
 
 const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {
   const { chain, address } = useAccount()
   
-  // ✅ Get precise pool metrics from getPoolStats view function
-  const { data: poolStats } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getPoolStats',
+  // ✅ FIX: Use Core Contract instead of failing View Contract
+  // Get contract balance directly from Core Contract (View Contract is reverting)
+  const { data: poolContractBalanceData, refetch: refetchPoolBalance } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    functionName: 'getContractBalance',
     chainId: chain?.id,
-  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?, bigint?] | undefined }
+  }) as { data: bigint | undefined; refetch: () => Promise<unknown> }
 
-  // ✅ Get pool health status: healthStatus, statusMessage, reserveRatio
-  const { data: healthData } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getPoolHealth',
-    chainId: chain?.id,
-  }) as { data: readonly [number?, string?, bigint?, string?] | undefined }
+  // Watch for deposits and refetch pool balance
+  useWatchContractEvent({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    eventName: 'Deposited',
+    onLogs: () => {
+      // Refetch pool balance when any deposit is made
+      setTimeout(() => refetchPoolBalance(), 2000);
+    },
+  });
 
-  // ✅ Get user summary with flexible/locked breakdown - NEW: Now correctly implemented in contract
-  const { data: userSummaryData } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getDashboardUserSummary',
+  // ✅ Get user info from Core Contract (View Contract functions are reverting)
+  const { data: userInfoData } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    functionName: 'getUserInfo',
     args: [address],
     chainId: chain?.id,
     query: { enabled: !!address, staleTime: 10000, gcTime: 30000 }
-  })
+  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?] | undefined }
 
-  // Extract values from contract calls with proper typing
-  const poolContractBalance = poolStats?.[4] as bigint | undefined
-  const poolTotalValue = poolStats?.[0] as bigint | undefined
-  const poolActiveUsers = poolStats?.[2] as bigint | undefined
+  // Extract values from Core Contract calls
+  // poolContractBalanceData is bigint directly from getContractBalance
+  const poolContractBalance = poolContractBalanceData
+  const poolTotalValue = totalPoolBalance // Passed from parent component
+  const poolActiveUsers = uniqueUsersCount // Passed from parent component
 
-  const healthStatus = healthData?.[0] as number | undefined
-  const statusMessage = healthData?.[1] as string | undefined
-  const reserveRatio = healthData?.[2] as bigint | undefined
+  // Extract user info from getUserInfo: [totalDeposited, totalRewards, depositCount, lastWithdrawTime]
+  const userTotalStaked = userInfoData?.[0] as bigint | undefined
+  const userFlexibleBalance = userTotalStaked // For now, all staked is considered flexible unless locked
+  const userLockedBalance = 0n // Would need additional logic to determine locked amount
 
-  // Extract user stake distribution values from getDashboardUserSummary
-  // Returns: [userStaked, userPendingRewards, userDepositCount, userFlexibleBalance, userLockedBalance, userUnlockedBalance]
-  const extractValue = (data: unknown, index: number): bigint => {
-    if (!data) return 0n
-    if (Array.isArray(data)) {
-      const value = data[index]
-      return value !== undefined && value !== null ? BigInt(value) : 0n
-    }
-    // Handle object format from Wagmi
-    const obj = data as Record<string, unknown>
-    const keys = ['userStaked', 'userPendingRewards', 'userDepositCount', 'userFlexibleBalance', 'userLockedBalance', 'userUnlockedBalance']
-    const value = obj[keys[index]]
-    return value !== undefined && value !== null ? BigInt(value.toString()) : 0n
+  // Debug: Log pool balance data
+  if (import.meta.env.DEV && poolContractBalance) {
+    console.log('[PoolInfo] Core Contract Balance:', {
+      raw: poolContractBalance,
+      formatted: poolContractBalance.toString(),
+    });
   }
-  
-  // Extract flexible and locked balances (indices 3 and 4)
-  const userFlexibleBalance = extractValue(userSummaryData, 3)
-  const userLockedBalance = extractValue(userSummaryData, 4)
-  const userTotalStaked = extractValue(userSummaryData, 0) // Index 0: userStaked
+
+  // ✅ FIX: Calculate Pool Health based on reserve ratio
+  // Reserve Ratio = (contractBalance / totalPoolValue) * 100
+  // Healthy pool should have contractBalance >= totalPoolValue (ratio >= 100%)
+  const calculateHealthStatus = () => {
+    if (!poolContractBalance || !poolTotalValue || poolTotalValue === 0n) {
+      return {
+        status: 1, // Default to "Low" if no data
+        message: 'Calculating pool health...',
+        ratio: 0n,
+      };
+    }
+
+    // Calculate reserve ratio in basis points (10000 = 100%)
+    const ratioBasisPoints = (poolContractBalance * 10000n) / poolTotalValue;
+    
+    // Determine health status based on ratio
+    // > 100% (10000bp) = Excellent (3)
+    // 75-100% (7500-10000bp) = Moderate (2) 
+    // 50-75% (5000-7500bp) = Low (1)
+    // < 50% (< 5000bp) = Critical (0)
+    let status: number;
+    let message: string;
+    
+    if (ratioBasisPoints >= 10000n) {
+      status = 3; // Excellent
+      message = 'Pool is fully backed and healthy';
+    } else if (ratioBasisPoints >= 7500n) {
+      status = 2; // Moderate
+      message = 'Pool health is moderate, sufficient reserves';
+    } else if (ratioBasisPoints >= 5000n) {
+      status = 1; // Low
+      message = 'Pool reserves are lower than optimal';
+    } else {
+      status = 0; // Critical
+      message = 'Critical: Pool reserves are significantly low';
+    }
+
+    return { status, message, ratio: ratioBasisPoints };
+  };
+
+  const poolHealth = calculateHealthStatus();
+  const healthStatus = poolHealth.status;
+  const statusMessage = poolHealth.message;
+  const reserveRatio = poolHealth.ratio;
   
   // Debug logs to verify data extraction (remove in production)
   stakingLogger.logPool({

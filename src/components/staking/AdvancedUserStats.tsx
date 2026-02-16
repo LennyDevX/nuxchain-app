@@ -1,6 +1,8 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { useAdvancedStaking } from '../../hooks/staking/useAdvancedStaking';
+import { formatLevel, formatXP } from '../../utils/staking/formatters';
+import { xpProgressPercent, levelUpReward } from '../../utils/staking/calculations';
 
 interface AdvancedUserStatsProps {
   className?: string;
@@ -56,18 +58,23 @@ const AdvancedUserStats: React.FC<AdvancedUserStatsProps> = memo(({ className = 
           <span className="text-violet-400 text-lg">📊</span>
           <h4 className="text-sm font-semibold text-white">Advanced Analytics</h4>
         </div>
-        {userStats && (
-          <div className="flex items-center gap-2">
-            {userStats.hasAutoCompound && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-green-500/20 text-green-400 border border-green-500/30">
-                🔄 Auto
-              </span>
-            )}
-            <div className="px-2.5 py-1 rounded-full text-xs font-bold bg-violet-500/20 border border-violet-500/30 text-violet-300">
-              Lv.{userStats.userLevel}
+        {userStats && (() => {
+          const levelInfo = formatLevel(userStats.userLevel);
+          return (
+            <div className="flex items-center gap-2">
+              {userStats.hasAutoCompound && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-green-500/20 text-green-400 border border-green-500/30">
+                  🔄 Auto
+                </span>
+              )}
+              <div className={`px-2.5 py-1 rounded-full text-xs font-bold bg-violet-500/20 border border-violet-500/30 ${levelInfo.color}`}
+                title={`${levelInfo.title} · Lv.${userStats.userLevel}`}
+              >
+                {levelInfo.title} Lv.{userStats.userLevel}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Earnings Breakdown */}
@@ -99,6 +106,25 @@ const AdvancedUserStats: React.FC<AdvancedUserStatsProps> = memo(({ className = 
               <p className="text-purple-400 font-bold text-sm">{earnings.annualEarnings}</p>
               <p className="text-white/20 text-[9px]">POL</p>
             </motion.div>
+          </div>
+        </div>
+      )}
+
+      {/* Deposit Type Breakdown */}
+      {earnings && userStats && (
+        <div className="mb-4">
+          <p className="text-white/40 text-[10px] mb-2 uppercase tracking-wide">Deposit Breakdown</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
+              <p className="text-white/40 text-[10px]">Deposits</p>
+              <p className="text-white font-bold text-sm">{userStats.depositCount}</p>
+              <p className="text-white/20 text-[9px]">positions</p>
+            </div>
+            <div className="bg-white/5 rounded-lg p-2.5 border border-white/5">
+              <p className="text-white/40 text-[10px]">Boost Applied</p>
+              <p className="text-purple-400 font-bold text-sm">+{(userStats.stakingBoostTotal / 100).toFixed(1)}%</p>
+              <p className="text-white/20 text-[9px]">from skills</p>
+            </div>
           </div>
         </div>
       )}
@@ -199,23 +225,37 @@ const AdvancedUserStats: React.FC<AdvancedUserStatsProps> = memo(({ className = 
       </div>
 
       {/* User XP Bar */}
-      {userStats && userStats.userLevel > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-white/40 text-[10px]">XP Progress</span>
-            <span className="text-violet-400 text-[10px] font-medium">{userStats.userXP} XP</span>
+      {userStats && userStats.userLevel > 0 && (() => {
+        const xpNum = parseInt(userStats.userXP.replace(/,/g, ''), 10) || 0;
+        const xpPercent = xpProgressPercent(BigInt(xpNum));
+        const nextReward = levelUpReward(userStats.userLevel + 1);
+        return (
+          <div className="mt-3 pt-3 border-t border-white/5">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-white/40 text-[10px]">XP Progress</span>
+              <div className="flex items-center gap-2">
+                <span className="text-violet-400 text-[10px] font-medium">{formatXP(xpNum)}</span>
+                {nextReward > 0 && (
+                  <span className="text-amber-400/60 text-[9px]">Next: +{nextReward} POL</span>
+                )}
+              </div>
+            </div>
+            <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+              <motion.div
+                className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${xpPercent}%` }}
+                transition={{ duration: 0.8 }}
+              />
+            </div>
+            <div className="flex items-center justify-between mt-0.5">
+              <span className="text-white/15 text-[9px]">Lv.{userStats.userLevel}</span>
+              <span className="text-white/15 text-[9px]">{xpPercent.toFixed(0)}%</span>
+              <span className="text-white/15 text-[9px]">Lv.{userStats.userLevel + 1}</span>
+            </div>
           </div>
-          <div className="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-            <motion.div
-              className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
-              style={{ width: `${Math.min(100, (Number(userStats.userXP) % 1000) / 10)}%` }}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.8 }}
-            />
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </motion.div>
   );
 });

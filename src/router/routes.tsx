@@ -24,6 +24,8 @@ const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/Ai
 const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
 const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
+const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
+const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -74,6 +76,9 @@ function AppRoutes() {
         <Route path="/tutorial" element={<Tutorial />} />
         <Route path="/tokenomics" element={<Tokenomics />} />
         <Route path="/colab" element={<ColabPortal />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<Admin />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

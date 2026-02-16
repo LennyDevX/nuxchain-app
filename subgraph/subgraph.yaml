@@ -2,14 +2,14 @@ specVersion: 0.0.5
 schema:
   file: ./schema.graphql
 dataSources:
-  # Enhanced Smart Staking Contract (NEW - v5.0.0 Modular)
+  # Enhanced Smart Staking Contract (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: EnhancedSmartStaking
     network: matic
     source:
-      address: "0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946"
+      address: "0x5F084a3E35eca396B5216d67D31CB0c8dcC22703"
       abi: EnhancedSmartStaking
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -53,14 +53,14 @@ dataSources:
           handler: handleEmergencyWithdrawal
       file: ./src/enhanced-smart-staking.ts
 
-  # Enhanced Smart Staking Rewards Module (v5.0.0)
+  # Enhanced Smart Staking Rewards Module (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: EnhancedSmartStakingRewards
     network: matic
     source:
-      address: "0x6AEd79f8567a9AAE27401E61D240fCce531561f3"
+      address: "0xC72C9BdfEDbAA68C75D1De98e0992E1aA2a0C4be"
       abi: EnhancedSmartStakingRewards
-      startBlock: 79874938
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -85,14 +85,14 @@ dataSources:
           handler: handleRewardsEmergencyWithdrawal
       file: ./src/staking-rewards.ts
 
-  # Enhanced Smart Staking Gamification Module
+  # Enhanced Smart Staking Gamification Module (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: EnhancedSmartStakingGamification
     network: matic
     source:
-      address: "0x90216d0227EfbBae880EC2b8F03695cB82326598"
+      address: "0xcA4E14cd5788C5bA705051f991e65a34fbC79B52"
       abi: EnhancedSmartStakingGamification
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -121,14 +121,14 @@ dataSources:
           handler: handleXPUpdated
       file: ./src/staking-gamification.ts
 
-  # Enhanced Smart Staking Skills Module
+  # Enhanced Smart Staking Skills Module (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: EnhancedSmartStakingSkills
     network: matic
     source:
-      address: "0x8Ea7278c3000a0628D0BA2925308aE0973Be3140"
+      address: "0x6ADD8eAdE8B2A4d8B8DE032Cf5CaB4b04481351c"
       abi: EnhancedSmartStakingSkills
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -146,15 +146,15 @@ dataSources:
           handler: handleSkillRarityUpdated
       file: ./src/staking-skills.ts
   
-  # Gamified Marketplace - NEW MODULAR ARCHITECTURE (Proxy Address)
-  # ✅ FIXED: Use proxy address instead of implementation for correct event tracking
+  # Gamified Marketplace - V6.0 Modular Architecture (Feb 16, 2026)
+  # ✅ Using proxy address for correct event tracking
   - kind: ethereum
     name: GameifiedMarketplaceCore
     network: matic
     source:
-      address: "0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5"
+      address: "0x170972A6Fc2ABcC05CBd86bDC3AD05A310876C3b"
       abi: GameifiedMarketplaceCoreV1
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -190,14 +190,14 @@ dataSources:
           handler: handleOfferAccepted
       file: ./src/gameified-marketplace.ts
 
-  # Individual Skills Contract (NEW - IndividualSkillsMarketplace)
+  # Individual Skills Contract (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: IndividualSkillsMarketplace
     network: matic
     source:
-      address: "0xB23257758B385444dF5A78aC2F315bd653470df3"
+      address: "0xAD586A4Fe790975f80382De018788951D33f10f8"
       abi: IndividualSkillsMarketplace
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -263,14 +263,14 @@ dataSources:
   #         handler: handleSkillSwitched
   #     file: ./src/marketplace-skills.ts
 
-  # Marketplace Quests Contract (NEW - GameifiedMarketplaceQuests)
+  # Marketplace Quests Contract (V6.0 - Feb 16, 2026)
   - kind: ethereum
     name: GameifiedMarketplaceQuests
     network: matic
     source:
-      address: "0x61D75d56559Cd4722870A797a17793ed9f840245"
+      address: "0x00ABC70504b1d8B75Bb07257e240BAc38d204B73"
       abi: GameifiedMarketplaceQuests
-      startBlock: 79870000
+      startBlock: 83048858
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

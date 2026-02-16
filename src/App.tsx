@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { POLPriceProvider } from './context/POLPriceContext'
 import { NetworkProvider } from './context/NetworkContext'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 import { useScrollToTop } from './hooks/navigation/useScrollToTop'
 import Navbar from './components/layout/Navbar'
 import MobileBottomNavbar from './components/layout/MobileBottomNavbar'
@@ -54,9 +55,11 @@ function App() {
   return (
     <POLPriceProvider>
       <NetworkProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <AdminAuthProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AdminAuthProvider>
       </NetworkProvider>
     </POLPriceProvider>
   )

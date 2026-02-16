@@ -7,6 +7,14 @@ import { useTreasuryHealthMonitor } from '../treasury/useTreasuryHealthMonitor';
 
 const DYNAMIC_APY_ADDRESS = import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS as `0x${string}`;
 
+// Log contract address on module load (only in dev)
+if (import.meta.env.DEV) {
+  console.log('[useDynamicAPY] DynamicAPY contract address:', DYNAMIC_APY_ADDRESS);
+  if (!DYNAMIC_APY_ADDRESS || (DYNAMIC_APY_ADDRESS as unknown as string) === 'undefined') {
+    console.error('[useDynamicAPY] VITE_DYNAMIC_APY_CALCULATOR_ADDRESS not set in .env!');
+  }
+}
+
 // ============================================
 // TYPE DEFINITIONS
 // ============================================
@@ -38,6 +46,8 @@ export interface DynamicAPYData {
   payoutRatio: number;
   /** Loading state */
   isLoading: boolean;
+  /** Whether any data was successfully fetched from the contract */
+  hasData: boolean;
 }
 
 export interface DynamicRate {
@@ -89,7 +99,7 @@ export function useDynamicAPY(currentTVL?: bigint): DynamicAPYData {
   }), [chain?.id]);
 
   // Multicall: Fetch all config and state in one RPC call
-  const { data: configData, isLoading: loadingConfig } = useReadContracts({
+  const { data: configData, isLoading: loadingConfig, error: configError } = useReadContracts({
     contracts: [
       { ...contractConfig, functionName: 'dynamicAPYEnabled' },
       { ...contractConfig, functionName: 'targetTVL' },
@@ -104,6 +114,22 @@ export function useDynamicAPY(currentTVL?: bigint): DynamicAPYData {
       refetchOnWindowFocus: false,
     },
   });
+
+  // Debug: Log DynamicAPY contract responses
+  if (configData && !loadingConfig) {
+    const fnNames = ['dynamicAPYEnabled', 'targetTVL', 'minAPYMultiplier', 'maxAPYMultiplier', 'getCurrentMultiplier'];
+    configData.forEach((result, i) => {
+      if (result.status === 'failure') {
+        console.error(
+          `[useDynamicAPY] ${fnNames[i]} failed:`,
+          result.error?.message || result.error || 'unknown error'
+        );
+      }
+    });
+  }
+  if (configError) {
+    console.error('[useDynamicAPY] Config multicall error:', configError.message);
+  }
 
   // Batch calculate dynamic APY for all lockup periods
   const { data: dynamicAPYBatch, isLoading: loadingBatch } = useReadContract({
@@ -172,6 +198,9 @@ export function useDynamicAPY(currentTVL?: bigint): DynamicAPYData {
         }))
       : null;
 
+    // Check if we actually got data from the contract
+    const hasConfigData = configData?.some(r => r.status === 'success') ?? false;
+
     return {
       isEnabled,
       multiplierRaw,
@@ -187,8 +216,31 @@ export function useDynamicAPY(currentTVL?: bigint): DynamicAPYData {
       treasuryHealthMessage: treasuryHealth.statusMessage,
       payoutRatio: treasuryHealth.payoutRatio,
       isLoading: loadingConfig || loadingBatch || loadingPreview || treasuryHealth.isLoading,
+      hasData: hasConfigData,
     };
   }, [configData, dynamicAPYBatch, previewData, loadingConfig, loadingBatch, loadingPreview, treasuryHealth]);
+
+  // Check if contract address is not configured
+  if (!DYNAMIC_APY_ADDRESS || DYNAMIC_APY_ADDRESS === undefined || (DYNAMIC_APY_ADDRESS as unknown as string) === 'undefined') {
+    console.warn('[useDynamicAPY] Contract not deployed - returning base rates');
+    return {
+      isEnabled: false,
+      multiplierRaw: 10000n,
+      multiplier: '1.00x',
+      targetTVL: '0',
+      targetTVLRaw: 0n,
+      minMultiplier: '1.00x',
+      maxMultiplier: '1.00x',
+      dynamicRates: [],
+      apyPreview: null,
+      treasuryHealthMultiplier: 1.0,
+      treasuryHealthStatus: 'Warning' as const,
+      treasuryHealthMessage: 'Contract not deployed',
+      payoutRatio: 0,
+      isLoading: false,
+      hasData: false,
+    };
+  }
 
   return result;
 }

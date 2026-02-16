@@ -2,9 +2,17 @@ import { useMemo } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import TreasuryManagerABI from '../../abi/TreasuryManager/TreasuryManager.json';
+import TreasuryManagerABI from '../../abi/Treasury/TreasuryManager.json';
 
 const TREASURY_ADDRESS = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
+
+// Log contract address on module load (only in dev)
+if (import.meta.env.DEV) {
+  console.log('[useTreasuryStats] Treasury contract address:', TREASURY_ADDRESS);
+  if (!TREASURY_ADDRESS || (TREASURY_ADDRESS as unknown as string) === 'undefined') {
+    console.error('[useTreasuryStats] VITE_TREASURY_MANAGER_ADDRESS not set in .env!');
+  }
+}
 
 // ============================================
 // TYPE DEFINITIONS
@@ -74,7 +82,7 @@ export function useTreasuryStats(): TreasuryData {
   }), [chain?.id]);
 
   // Multicall: Fetch stats, allocations, and reserve in one batch
-  const { data: multicallData, isLoading } = useReadContracts({
+  const { data: multicallData, isLoading, error: multicallError } = useReadContracts({
     contracts: [
       { ...contractConfig, functionName: 'getStats' },
       { ...contractConfig, functionName: 'getAllAllocations' },
@@ -89,9 +97,47 @@ export function useTreasuryStats(): TreasuryData {
     },
   });
 
+  // Debug: Log treasury contract responses
+  if (multicallData && !isLoading) {
+    const fnNames = ['getStats', 'getAllAllocations', 'getReserveStats', 'getBalance'];
+    multicallData.forEach((result, i) => {
+      if (result.status === 'failure') {
+        console.error(
+          `[useTreasuryStats] ${fnNames[i]} failed:`,
+          result.error?.message || result.error || 'unknown error'
+        );
+      } else if (result.status === 'success' && import.meta.env.DEV) {
+        console.log(`[useTreasuryStats] ${fnNames[i]} success:`, result.result);
+      }
+    });
+  }
+  if (multicallError) {
+    console.error('[useTreasuryStats] Multicall error:', multicallError.message);
+  }
+
   const result = useMemo((): TreasuryData => {
-    // Parse getStats()
-    const statsRaw = multicallData?.[0]?.result as readonly [bigint, bigint, bigint, bigint, boolean] | undefined;
+    // Parse getStats() - handle both tuple and named object returns
+    const statsResult = multicallData?.[0];
+    let statsRaw: readonly [bigint, bigint, bigint, bigint, boolean] | undefined;
+
+    if (statsResult?.status === 'success' && statsResult.result) {
+      const r = statsResult.result;
+      if (Array.isArray(r)) {
+        statsRaw = r as unknown as readonly [bigint, bigint, bigint, bigint, boolean];
+      } else if (typeof r === 'object') {
+        // viem may return named object for structs
+        const obj = r as Record<string, unknown>;
+        const totalReceived = (obj.totalReceived ?? obj[0]) as bigint;
+        const totalDist = (obj.totalDist ?? obj.totalDistributed ?? obj[1]) as bigint;
+        const currentBalance = (obj.currentBalance ?? obj[2]) as bigint;
+        const lastDist = (obj.lastDistribution ?? obj[3]) as bigint;
+        const autoDist = (obj.autoDistEnabled ?? obj[4]) as boolean;
+        if (totalReceived !== undefined) {
+          statsRaw = [totalReceived, totalDist, currentBalance, lastDist, autoDist] as const;
+        }
+      }
+    }
+
     const stats: TreasuryStats | null = statsRaw ? {
       totalReceived: formatPOL(statsRaw[0]),
       totalReceivedRaw: statsRaw[0],
@@ -103,8 +149,26 @@ export function useTreasuryStats(): TreasuryData {
       autoDistEnabled: statsRaw[4],
     } : null;
 
-    // Parse getAllAllocations()
-    const allocRaw = multicallData?.[1]?.result as readonly [bigint, bigint, bigint, bigint, bigint] | undefined;
+    // Parse getAllAllocations() - handle both tuple and named object
+    const allocResult = multicallData?.[1];
+    let allocRaw: readonly [bigint, bigint, bigint, bigint, bigint] | undefined;
+
+    if (allocResult?.status === 'success' && allocResult.result) {
+      const r = allocResult.result;
+      if (Array.isArray(r)) {
+        allocRaw = r as unknown as readonly [bigint, bigint, bigint, bigint, bigint];
+      } else if (typeof r === 'object') {
+        const obj = r as Record<string, unknown>;
+        const rewards = (obj.rewardsAlloc ?? obj[0]) as bigint;
+        const staking = (obj.stakingAlloc ?? obj[1]) as bigint;
+        const marketplace = (obj.marketplaceAlloc ?? obj.marketPlaceAlloc ?? obj[2]) as bigint;
+        const development = (obj.developmentAlloc ?? obj[3]) as bigint;
+        const collaborators = (obj.collaboratorsAlloc ?? obj[4]) as bigint;
+        if (rewards !== undefined) {
+          allocRaw = [rewards, staking, marketplace, development, collaborators] as const;
+        }
+      }
+    }
     const allocations: TreasuryAllocations | null = allocRaw ? (() => {
       const rewards = Number(allocRaw[0]);
       const staking = Number(allocRaw[1]);
@@ -130,8 +194,26 @@ export function useTreasuryStats(): TreasuryData {
       };
     })() : null;
 
-    // Parse getReserveStats()
-    const reserveRaw = multicallData?.[2]?.result as readonly [bigint, bigint, bigint, bigint, boolean] | undefined;
+    // Parse getReserveStats() - handle both tuple and named object
+    const reserveResult = multicallData?.[2];
+    let reserveRaw: readonly [bigint, bigint, bigint, bigint, boolean] | undefined;
+
+    if (reserveResult?.status === 'success' && reserveResult.result) {
+      const r = reserveResult.result;
+      if (Array.isArray(r)) {
+        reserveRaw = r as unknown as readonly [bigint, bigint, bigint, bigint, boolean];
+      } else if (typeof r === 'object') {
+        const obj = r as Record<string, unknown>;
+        const currentBalance = (obj.currentBalance ?? obj[0]) as bigint;
+        const totalAccumulated = (obj.totalAccumulated ?? obj[1]) as bigint;
+        const totalWithdrawn = (obj.totalWithdrawn ?? obj[2]) as bigint;
+        const allocPct = (obj.allocationPercentage ?? obj[3]) as bigint;
+        const isEnabled = (obj.isEnabled ?? obj[4]) as boolean;
+        if (currentBalance !== undefined) {
+          reserveRaw = [currentBalance, totalAccumulated, totalWithdrawn, allocPct, isEnabled] as const;
+        }
+      }
+    }
     const reserve: ReserveStats | null = reserveRaw ? (() => {
       const balanceRaw = reserveRaw[0];
       const balance = parseFloat(formatEther(balanceRaw));
@@ -160,6 +242,17 @@ export function useTreasuryStats(): TreasuryData {
 
     return { stats, allocations, reserve, isLoading };
   }, [multicallData, isLoading]);
+
+  // Check if contract address is not configured
+  if (!TREASURY_ADDRESS || TREASURY_ADDRESS === undefined || (TREASURY_ADDRESS as unknown as string) === 'undefined') {
+    console.warn('[useTreasuryStats] Contract not deployed - returning empty data');
+    return {
+      stats: null,
+      allocations: null,
+      reserve: null,
+      isLoading: false,
+    };
+  }
 
   return result;
 }

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatEther, parseEther } from 'viem';
 import { useStakingAnalytics } from '../../hooks/staking/useStakingAnalytics';
 import { useDynamicAPY } from '../../hooks/apy/useDynamicAPY';
+import { useDepositManagement } from '../../hooks/staking/useDepositManagement';
 import { STAKING_PERIODS } from '../../constants/stakingConstants';
 
 interface RewardsHubProps {
@@ -16,12 +17,15 @@ interface RewardsHubProps {
  * Saves UI space while improving UX with tabbed navigation
  */
 const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = '' }) => {
-  const [activeTab, setActiveTab] = useState<'projection' | 'calculator'>('projection');
+  const [activeTab, setActiveTab] = useState<'projection' | 'calculator' | 'boosted'>('projection');
   const [stakingAmount, setStakingAmount] = useState<number>(1000);
   const [selectedPeriod, setSelectedPeriod] = useState<number>(1); // Default: 30d
 
   // Projection data
   const { rewardsProjection, loadingProjection } = useStakingAnalytics();
+
+  // Boosted rewards data
+  const { estimatedRewards } = useDepositManagement();
 
   // Note: Dynamic APY hook available for future enhancements
   useDynamicAPY(currentTVL);
@@ -146,6 +150,18 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
             whileTap={{ scale: 0.95 }}
           >
             🧮 Calculator
+          </motion.button>
+          <motion.button
+            onClick={() => setActiveTab('boosted')}
+            className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
+              activeTab === 'boosted'
+                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/5'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            ⚡ Boosted
           </motion.button>
         </div>
       </div>
@@ -337,6 +353,84 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
               {/* Info */}
               <p className="text-[10px] text-white/30 text-center">
                 Rates based on current pool state · Updates every 60 seconds
+              </p>
+            </motion.div>
+          )}
+
+          {activeTab === 'boosted' && (
+            <motion.div
+              key="boosted"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
+            >
+              {/* Boosted vs Base Comparison */}
+              {estimatedRewards ? (
+                <>
+                  <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-lg p-4 border border-emerald-500/15">
+                    <p className="text-white/40 text-[10px] uppercase tracking-wide mb-3">Skill Boost Impact</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center">
+                        <p className="text-white/40 text-[10px]">Base Rewards</p>
+                        <p className="text-white/70 font-bold text-lg">{estimatedRewards.baseEstimate}</p>
+                        <p className="text-white/30 text-[9px]">POL/day (no skills)</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-emerald-400/60 text-[10px]">Boosted Rewards</p>
+                        <p className="text-emerald-400 font-bold text-lg">{estimatedRewards.boostedEstimate}</p>
+                        <p className="text-emerald-400/30 text-[9px]">POL/day (with skills)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Boost Difference */}
+                  {estimatedRewards.boostDifference !== '0.00' && (
+                    <div className="bg-emerald-500/10 rounded-lg p-3 border border-emerald-500/20 text-center">
+                      <p className="text-emerald-400 text-xs font-medium">
+                        Skills add +{estimatedRewards.boostDifference} POL/day to your earnings
+                      </p>
+                      <p className="text-white/30 text-[10px] mt-1">
+                        Activate more skills from the Skills Manager to increase your boost
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Monthly/Annual Projection with Boosts */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white/5 rounded-lg p-3 border border-white/5 text-center">
+                      <p className="text-white/40 text-[10px]">Monthly (Boosted)</p>
+                      <p className="text-emerald-400 font-bold text-sm">
+                        {(() => {
+                          const daily = parseFloat(estimatedRewards.boostedEstimate.replace(/,/g, ''));
+                          return isNaN(daily) ? '0.00' : (daily * 30).toFixed(4);
+                        })()}
+                      </p>
+                      <p className="text-white/20 text-[9px]">POL</p>
+                    </div>
+                    <div className="bg-white/5 rounded-lg p-3 border border-white/5 text-center">
+                      <p className="text-white/40 text-[10px]">Annual (Boosted)</p>
+                      <p className="text-purple-400 font-bold text-sm">
+                        {(() => {
+                          const daily = parseFloat(estimatedRewards.boostedEstimate.replace(/,/g, ''));
+                          return isNaN(daily) ? '0.00' : (daily * 365).toFixed(2);
+                        })()}
+                      </p>
+                      <p className="text-white/20 text-[9px]">POL</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-white/10">
+                  <span className="text-2xl">⚡</span>
+                  <p className="text-white/40 text-xs mt-2">No skill boost data available</p>
+                  <p className="text-white/25 text-[10px] mt-1">Stake tokens and activate skills to see boosted projections</p>
+                </div>
+              )}
+
+              <p className="text-[10px] text-white/30 text-center">
+                Boosts are calculated from your active skill NFTs
               </p>
             </motion.div>
           )}

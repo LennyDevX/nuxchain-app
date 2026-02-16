@@ -1,12 +1,14 @@
 import { useAccount, useReadContracts } from 'wagmi'
-import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
-import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStaking.json'
+import { memo, useMemo, lazy, Suspense, useEffect, useState } from 'react'
+import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
 import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
 import { useIsMobile } from '../hooks/mobile'
 import { stakingLogger } from '../utils/log/stakingLogger'
+import { StakingProvider } from '../context/StakingContext'
+import { useStakingContext } from '../context/useStakingContext'
 
 // ✅ Add BigInt serialization support for React DevTools
 declare global {
@@ -39,6 +41,13 @@ const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYI
 const TreasuryHealthCard = lazy(() => import('../components/staking/TreasuryHealthCard'))
 const AdvancedUserStats = lazy(() => import('../components/staking/AdvancedUserStats'))
 
+// Phase 4: New gamification & deposit management components
+const SkillsManager = lazy(() => import('../components/staking/SkillsManager'))
+const QuestTracker = lazy(() => import('../components/staking/QuestTracker'))
+
+// Phase 5: New integrated components
+const BadgeGallery = lazy(() => import('../components/staking/BadgeGallery'))
+
 // Interfaces
 interface DepositData {
   amount: bigint
@@ -57,8 +66,26 @@ if (!STAKING_CONTRACT_ADDRESS) {
 }
 
 const Staking = memo(() => {
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
+
+  if (!isConnected) {
+    return <ConnectWallet pageName="Staking" />;
+  }
+
+  return (
+    <StakingProvider>
+      <StakingDashboard />
+    </StakingProvider>
+  );
+});
+
+/**
+ * Inner dashboard component - has access to StakingContext
+ */
+const StakingDashboard = memo(() => {
+  const { address, isConnected, gamification, hasValidConfig } = useStakingContext();
   const isMobile = useIsMobile()
+  const [dashboardTab, setDashboardTab] = useState<'overview' | 'deposits' | 'skills' | 'quests'>('overview')
 
   // Memoize contract configuration for better performance
   const contractConfig = useMemo(() => ({
@@ -66,15 +93,14 @@ const Staking = memo(() => {
     abi: EnhancedSmartStakingABI.abi,
   }), [])
 
-  // ✅ Verificar si hay configuración válida del contrato
-  const hasValidContractConfig = useMemo(() => {
+  // Run contract validation side-effect on mount
+  useMemo(() => {
     const isValid = STAKING_CONTRACT_ADDRESS &&
       STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
       STAKING_CONTRACT_ADDRESS.startsWith('0x');
     if (!isValid) {
       console.warn('⚠️ Staking contract address is not properly configured:', STAKING_CONTRACT_ADDRESS);
     }
-    return isValid;
   }, [])
 
   // ✅ Optimized: Use Multicall to fetch all data in a single RPC request
@@ -171,17 +197,17 @@ const Staking = memo(() => {
     return data
   }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, isPaused])
 
-  // Log staking data when it changes
+  // Log staking data when it changes (using context data)
   useEffect(() => {
     if (address && isConnected && processedData.totalDeposit > 0n) {
       stakingLogger.logStaking({
         totalStaked: (processedData.totalDeposit / BigInt(1e18)).toString(),
         pendingRewards: (processedData.pendingRewards / BigInt(1e18)).toString(),
         activePositions: (processedData.userDeposits as DepositData[] | undefined)?.length || 0,
-        hasAutoCompound: false // TODO: Get from contract
+        hasAutoCompound: gamification.hasAutoCompound,
       });
     }
-  }, [address, isConnected, processedData.totalDeposit, processedData.pendingRewards, processedData.userDeposits]);
+  }, [address, isConnected, processedData.totalDeposit, processedData.pendingRewards, processedData.userDeposits, gamification.hasAutoCompound]);
 
   // Log pool info
   useEffect(() => {
@@ -194,12 +220,6 @@ const Staking = memo(() => {
       });
     }
   }, [processedData.totalPoolBalance, processedData.uniqueUsersCount, processedData.isPaused]);
-
-
-
-  if (!isConnected) {
-    return <ConnectWallet pageName="Staking" />;
-  }
 
   return (
     <GlobalBackground>
@@ -233,7 +253,7 @@ const Staking = memo(() => {
           {/* ═══════════════════════════════════════════════════════════════
               ALERTS - Contract status warnings (compact)
           ═══════════════════════════════════════════════════════════════ */}
-          {!hasValidContractConfig && (
+          {!hasValidConfig && (
             <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
               <p className="text-yellow-400 text-sm flex items-center gap-2">
                 <span>⚠️</span>
@@ -242,7 +262,7 @@ const Staking = memo(() => {
             </div>
           )}
 
-          {hasValidContractConfig && processedData.isPaused && (
+          {hasValidConfig && processedData.isPaused && (
             <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
               <p className="text-red-400 text-sm flex items-center gap-2">
                 <span>⏸️</span>
@@ -252,8 +272,37 @@ const Staking = memo(() => {
           )}
 
           {/* ═══════════════════════════════════════════════════════════════
-              MAIN LAYOUT - 12-column grid for better control
+              DASHBOARD TABS - Overview | Deposits | Skills | Quests
           ═══════════════════════════════════════════════════════════════ */}
+          <div className="mb-6">
+            <div className={`flex ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''} gap-1 p-1 bg-white/5 rounded-xl border border-white/10`}>
+              {([
+                { key: 'overview' as const, label: '📊 Overview', mobileLabel: 'Overview' },
+                { key: 'deposits' as const, label: '📦 My Deposits', mobileLabel: 'Deposits' },
+                { key: 'skills' as const, label: '⚡ Skills', mobileLabel: 'Skills' },
+                { key: 'quests' as const, label: '🏆 Quests', mobileLabel: 'Quests' },
+              ]).map(({ key, label, mobileLabel }) => (
+                <button
+                  key={key}
+                  onClick={() => setDashboardTab(key)}
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                    dashboardTab === key
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-lg'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  }`}
+                >
+                  {isMobile ? mobileLabel : label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              TAB CONTENT
+          ═══════════════════════════════════════════════════════════════ */}
+
+          {/* ═══════ OVERVIEW TAB ═══════ */}
+          {dashboardTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
             {/* ─────────────────────────────────────────────────────────────
@@ -273,7 +322,7 @@ const Staking = memo(() => {
 
               {/* Rewards Hub + Staking Efficiency - Side by side */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Rewards Hub - Consolidated Projection + Calculator */}
+                {/* Rewards Hub - Consolidated Projection + Calculator + Boosted */}
                 <Suspense fallback={<LoadingSpinner />}>
                   <RewardsHub currentTVL={processedData.totalPoolBalance} />
                 </Suspense>
@@ -283,11 +332,6 @@ const Staking = memo(() => {
                   <StakingEfficiencyCard />
                 </Suspense>
               </div>
-
-              {/* Phase 3: Advanced Analytics */}
-              <Suspense fallback={<LoadingSpinner />}>
-                <AdvancedUserStats />
-              </Suspense>
             </div>
 
             {/* ─────────────────────────────────────────────────────────────
@@ -324,8 +368,6 @@ const Staking = memo(() => {
                     />
                   </Suspense>
 
-                  {/* Rewards Calculator - Moved to RewardsHub consolidated component */}
-
                   {/* Contract Info - Compact metadata */}
                   <Suspense fallback={<LoadingSpinner />}>
                     <ContractInfo
@@ -338,12 +380,67 @@ const Staking = memo(() => {
 
             </aside>
           </div>
+          )}
+
+          {/* ═══════ DEPOSITS TAB ═══════ */}
+          {dashboardTab === 'deposits' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              <div className="lg:col-span-8 space-y-6">
+                {/* ✅ UPDATED: Show Advanced Analytics/Staking Stats in Deposits tab */}
+                <Suspense fallback={<LoadingSpinner />}>
+                  <AdvancedUserStats />
+                </Suspense>
+              </div>
+              <aside className="lg:col-span-4 space-y-6">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <RewardsHub currentTVL={processedData.totalPoolBalance} />
+                </Suspense>
+              </aside>
+            </div>
+          )}
+
+          {/* ═══════ SKILLS TAB ═══════ */}
+          {dashboardTab === 'skills' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              <div className="lg:col-span-8">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <SkillsManager />
+                </Suspense>
+              </div>
+              <aside className="lg:col-span-4 space-y-6">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <StakingEfficiencyCard />
+                </Suspense>
+              </aside>
+            </div>
+          )}
+
+          {/* ═══════ QUESTS TAB ═══════ */}
+          {dashboardTab === 'quests' && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              <div className="lg:col-span-8">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <QuestTracker />
+                </Suspense>
+              </div>
+              <aside className="lg:col-span-4 space-y-6">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <BadgeGallery
+                    badges={[]}
+                    badgeCount={gamification.badgeCount}
+                  />
+                </Suspense>
+              </aside>
+            </div>
+          )}
 
         </div>
       </div>
     </GlobalBackground>
   )
 })
+
+StakingDashboard.displayName = 'StakingDashboard'
 
 Staking.displayName = 'Staking'
 

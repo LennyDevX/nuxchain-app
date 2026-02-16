@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { parseEther } from 'viem';
 import type { SkillData } from '../../components/skills/config';
-import IIndividualSkillsABI from '../../abi/IndividualSkillsMarketplace/IndividualSkillsMarketplace.json';
+import IIndividualSkillsABI from '../../abi/Marketplace/IndividualSkillsMarketplace.json';
 import { useSkillsGraph } from './useSkillsGraph';
 import { dispatchTransactionEvent } from '../subgraph/useTransactionWatcher';
 

@@ -26,7 +26,7 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-full px-4 sm:px-6 py-2 shadow-[0_0_20px_rgba(59,130,246,0.15)] backdrop-blur-md">
-          <span className="text-blue-400 text-xs sm:text-sm font-bold tracking-tight">Pre-sale 18 Feb</span>
+          <span className="text-blue-400 text-xs sm:text-sm font-bold tracking-tight">PRE-SALE COMING SOON</span>
         </div>
       </div>
 

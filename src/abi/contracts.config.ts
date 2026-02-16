@@ -265,20 +265,20 @@ export type AbiType = readonly Record<string, unknown>[];
 
 // ABIs de Contratos Principales
 import GameifiedMarketplaceProxyABI from './GameifiedMarketplaceProxy/GameifiedMarketplaceProxy.json';
-import GameifiedMarketplaceCoreABI from './MarketplaceCore/GameifiedMarketplaceCoreV1.json';
-import GameifiedMarketplaceSkillsABI from './GameifiedMarketplaceSkillsV2/GameifiedMarketplaceSkillsV2.json';
-import GameifiedMarketplaceQuestsABI from './GameifiedMarketplaceQuests/GameifiedMarketplaceQuests.json';
+import GameifiedMarketplaceCoreABI from './Marketplace/GameifiedMarketplaceCoreV1.json';
+import GameifiedMarketplaceSkillsABI from './Marketplace/GameifiedMarketplaceSkillsNft.json';
+import GameifiedMarketplaceQuestsABI from './Marketplace/GameifiedMarketplaceQuests.json';
 
 // ABIs de Habilidades
-import IndividualSkillsABI from './IndividualSkillsMarketplace/IndividualSkillsMarketplace.json';
-import IndividualSkillsImplABI from './IndividualSkillsMarketplaceImpl/IndividualSkillsMarketplaceImpl.json';
+import IndividualSkillsABI from './Marketplace/IndividualSkillsMarketplace.json';
+import IndividualSkillsImplABI from './Marketplace/IndividualSkillsMarketplaceImpl.json';
 
 // ABIs de Sistema de Niveles y Referidos
-import LevelingSystemABI from './LevelingSystem/LevelingSystem.json';
-import ReferralSystemABI from './ReferralSystem/ReferralSystem.json';
+import LevelingSystemABI from './Marketplace/LevelingSystem.json';
+import ReferralSystemABI from './Marketplace/ReferralSystem.json';
 
 // ABIs de Smart Staking (módulos separados)
-import EnhancedSmartStakingABI from './SmartStaking/EnhancedSmartStaking.json';
+import EnhancedSmartStakingABI from './Marketplace/IEnhancedSmartStaking.json';
 import EnhancedSmartStakingRewardsABI from './SmartStaking/EnhancedSmartStakingRewards.json';
 import EnhancedSmartStakingSkillsABI from './SmartStaking/EnhancedSmartStakingSkills.json';
 import EnhancedSmartStakingGamificationABI from './SmartStaking/EnhancedSmartStakingGamification.json';
@@ -286,12 +286,12 @@ import EnhancedSmartStakingViewABI from './SmartStaking/EnhancedSmartStakingView
 
 // ABIs de Utilidades
 import DynamicAPYCalculatorABI from './DynamicAPYCalculator.sol/DynamicAPYCalculator.json';
-import TreasuryManagerABI from './TreasuryManager/TreasuryManager.json';
-import CollaboratorBadgeRewardsABI from './ColabRewards/CollaboratorBadgeRewards.json';
+import TreasuryManagerABI from './Treasury/TreasuryManager.json';
+import CollaboratorBadgeRewardsABI from './Marketplace/CollaboratorBadgeRewards.json';
 
 // ABIs de Marketplace Views (interfaces de lectura)
-import IGameifiedMarketplaceABI from './interfaces/IGameifiedMarketplace.json';
-import IStakingViewDataABI from './interfaces/IStakingViewData.json';
+import IGameifiedMarketplaceABI from './IGameifiedMarketplace/IGameifiedMarketplace.json';
+import IStakingViewDataABI from './SmartStaking/IStakingViewData.json';
 
 // Interfaz para los ABIs
 export interface ContractABIs {

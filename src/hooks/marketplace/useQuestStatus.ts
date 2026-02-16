@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import GameifiedMarketplaceQuestsABI from '../../abi/GameifiedMarketplaceQuests/GameifiedMarketplaceQuests.json';
+import GameifiedMarketplaceQuestsABI from '../../abi/Marketplace/GameifiedMarketplaceQuests.json';
 
 const MARKETPLACE_QUESTS_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS;
 

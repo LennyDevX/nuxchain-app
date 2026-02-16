@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { useAccount, useReadContracts, useReadContract } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
+import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import { useUserDeposits } from './useUserDeposits';
 
-const STAKING_VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`;
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 
 // ============================================
 // TYPE DEFINITIONS
@@ -102,168 +103,194 @@ export interface PortfolioSummary {
 export function useAdvancedStaking(): AdvancedStakingData {
   const { address, chain, isConnected } = useAccount();
 
-  const viewConfig = useMemo(() => ({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    chainId: chain?.id,
-  }), [chain?.id]);
+  // ✅ FIX: Use Core Contract instead of View Contract (which is reverting)
+  const { 
+    deposits: userDeposits, 
+    isLoading: loadingDeposits,
+    refetch: refetchDeposits 
+  } = useUserDeposits();
 
-  // Multicall: Fetch all advanced analytics in one batch
-  const { data: multicallData, isLoading, refetch } = useReadContracts({
-    contracts: [
-      {
-        ...viewConfig,
-        functionName: 'getDashboardData',
-        args: [address],
-      },
-      {
-        ...viewConfig,
-        functionName: 'getUserDetailedStats',
-        args: [address],
-      },
-      {
-        ...viewConfig,
-        functionName: 'getEarningsBreakdown',
-        args: [address],
-      },
-      {
-        ...viewConfig,
-        functionName: 'getWithdrawableDeposits',
-        args: [address],
-      },
-      {
-        ...viewConfig,
-        functionName: 'getNextUnlockTime',
-        args: [address],
-      },
-      {
-        ...viewConfig,
-        functionName: 'getPortfolioSummary',
-        args: [address],
-      },
-    ],
+  // Get user info from Core Contract
+  const { data: userInfoData, isLoading: loadingUserInfo, refetch: refetchUserInfo } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingCoreABI.abi as Abi,
+    functionName: 'getUserInfo',
+    args: [address],
+    chainId: chain?.id,
     query: {
       enabled: !!address && isConnected,
       staleTime: 45000,
       gcTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
-    },
-  });
+    }
+  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?] | undefined; isLoading: boolean; refetch: () => Promise<unknown> };
+
+  // Get contract balance from Core Contract
+  const { data: contractBalanceData, isLoading: loadingBalance, refetch: refetchBalance } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingCoreABI.abi as Abi,
+    functionName: 'getContractBalance',
+    chainId: chain?.id,
+    query: {
+      enabled: true,
+      staleTime: 45000,
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    }
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => Promise<unknown> };
+
+  const isLoading = loadingDeposits || loadingUserInfo || loadingBalance;
 
   const result = useMemo((): AdvancedStakingData => {
-    // Parse getDashboardData
-    const dashRaw = multicallData?.[0]?.result as readonly [bigint, bigint, bigint, number, bigint, bigint, bigint, bigint, bigint] | undefined;
-    const dashboard: DashboardData | null = dashRaw ? (() => {
-      const healthStatus = Number(dashRaw[3]);
+    // Extract from getUserInfo: [totalDeposited, totalRewards, depositCount, lastWithdrawTime]
+    const totalDeposited = userInfoData?.[0] || 0n;
+    const totalRewards = userInfoData?.[1] || 0n;
+    const depositCount = Number(userInfoData?.[2] || 0n);
+    const lastWithdrawTime = userInfoData?.[3] || 0n;
+
+    const contractBalance = contractBalanceData || 0n;
+
+    // ============================================
+    // DASHBOARD DATA
+    // ============================================
+    const dashboard: DashboardData | null = (totalDeposited > 0n || contractBalance > 0n) ? (() => {
+      // Calculate pool health status based on reserve ratio
+      const poolTotalValue = contractBalance; // Conservative: use contract balance as total
+      const healthStatus = contractBalance >= totalDeposited ? 3 : contractBalance >= (totalDeposited * 75n / 100n) ? 2 : 1;
       const healthInfo = getHealthInfo(healthStatus);
+
+      // Separate flexible vs locked (from userDeposits)
+      const flexibleAmount = userDeposits
+        .filter(d => d.isActive && !d.isLocked)
+        .reduce((acc, d) => acc + d.amount, 0n);
+      const lockedAmount = userDeposits
+        .filter(d => d.isActive && d.isLocked)
+        .reduce((acc, d) => acc + d.amount, 0n);
+
       return {
-        poolTotalValue: formatPOL(dashRaw[0]),
-        poolTotalValueRaw: dashRaw[0],
-        poolActiveUsers: Number(dashRaw[1]),
-        poolContractBalance: formatPOL(dashRaw[2]),
+        poolTotalValue: formatPOL(poolTotalValue),
+        poolTotalValueRaw: poolTotalValue,
+        poolActiveUsers: 0, // Cannot determine without View Contract
+        poolContractBalance: formatPOL(contractBalance),
         poolHealthStatus: healthStatus,
         poolHealthLabel: healthInfo.label,
         poolHealthColor: healthInfo.color,
-        userStaked: formatPOL(dashRaw[4]),
-        userStakedRaw: dashRaw[4],
-        userRewards: formatPOL(dashRaw[5], 6),
-        userDeposits: Number(dashRaw[6]),
-        userFlexible: formatPOL(dashRaw[7]),
-        userLocked: formatPOL(dashRaw[8]),
+        userStaked: formatPOL(totalDeposited),
+        userStakedRaw: totalDeposited,
+        userRewards: formatPOL(totalRewards, 6),
+        userDeposits: depositCount,
+        userFlexible: formatPOL(flexibleAmount),
+        userLocked: formatPOL(lockedAmount),
       };
     })() : null;
 
-    // Parse getUserDetailedStats
-    const statsRaw = multicallData?.[1]?.result;
-    const userStats: UserDetailedStats | null = statsRaw ? (() => {
-      const s = statsRaw as {
-        totalDeposited: bigint;
-        totalRewards: bigint;
-        boostedRewards: bigint;
-        boostedRewardsWithRarity: bigint;
-        depositCount: bigint;
-        lastWithdrawTime: bigint;
-        userLevel: number;
-        userXP: bigint;
-        maxActiveSkills: number;
-        activeSkillsCount: number;
-        stakingBoostTotal: number;
-        feeDiscountTotal: number;
-        hasAutoCompound: boolean;
-      };
-      return {
-        totalDeposited: formatPOL(s.totalDeposited),
-        totalDepositedRaw: s.totalDeposited,
-        totalRewards: formatPOL(s.totalRewards, 6),
-        boostedRewards: formatPOL(s.boostedRewards, 6),
-        boostedRewardsWithRarity: formatPOL(s.boostedRewardsWithRarity, 6),
-        depositCount: Number(s.depositCount),
-        lastWithdrawTime: s.lastWithdrawTime > 0n ? new Date(Number(s.lastWithdrawTime) * 1000) : null,
-        userLevel: Number(s.userLevel),
-        userXP: s.userXP.toString(),
-        maxActiveSkills: Number(s.maxActiveSkills),
-        activeSkillsCount: Number(s.activeSkillsCount),
-        stakingBoostTotal: Number(s.stakingBoostTotal),
-        feeDiscountTotal: Number(s.feeDiscountTotal),
-        hasAutoCompound: s.hasAutoCompound,
-      };
-    })() : null;
-
-    // Parse getEarningsBreakdown
-    const earningsRaw = multicallData?.[2]?.result as readonly [bigint, bigint, bigint] | undefined;
-    const earnings: EarningsBreakdown | null = earningsRaw ? {
-      dailyEarnings: formatPOL(earningsRaw[0], 6),
-      dailyEarningsRaw: earningsRaw[0],
-      monthlyEarnings: formatPOL(earningsRaw[1], 4),
-      monthlyEarningsRaw: earningsRaw[1],
-      annualEarnings: formatPOL(earningsRaw[2], 2),
-      annualEarningsRaw: earningsRaw[2],
+    // ============================================
+    // USER DETAILED STATS
+    // ============================================
+    const userStats: UserDetailedStats | null = totalDeposited > 0n ? {
+      totalDeposited: formatPOL(totalDeposited),
+      totalDepositedRaw: totalDeposited,
+      totalRewards: formatPOL(totalRewards, 6),
+      boostedRewards: formatPOL(totalRewards, 6), // Cannot calculate boost without View Contract
+      boostedRewardsWithRarity: formatPOL(totalRewards, 6),
+      depositCount,
+      lastWithdrawTime: lastWithdrawTime > 0n ? new Date(Number(lastWithdrawTime) * 1000) : null,
+      userLevel: 0, // Cannot determine without View Contract
+      userXP: '0',
+      maxActiveSkills: 0,
+      activeSkillsCount: 0,
+      stakingBoostTotal: 0,
+      feeDiscountTotal: 0,
+      hasAutoCompound: false,
     } : null;
 
-    // Parse getWithdrawableDeposits
-    const withdrawRaw = multicallData?.[3]?.result as readonly [readonly bigint[], bigint] | undefined;
-    const withdrawable: WithdrawableInfo | null = withdrawRaw ? {
-      withdrawableIndices: withdrawRaw[0].map(Number),
-      withdrawableAmount: formatPOL(withdrawRaw[1]),
-      withdrawableAmountRaw: withdrawRaw[1],
-      totalDeposits: dashboard?.userDeposits || 0,
-      withdrawableCount: withdrawRaw[0].length,
+    // ============================================
+    // EARNINGS BREAKDOWN
+    // ============================================
+    const earnings: EarningsBreakdown | null = totalDeposited > 0n ? (() => {
+      // Estimate earnings based on 5% APY
+      const BASE_APY = 0.05;
+      const dailyRate = BASE_APY / 365;
+      const monthlyRate = BASE_APY / 12;
+      const annualRate = BASE_APY;
+
+      const dailyEarningsRaw = BigInt(Math.floor(Number(totalDeposited) * dailyRate));
+      const monthlyEarningsRaw = BigInt(Math.floor(Number(totalDeposited) * monthlyRate));
+      const annualEarningsRaw = BigInt(Math.floor(Number(totalDeposited) * annualRate));
+
+      return {
+        dailyEarnings: formatPOL(dailyEarningsRaw, 6),
+        dailyEarningsRaw,
+        monthlyEarnings: formatPOL(monthlyEarningsRaw, 4),
+        monthlyEarningsRaw,
+        annualEarnings: formatPOL(annualEarningsRaw, 2),
+        annualEarningsRaw,
+      };
+    })() : null;
+
+    // ============================================
+    // WITHDRAWABLE INFO
+    // ============================================
+    const withdrawable: WithdrawableInfo | null = userDeposits.length > 0 ? (() => {
+      const withdrawableDeposits = userDeposits.filter(d => d.isActive && !d.isLocked);
+      const withdrawableAmount = withdrawableDeposits.reduce((acc, d) => acc + d.amount, 0n);
+
+      return {
+        withdrawableIndices: withdrawableDeposits.map(d => d.index),
+        withdrawableAmount: formatPOL(withdrawableAmount),
+        withdrawableAmountRaw: withdrawableAmount,
+        totalDeposits: depositCount,
+        withdrawableCount: withdrawableDeposits.length,
+      };
+    })() : null;
+
+    // ============================================
+    // NEXT UNLOCK INFO
+    // ============================================
+    const nextUnlock: NextUnlockInfo | null = userDeposits.length > 0 ? (() => {
+      const lockedDeposits = userDeposits.filter(d => d.isActive && d.isLocked);
+      
+      if (lockedDeposits.length === 0) {
+        return {
+          secondsUntilUnlock: 0,
+          nextUnlockTime: null,
+          formattedCountdown: 'No locked deposits',
+          hasLockedDeposits: false,
+        };
+      }
+
+      // Find earliest unlock time
+      const nowSeconds = BigInt(Math.floor(Date.now() / 1000));
+      const nextUnlockTimeSeconds = lockedDeposits.reduce((min, d) => {
+        const unlockSeconds = d.unlockTime;
+        return unlockSeconds < min ? unlockSeconds : min;
+      }, lockedDeposits[0].unlockTime);
+
+      const secondsUntilUnlock = Number(nextUnlockTimeSeconds - nowSeconds);
+
+      return {
+        secondsUntilUnlock: Math.max(0, secondsUntilUnlock),
+        nextUnlockTime: new Date(Number(nextUnlockTimeSeconds) * 1000),
+        formattedCountdown: formatCountdown(secondsUntilUnlock),
+        hasLockedDeposits: true,
+      };
+    })() : null;
+
+    // ============================================
+    // PORTFOLIO SUMMARY
+    // ============================================
+    const portfolio: PortfolioSummary | null = totalDeposited > 0n ? {
+      totalDeposited: formatPOL(totalDeposited),
+      pendingRewards: formatPOL(totalRewards, 6),
+      totalValue: formatPOL(totalDeposited + totalRewards),
+      totalValueRaw: totalDeposited + totalRewards,
+      depositCount,
+      rewardEfficiency: totalDeposited > 0n ? Number((totalRewards * 10000n) / totalDeposited) : 0, // basis points
     } : null;
 
-    // Parse getNextUnlockTime
-    const unlockRaw = multicallData?.[4]?.result as readonly [bigint, bigint] | undefined;
-    const nextUnlock: NextUnlockInfo | null = unlockRaw ? (() => {
-      const seconds = Number(unlockRaw[0]);
-      const unlockTime = unlockRaw[1] > 0n ? new Date(Number(unlockRaw[1]) * 1000) : null;
-      return {
-        secondsUntilUnlock: seconds,
-        nextUnlockTime: unlockTime,
-        formattedCountdown: formatCountdown(seconds),
-        hasLockedDeposits: seconds > 0,
-      };
-    })() : null;
-
-    // Parse getPortfolioSummary
-    const portfolioRaw = multicallData?.[5]?.result;
-    const portfolio: PortfolioSummary | null = portfolioRaw ? (() => {
-      const p = portfolioRaw as {
-        totalDeposited: bigint;
-        pendingRewards: bigint;
-        totalValue: bigint;
-        depositCount: bigint;
-        rewardEfficiency: bigint;
-      };
-      return {
-        totalDeposited: formatPOL(p.totalDeposited),
-        pendingRewards: formatPOL(p.pendingRewards, 6),
-        totalValue: formatPOL(p.totalValue),
-        totalValueRaw: p.totalValue,
-        depositCount: Number(p.depositCount),
-        rewardEfficiency: Number(p.rewardEfficiency),
-      };
-    })() : null;
-
-    const refetchAll = async () => { await refetch(); };
+    const refetchAll = async () => { 
+      await Promise.all([refetchDeposits(), refetchUserInfo(), refetchBalance()]); 
+    };
 
     return {
       dashboard,
@@ -275,7 +302,7 @@ export function useAdvancedStaking(): AdvancedStakingData {
       isLoading,
       refetchAll,
     };
-  }, [multicallData, isLoading, refetch]);
+  }, [userInfoData, contractBalanceData, userDeposits, isLoading, refetchDeposits, refetchUserInfo, refetchBalance]);
 
   return result;
 }
@@ -283,7 +310,10 @@ export function useAdvancedStaking(): AdvancedStakingData {
 // ============================================
 // DEPOSIT DETAILS HOOK (per-deposit deep dive)
 // ============================================
+// NOTE: This hook requires View Contract which is currently reverting
+// Use useUserDeposits instead for basic deposit information
 
+/*
 export function useDepositDetails(depositIndex: number) {
   const { address, chain, isConnected } = useAccount();
 
@@ -333,6 +363,7 @@ export function useDepositDetails(depositIndex: number) {
     };
   }, [data, isLoading]);
 }
+*/
 
 // ============================================
 // HELPERS

@@ -4,6 +4,7 @@ import { useDynamicAPY } from '../../hooks/apy/useDynamicAPY';
 
 interface DynamicAPYIndicatorProps {
   currentTVL?: bigint;
+  skillBoostBps?: number; // User's total skill boost in basis points
   className?: string;
 }
 
@@ -11,7 +12,7 @@ interface DynamicAPYIndicatorProps {
  * DynamicAPYIndicator - Real-time APY display with TVL-based multiplier
  * Shows dynamic rates, multiplier badge, and APY curve preview
  */
-const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({ currentTVL, className = '' }) => {
+const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({ currentTVL, skillBoostBps = 0, className = '' }) => {
   const { 
     isEnabled, 
     multiplier, 
@@ -24,7 +25,8 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({ currentT
     treasuryHealthStatus,
     treasuryHealthMessage,
     payoutRatio,
-    isLoading 
+    isLoading,
+    hasData,
   } = useDynamicAPY(currentTVL);
 
   // Determine multiplier quality
@@ -66,6 +68,46 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({ currentT
     );
   }
 
+  // Show fallback with base rates when contract data is unavailable
+  if (!hasData) {
+    const contractAddr = import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS as string | undefined;
+    const isNotDeployed = !contractAddr || contractAddr === 'undefined';
+    
+    return (
+      <motion.div
+        className={`card-unified rounded-xl p-5 border border-white/10 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 ${className}`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-cyan-400 text-lg">⚡</span>
+            <h4 className="text-sm font-semibold text-white">Dynamic APY</h4>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            {isNotDeployed ? 'Not Deployed' : 'Connecting...'}
+          </div>
+        </div>
+        <div className="grid grid-cols-5 gap-1.5 mb-3">
+          {dynamicRates.map((rate) => (
+            <div key={rate.periodName} className="text-center p-2 bg-white/5 rounded-lg border border-white/5">
+              <p className="text-white/40 text-[10px] mb-0.5">{rate.days === 0 ? 'Flex' : `${rate.days}d`}</p>
+              <p className="text-white font-bold text-sm">{rate.baseAPY.toFixed(1)}%</p>
+              <p className="text-white/30 text-[9px]">base</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-white/30 text-[10px] text-center">
+          {isNotDeployed 
+            ? '⚠️ DynamicAPYCalculator contract pending deployment. Showing base rates only.'
+            : 'Dynamic APY rates loading from contract...'
+          }
+        </p>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       className={`card-unified rounded-xl p-5 border border-white/10 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 ${className}`}
@@ -97,25 +139,48 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({ currentT
 
       {/* Dynamic Rates Grid */}
       <div className="grid grid-cols-5 gap-1.5 mb-4">
-        {dynamicRates.map((rate, index) => (
-          <motion.div
-            key={rate.periodName}
-            className="text-center p-2 bg-white/5 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors"
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            whileHover={{ backgroundColor: 'rgba(6, 182, 212, 0.1)' }}
-          >
-            <p className="text-white/40 text-[10px] mb-0.5">{rate.days === 0 ? 'Flex' : `${rate.days}d`}</p>
-            <p className="text-white font-bold text-sm">{rate.dynamicAPY.toFixed(1)}%</p>
-            {rate.boost !== 0 && (
-              <p className={`text-[10px] font-medium ${rate.boost > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                {rate.boost > 0 ? '+' : ''}{rate.boost.toFixed(1)}%
-              </p>
-            )}
-          </motion.div>
-        ))}
+        {dynamicRates.map((rate, index) => {
+          const effectiveAPY = skillBoostBps > 0
+            ? rate.dynamicAPY * (1 + skillBoostBps / 10000)
+            : rate.dynamicAPY;
+          return (
+            <motion.div
+              key={rate.periodName}
+              className="text-center p-2 bg-white/5 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ backgroundColor: 'rgba(6, 182, 212, 0.1)' }}
+            >
+              <p className="text-white/40 text-[10px] mb-0.5">{rate.days === 0 ? 'Flex' : `${rate.days}d`}</p>
+              <p className="text-white font-bold text-sm">{rate.dynamicAPY.toFixed(1)}%</p>
+              {skillBoostBps > 0 && (
+                <p className="text-purple-400 text-[10px] font-medium">
+                  → {effectiveAPY.toFixed(1)}%
+                </p>
+              )}
+              {rate.boost !== 0 && !skillBoostBps && (
+                <p className={`text-[10px] font-medium ${rate.boost > 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                  {rate.boost > 0 ? '+' : ''}{rate.boost.toFixed(1)}%
+                </p>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
+
+      {/* Skill Boost Summary */}
+      {skillBoostBps > 0 && (
+        <div className="mb-3 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+          <div className="flex items-center justify-between">
+            <span className="text-purple-300 text-[10px]">🎮 Skill Boost Active</span>
+            <span className="text-purple-400 text-xs font-bold">+{(skillBoostBps / 100).toFixed(1)}%</span>
+          </div>
+          <p className="text-white/30 text-[9px] mt-0.5">
+            Your effective APY includes skill multiplier on all rates
+          </p>
+        </div>
+      )}
 
       {/* Treasury Health Warning - Only show if not Healthy */}
       {treasuryHealthStatus !== 'Healthy' && (

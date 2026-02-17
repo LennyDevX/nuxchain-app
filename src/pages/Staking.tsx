@@ -1,11 +1,8 @@
-import { useAccount, useReadContracts } from 'wagmi'
-import { memo, useMemo, lazy, Suspense, useEffect, useState } from 'react'
-import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
-import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json'
+import { useAccount } from 'wagmi'
+import { memo, lazy, Suspense, useEffect } from 'react'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
-import { useIsMobile } from '../hooks/mobile'
 import { stakingLogger } from '../utils/log/stakingLogger'
 import { StakingProvider } from '../context/StakingContext'
 import { useStakingContext } from '../context/useStakingContext'
@@ -23,47 +20,24 @@ if (typeof BigInt.prototype.toJSON === 'undefined') {
   };
 }
 
-// Lazy load components - OPTIMIZED: Removed redundant components
+// Lazy load components
 const StakingForm = lazy(() => import('../components/staking/StakingForm'))
-const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
-const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
-
-// Analytics components - Only essential ones
-const StakingEfficiencyCard = lazy(() => import('../components/staking/StakingEfficiencyCard'))
-
-// Consolidated Rewards Component
+const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
+const StakingPoolChart = lazy(() => import('../components/staking/StakingPoolChart'))
+const TreasuryPoolChart = lazy(() => import('../components/staking/TreasuryPoolChart'))
+const TabNavigation = lazy(() => import('../components/staking/TabNavigation'))
 const RewardsHub = lazy(() => import('../components/staking/RewardsHub'))
-
-// Phase 1-3: New integrated components
 const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYIndicator'))
-const TreasuryHealthCard = lazy(() => import('../components/staking/TreasuryHealthCard'))
-const AdvancedUserStats = lazy(() => import('../components/staking/AdvancedUserStats'))
-
-// Phase 4: New gamification & deposit management components
+const DepositsManager = lazy(() => import('../components/staking/DepositsManager'))
 const SkillsManager = lazy(() => import('../components/staking/SkillsManager'))
 const QuestTracker = lazy(() => import('../components/staking/QuestTracker'))
-
-// Phase 5: New integrated components
 const BadgeGallery = lazy(() => import('../components/staking/BadgeGallery'))
-
-// Interfaces
-interface DepositData {
-  amount: bigint
-  timestamp: bigint
-  lastClaimTime: bigint
-  lockupDuration: bigint
-}
+// const ProjectionDebug = lazy(() => import('../components/debug/ProjectionDebug'))
 
 // Contract address from environment variables
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS
-
-// ✅ Validación de configuración del contrato en tiempo de carga
-if (!STAKING_CONTRACT_ADDRESS) {
-  console.error('❌ CRITICAL ERROR: VITE_ENHANCED_SMARTSTAKING_ADDRESS no está configurado');
-  console.error('Este valor es requerido en variables de entorno para el funcionamiento del Staking');
-}
 
 const Staking = memo(() => {
   const { isConnected } = useAccount()
@@ -83,143 +57,37 @@ const Staking = memo(() => {
  * Inner dashboard component - has access to StakingContext
  */
 const StakingDashboard = memo(() => {
-  const { address, isConnected, gamification, hasValidConfig } = useStakingContext();
-  const isMobile = useIsMobile()
-  const [dashboardTab, setDashboardTab] = useState<'overview' | 'deposits' | 'skills' | 'quests'>('overview')
+  const {
+    address,
+    isConnected,
+    gamification,
+    pool,
+    user
+  } = useStakingContext();
 
-  // Memoize contract configuration for better performance
-  const contractConfig = useMemo(() => ({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
-  }), [])
-
-  // Run contract validation side-effect on mount
-  useMemo(() => {
-    const isValid = STAKING_CONTRACT_ADDRESS &&
-      STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
-      STAKING_CONTRACT_ADDRESS.startsWith('0x');
-    if (!isValid) {
-      console.warn('⚠️ Staking contract address is not properly configured:', STAKING_CONTRACT_ADDRESS);
-    }
-  }, [])
-
-  // ✅ Optimized: Use Multicall to fetch all data in a single RPC request
-  const { data: stakingData } = useReadContracts({
-    contracts: [
-      {
-        ...contractConfig,
-        functionName: 'getUserDeposits',
-        args: [address],
-      },
-      {
-        ...contractConfig,
-        functionName: 'totalPoolBalance',
-      },
-      {
-        ...contractConfig,
-        functionName: 'uniqueUsersCount',
-      },
-      {
-        ...contractConfig,
-        functionName: 'calculateRewards',
-        args: [address],
-      },
-      {
-        address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
-        abi: EnhancedSmartStakingViewABI.abi,
-        functionName: 'getTotalDeposit',
-        args: [address],
-      },
-      {
-        ...contractConfig,
-        functionName: 'getContractVersion',
-      },
-      {
-        ...contractConfig,
-        functionName: 'paused',
-      }
-    ],
-    query: {
-      enabled: !!address,
-      staleTime: 30000,
-      gcTime: 5 * 60 * 1000,
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  })
-
-  // Extract data from multicall result
-  const userDeposits = stakingData?.[0]?.result
-  const totalPoolBalance = stakingData?.[1]?.result
-  const uniqueUsersCount = stakingData?.[2]?.result
-  const pendingRewards = stakingData?.[3]?.result
-  const totalDeposit = stakingData?.[4]?.result
-  const contractVersion = stakingData?.[5]?.result
-  const isPaused = stakingData?.[6]?.result
-
-  // Helper function to safely handle BigInt serialization for logging
-  // This prevents "Do not know how to serialize a BigInt" error in React DevTools
-  const serializableBigInt = (value: bigint | number | string | undefined): string | number | undefined => {
-    if (typeof value === 'bigint') {
-      return value.toString()
-    }
-    return value
-  }
-
-  // Memoize processed data to prevent unnecessary re-renders
-  const processedData = useMemo(() => {
-    // Keep original bigints for component usage
-    const data = {
-      userDeposits,
-      totalPoolBalance: (totalPoolBalance as bigint) || 0n,
-      uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
-      pendingRewards: (pendingRewards as bigint) || 0n,
-      totalDeposit: (totalDeposit as bigint) || 0n,
-      contractVersion: (contractVersion as bigint) || 0n,
-      isPaused: (isPaused as boolean) || false
-    }
-
-    // Prevent React DevTools from trying to serialize BigInt values
-    Object.defineProperty(data, 'toJSON', {
-      value: function () {
-        return {
-          totalPoolBalance: serializableBigInt(this.totalPoolBalance),
-          uniqueUsersCount: serializableBigInt(this.uniqueUsersCount),
-          pendingRewards: serializableBigInt(this.pendingRewards),
-          totalDeposit: serializableBigInt(this.totalDeposit),
-          contractVersion: serializableBigInt(this.contractVersion),
-          isPaused: this.isPaused
-        }
-      }
-    })
-
-    return data
-  }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, isPaused])
-
-  // Log staking data when it changes (using context data)
+  // Log staking data when it changes
   useEffect(() => {
-    if (address && isConnected && processedData.totalDeposit > 0n) {
+    if (address && isConnected && (user.totalDeposit > 0n || user.depositCount > 0)) {
       stakingLogger.logStaking({
-        totalStaked: (processedData.totalDeposit / BigInt(1e18)).toString(),
-        pendingRewards: (processedData.pendingRewards / BigInt(1e18)).toString(),
-        activePositions: (processedData.userDeposits as DepositData[] | undefined)?.length || 0,
+        totalStaked: (user.totalDeposit / BigInt(1e18)).toString(),
+        pendingRewards: (user.pendingRewards / BigInt(1e18)).toString(),
+        activePositions: user.depositCount,
         hasAutoCompound: gamification.hasAutoCompound,
       });
     }
-  }, [address, isConnected, processedData.totalDeposit, processedData.pendingRewards, processedData.userDeposits, gamification.hasAutoCompound]);
+  }, [address, isConnected, user.totalDeposit, user.pendingRewards, user.depositCount, gamification.hasAutoCompound]);
 
   // Log pool info
   useEffect(() => {
-    if (processedData.totalPoolBalance > 0n) {
+    if (pool.totalPoolBalance > 0n) {
       stakingLogger.logPool({
-        totalPoolBalance: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
-        uniqueUsers: Number(processedData.uniqueUsersCount),
-        totalDeposits: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
-        isPaused: processedData.isPaused
+        totalPoolBalance: (pool.totalPoolBalance / BigInt(1e18)).toString(),
+        uniqueUsers: Number(pool.uniqueUsersCount),
+        totalDeposits: (pool.totalPoolBalance / BigInt(1e18)).toString(),
+        isPaused: pool.isPaused
       });
     }
-  }, [processedData.totalPoolBalance, processedData.uniqueUsersCount, processedData.isPaused]);
+  }, [pool.totalPoolBalance, pool.uniqueUsersCount, pool.isPaused]);
 
   return (
     <GlobalBackground>
@@ -229,7 +97,7 @@ const StakingDashboard = memo(() => {
           {/* ═══════════════════════════════════════════════════════════════
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
-          <header className="mb-8">
+          <header className="mb-8 text-center">
             <h1 className="text-3xl lg:text-4xl font-bold text-gradient mb-2">
               Smart Staking
             </h1>
@@ -239,200 +107,139 @@ const StakingDashboard = memo(() => {
           </header>
 
           {/* ═══════════════════════════════════════════════════════════════
-              HERO STATS - Key metrics at a glance
+              TOP STATS ROW - High-level metrics (4 cards)
           ═══════════════════════════════════════════════════════════════ */}
-          <Suspense fallback={<LoadingSpinner />}>
-            <StakingStats
-              totalPoolBalance={processedData.totalPoolBalance}
-              uniqueUsersCount={processedData.uniqueUsersCount}
-              totalDeposit={processedData.totalDeposit}
-              pendingRewards={processedData.pendingRewards}
+          <section className="mb-6">
+            <Suspense fallback={<div className="h-32 bg-white/5 animate-pulse rounded-2xl" />}>
+              <StakingStats
+                userStaked={user.totalDeposit}
+                pendingRewards={user.pendingRewards}
+                uniqueUsersCount={pool.uniqueUsersCount}
+                totalPoolBalance={pool.totalPoolBalance}
+              />
+            </Suspense>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              TAB NAVIGATION SYSTEM - Overview / My Deposit / Skills / Active Quest
+          ═══════════════════════════════════════════════════════════════ */}
+          <Suspense fallback={<div className="h-64 bg-white/5 animate-pulse rounded-2xl" />}>
+            <TabNavigation
+              tabs={[
+                {
+                  id: 'overview',
+                  label: 'Overview',
+                  icon: '🏠',
+                  content: (
+                    <div className="space-y-6 py-6">
+                      {/* ═══════ CHARTS SECTION - 3 columns grid ═══════ */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Staking Pool Chart */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <StakingPoolChart />
+                        </Suspense>
+
+                        {/* Pool Info - Center */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <PoolInfo
+                            totalPoolBalance={pool.totalPoolBalance}
+                            uniqueUsersCount={pool.uniqueUsersCount}
+                            poolContractBalance={pool.totalPoolBalance}
+                          />
+                        </Suspense>
+
+                        {/* Treasury Pool Chart */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <TreasuryPoolChart />
+                        </Suspense>
+                      </div>
+
+                      {/* ═══════ STAKING FORM ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <StakingForm
+                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                          pendingRewards={user.pendingRewards}
+                          isPaused={pool.isPaused}
+                          userStaked={user.totalDeposit}
+                        />
+                      </Suspense>
+
+                      {/* ═══════ REWARDS HUB ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <RewardsHub currentTVL={pool.totalPoolBalance} />
+                      </Suspense>
+
+                      {/* ═══════ DEBUG PANEL (COMMENTED OUT) ═══════
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <ProjectionDebug />
+                      </Suspense>
+                      */}
+                    </div>
+                  )
+                },
+                {
+                  id: 'mydeposit',
+                  label: 'My Deposit',
+                  icon: '💰',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <DepositsManager />
+                      </Suspense>
+                    </div>
+                  )
+                },
+                {
+                  id: 'skills',
+                  label: 'Skills',
+                  icon: '⚡',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <SkillsManager />
+                      </Suspense>
+                    </div>
+                  )
+                },
+                {
+                  id: 'activequest',
+                  label: 'Active Quest',
+                  icon: '🎯',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <QuestTracker />
+                      </Suspense>
+                    </div>
+                  )
+                }
+              ]}
+              defaultTab="overview"
             />
           </Suspense>
 
           {/* ═══════════════════════════════════════════════════════════════
-              ALERTS - Contract status warnings (compact)
+              FOOTER SECTION - Contract Info / Badge Gallery / Dynamic APY
           ═══════════════════════════════════════════════════════════════ */}
-          {!hasValidConfig && (
-            <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-              <p className="text-yellow-400 text-sm flex items-center gap-2">
-                <span>⚠️</span>
-                Staking contract is not properly configured.
-              </p>
-            </div>
-          )}
+          <section className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Suspense fallback={<LoadingSpinner />}>
+              <ContractInfo
+                contractAddress={STAKING_CONTRACT_ADDRESS as string}
+                isPaused={pool.isPaused}
+              />
+            </Suspense>
 
-          {hasValidConfig && processedData.isPaused && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm flex items-center gap-2">
-                <span>⏸️</span>
-                Contract is temporarily paused. Deposits are disabled.
-              </p>
-            </div>
-          )}
+            <Suspense fallback={<LoadingSpinner />}>
+              <BadgeGallery 
+                badges={[]} 
+                badgeCount={gamification.badgeCount} 
+              />
+            </Suspense>
 
-          {/* ═══════════════════════════════════════════════════════════════
-              DASHBOARD TABS - Overview | Deposits | Skills | Quests
-          ═══════════════════════════════════════════════════════════════ */}
-          <div className="mb-6">
-            <div className={`flex ${isMobile ? 'overflow-x-auto scrollbar-hide' : ''} gap-1 p-1 bg-white/5 rounded-xl border border-white/10`}>
-              {([
-                { key: 'overview' as const, label: '📊 Overview', mobileLabel: 'Overview' },
-                { key: 'deposits' as const, label: '📦 My Deposits', mobileLabel: 'Deposits' },
-                { key: 'skills' as const, label: '⚡ Skills', mobileLabel: 'Skills' },
-                { key: 'quests' as const, label: '🏆 Quests', mobileLabel: 'Quests' },
-              ]).map(({ key, label, mobileLabel }) => (
-                <button
-                  key={key}
-                  onClick={() => setDashboardTab(key)}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                    dashboardTab === key
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-lg'
-                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                  }`}
-                >
-                  {isMobile ? mobileLabel : label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════════
-              TAB CONTENT
-          ═══════════════════════════════════════════════════════════════ */}
-
-          {/* ═══════ OVERVIEW TAB ═══════ */}
-          {dashboardTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-
-            {/* ─────────────────────────────────────────────────────────────
-                LEFT COLUMN - Main staking interface (8 cols)
-            ───────────────────────────────────────────────────────────── */}
-            <div className="lg:col-span-8 space-y-6">
-
-              {/* Staking Form - Primary Action Component */}
-              <Suspense fallback={<LoadingSpinner />}>
-                <StakingForm
-                  stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-                  pendingRewards={processedData.pendingRewards}
-                  isPaused={processedData.isPaused}
-                  totalDeposit={processedData.totalDeposit}
-                />
-              </Suspense>
-
-              {/* Rewards Hub + Staking Efficiency - Side by side */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Rewards Hub - Consolidated Projection + Calculator + Boosted */}
-                <Suspense fallback={<LoadingSpinner />}>
-                  <RewardsHub currentTVL={processedData.totalPoolBalance} />
-                </Suspense>
-
-                {/* Staking Efficiency Card */}
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingEfficiencyCard />
-                </Suspense>
-              </div>
-            </div>
-
-            {/* ─────────────────────────────────────────────────────────────
-                RIGHT COLUMN - Sidebar info (4 cols)
-            ───────────────────────────────────────────────────────────── */}
-            <aside className="lg:col-span-4 space-y-6">
-
-              {isMobile ? (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingInfoCarousel
-                    totalPoolBalance={processedData.totalPoolBalance}
-                    uniqueUsersCount={processedData.uniqueUsersCount}
-                    contractAddress={STAKING_CONTRACT_ADDRESS}
-                    isPaused={processedData.isPaused}
-                  />
-                </Suspense>
-              ) : (
-                <>
-                  {/* Phase 1: Dynamic APY Indicator - Most important info first */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <DynamicAPYIndicator currentTVL={processedData.totalPoolBalance} />
-                  </Suspense>
-
-                  {/* Phase 2: Treasury Health - Transparency elevated */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <TreasuryHealthCard />
-                  </Suspense>
-
-                  {/* Pool Info - Contract health & distribution */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <PoolInfo
-                      totalPoolBalance={processedData.totalPoolBalance}
-                      uniqueUsersCount={processedData.uniqueUsersCount}
-                    />
-                  </Suspense>
-
-                  {/* Contract Info - Compact metadata */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <ContractInfo
-                      contractAddress={STAKING_CONTRACT_ADDRESS}
-                      isPaused={processedData.isPaused}
-                    />
-                  </Suspense>
-                </>
-              )}
-
-            </aside>
-          </div>
-          )}
-
-          {/* ═══════ DEPOSITS TAB ═══════ */}
-          {dashboardTab === 'deposits' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              <div className="lg:col-span-8 space-y-6">
-                {/* ✅ UPDATED: Show Advanced Analytics/Staking Stats in Deposits tab */}
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AdvancedUserStats />
-                </Suspense>
-              </div>
-              <aside className="lg:col-span-4 space-y-6">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <RewardsHub currentTVL={processedData.totalPoolBalance} />
-                </Suspense>
-              </aside>
-            </div>
-          )}
-
-          {/* ═══════ SKILLS TAB ═══════ */}
-          {dashboardTab === 'skills' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              <div className="lg:col-span-8">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <SkillsManager />
-                </Suspense>
-              </div>
-              <aside className="lg:col-span-4 space-y-6">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingEfficiencyCard />
-                </Suspense>
-              </aside>
-            </div>
-          )}
-
-          {/* ═══════ QUESTS TAB ═══════ */}
-          {dashboardTab === 'quests' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-              <div className="lg:col-span-8">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <QuestTracker />
-                </Suspense>
-              </div>
-              <aside className="lg:col-span-4 space-y-6">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <BadgeGallery
-                    badges={[]}
-                    badgeCount={gamification.badgeCount}
-                  />
-                </Suspense>
-              </aside>
-            </div>
-          )}
+            <Suspense fallback={<LoadingSpinner />}>
+              <DynamicAPYIndicator currentTVL={pool.totalPoolBalance} />
+            </Suspense>
+          </section>
 
         </div>
       </div>
@@ -440,8 +247,7 @@ const StakingDashboard = memo(() => {
   )
 })
 
-StakingDashboard.displayName = 'StakingDashboard'
-
 Staking.displayName = 'Staking'
+StakingDashboard.displayName = 'StakingDashboard'
 
 export default Staking

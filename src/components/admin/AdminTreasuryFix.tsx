@@ -2,8 +2,8 @@
  * AdminTreasuryFix - Emergency component to fix treasury address configuration
  * 
  * ISSUE FOUND: Staking contract is sending commissions to wrong address
- * - Current: 0xaD14c117...729CD9593 (unknown wallet)
- * - Expected: 0x16c69b35D59A3FD749Ce357F1728E06F25E1Fa38 (TreasuryManager)
+ * - Current: Unknown (check contract)
+ * - Expected: 0x92BA711B203CF40bb6c5f7f509E0f48aa19e2cD9 (TreasuryManager)
  * 
  * This component allows the contract owner to:
  * 1. Query the current treasury address
@@ -15,8 +15,8 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { motion } from 'framer-motion';
 import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 
-const STAKING_CONTRACT = '0xAA334176a6f94Dfdb361a8c9812E8019558E9E1c' as `0x${string}`;
-const TREASURY_MANAGER = '0x16c69b35D59A3FD749Ce357F1728E06F25E1Fa38' as `0x${string}`;
+const STAKING_CONTRACT = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
+const TREASURY_MANAGER = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
 
 export default function AdminTreasuryFix() {
   const { address, isConnected } = useAccount();

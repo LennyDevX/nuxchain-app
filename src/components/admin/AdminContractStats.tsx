@@ -7,8 +7,8 @@ import { useReadContracts } from 'wagmi';
 import { formatEther } from 'viem';
 import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 
-const STAKING_CONTRACT = '0xAA334176a6f94Dfdb361a8c9812E8019558E9E1c' as `0x${string}`;
-const TREASURY_MANAGER = '0x16c69b35D59A3FD749Ce357F1728E06F25E1Fa38' as `0x${string}`;
+const STAKING_CONTRACT = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
+const TREASURY_MANAGER = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
 
 export default function AdminContractStats() {
   const { data: contractData, isLoading } = useReadContracts({

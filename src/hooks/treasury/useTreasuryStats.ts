@@ -161,21 +161,22 @@ export function useTreasuryStats(): TreasuryData {
         const obj = r as Record<string, unknown>;
         const rewards = (obj.rewardsAlloc ?? obj[0]) as bigint;
         const staking = (obj.stakingAlloc ?? obj[1]) as bigint;
-        const marketplace = (obj.marketplaceAlloc ?? obj.marketPlaceAlloc ?? obj[2]) as bigint;
+        const collaborators = (obj.collaboratorsAlloc ?? obj[2]) as bigint;
         const development = (obj.developmentAlloc ?? obj[3]) as bigint;
-        const collaborators = (obj.collaboratorsAlloc ?? obj[4]) as bigint;
+        const marketplace = (obj.marketplaceAlloc ?? obj[4]) as bigint;
         if (rewards !== undefined) {
-          allocRaw = [rewards, staking, marketplace, development, collaborators] as const;
+          allocRaw = [rewards, staking, collaborators, development, marketplace] as const;
         }
       }
     }
     const allocations: TreasuryAllocations | null = allocRaw ? (() => {
-      const rewards = Number(allocRaw[0]);
-      const staking = Number(allocRaw[1]);
-      const marketplace = Number(allocRaw[2]);
-      const development = Number(allocRaw[3]);
-      const collaborators = Number(allocRaw[4]);
-      const total = rewards + staking + marketplace + development + collaborators;
+      // Percentages from contract come multiplied by 100 (e.g. 2000 = 20%)
+      const rewards = Number(allocRaw[0]) / 100;
+      const staking = Number(allocRaw[1]) / 100;
+      const collaborators = Number(allocRaw[2]) / 100;
+      const development = Number(allocRaw[3]) / 100;
+      const marketplace = Number(allocRaw[4]) / 100;
+      const total = rewards + staking + collaborators + development + marketplace;
 
       return {
         rewards,
@@ -187,9 +188,9 @@ export function useTreasuryStats(): TreasuryData {
         items: [
           { name: 'Rewards Pool', percentage: rewards, color: 'from-emerald-500 to-green-500', emoji: '🎁' },
           { name: 'Staking', percentage: staking, color: 'from-purple-500 to-indigo-500', emoji: '📈' },
-          { name: 'Marketplace', percentage: marketplace, color: 'from-blue-500 to-cyan-500', emoji: '🏪' },
-          { name: 'Development', percentage: development, color: 'from-orange-500 to-amber-500', emoji: '⚙️' },
           { name: 'Collaborators', percentage: collaborators, color: 'from-pink-500 to-rose-500', emoji: '🤝' },
+          { name: 'Development', percentage: development, color: 'from-orange-500 to-amber-500', emoji: '⚙️' },
+          { name: 'Marketplace', percentage: marketplace, color: 'from-blue-500 to-cyan-500', emoji: '🏪' },
         ].filter(item => item.percentage > 0),
       };
     })() : null;

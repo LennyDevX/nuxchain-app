@@ -6,30 +6,68 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAccount, useReadContract } from 'wagmi';
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import ContractModal from './ContractModal';
 
 // Contract Types
-export type ContractType = 'staking' | 'nft' | 'marketplace' | 'unknown';
+export type ContractType = 'staking' | 'marketplace' | 'treasury' | 'system' | 'unknown';
+
+interface Contract {
+  name: string;
+  address: string;
+  category: string;
+  receivesFunds?: boolean;
+}
+
+const KNOWN_CONTRACTS: Contract[] = [
+  // Staking Core & Modules
+  { name: 'Enhanced SmartStaking', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '', category: 'staking', receivesFunds: true },
+  { name: 'Staking Rewards', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_REWARDS_ADDRESS || '', category: 'staking', receivesFunds: true },
+  { name: 'Staking Skills', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_SKILLS_ADDRESS || '', category: 'staking', receivesFunds: true },
+  { name: 'Staking Gamification', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS || '', category: 'staking', receivesFunds: true },
+  { name: 'Staking Viewer', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '', category: 'staking' },
+  { name: 'Staking View Stats', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWSTATS_ADDRESS || '', category: 'staking' },
+  { name: 'Staking View Skills', address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWSKILLS_ADDRESS || '', category: 'staking' },
+  { name: 'Dynamic APY Calculator', address: import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS || '', category: 'staking' },
+
+  // Marketplace Core & Modules
+  { name: 'Gameified Marketplace', address: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '', category: 'marketplace', receivesFunds: true },
+  { name: 'Marketplace Leveling', address: import.meta.env.VITE_LEVELING_SYSTEM || '', category: 'marketplace' },
+  { name: 'Marketplace Referral', address: import.meta.env.VITE_REFERRAL_SYSTEM || '', category: 'marketplace' },
+  { name: 'Marketplace Skills', address: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS || '', category: 'marketplace' },
+  { name: 'Individual Skills', address: import.meta.env.VITE_INDIVIDUAL_SKILLS || '', category: 'marketplace' },
+  { name: 'Marketplace Quests', address: import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS || '', category: 'marketplace' },
+  { name: 'Collaborator Badges', address: import.meta.env.VITE_COLLABORATOR_BADGE_REWARDS_ADDRESS || '', category: 'marketplace', receivesFunds: true },
+  { name: 'Marketplace View', address: import.meta.env.VITE_MARKETPLACE_VIEW || '', category: 'marketplace' },
+  { name: 'Marketplace Statistics', address: import.meta.env.VITE_MARKETPLACE_STATISTICS || '', category: 'marketplace' },
+  { name: 'Marketplace Social', address: import.meta.env.VITE_MARKETPLACE_SOCIAL || '', category: 'marketplace' },
+
+  // Treasury
+  { name: 'Treasury Manager', address: import.meta.env.VITE_TREASURY_MANAGER_ADDRESS || '', category: 'treasury', receivesFunds: true },
+  { name: 'Treasury', address: import.meta.env.VITE_TREASURY_ADDRESS || '', category: 'treasury', receivesFunds: true },
+
+  // System
+  { name: 'Deployer', address: import.meta.env.VITE_DEPLOYER_ADDRESS || '', category: 'system' },
+];
 
 interface ContractInfo {
   address: string;
   type: ContractType;
   name: string;
+  category: string;
   isPaused?: boolean;
   balance?: string;
+  receivesFunds?: boolean;
 }
 
 export default function ContractManager() {
   const [contractAddress, setContractAddress] = useState('');
   const [detectedContract, setDetectedContract] = useState<ContractInfo | null>(null);
-  const [isDetecting, setIsDetecting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   // Validate and detect contract type
   const detectContractType = async (addr: string) => {
-    setIsDetecting(true);
     setError('');
     
     try {
@@ -38,22 +76,39 @@ export default function ContractManager() {
         throw new Error('Invalid contract address format');
       }
 
-      // Check known contract addresses
-      const stakingAddr = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS?.toLowerCase();
-      const stakingViewerAddr = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS?.toLowerCase();
-      
       const lowerAddr = addr.toLowerCase();
+
+      // Check known contract addresses
+      const knownContract = KNOWN_CONTRACTS.find(
+        contract => contract.address.toLowerCase() === lowerAddr
+      );
 
       // Determine contract type and name
       let type: ContractType = 'unknown';
       let name = 'Unknown Contract';
+      let category = 'unknown';
+      let receivesFunds = false;
       
-      if (lowerAddr === stakingAddr) {
-        type = 'staking';
-        name = 'Smart Staking (Core)';
-      } else if (lowerAddr === stakingViewerAddr) {
-        type = 'staking';
-        name = 'Smart Staking (Viewer)';
+      if (knownContract) {
+        name = knownContract.name;
+        category = knownContract.category;
+        receivesFunds = knownContract.receivesFunds || false;
+        
+        // Map category to ContractType
+        switch (knownContract.category) {
+          case 'staking':
+            type = 'staking';
+            break;
+          case 'marketplace':
+            type = 'marketplace';
+            break;
+          case 'treasury':
+            type = 'treasury';
+            break;
+          case 'system':
+            type = 'system';
+            break;
+        }
       }
 
       // Try to read contract balance
@@ -83,28 +138,32 @@ export default function ContractManager() {
         address: addr,
         type,
         name,
+        category,
+        receivesFunds,
         balance,
       };
       
       setDetectedContract(contractInfo);
-      setIsDetecting(false);
+      setSuccess(`Successfully detected ${name}`);
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to detect contract');
       setDetectedContract(null);
-      setIsDetecting(false);
     }
   };
 
-  const handleDetect = () => {
-    if (contractAddress.trim()) {
-      detectContractType(contractAddress.trim());
-    }
+  const handleContractSelect = (address: string) => {
+    setContractAddress(address);
+    setDetectedContract(null);
+    setError('');
+    // Auto-detect when contract is selected from dropdown
+    setTimeout(() => detectContractType(address), 100);
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl p-6 border border-gray-700/30">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
-        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="card-unified rounded-xl p-6 border border-[rgba(139,92,246,0.2)]">
+      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <svg className="w-5 h-5 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
             d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
@@ -113,258 +172,136 @@ export default function ContractManager() {
 
       {/* Address Input */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-slate-300 mb-2">
           Contract Address
         </label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={contractAddress}
-            onChange={(e) => {
-              setContractAddress(e.target.value);
-              setDetectedContract(null);
-              setError('');
-            }}
-            placeholder="0x..."
-            className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={contractAddress}
+              onChange={(e) => {
+                setContractAddress(e.target.value);
+                setDetectedContract(null);
+                setError('');
+              }}
+              placeholder="0x..."
+              className="w-full px-4 py-2 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6]"
+            />
+          </div>
           <button
-            onClick={handleDetect}
-            disabled={isDetecting || !contractAddress.trim()}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-medium text-white transition-all"
+            onClick={() => setIsContractModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all"
           >
-            {isDetecting ? 'Detecting...' : 'Detect'}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            <span>Contracts</span>
           </button>
         </div>
+
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-3 p-3 bg-[rgba(139,92,246,0.1)] border border-[rgba(139,92,246,0.3)] rounded-lg text-[#8b5cf6] text-sm"
+            >
+              {success}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error Message */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mt-2 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-lg text-[#ef4444] text-sm"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Error Message */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"
-          >
-            {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Success Message */}
-      <AnimatePresence>
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-400 text-sm"
-          >
-            {success}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Detected Contract Info */}
+      {/* Contract Info Display */}
       <AnimatePresence>
         {detectedContract && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="p-4 bg-[#0a0a0a]/30 border border-[rgba(139,92,246,0.2)] rounded-lg"
           >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <p className="text-green-400 font-semibold">{detectedContract.name}</p>
-                <p className="text-gray-400 text-xs font-mono mt-1">
-                  {detectedContract.address.slice(0, 10)}...{detectedContract.address.slice(-8)}
-                </p>
-              </div>
-              <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full font-medium">
-                {detectedContract.type}
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span>{detectedContract.name}</span>
+                {detectedContract.receivesFunds && (
+                  <span className="px-2 py-1 bg-[rgba(16,185,129,0.2)] text-[#10b981] text-xs rounded-full border border-[rgba(16,185,129,0.3)]">
+                    Receives Funds
+                  </span>
+                )}
+              </h4>
+              <span className={`px-2 py-1 text-xs rounded-full border ${
+                detectedContract.type === 'staking' ? 'bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] border-[rgba(139,92,246,0.3)]' :
+                detectedContract.type === 'marketplace' ? 'bg-[rgba(59,130,246,0.2)] text-[#3b82f6] border-[rgba(59,130,246,0.3)]' :
+                detectedContract.type === 'treasury' ? 'bg-[rgba(16,185,129,0.2)] text-[#10b981] border-[rgba(16,185,129,0.3)]' :
+                detectedContract.type === 'system' ? 'bg-[rgba(239,68,68,0.2)] text-[#ef4444] border-[rgba(239,68,68,0.3)]' :
+                'bg-slate-500/20 text-slate-400 border-slate-500/30'
+              }`}>
+                {detectedContract.type.charAt(0).toUpperCase() + detectedContract.type.slice(1)}
               </span>
             </div>
 
-            {detectedContract.balance && (
-              <p className="text-gray-300 text-sm">
-                💰 Balance: <span className="font-semibold">{detectedContract.balance} POL</span>
-              </p>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-slate-400 mb-1">Address</p>
+                <p className="text-white font-mono">
+                  {detectedContract.address.slice(0, 10)}...{detectedContract.address.slice(-8)}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-slate-400 mb-1">Category</p>
+                <p className="text-white capitalize">{detectedContract.category}</p>
+              </div>
 
-            {/* Tools for Staking Contract */}
-            {detectedContract.type === 'staking' && (
-              <StakingContractTools 
-                contractAddress={detectedContract.address}
-                onSuccess={(msg) => setSuccess(msg)}
-                onError={(msg) => setError(msg)}
-              />
+              {detectedContract.balance !== undefined && (
+                <div>
+                  <p className="text-slate-400 mb-1">Balance</p>
+                  <p className="text-white font-semibold">
+                    {parseFloat(detectedContract.balance).toFixed(4)} MATIC
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <p className="text-slate-400 mb-1">Status</p>
+                <p className="text-[#10b981] font-medium">Active</p>
+              </div>
+            </div>
+
+            {detectedContract.receivesFunds && detectedContract.balance && parseFloat(detectedContract.balance) > 0 && (
+              <div className="mt-4 p-3 bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] rounded-lg">
+                <p className="text-[#10b981] text-sm font-medium">
+                  💰 This contract holds {parseFloat(detectedContract.balance).toFixed(4)} MATIC
+                </p>
+              </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Contract Modal */}
+      <ContractModal 
+        isOpen={isContractModalOpen} 
+        onClose={() => setIsContractModalOpen(false)}
+        onContractSelect={handleContractSelect}
+      />
     </div>
-  );
-}
-
-/**
- * Staking Contract Tools
- * Pause/Unpause and Emergency Withdraw
- */
-function StakingContractTools({ 
-  contractAddress, 
-  onSuccess, 
-  onError 
-}: { 
-  contractAddress: string;
-  onSuccess: (msg: string) => void;
-  onError: (msg: string) => void;
-}) {
-  const { address: walletAddress } = useAccount();
-  const [isPausedLoading, setIsPausedLoading] = useState(false);
-  const [isWithdrawLoading, setIsWithdrawLoading] = useState(false);
-  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
-
-  // Read contract paused status
-  const { data: isPaused } = useReadContract({
-    address: contractAddress as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
-    functionName: 'paused',
-  });
-
-  // Read contract balance
-  const { data: contractBalance } = useReadContract({
-    address: contractAddress as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
-    functionName: 'getContractBalance',
-  });
-
-  // Handle Pause
-  const handlePause = async () => {
-    if (!walletAddress) {
-      onError('Wallet not connected');
-      return;
-    }
-
-    setIsPausedLoading(true);
-    try {
-      // This would need to be implemented with actual contract write
-      // For now, showing the UI
-      onSuccess(isPaused ? 'Contract unpaused successfully (simulate)' : 'Contract paused successfully (simulate)');
-    } catch (err) {
-      onError(err instanceof Error ? err.message : 'Failed to toggle pause');
-    } finally {
-      setIsPausedLoading(false);
-    }
-  };
-
-  // Handle Emergency Withdraw
-  const handleEmergencyWithdraw = async () => {
-    if (!walletAddress) {
-      onError('Wallet not connected');
-      return;
-    }
-
-    if (!confirmWithdraw) {
-      onError('Please confirm the withdrawal first');
-      return;
-    }
-
-    setIsWithdrawLoading(true);
-    try {
-      // This would need actual contract interaction
-      // Showing placeholder logic
-      const balanceNum = contractBalance ? Number(contractBalance) / 1e18 : 0;
-      onSuccess(`Emergency withdrawal initiated (${balanceNum.toFixed(2)} POL will be transferred)`);
-      setConfirmWithdraw(false);
-    } catch (err) {
-      onError(err instanceof Error ? err.message : 'Failed to withdraw');
-    } finally {
-      setIsWithdrawLoading(false);
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-4 pt-4 border-t border-green-500/20 space-y-3"
-    >
-      <h4 className="text-white font-semibold text-sm mb-3">Available Tools:</h4>
-
-      {/* Pause/Unpause Tool */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={handlePause}
-        disabled={isPausedLoading}
-        className={`w-full p-3 rounded-lg font-medium transition-all flex items-center justify-between ${
-          isPaused
-            ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30'
-            : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
-        }`}
-      >
-        <span className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-              d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {isPaused ? '▶ Unpause Contract' : '⏸ Pause Contract'}
-        </span>
-        {isPausedLoading && <span className="text-xs">Processing...</span>}
-      </motion.button>
-
-      {/* Emergency Withdraw Tool */}
-      <div className="space-y-2">
-        {!confirmWithdraw ? (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setConfirmWithdraw(true)}
-            className="w-full p-3 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 rounded-lg font-medium transition-all flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            🚨 Emergency Withdraw All Funds
-          </motion.button>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-3 bg-red-900/20 border border-red-500/50 rounded-lg"
-          >
-            <p className="text-red-300 text-sm font-semibold mb-3">
-              ⚠️ Confirm withdrawal of {contractBalance ? (Number(contractBalance) / 1e18).toFixed(4) : '0'} POL
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleEmergencyWithdraw}
-                disabled={isWithdrawLoading}
-                className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white rounded-lg font-medium transition-all text-sm"
-              >
-                {isWithdrawLoading ? 'Withdrawing...' : 'Confirm Withdraw'}
-              </button>
-              <button
-                onClick={() => setConfirmWithdraw(false)}
-                className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-all text-sm"
-              >
-                Cancel
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Current Status */}
-      <div className="text-xs text-gray-400 space-y-1 mt-3">
-        <p>Status: {isPaused ? '⏸ Paused' : '▶ Running'}</p>
-        {contractBalance !== undefined && (
-          <p>Balance: {(Number(contractBalance as bigint) / 1e18).toFixed(4)} POL</p>
-        )}
-      </div>
-    </motion.div>
   );
 }

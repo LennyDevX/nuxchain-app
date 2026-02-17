@@ -78,11 +78,7 @@ const StakingMaintenance: React.FC = () => {
               </div>
             </div>
 
-            <div className="py-4 px-6 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl mb-8">
-              <p className="text-white font-black italic tracking-wider">
-                ✨ UPGRADE PROGRESS: <span className="text-purple-400 uppercase">IN 5 DAYS</span>
-              </p>
-            </div>
+            
 
             <div className="maintenance-action">
               <button

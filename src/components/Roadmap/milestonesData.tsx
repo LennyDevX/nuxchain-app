@@ -13,14 +13,6 @@ export type Milestone = {
 export const milestones: Milestone[] = [
   // Achieved Milestones
   {
-    title: 'Labs & Dev Hub',
-    description: 'Spaces to experiment and develop new tools for the ecosystem — a sandbox for integrations, rapid prototyping, and developer collaboration.',
-    date: 'Q2 2025',
-    icon: <GlobeIcon className="w-6 h-6" />,
-    status: 'achieved',
-    category: 'Innovation'
-  },
-  {
     title: 'Developer Tooling Suite',
     description: 'A collection of SDKs, CLIs, and libraries aimed to accelerate building services and platforms on Web3, improving developer productivity and reliability.',
     date: 'Q2 2025',
@@ -92,8 +84,16 @@ export const milestones: Milestone[] = [
     status: 'achieved',
     category: 'Technology'
   },
-  
+
   // In Progress Milestones
+  {
+    title: 'Labs & Dev Hub',
+    description: 'Spaces to experiment and develop new tools for the ecosystem — a sandbox for integrations, rapid prototyping, and developer collaboration.',
+    date: 'Q2 2025',
+    icon: <GlobeIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Innovation'
+  },
   {
     title: 'Nuxbee AI Platform 1.0',
     description: 'Launch of dedicated Nuxbee AI platform with advanced features, deep integration throughout Nuxchain, providing contextual help, automation, and sophisticated tools.',
@@ -126,7 +126,23 @@ export const milestones: Milestone[] = [
     status: 'in-progress',
     category: 'Governance'
   },
-  
+  {
+    title: 'Tokenomics',
+    description: 'Working on the economy of the upcoming $NUX token.',
+    date: 'Q1 2026',
+    icon: <BarChart3Icon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Technology'
+  },
+  {
+    title: 'NFTs Wave 4',
+    description: 'Updating tokenization and marketplace contracts to provide a better user experience.',
+    date: 'Q1 2026',
+    icon: <ZapIcon className="w-6 h-6" />,
+    status: 'in-progress',
+    category: 'Technology'
+  },
+
   // Upcoming Milestones
   {
     title: 'Nuxbee AI Platform 2.0',
@@ -144,7 +160,7 @@ export const milestones: Milestone[] = [
     status: 'upcoming',
     category: 'Innovation'
   },
-  
+
   {
     title: 'Nuxchain Kit',
     description: 'Comprehensive SDK and developer toolkit for building blockchain applications with Nuxchain technology. Empower developers to create custom ecosystems and dApps with our modular, open-source components and utilities.',

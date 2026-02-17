@@ -7,9 +7,9 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 import Home from '../pages/Home';
 
 // 🚀 Lazy-loaded pages with optimized code splitting
-const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
-const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTsMaintenance'));
-const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/NFTsMaintenance'));
+const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/StakingMaintenance'));
+const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
+const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
@@ -19,9 +19,13 @@ const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevH
 const Roadmap = lazy(() => import(/* webpackChunkName: "roadmap" */ '../pages/Roadmap'));
 const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skills'));
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
-const Investments = lazy(() => import(/* webpackChunkName: "investments" */ '../pages/Investments'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
+const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
+const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
+const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
+const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
+const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
 
 function AppRoutes() {
   // ⚡ Smart preloading: Only preload on fast connections and after idle
@@ -29,7 +33,7 @@ function AppRoutes() {
     // Check connection speed using Network Information API
     const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
     const isSlowConnection = connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g';
-    
+
     if (isSlowConnection) {
       console.log('⚠️ [Performance] Slow connection detected, skipping preload');
       return;
@@ -67,9 +71,14 @@ function AppRoutes() {
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/dev-hub" element={<CTAHub />} />
-        <Route path="/investments" element={<Investments />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
+        <Route path="/tutorial" element={<Tutorial />} />
+        <Route path="/tokenomics" element={<Tokenomics />} />
+        <Route path="/colab" element={<ColabPortal />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<Admin />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
       </Routes>
     </Suspense>

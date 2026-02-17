@@ -9,7 +9,7 @@ const AnnouncementModal: React.FC = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsOpen(true);
-        }, 800); 
+        }, 800);
         return () => clearTimeout(timer);
     }, []);
 
@@ -22,132 +22,160 @@ const AnnouncementModal: React.FC = () => {
         navigate('/airdrop');
     };
 
+    const features = [
+        {
+            title: "Airdrop Security",
+            desc: "Advanced security filters",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            ),
+            color: "bg-blue-500/10 text-blue-400"
+        },
+        {
+            title: "Optimized",
+            desc: "Airdrop page performance",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+            ),
+            color: "bg-purple-500/10 text-purple-400"
+        },
+        {
+            title: "Bug Fixes",
+            desc: "AI Chat logic repairs",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            ),
+            color: "bg-emerald-500/10 text-emerald-400"
+        },
+        {
+            title: "AI Security",
+            desc: "Active thread monitoring",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zm6 12h8m-4-4v4" />
+                </svg>
+            ),
+            color: "bg-sky-500/10 text-sky-400"
+        },
+        {
+            title: "Styles",
+            desc: "Premium UI components",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4zm12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-9 7a1 1 0 0 1-1-1v-2l2-2 2 2 3-3 4 4v2a1 1 0 0 1-1 1H7z" />
+                </svg>
+            ),
+            color: "bg-pink-500/10 text-pink-400"
+        },
+        {
+            title: "Stable",
+            desc: "DDoS protection active",
+            icon: (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7zm0 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2zM6 8h.01M6 16h.01" />
+                </svg>
+            ),
+            color: "bg-amber-500/10 text-amber-400"
+        }
+    ];
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                    {/* Backdrop Minimalista Ultra-Blur */}
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    {/* Backdrop */}
                     <motion.div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-md"
+                        className="absolute inset-0 bg-black/60 backdrop-blur-md"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleClose}
                     />
 
-                    {/* Modal Content - Glassmorphism Design */}
+                    {/* Modal Content */}
                     <motion.div
-                        className="relative w-full max-w-lg bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
-                        initial={{ scale: 0.95, opacity: 0, y: 30 }}
+                        className="relative w-full max-w-md bg-[#0B0F19]/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl"
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.95, opacity: 0, y: 30 }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     >
-                        {/* Glow circular de fondo */}
-                        <div className="absolute -top-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]" />
-                        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px]" />
+                        {/* Internal Glow Effects */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none" />
 
-                        <div className="relative p-10 pt-14">
-                            {/* Logo flotante minimalista */}
-                            <motion.div 
-                                className="flex justify-center mb-8"
-                                initial={{ y: -10, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.3 }}
-                            >
-                                <div className="p-4 rounded-3xl bg-white/5 border border-white/10 shadow-inner">
-                                    <img src="/favicon1.png" alt="NuxChain" className="w-12 h-12" />
-                                </div>
-                            </motion.div>
-
+                        <div className="relative p-6 sm:p-8">
+                            {/* Close Button */}
                             <button
                                 onClick={handleClose}
-                                className="absolute top-6 right-6 p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                className="absolute top-4 right-5 sm:top-6 sm:right-8 p-1.5 sm:p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all z-10"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
 
-                            <div className="text-center mb-10">
-                                <h2 className="text-3xl font-extrabold text-white tracking-tight mb-2">
-                                    New Horizons 🚀
-                                </h2>
-                                <p className="text-slate-400 text-sm font-medium uppercase tracking-[0.2em]">
-                                    Public Beta v2.0
-                                </p>
+                            {/* Header */}
+                            <div className="flex items-start gap-4 mb-6">
+                                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner shrink-0">
+                                    <img src="/favicon1.png" alt="NuxChain" className="w-8 h-8 sm:w-10 sm:h-10" />
+                                </div>
+                                <div className="pt-0.5 sm:pt-1 min-w-0">
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2 truncate">
+                                        Wave 3 Update <span className="text-xl sm:text-2xl shrink-0">🚀</span>
+                                    </h2>
+                                    <p className="text-xs sm:text-sm font-medium text-slate-500/80 mt-0.5 tracking-tight">V3.0.0</p>
+                                </div>
                             </div>
 
-                            <div className="space-y-6 mb-10">
-                                <motion.div 
-                                    className="flex items-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group"
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mr-4 group-hover:scale-110 transition-transform">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                        </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Solana Network</h4>
-                                        <p className="text-slate-400 text-xs">Native integration and flash transactions.</p>
-                                    </div>
-                                </motion.div>
-
-                                <motion.div 
-                                    className="flex items-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group"
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.5 }}
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 mr-4 group-hover:scale-110 transition-transform">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                                        </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Airdrop is LIVE</h4>
-                                        <p className="text-slate-400 text-xs">Active missions and exclusive rewards online.</p>
-                                    </div>
-                                </motion.div>
-
-                                <motion.div 
-                                    className="flex items-center p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group"
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.6 }}
-                                >
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 mr-4 group-hover:scale-110 transition-transform">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-white text-sm font-bold">Smart Rewards</h4>
-                                        <p className="text-slate-400 text-xs">Optimized staking algorithm.</p>
-                                    </div>
-                                </motion.div>
+                            {/* Features Grid */}
+                            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-8">
+                                {features.map((feature, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.1 + idx * 0.05 }}
+                                        className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300 cursor-default"
+                                    >
+                                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center shrink-0 ${feature.color} border border-white/5 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
+                                            <div className="scale-[0.85] sm:scale-100">{feature.icon}</div>
+                                        </div>
+                                        <div className="min-w-0 w-full text-center sm:text-left">
+                                            <h3 className="text-white font-bold text-[12px] sm:text-[13px] leading-tight group-hover:text-blue-400 transition-colors truncate">{feature.title}</h3>
+                                            <p className="text-slate-500 font-medium text-[10px] sm:text-[11px] mt-1 leading-tight">{feature.desc}</p>
+                                        </div>
+                                    </motion.div>
+                                ))}
                             </div>
 
-                            <motion.button
-                                whileHover={{ scale: 1.02, backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={handleAirdropAction}
-                                className="w-full py-4 bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold rounded-2xl transition-all shadow-lg hover:shadow-blue-500/10 mb-3"
-                            >
-                                Claim Airdrop Now
-                            </motion.button>
-                            
-                            <button
-                                onClick={handleClose}
-                                className="w-full py-2 text-slate-500 text-sm font-medium hover:text-slate-300 transition-colors"
-                            >
-                                Maybe later
-                            </button>
+                            {/* Actions */}
+                            <div className="flex flex-col items-center gap-3 sm:gap-4">
+                                <motion.button
+                                    whileHover={{ scale: 1.01, translateY: -1 }}
+                                    whileTap={{ scale: 0.99 }}
+                                    onClick={handleAirdropAction}
+                                    className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-blue-900/40 to-blue-700/30 border border-blue-500/40 text-blue-100 font-bold text-base sm:text-lg rounded-2xl transition-all hover:from-blue-800/50 hover:to-blue-600/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] shadow-xl"
+                                >
+                                    Claim Airdrop
+                                </motion.button>
+
+                                <button
+                                    onClick={handleClose}
+                                    className="text-slate-500 text-xs sm:text-sm font-semibold hover:text-slate-300 transition-colors"
+                                >
+                                    Maybe later
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
+
                 </div>
             )}
         </AnimatePresence>

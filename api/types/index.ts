@@ -442,6 +442,8 @@ export interface WebScraperResult {
     description?: string;
     hasContent?: boolean;
     wordCount?: number;
+    ogImage?: string;
+    fastExtraction?: boolean;
   };
 }
 

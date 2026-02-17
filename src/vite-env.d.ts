@@ -1,5 +1,16 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly VITE_ENHANCED_SMARTSTAKING_ADDRESS: string
+  readonly VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS: string
+  readonly VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS: string
+  readonly [key: string]: string | undefined
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
 // PWA Register
 declare module 'virtual:pwa-register' {
   export interface RegisterSWOptions {

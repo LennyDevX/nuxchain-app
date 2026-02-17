@@ -188,7 +188,7 @@ async function streamHandler(req, res) {
         console.log('📦 Loading services...');
         let needsKnowledgeBase, updateConversationContext, getRelevantContext;
         let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
-        let tokenCountingService;
+        let tokenCountingService, detectLanguage;
         try {
             const modules = await Promise.all([
                 import('../_services/query-classifier.js').catch(e => { console.error('Error loading query-classifier:', e.message); throw e; }),
@@ -196,7 +196,8 @@ async function streamHandler(req, res) {
                 import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
                 import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
                 import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; }),
-                import('../_services/token-counting-service.js').catch(e => { console.error('Error loading token-counting:', e.message); throw e; })
+                import('../_services/token-counting-service.js').catch(e => { console.error('Error loading token-counting:', e.message); throw e; }),
+                import('../_services/language-detector.js').catch(e => { console.error('Error loading language-detector:', e.message); throw e; })
             ]);
             needsKnowledgeBase = modules[0].needsKnowledgeBase;
             updateConversationContext = modules[0].updateConversationContext;
@@ -205,6 +206,7 @@ async function streamHandler(req, res) {
             formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
             semanticStreamingService = modules[4].default;
             tokenCountingService = modules[5].default;
+            detectLanguage = modules[6].detectLanguage;
             console.log('✅ All services loaded successfully');
         }
         catch (importError) {
@@ -216,6 +218,9 @@ async function streamHandler(req, res) {
             });
             return;
         }
+        // Detectar idioma del mensaje
+        const languageDetection = detectLanguage(messageContent);
+        console.log(`🌐 Language detected: ${languageDetection.language} (confidence: ${(languageDetection.confidence * 100).toFixed(0)}%)`);
         // Determinar si la query necesita buscar en la base de conocimientos (CON DEBUG LOGS)
         const classificationResult = needsKnowledgeBase(messageContent, {
             includeContext: true,
@@ -278,8 +283,8 @@ async function streamHandler(req, res) {
         else {
             console.log('⚠️ No KB context found');
         }
-        // Construir system instruction con contexto
-        const systemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0);
+        // Construir system instruction con contexto Y detección de idioma
+        const systemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0, languageDetection);
         // Inicializar Gemini
         const client = new GoogleGenAI({ apiKey });
         // 🔗 URL CONTEXT: Detectar URLs en el mensaje

@@ -14,25 +14,25 @@ const NFTMaintenance: React.FC = () => {
       <div className="maintenance-container">
         <div className="maintenance-content">
           {/* Dragon Image with light animation */}
-          <motion.div 
+          <motion.div
             className="mb-8 relative z-10 flex justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <div className="relative">
-              <motion.img 
-                src="/DragonixCardNFTs.png" 
-                alt="Dragonix NFTs" 
+              <motion.img
+                src="/DragonixCardNFTs.png"
+                alt="Dragonix NFTs"
                 className="w-64 h-auto md:w-80 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
-                animate={{ 
+                animate={{
                   y: [0, -10, 0],
                   rotate: [0, 1, 0, -1, 0]
                 }}
-                transition={{ 
-                  duration: 5, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: "easeInOut"
                 }}
               />
               <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-purple-500/20 blur-xl rounded-full animate-pulse"></div>
@@ -47,7 +47,7 @@ const NFTMaintenance: React.FC = () => {
             <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-4 italic tracking-tight">
               NFT HUB UPGRADE
             </h1>
-            
+
             <div className="maintenance-message mb-8">
               <p className="text-gray-300 text-lg leading-relaxed">
                 We are currently <span className="text-purple-400 font-bold">optimizing the NFT loading system</span> and preparing the ground for the Nuxchain Marketplace.
@@ -85,14 +85,23 @@ const NFTMaintenance: React.FC = () => {
             </div>
 
             <div className="maintenance-action">
-              <button 
-                className="refresh-button w-full"
+              <button
+                className="refresh-button w-full mb-3"
                 onClick={() => window.location.reload()}
               >
                 <span>Check Updates</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <path d="M20.49 15a9 9 0 1 1-2-8.83"></path>
+                </svg>
+              </button>
+              <button
+                className="staking-button w-full"
+                onClick={() => window.location.href = '/staking'}
+              >
+                <span>Go to Staking</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                 </svg>
               </button>
             </div>

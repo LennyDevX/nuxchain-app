@@ -5,6 +5,7 @@ import { useBottomNavbar } from '../../hooks/mobile';
 import { useChatNavbar } from '../../hooks/mobile/useChatNavbar';
 import { useTapFeedback } from '../../hooks/mobile/useTapFeedback';
 import WalletConnect from '../web3/WalletConnect.tsx';
+import { isMaintenanceMode } from '../../config/maintenance';
 
 // Iconos SVG
 const HomeIcon = ({ isActive }: { isActive: boolean }) => (
@@ -120,8 +121,8 @@ const MobileBottomNavbar: React.FC = () => {
                     if (isInChat) hideNavbar?.();
                   }}
                   className={`flex flex-col items-center justify-center min-w-0 flex-1 py-3 px-2 rounded-xl transition-all duration-200 active:scale-95 ${active
-                      ? 'bg-pink-500/20 scale-105 shadow-lg shadow-pink-500/20'
-                      : 'hover:bg-white/5'
+                    ? 'bg-pink-500/20 scale-105 shadow-lg shadow-pink-500/20'
+                    : 'hover:bg-white/5'
                     }`}
                 >
                   {active && (
@@ -196,16 +197,18 @@ const MobileBottomNavbar: React.FC = () => {
               <span className="text-xs mt-2 font-medium truncate max-w-full text-gray-400 transition-colors duration-200">
                 Menú
               </span>
-              {/* Indicador de notificación */}
-              <motion.div
-                className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2,
-                  ease: "easeInOut"
-                }}
-              />
+              {/* Indicador de notificación dinámico */}
+              {(isMaintenanceMode('airdrop') || isMaintenanceMode('tokenomics') || isMaintenanceMode('nfts') || isMaintenanceMode('marketplace')) && (
+                <motion.div
+                  className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                  animate={{ scale: [1, 1.4, 1] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.5,
+                    ease: "easeInOut"
+                  }}
+                />
+              )}
             </motion.button>
           </motion.div>
         </div>
@@ -262,7 +265,19 @@ const MobileBottomNavbar: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <h3 className="text-xl font-bold text-white">Menú</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-8 h-8 group">
+                      <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-md group-hover:bg-blue-500/30 transition-colors"></div>
+                      <img
+                        src="/favicon1.png"
+                        alt="Nuxchain Logo"
+                        className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                      />
+                    </div>
+                    <span className="text-lg font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent antialiased">
+                      Nuxchain
+                    </span>
+                  </div>
                   <motion.button
                     onClick={() => setIsMenuOpen(false)}
                     className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
@@ -326,12 +341,19 @@ const MobileBottomNavbar: React.FC = () => {
                     <Link
                       to="/airdrop"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative"
                     >
                       <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                       </svg>
                       <span className="text-white font-medium">Airdrops</span>
+                      {isMaintenanceMode('airdrop') && (
+                        <motion.div
+                          className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50 ml-auto"
+                          animate={{ scale: [1, 1.3, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        />
+                      )}
                     </Link>
                   </motion.div>
 
@@ -350,6 +372,34 @@ const MobileBottomNavbar: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                       <span className="text-white font-medium">AI Chat</span>
+                    </Link>
+                  </motion.div>
+
+                  {/* Tokenomics */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Link
+                      to="/tokenomics"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative"
+                    >
+                      <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-white font-medium">Tokenomics</span>
+                      {isMaintenanceMode('tokenomics') && (
+                        <motion.div
+                          className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)] ml-auto"
+                          animate={{
+                            scale: [1, 1.4, 1],
+                            opacity: [0.8, 1, 0.8]
+                          }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
                     </Link>
                   </motion.div>
                 </motion.div>

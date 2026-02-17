@@ -2,7 +2,7 @@
  * Vercel Serverless Function: Validate Airdrop Registration
  * Endpoint: POST /api/airdrop/validate
  */
-import { validateAirdropRegistration } from './validate-and-register';
+import { validateAirdropRegistration } from './validate-and-register.js';
 export default async function handler(req, res) {
     // Only allow POST
     if (req.method !== 'POST') {

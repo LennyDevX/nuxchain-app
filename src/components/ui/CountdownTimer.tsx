@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 interface CountdownTimerProps {
   targetDate: Date;
   onExpire?: () => void;
+  compact?: boolean;
 }
 
 interface TimeLeft {
@@ -27,7 +28,7 @@ const calculateTimeLeft = (targetDate: Date): TimeLeft => {
   };
 };
 
-function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
+function CountdownTimer({ targetDate, onExpire, compact = false }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft(targetDate));
   const onExpireCalledRef = useRef(false);
 
@@ -56,6 +57,44 @@ function CountdownTimer({ targetDate, onExpire }: CountdownTimerProps) {
     return (
       <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
         <p className="text-red-300 font-semibold text-lg">Airdrop Registration Closed</p>
+      </div>
+    );
+  }
+
+  // Compact mode for header
+  if (compact) {
+    return (
+      <div className="flex gap-2.5 sm:gap-4 justify-center items-center">
+        {[
+          { label: 'D', value: timeLeft.days },
+          { label: 'H', value: timeLeft.hours },
+          { label: 'M', value: timeLeft.minutes },
+          { label: 'S', value: timeLeft.seconds },
+        ].map((unit, index) => (
+          <div key={unit.label} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className="relative group overflow-hidden bg-gray-900/80 backdrop-blur-xl rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:border-purple-500/30 transition-all duration-300">
+                {/* Subtle internal gradient */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xl sm:text-3xl font-black bg-gradient-to-b from-white via-white to-purple-200 bg-clip-text text-transparent tabular-nums drop-shadow-sm">
+                    {String(unit.value).padStart(2, '0')}
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-purple-400 font-black uppercase tracking-tighter opacity-80">
+                    {unit.label}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {index < 3 && (
+              <div className="mx-0.5 sm:mx-1 flex flex-col gap-1.5 opacity-30">
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse"></div>
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     );
   }

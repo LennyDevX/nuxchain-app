@@ -89,6 +89,7 @@ if (env.isVercel) {
 } else {
   // En desarrollo local, exponer ambas rutas para compatibilidad con distintas configuraciones del frontend
   app.use('/server', routes);
+  app.use('/api', routes); // <-- COINCIDIR CON VERCEL /api/...
   app.use('/', routes); // <-- permite que el frontend que llame a /api/... o a /server/... funcione sin cambios
 }
 
@@ -104,7 +105,7 @@ async function startServer() {
     console.log('⏳ Initializing knowledge base...');
     const initResult = await initializeKnowledgeBaseForVercel(true);
     console.log('✅ Knowledge base initialized');
-    
+
     if (initResult.precomputeStarted) {
       console.log('� Pre-computing embeddings in background...');
     }
@@ -146,7 +147,7 @@ if (env.isVercel) {
     console.error('❌ Startup error:', error.message);
     process.exit(1);
   });
-  
+
   // Manejo de cierre graceful
   process.on('SIGTERM', () => {
     console.log('\n🛑 SIGTERM received, shutting down...');
@@ -155,7 +156,7 @@ if (env.isVercel) {
       process.exit(0);
     });
   });
-  
+
   process.on('SIGINT', () => {
     console.log('\n🛑 SIGINT received, shutting down...');
     websocketHandler.cleanup();

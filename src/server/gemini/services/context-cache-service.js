@@ -29,6 +29,7 @@ class ContextCacheService {
     this.contextCaches = new Map(); // Store de context caches activos
     this.systemInstructionCache = null; // NEW: Dedicated cache for system instruction
     this.knowledgeBaseCache = null;     // NEW: Dedicated cache for KB context
+    this.sessionLanguages = new Map(); // NEW: Store detected language per session
     this.maxCacheAge = 60 * 60 * 1000; // 1 hora
     this.maxCacheSize = 100; // Máximo número de caches
     this.minTokensForCache = 1024; // Minimum tokens for Gemini 2.5 Flash caching
@@ -527,6 +528,77 @@ class ContextCacheService {
       console.error('Error listing caches:', error.message);
       return [];
     }
+  }
+
+  /**
+   * 🌐 Store detected language for a session
+   * @param {string} sessionId - Session identifier
+   * @param {Object} languageDetection - Language detection result
+   */
+  setSessionLanguage(sessionId, languageDetection) {
+    if (!sessionId || !languageDetection) return;
+    
+    this.sessionLanguages.set(sessionId, {
+      ...languageDetection,
+      timestamp: Date.now()
+    });
+    
+    // Cleanup old sessions (> 1 hour)
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    for (const [id, data] of this.sessionLanguages.entries()) {
+      if (data.timestamp < oneHourAgo) {
+        this.sessionLanguages.delete(id);
+      }
+    }
+  }
+
+  /**
+   * 🌐 Get stored language for a session
+   * @param {string} sessionId - Session identifier
+   * @returns {Object|null} Language detection result or null
+   */
+  getSessionLanguage(sessionId) {
+    if (!sessionId) return null;
+    
+    const stored = this.sessionLanguages.get(sessionId);
+    if (!stored) return null;
+    
+    // Check if expired (> 1 hour)
+    const oneHourAgo = Date.now() - 60 * 60 * 1000;
+    if (stored.timestamp < oneHourAgo) {
+      this.sessionLanguages.delete(sessionId);
+      return null;
+    }
+    
+    return stored;
+  }
+
+  /**
+   * 🌐 Clear session language
+   * @param {string} sessionId - Session identifier
+   */
+  clearSessionLanguage(sessionId) {
+    if (sessionId) {
+      this.sessionLanguages.delete(sessionId);
+    }
+  }
+
+  /**
+   * 🌐 Get session language statistics
+   * @returns {Object} Statistics about stored sessions
+   */
+  getLanguageStats() {
+    const stats = {
+      totalSessions: this.sessionLanguages.size,
+      languages: { es: 0, en: 0, unknown: 0 }
+    };
+    
+    for (const [_, data] of this.sessionLanguages.entries()) {
+      const lang = data.language || 'unknown';
+      stats.languages[lang] = (stats.languages[lang] || 0) + 1;
+    }
+    
+    return stats;
   }
 }
 

@@ -1,8 +1,8 @@
 import React from 'react';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import RoadmapHero from '../components/roadmap/RoadmapHero';
-import MilestonesGrid from '../components/roadmap/MilestonesGrid';
+import RoadmapHero from '../components/Roadmap/RoadmapHero';
+import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
   const isMobile = useIsMobile();
@@ -50,14 +50,7 @@ const RoadmapPage: React.FC = () => {
                   >
                     Join Community
                   </a>
-                  <a 
-                    href="https://github.com/users/LennyDevX/projects/4" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn-secondary px-8 py-3 inline-block text-center"
-                  >
-                    View Documentation
-                  </a>
+                  
                 </div>
               </div>
             </div>

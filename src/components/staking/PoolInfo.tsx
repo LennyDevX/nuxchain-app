@@ -1,77 +1,117 @@
 import React, { memo } from 'react'
 import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
-import { useReadContract, useAccount } from 'wagmi'
+import { useReadContract, useAccount, useWatchContractEvent } from 'wagmi'
 import type { Abi } from 'viem'
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
+import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
 import { stakingLogger } from '../../utils/log/stakingLogger'
 
 interface PoolInfoProps {
   totalPoolBalance?: bigint
   uniqueUsersCount?: bigint
+  poolContractBalance?: bigint
 }
 
-// Contract addresses from environment variables
-const STAKING_VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`
+// Contract address from environment variables - using Core Contract only (View Contract functions are reverting)
+const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`
 
-const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount }) => {
+const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersCount, poolContractBalance: passedPoolBalance }) => {
   const { chain, address } = useAccount()
-  
-  // ✅ Get precise pool metrics from getPoolStats view function
-  const { data: poolStats } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getPoolStats',
-    chainId: chain?.id,
-  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?, bigint?] | undefined }
 
-  // ✅ Get pool health status: healthStatus, statusMessage, reserveRatio
-  const { data: healthData } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getPoolHealth',
+  // ✅ FIX: Use Core Contract instead of failing View Contract
+  // Get contract balance directly from Core Contract (View Contract is reverting)
+  const { data: poolContractBalanceData, refetch: refetchPoolBalance } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    functionName: 'getContractBalance',
     chainId: chain?.id,
-  }) as { data: readonly [number?, string?, bigint?, string?] | undefined }
+  }) as { data: bigint | undefined; refetch: () => Promise<unknown> }
 
-  // ✅ Get user summary with flexible/locked breakdown - NEW: Now correctly implemented in contract
-  const { data: userSummaryData } = useReadContract({
-    address: STAKING_VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-    functionName: 'getDashboardUserSummary',
+  // Watch for deposits and refetch pool balance
+  useWatchContractEvent({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    eventName: 'Deposited',
+    onLogs: () => {
+      // Refetch pool balance when any deposit is made
+      setTimeout(() => refetchPoolBalance(), 2000);
+    },
+  });
+
+  // ✅ Get user info from Core Contract (View Contract functions are reverting)
+  const { data: userInfoData } = useReadContract({
+    address: STAKING_CONTRACT_ADDRESS,
+    abi: EnhancedSmartStakingABI.abi as Abi,
+    functionName: 'getUserInfo',
     args: [address],
     chainId: chain?.id,
     query: { enabled: !!address, staleTime: 10000, gcTime: 30000 }
-  })
+  }) as { data: readonly [bigint?, bigint?, bigint?, bigint?] | undefined }
 
-  // Extract values from contract calls with proper typing
-  const poolContractBalance = poolStats?.[4] as bigint | undefined
-  const poolTotalValue = poolStats?.[0] as bigint | undefined
-  const poolActiveUsers = poolStats?.[2] as bigint | undefined
+  // Extract values from Core Contract calls
+  // Use passed balance if available, otherwise use fetched data or 0n
+  const poolContractBalance = passedPoolBalance || poolContractBalanceData || 0n
+  const poolTotalValue = totalPoolBalance // Passed from parent component
+  const poolActiveUsers = uniqueUsersCount // Passed from parent component
 
-  const healthStatus = healthData?.[0] as number | undefined
-  const statusMessage = healthData?.[1] as string | undefined
-  const reserveRatio = healthData?.[2] as bigint | undefined
+  // Extract user info from getUserInfo: [totalDeposited, totalRewards, depositCount, lastWithdrawTime]
+  const userTotalStaked = userInfoData?.[0] || 0n
+  const userFlexibleBalance = userTotalStaked || 0n // For now, all staked is considered flexible unless locked
+  const userLockedBalance = 0n // Would need additional logic to determine locked amount
 
-  // Extract user stake distribution values from getDashboardUserSummary
-  // Returns: [userStaked, userPendingRewards, userDepositCount, userFlexibleBalance, userLockedBalance, userUnlockedBalance]
-  const extractValue = (data: unknown, index: number): bigint => {
-    if (!data) return 0n
-    if (Array.isArray(data)) {
-      const value = data[index]
-      return value !== undefined && value !== null ? BigInt(value) : 0n
-    }
-    // Handle object format from Wagmi
-    const obj = data as Record<string, unknown>
-    const keys = ['userStaked', 'userPendingRewards', 'userDepositCount', 'userFlexibleBalance', 'userLockedBalance', 'userUnlockedBalance']
-    const value = obj[keys[index]]
-    return value !== undefined && value !== null ? BigInt(value.toString()) : 0n
+  // Debug: Log pool balance data
+  if (import.meta.env.DEV && poolContractBalance) {
+    console.log('[PoolInfo] Core Contract Balance:', {
+      raw: poolContractBalance,
+      formatted: poolContractBalance.toString(),
+    });
   }
-  
-  // Extract flexible and locked balances (indices 3 and 4)
-  const userFlexibleBalance = extractValue(userSummaryData, 3)
-  const userLockedBalance = extractValue(userSummaryData, 4)
-  const userTotalStaked = extractValue(userSummaryData, 0) // Index 0: userStaked
-  
+
+  // ✅ FIX: Calculate Pool Health based on reserve ratio
+  // Reserve Ratio = (contractBalance / totalPoolValue) * 100
+  // Healthy pool should have contractBalance >= totalPoolValue (ratio >= 100%)
+  const calculateHealthStatus = () => {
+    if (!poolContractBalance || !poolTotalValue || poolTotalValue === 0n) {
+      return {
+        status: 1, // Default to "Low" if no data
+        message: 'Calculating pool health...',
+        ratio: 0n,
+      };
+    }
+
+    // Calculate reserve ratio in basis points (10000 = 100%)
+    const ratioBasisPoints = (poolContractBalance * 10000n) / poolTotalValue;
+
+    // Determine health status based on ratio
+    // > 100% (10000bp) = Excellent (3)
+    // 75-100% (7500-10000bp) = Moderate (2) 
+    // 50-75% (5000-7500bp) = Low (1)
+    // < 50% (< 5000bp) = Critical (0)
+    let status: number;
+    let message: string;
+
+    if (ratioBasisPoints >= 10000n) {
+      status = 3; // Excellent
+      message = 'Pool is fully backed and healthy';
+    } else if (ratioBasisPoints >= 7500n) {
+      status = 2; // Moderate
+      message = 'Pool health is moderate, sufficient reserves';
+    } else if (ratioBasisPoints >= 5000n) {
+      status = 1; // Low
+      message = 'Pool reserves are lower than optimal';
+    } else {
+      status = 0; // Critical
+      message = 'Critical: Pool reserves are significantly low';
+    }
+
+    return { status, message, ratio: ratioBasisPoints };
+  };
+
+  const poolHealth = calculateHealthStatus();
+  const healthStatus = poolHealth.status;
+  const statusMessage = poolHealth.message;
+  const reserveRatio = poolHealth.ratio;
+
   // Debug logs to verify data extraction (remove in production)
   stakingLogger.logPool({
     totalPoolBalance: poolTotalValue ? formatEther(poolTotalValue) : '0',
@@ -104,201 +144,103 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
 
   return (
     <motion.div
-      className="card-unified rounded-xl p-6 border border-white/20"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-6"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      <motion.h3
-        className="text-xl font-bold text-white mb-4"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-      >
-        Pool Info
-      </motion.h3>
-      <motion.div
-        className="space-y-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-      >
-        <motion.div
-          className="flex justify-between items-center"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
-        >
-          <span className="text-white/60">Contract Balance:</span>
-          <div className="text-right">
-            <span className="text-white font-medium">
-              {formatPOL(poolContractBalance)} POL
-            </span>
-            <p className="text-white/40 text-xs">Available in contract</p>
-          </div>
-        </motion.div>
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold text-white mb-1">Pool Contract</h3>
+        <p className="text-sm text-white/60">Smart contract status & metrics</p>
+      </div>
 
-        <motion.div
-          className="flex justify-between items-center"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.25 }}
-          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
-        >
-          <span className="text-white/60">Total Pool Value:</span>
-          <div className="text-right">
-            <span className="text-white font-medium">
-              {formatPOL(poolTotalValue || totalPoolBalance)} POL
-            </span>
-            <p className="text-white/40 text-xs">All stakes + rewards</p>
-          </div>
-        </motion.div>
+      {/* Key Metrics - Vertical Compact Layout */}
+      <div className="space-y-4">
+        {/* Pool Contract Balance */}
+        <div className="bg-white/5 rounded-lg p-4">
+          <p className="text-xs text-white/60 mb-1">Contract Reserve</p>
+          <p className="text-2xl font-bold text-emerald-400">
+            {formatPOL(poolContractBalance, 2)} POL
+          </p>
+          <p className="text-xs text-white/40 mt-1">Available liquidity</p>
+        </div>
 
-        <motion.div
-          className="flex justify-between items-center"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
-        >
-          <span className="text-white/60">Active Users:</span>
-          <div className="text-right">
-            <span className="text-white font-medium">
-              {poolActiveUsers ? poolActiveUsers.toString() : (uniqueUsersCount ? uniqueUsersCount.toString() : '0')}
-            </span>
-            <p className="text-white/40 text-xs">Unique stakers</p>
-          </div>
-        </motion.div>
-
-        {/* Reward Payout Capacity - Based on Pool Health */}
-        <motion.div
-          className="flex justify-between items-center"
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.35 }}
-          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
-        >
-          <span className="text-white/60">Reward Payout:</span>
-          <div className="text-right">
-            <span className={`font-medium ${healthStatus === 3 ? 'text-emerald-500' : healthStatus === 2 ? 'text-yellow-500' : healthStatus === 1 ? 'text-orange-500' : 'text-red-500'}`}>
-              {healthStatus === 3 ? '✅ Optimal' : healthStatus === 2 ? '⚠️ Stable' : healthStatus === 1 ? '⚠️ Limited' : '❌ Insufficient'}
-            </span>
-            <p className="text-white/40 text-xs">Capacity to pay rewards</p>
-          </div>
-        </motion.div>
-
-        {/* Stake Distribution - User Personal Breakdown */}
-        {address && (userFlexibleBalance > 0n || userLockedBalance > 0n || userTotalStaked > 0n) && (
-          <motion.div
-            className="mt-4 pt-4 border-t border-white/10"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.35 }}
-          >
-            <h4 className="text-white/80 font-semibold text-sm mb-3">📊 Your Stake Distribution</h4>
-            
-            {/* Total Staked */}
-            <motion.div
-              className="flex justify-between items-center bg-gradient-to-r from-cyan-500/10 to-cyan-600/10 border border-cyan-500/30 rounded-lg p-3 mb-3"
-              whileHover={{ backgroundColor: 'rgba(6, 182, 212, 0.15)' }}
-            >
-              <div>
-                <div className="text-cyan-300 text-sm font-semibold">💎 Total Staked</div>
-                <div className="text-white/50 text-xs">All your deposits</div>
-              </div>
-              <div className="text-right">
-                <div className="text-cyan-400 font-bold text-lg">{formatPOL(userTotalStaked, 2)} POL</div>
-                <div className="text-white/40 text-xs">Flexible + Locked</div>
-              </div>
-            </motion.div>
-
-            <div className="space-y-3">
-              {/* Flexible Stakes */}
-              <motion.div
-                className="flex justify-between items-center bg-gradient-to-r from-blue-500/10 to-blue-600/10 border border-blue-500/30 rounded-lg p-3"
-                whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.15)' }}
-              >
-                <div>
-                  <div className="text-blue-300 text-sm font-semibold">🔓 Flexible Stakes</div>
-                  <div className="text-white/50 text-xs">No lock - withdraw anytime</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-blue-400 font-bold text-base">{formatPOL(userFlexibleBalance, 2)} POL</div>
-                  <div className="text-white/40 text-xs">
-                    {userTotalStaked > 0n ? `${((Number(userFlexibleBalance) / Number(userTotalStaked)) * 100).toFixed(1)}%` : '0%'}
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Locked Stakes */}
-              <motion.div
-                className="flex justify-between items-center bg-gradient-to-r from-purple-500/10 to-pink-600/10 border border-purple-500/30 rounded-lg p-3"
-                whileHover={{ backgroundColor: 'rgba(147, 51, 234, 0.15)' }}
-              >
-                <div>
-                  <div className="text-purple-300 text-sm font-semibold">🔒 Locked Stakes</div>
-                  <div className="text-white/50 text-xs">Time-locked (30-365 days)</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-purple-400 font-bold text-base">{formatPOL(userLockedBalance, 2)} POL</div>
-                  <div className="text-white/40 text-xs">
-                    {userTotalStaked > 0n ? `${((Number(userLockedBalance) / Number(userTotalStaked)) * 100).toFixed(1)}%` : '0%'}
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Pool Health Indicator */}
-        <motion.div
-          className="mt-6 pt-4 border-t border-white/10"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-white/60 text-sm font-semibold">💪 Pool Health:</span>
-            <motion.span
-              className={`font-bold text-base ${getHealthStatus(healthStatus).color} px-3 py-1 rounded-full ${getHealthStatus(healthStatus).borderColor} border`}
-              whileHover={{ scale: 1.1 }}
-            >
+        {/* Pool Health Status */}
+        <div className="bg-white/5 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-white/60">Reserve Health</p>
+            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${getHealthStatus(healthStatus).borderColor} ${getHealthStatus(healthStatus).color}`}>
               {getHealthStatus(healthStatus).text}
-            </motion.span>
+            </span>
           </div>
-          <motion.p className="text-white/50 text-xs mb-4 italic">
-            {statusMessage || 'Loading pool health status...'}
-          </motion.p>
           
-          {/* Health Bar with Shadow Effect */}
-          <motion.div
-            className={`w-full bg-white/5 rounded-full h-3 overflow-hidden border ${getHealthStatus(healthStatus).borderColor} shadow-lg`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.45 }}
-          >
-            <motion.div
-              className={`h-3 rounded-full ${getHealthStatus(healthStatus).bgColor} shadow-lg ${getHealthStatus(healthStatus).shadowColor}`}
-              style={{
-                width: `${(Number(reserveRatio || 0n) / 10000) * 100}%` // reserveRatio is in basis points
-              }}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: 'easeOut' }}
-            ></motion.div>
-          </motion.div>
+          {/* Health Progress Bar */}
+          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden mb-2">
+            <div
+              className={`h-2 rounded-full ${getHealthStatus(healthStatus).bgColor} transition-all duration-500`}
+              style={{ width: `${Math.min((Number(reserveRatio || 0n) / 100), 100)}%` }}
+            ></div>
+          </div>
           
-          <motion.p
-            className="text-white/60 text-xs mt-2 font-semibold"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.55 }}
-          >
-            Reserve Ratio: <span className={`${getHealthStatus(healthStatus).color}`}>{reserveRatio ? (Number(reserveRatio) / 100).toFixed(2) : '0'}%</span>
-          </motion.p>
-        </motion.div>
-      </motion.div>
+          <p className="text-xs text-white/50">
+            Reserve Ratio: <span className={getHealthStatus(healthStatus).color}>
+              {reserveRatio ? (Number(reserveRatio) / 100).toFixed(1) : '0'}%
+            </span>
+          </p>
+        </div>
+
+        {/* Commission Rate */}
+        <div className="bg-white/5 rounded-lg p-4">
+          <p className="text-xs text-white/60 mb-1">Commission Rate</p>
+          <p className="text-lg font-semibold text-blue-400">6%</p>
+          <p className="text-xs text-white/40 mt-1">Per deposit transaction</p>
+        </div>
+
+        {/* Daily Withdrawal Limit */}
+        <div className="bg-white/5 rounded-lg p-4">
+          <p className="text-xs text-white/60 mb-1">Daily Withdrawal Limit</p>
+          <p className="text-lg font-semibold text-orange-400">2,000 POL</p>
+          <p className="text-xs text-white/40 mt-1">Per 24 hours</p>
+        </div>
+
+        {/* Flexible/Locked Ratio - Optional visibility for connected users */}
+        {address && userTotalStaked > 0n && (
+          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/10 rounded-lg p-4">
+            <p className="text-xs text-white/60 mb-2">Flexible / Locked Staking</p>
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="text-xs text-blue-400 mb-1">Flexible</p>
+                <p className="text-sm font-semibold text-white">
+                  {userFlexibleBalance > 0n ? formatPOL(userFlexibleBalance, 2) : '0.00'}
+                </p>
+              </div>
+              <div className="text-white/40">/</div>
+              <div className="text-center">
+                <p className="text-xs text-purple-400 mb-1">Locked</p>
+                <p className="text-sm font-semibold text-white">
+                  {userLockedBalance > 0n ? formatPOL(userLockedBalance, 2) : '0.00'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer: View on PolygonScan */}
+      <div className="mt-6 pt-4 border-t border-white/10">
+        <a
+          href={`https://polygonscan.com/address/${STAKING_CONTRACT_ADDRESS}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"
+        >
+          <span>View Contract</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
     </motion.div>
   )
 })

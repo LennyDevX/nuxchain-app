@@ -2,12 +2,12 @@
 
 Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedMarketplace en Polygon.
 
-## Contratos Indexados
+## Contratos Indexados (Updated Feb 15, 2026)
 
-### EnhancedSmartStaking (v4.0.0)
-- **Address**: `0xe7A0586f2fB63905BbC771Caf62BF0412cf9DbF3`
+### EnhancedSmartStaking Core (v5.0.0)
+- **Address**: `0xAA334176a6f94Dfdb361a8c9812E8019558E9E1c`
 - **Network**: Polygon (matic)
-- **Start Block**: 78897900
+- **Start Block**: 83023000
 - **Features**:
   - Depósitos y retiros con lockup
   - Auto-compound
@@ -15,10 +15,25 @@ Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedM
   - Quests y Achievements
   - Gamificación con XP y niveles
 
-### GameifiedMarketplace (v3.0 - PROXY)
-- **Address**: `0x8ee87263e8BBa54b51FD8FDc70a1E7FE33E7466e`
+### EnhancedSmartStakingRewards (v5.0.0)
+- **Address**: `0x6844540B3DFb79D33FBbd458D5Ea3A62c2bB5CBA`
 - **Network**: Polygon (matic)
-- **Start Block**: 78899500
+- **Start Block**: 83023000
+
+### EnhancedSmartStakingGamification (v5.0.0)
+- **Address**: `0xc47929beab8EFc09690aDF9e0d0266ae7380Ec97`
+- **Network**: Polygon (matic)
+- **Start Block**: 83023000
+
+### EnhancedSmartStakingSkills (v5.0.0)
+- **Address**: `0xe2eed56a88a756A3E1339b0a80b001fEBEA907d5`
+- **Network**: Polygon (matic)
+- **Start Block**: 83023000
+
+### GameifiedMarketplace (v3.0 - PROXY)
+- **Address**: `0xe99f85503aa287a1C06D7c3487DD1c4cE1DfbEe1`
+- **Network**: Polygon (matic)
+- **Start Block**: 83023000
 - **Features**:
   - Mint, list, buy/sell NFTs
   - Sistema de ofertas
@@ -27,19 +42,14 @@ Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedM
   - Tracking de actividades
 
 ### Individual Skills Contract
-- **Address**: `0x33Bf614459a5Eeef31803153f20342C707582364`
+- **Address**: `0x462b22c7Ac1Bf9C035258D6510E5404Fd97010F1`
 - **Network**: Polygon (matic)
-- **Start Block**: 78900000
-
-### Marketplace Skills V2
-- **Address**: `0x9d67c269d17cf330ed3C5f6f5Ff130AE9d2d012C`
-- **Network**: Polygon (matic)
-- **Start Block**: 78900000
+- **Start Block**: 83023000
 
 ### Marketplace Quests
-- **Address**: `0xDE4Ad382b2E0A3C1dF2185EDd7d7b966c775E169`
+- **Address**: `0x1ae4244d1678776b068A29dDE3417CF5710D04A0`
 - **Network**: Polygon (matic)
-- **Start Block**: 78900000
+- **Start Block**: 83023000
 
 ## Instalación
 

@@ -1,4 +1,6 @@
 import { useState, useMemo, memo, useEffect } from 'react';
+import { isMaintenanceMode } from '../config/maintenance';
+import NFTsMaintenance from './NFTsMaintenance';
 
 interface NFTAttribute {
   trait_type: string;
@@ -28,6 +30,10 @@ import { nftLogger } from '../utils/log/nftLogger';
 
 
 function NFTs() {
+  // Check maintenance mode first
+  if (isMaintenanceMode('nfts')) {
+    return <NFTsMaintenance />;
+  }
   const { isConnected } = useAccount();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

@@ -16,10 +16,31 @@ const TokenizationSection: React.FC = () => {
     <section className={`relative z-10 ${isMobile ? 'py-12' : 'py-20'} px-4 overflow-hidden`}>
       <div className="max-w-7xl mx-auto">
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'lg:grid-cols-2 gap-12'} items-center`}>
-          {/* Left side - Content */}
+          {/* Left side - Image - Solo en desktop */}
+          {!isMobile && (
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              <ResponsiveImage
+                src="/tokenization.webp"
+                alt="NFT Tokenization"
+                mobileSize="w-92 h-92"
+                tabletSize="md:w-92 md:h-92"
+                desktopSize="lg:w-92 lg:h-92"
+                className="rounded-2xl shadow-lg"
+                objectFit="contain"
+                priority
+              />
+            </motion.div>
+          )}
+
+          {/* Right side - Content */}
           <motion.div
-            className={`space-y-6 animate-fade-in-left ${isMobile ? 'text-center' : ''}`}
-            initial={{ opacity: 0, x: isMobile ? 0 : -30, y: isMobile ? 20 : 0 }}
+            className={`space-y-6 animate-fade-in-right ${isMobile ? 'text-center' : ''}`}
+            initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
           >
@@ -83,27 +104,6 @@ const TokenizationSection: React.FC = () => {
               </button>
             </motion.div>
           </motion.div>
-
-          {/* Right side - Image - Solo en desktop */}
-          {!isMobile && (
-            <motion.div
-              className="flex justify-center"
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-            >
-              <ResponsiveImage
-                src="/tokenization.webp"
-                alt="NFT Tokenization"
-                mobileSize="w-92 h-92"
-                tabletSize="md:w-92 md:h-92"
-                desktopSize="lg:w-92 lg:h-92"
-                className="rounded-2xl shadow-lg"
-                objectFit="contain"
-                priority
-              />
-            </motion.div>
-          )}
         </div>
       </div>
     </section>

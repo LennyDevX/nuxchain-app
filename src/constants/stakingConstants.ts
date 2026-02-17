@@ -1,74 +1,74 @@
 // APY Constants for Enhanced Smart Staking Contract
 // Based on hourly ROI percentages from the contract
-// Updated December 2024 - Reduced APYs for sustainability
+// Updated Feb 2025 - ALL rates reduced 25% on-chain for sustainability
 
 export const STAKING_PERIODS = [
   {
     value: "0",
     label: "Flexible",
-    description: "0.003% per hour",
-    hourlyRate: 0.003,
+    description: "0.00225% per hour",
+    hourlyRate: 0.00225,
     roi: {
-      daily: "~0.072%",
-      monthly: "~2.19%",
-      annual: "~26.3%"
+      daily: "~0.054%",
+      monthly: "~1.62%",
+      annual: "~19.7%"
     }
   },
   {
     value: "30",
     label: "30 Days",
-    description: "0.005% per hour",
-    hourlyRate: 0.005,
+    description: "0.00375% per hour",
+    hourlyRate: 0.00375,
     roi: {
-      daily: "~0.12%",
-      monthly: "~3.65%",
-      annual: "~43.8%"
+      daily: "~0.09%",
+      monthly: "~2.7%",
+      annual: "~32.9%"
     }
   },
   {
     value: "90",
     label: "90 Days",
-    description: "0.009% per hour",
-    hourlyRate: 0.009,
+    description: "0.00675% per hour",
+    hourlyRate: 0.00675,
     roi: {
-      daily: "~0.216%",
-      monthly: "~6.57%",
-      annual: "~78.8%"
+      daily: "~0.162%",
+      monthly: "~4.86%",
+      annual: "~59.1%"
     }
   },
   {
     value: "180",
     label: "180 Days",
-    description: "0.012% per hour",
-    hourlyRate: 0.012,
+    description: "0.009% per hour",
+    hourlyRate: 0.009,
     roi: {
-      daily: "~0.288%",
-      monthly: "~8.76%",
-      annual: "~105.1%"
+      daily: "~0.216%",
+      monthly: "~6.48%",
+      annual: "~78.8%"
     }
   },
   {
     value: "365",
     label: "365 Days",
-    description: "0.018% per hour",
-    hourlyRate: 0.018,
+    description: "0.0135% per hour",
+    hourlyRate: 0.0135,
     roi: {
-      daily: "~0.432%",
-      monthly: "~13.14%",
-      annual: "~157.7%"
+      daily: "~0.324%",
+      monthly: "~9.72%",
+      annual: "~118.3%"
     }
   }
 ];
 
 // Contract constants from EnhancedSmartStaking.sol
-// Updated December 2024 - New contract parameters
+// Updated Feb 2025 - All rates reduced 25%
 export const CONTRACT_CONSTANTS = {
   // Hourly ROI rates (in basis points where 100 = 0.01%)
-  HOURLY_ROI_PERCENTAGE: 30,   // 0.003% per hour (No Lock) - 26.3% APY
-  ROI_30_DAYS_LOCKUP: 50,      // 0.005% per hour - 43.8% APY
-  ROI_90_DAYS_LOCKUP: 90,      // 0.009% per hour - 78.8% APY
-  ROI_180_DAYS_LOCKUP: 120,    // 0.012% per hour - 105.1% APY
-  ROI_365_DAYS_LOCKUP: 180,    // 0.018% per hour - 157.7% APY
+  HOURLY_ROI_PERCENTAGE: 22.5,   // 0.00225% per hour (No Lock) - 19.7% APY
+  ROI_30_DAYS_LOCKUP: 37.5,      // 0.00375% per hour - 32.9% APY
+  ROI_90_DAYS_LOCKUP: 67.5,      // 0.00675% per hour - 59.1% APY
+  ROI_180_DAYS_LOCKUP: 90,       // 0.009% per hour - 78.8% APY
+  ROI_365_DAYS_LOCKUP: 135,      // 0.0135% per hour - 118.3% APY
   
   // Deposit limits
   MIN_DEPOSIT: 10,             // 10 POL minimum

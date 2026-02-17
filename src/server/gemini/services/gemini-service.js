@@ -14,6 +14,7 @@ import urlContextService from './url-context-service.js';
 import semanticStreamingService from './semantic-streaming-service.js';
 import { buildSystemInstructionWithContext } from '../config/system-instruction.js';
 import chatLogger from '../utils/chat-logger.js';
+import { detectLanguage } from '../middlewares/language-detector.js';
 
 
 /**
@@ -257,15 +258,41 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
   // ✅ NUEVO: Obtener contexto de KB y construir systemInstruction
   let knowledgeContext = '';
   let contextScore = 0;
+  let languageDetection = null;
   
-  // Extraer query del contenido
+  // Extraer query del contenido y sessionId si está disponible
   let userQuery = '';
+  let sessionId = params.sessionId || null;
+  
   if (typeof contents === 'string') {
     userQuery = contents;
   } else if (Array.isArray(contents) && contents.length > 0) {
     const lastMessage = contents[contents.length - 1];
     if (lastMessage.role === 'user' && lastMessage.parts && lastMessage.parts[0]) {
       userQuery = lastMessage.parts[0].text;
+    }
+  }
+  
+  // Detectar idioma del usuario (con soporte de sesión)
+  if (userQuery) {
+    // Primero intentar obtener idioma de la sesión
+    if (sessionId) {
+      const cachedLanguage = contextCacheService.getSessionLanguage(sessionId);
+      if (cachedLanguage) {
+        languageDetection = cachedLanguage;
+        console.log(`🌐 Language from session cache: ${languageDetection.language} (confidence: ${(languageDetection.confidence * 100).toFixed(0)}%)`);
+      }
+    }
+    
+    // Si no hay idioma en caché, detectar nuevo
+    if (!languageDetection) {
+      languageDetection = detectLanguage(userQuery);
+      console.log(`🌐 Language detected: ${languageDetection.language} (confidence: ${(languageDetection.confidence * 100).toFixed(0)}%)`);
+      
+      // Almacenar en caché de sesión si tenemos sessionId
+      if (sessionId) {
+        contextCacheService.setSessionLanguage(sessionId, languageDetection);
+      }
     }
   }
   
@@ -301,8 +328,8 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
     }
   }
   
-  // Construir systemInstruction con contexto
-  const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  // Construir systemInstruction con contexto Y detección de idioma
+  const systemInstruction = buildSystemInstructionWithContext(knowledgeContext, contextScore, languageDetection);
   
   // ✅ Log contexto de KB con chat logger profesional
   if (knowledgeContext) {

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
-import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStaking.json';
+import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
 
 // ✅ Add BigInt serialization support for React DevTools
@@ -115,9 +115,9 @@ export function useUserStaking(): UserStakingData {
       // If no stake at all, return 0
       if (stakedAmount === 0) return '0.00';
       
-      // Use flexible rate as default (0 days lockup = 43.8% APY)
-      // Future: Get actual lockup duration from individual deposits
-      const hourlyPercentage = 0.005; // Flexible: 0.005%/hour = ~43.8% APY
+      // Use flexible rate as default (0 days lockup = 19.7% APY)
+      // Updated Feb 2025: 25% reduction on-chain
+      const hourlyPercentage = 0.00225; // Flexible: 0.00225%/hour = ~19.7% APY
       const apy = hourlyPercentage * 24 * 365;
       
       return apy.toFixed(2);

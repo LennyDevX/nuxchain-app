@@ -6,7 +6,7 @@
 import { useReadContract, useReadContracts } from 'wagmi';
 import { useMemo } from 'react';
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
-import IndividualSkillsMarketplaceABI from '../../abi/IndividualSkillsMarketplaceImpl/IndividualSkillsMarketplaceImpl.json';
+import IndividualSkillsMarketplaceABI from '../../abi/Marketplace/IndividualSkillsMarketplaceImpl.json';
 
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 const SKILLS_MARKETPLACE_ADDRESS = import.meta.env.VITE_INDIVIDUAL_SKILLS_MARKETPLACE_ADDRESS as `0x${string}`;

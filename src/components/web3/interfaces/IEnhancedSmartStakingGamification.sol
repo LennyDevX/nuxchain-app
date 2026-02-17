@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "./ITreasuryManager.sol";
+
 /**
  * @title IEnhancedSmartStakingGamification
  * @notice Interface for gamification features in the EnhancedSmartStaking system
@@ -66,16 +68,18 @@ interface IEnhancedSmartStakingGamification {
     // ============================================
     
     /**
-     * @notice Complete a quest and award reward to user
+     * @notice Complete a quest with dynamic XP reward (10-25 XP)
      * @param user The user address
      * @param questId The quest identifier
      * @param rewardAmount The reward amount in tokens
+     * @param questXP Dynamic XP reward (10-25 based on quest difficulty)
      * @param expirationDays Days until reward expires
      */
     function completeQuest(
         address user,
         uint256 questId,
         uint256 rewardAmount,
+        uint256 questXP,
         uint256 expirationDays
     ) external;
     
@@ -84,6 +88,13 @@ interface IEnhancedSmartStakingGamification {
      * @param questId The quest identifier
      */
     function claimQuestReward(uint256 questId) external;
+    
+    /**
+     * @notice Mark a quest as claimed (Restricted to Rewards contract)
+     * @param user The user address
+     * @param questId The quest identifier
+     */
+    function setQuestClaimed(address user, uint256 questId) external;
     
     /**
      * @notice Check and expire unclaimed quest rewards
@@ -255,4 +266,45 @@ interface IEnhancedSmartStakingGamification {
         AutoCompoundConfig[] memory configs,
         uint256 total
     );
+    
+    // ============================================
+    // VIEW FUNCTIONS - PROTOCOL HEALTH
+    // ============================================
+    
+    /**
+     * @notice Get comprehensive protocol health metrics
+     * @return status Current protocol health status
+     * @return contractBalance Current balance of the contract
+     * @return totalPendingRewards Total pending rewards across all users
+     * @return deficit Negative balance if underfunded, 0 if healthy
+     * @return canPayRewards Whether contract can currently pay all pending rewards
+     * @return healthPercentage Health percentage (0-100), 100 = fully funded
+     */
+    function getProtocolHealth() external view returns (
+        ITreasuryManager.ProtocolStatus status,
+        uint256 contractBalance,
+        uint256 totalPendingRewards,
+        int256 deficit,
+        bool canPayRewards,
+        uint256 healthPercentage
+    );
+    
+    // ============================================
+    // STATE-CHANGING FUNCTIONS - PROTOCOL HEALTH
+    // ============================================
+    
+    /**
+     * @notice Perform comprehensive health check and request emergency funds if needed
+     * @dev Monitors contract balance vs pending rewards and automatically requests emergency funding
+     * @return newStatus The updated protocol health status after the check
+     */
+    function performHealthCheck() external returns (ITreasuryManager.ProtocolStatus newStatus);
+    
+    /**
+     * @notice Manually report critical status to TreasuryManager (Emergency admin function)
+     * @dev Declares emergency on TreasuryManager to activate reserve fund access
+     * @param requiredAmount Amount needed to restore protocol health
+     * @return notified Whether the emergency declaration was successful
+     */
+    function reportCriticalStatus(uint256 requiredAmount) external returns (bool notified);
 }

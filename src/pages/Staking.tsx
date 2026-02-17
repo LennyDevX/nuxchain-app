@@ -1,12 +1,11 @@
-import { useAccount, useReadContracts } from 'wagmi'
-import { memo, useMemo, lazy, Suspense, useEffect } from 'react'
-import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStaking.json'
-import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json'
+import { useAccount } from 'wagmi'
+import { memo, lazy, Suspense, useEffect } from 'react'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
-import { useIsMobile } from '../hooks/mobile'
 import { stakingLogger } from '../utils/log/stakingLogger'
+import { StakingProvider } from '../context/StakingContext'
+import { useStakingContext } from '../context/useStakingContext'
 
 // ✅ Add BigInt serialization support for React DevTools
 declare global {
@@ -21,179 +20,74 @@ if (typeof BigInt.prototype.toJSON === 'undefined') {
   };
 }
 
-// Lazy load components - OPTIMIZED: Removed redundant components
+// Lazy load components
 const StakingForm = lazy(() => import('../components/staking/StakingForm'))
-const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingStats = lazy(() => import('../components/staking/StakingStats'))
 const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
-const StakingInfoCarousel = lazy(() => import('../components/staking/StakingInfoCarousel'))
-const StakingRewardsCalculator = lazy(() => import('../components/staking/StakingRewardsCalculator'))
-
-// Analytics components - Only essential ones
-const UserRewardsProjection = lazy(() => import('../components/staking/UserRewardsProjection'))
-const StakingEfficiencyCard = lazy(() => import('../components/staking/StakingEfficiencyCard'))
-
-// Interfaces
-interface DepositData {
-  amount: bigint
-  timestamp: bigint
-  lastClaimTime: bigint
-  lockupDuration: bigint
-}
+const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
+const StakingPoolChart = lazy(() => import('../components/staking/StakingPoolChart'))
+const TreasuryPoolChart = lazy(() => import('../components/staking/TreasuryPoolChart'))
+const TabNavigation = lazy(() => import('../components/staking/TabNavigation'))
+const RewardsHub = lazy(() => import('../components/staking/RewardsHub'))
+const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYIndicator'))
+const DepositsManager = lazy(() => import('../components/staking/DepositsManager'))
+const SkillsManager = lazy(() => import('../components/staking/SkillsManager'))
+const QuestTracker = lazy(() => import('../components/staking/QuestTracker'))
+const BadgeGallery = lazy(() => import('../components/staking/BadgeGallery'))
+// const ProjectionDebug = lazy(() => import('../components/debug/ProjectionDebug'))
 
 // Contract address from environment variables
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS
 
-// ✅ Validación de configuración del contrato en tiempo de carga
-if (!STAKING_CONTRACT_ADDRESS) {
-  console.error('❌ CRITICAL ERROR: VITE_ENHANCED_SMARTSTAKING_ADDRESS no está configurado');
-  console.error('Este valor es requerido en variables de entorno para el funcionamiento del Staking');
-}
-
 const Staking = memo(() => {
-  const { address, isConnected } = useAccount()
-  const isMobile = useIsMobile()
-
-  // Memoize contract configuration for better performance
-  const contractConfig = useMemo(() => ({
-    address: STAKING_CONTRACT_ADDRESS as `0x${string}`,
-    abi: EnhancedSmartStakingABI.abi,
-  }), [])
-
-  // ✅ Verificar si hay configuración válida del contrato
-  const hasValidContractConfig = useMemo(() => {
-    const isValid = STAKING_CONTRACT_ADDRESS &&
-      STAKING_CONTRACT_ADDRESS !== '0x0000000000000000000000000000000000000000' &&
-      STAKING_CONTRACT_ADDRESS.startsWith('0x');
-    if (!isValid) {
-      console.warn('⚠️ Staking contract address is not properly configured:', STAKING_CONTRACT_ADDRESS);
-    }
-    return isValid;
-  }, [])
-
-  // ✅ Optimized: Use Multicall to fetch all data in a single RPC request
-  const { data: stakingData } = useReadContracts({
-    contracts: [
-      {
-        ...contractConfig,
-        functionName: 'getUserDeposits',
-        args: [address],
-      },
-      {
-        ...contractConfig,
-        functionName: 'totalPoolBalance',
-      },
-      {
-        ...contractConfig,
-        functionName: 'uniqueUsersCount',
-      },
-      {
-        ...contractConfig,
-        functionName: 'calculateRewards',
-        args: [address],
-      },
-      {
-        address: import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`,
-        abi: EnhancedSmartStakingViewABI.abi,
-        functionName: 'getTotalDeposit',
-        args: [address],
-      },
-      {
-        ...contractConfig,
-        functionName: 'getContractVersion',
-      },
-      {
-        ...contractConfig,
-        functionName: 'paused',
-      }
-    ],
-    query: {
-      enabled: !!address,
-      staleTime: 30000,
-      gcTime: 5 * 60 * 1000,
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  })
-
-  // Extract data from multicall result
-  const userDeposits = stakingData?.[0]?.result
-  const totalPoolBalance = stakingData?.[1]?.result
-  const uniqueUsersCount = stakingData?.[2]?.result
-  const pendingRewards = stakingData?.[3]?.result
-  const totalDeposit = stakingData?.[4]?.result
-  const contractVersion = stakingData?.[5]?.result
-  const isPaused = stakingData?.[6]?.result
-
-  // Helper function to safely handle BigInt serialization for logging
-  // This prevents "Do not know how to serialize a BigInt" error in React DevTools
-  const serializableBigInt = (value: bigint | number | string | undefined): string | number | undefined => {
-    if (typeof value === 'bigint') {
-      return value.toString()
-    }
-    return value
-  }
-
-  // Memoize processed data to prevent unnecessary re-renders
-  const processedData = useMemo(() => {
-    // Keep original bigints for component usage
-    const data = {
-      userDeposits,
-      totalPoolBalance: (totalPoolBalance as bigint) || 0n,
-      uniqueUsersCount: (uniqueUsersCount as bigint) || 0n,
-      pendingRewards: (pendingRewards as bigint) || 0n,
-      totalDeposit: (totalDeposit as bigint) || 0n,
-      contractVersion: (contractVersion as bigint) || 0n,
-      isPaused: (isPaused as boolean) || false
-    }
-
-    // Prevent React DevTools from trying to serialize BigInt values
-    Object.defineProperty(data, 'toJSON', {
-      value: function () {
-        return {
-          totalPoolBalance: serializableBigInt(this.totalPoolBalance),
-          uniqueUsersCount: serializableBigInt(this.uniqueUsersCount),
-          pendingRewards: serializableBigInt(this.pendingRewards),
-          totalDeposit: serializableBigInt(this.totalDeposit),
-          contractVersion: serializableBigInt(this.contractVersion),
-          isPaused: this.isPaused
-        }
-      }
-    })
-
-    return data
-  }, [userDeposits, totalPoolBalance, uniqueUsersCount, pendingRewards, totalDeposit, contractVersion, isPaused])
-
-  // Log staking data when it changes
-  useEffect(() => {
-    if (address && isConnected && processedData.totalDeposit > 0n) {
-      stakingLogger.logStaking({
-        totalStaked: (processedData.totalDeposit / BigInt(1e18)).toString(),
-        pendingRewards: (processedData.pendingRewards / BigInt(1e18)).toString(),
-        activePositions: (processedData.userDeposits as DepositData[] | undefined)?.length || 0,
-        hasAutoCompound: false // TODO: Get from contract
-      });
-    }
-  }, [address, isConnected, processedData.totalDeposit, processedData.pendingRewards, processedData.userDeposits]);
-
-  // Log pool info
-  useEffect(() => {
-    if (processedData.totalPoolBalance > 0n) {
-      stakingLogger.logPool({
-        totalPoolBalance: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
-        uniqueUsers: Number(processedData.uniqueUsersCount),
-        totalDeposits: (processedData.totalPoolBalance / BigInt(1e18)).toString(),
-        isPaused: processedData.isPaused
-      });
-    }
-  }, [processedData.totalPoolBalance, processedData.uniqueUsersCount, processedData.isPaused]);
-
-
+  const { isConnected } = useAccount()
 
   if (!isConnected) {
     return <ConnectWallet pageName="Staking" />;
   }
+
+  return (
+    <StakingProvider>
+      <StakingDashboard />
+    </StakingProvider>
+  );
+});
+
+/**
+ * Inner dashboard component - has access to StakingContext
+ */
+const StakingDashboard = memo(() => {
+  const {
+    address,
+    isConnected,
+    gamification,
+    pool,
+    user
+  } = useStakingContext();
+
+  // Log staking data when it changes
+  useEffect(() => {
+    if (address && isConnected && (user.totalDeposit > 0n || user.depositCount > 0)) {
+      stakingLogger.logStaking({
+        totalStaked: (user.totalDeposit / BigInt(1e18)).toString(),
+        pendingRewards: (user.pendingRewards / BigInt(1e18)).toString(),
+        activePositions: user.depositCount,
+        hasAutoCompound: gamification.hasAutoCompound,
+      });
+    }
+  }, [address, isConnected, user.totalDeposit, user.pendingRewards, user.depositCount, gamification.hasAutoCompound]);
+
+  // Log pool info
+  useEffect(() => {
+    if (pool.totalPoolBalance > 0n) {
+      stakingLogger.logPool({
+        totalPoolBalance: (pool.totalPoolBalance / BigInt(1e18)).toString(),
+        uniqueUsers: Number(pool.uniqueUsersCount),
+        totalDeposits: (pool.totalPoolBalance / BigInt(1e18)).toString(),
+        isPaused: pool.isPaused
+      });
+    }
+  }, [pool.totalPoolBalance, pool.uniqueUsersCount, pool.isPaused]);
 
   return (
     <GlobalBackground>
@@ -203,7 +97,7 @@ const Staking = memo(() => {
           {/* ═══════════════════════════════════════════════════════════════
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
-          <header className="mb-8">
+          <header className="mb-8 text-center">
             <h1 className="text-3xl lg:text-4xl font-bold text-gradient mb-2">
               Smart Staking
             </h1>
@@ -213,116 +107,139 @@ const Staking = memo(() => {
           </header>
 
           {/* ═══════════════════════════════════════════════════════════════
-              HERO STATS - Key metrics at a glance
+              TOP STATS ROW - High-level metrics (4 cards)
           ═══════════════════════════════════════════════════════════════ */}
-          <Suspense fallback={<LoadingSpinner />}>
-            <StakingStats
-              totalPoolBalance={processedData.totalPoolBalance}
-              uniqueUsersCount={processedData.uniqueUsersCount}
-              totalDeposit={processedData.totalDeposit}
-              pendingRewards={processedData.pendingRewards}
+          <section className="mb-6">
+            <Suspense fallback={<div className="h-32 bg-white/5 animate-pulse rounded-2xl" />}>
+              <StakingStats
+                userStaked={user.totalDeposit}
+                pendingRewards={user.pendingRewards}
+                uniqueUsersCount={pool.uniqueUsersCount}
+                totalPoolBalance={pool.totalPoolBalance}
+              />
+            </Suspense>
+          </section>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              TAB NAVIGATION SYSTEM - Overview / My Deposit / Skills / Active Quest
+          ═══════════════════════════════════════════════════════════════ */}
+          <Suspense fallback={<div className="h-64 bg-white/5 animate-pulse rounded-2xl" />}>
+            <TabNavigation
+              tabs={[
+                {
+                  id: 'overview',
+                  label: 'Overview',
+                  icon: '🏠',
+                  content: (
+                    <div className="space-y-6 py-6">
+                      {/* ═══════ CHARTS SECTION - 3 columns grid ═══════ */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Staking Pool Chart */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <StakingPoolChart />
+                        </Suspense>
+
+                        {/* Pool Info - Center */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <PoolInfo
+                            totalPoolBalance={pool.totalPoolBalance}
+                            uniqueUsersCount={pool.uniqueUsersCount}
+                            poolContractBalance={pool.totalPoolBalance}
+                          />
+                        </Suspense>
+
+                        {/* Treasury Pool Chart */}
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <TreasuryPoolChart />
+                        </Suspense>
+                      </div>
+
+                      {/* ═══════ STAKING FORM ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <StakingForm
+                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                          pendingRewards={user.pendingRewards}
+                          isPaused={pool.isPaused}
+                          userStaked={user.totalDeposit}
+                        />
+                      </Suspense>
+
+                      {/* ═══════ REWARDS HUB ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <RewardsHub currentTVL={pool.totalPoolBalance} />
+                      </Suspense>
+
+                      {/* ═══════ DEBUG PANEL (COMMENTED OUT) ═══════
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <ProjectionDebug />
+                      </Suspense>
+                      */}
+                    </div>
+                  )
+                },
+                {
+                  id: 'mydeposit',
+                  label: 'My Deposit',
+                  icon: '💰',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <DepositsManager />
+                      </Suspense>
+                    </div>
+                  )
+                },
+                {
+                  id: 'skills',
+                  label: 'Skills',
+                  icon: '⚡',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <SkillsManager />
+                      </Suspense>
+                    </div>
+                  )
+                },
+                {
+                  id: 'activequest',
+                  label: 'Active Quest',
+                  icon: '🎯',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <QuestTracker />
+                      </Suspense>
+                    </div>
+                  )
+                }
+              ]}
+              defaultTab="overview"
             />
           </Suspense>
 
           {/* ═══════════════════════════════════════════════════════════════
-              ALERTS - Contract status warnings (compact)
+              FOOTER SECTION - Contract Info / Badge Gallery / Dynamic APY
           ═══════════════════════════════════════════════════════════════ */}
-          {!hasValidContractConfig && (
-            <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-              <p className="text-yellow-400 text-sm flex items-center gap-2">
-                <span>⚠️</span>
-                Staking contract is not properly configured.
-              </p>
-            </div>
-          )}
+          <section className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Suspense fallback={<LoadingSpinner />}>
+              <ContractInfo
+                contractAddress={STAKING_CONTRACT_ADDRESS as string}
+                isPaused={pool.isPaused}
+              />
+            </Suspense>
 
-          {hasValidContractConfig && processedData.isPaused && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm flex items-center gap-2">
-                <span>⏸️</span>
-                Contract is temporarily paused. Deposits are disabled.
-              </p>
-            </div>
-          )}
+            <Suspense fallback={<LoadingSpinner />}>
+              <BadgeGallery 
+                badges={[]} 
+                badgeCount={gamification.badgeCount} 
+              />
+            </Suspense>
 
-          {/* ═══════════════════════════════════════════════════════════════
-              MAIN LAYOUT - 12-column grid for better control
-          ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-
-            {/* ─────────────────────────────────────────────────────────────
-                LEFT COLUMN - Main staking interface (8 cols)
-            ───────────────────────────────────────────────────────────── */}
-            <div className="lg:col-span-8 space-y-6">
-
-              {/* Staking Form - Primary Action Component */}
-              <Suspense fallback={<LoadingSpinner />}>
-                <StakingForm
-                  stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-                  pendingRewards={processedData.pendingRewards}
-                  isPaused={processedData.isPaused}
-                  totalDeposit={processedData.totalDeposit}
-                />
-              </Suspense>
-
-              {/* Analytics Row - Rewards + Efficiency side by side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <UserRewardsProjection />
-                </Suspense>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingEfficiencyCard />
-                </Suspense>
-              </div>
-            </div>
-
-            {/* ─────────────────────────────────────────────────────────────
-                RIGHT COLUMN - Sidebar info (4 cols)
-            ───────────────────────────────────────────────────────────── */}
-            <aside className="lg:col-span-4 space-y-6">
-
-              {isMobile ? (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingInfoCarousel
-                    totalPoolBalance={processedData.totalPoolBalance}
-                    uniqueUsersCount={processedData.uniqueUsersCount}
-                    contractAddress={STAKING_CONTRACT_ADDRESS}
-                    isPaused={processedData.isPaused}
-                  />
-                </Suspense>
-              ) : (
-                <>
-                  {/* Pool Info - Contract health & metrics */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <PoolInfo
-                      totalPoolBalance={processedData.totalPoolBalance}
-                      uniqueUsersCount={processedData.uniqueUsersCount}
-                    />
-                  </Suspense>
-
-                  {/* Contract Info - Address & status */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <ContractInfo
-                      contractAddress={STAKING_CONTRACT_ADDRESS}
-                      isPaused={processedData.isPaused}
-                    />
-                  </Suspense>
-
-                  {/* Rewards Calculator - Compact sidebar version */}
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <StakingRewardsCalculator defaultAmount={1000} />
-                  </Suspense>
-                </>
-              )}
-
-              {/* Mobile-only: Rewards Calculator */}
-              {isMobile && (
-                <Suspense fallback={<LoadingSpinner />}>
-                  <StakingRewardsCalculator defaultAmount={1000} />
-                </Suspense>
-              )}
-            </aside>
-          </div>
+            <Suspense fallback={<LoadingSpinner />}>
+              <DynamicAPYIndicator currentTVL={pool.totalPoolBalance} />
+            </Suspense>
+          </section>
 
         </div>
       </div>
@@ -331,5 +248,6 @@ const Staking = memo(() => {
 })
 
 Staking.displayName = 'Staking'
+StakingDashboard.displayName = 'StakingDashboard'
 
 export default Staking

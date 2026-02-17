@@ -35,8 +35,12 @@ interface IStakingIntegration {
         AMBASSADOR,            // 2x referral bonus
         VIP_ACCESS,            // Access to exclusive drops
         EARLY_ACCESS,          // 24h early access
-        PRIVATE_AUCTIONS       // Access to private auctions
+        PRIVATE_AUCTIONS,       // Access to private auctions
+        MODERATOR,             // Community moderator
+        BETA_TESTER,           // Beta testing access
+        VIP_PARTNER            // VIP partnership rewards
     }
+
     
     /**
      * @dev Enum representing skill rarity tiers
@@ -67,7 +71,7 @@ interface IStakingIntegration {
     struct UserSkillProfile {
         uint256[] activeNFTIds;           // NFT token IDs with active skills
         uint256 totalXP;                  // Total experience points
-        uint16 level;                     // User level (changed from uint8 to uint16 to support up to level 1000)
+        uint16 level;                     // User level (changed from uint8 to uint16 to support up to level 1000; all related code now uses uint16 consistently)
         uint8 maxActiveSkills;            // Maximum skills that can be active
         uint16 stakingBoostTotal;         // Total staking boost percentage
         uint16 feeDiscountTotal;          // Total fee discount percentage

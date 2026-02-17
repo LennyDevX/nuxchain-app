@@ -552,3 +552,72 @@
     box-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
   }
 }
+
+/* Marketplace specific theme (Red/Fire) */
+.maintenance-wrapper.marketplace-theme {
+  background: #080101; /* Extremely dark red-black */
+}
+
+.marketplace-theme .blob-1 {
+  background: rgba(239, 68, 68, 0.35); /* Red */
+}
+
+.marketplace-theme .blob-2 {
+  background: rgba(249, 115, 22, 0.3); /* Orange */
+}
+
+.marketplace-theme .blob-3 {
+  background: rgba(220, 38, 38, 0.25); /* Dark Red */
+}
+
+.marketplace-theme .maintenance-icon {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.marketplace-theme .icon-glow {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.3) 0%, transparent 70%);
+}
+
+.marketplace-theme .maintenance-header h1 {
+  background: linear-gradient(135deg, #fff 0%, #ef4444 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.marketplace-theme .refresh-button {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+}
+
+.marketplace-theme .refresh-button:hover {
+  box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+}
+
+.marketplace-theme .maintenance-importance strong {
+  color: #fca5a5;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.marketplace-theme .maintenance-importance {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.marketplace-theme .grid-item:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.marketplace-theme .pulse-dot {
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+}
+
+.marketplace-theme .maintenance-status-badge {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}

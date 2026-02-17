@@ -1,25 +1,14 @@
-/**
- * StakingContext - Centralized staking state provider
- * Shares pool data, user data, and gamification state across all staking components
- * Eliminates prop drilling and provides a global refetch mechanism
- */
-
-import {
-  createContext,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-  type ReactNode,
-} from 'react';
+import { useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import type { Abi } from 'viem';
 import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json';
 import EnhancedSmartStakingGamificationABI from '../abi/SmartStaking/EnhancedSmartStakingGamification.json';
+import { StakingContext } from './StakingContextDefinition';
+import type { StakingContextType, PoolData, UserStakingData, GamificationData, ProtocolHealthData, AnalyticsData } from './StakingContext.types';
 
 // ============================================
-// CONTRACT ADDRESSES
+// CONSTANTS
 // ============================================
 
 const STAKING_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
@@ -27,78 +16,7 @@ const VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS a
 const GAMIFICATION_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS as `0x${string}`;
 
 // ============================================
-// TYPE DEFINITIONS
-// ============================================
-
-export interface PoolData {
-  totalPoolBalance: bigint;
-  uniqueUsersCount: bigint;
-  isPaused: boolean;
-  contractVersion: bigint;
-}
-
-export interface UserStakingData {
-  totalDeposit: bigint;
-  pendingRewards: bigint;
-  depositCount: number;
-  hasDeposits: boolean;
-}
-
-export interface UserGamificationData {
-  currentXP: bigint;
-  currentLevel: number;
-  xpForNextLevel: bigint;
-  xpProgress: number;
-  totalXPEarned: bigint;
-  badgeCount: number;
-  hasAutoCompound: boolean;
-}
-
-export interface ProtocolHealthData {
-  status: number;
-  statusLabel: string;
-  statusColor: string;
-  isHealthy: boolean;
-}
-
-export interface StakingContextType {
-  // Connection
-  address: `0x${string}` | undefined;
-  isConnected: boolean;
-
-  // Contract config
-  hasValidConfig: boolean;
-  stakingAddress: `0x${string}`;
-  viewAddress: `0x${string}`;
-  gamificationAddress: `0x${string}`;
-
-  // Pool data (shared across all components)
-  pool: PoolData;
-
-  // User data
-  user: UserStakingData;
-
-  // Gamification data
-  gamification: UserGamificationData;
-
-  // Protocol health
-  protocolHealth: ProtocolHealthData;
-
-  // Loading states
-  isLoading: boolean;
-  isPoolLoading: boolean;
-
-  // Refetch
-  refetchAll: () => Promise<void>;
-  refetchPool: () => Promise<void>;
-  refetchUser: () => Promise<void>;
-
-  // Previous level (for level-up detection)
-  previousLevel: number;
-}
-
-// ============================================
-// DEFAULT VALUES
+// DEFAULTS
 // ============================================
 
 const DEFAULT_POOL: PoolData = {
@@ -106,21 +24,19 @@ const DEFAULT_POOL: PoolData = {
   uniqueUsersCount: 0n,
   isPaused: false,
   contractVersion: 0n,
+  globalStats: null,
 };
 
 const DEFAULT_USER: UserStakingData = {
-  totalDeposit: 0n,
   pendingRewards: 0n,
+  totalDeposit: 0n,
   depositCount: 0,
   hasDeposits: false,
 };
 
-const DEFAULT_GAMIFICATION: UserGamificationData = {
-  currentXP: 0n,
-  currentLevel: 0,
-  xpForNextLevel: 1000n,
-  xpProgress: 0,
-  totalXPEarned: 0n,
+const DEFAULT_GAMIFICATION: GamificationData = {
+  xp: 0n,
+  level: 1,
   badgeCount: 0,
   hasAutoCompound: false,
 };
@@ -132,11 +48,21 @@ const DEFAULT_HEALTH: ProtocolHealthData = {
   isHealthy: false,
 };
 
-// ============================================
-// CONTEXT
-// ============================================
-
-const StakingContext = createContext<StakingContextType | null>(null);
+const DEFAULT_ANALYTICS: AnalyticsData = {
+  withdrawalStatus: {
+    canWithdraw: false,
+    withdrawableRewards: 0n,
+    lockedUntil: 0n,
+    dailyLimitRemaining: 0n,
+  },
+  rewardsProjection: {
+    hourly: 0n,
+    daily: 0n,
+    weekly: 0n,
+    monthly: 0n,
+    yearly: 0n,
+  },
+};
 
 // ============================================
 // PROVIDER
@@ -155,39 +81,51 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  // ── Pool Data Multicall ──
+  // ── Configs ──
   const poolConfig = useMemo(() => ({
     address: STAKING_ADDRESS,
     abi: EnhancedSmartStakingABI.abi as Abi,
   }), []);
 
+  const viewConfig = useMemo(() => ({
+    address: VIEW_ADDRESS,
+    abi: EnhancedSmartStakingViewABI.abi as Abi,
+  }), []);
+
+  // ── Pool Data Multicall ──
   const { data: poolData, isLoading: isPoolLoading, refetch: refetchPoolRaw } = useReadContracts({
     contracts: [
       { ...poolConfig, functionName: 'totalPoolBalance' },
       { ...poolConfig, functionName: 'uniqueUsersCount' },
       { ...poolConfig, functionName: 'paused' },
       { ...poolConfig, functionName: 'getContractVersion' },
+      { ...viewConfig, functionName: 'getGlobalStats' },
     ],
     query: {
       enabled: hasValidConfig,
-      staleTime: 60000, // 1 minute for pool data
+      staleTime: 60000,
       gcTime: 5 * 60 * 1000,
-      refetchInterval: false,
       refetchOnWindowFocus: false,
     },
   });
 
-  // ── User Data Multicall ──
-  const viewConfig = useMemo(() => ({
-    address: VIEW_ADDRESS,
-    abi: EnhancedSmartStakingViewABI.abi as Abi,
-  }), []);
+  useEffect(() => {
+    if (poolData) {
+      const results = poolData.map((d, i) => ({
+        func: ['totalPoolBalance', 'uniqueUsersCount', 'paused', 'getContractVersion', 'getGlobalStats'][i],
+        status: d.status,
+      }));
+      console.warn('[StakingContext] Pool Multicall Results:', results);
+    }
+  }, [poolData]);
 
+  // ── User Data Multicall ──
   const { data: userData, isLoading: isUserLoading, refetch: refetchUserRaw } = useReadContracts({
     contracts: [
-      { ...poolConfig, functionName: 'calculateRewards', args: [address] },
-      { ...viewConfig, functionName: 'getTotalDeposit', args: [address] },
-      { ...poolConfig, functionName: 'getUserDeposits', args: [address] },
+      { ...viewConfig, functionName: 'getDashboardUserSummary', args: [address] },
+      { ...viewConfig, functionName: 'getWithdrawalStatus', args: [address] },
+      { ...viewConfig, functionName: 'getUserRewardsProjection', args: [address] },
+      { ...viewConfig, functionName: 'getUserDeposits', args: [address] },
     ],
     query: {
       enabled: !!address && isConnected && hasValidConfig,
@@ -196,6 +134,29 @@ export function StakingProvider({ children }: { children: ReactNode }) {
       refetchOnWindowFocus: false,
     },
   });
+
+  useEffect(() => {
+    if (userData) {
+      const summary = userData.map((d, i) => {
+        const name = ['Summary', 'Withdrawal', 'Projection', 'Deposits'][i];
+        let detail = 'N/A';
+        if (d.status === 'success') {
+          if (Array.isArray(d.result)) detail = `Array(${d.result.length})`;
+          else if (typeof d.result === 'object') detail = 'Object';
+          else detail = String(d.result);
+        }
+        return `${name}: ${d.status} (${detail})`;
+      }).join(' | ');
+      console.warn('[StakingContext] User Data Batch:', summary);
+
+      const results = userData.map((d, i) => ({
+        func: ['getDashboardUserSummary', 'getWithdrawalStatus', 'getUserRewardsProjection', 'getUserDeposits'][i],
+        status: d.status,
+        result: d.result,
+      }));
+      console.log('[StakingContext] User Multicall Raw:', JSON.parse(JSON.stringify(results, (_, v) => typeof v === 'bigint' ? v.toString() : v)));
+    }
+  }, [userData]);
 
   // ── Gamification Data Multicall ──
   const gamifConfig = useMemo(() => ({
@@ -221,11 +182,46 @@ export function StakingProvider({ children }: { children: ReactNode }) {
   // ── Parse Pool Data ──
   const pool = useMemo((): PoolData => {
     if (!poolData) return DEFAULT_POOL;
+
+    const globalStatsRaw = poolData[4]?.result as {
+      totalValueLocked?: number;
+      totalUniqueUsers?: number;
+      contractBalance?: number;
+      availableRewards?: number;
+      healthStatus?: number;
+      timestamp?: number;
+    } | Array<number> | undefined;
+
+    let globalStats = null;
+
+    if (globalStatsRaw) {
+      if (Array.isArray(globalStatsRaw)) {
+        globalStats = {
+          totalValueLocked: BigInt(globalStatsRaw[0] || 0),
+          totalUniqueUsers: BigInt(globalStatsRaw[1] || 0),
+          contractBalance: BigInt(globalStatsRaw[2] || 0),
+          availableRewards: BigInt(globalStatsRaw[3] || 0),
+          healthStatus: Number(globalStatsRaw[4] || 0),
+          timestamp: BigInt(globalStatsRaw[5] || 0),
+        };
+      } else {
+        globalStats = {
+          totalValueLocked: BigInt(globalStatsRaw.totalValueLocked || 0),
+          totalUniqueUsers: BigInt(globalStatsRaw.totalUniqueUsers || 0),
+          contractBalance: BigInt(globalStatsRaw.contractBalance || 0),
+          availableRewards: BigInt(globalStatsRaw.availableRewards || 0),
+          healthStatus: Number(globalStatsRaw.healthStatus || 0),
+          timestamp: BigInt(globalStatsRaw.timestamp || 0),
+        };
+      }
+    }
+
     return {
       totalPoolBalance: (poolData[0]?.result as bigint) || 0n,
       uniqueUsersCount: (poolData[1]?.result as bigint) || 0n,
       isPaused: (poolData[2]?.result as boolean) || false,
       contractVersion: (poolData[3]?.result as bigint) || 0n,
+      globalStats,
     };
   }, [poolData]);
 
@@ -233,51 +229,185 @@ export function StakingProvider({ children }: { children: ReactNode }) {
   const user = useMemo((): UserStakingData => {
     if (!userData) return DEFAULT_USER;
 
-    const pendingRewards = (userData[0]?.result as bigint) || 0n;
-    const totalDeposit = (userData[1]?.result as bigint) || 0n;
-    const deposits = userData[2]?.result;
-    const depositCount = Array.isArray(deposits) ? deposits.length : 0;
+    // dashboardSummary: [userStaked, userPendingRewards, userDepositCount, userFlexibleBalance, userLockedBalance, userUnlockedBalance]
+    const dashboardSummary = userData[0]?.result as [bigint, bigint, number, bigint, bigint, bigint] | undefined;
+    const depositsRaw = userData[3]?.result as Array<{
+      depositId: string;
+      amount: number;
+      timestamp: number;
+    }> | undefined;
 
     return {
-      pendingRewards,
-      totalDeposit,
-      depositCount,
-      hasDeposits: totalDeposit > 0n,
+      totalDeposit: BigInt(dashboardSummary?.[0] || 0),
+      pendingRewards: BigInt(dashboardSummary?.[1] || 0),
+      depositCount: Number(dashboardSummary?.[2] || depositsRaw?.length || 0),
+      hasDeposits: BigInt(dashboardSummary?.[0] || 0) > 0n,
     };
   }, [userData]);
 
   // ── Parse Gamification Data ──
-  const gamification = useMemo((): UserGamificationData => {
+  const gamification = useMemo((): GamificationData => {
     if (!gamifData) return DEFAULT_GAMIFICATION;
 
-    // XP Info
-    const xpRaw = gamifData[0]?.result as {
-      currentXP?: bigint;
-      currentLevel?: bigint;
-      xpForNextLevel?: bigint;
-      totalXPEarned?: bigint;
-    } | undefined;
-
-    const currentXP = xpRaw?.currentXP || 0n;
-    const xpForNext = xpRaw?.xpForNextLevel || 1000n;
-    const progress = xpForNext > 0n ? Number((currentXP * 100n) / xpForNext) : 0;
-
-    // Badge count
+    const xpInfo = gamifData[0]?.result as [bigint, number] | undefined;
     const badgeCount = Number(gamifData[1]?.result || 0);
-
-    // Auto-compound
-    const autoCompound = gamifData[2]?.result as { isEnabled?: boolean } | undefined;
+    const hasAutoCompound = Boolean(gamifData[2]?.result);
 
     return {
-      currentXP,
-      currentLevel: Number(xpRaw?.currentLevel || 0),
-      xpForNextLevel: xpForNext,
-      xpProgress: Math.min(100, progress),
-      totalXPEarned: xpRaw?.totalXPEarned || 0n,
+      xp: BigInt(xpInfo?.[0] || 0),
+      level: Number(xpInfo?.[1] || 1),
       badgeCount,
-      hasAutoCompound: Boolean(autoCompound?.isEnabled),
+      hasAutoCompound,
     };
   }, [gamifData]);
+
+  // ── Parse Analytics Data ──
+  const analytics = useMemo((): AnalyticsData => {
+    if (!userData) return DEFAULT_ANALYTICS;
+
+    // Withdrawal status parsing (userData[1])
+    const withdrawalRaw = userData[1]?.result as [boolean, bigint, bigint, bigint] | { canWithdraw: boolean; withdrawableRewards: bigint; lockedUntil: bigint; dailyLimitRemaining: bigint } | undefined;
+    let withdrawalStatus = DEFAULT_ANALYTICS.withdrawalStatus;
+    if (withdrawalRaw) {
+      if (Array.isArray(withdrawalRaw)) {
+        withdrawalStatus = {
+          canWithdraw: Boolean(withdrawalRaw[0]),
+          withdrawableRewards: BigInt(withdrawalRaw[1] || 0),
+          lockedUntil: BigInt(withdrawalRaw[2] || 0),
+          dailyLimitRemaining: BigInt(withdrawalRaw[3] || 0),
+        };
+      } else if (typeof withdrawalRaw === 'object') {
+        withdrawalStatus = {
+          canWithdraw: Boolean(withdrawalRaw.canWithdraw),
+          withdrawableRewards: BigInt(withdrawalRaw.withdrawableRewards || 0),
+          lockedUntil: BigInt(withdrawalRaw.lockedUntil || 0),
+          dailyLimitRemaining: BigInt(withdrawalRaw.dailyLimitRemaining || 0),
+        };
+      }
+    }
+
+    // Projection parsing (userData[2])
+    // Contract returns UserRewardsProjection struct: { hourlyRewards, dailyRewards, weeklyRewards, monthlyRewards, yearlyRewards, currentPendingRewards }
+    const projectionRaw = userData[2]?.result;
+    const projectionStatus = userData[2]?.status;
+    let rewardsProjection = DEFAULT_ANALYTICS.rewardsProjection;
+    
+    if (projectionStatus === 'success' && projectionRaw) {
+      // Wagmi returns tuples as both array-like and object-like
+      const proj = projectionRaw as Record<string, bigint> & Array<bigint>;
+      
+      // Check if we have valid projection data
+      const hasValidData = (proj.hourlyRewards !== undefined && proj.hourlyRewards > 0n) || 
+                          (proj[0] !== undefined && proj[0] > 0n);
+      
+      if (hasValidData) {
+        rewardsProjection = {
+          hourly: BigInt(proj.hourlyRewards || proj[0] || 0),
+          daily: BigInt(proj.dailyRewards || proj[1] || 0),
+          weekly: BigInt(proj.weeklyRewards || proj[2] || 0),
+          monthly: BigInt(proj.monthlyRewards || proj[3] || 0),
+          yearly: BigInt(proj.yearlyRewards || proj[4] || 0),
+        };
+        
+        console.log('[StakingContext] Projection from contract:', {
+          hourly: rewardsProjection.hourly.toString(),
+          daily: rewardsProjection.daily.toString(),
+          yearly: rewardsProjection.yearly.toString(),
+        });
+      } else {
+        // Contract returned success but with zeros - calculate fallback
+        rewardsProjection = calculateFallback();
+      }
+    } else {
+      // Contract call failed - use fallback calculation
+      console.warn('[StakingContext] Projection failed, using fallback:', {
+        status: projectionStatus,
+        hasData: !!projectionRaw,
+      });
+      rewardsProjection = calculateFallback();
+    }
+
+    // Helper function to calculate projection from deposits and APY
+    function calculateFallback() {
+      if (!userData) return DEFAULT_ANALYTICS.rewardsProjection;
+      
+      // Get user's total deposit
+      const dashboardSummary = userData[0]?.result as [bigint, bigint, number, bigint, bigint, bigint] | undefined;
+      const totalStake = BigInt(dashboardSummary?.[0] || 0);
+      
+      if (totalStake === 0n) {
+        return DEFAULT_ANALYTICS.rewardsProjection;
+      }
+      
+      // Get deposit details to calculate weighted APY
+      const depositsData = userData[3]?.result as { 
+        deposits?: Array<{
+          amount?: bigint;
+          lockupDuration?: bigint;
+        }>;
+      } | undefined;
+      
+      let weightedAPY = 1970n; // Default base APY: 19.7%
+      
+      // Calculate weighted APY considering lockup bonuses
+      if (depositsData?.deposits && depositsData.deposits.length > 0) {
+        let totalWeightedAPY = 0n;
+        let totalAmount = 0n;
+        
+        for (const dep of depositsData.deposits) {
+          const amount = dep.amount || 0n;
+          const lockupDuration = dep.lockupDuration || 0n;
+          
+          // Determine APY based on lockup duration
+          let apy = 1970n; // Base 19.7%
+          
+          if (lockupDuration >= 31536000n) { // 365 days
+            apy = 2970n; // 29.7% (19.7% + 10%)
+          } else if (lockupDuration >= 15552000n) { // 180 days
+            apy = 2660n; // 26.6% (19.7% + 6.9%)
+          } else if (lockupDuration >= 7776000n) { // 90 days
+            apy = 2370n; // 23.7% (19.7% + 4%)
+          } else if (lockupDuration >= 2592000n) { // 30 days
+            apy = 2170n; // 21.7% (19.7% + 2%)
+          }
+          
+          totalWeightedAPY += amount * apy;
+          totalAmount += amount;
+        }
+        
+        if (totalAmount > 0n) {
+          weightedAPY = totalWeightedAPY / totalAmount;
+        }
+      }
+      
+      // Calculate projections based on weighted APY
+      const yearlyReward = (totalStake * weightedAPY) / 10000n;
+      const dailyReward = yearlyReward / 365n;
+      const hourlyReward = dailyReward / 24n;
+      const weeklyReward = dailyReward * 7n;
+      const monthlyReward = dailyReward * 30n;
+      
+      console.log('[StakingContext] Fallback projection calculated:', {
+        totalStake: totalStake.toString(),
+        weightedAPY: `${Number(weightedAPY) / 100}%`,
+        daily: dailyReward.toString(),
+        yearly: yearlyReward.toString(),
+      });
+      
+      return {
+        hourly: hourlyReward,
+        daily: dailyReward,
+        weekly: weeklyReward,
+        monthly: monthlyReward,
+        yearly: yearlyReward,
+      };
+    }
+
+    return {
+      withdrawalStatus,
+      rewardsProjection,
+    };
+  }, [userData]);
 
   // ── Parse Protocol Health ──
   const protocolHealth = useMemo((): ProtocolHealthData => {
@@ -303,29 +433,38 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     };
   }, [gamifData]);
 
-  // ── Track previous level for level-up detection ──
+  // Update previous level ref
   useEffect(() => {
-    if (gamification.currentLevel > 0) {
-      previousLevelRef.current = gamification.currentLevel;
+    if (gamification.level > 1) {
+      previousLevelRef.current = gamification.level;
     }
-  }, [gamification.currentLevel]);
+  }, [gamification.level]);
 
-  // ── Refetch Functions ──
-  const refetchPool = useCallback(async () => {
+  useEffect(() => {
+    if (user.hasDeposits) {
+      console.warn('[StakingContext] User has deposits, count:', user.depositCount);
+      console.log('[StakingContext] Parsed User State:', user);
+    }
+  }, [user]);
+
+  // ── Actions ──
+  const refetchAll = async () => {
+    await Promise.all([
+      refetchPoolRaw(),
+      refetchUserRaw(),
+      refetchGamifRaw(),
+    ]);
+  };
+
+  const refetchPool = async () => {
     await refetchPoolRaw();
-  }, [refetchPoolRaw]);
+  };
 
-  const refetchUser = useCallback(async () => {
+  const refetchUser = async () => {
     await refetchUserRaw();
-    await refetchGamifRaw();
-  }, [refetchUserRaw, refetchGamifRaw]);
+  };
 
-  const refetchAll = useCallback(async () => {
-    await Promise.all([refetchPoolRaw(), refetchUserRaw(), refetchGamifRaw()]);
-  }, [refetchPoolRaw, refetchUserRaw, refetchGamifRaw]);
-
-  // ── Context Value ──
-  const value = useMemo<StakingContextType>(() => ({
+  const contextValue: StakingContextType = {
     address,
     isConnected,
     hasValidConfig,
@@ -336,33 +475,22 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     user,
     gamification,
     protocolHealth,
+    analytics,
     isLoading: isPoolLoading || isUserLoading || isGamifLoading,
-    isPoolLoading,
-    refetchAll,
-    refetchPool,
-    refetchUser,
-    previousLevel: previousLevelRef.current,
-  }), [
-    address,
-    isConnected,
-    hasValidConfig,
-    pool,
-    user,
-    gamification,
-    protocolHealth,
     isPoolLoading,
     isUserLoading,
     isGamifLoading,
     refetchAll,
     refetchPool,
     refetchUser,
-  ]);
+    previousLevel: previousLevelRef.current,
+  };
 
   return (
-    <StakingContext.Provider value={value}>
+    <StakingContext.Provider value={contextValue}>
       {children}
     </StakingContext.Provider>
   );
 }
 
-export default StakingContext;
+// useStakingContext hook is exported from useStakingContext.ts to comply with fast refresh rules

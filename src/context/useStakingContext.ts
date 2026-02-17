@@ -4,8 +4,8 @@
  */
 
 import { useContext } from 'react';
-import StakingContext from './StakingContext';
-import type { StakingContextType } from './StakingContext';
+import { StakingContext } from './StakingContextDefinition';
+import type { StakingContextType } from './StakingContext.types';
 
 /**
  * Hook to access StakingContext

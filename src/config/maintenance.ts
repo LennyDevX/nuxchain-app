@@ -8,6 +8,7 @@ declare global {
   interface Window {
     __NUX_DEV_OVERRIDES__?: {
       airdrop?: boolean;
+      staking?: boolean;
     };
   }
 }
@@ -35,12 +36,14 @@ const getOrInitializeStartTime = (route: string, fallbackTime: string): string =
 // Format: 2026-02-05T06:00:00Z (5 Feb 2026 01:00 AM EST = 06:00 UTC)
 // This is when the countdown was launched
 const AIRDROP_START_TIME = '2026-02-05T06:00:00Z';
+const STAKING_START_TIME = '2026-02-16T12:00:00Z';
 const NFTS_START_TIME = new Date().toISOString();
 const MARKETPLACE_START_TIME = new Date().toISOString();
 const TOKENOMICS_START_TIME = new Date().toISOString();
 
 export const MAINTENANCE_CONFIG: {
   airdrop: MaintenanceRoute;
+  staking: MaintenanceRoute;
   nfts: MaintenanceRoute;
   marketplace: MaintenanceRoute;
   tokenomics: MaintenanceRoute;
@@ -51,6 +54,13 @@ export const MAINTENANCE_CONFIG: {
     estimatedTime: 2880, // 48 hours
     message: 'We are optimizing our system to reduce resource consumption and improve your experience. The Airdrop will be available in 48 hours. Thank you for your patience!',
     startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),
+  },
+  staking: {
+    // Staking - MAINTENANCE ENABLED FOR DEV
+    enabled: true,
+    estimatedTime: 7200, // 5 days (5 * 24 * 60)
+    message: 'We are upgrading the Staking system with enhanced features and improved rewards. The staking platform will be available in 5 days with better performance and new staking options.',
+    startTime: getOrInitializeStartTime('staking', STAKING_START_TIME),
   },
   nfts: {
     enabled: true,
@@ -72,7 +82,7 @@ export const MAINTENANCE_CONFIG: {
   },
 };
 
-export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): boolean => {
+export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): boolean => {
   // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
   const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
   if (route === 'airdrop' && devOverride) return false;
@@ -80,8 +90,8 @@ export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' | 't
   const config = MAINTENANCE_CONFIG[route];
   if (!config.enabled) return false;
   
-  // Auto-disable después del tiempo estimado (para airdrop y tokenomics)
-  if (route === 'airdrop' || route === 'tokenomics') {
+  // Auto-disable después del tiempo estimado (para airdrop, staking y tokenomics)
+  if (route === 'airdrop' || route === 'staking' || route === 'tokenomics') {
     const startTime = new Date(config.startTime).getTime();
     const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
     const now = Date.now();
@@ -94,7 +104,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'nfts' | 'marketplace' | 't
   return config.enabled;
 };
 
-export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): number => {
+export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' = 'airdrop'): number => {
   const config = MAINTENANCE_CONFIG[route];
   const startTime = new Date(config.startTime).getTime();
   const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
@@ -104,6 +114,6 @@ export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'nfts' | 'marketp
   return Math.ceil(remaining / 1000); // Return in seconds
 };
 
-export const getMaintenanceConfig = (route: 'airdrop' | 'nfts' | 'marketplace' | 'tokenomics'): MaintenanceRoute => {
+export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics'): MaintenanceRoute => {
   return MAINTENANCE_CONFIG[route];
 };

@@ -160,10 +160,10 @@ export function useAdvancedStaking(): AdvancedStakingData {
       const healthInfo = getHealthInfo(healthStatus);
 
       // Separate flexible vs locked (from userDeposits)
-      const flexibleAmount = userDeposits
+      const flexibleAmount = (userDeposits || [])
         .filter(d => d.isActive && !d.isLocked)
         .reduce((acc, d) => acc + d.amount, 0n);
-      const lockedAmount = userDeposits
+      const lockedAmount = (userDeposits || [])
         .filter(d => d.isActive && d.isLocked)
         .reduce((acc, d) => acc + d.amount, 0n);
 
@@ -231,8 +231,8 @@ export function useAdvancedStaking(): AdvancedStakingData {
     // ============================================
     // WITHDRAWABLE INFO
     // ============================================
-    const withdrawable: WithdrawableInfo | null = userDeposits.length > 0 ? (() => {
-      const withdrawableDeposits = userDeposits.filter(d => d.isActive && !d.isLocked);
+    const withdrawable: WithdrawableInfo | null = (userDeposits || []).length > 0 ? (() => {
+      const withdrawableDeposits = (userDeposits || []).filter(d => d.isActive && !d.isLocked);
       const withdrawableAmount = withdrawableDeposits.reduce((acc, d) => acc + d.amount, 0n);
 
       return {
@@ -247,8 +247,8 @@ export function useAdvancedStaking(): AdvancedStakingData {
     // ============================================
     // NEXT UNLOCK INFO
     // ============================================
-    const nextUnlock: NextUnlockInfo | null = userDeposits.length > 0 ? (() => {
-      const lockedDeposits = userDeposits.filter(d => d.isActive && d.isLocked);
+    const nextUnlock: NextUnlockInfo | null = (userDeposits || []).length > 0 ? (() => {
+      const lockedDeposits = (userDeposits || []).filter(d => d.isActive && d.isLocked);
       
       if (lockedDeposits.length === 0) {
         return {
@@ -261,10 +261,10 @@ export function useAdvancedStaking(): AdvancedStakingData {
 
       // Find earliest unlock time
       const nowSeconds = BigInt(Math.floor(Date.now() / 1000));
-      const nextUnlockTimeSeconds = lockedDeposits.reduce((min, d) => {
+      const nextUnlockTimeSeconds = lockedDeposits.length > 0 ? lockedDeposits.reduce((min, d) => {
         const unlockSeconds = d.unlockTime;
         return unlockSeconds < min ? unlockSeconds : min;
-      }, lockedDeposits[0].unlockTime);
+      }, lockedDeposits[0]?.unlockTime || 0n) : 0n;
 
       const secondsUntilUnlock = Number(nextUnlockTimeSeconds - nowSeconds);
 

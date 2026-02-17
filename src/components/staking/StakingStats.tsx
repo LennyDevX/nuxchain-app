@@ -1,260 +1,67 @@
-import React, { memo, useState, useRef, useCallback, useMemo } from 'react'
+import React, { memo, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
-import { useIsMobile } from '../../hooks/mobile'
-import { getOptimizedSpacing } from '../../utils/mobile/performanceOptimization'
 
 interface StakingStatsProps {
   totalPoolBalance: bigint
   uniqueUsersCount: bigint
-  totalDeposit: bigint
+  userStaked: bigint
   pendingRewards: bigint
 }
 
 const StakingStats: React.FC<StakingStatsProps> = memo(({
   totalPoolBalance,
   uniqueUsersCount,
-  totalDeposit,
+  userStaked,
   pendingRewards,
 }) => {
-  const isMobile = useIsMobile()
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
-  // ✅ Espaciado adaptativo
-  const spacing = useMemo(() => getOptimizedSpacing(16, isMobile), [isMobile])
-
   const statsData = useMemo(() => [
     {
       title: 'Total Pool',
       value: totalPoolBalance ? parseFloat(formatEther(totalPoolBalance)).toFixed(2) : '0',
-      subtitle: isMobile ? 'POL staked' : 'Total Value Locked',
+      subtitle: 'Contract Balance',
       emoji: '💰'
     },
     {
       title: 'Users',
       value: uniqueUsersCount ? uniqueUsersCount.toString() : '0',
-      subtitle: isMobile ? 'Participants' : 'Staking participants',
+      subtitle: 'Staking participants',
       emoji: '👥'
     },
     {
       title: 'Your Stake',
-      value: totalDeposit ? parseFloat(formatEther(totalDeposit)).toFixed(4) : '0',
+      value: userStaked ? parseFloat(formatEther(userStaked)).toFixed(4) : '0',
       subtitle: 'POL deposited',
       emoji: '📈'
     },
     {
       title: 'Rewards',
       value: pendingRewards ? parseFloat(formatEther(pendingRewards)).toFixed(6) : '0.000000',
-      subtitle: isMobile ? 'Pending' : 'Pending rewards',
+      subtitle: 'Pending rewards',
       emoji: '🎁'
     }
-  ], [totalPoolBalance, uniqueUsersCount, totalDeposit, pendingRewards, isMobile])
+  ], [totalPoolBalance, uniqueUsersCount, userStaked, pendingRewards])
 
-  const totalSlides = Math.ceil(statsData.length / 2)
-  const itemsPerSlide = 2
-
-  // Optimized scroll handler with debouncing
-  const handleCarouselScroll = useCallback(() => {
-    if (!carouselRef.current) return
-
-    // Clear existing timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
-    }
-
-    const container = carouselRef.current
-    const scrollLeft = container.scrollLeft
-    const itemWidth = container.offsetWidth
-    const newSlide = Math.round(scrollLeft / itemWidth)
-    
-    setCurrentSlide(Math.min(newSlide, totalSlides - 1))
-  }, [totalSlides])
-
-  // Scroll to specific slide with smooth animation
-  const scrollToSlide = useCallback((index: number) => {
-    if (!carouselRef.current) return
-
-    const container = carouselRef.current
-    const itemWidth = container.offsetWidth
-
-    container.scrollTo({
-      left: index * itemWidth,
-      behavior: 'smooth'
-    })
-    setCurrentSlide(index)
-  }, [])
-
-  // Cleanup on unmount
-  React.useEffect(() => {
-    const timeoutId = scrollTimeoutRef.current
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
-    }
-  }, [])
-
-  if (isMobile) {
-    return (
-      <motion.div 
-        className="mb-8 w-full"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Carousel Container */}
-        <div className="relative">
-          <div
-            ref={carouselRef}
-            onScroll={handleCarouselScroll}
-            className={'flex overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide gap-0'}
-            style={{
-              scrollBehavior: 'smooth',
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              gap: `${spacing}px`
-            }}
-          >
-            {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-              <motion.div
-                key={slideIndex}
-                className="snap-start flex-none w-full px-1"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: slideIndex * 0.1 }}
-              >
-                <div className="grid grid-cols-2 gap-3" style={{ gap: `${spacing * 0.75}px` }}>
-                  {statsData
-                    .slice(slideIndex * itemsPerSlide, slideIndex * itemsPerSlide + itemsPerSlide)
-                    .map((stat, index) => (
-                      <motion.div
-                        key={slideIndex * itemsPerSlide + index}
-                        className={'card-stats p-4 bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105'}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: slideIndex * 0.1 + index * 0.08 }}
-                        whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-white/60 font-medium truncate text-xs uppercase tracking-wide">
-                            {stat.title}
-                          </span>
-                          <motion.span 
-                            className="text-xl"
-                            whileHover={{ scale: 1.2, rotate: 5 }}
-                          >
-                            {stat.emoji}
-                          </motion.span>
-                        </div>
-                        <div className="mb-2">
-                          <h3 className="font-bold text-white truncate text-lg md:text-xl">
-                            {stat.value}
-                          </h3>
-                        </div>
-                        <div className="text-white/50 truncate text-xs">
-                          {stat.subtitle}
-                        </div>
-                      </motion.div>
-                    ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Gradient Fade Effect - Left */}
-          <motion.div 
-            className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-black/40 to-transparent pointer-events-none z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          />
-
-          {/* Gradient Fade Effect - Right */}
-          <motion.div 
-            className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-black/40 to-transparent pointer-events-none z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          />
-        </div>
-
-        {/* Progress Indicators - Animated */}
-        <motion.div 
-          className="flex justify-center items-center gap-2 mt-6 py-3"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-        >
-          {Array.from({ length: totalSlides }).map((_, index) => (
-            <motion.button
-              key={index}
-              onClick={() => scrollToSlide(index)}
-              className={`rounded-full transition-all duration-300 cursor-pointer ${
-                currentSlide === index
-                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 w-6 h-2 shadow-lg shadow-purple-500/50'
-                  : 'bg-gray-600 hover:bg-gray-500 w-2 h-2'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-              aria-current={currentSlide === index}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              layout
-            />
-          ))}
-        </motion.div>
-
-        {/* Slide Counter removed as per user request */}
-      </motion.div>
-    )
-  }
-
+  // Simplified minimalist design matching mockup
   return (
-    <motion.div 
-      className={'grid gap-6 mb-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {statsData.map((stat, index) => (
         <motion.div
           key={index}
-          className={'card-stats bg-gradient-to-br from-white/5 to-white/0 border border-white/10 hover:border-purple-500/30 rounded-xl transition-all duration-300 transform hover:scale-105'}
+          className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-5"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: index * 0.08 }}
-          whileHover={{ scale: 1.08, borderColor: 'rgba(168, 85, 247, 0.5)' }}
-          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{stat.title}</span>
-            <motion.span 
-              className="text-lg"
-              whileHover={{ scale: 1.2, rotate: 5 }}
-            >
-              {stat.emoji}
-            </motion.span>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-2xl">{stat.emoji}</span>
+            <p className="text-white/60 text-sm font-medium">{stat.title}</p>
           </div>
-          <div className="mb-1">
-            <motion.h3 
-              className="text-xl font-bold text-white truncate"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.08 + 0.2 }}
-            >
-              {stat.value}
-            </motion.h3>
-          </div>
-          <div className="text-white/40 text-xs truncate">
-            {stat.subtitle}
-          </div>
+          <p className="text-white text-2xl font-bold mb-1">{stat.value}</p>
+          <p className="text-white/40 text-xs">{stat.subtitle}</p>
         </motion.div>
       ))}
-    </motion.div>
+    </div>
   )
 })
 

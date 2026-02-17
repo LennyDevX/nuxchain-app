@@ -72,14 +72,15 @@ const PERIOD_NAMES = ['Flexible', '30 Days', '90 Days', '180 Days', '365 Days'];
 const PERIOD_DAYS = [0, 30, 90, 180, 365];
 
 // TVL levels for preview chart (in wei)
-// Updated: Reduced from 1M-5M to 100K as target. Small user base makes high targets unrealistic
+// Contract default target is 1M POL. After this, users get base APY rates.
 const PREVIEW_TVL_LEVELS = [
   parseEther('1000'),     // 1K POL
   parseEther('5000'),     // 5K POL
   parseEther('10000'),    // 10K POL
-  parseEther('25000'),    // 25K POL
   parseEther('50000'),    // 50K POL
-  parseEther('100000'),   // 100K POL target
+  parseEther('100000'),   // 100K POL
+  parseEther('500000'),   // 500K POL
+  parseEther('1000000'),  // 1M POL - CONTRACT DEFAULT TARGET
 ];
 
 // ============================================

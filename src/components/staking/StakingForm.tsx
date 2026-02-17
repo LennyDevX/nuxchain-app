@@ -13,7 +13,6 @@ import { stakingToasts } from '../../utils/toasts/stakingToasts'
 import { useUserDeposits } from '../../hooks/staking/useUserDeposits'
 import { useTotalClaimedRewardsV2 } from '../../hooks/staking/useTotalClaimedRewardsV2'
 import { useStakingAnalytics } from '../../hooks/staking/useStakingAnalytics'
-import StakingPeriodCarousel from './StakingPeriodCarousel'
 import { WithdrawConfirmationModal } from './WithdrawConfirmationModal'
 import { STAKING_PERIODS } from '../../constants/stakingConstants'
 
@@ -21,10 +20,10 @@ interface StakingFormProps {
   stakingContractAddress: string
   pendingRewards: bigint | undefined
   isPaused: boolean
-  totalDeposit: bigint | undefined
+  userStaked: bigint | undefined
 }
 
-function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDeposit }: StakingFormProps) {
+function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userStaked }: StakingFormProps) {
   const { address } = useAccount()
   const isMobile = useIsMobile()
   // State for form
@@ -242,7 +241,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     }
 
     // Validate that user has something to withdraw
-    if (!totalDeposit || totalDeposit === 0n) {
+    if (!userStaked || userStaked === 0n) {
       stakingToasts.noDeposits()
       return
     }
@@ -260,7 +259,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       stakingLogger.logWithdraw({
         positionId: 1,
-        amount: totalDeposit ? formatEther(totalDeposit) : '0',
+        amount: userStaked ? formatEther(userStaked) : '0',
         user: address || '',
         success: false
       })
@@ -298,7 +297,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       stakingLogger.logCompound({
         positionId: 1,
         rewardsCompounded: pendingRewards ? formatEther(pendingRewards) : '0',
-        newTotalStaked: totalDeposit && pendingRewards ? formatEther(totalDeposit + pendingRewards) : '0',
+        newTotalStaked: userStaked && pendingRewards ? formatEther(userStaked + pendingRewards) : '0',
         user: address,
         success: false
       })
@@ -364,7 +363,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     try {
       stakingLogger.logEmergencyWithdraw({
         positionId: 1,
-        amount: totalDeposit ? formatEther(totalDeposit) : '0',
+        amount: userStaked ? formatEther(userStaked) : '0',
         penalty: '0', // Will be calculated on-chain
         user: address,
         success: false
@@ -393,8 +392,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
     >
       {/* Tabs */}
       <motion.div
-        className={`border-b border-white/20 relative ${isMobile ? 'overflow-x-auto scrollbar-hide' : 'flex'
-          }`}
+        className={`border-b border-white/20 relative flex`}
         role="tablist"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -402,20 +400,18 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
       >
         <div
           ref={tabsContainerRef}
-          className={`${isMobile ? 'flex min-w-max px-2' : 'flex w-full'
-            }`}
+          className={`flex w-full px-0`}
         >
           <motion.button
             onClick={() => setActiveTab('stake')}
             role="tab"
             aria-selected={activeTab === 'stake'}
             aria-label="Stake Tab - Use Arrow Keys to Navigate"
-            className={`font-medium transition-all duration-300 ${isMobile
-              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-              : 'flex-1 py-4 px-6 text-center'
-              } ${activeTab === 'stake'
+            className={`font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+              ${activeTab === 'stake'
                 ? isMobile
-                  ? 'bg-blue-500/30 text-blue-300 shadow-lg transform scale-105'
+                  ? 'bg-blue-500/30 text-blue-300 shadow-lg'
                   : 'bg-blue-500/20 text-blue-400 border-b-2 border-blue-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
               }`}
@@ -432,12 +428,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'claim'}
             aria-label="Claim Tab"
-            className={`font-medium transition-all duration-300 ${isMobile
-              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-              : 'flex-1 py-4 px-6 text-center'
-              } ${activeTab === 'claim'
+            className={`font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+              ${activeTab === 'claim'
                 ? isMobile
-                  ? 'bg-yellow-500/30 text-yellow-300 shadow-lg transform scale-105'
+                  ? 'bg-yellow-500/30 text-yellow-300 shadow-lg'
                   : 'bg-yellow-500/20 text-yellow-400 border-b-2 border-yellow-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
               }`}
@@ -454,12 +449,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'withdraw'}
             aria-label="Withdraw Tab"
-            className={`font-medium transition-all duration-300 ${isMobile
-              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-              : 'flex-1 py-4 px-6 text-center'
-              } ${activeTab === 'withdraw'
+            className={`font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+              ${activeTab === 'withdraw'
                 ? isMobile
-                  ? 'bg-red-500/30 text-red-300 shadow-lg transform scale-105'
+                  ? 'bg-red-500/30 text-red-300 shadow-lg'
                   : 'bg-red-500/20 text-red-400 border-b-2 border-red-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
               }`}
@@ -476,12 +470,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'compound'}
             aria-label="Compound Tab"
-            className={`font-medium transition-all duration-300 ${isMobile
-              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-              : 'flex-1 py-4 px-6 text-center'
-              } ${activeTab === 'compound'
+            className={`font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+              ${activeTab === 'compound'
                 ? isMobile
-                  ? 'bg-green-500/30 text-green-300 shadow-lg transform scale-105'
+                  ? 'bg-green-500/30 text-green-300 shadow-lg'
                   : 'bg-green-500/20 text-green-400 border-b-2 border-green-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
               }`}
@@ -498,12 +491,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
             role="tab"
             aria-selected={activeTab === 'emergency'}
             aria-label="Emergency Tab"
-            className={`font-medium transition-all duration-300 ${isMobile
-              ? 'py-3 px-4 text-sm whitespace-nowrap min-w-[80px] mx-1 rounded-t-lg'
-              : 'flex-1 py-4 px-6 text-center'
-              } ${activeTab === 'emergency'
+            className={`font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+              ${activeTab === 'emergency'
                 ? isMobile
-                  ? 'bg-orange-500/30 text-orange-300 shadow-lg transform scale-105'
+                  ? 'bg-orange-500/30 text-orange-300 shadow-lg'
                   : 'bg-orange-500/20 text-orange-400 border-b-2 border-orange-400'
                 : 'text-white/60 hover:text-white/80 hover:bg-white/5'
               }`}
@@ -567,12 +559,38 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               </div>
             </div>
 
-            <StakingPeriodCarousel
-              value={lockupDuration}
-              onChange={setLockupDuration}
-              options={STAKING_PERIODS}
-              label="Lockup period (days)"
-            />
+            {/* Period Selector Grid (Simplified) */}
+            <div className="space-y-3">
+              <label className="text-white/80 text-sm font-medium">Lockup Period</label>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {STAKING_PERIODS.map((period) => (
+                  <button
+                    key={period.value}
+                    type="button"
+                    onClick={() => setLockupDuration(period.value)}
+                    className={`
+                      relative p-3 rounded-lg border-2 transition-all duration-200
+                      ${lockupDuration === period.value
+                        ? 'border-emerald-500 bg-emerald-500/20'
+                        : 'border-white/10 bg-white/5 hover:border-white/30'
+                      }
+                    `}
+                  >
+                    <div className="text-center">
+                      <p className={`text-sm font-bold mb-1 ${
+                        lockupDuration === period.value ? 'text-emerald-400' : 'text-white'
+                      }`}>
+                        {period.label}
+                      </p>
+                      <p className="text-xs text-white/60">{period.roi.annual}</p>
+                    </div>
+                    {lockupDuration === period.value && (
+                      <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <button
               onClick={handleDeposit}
@@ -636,7 +654,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-4">
                 <p className="text-white/70 text-xs font-semibold mb-2">💰 Total Staked</p>
                 <p className="text-xl font-bold text-cyan-400 mb-1">
-                  {totalDeposit ? `${parseFloat(formatEther(totalDeposit)).toFixed(6)} POL` : '0 POL'}
+                  {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'}
                 </p>
                 <p className="text-white/50 text-xs">
                   Your current stake
@@ -718,7 +736,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 Withdraw all your staked amount and accumulated rewards
               </p>
               <p className="text-2xl font-bold text-white mb-6">
-                Total: {totalDeposit ? `${parseFloat(formatEther(totalDeposit)).toFixed(6)} POL` : '0 POL'} (Staked)
+                Total: {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'} (Staked)
               </p>
               <p className="text-lg text-yellow-400 mb-6">
                 + {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'} (Rewards)
@@ -746,63 +764,38 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
               </p>
             </div>
 
-            <StakingPeriodCarousel
-              value={compoundLockupDuration}
-              onChange={setCompoundLockupDuration}
-              options={[
-                {
-                  value: "0",
-                  label: "Flexible",
-                  description: "0.00225% per hour",
-                  roi: {
-                    daily: "~0.054%",
-                    monthly: "~1.62%",
-                    annual: "~19.7%"
-                  }
-                },
-                {
-                  value: "30",
-                  label: "30 Days",
-                  description: "0.00375% per hour",
-                  roi: {
-                    daily: "~0.09%",
-                    monthly: "~2.7%",
-                    annual: "~32.9%"
-                  }
-                },
-                {
-                  value: "90",
-                  label: "90 Days",
-                  description: "0.00675% per hour",
-                  roi: {
-                    daily: "~0.162%",
-                    monthly: "~4.86%",
-                    annual: "~59.1%"
-                  }
-                },
-                {
-                  value: "180",
-                  label: "180 Days",
-                  description: "0.009% per hour",
-                  roi: {
-                    daily: "~0.216%",
-                    monthly: "~6.48%",
-                    annual: "~78.8%"
-                  }
-                },
-                {
-                  value: "365",
-                  label: "365 Days",
-                  description: "0.0135% per hour",
-                  roi: {
-                    daily: "~0.324%",
-                    monthly: "~9.72%",
-                    annual: "~118.3%"
-                  }
-                }
-              ]}
-              label="Lockup period for compounded rewards (days)"
-            />
+            {/* Period Selector Grid for Compound (Simplified) */}
+            <div className="space-y-3">
+              <label className="text-white/80 text-sm font-medium">Lockup Period for Compounded Rewards</label>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                {STAKING_PERIODS.map((period) => (
+                  <button
+                    key={period.value}
+                    type="button"
+                    onClick={() => setCompoundLockupDuration(period.value)}
+                    className={`
+                      relative p-3 rounded-lg border-2 transition-all duration-200
+                      ${compoundLockupDuration === period.value
+                        ? 'border-emerald-500 bg-emerald-500/20'
+                        : 'border-white/10 bg-white/5 hover:border-white/30'
+                      }
+                    `}
+                  >
+                    <div className="text-center">
+                      <p className={`text-sm font-bold mb-1 ${
+                        compoundLockupDuration === period.value ? 'text-emerald-400' : 'text-white'
+                      }`}>
+                        {period.label}
+                      </p>
+                      <p className="text-xs text-white/60">{period.roi.annual}</p>
+                    </div>
+                    {compoundLockupDuration === period.value && (
+                      <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <button
               onClick={handleCompound}
@@ -840,7 +833,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
                 Deposited funds that will be withdrawn:
               </p>
               <p className="text-2xl font-bold text-white mb-2">
-                {totalDeposit ? `${parseFloat(formatEther(totalDeposit)).toFixed(6)} POL` : '0 POL'}
+                {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'}
               </p>
               <p className="text-red-400 text-sm mb-6">
                 Rewards that will be lost: {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
@@ -857,7 +850,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
 
             <button
               onClick={handleEmergencyWithdraw}
-              disabled={isPending || isConfirming || !totalDeposit || totalDeposit === 0n || !isPaused}
+              disabled={isPending || isConfirming || !userStaked || userStaked === 0n || !isPaused}
               className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 border-2 border-red-500 hover:border-red-400 shadow-lg"
             >
               {!isPaused ? 'Only available when contract is paused' : isPending || isConfirming ? 'Processing...' : '🚨 EMERGENCY WITHDRAWAL 🚨'}
@@ -893,7 +886,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, totalDe
         isOpen={isWithdrawModalOpen}
         onClose={() => setIsWithdrawModalOpen(false)}
         onConfirm={executeWithdraw}
-        userStaked={totalDeposit || 0n}
+        userStaked={userStaked || 0n}
         pendingRewards={pendingRewards || 0n}
         contractBalance={contractBalance}
         isProcessing={isPending || isConfirming}

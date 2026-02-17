@@ -120,38 +120,38 @@ export type QuestType = typeof QuestType[keyof typeof QuestType];
 
 export const CONTRACT_ADDRESSES: ContractAddresses = {
   // 📌 Contratos Principales
-  GameifiedMarketplaceProxy: process.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5',
-  GameifiedMarketplaceCore: process.env.VITE_GAMEIFIED_MARKETPLACE_CORE || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9',
+  GameifiedMarketplaceProxy: process.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '0x170972A6Fc2ABcC05CBd86bDC3AD05A310876C3b',
+  GameifiedMarketplaceCore: process.env.VITE_GAMEIFIED_MARKETPLACE_CORE || '0x170972A6Fc2ABcC05CBd86bDC3AD05A310876C3b',
   
   // 📌 Módulos de Habilidades y NFTs
-  IndividualSkills: process.env.VITE_INDIVIDUAL_SKILLS || '0xB23257758B385444dF5A78aC2F315bd653470df3',
-  GameifiedMarketplaceSkills: process.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS || '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707',
-  GameifiedMarketplaceQuests: process.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS || '0x0165878A594ca255338adfa4d48449f69242Eb8F',
+  IndividualSkills: process.env.VITE_INDIVIDUAL_SKILLS || '0xAD586A4Fe790975f80382De018788951D33f10f8',
+  GameifiedMarketplaceSkills: process.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS || '0x304763fF9C345DA1Fe32d80A47f0F4aeb31E05cd',
+  GameifiedMarketplaceQuests: process.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS || '0x00ABC70504b1d8B75Bb07257e240BAc38d204B73',
   
   // 📌 Sistema de Niveles y Referidos
-  LevelingSystem: process.env.VITE_LEVELING_SYSTEM || '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853',
-  ReferralSystem: process.env.VITE_REFERRAL_SYSTEM || '0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6',
+  LevelingSystem: process.env.VITE_LEVELING_SYSTEM || '0x700FD6c0ca996C5D62B29F0F57528c9B63De90Fb',
+  ReferralSystem: process.env.VITE_REFERRAL_SYSTEM || '0xbb6DE66b0F38a4781F9fA9d4e9E66F9C4661C12C',
   
   // 📌 Contratos Individuales (deprecated/legacy)
   IndividualSkillsMarketplace: process.env.VITE_INDIVIDUAL_SKILLS_MARKETPLACE || '',
   IndividualSkillsMarketplaceImpl: process.env.VITE_INDIVIDUAL_SKILLS_MARKETPLACE_IMPL || '',
   
   // 📌 Staking y Rewards (módulos separados)
-  EnhancedSmartStaking: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946',
-  EnhancedSmartStakingRewards: process.env.VITE_ENHANCED_SMARTSTAKING_REWARDS_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-  EnhancedSmartStakingSkills: process.env.VITE_ENHANCED_SMARTSTAKING_SKILLS_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-  EnhancedSmartStakingGamification: process.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS || '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-  EnhancedSmartStakingViewer: process.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '0x97C24aC0Eb18b87Ea71312e1Ea415aE17D696462',
+  EnhancedSmartStaking: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0x5F084a3E35eca396B5216d67D31CB0c8dcC22703',
+  EnhancedSmartStakingRewards: process.env.VITE_ENHANCED_SMARTSTAKING_REWARDS_ADDRESS || '0xC72C9BdfEDbAA68C75D1De98e0992E1aA2a0C4be',
+  EnhancedSmartStakingSkills: process.env.VITE_ENHANCED_SMARTSTAKING_SKILLS_ADDRESS || '0x6ADD8eAdE8B2A4d8B8DE032Cf5CaB4b04481351c',
+  EnhancedSmartStakingGamification: process.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS || '0xcA4E14cd5788C5bA705051f991e65a34fbC79B52',
+  EnhancedSmartStakingViewer: process.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '0x753faAD8088ef6B5fC2859bf84C097f1d8207c3c',
   
   // 📌 Utilidades
-  DynamicAPYCalculator: process.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS || '0x0B306BF915C4d645ff596e518fAf3F9669b97016',
-  CollaboratorBadgeRewards: process.env.VITE_COLLABORATOR_BADGE_REWARDS_ADDRESS || '0x9A676e781A523b5d0C0e43731313A708CB607508',
-  TreasuryManager: process.env.VITE_TREASURY_MANAGER_ADDRESS || '0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0',
+  DynamicAPYCalculator: process.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS || '0xbC83dB057224973209E3F2D6A41471ab5204f4c0',
+  CollaboratorBadgeRewards: process.env.VITE_COLLABORATOR_BADGE_REWARDS_ADDRESS || '0x579DDf1afF17ef176de1fB8A6b8CbCA628792d98',
+  TreasuryManager: process.env.VITE_TREASURY_MANAGER_ADDRESS || '0x92BA711B203CF40bb6c5f7f509E0f48aa19e2cD9',
   
   // 📌 Marketplace Views (lectura de datos)
-  MarketplaceView: process.env.VITE_MARKETPLACE_VIEW || '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
-  MarketplaceSocial: process.env.VITE_MARKETPLACE_SOCIAL || '0x610178dA211FEF7D417bC0e6FeD39F05609AD788',
-  MarketplaceStatistics: process.env.VITE_MARKETPLACE_STATISTICS || '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'
+  MarketplaceView: process.env.VITE_MARKETPLACE_VIEW || '0x80fa89CB50Bf9501D2E25C7Aa191822119B76439',
+  MarketplaceSocial: process.env.VITE_MARKETPLACE_SOCIAL || '0xe39C0C008624b8649270C4e99AeD0892C7b6fD8d',
+  MarketplaceStatistics: process.env.VITE_MARKETPLACE_STATISTICS || '0x83b75f1AC33a9257072f6f070266A3D89Cdf4CA3'
 };
 
 // ============================================

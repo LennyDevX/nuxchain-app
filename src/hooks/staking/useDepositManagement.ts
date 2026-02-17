@@ -72,8 +72,8 @@ export interface DepositManagementReturn {
   lockedCount: number;
 
   // Write functions
-  withdrawDeposit: (depositIndex: number) => void;
-  withdrawBoosted: (depositIndex: number) => void;
+  withdrawDeposit: () => void;
+  withdrawBoosted: () => void;
 
   // Transaction state
   isPending: boolean;
@@ -136,7 +136,7 @@ export function useDepositManagement(): DepositManagementReturn {
     const now = Date.now();
 
     // Distribute total rewards proportionally across deposits based on amount
-    const totalDepositedBigInt = userDeposits.reduce((acc, d) => acc + d.amount, 0n);
+    const totalDepositedBigInt = userDeposits && userDeposits.length > 0 ? userDeposits.reduce((acc, d) => acc + d.amount, 0n) : 0n;
     
     return userDeposits
       .filter(d => d.isActive && d.amount > 0n) // Only active deposits
@@ -233,16 +233,21 @@ export function useDepositManagement(): DepositManagementReturn {
   }, [deposits, address]);
 
   // Estimate rewards - calculated from Core Contract data
+  // FIXED: Only show boost if user actually has active skills
   const estimatedRewards = useMemo((): EstimatedRewardsInfo | null => {
     if (totalDeposited === 0n || !address) return null;
 
-    // Estimate daily rewards: assume 5% APY base rate
+    // Get actual skills data from useSkillsManagement hook pattern
+    // We use a conservative estimate without assuming any boost
     const BASE_APY = 0.05;
     const dailyRate = BASE_APY / 365;
     
     const baseEstimateRaw = BigInt(Math.floor(Number(totalDeposited) * dailyRate));
-    const boostedEstimateRaw = baseEstimateRaw + (baseEstimateRaw * 20n / 100n); // Assume 20% boost
-    const boostDiff = boostedEstimateRaw - baseEstimateRaw;
+    
+    // No default boost - boost only applies if user has active skills
+    // The actual boost is calculated by the contract based on active skills
+    const boostedEstimateRaw = baseEstimateRaw; // Same as base until we have real skills data
+    const boostDiff = 0n;
 
     return {
       baseEstimate: formatPOL(baseEstimateRaw, 6),
@@ -262,22 +267,22 @@ export function useDepositManagement(): DepositManagementReturn {
     };
   }, [deposits]);
 
-  // Write functions
-  const withdrawDeposit = useCallback((depositIndex: number) => {
+  // Write functions - Contract withdraw() takes NO arguments, withdraws ALL available deposits
+  const withdrawDeposit = useCallback(() => {
     writeContract({
       address: STAKING_CONTRACT_ADDRESS,
       abi: EnhancedSmartStakingABI.abi as Abi,
       functionName: 'withdraw',
-      args: [BigInt(depositIndex)],
+      args: [], // No arguments - withdraws all available deposits
     });
   }, [writeContract]);
 
-  const withdrawBoosted = useCallback((depositIndex: number) => {
+  const withdrawBoosted = useCallback(() => {
     writeContract({
       address: STAKING_CONTRACT_ADDRESS,
       abi: EnhancedSmartStakingABI.abi as Abi,
       functionName: 'withdrawBoosted',
-      args: [BigInt(depositIndex)],
+      args: [], // No arguments
     });
   }, [writeContract]);
 

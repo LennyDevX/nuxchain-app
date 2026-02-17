@@ -1,11 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import milestonesDefault, { getCounts, getProgressPercentage } from './milestonesData';
 
 interface RoadmapHeroProps {
   isMobile: boolean;
 }
-
-import milestonesDefault, { getCounts, getProgressPercentage } from './milestonesData';
 
 const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
   const milestones = milestonesDefault;

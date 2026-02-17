@@ -1,3 +1,7 @@
+/**
+ * Roadmap Hero Component
+ * Displays hero section with progress stats for roadmap
+ */
 import React from 'react';
 import { motion } from 'framer-motion';
 import milestonesDefault, { getCounts, getProgressPercentage } from './milestonesData';

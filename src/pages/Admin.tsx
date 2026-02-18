@@ -14,6 +14,7 @@ import AdminContractStats from '../components/admin/AdminContractStats';
 import ContractManager from '../components/admin/ContractManager';
 import EmergencyToolsModal from '../components/admin/EmergencyToolsModal';
 import DynamicAPYAdmin from '../components/admin/DynamicAPYAdmin';
+import QuestManager from '../components/admin/QuestManager';
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -263,6 +264,15 @@ export default function Admin() {
               transition={{ delay: 0.5 }}
             >
               <DynamicAPYAdmin />
+            </motion.div>
+
+            {/* Quest Manager - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <QuestManager />
             </motion.div>
           </div>
         </main>

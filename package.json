@@ -82,6 +82,7 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.13.0",
     "react-window": "^1.8.11",
+    "recharts": "^3.7.0",
     "viem": "^2.45.3",
     "wagmi": "^3.4.3",
     "winston": "^3.19.0",

@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDepositManagement, type DepositDetail } from '../../hooks/staking/useDepositManagement';
 
@@ -40,15 +40,17 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
 
   const isTransacting = isPending || isConfirming;
 
-  // Filter deposits
-  const filteredDeposits = deposits.filter((d) => {
-    switch (filter) {
-      case 'flexible': return d.lockupDays === 0;
-      case 'locked': return d.isLocked;
-      case 'withdrawable': return d.isWithdrawable;
-      default: return true;
-    }
-  });
+  // Filter deposits - memoized to prevent recalculation on every render
+  const filteredDeposits = useMemo(() => {
+    return deposits.filter((d) => {
+      switch (filter) {
+        case 'flexible': return d.lockupDays === 0;
+        case 'locked': return d.isLocked;
+        case 'withdrawable': return d.isWithdrawable;
+        default: return true;
+      }
+    });
+  }, [deposits, filter]);
 
   if (isLoading) {
     return (

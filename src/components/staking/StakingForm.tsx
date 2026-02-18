@@ -7,13 +7,13 @@ import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartSta
 import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
 import { showContractError, validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
-import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 import { stakingLogger } from '../../utils/log/stakingLogger'
 import { stakingToasts } from '../../utils/toasts/stakingToasts'
 import { useUserDeposits } from '../../hooks/staking/useUserDeposits'
 import { useTotalClaimedRewardsV2 } from '../../hooks/staking/useTotalClaimedRewardsV2'
 import { useStakingAnalytics } from '../../hooks/staking/useStakingAnalytics'
 import { WithdrawConfirmationModal } from './WithdrawConfirmationModal'
+import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
 import { STAKING_PERIODS } from '../../constants/stakingConstants'
 
 interface StakingFormProps {
@@ -55,7 +55,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
   const tabs = useMemo(() => ['stake', 'claim', 'withdraw', 'compound', 'emergency'], [])
   const currentTabIndex = tabs.indexOf(activeTab)
 
-  // ✅ Get total claimed rewards directly from contract
+  // Get total claimed rewards directly from contract
   const {
     totalClaimed: totalRewardsClaimed,
     isLoading: isLoadingClaimed,
@@ -65,7 +65,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
     address
   )
 
-  // ✅ Get withdrawal status from new analytics hook
+  // Get withdrawal status from new analytics hook
   const { withdrawalStatus, loadingWithdrawal } = useStakingAnalytics()
 
   // Log rewards for debugging
@@ -81,7 +81,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
     }
   }, [pendingRewards, totalRewardsClaimed])
 
-  // ✅ Font size adaptativo
+  // Font size adaptativo
   const fontSize = useMemo(() => ({
     label: getOptimizedFontSize(14, isMobile), // 14px base
     value: getOptimizedFontSize(16, isMobile), // 16px base
@@ -137,8 +137,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
     }
   }, [activeTab, isMobile, currentTabIndex])
 
-  // ✅ Keyboard navigation para tabs (Arrow Left/Right)
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  // Keyboard navigation para tabs (Arrow Left/Right)
+  const handleKeyDown = useCallback((e: globalThis.KeyboardEvent) => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault()
       if (currentTabIndex > 0) {
@@ -172,7 +172,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
   // Refetch user deposits info when transaction is confirmed
   useEffect(() => {
     if (isConfirmed) {
-      console.log('✅ Transaction confirmed, refetching user deposits...')
+      console.log('Transaction confirmed, refetching user deposits...')
       refetchUserDeposits()
       // Refetch claimed rewards after withdraw/claim
       if (activeTab === 'claim' || activeTab === 'withdraw') {
@@ -181,10 +181,9 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
     }
   }, [isConfirmed, refetchUserDeposits, refetchClaimed, activeTab])
 
-  const handleDeposit = async () => {
+  const handleDeposit = useCallback(async () => {
     if (!depositAmount || !address) return
 
-    // Validate deposit amount
     const amountValidation = validateDepositAmount(depositAmount, balance?.value)
     if (!amountValidation.isValid) {
       if (amountValidation.error?.includes('Minimum')) {
@@ -199,7 +198,6 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
       return
     }
 
-    // Validate lockup duration
     const lockupValidation = validateLockupDuration(lockupDuration)
     if (!lockupValidation.isValid) {
       stakingToasts.invalidLockupPeriod()
@@ -230,9 +228,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
       })
       showContractError(error, 'Error al realizar el depósito')
     }
-  }
-
-
+  }, [depositAmount, address, balance, lockupDuration, stakingContractAddress, writeContract])
 
   const handleWithdrawAll = async () => {
     if (!address) {

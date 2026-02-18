@@ -45,15 +45,14 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
   const prevBadgeCountRef = useRef(badgeCount);
   const pendingToastRef = useRef<string | null>(null);
 
-  // Show pending toast when transaction starts
+  // Consolidated transaction effect: handles pending toast, confirmed toast, and refetch
   useEffect(() => {
+    // Show pending toast when transaction starts
     if (isPending && !pendingToastRef.current) {
       pendingToastRef.current = gamificationToasts.txPending('Processing claim');
     }
-  }, [isPending]);
-
-  // Refetch after confirmed transaction + show success toast
-  useEffect(() => {
+    
+    // Handle confirmed transaction
     if (isConfirmed) {
       if (pendingToastRef.current) {
         gamificationToasts.txConfirmed(pendingToastRef.current);
@@ -62,26 +61,24 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
       const timer = setTimeout(() => refetch(), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isConfirmed, refetch]);
+  }, [isPending, isConfirmed, refetch]);
 
-  // Detect level-up
+  // Detect level-up and badge unlocks - consolidated detection effect
   useEffect(() => {
+    // Level-up detection
     if (userXP && userXP.currentLevel > prevLevelRef.current && prevLevelRef.current > 0) {
       const reward = levelUpReward(userXP.currentLevel);
       gamificationToasts.levelUp(userXP.currentLevel, reward);
     }
     if (userXP) prevLevelRef.current = userXP.currentLevel;
-  }, [userXP]);
-
-  // Detect new badge
-  useEffect(() => {
+    
+    // Badge detection
     if (badgeCount > prevBadgeCountRef.current && prevBadgeCountRef.current > 0) {
-      // Find newest badge
       const newest = badges[badges.length - 1];
       if (newest) gamificationToasts.badgeUnlocked(newest.badgeId);
     }
     prevBadgeCountRef.current = badgeCount;
-  }, [badgeCount, badges]);
+  }, [userXP, badgeCount, badges]);
 
   // Calculate deposit-based quest progress
   const depositQuestProgress = useMemo(() => {

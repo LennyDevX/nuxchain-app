@@ -108,6 +108,111 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
     return num.toFixed(4);
   };
 
+  // Memoized chart data to prevent recreation on every render
+  const chartData = useMemo(() => ({
+    labels: ['Start', '1h', '1d', '1w', '1m', '1y'],
+    datasets: [
+      {
+        label: 'Cumulative Rewards',
+        data: (() => {
+          const values = [
+            0,
+            parseFloat(rewardsProjection?.hourly || '0'),
+            parseFloat(rewardsProjection?.daily || '0'),
+            parseFloat(rewardsProjection?.weekly || '0'),
+            parseFloat(rewardsProjection?.monthly || '0'),
+            parseFloat(rewardsProjection?.yearly || '0'),
+          ];
+          return values.reduce((acc: number[], val, i) => {
+            if (i === 0) return [0];
+            acc.push(acc[acc.length - 1] + val);
+            return acc;
+          }, []);
+        })(),
+        fill: true,
+        tension: 0.4,
+        backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; height: number } }) => {
+          const canvas = context.chart.ctx;
+          const gradient = canvas.createLinearGradient(0, 0, 0, context.chart.height);
+          gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)');
+          gradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.2)');
+          gradient.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+          return gradient;
+        },
+        borderColor: (context: { chart: { ctx: CanvasRenderingContext2D; width: number } }) => {
+          const canvas = context.chart.ctx;
+          const gradient = canvas.createLinearGradient(0, 0, context.chart.width, 0);
+          gradient.addColorStop(0, '#8b5cf6');
+          gradient.addColorStop(1, '#ef4444');
+          return gradient;
+        },
+        borderWidth: 3,
+        pointRadius: [0, 4, 4, 4, 4, 6],
+        pointBackgroundColor: ['#8b5cf6', '#9f5bf5', '#b35af3', '#c759f1', '#dc58ef', '#ef4444'],
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#ef4444',
+        pointHoverBorderWidth: 3,
+      },
+    ],
+  }), [rewardsProjection]);
+
+  // Memoized chart options
+  const chartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'nearest' as const,
+      intersect: true,
+      axis: 'x' as const,
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(10, 10, 10, 0.95)',
+        titleColor: '#ffffff',
+        bodyColor: '#ffffff',
+        borderColor: 'rgba(139, 92, 246, 0.4)',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: false,
+        titleFont: { size: 12, family: 'Inter, system-ui, sans-serif' },
+        bodyFont: { size: 13, family: 'Inter, system-ui, sans-serif', weight: 600 },
+        callbacks: {
+          label: function (context: { parsed: { y: number | null } }) {
+            const value = context.parsed.y ?? 0;
+            return `${value.toFixed(6)} POL`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.5)',
+          font: { size: 10, family: 'Inter, system-ui, sans-serif' },
+          maxRotation: 0,
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.4)',
+          font: { size: 9, family: 'Inter, system-ui, sans-serif' },
+          callback: function (value: number | string) {
+            const num = typeof value === 'string' ? parseFloat(value) : value;
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toFixed(3);
+          },
+          maxTicksLimit: 5,
+        },
+      },
+    },
+  }), []);
+
   // Loading state
   if (loadingProjection) {
     return (
@@ -194,130 +299,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
                   <span className="text-[10px] text-white/40 bg-white/5 px-2 py-1 rounded md:text-xs">Cumulative</span>
                 </div>
                 <div className="relative h-[200px] md:h-[280px]">
-                  <Line
-                    data={{
-                      labels: ['Start', '1h', '1d', '1w', '1m', '1y'],
-                      datasets: [
-                        {
-                          label: 'Cumulative Rewards',
-                          data: (() => {
-                            const values = [
-                              0,
-                              parseFloat(rewardsProjection?.hourly || '0'),
-                              parseFloat(rewardsProjection?.daily || '0'),
-                              parseFloat(rewardsProjection?.weekly || '0'),
-                              parseFloat(rewardsProjection?.monthly || '0'),
-                              parseFloat(rewardsProjection?.yearly || '0'),
-                            ];
-                            // Calculate cumulative sum
-                            return values.reduce((acc: number[], val, i) => {
-                              if (i === 0) return [0];
-                              acc.push(acc[acc.length - 1] + val);
-                              return acc;
-                            }, []);
-                          })(),
-                          fill: true,
-                          tension: 0.4,
-                          backgroundColor: (context: { chart: { ctx: CanvasRenderingContext2D; height: number } }) => {
-                            const canvas = context.chart.ctx;
-                            const gradient = canvas.createLinearGradient(0, 0, 0, context.chart.height);
-                            // Platform gradient: purple to red
-                            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)');  // #8b5cf6
-                            gradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.2)'); // #ef4444
-                            gradient.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
-                            return gradient;
-                          },
-                          borderColor: (context: { chart: { ctx: CanvasRenderingContext2D; width: number } }) => {
-                            const canvas = context.chart.ctx;
-                            const gradient = canvas.createLinearGradient(0, 0, context.chart.width, 0);
-                            gradient.addColorStop(0, '#8b5cf6');  // Purple
-                            gradient.addColorStop(1, '#ef4444');  // Red
-                            return gradient;
-                          },
-                          borderWidth: 3,
-                          pointRadius: [0, 4, 4, 4, 4, 6],
-                          pointBackgroundColor: ['#8b5cf6', '#9f5bf5', '#b35af3', '#c759f1', '#dc58ef', '#ef4444'],
-                          pointBorderColor: '#ffffff',
-                          pointBorderWidth: 2,
-                          pointHoverRadius: 8,
-                          pointHoverBackgroundColor: '#ef4444',
-                          pointHoverBorderWidth: 3,
-                        },
-                      ],
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      interaction: {
-                        mode: 'nearest' as const,
-                        intersect: true,
-                        axis: 'x',
-                      },
-                      plugins: {
-                        legend: {
-                          display: false,
-                        },
-                        tooltip: {
-                          backgroundColor: 'rgba(10, 10, 10, 0.95)',
-                          titleColor: '#ffffff',
-                          bodyColor: '#ffffff',
-                          borderColor: 'rgba(139, 92, 246, 0.4)',
-                          borderWidth: 1,
-                          padding: 10,
-                          displayColors: false,
-                          titleFont: {
-                            size: 12,
-                            family: 'Inter, system-ui, sans-serif',
-                          },
-                          bodyFont: {
-                            size: 13,
-                            family: 'Inter, system-ui, sans-serif',
-                            weight: 600,
-                          },
-                          callbacks: {
-                            label: function (context) {
-                              const value = context.parsed.y ?? 0;
-                              return `${value.toFixed(6)} POL`;
-                            },
-                          },
-                        },
-                      },
-                      scales: {
-                        x: {
-                          grid: {
-                            color: 'rgba(255, 255, 255, 0.03)',
-                          },
-                          ticks: {
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            font: {
-                              size: 10,
-                              family: 'Inter, system-ui, sans-serif',
-                            },
-                            maxRotation: 0,
-                          },
-                        },
-                        y: {
-                          beginAtZero: true,
-                          grid: {
-                            color: 'rgba(255, 255, 255, 0.03)',
-                          },
-                          ticks: {
-                            color: 'rgba(255, 255, 255, 0.4)',
-                            font: {
-                              size: 9,
-                              family: 'Inter, system-ui, sans-serif',
-                            },
-                            callback: function (value: number | string) {
-                              const num = typeof value === 'string' ? parseFloat(value) : value;
-                              if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-                              return num.toFixed(3);
-                            },
-                            maxTicksLimit: 5,
-                          },
-                        },
-                      },
-                    }}
-                  />
+                  <Line data={chartData} options={chartOptions} />
                 </div>
               </div>
             </motion.div>

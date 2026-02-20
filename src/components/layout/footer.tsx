@@ -11,16 +11,16 @@ const Footer: React.FC = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <img src="/favicon1.png" alt="Nuxchain" className="w-10 h-10" />
-              <h3 className="text-2xl font-bold text-gradient">
+              <h3 className="jersey-15-regular text-4xl font-bold text-gradient">
                 Nuxchain
               </h3>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="jersey-20-regular text-gray-400 text-base leading-relaxed">
               The leading Web3 platform for innovation and reliability.
               Discover cutting-edge DeFi microservices, smart contracts, and AI integration.
             </p>
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <span className="px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span className="jersey-20-regular px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
                 Public Beta v3.0
               </span>
             </div>
@@ -28,55 +28,55 @@ const Footer: React.FC = () => {
 
           {/* Platform Links */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white">Platform</h4>
+            <h4 className="jersey-15-regular text-2xl font-semibold text-white">Platform</h4>
             <ul className="space-y-2">
-              <li><Link to="/staking" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Staking</Link></li>
-              <li><Link to="/nfts" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">NFTs</Link></li>
-              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Marketplace</Link></li>
-              <li><Link to="/tokenization" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Tokenization</Link></li>
-              <li><Link to="/airdrop" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Airdrops</Link></li>
-              <li><Link to="/roadmap" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Roadmap</Link></li>
+              <li><Link to="/staking" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Staking</Link></li>
+              <li><Link to="/nfts" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">NFTs</Link></li>
+              <li><Link to="/#" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Marketplace</Link></li>
+              <li><Link to="/tokenization" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Tokenization</Link></li>
+              <li><Link to="/airdrop" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Airdrops</Link></li>
+              <li><Link to="/roadmap" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Roadmap</Link></li>
             </ul>
           </div>
 
           {/* Resources */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white">Resources</h4>
+            <h4 className="jersey-15-regular text-2xl font-semibold text-white">Resources</h4>
             <ul className="space-y-2">
-              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Blog</Link></li>
-              <li><Link to="/#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Dev Hub</Link>
-                <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              <li><Link to="/#" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Blog</Link></li>
+              <li><Link to="/#" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Dev Hub</Link>
+                <span className="jersey-20-regular px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-sm rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
-              <li><Link to="#" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Labs</Link>
-                <span className="px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+              <li><Link to="#" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Labs</Link>
+                <span className="jersey-20-regular px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-sm rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
             </ul>
           </div>
 
           {/* AI & Tools */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white">AI & Tools</h4>
+            <h4 className="jersey-15-regular text-2xl font-semibold text-white">AI & Tools</h4>
             <ul className="space-y-2">
               <li>
-                <Link to="/chat" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Nuxbee AI</Link>
+                <Link to="/chat" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Nuxbee AI</Link>
               </li>
               <li>
-                <Link to="/skills" className="text-gray-400 hover:text-purple-400 transition-colors text-sm">Skill NFTs</Link>
+                <Link to="/skills" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Skill NFTs</Link>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm">Market Analysis</span>
-                <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+                <span className="jersey-20-regular text-gray-400 text-base">Market Analysis</span>
+                <span className="jersey-20-regular px-2 py-0.5 bg-orange-500/20 text-orange-300 text-sm rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm">Smart Recommendations</span>
-                <span className="px-2 py-0.5  bg-orange-500/20 text-orange-300 text-xs rounded-full border border-orange-500/30">Coming Soon</span>
+                <span className="jersey-20-regular text-gray-400 text-base">Smart Recommendations</span>
+                <span className="jersey-20-regular px-2 py-0.5  bg-orange-500/20 text-orange-300 text-sm rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
             </ul>
           </div>
 
           {/* Social & Community */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white">Community</h4>
+            <h4 className="jersey-15-regular text-2xl font-semibold text-white">Community</h4>
             <div className="flex space-x-4">
               {/* X (Twitter) */}
               <a
@@ -108,19 +108,19 @@ const Footer: React.FC = () => {
         {/* Bottom Section */}
         <div className="mt-12 pt-8 border-t border-gray-800/50">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>© 2026 Nuxchain. All rights reserved.</span>
+            <div className="jersey-20-regular flex items-center space-x-4 text-base text-gray-500">
+              <span> 2026 Nuxchain. All rights reserved.</span>
               <span className="hidden md:inline">•</span>
               <a href="#privacy" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
               <span className="hidden md:inline">•</span>
               <a href="#terms" className="hover:text-purple-400 transition-colors">Terms of Service</a>
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
+            <div className="jersey-20-regular flex items-center space-x-2 text-sm text-gray-500">
               <span>Powered by</span>
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-                <span className="font-semibold">Blockchain Technology</span>
+                <span>Blockchain Technology</span>
               </div>
             </div>
           </div>

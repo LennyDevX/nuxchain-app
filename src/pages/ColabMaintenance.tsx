@@ -3,7 +3,7 @@ import Footer from '../components/layout/footer';
 import { motion } from 'framer-motion';
 import '../styles/maintenance.css';
 
-const NFTMaintenance: React.FC = () => {
+const ColabMaintenance: React.FC = () => {
   return (
     <div className="maintenance-wrapper">
       {/* Background blobs for visual interest */}
@@ -23,7 +23,7 @@ const NFTMaintenance: React.FC = () => {
             <div className="relative">
               <motion.img
                 src="/NuxCoin.png"
-                alt="NUX Token NFTs"
+                alt="NUX Token Colab"
                 className="w-56 h-56 md:w-72 md:h-72 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                 animate={{
                   y: [0, -10, 0],
@@ -45,42 +45,42 @@ const NFTMaintenance: React.FC = () => {
             transition={{ delay: 0.5, duration: 0.5 }}
           >
             <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-4 italic tracking-tight">
-              NFT HUB UPGRADE
+              COLAB PORTAL UPGRADE
             </h1>
 
             <div className="maintenance-message mb-8">
               <p className="text-gray-300 text-lg leading-relaxed">
-                We are currently <span className="text-purple-400 font-bold">optimizing the NFT loading system</span> and preparing the ground for the Nuxchain Marketplace.
+                We are currently <span className="text-purple-400 font-bold">upgrading the Colab Portal</span> with enhanced collaboration tools and builder reward systems. Back very soon.
               </p>
             </div>
 
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-md">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-                🚀 Coming to Nuxchain
+                🚀 What's Coming to Colab
               </h2>
               <div className="maintenance-grid">
                 <div className="grid-item">
+                  <span className="icon">🤝</span>
+                  <p className="text-sm">Enhanced collaboration tools</p>
+                </div>
+                <div className="grid-item">
+                  <span className="icon">🏆</span>
+                  <p className="text-sm">Upgraded builder rewards</p>
+                </div>
+                <div className="grid-item">
                   <span className="icon">🎨</span>
-                  <p className="text-sm">Create & Trade your own assets</p>
-                </div>
-                <div className="grid-item">
-                  <span className="icon">🛡️</span>
-                  <p className="text-sm">Official collections & exclusive drops</p>
-                </div>
-                <div className="grid-item">
-                  <span className="icon">💎</span>
-                  <p className="text-sm">Incredible holder benefits</p>
+                  <p className="text-sm">New badge customization</p>
                 </div>
                 <div className="grid-item">
                   <span className="icon">⚡</span>
-                  <p className="text-sm">Ultra-fast multichain trading</p>
+                  <p className="text-sm">Faster minting & recognition</p>
                 </div>
               </div>
             </div>
 
             <div className="py-4 px-6 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-xl mb-8">
               <p className="text-white font-black italic tracking-wider">
-                ✨ FIRST COLLECTION: <span className="text-purple-400 uppercase">DRAGONIX</span> COMING SOON..
+                ✨ BUILDERS PROGRAM: <span className="text-purple-400 uppercase">Next phase launching soon</span>
               </p>
             </div>
 
@@ -114,4 +114,4 @@ const NFTMaintenance: React.FC = () => {
   );
 };
 
-export default NFTMaintenance;
+export default ColabMaintenance;

@@ -161,7 +161,7 @@ export function StakingPoolChart() {
       >
         <div className="flex flex-col items-center justify-center h-[320px]">
           <div className="w-48 h-48 rounded-full border-4 border-white/10 border-t-emerald-500 animate-spin" />
-          <p className="text-white/60 text-sm mt-4">Loading staking data...</p>
+          <p className="jersey-20-regular text-white/60 text-sm lg:text-base mt-4">Loading staking data...</p>
         </div>
       </motion.div>
     );
@@ -176,8 +176,8 @@ export function StakingPoolChart() {
     >
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-1">Staking Pool</h3>
-        <p className="text-sm text-white/60">Distribution by lockup period</p>
+        <h3 className="jersey-15-regular text-xl lg:text-3xl font-bold text-white mb-1">Staking Pool</h3>
+        <p className="jersey-20-regular text-sm lg:text-base text-white/60">Distribution by lockup period</p>
       </div>
 
       {/* Chart */}
@@ -188,12 +188,12 @@ export function StakingPoolChart() {
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
         <div>
-          <p className="text-xs text-white/60 mb-1">Total Deposits</p>
-          <p className="text-lg font-semibold text-white">{totalDeposits}</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-1">Total Deposits</p>
+          <p className="jersey-20-regular text-lg lg:text-xl font-semibold text-white">{totalDeposits}</p>
         </div>
         <div>
-          <p className="text-xs text-white/60 mb-1">Total Staked</p>
-          <p className="text-lg font-semibold text-emerald-400">{totalStaked} POL</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-1">Total Staked</p>
+          <p className="jersey-20-regular text-lg lg:text-xl font-semibold text-emerald-400">{totalStaked} POL</p>
         </div>
       </div>
     </motion.div>

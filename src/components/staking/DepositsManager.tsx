@@ -81,8 +81,8 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
           <div className="flex items-center gap-2">
             <span className="text-2xl">📦</span>
             <div>
-              <h3 className="text-lg font-semibold text-white md:text-xl">My Deposits</h3>
-              <p className="text-white/40 text-sm md:text-base">
+              <h3 className="jersey-15-regular text-lg lg:text-xl font-semibold text-white">My Deposits</h3>
+              <p className="jersey-20-regular text-white/40 text-sm lg:text-base">
                 {totalDeposits} deposit{totalDeposits !== 1 ? 's' : ''} •{' '}
                 {withdrawableCount} withdrawable • {lockedCount} locked
               </p>
@@ -90,7 +90,7 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
           </div>
           {withdrawableCount > 0 && (
             <motion.button
-              className="px-4 py-2 rounded-lg text-sm md:text-base font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
+              className="px-4 py-2 rounded-lg jersey-15-regular text-sm lg:text-base font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={isTransacting}
@@ -116,9 +116,9 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
                 className="bg-white/5 rounded-lg p-3 text-center border border-white/5"
               >
                 <div className={`w-2 h-2 rounded-full ${color} mx-auto mb-1`} />
-                <p className="text-white/60 text-xs md:text-sm">{label}</p>
-                <p className="text-white font-bold text-base md:text-lg">{data.count}</p>
-                <p className="text-white/40 text-xs md:text-sm">{data.totalAmount}</p>
+                <p className="jersey-15-regular text-white/60 text-xs lg:text-sm">{label}</p>
+                <p className="jersey-20-regular text-white font-bold text-base lg:text-lg">{data.count}</p>
+                <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">{data.totalAmount}</p>
               </div>
             ))}
           </div>
@@ -129,18 +129,18 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
           <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-lg p-4 border border-emerald-500/15 mb-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/40 text-sm">Estimated Daily Rewards</p>
+                <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Estimated Daily Rewards</p>
                 <div className="flex items-baseline gap-2 mt-1">
                   {/* Only show strikethrough base if there's actual boost */}
                   {parseFloat(estimatedRewards.boostDifference) > 0 ? (
-                    <span className="text-white/50 text-base line-through">{estimatedRewards.baseEstimate}</span>
+                    <span className="jersey-20-regular text-white/50 text-base line-through">{estimatedRewards.baseEstimate}</span>
                   ) : null}
-                  <span className="text-emerald-400 font-bold text-xl">{estimatedRewards.boostedEstimate} POL</span>
+                  <span className="jersey-20-regular text-emerald-400 font-bold text-xl lg:text-2xl">{estimatedRewards.boostedEstimate} POL</span>
                 </div>
               </div>
               {/* Only show skills badge if there's actual boost from skills */}
               {parseFloat(estimatedRewards.boostDifference) > 0 && (
-                <span className="px-3 py-1.5 rounded-full text-sm bg-emerald-500/20 text-emerald-400">
+                <span className="px-3 py-1.5 rounded-full jersey-20-regular text-sm bg-emerald-500/20 text-emerald-400">
                   +{estimatedRewards.boostDifference} from skills
                 </span>
               )}
@@ -152,8 +152,8 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
         {withdrawalStatus && (
           <div className="bg-white/5 rounded-lg p-4 border border-white/5 mb-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-white/40 text-sm">Daily Withdrawal Limit</span>
-              <span className={`text-sm font-medium ${
+              <span className="jersey-20-regular text-white/40 text-sm lg:text-base">Daily Withdrawal Limit</span>
+              <span className={`jersey-20-regular text-white/50 text-sm lg:text-base font-medium ${
                 withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-red-400'
               }`}>
                 {withdrawalStatus.canWithdraw ? '✓ Available' : '✕ Limit reached'}
@@ -169,7 +169,7 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
                 style={{ width: `${withdrawalStatus.dailyLimitUsedPercent}%` }}
               />
             </div>
-            <p className="text-white/40 text-sm mt-2">
+            <p className="jersey-20-regular text-white/40 text-sm lg:text-base mt-2">
               Remaining: {withdrawalStatus.dailyLimitRemaining} POL
             </p>
           </div>
@@ -186,7 +186,7 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`flex-1 py-3 text-sm md:text-base font-medium transition-colors ${
+              className={`flex-1 py-3 jersey-15-regular text-sm lg:text-base font-medium transition-colors ${
                 filter === key
                   ? 'text-cyan-400 border-b-2 border-cyan-400'
                   : 'text-white/40 hover:text-white/60'
@@ -208,7 +208,7 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
               className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-white/10"
             >
               <span className="text-2xl">📭</span>
-              <p className="text-white/40 text-base md:text-lg mt-2">
+              <p className="jersey-20-regular text-white/40 text-base lg:text-lg mt-2">
                 {filter === 'all' ? 'No deposits found' : `No ${filter} deposits`}
               </p>
             </motion.div>
@@ -228,7 +228,7 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
         <div className="px-5 pb-4">
           <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4 flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-            <span className="text-cyan-400 text-sm md:text-base">
+            <span className="jersey-20-regular text-cyan-400 text-sm lg:text-base">
               {isPending ? 'Confirm in wallet...' : 'Processing withdrawal...'}
             </span>
           </div>
@@ -273,11 +273,11 @@ const DepositCard: React.FC<DepositCardProps> = memo(({ deposit }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${lockupColor}`} />
-          <span className="text-white font-bold text-lg md:text-xl">{deposit.amount} POL</span>
-          <span className="text-white/30 text-sm">#{deposit.index}</span>
+          <span className="jersey-20-regular text-white font-bold text-lg lg:text-xl">{deposit.amount} POL</span>
+          <span className="jersey-20-regular text-white/30 text-sm">#{deposit.index}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-sm font-medium ${
+          <span className={`px-2 py-1 rounded jersey-15-regular text-sm font-medium ${
             deposit.isWithdrawable
               ? 'bg-emerald-500/20 text-emerald-400'
               : deposit.isLocked
@@ -294,7 +294,7 @@ const DepositCard: React.FC<DepositCardProps> = memo(({ deposit }) => {
         <span className="text-white/50">
           {deposit.lockupType} • {deposit.depositDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
         </span>
-        <span className="text-emerald-400 font-medium">+{deposit.currentRewards} POL</span>
+        <span className="jersey-20-regular text-emerald-400 font-medium">+{deposit.currentRewards} POL</span>
       </div>
 
       {/* Lock Progress Bar */}
@@ -309,8 +309,8 @@ const DepositCard: React.FC<DepositCardProps> = memo(({ deposit }) => {
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-white/30 text-xs md:text-sm">Deposited</span>
-            <span className="text-white/30 text-xs md:text-sm">
+            <span className="jersey-20-regular text-white/30 text-xs lg:text-sm">Deposited</span>
+            <span className="jersey-20-regular text-white/30 text-xs lg:text-sm">
               {deposit.progressPercent}% • {deposit.unlockDate?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'Flexible'}
             </span>
           </div>

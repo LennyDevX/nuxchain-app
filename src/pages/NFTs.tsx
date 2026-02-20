@@ -1,6 +1,6 @@
-import { useState, useMemo, memo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
-import NFTsMaintenance from './NFTsMaintenance';
+import NFTMaintenance from './NFTsMaintenance';
 
 interface NFTAttribute {
   trait_type: string;
@@ -30,10 +30,7 @@ import { nftLogger } from '../utils/log/nftLogger';
 
 
 function NFTs() {
-  // Check maintenance mode first
-  if (isMaintenanceMode('nfts')) {
-    return <NFTsMaintenance />;
-  }
+  // ✅ ALL HOOKS MUST BE CALLED AT THE TOP - BEFORE ANY CONDITIONALS
   const { isConnected } = useAccount();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -78,9 +75,8 @@ function NFTs() {
   const [sortBy, setSortBy] = useState('date');
   const [listingTokenId, setListingTokenId] = useState<string | null>(null);
   const [showListingModal, setShowListingModal] = useState(false);
-  
-  // Remove unused effect - listError is handled by the ListingModal component
 
+  // ✅ useMemo hooks must also be at the top - before any conditionals
   // Filter NFTs based on search term, category, status, and NFT type - optimized with early returns
   const filteredNFTs = useMemo(() => {
     // Early return if no NFTs
@@ -182,6 +178,11 @@ function NFTs() {
   };
 
 
+  // Check maintenance mode after all hooks are called
+  if (isMaintenanceMode('nfts')) {
+    return <NFTMaintenance />;
+  }
+
   if (!isConnected) {
     return <ConnectWallet pageName="NFTs" />;
   }
@@ -191,13 +192,13 @@ function NFTs() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         {/* Header */}
         <div className={`text-center mb-6 md:mb-8 ${isMobile ? 'px-2' : ''}`}>
-          <h1 className={`font-bold text-white mb-3 md:mb-4 text-gradient ${
-            isMobile ? 'text-2xl' : 'text-4xl'
+          <h1 className={`jersey-15-regular font-bold text-white mb-3 md:mb-4 text-gradient ${
+            isMobile ? 'text-5xl' : 'text-4xl lg:text-5xl'
           }`}>
             My Collection
           </h1>
-          <p className={`text-white/60 max-w-3xl mx-auto ${
-            isMobile ? 'text-base px-4' : 'text-xl'
+          <p className={`jersey-20-regular text-white/60 max-w-3xl mx-auto ${
+            isMobile ? 'text-sm lg:text-base px-4' : 'text-lg lg:text-xl'
           }`}>
             Manage your collection of unique NFTs created on our platform
           </p>
@@ -266,4 +267,4 @@ function NFTs() {
   );
 }
 
-export default memo(NFTs);
+export default NFTs;

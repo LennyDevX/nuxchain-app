@@ -91,6 +91,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
   // Handle touch events for swipe navigation
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return
+    e.stopPropagation() // Prevenir propagación al TabNavigation padre
     // Don't interfere with form elements
     const target = e.target as HTMLElement
     if (target.tagName === 'SELECT' || target.tagName === 'OPTION' || target.closest('select')) {
@@ -101,6 +102,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isMobile) return
+    e.stopPropagation() // Prevenir propagación al TabNavigation padre
     // Don't interfere with form elements
     const target = e.target as HTMLElement
     if (target.tagName === 'SELECT' || target.tagName === 'OPTION' || target.closest('select')) {
@@ -109,7 +111,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
     setTouchEnd(e.targetTouches[0].clientX)
   }
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation() // Prevenir propagación al TabNavigation padre
     if (!isMobile || !touchStart || !touchEnd) return
 
     const distance = touchStart - touchEnd
@@ -403,8 +406,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             role="tab"
             aria-selected={activeTab === 'stake'}
             aria-label="Stake Tab - Use Arrow Keys to Navigate"
-            className={`font-medium transition-all duration-300 flex-1
-              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+            className={`jersey-15-regular font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-base rounded-lg' : 'py-5 px-6 text-5xl rounded-lg'}
               ${activeTab === 'stake'
                 ? isMobile
                   ? 'bg-blue-500/30 text-blue-300 shadow-lg'
@@ -424,8 +427,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             role="tab"
             aria-selected={activeTab === 'claim'}
             aria-label="Claim Tab"
-            className={`font-medium transition-all duration-300 flex-1
-              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+            className={`jersey-15-regular font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-base rounded-lg' : 'py-5 px-6 text-5xl rounded-lg'}
               ${activeTab === 'claim'
                 ? isMobile
                   ? 'bg-yellow-500/30 text-yellow-300 shadow-lg'
@@ -445,8 +448,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             role="tab"
             aria-selected={activeTab === 'withdraw'}
             aria-label="Withdraw Tab"
-            className={`font-medium transition-all duration-300 flex-1
-              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+            className={`jersey-15-regular font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-base rounded-lg' : 'py-5 px-6 text-5xl rounded-lg'}
               ${activeTab === 'withdraw'
                 ? isMobile
                   ? 'bg-red-500/30 text-red-300 shadow-lg'
@@ -466,8 +469,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             role="tab"
             aria-selected={activeTab === 'compound'}
             aria-label="Compound Tab"
-            className={`font-medium transition-all duration-300 flex-1
-              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+            className={`jersey-15-regular font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-base rounded-lg' : 'py-5 px-6 text-5xl rounded-lg'}
               ${activeTab === 'compound'
                 ? isMobile
                   ? 'bg-green-500/30 text-green-300 shadow-lg'
@@ -487,8 +490,8 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             role="tab"
             aria-selected={activeTab === 'emergency'}
             aria-label="Emergency Tab"
-            className={`font-medium transition-all duration-300 flex-1
-              ${isMobile ? 'py-2 px-2 text-xs rounded-lg' : 'py-5 px-6 text-lg rounded-lg'}
+            className={`jersey-15-regular font-medium transition-all duration-300 flex-1
+              ${isMobile ? 'py-2 px-2 text-base rounded-lg' : 'py-5 px-6 text-5xl rounded-lg'}
               ${activeTab === 'emergency'
                 ? isMobile
                   ? 'bg-orange-500/30 text-orange-300 shadow-lg'
@@ -518,12 +521,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.4 }}
       >
-
-        {activeTab === 'stake' && (
+        {activeTab === 'stake' ? (
           <div className="space-y-6">
             <div>
               <label
-                className="block text-white/80 font-medium mb-2"
+                className="block jersey-15-regular text-white/80 font-medium mb-2"
                 style={{ fontSize: `${fontSize.label}px` }}
               >
                 Amount to deposit (POL)
@@ -534,30 +536,30 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   placeholder="0.0"
-                  className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+                  className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 jersey-20-regular text-white placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
                 />
                 {depositAmount && (
                   <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <p className="text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
-                      💡 6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
+                    <p className="jersey-20-regular text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
+                      6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
                     </p>
-                    <p className="text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
+                    <p className="jersey-20-regular text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
                       Effective deposit amount: {(parseFloat(depositAmount) * 0.94).toFixed(4)} POL
                     </p>
                   </div>
                 )}
-                <div className="absolute right-3 top-3 text-white/60 text-sm">
+                <div className="absolute right-3 top-3 jersey-20-regular text-white/60 text-sm">
                   POL
                 </div>
               </div>
-              <div className="mt-2 text-sm text-white/60">
+              <div className="mt-2 jersey-20-regular text-base text-white/60">
                 Balance: {balance ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(4)} ${balance.symbol}` : '0 POL'}
               </div>
             </div>
 
             {/* Period Selector Grid (Simplified) */}
             <div className="space-y-3">
-              <label className="text-white/80 text-sm font-medium">Lockup Period</label>
+              <label className="jersey-15-regular text-white/80 text-base font-medium">Lockup Period</label>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                 {STAKING_PERIODS.map((period) => (
                   <button
@@ -573,12 +575,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
                     `}
                   >
                     <div className="text-center">
-                      <p className={`text-sm font-bold mb-1 ${
+                      <p className={`jersey-15-regular text-base font-bold mb-1 ${
                         lockupDuration === period.value ? 'text-emerald-400' : 'text-white'
                       }`}>
                         {period.label}
                       </p>
-                      <p className="text-xs text-white/60">{period.roi.annual}</p>
+                      <p className="jersey-20-regular text-sm text-white/60">{period.roi.annual}</p>
                     </div>
                     {lockupDuration === period.value && (
                       <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
@@ -596,18 +598,18 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
               {isPaused ? 'Contract Paused' : isPending || isConfirming ? 'Processing...' : 'Stake Now'}
             </button>
           </div>
-        )}
+        ) : null}
 
-        {activeTab === 'claim' && (
+        {activeTab === 'claim' ? (
           <div className="space-y-6">
             {/* Pending Rewards Section */}
             <div className="space-y-2">
-              <p className="text-white/80 text-sm font-medium">Available to Claim</p>
+              <p className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium">Available to Claim</p>
               <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4">
-                <p className="text-3xl font-bold text-white mb-1">
+                <p className="jersey-20-regular text-3xl lg:text-4xl font-bold text-white mb-1">
                   {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
                 </p>
-                <p className="text-white/60 text-xs">
+                <p className="jersey-20-regular text-white/60 text-xs lg:text-sm">
                   {pendingRewards && pendingRewards > 0n
                     ? 'These rewards are ready to be claimed and transferred to your wallet'
                     : 'No pending rewards at this moment. Keep staking to earn more!'
@@ -621,7 +623,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
               {/* Total Rewards Claimed */}
               <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/70 text-xs font-semibold">💎 Total Claimed</p>
+                  <p className="jersey-15-regular text-white/70 text-xs lg:text-sm font-semibold">💎 Total Claimed</p>
                   <div className="flex items-center gap-1">
                     {isLoadingClaimed && (
                       <svg className="animate-spin h-3 w-3 text-purple-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -632,12 +634,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
 
                   </div>
                 </div>
-                <p className="text-xl font-bold text-purple-400 mb-1">
+                <p className="jersey-20-regular text-xl lg:text-2xl font-bold text-purple-400 mb-1">
                   {totalRewardsClaimed && totalRewardsClaimed > 0n
                     ? `${parseFloat(formatEther(totalRewardsClaimed)).toFixed(6)} POL`
                     : '0.000000 POL'}
                 </p>
-                <p className="text-white/50 text-xs">
+                <p className="jersey-20-regular text-white/50 text-xs lg:text-sm">
                   {isLoadingClaimed
                     ? 'Loading from contract...'
                     : totalRewardsClaimed && totalRewardsClaimed > 0n
@@ -648,11 +650,11 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
 
               {/* Total Staked */}
               <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-lg p-4">
-                <p className="text-white/70 text-xs font-semibold mb-2">💰 Total Staked</p>
-                <p className="text-xl font-bold text-cyan-400 mb-1">
+                <p className="jersey-15-regular text-white/70 text-xs lg:text-sm font-semibold mb-2">💰 Total Staked</p>
+                <p className="jersey-20-regular text-xl lg:text-2xl font-bold text-cyan-400 mb-1">
                   {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'}
                 </p>
-                <p className="text-white/50 text-xs">
+                <p className="jersey-20-regular text-white/50 text-xs lg:text-sm">
                   Your current stake
                 </p>
               </div>
@@ -660,10 +662,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
 
             {/* Information Section */}
             <div className="bg-blue-900/20 border border-blue-500/20 rounded-lg p-4">
-              <p className="text-blue-300 text-sm leading-relaxed">
+              <p className="jersey-15-regular text-blue-300 text-sm lg:text-base leading-relaxed">
                 <strong>ℹ️ How it works:</strong>
               </p>
-              <ul className="text-blue-200/70 text-xs mt-2 space-y-1 ml-4 list-disc">
+              <ul className="jersey-20-regular text-blue-200/70 text-xs lg:text-sm mt-2 space-y-1 ml-4 list-disc">
                 <li>Claiming rewards does NOT affect your staked amount</li>
                 <li>Claimed rewards go directly to your wallet</li>
                 <li>You can claim multiple times as rewards accumulate</li>
@@ -675,10 +677,10 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             <button
               onClick={handleClaimRewards}
               disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg"
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-lg font-bold transition-all duration-200 hover:scale-105 shadow-lg jersey-20-regular text-lg lg:text-xl"
             >
               {isPending || isConfirming ? (
-                <span className="flex items-center justify-center gap-2">
+                <span className="flex items-center justify-center gap-2 jersey-20-regular">
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -686,15 +688,15 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
                   Processing...
                 </span>
               ) : !pendingRewards || pendingRewards === 0n ? (
-                'No Rewards to Claim'
+                <span className="jersey-20-regular">No Rewards to Claim</span>
               ) : (
-                `Claim ${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL`
+                <span className="jersey-20-regular">Claim {parseFloat(formatEther(pendingRewards)).toFixed(6)} POL</span>
               )}
             </button>
           </div>
-        )}
+        ) : null}
 
-        {activeTab === 'withdraw' && (
+        {activeTab === 'withdraw' ? (
           <div className="space-y-6">
             {/* Withdrawal Status Info from Contract */}
             {!loadingWithdrawal && withdrawalStatus && (
@@ -707,20 +709,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-white/70 text-sm">Withdrawal Status</span>
-                  <span className={`text-sm font-semibold ${withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-amber-400'
+                  <span className="jersey-20-regular text-white/70 text-sm lg:text-base">Withdrawal Status</span>
+                  <span className={`jersey-15-regular text-sm lg:text-base font-semibold ${withdrawalStatus.canWithdraw ? 'text-emerald-400' : 'text-amber-400'
                     }`}>
                     {withdrawalStatus.canWithdraw ? '✅ Available' : '⏳ Pending'}
                   </span>
                 </div>
                 {withdrawalStatus.dailyLimitRemaining !== '0.00' && (
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between jersey-20-regular text-xs lg:text-sm">
                     <span className="text-white/50">Daily Limit Remaining</span>
                     <span className="text-white/80">{withdrawalStatus.dailyLimitRemaining} POL</span>
                   </div>
                 )}
                 {!withdrawalStatus.canWithdraw && withdrawalStatus.lockedUntilFormatted && (
-                  <p className="text-amber-300/80 text-xs mt-2">
+                  <p className="jersey-20-regular text-amber-300/80 text-xs lg:text-sm mt-2">
                     🔒 Next unlock: {withdrawalStatus.lockedUntilFormatted}
                   </p>
                 )}
@@ -728,13 +730,13 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             )}
 
             <div className="text-center">
-              <p className="text-white/80 mb-4">
+              <p className="jersey-20-regular text-white/80 text-sm lg:text-base mb-4">
                 Withdraw all your staked amount and accumulated rewards
               </p>
-              <p className="text-2xl font-bold text-white mb-6">
+              <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-white mb-6">
                 Total: {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'} (Staked)
               </p>
-              <p className="text-lg text-yellow-400 mb-6">
+              <p className="jersey-20-regular text-lg lg:text-xl text-yellow-400 mb-6">
                 + {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'} (Rewards)
               </p>
             </div>
@@ -742,27 +744,27 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             <button
               onClick={handleWithdrawAll}
               disabled={isPending || isConfirming}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+              className="w-full bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg jersey-20-regular text-lg lg:text-xl"
             >
               {isPending || isConfirming ? 'Processing...' : 'Withdraw All (Stake + Rewards)'}
             </button>
           </div>
-        )}
+        ) : null}
 
-        {activeTab === 'compound' && (
+        {activeTab === 'compound' ? (
           <div className="space-y-6">
             <div className="text-center">
-              <p className="text-white/80 mb-4">
+              <p className="jersey-20-regular text-white/80 text-sm lg:text-base mb-4">
                 Automatically reinvest your rewards to maximize earnings
               </p>
-              <p className="text-2xl font-bold text-white mb-6">
+              <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-white mb-6">
                 {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
               </p>
             </div>
 
             {/* Period Selector Grid for Compound (Simplified) */}
             <div className="space-y-3">
-              <label className="text-white/80 text-sm font-medium">Lockup Period for Compounded Rewards</label>
+              <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium">Lockup Period for Compounded Rewards</label>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                 {STAKING_PERIODS.map((period) => (
                   <button
@@ -778,12 +780,12 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
                     `}
                   >
                     <div className="text-center">
-                      <p className={`text-sm font-bold mb-1 ${
+                      <p className={`jersey-15-regular text-sm lg:text-base font-bold mb-1 ${
                         compoundLockupDuration === period.value ? 'text-emerald-400' : 'text-white'
                       }`}>
                         {period.label}
                       </p>
-                      <p className="text-xs text-white/60">{period.roi.annual}</p>
+                      <p className="jersey-20-regular text-xs lg:text-sm text-white/60">{period.roi.annual}</p>
                     </div>
                     {compoundLockupDuration === period.value && (
                       <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
@@ -796,24 +798,24 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             <button
               onClick={handleCompound}
               disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg jersey-20-regular text-lg lg:text-xl"
             >
               {isPending || isConfirming ? 'Processing...' : 'Compound Now'}
             </button>
           </div>
-        )}
+        ) : null}
 
-        {activeTab === 'emergency' && (
+        {activeTab === 'emergency' ? (
           <div className="space-y-6">
             <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
               <div className="flex items-start">
                 <div className="text-red-400 text-2xl mr-3">⚠️</div>
                 <div>
-                  <h3 className="text-red-400 font-bold text-lg mb-2">EMERGENCY WITHDRAWAL</h3>
-                  <p className="text-white/80 text-sm mb-2">
+                  <h3 className="jersey-15-regular text-red-400 font-bold text-lg lg:text-xl mb-2">EMERGENCY WITHDRAWAL</h3>
+                  <p className="jersey-20-regular text-white/80 text-sm lg:text-base mb-2">
                     This function is designed ONLY for extreme emergency situations.
                   </p>
-                  <ul className="text-red-300 text-sm space-y-1">
+                  <ul className="jersey-20-regular text-red-300 text-sm lg:text-base space-y-1">
                     <li>• Withdraws ALL your deposited funds immediately</li>
                     <li>• Completely ignores lockup periods</li>
                     <li>• You LOSE ALL pending rewards</li>
@@ -825,20 +827,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             </div>
 
             <div className="text-center">
-              <p className="text-white/80 mb-4">
+              <p className="jersey-20-regular text-white/80 text-sm lg:text-base mb-4">
                 Deposited funds that will be withdrawn:
               </p>
-              <p className="text-2xl font-bold text-white mb-2">
+              <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-white mb-2">
                 {userStaked ? `${parseFloat(formatEther(userStaked)).toFixed(6)} POL` : '0 POL'}
               </p>
-              <p className="text-red-400 text-sm mb-6">
+              <p className="jersey-20-regular text-red-400 text-sm lg:text-base mb-6">
                 Rewards that will be lost: {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
               </p>
             </div>
 
             <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 mb-6">
-              <p className="text-orange-400 text-sm font-medium mb-2">🚨 BEFORE CONTINUING:</p>
-              <p className="text-white/80 text-sm">
+              <p className="jersey-15-regular text-orange-400 text-sm lg:text-base font-medium mb-2">🚨 BEFORE CONTINUING:</p>
+              <p className="jersey-20-regular text-white/80 text-sm lg:text-base">
                 Consider using "Withdraw All" instead, which allows you to withdraw both your funds and rewards,
                 respecting lockup periods when necessary.
               </p>
@@ -847,16 +849,16 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             <button
               onClick={handleEmergencyWithdraw}
               disabled={isPending || isConfirming || !userStaked || userStaked === 0n || !isPaused}
-              className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 border-2 border-red-500 hover:border-red-400 shadow-lg"
+              className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-bold transition-all duration-200 border-2 border-red-500 hover:border-red-400 shadow-lg jersey-20-regular text-lg lg:text-xl"
             >
               {!isPaused ? 'Only available when contract is paused' : isPending || isConfirming ? 'Processing...' : '🚨 EMERGENCY WITHDRAWAL 🚨'}
             </button>
 
-            <p className="text-center text-white/60 text-xs">
+            <p className="text-center jersey-20-regular text-white/60 text-xs lg:text-sm">
               {isPaused ? 'By clicking you confirm that you understand the irreversible consequences of this action' : 'Emergency withdrawal is only available when the contract owner has paused the contract'}
             </p>
           </div>
-        )}
+        ) : null}
       </motion.div>
 
       {/* Transaction Success Message */}
@@ -872,7 +874,7 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
             <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span className="text-green-400 font-medium">Transaction completed successfully</span>
+            <span className="jersey-15-regular text-green-400 font-medium">Transaction completed successfully</span>
           </div>
         </motion.div>
       )}

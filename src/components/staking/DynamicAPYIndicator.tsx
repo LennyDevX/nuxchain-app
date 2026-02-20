@@ -63,10 +63,10 @@ const CircularProgress: React.FC<{
         
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-lg font-bold ${filled ? 'text-emerald-400' : 'text-white'}`}>
+          <span className={`jersey-20-regular text-2xl lg:text-3xl font-bold ${filled ? 'text-emerald-400' : 'text-white'}`}>
             {filled ? '✓' : '○'}
           </span>
-          <span className="text-[9px] text-white/50">{label}</span>
+          <span className="jersey-20-regular text-base lg:text-lg text-white/50">{label}</span>
         </div>
 
         {/* Filled indicator glow */}
@@ -77,10 +77,10 @@ const CircularProgress: React.FC<{
       
       {/* Label below */}
       <div className="mt-2 text-center">
-        <p className={`text-xs font-semibold ${filled ? 'text-emerald-400' : 'text-white/70'}`}>
+        <p className={`jersey-20-regular text-base lg:text-lg font-semibold ${filled ? 'text-emerald-400' : 'text-white/70'}`}>
           {total >= 1000 ? `${total/1000}M` : total} POL
         </p>
-        {filled && <p className="text-[9px] text-emerald-400/70">APY Adj</p>}
+        {filled && <p className="jersey-20-regular text-sm lg:text-base text-emerald-400/70">APY Adj</p>}
       </div>
     </motion.div>
   );
@@ -164,16 +164,16 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-cyan-400 text-lg">⚡</span>
-            <h4 className="text-sm font-semibold text-white">Dynamic APY</h4>
+            <span className="text-cyan-400 text-xl lg:text-2xl">⚡</span>
+            <h4 className="jersey-15-regular text-xl lg:text-2xl font-semibold text-white">Dynamic APY</h4>
           </div>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-400">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full jersey-20-regular text-[10px] lg:text-xs bg-amber-500/10 text-amber-400">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             {isNotDeployed ? 'Not Deployed' : 'Connecting...'}
           </div>
         </div>
         <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-          <p className="text-white/40 text-xs text-center">
+          <p className="jersey-20-regular text-white/40 text-xs lg:text-sm text-center">
             {isNotDeployed 
               ? '⚠️ DynamicAPYCalculator contract pending deployment.'
               : 'Loading contract data...'
@@ -201,22 +201,22 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="text-sm font-semibold text-white">Dynamic APY</h4>
-                <span className="text-white/30 text-xs">•</span>
-                <p className="text-white/50 text-xs truncate">TVL-based scaling with treasury protection</p>
+                <h4 className="jersey-15-regular text-sm lg:text-base font-semibold text-white">Dynamic APY</h4>
+                <span className="jersey-20-regular text-white/30 text-xs lg:text-sm">•</span>
+                <p className="jersey-20-regular text-white/50 text-xs lg:text-sm truncate">TVL-based scaling with treasury protection</p>
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className={`text-xs font-medium ${multiplierInfo.color}`}>
+                <span className={`jersey-20-regular text-xs lg:text-sm font-medium ${multiplierInfo.color}`}>
                   {multiplier} Multiplier
                 </span>
                 <span className="text-white/20 text-xs">|</span>
-                <span className="text-cyan-400 text-xs">{totalTVL} POL TVL</span>
+                <span className="jersey-20-regular text-cyan-400 text-xs lg:text-sm">{totalTVL} POL TVL</span>
               </div>
             </div>
           </div>
           
           {/* Right: Status Badge */}
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0 ${
+          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full jersey-20-regular text-[10px] lg:text-xs font-medium flex-shrink-0 ${
             isEnabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-gray-500/10 text-gray-400'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`}></span>
@@ -227,11 +227,11 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
 
       {/* TVL Milestones - 3 Circular Progress Indicators */}
       <div className="p-3">
-        <div className="flex items-center justify-between mb-3">
-          <h5 className="text-[11px] font-medium text-white/70">
+        <div className="flex items-center justify-between mb-4">
+          <h5 className="jersey-15-regular text-base lg:text-lg font-medium text-white/70">
             TVL Milestones (APY reduces after 1M)
           </h5>
-          <span className="text-[10px] text-cyan-400">
+          <span className="jersey-20-regular text-sm lg:text-base text-cyan-400">
             {tvlMilestones.filter(m => m.filled).length}/3
           </span>
         </div>
@@ -252,7 +252,7 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
 
         {/* TVL Progress Bar - Minimal */}
         <div className="mt-6 pt-4 border-t border-white/5">
-          <div className="flex justify-between text-[9px] text-white/30 mb-1">
+          <div className="flex justify-between jersey-20-regular text-xs lg:text-sm text-white/30 mb-1">
             <span>0 POL</span>
             <span className={isAPYReducing ? 'text-orange-400' : 'text-emerald-400'}>
               {isAPYReducing ? 'APY Reducing' : 'Full APY'}
@@ -275,10 +275,10 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
         <div className="px-3 pb-3">
           <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs">🎮</span>
-              <span className="text-purple-300 text-xs">Skill Boost</span>
+              <span className="text-base lg:text-lg">🎮</span>
+              <span className="jersey-20-regular text-purple-300 text-base lg:text-lg">Skill Boost</span>
             </div>
-            <span className="text-purple-400 text-xs font-bold">+{(skillBoostBps / 100).toFixed(1)}%</span>
+            <span className="jersey-20-regular text-purple-400 text-base lg:text-lg font-bold">+{(skillBoostBps / 100).toFixed(1)}%</span>
           </div>
         </div>
       )}

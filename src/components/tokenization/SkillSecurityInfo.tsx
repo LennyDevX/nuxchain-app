@@ -22,10 +22,10 @@ export default function SkillSecurityInfo() {
       <div className="flex items-start gap-3">
         <div className="text-2xl">🔒</div>
         <div className="flex-1">
-          <h3 className="text-amber-300 font-semibold mb-2">Skill System Security</h3>
+          <h3 className="jersey-15-regular text-amber-300 font-semibold text-lg md:text-xl mb-2">Skill System Security</h3>
           
           {/* Expiration Info */}
-          <div className="space-y-2 text-sm text-white/80">
+          <div className="space-y-2 jersey-20-regular text-sm md:text-base text-white/80">
             {/* Feature 1: Expiration */}
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -35,8 +35,8 @@ export default function SkillSecurityInfo() {
             >
               <span className="text-blue-400">⏰</span>
               <div>
-                <span className="font-medium">30-Day Expiration</span>
-                <p className="text-xs text-white/60 mt-0.5">Skills automatically expire after 30 days</p>
+                <span className="jersey-20-regular font-medium">30-Day Expiration</span>
+                <p className="jersey-20-regular text-xs text-white/60 mt-0.5">Skills automatically expire after 30 days</p>
               </div>
             </motion.div>
 
@@ -49,8 +49,8 @@ export default function SkillSecurityInfo() {
             >
               <span className="text-green-400">♻️</span>
               <div>
-                <span className="font-medium">50% Renewal Cost</span>
-                <p className="text-xs text-white/60 mt-0.5">Renew for half the original price after expiry</p>
+                <span className="jersey-20-regular font-medium">50% Renewal Cost</span>
+                <p className="jersey-20-regular text-xs text-white/60 mt-0.5">Renew for half the original price after expiry</p>
               </div>
             </motion.div>
 
@@ -63,8 +63,8 @@ export default function SkillSecurityInfo() {
             >
               <span className="text-purple-400">⚡</span>
               <div>
-                <span className="font-medium">Max 3 Active Skills</span>
-                <p className="text-xs text-white/60 mt-0.5">You can have up to 3 skills active simultaneously</p>
+                <span className="jersey-20-regular font-medium">Max 3 Active Skills</span>
+                <p className="jersey-20-regular text-xs text-white/60 mt-0.5">You can have up to 3 skills active simultaneously</p>
               </div>
             </motion.div>
 
@@ -77,8 +77,8 @@ export default function SkillSecurityInfo() {
             >
               <span className="text-red-400">🚫</span>
               <div>
-                <span className="font-medium">One Skill Type per User</span>
-                <p className="text-xs text-white/60 mt-0.5">Cannot have duplicate skill types active</p>
+                <span className="jersey-20-regular font-medium">One Skill Type per User</span>
+                <p className="jersey-20-regular text-xs text-white/60 mt-0.5">Cannot have duplicate skill types active</p>
               </div>
             </motion.div>
           </div>
@@ -90,8 +90,8 @@ export default function SkillSecurityInfo() {
             transition={{ delay: 0.35 }}
             className="mt-3 pt-3 border-t border-amber-500/20"
           >
-            <p className="text-xs text-amber-300 font-medium mb-2">💡 Why These Limits?</p>
-            <ul className="text-xs text-white/60 space-y-1">
+            <p className="jersey-20-regular text-xs text-amber-300 font-medium mb-2">💡 Why These Limits?</p>
+            <ul className="jersey-20-regular text-xs text-white/60 space-y-1">
               <li>✓ Prevents abuse and exploit exploitation</li>
               <li>✓ Maintains balanced reward system</li>
               <li>✓ Ensures sustainable staking rewards</li>

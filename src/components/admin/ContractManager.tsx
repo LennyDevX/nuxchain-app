@@ -170,45 +170,55 @@ export default function ContractManager() {
   };
 
   return (
-    <div className="card-unified rounded-xl p-6 border border-[rgba(139,92,246,0.2)]">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <svg className="w-5 h-5 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span>Contract Manager</span>
-      </h3>
-
-      {/* Address Input */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          Contract Address
-        </label>
+    <div className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden">
+      {/* Header - Mobile Optimized */}
+      <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-[rgba(255,255,255,0.05)]">
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={contractAddress}
-              onChange={(e) => {
-                setContractAddress(e.target.value);
-                setDetectedContract(null);
-                setError('');
-              }}
-              placeholder="0x..."
-              className="w-full px-4 py-2 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6]"
-            />
-          </div>
-          <button
-            onClick={() => setIsContractModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all hover:scale-105"
-            title="Select a contract from list"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Contracts</span>
-          </button>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">Contract Manager</h3>
+            <p className="text-[10px] text-slate-500 hidden sm:block">Manage deployed contracts</p>
+          </div>
         </div>
+      </div>
+
+      <div className="p-4 sm:p-5 space-y-4">
+
+        {/* Address Input - Mobile Optimized */}
+        <div className="space-y-3">
+          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">
+            Contract Address
+          </label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={contractAddress}
+                onChange={(e) => {
+                  setContractAddress(e.target.value);
+                  setDetectedContract(null);
+                  setError('');
+                }}
+                placeholder="0x..."
+                className="w-full px-3 py-2.5 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6] min-h-[44px]"
+              />
+            </div>
+            <button
+              onClick={() => setIsContractModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all min-h-[44px] touch-manipulation"
+              title="Select a contract from list"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Contracts</span>
+            </button>
+          </div>
 
         <AnimatePresence>
           {success && (
@@ -248,7 +258,7 @@ export default function ContractManager() {
             className="p-4 bg-[#0a0a0a]/40 border border-[rgba(139,92,246,0.25)] rounded-xl"
           >
             {/* ── Contract header ── */}
-            <div className="flex items-start justify-between mb-4 gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h4 className="text-base font-bold text-white">{detectedContract.name}</h4>
@@ -260,13 +270,13 @@ export default function ContractManager() {
                 </div>
                 {/* Full address with copy */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-slate-400 truncate">
+                  <span className="text-[10px] sm:text-xs font-mono text-slate-400 truncate">
                     {detectedContract.address}
                   </span>
                   <button
                     onClick={() => navigator.clipboard.writeText(detectedContract.address)}
                     title="Copy address"
-                    className="flex-shrink-0 text-slate-600 hover:text-slate-300 transition-colors"
+                    className="flex-shrink-0 text-slate-600 hover:text-slate-300 transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -277,7 +287,7 @@ export default function ContractManager() {
                     href={`https://polygonscan.com/address/${detectedContract.address}`}
                     target="_blank" rel="noopener noreferrer"
                     title="View on Polygonscan"
-                    className="flex-shrink-0 text-slate-600 hover:text-[#8b5cf6] transition-colors"
+                    className="flex-shrink-0 text-slate-600 hover:text-[#8b5cf6] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -286,7 +296,7 @@ export default function ContractManager() {
                   </a>
                 </div>
               </div>
-              <span className={`flex-shrink-0 px-2 py-1 text-xs rounded-full border font-medium ${
+              <span className={`flex-shrink-0 px-2 py-1 text-[10px] sm:text-xs rounded-full border font-medium ${
                 detectedContract.type === 'staking'     ? 'bg-[rgba(139,92,246,0.15)] text-[#8b5cf6] border-[rgba(139,92,246,0.3)]' :
                 detectedContract.type === 'marketplace' ? 'bg-[rgba(59,130,246,0.15)] text-[#3b82f6] border-[rgba(59,130,246,0.3)]' :
                 detectedContract.type === 'treasury'    ? 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]' :
@@ -297,14 +307,14 @@ export default function ContractManager() {
               </span>
             </div>
 
-            {/* ── Stats row ── */}
-            <div className="grid grid-cols-3 gap-3 text-xs mb-1">
-              <div className="bg-[#0a0a0a]/40 rounded-lg p-2.5 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-slate-500 mb-0.5">Category</p>
+            {/* ── Stats row - Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 text-xs mb-4">
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)]">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Category</p>
                 <p className="text-white font-medium capitalize">{detectedContract.category}</p>
               </div>
-              <div className="bg-[#0a0a0a]/40 rounded-lg p-2.5 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-slate-500 mb-0.5">Status</p>
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)]">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Status</p>
                 {!isPausable ? (
                   <p className="text-slate-400 font-medium">N/A</p>
                 ) : pausedLoading ? (
@@ -321,8 +331,8 @@ export default function ContractManager() {
                   </p>
                 )}
               </div>
-              <div className="bg-[#0a0a0a]/40 rounded-lg p-2.5 border border-[rgba(255,255,255,0.05)]">
-                <p className="text-slate-500 mb-0.5">Network</p>
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)] sm:col-span-2 lg:col-span-1">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Network</p>
                 <p className="text-white font-medium">Polygon</p>
               </div>
             </div>
@@ -342,6 +352,7 @@ export default function ContractManager() {
         onClose={() => setIsContractModalOpen(false)}
         onContractSelect={handleContractSelect}
       />
+      </div>
     </div>
   );
 }

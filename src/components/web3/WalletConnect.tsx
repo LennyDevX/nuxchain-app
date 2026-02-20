@@ -246,10 +246,10 @@ function WalletConnect() {
         {((isConnected && address) || solanaPublicKey) ? (
           <>
             <div className="flex flex-col items-start translate-y-[1px]">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-400/80 leading-none mb-1 group-hover:text-purple-400 transition-colors">
+              <span className="jersey-15-regular text-[10px] uppercase tracking-[0.2em] text-purple-400/80 leading-none mb-1 group-hover:text-purple-400 transition-colors">
                 {activeTab === 'evm' ? (isConnected ? 'EVM Connected' : 'Connect EVM') : (solanaPublicKey ? 'SOL Connected' : 'Connect SOL')}
               </span>
-              <span className="text-sm font-black text-white tracking-tighter leading-none">
+              <span className="jersey-20-regular text-xl text-white tracking-tighter leading-none">
                 {activeTab === 'evm' 
                   ? (address ? (ensName || `${address.slice(0, 6)}...${address.slice(-4)}`) : 'Tap to connect')
                   : (solanaPublicKey ? `${solanaPublicKey.toBase58().slice(0, 4)}...${solanaPublicKey.toBase58().slice(-4)}` : 'Tap to connect')
@@ -263,7 +263,7 @@ function WalletConnect() {
             }`} />
           </>
         ) : (
-          <span>Connect Wallet</span>
+          <span className="jersey-20-regular text-2xl">Connect Wallet</span>
         )}
       </button>
 
@@ -297,8 +297,8 @@ function WalletConnect() {
             {/* Header Section (Consolidated Switcher) */}
             <div className={`bg-gradient-to-b from-gray-900/40 to-transparent backdrop-blur-3xl border-b border-white/5 ${isMobile ? 'px-6 pt-2 pb-0' : 'p-5 pb-0'}`}>
               <div className={`flex flex-col gap-1 ${isMobile ? 'mb-4 mt-0 ml-0 text-center' : 'mb-6 mt-1 ml-1'}`}>
-                <p className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white tracking-tighter leading-none uppercase italic`}>Multichain Hub</p>
-                <p className="text-[10px] text-purple-400/60 font-black uppercase tracking-[0.3em] mb-1">Select Network to Manage</p>
+                <p className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-3xl'} text-white tracking-tighter leading-none uppercase italic`}>Multichain Hub</p>
+                <p className="jersey-15-regular text-xl text-purple-400/60 uppercase tracking-[0.3em] mb-1">Select Network to Manage</p>
               </div>
 
               <div className="flex gap-1.5 p-1 bg-black/60 rounded-2xl border border-white/5 mb-6 relative group/switcher">
@@ -318,7 +318,7 @@ function WalletConnect() {
                   }`}
                 >
                   <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${activeTab === 'evm' ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-white/5'}`} />
-                  <span className="text-[12px] font-black tracking-[0.2em] uppercase">EVM</span>
+                  <span className="jersey-20-regular text-2xl tracking-[0.2em] uppercase">EVM</span>
                 </button>
                 
                 <button
@@ -331,7 +331,7 @@ function WalletConnect() {
                   }`}
                 >
                   <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${activeTab === 'solana' ? 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]' : 'bg-white/5'}`} />
-                  <span className="text-[12px] font-black tracking-[0.2em] uppercase">Solana</span>
+                  <span className="jersey-20-regular text-2xl tracking-[0.2em] uppercase">Solana</span>
                 </button>
               </div>
             </div>
@@ -351,15 +351,15 @@ function WalletConnect() {
                       )}
 
                       <div className="text-center mb-5">
-                        <p className="text-[11px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2 italic">Total Balance</p>
-                        <p className="text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                        <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-[0.2em] mb-2 italic">Total Balance</p>
+                        <p className="jersey-20-regular text-4xl bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
                           {getEVMBalanceLabel()}
                         </p>
                       </div>
 
                       <div className="bg-black/60 rounded-2xl p-4 border border-white/5 shadow-inner">
                         {ensName && (
-                          <p className="text-sm text-purple-400 font-black mb-1.5 tracking-tight">{ensName}</p>
+                          <p className="jersey-20-regular text-sm text-purple-400 mb-1.5 tracking-tight">{ensName}</p>
                         )}
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-[13px] text-gray-400 font-mono truncate tracking-tight">{address}</p>
@@ -367,7 +367,7 @@ function WalletConnect() {
                             onClick={() => {
                               navigator.clipboard.writeText(address)
                             }}
-                            className="px-3 py-1.5 text-[11px] bg-white/5 hover:bg-white/10 text-white/80 rounded-lg transition-all font-black uppercase tracking-wider border border-white/5"
+                            className="jersey-20-regular px-3 py-1.5 text-[11px] bg-white/5 hover:bg-white/10 text-white/80 rounded-lg transition-all uppercase tracking-wider border border-white/5"
                           >
                             Copy
                           </button>
@@ -379,20 +379,20 @@ function WalletConnect() {
                       <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 shadow-xl">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-1">Active Network</p>
-                            <p className="text-sm font-black text-white tracking-wide">{chain?.name || 'Unknown'}</p>
+                            <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-widest mb-1">Active Network</p>
+                            <p className="jersey-20-regular text-sm text-white tracking-wide">{chain?.name || 'Unknown'}</p>
                           </div>
                           {!isPolygonNetwork && (
                             <button
                               onClick={() => switchChain({ chainId: polygon.id })}
-                              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-[11px] rounded-xl transition-all font-black uppercase tracking-widest shadow-lg shadow-purple-900/40"
+                              className="jersey-20-regular px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-2xl rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-purple-900/40"
                             >
                               Switch
                             </button>
                           )}
                         </div>
                         {!isPolygonNetwork && (
-                          <div className="mt-3 py-2 px-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-orange-400 text-[11px] font-black italic">
+                          <div className="jersey-20-regular mt-3 py-2 px-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-orange-400 text-[11px] italic">
                             ⚠️ Switch to Polygon for full feature access
                           </div>
                         )}
@@ -406,13 +406,13 @@ function WalletConnect() {
                         }`}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-1">Network Traffic</p>
-                            <p className={`text-base font-black tracking-tight ${gasLevel === 'low' ? 'text-green-400' : gasLevel === 'high' ? 'text-red-400' : 'text-yellow-400'
+                            <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-widest mb-1">Network Traffic</p>
+                            <p className={`jersey-20-regular text-base tracking-tight ${gasLevel === 'low' ? 'text-green-400' : gasLevel === 'high' ? 'text-red-400' : 'text-yellow-400'
                               }`}>
                               {formatGasPrice(gasPrice)} Gwei
                             </p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${gasLevel === 'low'
+                          <span className={`jersey-20-regular px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.15em] ${gasLevel === 'low'
                               ? 'bg-green-500/20 text-green-400 shadow-[0_0_12px_rgba(34,197,94,0.2)]'
                               : gasLevel === 'high'
                                 ? 'bg-red-500/20 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
@@ -428,7 +428,7 @@ function WalletConnect() {
                           disconnectEVM()
                           closeDropdownWithAnimation()
                         }}
-                        className="w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 font-black uppercase tracking-[0.3em] text-[11px] border-t border-white/5 py-6 mt-2"
+                        className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.3em] text-2xl border-t border-white/5 py-6 mt-2"
                       >
                         Disconnect EVM Wallet
                       </button>
@@ -438,7 +438,7 @@ function WalletConnect() {
                   <div className="p-5 pb-10">
                     {/* Render EVM Wallet List (Reuse connection logic) */}
                     <div className="flex items-center gap-4 mb-4 px-1">
-                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM Wallet</p>
+                      <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM Wallet</p>
                       <div className="h-px w-full bg-white/5" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -526,22 +526,22 @@ function WalletConnect() {
                       )}
 
                       <div className="text-center mb-5">
-                        <p className="text-[11px] text-gray-500 font-black uppercase tracking-[0.2em] mb-2 italic">Solana Balance</p>
-                        <p className="text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                        <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-[0.2em] mb-2 italic">Solana Balance</p>
+                        <p className="jersey-20-regular text-4xl bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
                           {getSolanaBalanceLabel()}
                         </p>
                       </div>
 
                       <div className="bg-black/60 rounded-2xl p-4 border border-white/5 shadow-inner">
-                        <p className="text-sm text-purple-400 font-black mb-1.5 tracking-tight">{typeof solanaWalletName === 'string' ? solanaWalletName : solanaWalletName?.adapter?.name || 'Solana'}</p>
-                        <p className="text-[11px] text-green-400/60 font-black italic mb-3 tracking-[0.1em] uppercase">Mainnet Beta Reliable</p>
+                        <p className="jersey-20-regular text-sm text-purple-400 mb-1.5 tracking-tight">{typeof solanaWalletName === 'string' ? solanaWalletName : solanaWalletName?.adapter?.name || 'Solana'}</p>
+                        <p className="jersey-20-regular text-[11px] text-green-400/60 italic mb-3 tracking-[0.1em] uppercase">Mainnet Beta Reliable</p>
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-[13px] text-gray-400 font-mono truncate tracking-tight">{solanaPublicKey.toBase58()}</p>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(solanaPublicKey.toBase58())
                             }}
-                            className="px-3 py-1.5 text-[11px] bg-white/5 hover:bg-white/10 text-white/80 rounded-lg transition-all font-black uppercase tracking-wider border border-white/5"
+                            className="jersey-20-regular px-3 py-1.5 text-[11px] bg-white/5 hover:bg-white/10 text-white/80 rounded-lg transition-all uppercase tracking-wider border border-white/5"
                           >
                             Copy
                           </button>
@@ -553,12 +553,12 @@ function WalletConnect() {
                       <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 shadow-xl">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-[11px] text-gray-500 font-black uppercase tracking-widest mb-1">Network</p>
-                            <p className="text-sm font-black text-white tracking-wide">{SOLANA_NETWORKS[solanaNetwork as keyof typeof SOLANA_NETWORKS].label}</p>
+                            <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-widest mb-1">Network</p>
+                            <p className="jersey-20-regular text-sm text-white tracking-wide">{SOLANA_NETWORKS[solanaNetwork as keyof typeof SOLANA_NETWORKS].label}</p>
                           </div>
                         </div>
                         {SOLANA_NETWORKS[solanaNetwork as keyof typeof SOLANA_NETWORKS].isTestnet && (
-                          <div className="mt-3 py-2 px-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-400 text-[11px] font-black italic">
+                          <div className="jersey-20-regular mt-3 py-2 px-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-400 text-[11px] italic">
                             ⚠️ Currently using Solana Devnet (Testnet)
                           </div>
                         )}
@@ -569,7 +569,7 @@ function WalletConnect() {
                           disconnectSolana()
                           closeDropdownWithAnimation()
                         }}
-                        className="w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 font-black uppercase tracking-[0.3em] text-[11px] border-t border-white/5 py-6 mt-4"
+                        className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.3em] text-2xl border-t border-white/5 py-6 mt-4"
                       >
                         Disconnect Solana Wallet
                       </button>
@@ -582,16 +582,16 @@ function WalletConnect() {
                       <div className="mb-6 p-5 rounded-2xl bg-gradient-to-br from-purple-600/30 via-pink-600/10 to-transparent border border-purple-400/50 shadow-2xl animate-pulse-slow text-center">
                         <div className="flex items-center justify-center gap-3 mb-2">
                           <span className="text-xl">✨</span>
-                          <p className="text-sm font-black text-white uppercase tracking-wider italic">Smart Sync</p>
+                          <p className="jersey-15-regular text-xl text-white uppercase tracking-wider italic">Smart Sync</p>
                         </div>
-                        <p className="text-[13px] text-purple-200/90 leading-relaxed font-bold">
+                        <p className="jersey-20-regular text-[13px] text-purple-200/90 leading-relaxed">
                           You're using <span className="text-white">OKX Wallet</span> on Polygon. Press the button below to sync with Solana!
                         </p>
                       </div>
                     )}
 
                     <div className="flex items-center gap-4 mb-4 px-1">
-                      <p className="text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Solana Wallets</p>
+                      <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Solana Wallets</p>
                       <div className="h-px w-full bg-white/5" />
                     </div>
 
@@ -710,8 +710,8 @@ function WalletConnect() {
               {/* Error Display */}
               {connectionError && (
                 <div className="mx-5 mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
-                  <p className="text-[11px] text-red-400 font-black uppercase tracking-wider mb-1">Connection Error</p>
-                  <p className="text-[12px] text-red-300/80 font-medium">
+                  <p className="jersey-15-regular text-xl text-red-400 uppercase tracking-wider mb-1">Connection Error</p>
+                  <p className="jersey-20-regular text-[12px] text-red-300/80">
                     {connectionError}
                   </p>
                 </div>

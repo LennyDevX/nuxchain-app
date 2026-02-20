@@ -237,7 +237,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
         <div className="flex items-center justify-between p-5 pb-0">
           <div className="flex items-center gap-2">
             <span className="text-purple-400 text-xl">📊</span>
-            <h4 className="text-base font-semibold text-white md:text-lg">Rewards Hub</h4>
+            <h4 className="jersey-15-regular text-base lg:text-4xl font-semibold text-white">Rewards Hub</h4>
           </div>
         </div>
 
@@ -284,9 +284,9 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
             >
               {/* Pending Rewards Status */}
               {rewardsProjection && (
-                <div className="flex items-center gap-1.5 bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/20 w-fit">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  <span className="text-emerald-400 text-xs font-medium">
+                <div className="flex items-center gap-2 bg-emerald-500/20 px-4 py-3 rounded-lg border-2 border-emerald-500/40 w-fit">
+                  <span className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></span>
+                  <span className="jersey-20-regular text-emerald-400 text-base lg:text-lg font-bold">
                     {rewardsProjection.pending || '0.00'} POL pending
                   </span>
                 </div>
@@ -295,8 +295,8 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
               {/* Ascending Rewards Chart */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5 md:p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h5 className="text-white/80 text-sm font-medium md:text-base">Rewards Growth</h5>
-                  <span className="text-[10px] text-white/40 bg-white/5 px-2 py-1 rounded md:text-xs">Cumulative</span>
+                  <h5 className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium">Rewards Growth</h5>
+                  <span className="jersey-20-regular text-[10px] lg:text-xs text-white/40 bg-white/5 px-2 py-1 rounded">Cumulative</span>
                 </div>
                 <div className="relative h-[200px] md:h-[280px]">
                   <Line data={chartData} options={chartOptions} />
@@ -316,7 +316,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
             >
               {/* Amount Input */}
               <div>
-                <label className="text-white/80 text-sm font-medium block mb-2 md:text-base">Stake Amount (POL)</label>
+                <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium block mb-2">Stake Amount (POL)</label>
                 <div className="flex items-center gap-2 bg-white/5 rounded-lg p-2 border border-white/10 focus-within:border-indigo-500/50 transition-colors">
                   <input
                     type="number"
@@ -335,30 +335,30 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
                       if (correctedValue > 100000) correctedValue = 100000;
                       setStakingAmount(correctedValue);
                     }}
-                    className="flex-1 bg-transparent text-white text-lg font-bold outline-none md:text-xl"
+                    className="flex-1 bg-transparent jersey-20-regular text-white text-lg lg:text-xl font-bold outline-none"
                     placeholder="1000"
                   />
-                  <span className="text-white/50 text-sm font-medium flex-shrink-0 md:text-base">POL</span>
+                  <span className="jersey-20-regular text-white/50 text-sm lg:text-base font-medium flex-shrink-0">POL</span>
                 </div>
-                <p className="text-white/30 text-xs mt-1 md:text-sm">Min: 10 POL · Max: 100,000 POL (auto-adjusts on blur)</p>
+                <p className="jersey-20-regular text-white/30 text-xs lg:text-sm mt-1">Min: 10 POL · Max: 100,000 POL (auto-adjusts on blur)</p>
               </div>
 
               {/* Period Selector */}
               <div>
-                <label className="text-white/80 text-sm font-medium block mb-2 md:text-base">Lockup Period</label>
+                <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium block mb-2">Lockup Period</label>
                 <div className="grid grid-cols-5 gap-1">
                   {STAKING_PERIODS.map((period, index) => (
                     <button
                       key={period.value}
                       onClick={() => setSelectedPeriod(index)}
-                      className={`py-2 px-1 rounded-lg text-sm font-medium transition-all md:text-base ${
+                      className={`py-2 px-1 rounded-lg jersey-15-regular text-sm lg:text-base font-medium transition-all ${
                         selectedPeriod === index
                           ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40'
                           : 'bg-white/5 text-white/50 hover:bg-white/10'
                       }`}
                     >
-                      <div className="text-xs opacity-70 md:text-sm">{period.roi.annual}</div>
-                      <div>{period.value === '0' ? 'Flex' : `${period.value}d`}</div>
+                      <div className="jersey-20-regular text-xs lg:text-sm opacity-70">{period.roi.annual}</div>
+                      <div className="jersey-15-regular">{period.value === '0' ? 'Flex' : `${period.value}d`}</div>
                     </button>
                   ))}
                 </div>
@@ -368,12 +368,12 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
               <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-white/40 text-sm md:text-base">Effective APY</p>
-                    <p className="text-3xl font-bold text-indigo-400 md:text-4xl">{calculation.apy.toFixed(1)}%</p>
+                    <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Effective APY</p>
+                    <p className="jersey-20-regular text-3xl lg:text-4xl font-bold text-indigo-400">{calculation.apy.toFixed(1)}%</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-white/40 text-sm md:text-base">Period</p>
-                    <p className="text-white font-semibold text-base md:text-lg">
+                    <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Period</p>
+                    <p className="jersey-15-regular text-white font-semibold text-base lg:text-lg">
                       {STAKING_PERIODS[selectedPeriod].value === '0' ? 'Flexible' : `${STAKING_PERIODS[selectedPeriod].value}d`}
                     </p>
                   </div>
@@ -382,25 +382,25 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
                 {/* Reward breakdown */}
                 <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/5">
                   <div className="text-center">
-                    <p className="text-white/40 text-xs md:text-sm">Daily</p>
-                    <p className="text-green-400 font-semibold text-base md:text-lg">{formatAmount(calculation.dailyReward)}</p>
+                    <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">Daily</p>
+                    <p className="jersey-20-regular text-green-400 font-semibold text-base lg:text-lg">{formatAmount(calculation.dailyReward)}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-white/40 text-xs md:text-sm">Monthly</p>
-                    <p className="text-blue-400 font-semibold text-base md:text-lg">{formatAmount(calculation.monthlyReward)}</p>
+                    <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">Monthly</p>
+                    <p className="jersey-20-regular text-blue-400 font-semibold text-base lg:text-lg">{formatAmount(calculation.monthlyReward)}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-white/40 text-xs md:text-sm">Total</p>
-                    <p className="text-purple-400 font-semibold text-base md:text-lg">{formatAmount(calculation.totalReward)}</p>
+                    <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">Total</p>
+                    <p className="jersey-20-regular text-purple-400 font-semibold text-base lg:text-lg">{formatAmount(calculation.totalReward)}</p>
                   </div>
                 </div>
 
                 {/* Final amount */}
                 <div className="mt-3 pt-3 border-t border-white/5">
-                  <p className="text-white/60 text-sm md:text-base">After {STAKING_PERIODS[selectedPeriod].value || '30'} days</p>
-                  <p className="text-white font-bold text-xl md:text-2xl">
+                  <p className="jersey-20-regular text-white/60 text-sm lg:text-base">After {STAKING_PERIODS[selectedPeriod].value || '30'} days</p>
+                  <p className="jersey-20-regular text-white font-bold text-xl lg:text-2xl">
                     {formatAmount(calculation.finalAmount)} POL{' '}
-                    <span className="text-emerald-400 text-sm md:text-base">
+                    <span className="jersey-20-regular text-emerald-400 text-sm lg:text-base">
                       +{formatAmount(calculation.totalReward)} earned
                     </span>
                   </p>
@@ -408,7 +408,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
               </div>
 
               {/* Info */}
-              <p className="text-[10px] text-white/30 text-center">
+              <p className="jersey-20-regular text-[10px] lg:text-xs text-white/30 text-center">
                 Rates based on current pool state · Updates every 60 seconds
               </p>
             </motion.div>

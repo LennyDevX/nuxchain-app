@@ -26,7 +26,7 @@ export const SkillsCTA: React.FC = () => {
         {/* Content */}
         <div className="relative z-10 text-center max-w-2xl mx-auto">
           <motion.h2
-            className="text-4xl md:text-5xl font-black text-white mb-6"
+            className="jersey-15-regular text-4xl md:text-5xl text-white mb-6"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -35,7 +35,7 @@ export const SkillsCTA: React.FC = () => {
           </motion.h2>
 
           <motion.p
-            className="text-xl text-gray-300 mb-8"
+            className="jersey-20-regular text-xl md:text-2xl text-gray-300 mb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -52,14 +52,14 @@ export const SkillsCTA: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(168, 85, 247, 0.5)' }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg transition-all"
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white jersey-20-regular text-lg md:text-xl rounded-lg transition-all"
             >
               Go to Marketplace
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05, borderColor: '#A78BFA' }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-transparent border-2 border-purple-500 text-purple-300 font-bold rounded-lg hover:text-white transition-all"
+              className="px-8 py-4 bg-transparent border-2 border-purple-500 text-purple-300 jersey-20-regular text-lg md:text-xl rounded-lg hover:text-white transition-all"
             >
               Learn More
             </motion.button>

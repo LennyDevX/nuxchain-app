@@ -55,10 +55,10 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
         >
           <div className="flex items-center gap-2 mb-3">
             <span className="text-2xl">{stat.emoji}</span>
-            <p className="text-white/60 text-sm font-medium">{stat.title}</p>
+            <p className="jersey-15-regular text-white/60 text-base font-medium">{stat.title}</p>
           </div>
-          <p className="text-white text-2xl font-bold mb-1">{stat.value}</p>
-          <p className="text-white/40 text-xs">{stat.subtitle}</p>
+          <p className="jersey-20-regular text-white text-2xl lg:text-3xl font-bold mb-1">{stat.value}</p>
+          <p className="jersey-20-regular text-white/40 text-sm">{stat.subtitle}</p>
         </motion.div>
       ))}
     </div>

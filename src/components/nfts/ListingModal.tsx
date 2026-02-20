@@ -132,17 +132,17 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
       aria-describedby="listing-modal-description"
     >
       <div ref={modalRef} className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-8 max-w-md w-full">
-        <h3 id="listing-modal-title" className="text-2xl font-bold text-white mb-6">List NFT for Sale</h3>
+        <h3 id="listing-modal-title" className="jersey-15-regular text-2xl lg:text-3xl font-bold text-white mb-6">List NFT for Sale</h3>
         
         <div id="listing-modal-description" className="mb-6">
-          <label htmlFor="category-select" className="block text-white font-medium mb-2">Category *</label>
+          <label htmlFor="category-select" className="jersey-15-regular block text-white font-medium mb-2 text-base lg:text-lg">Category *</label>
           <select
             id="category-select"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             aria-label="Select NFT category"
             aria-required="true"
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [&>option]:bg-gray-800 [&>option]:text-white"
+            className="jersey-20-regular w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [&>option]:bg-gray-800 [&>option]:text-white text-base lg:text-lg"
             required
           >
             <option value="art" className="bg-gray-800 text-white">Art</option>
@@ -154,7 +154,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
         </div>
         
         <div className="mb-6">
-          <label htmlFor="listing-price-input" className="block text-white font-medium mb-2">Price (POL) *</label>
+          <label htmlFor="listing-price-input" className="jersey-15-regular block text-white font-medium mb-2 text-base lg:text-lg">Price (POL) *</label>
           <input
             id="listing-price-input"
             type="number"
@@ -166,11 +166,11 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
             aria-required="true"
             aria-describedby="price-hint"
             aria-invalid={listingPrice !== '' && parseFloat(listingPrice) < 50}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="jersey-20-regular w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base lg:text-lg"
             placeholder="50"
             required
           />
-          <p id="price-hint" className="text-white/60 text-sm mt-1">
+          <p id="price-hint" className="jersey-20-regular text-white/60 text-sm lg:text-base mt-1">
             💰 Minimum price: 50 POL
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
             disabled={isListPending || isListConfirming}
             aria-label="Cancel listing"
             aria-disabled={isListPending || isListConfirming}
-            className="flex-1 btn-secondary"
+            className="jersey-20-regular flex-1 btn-secondary text-base lg:text-lg"
           >
             Cancel
           </button>
@@ -191,10 +191,10 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
             aria-label={isListPending ? 'Listing NFT in progress' : isListConfirming ? 'Confirming transaction' : 'List NFT for sale'}
             aria-busy={isListPending || isListConfirming}
             aria-disabled={isListPending || isListConfirming || !listingPrice || parseFloat(listingPrice) < 50}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed hover:scale-105 transform"
+            className="jersey-20-regular flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 disabled:cursor-not-allowed hover:scale-105 transform text-base lg:text-lg"
           >
             {isListPending ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="jersey-20-regular flex items-center justify-center gap-2">
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -202,7 +202,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
                 Listing...
               </span>
             ) : isListConfirming ? (
-              <span className="flex items-center justify-center gap-2">
+              <span className="jersey-20-regular flex items-center justify-center gap-2">
                 <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />

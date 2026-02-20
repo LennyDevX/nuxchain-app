@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import useCollaboratorBadgeRewards from '../../hooks/colab/useCollaboratorBadgeRewards';
+import { CollaboratorHelpModal } from './CollaboratorHelpModal';
 
 // Inline icons
 const WalletIcon = ({ className }: { className?: string }) => (
@@ -71,6 +72,7 @@ export default function EnhancedRewardDashboard() {
   } = useCollaboratorBadgeRewards();
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Handle claim with success feedback
   const handleClaim = async () => {
@@ -105,10 +107,10 @@ export default function EnhancedRewardDashboard() {
         <div className="w-20 h-20 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6">
           <WalletIcon className="w-10 h-10 text-purple-400" />
         </div>
-        <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
+        <h3 className="jersey-15-regular text-2xl font-black text-white uppercase tracking-tighter mb-3">
           Connect Your Wallet
         </h3>
-        <p className="text-gray-400 max-w-md">
+        <p className="jersey-20-regular text-gray-400 max-w-md">
           Please connect your wallet to view your rewards, track quest progress, and claim your earnings.
         </p>
       </div>
@@ -120,17 +122,17 @@ export default function EnhancedRewardDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-1">
+          <h2 className="jersey-15-regular text-3xl font-black text-white uppercase tracking-tighter mb-1">
             Reward Dashboard
           </h2>
-          <p className="text-gray-400 text-sm">
+          <p className="jersey-20-regular text-gray-400 text-m">
             Track your earnings, complete quests, and claim rewards
           </p>
         </div>
         <button
           onClick={refreshData}
           disabled={isClaiming}
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+          className="jersey-20-regular px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white text-sm uppercase tracking-wide transition-all disabled:opacity-50"
         >
           Refresh Data
         </button>
@@ -144,13 +146,13 @@ export default function EnhancedRewardDashboard() {
             <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
               <WalletIcon className="w-5 h-5 text-purple-400" />
             </div>
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-wide">Pending</span>
+            <span className="text-gray-400 text-m jersey-15-regular uppercase tracking-wide">Pending</span>
           </div>
           <div className="space-y-1">
-            <div className="text-3xl font-black text-white">
+            <div className="text-3xl jersey-15-regular text-white">
               {parseFloat(pendingRewardsFormatted).toFixed(4)} <span className="text-lg text-gray-500">POL</span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-m jersey-20-regular text-gray-500">
               ~${(parseFloat(pendingRewardsFormatted) * 0.5).toFixed(2)} USD
             </div>
           </div>
@@ -162,13 +164,13 @@ export default function EnhancedRewardDashboard() {
             <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
               <CheckCircleIcon className="w-5 h-5 text-green-400" />
             </div>
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-wide">You'll Receive</span>
+            <span className="text-gray-400 text-m jersey-15-regular uppercase tracking-wide">You'll Receive</span>
           </div>
           <div className="space-y-1">
-            <div className="text-3xl font-black text-white">
+            <div className="text-3xl jersey-15-regular text-white">
               {parseFloat(netRewardFormatted).toFixed(4)} <span className="text-lg text-gray-500">POL</span>
             </div>
-            <div className="text-sm text-green-400">
+            <div className="text-m jersey-20-regular text-green-400">
               After {claimFeePercent.toFixed(2)}% fee
             </div>
           </div>
@@ -180,13 +182,13 @@ export default function EnhancedRewardDashboard() {
             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
               <ActivityIcon className="w-5 h-5 text-blue-400" />
             </div>
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-wide">Your Volume</span>
+            <span className="text-gray-400 text-m jersey-15-regular uppercase tracking-wide">Your Volume</span>
           </div>
           <div className="space-y-1">
-            <div className="text-3xl font-black text-white">
+            <div className="text-3xl jersey-15-regular text-white">
               {userContributionVolume ? formatEther(userContributionVolume).slice(0, 6) : '0'} <span className="text-lg text-gray-500">POL</span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-m jersey-20-regular text-gray-500">
               Lifetime contributions
             </div>
           </div>
@@ -198,13 +200,13 @@ export default function EnhancedRewardDashboard() {
             <div className={`w-10 h-10 rounded-xl ${contractHealth?.isHealthy ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
               <AlertCircleIcon className={`w-5 h-5 ${contractHealth?.isHealthy ? 'text-green-400' : 'text-red-400'}`} />
             </div>
-            <span className="text-gray-400 text-sm font-bold uppercase tracking-wide">Pool Health</span>
+            <span className="text-gray-400 text-m jersey-15-regular uppercase tracking-wide">Pool Health</span>
           </div>
           <div className="space-y-1">
-            <div className={`text-3xl font-black ${contractHealth?.isHealthy ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`text-3xl jersey-15-regular ${contractHealth?.isHealthy ? 'text-green-400' : 'text-red-400'}`}>
               {contractHealth?.isHealthy ? 'Healthy' : 'Low Funds'}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-m jersey-20-regular text-gray-500">
               {contractHealth ? (Number(contractHealth.solvencyRatio) / 100).toFixed(0) : '0'}% solvency
             </div>
           </div>
@@ -225,10 +227,10 @@ export default function EnhancedRewardDashboard() {
                   <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircleIcon className="w-10 h-10 text-green-400" />
                   </div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">
+                  <h3 className="jersey-15-regular text-2xl text-white uppercase tracking-tighter mb-2">
                     Rewards Claimed!
                   </h3>
-                  <p className="text-gray-400 mb-6">
+                  <p className="text-gray-400 jersey-20-regular mb-6">
                     Your rewards have been sent to your wallet.
                   </p>
                   {claimHash && (
@@ -246,36 +248,36 @@ export default function EnhancedRewardDashboard() {
                 <>
                   <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
                     <div>
-                      <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">
+                      <h3 className="jersey-15-regular text-2xl text-white uppercase tracking-tighter mb-2">
                         Available Rewards
                       </h3>
-                      <p className="text-gray-400">
+                      <p className="text-gray-400 jersey-20-regular">
                         Claim your pending rewards to your wallet. A {claimFeePercent.toFixed(2)}% fee applies.
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-4xl font-black text-white">
+                      <div className="text-4xl jersey-15-regular text-white">
                         {parseFloat(pendingRewardsFormatted).toFixed(4)}
                       </div>
-                      <div className="text-gray-500">POL</div>
+                      <div className="text-gray-500 jersey-20-regular">POL</div>
                     </div>
                   </div>
 
                   {/* Fee Breakdown */}
                   <div className="p-4 bg-white/5 rounded-xl mb-6">
-                    <div className="flex items-center justify-between text-sm mb-2">
+                    <div className="flex items-center justify-between text-m mb-2">
                       <span className="text-gray-400">Gross Amount</span>
-                      <span className="text-white font-bold">{parseFloat(pendingRewardsFormatted).toFixed(6)} POL</span>
+                      <span className="text-white jersey-15-regular">{parseFloat(pendingRewardsFormatted).toFixed(6)} POL</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm mb-2">
+                    <div className="flex items-center justify-between text-m mb-2">
                       <span className="text-gray-400">Fee ({claimFeePercent.toFixed(2)}%)</span>
-                      <span className="text-red-400 font-bold">
+                      <span className="text-red-400 jersey-15-regular">
                         -{(parseFloat(pendingRewardsFormatted) * (claimFeePercent / 100)).toFixed(6)} POL
                       </span>
                     </div>
                     <div className="border-t border-white/10 pt-2 flex items-center justify-between">
-                      <span className="text-gray-300 font-bold">Net Amount</span>
-                      <span className="text-green-400 font-black">{parseFloat(netRewardFormatted).toFixed(6)} POL</span>
+                      <span className="text-gray-300 jersey-15-regular">Net Amount</span>
+                      <span className="text-green-400 jersey-15-regular">{parseFloat(netRewardFormatted).toFixed(6)} POL</span>
                     </div>
                   </div>
 
@@ -283,7 +285,7 @@ export default function EnhancedRewardDashboard() {
                   <button
                     onClick={handleClaim}
                     disabled={isClaiming || parseFloat(pendingRewardsFormatted) === 0}
-                    className="w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white font-black text-lg uppercase tracking-[0.15em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
+                    className="jersey-20-regular w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white text-lg uppercase tracking-[0.15em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
                   >
                     {isClaiming ? (
                       <span className="flex items-center justify-center gap-3">
@@ -312,10 +314,10 @@ export default function EnhancedRewardDashboard() {
 
           {/* Active Quests */}
           <div className="space-y-4">
-            <h3 className="font-black text-white uppercase tracking-wide text-lg flex items-center gap-2">
+            <h3 className="jersey-15-regular text-white uppercase tracking-wide text-lg flex items-center gap-2">
               <TrophyIcon className="w-5 h-5 text-yellow-400" />
               Active Quests
-              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-xs">
+              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded text-m jersey-15-regular">
                 {activeQuests.length}
               </span>
             </h3>
@@ -325,37 +327,37 @@ export default function EnhancedRewardDashboard() {
                 <div className="w-16 h-16 bg-gray-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <ClockIcon className="w-8 h-8 text-gray-500" />
                 </div>
-                <p className="text-gray-400">No active quests available at the moment.</p>
-                <p className="text-gray-600 text-sm mt-2">Check back later for new opportunities!</p>
+                <p className="text-gray-400 jersey-20-regular">No active quests available at the moment.</p>
+                <p className="text-gray-600 text-m jersey-20-regular mt-2">Check back later for new opportunities!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeQuests.map((quest, index) => (
                   <div key={index} className="p-5 bg-[#1a1a1a]/50 border border-white/10 rounded-2xl hover:border-purple-500/30 transition-all">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-bold text-white text-lg">{quest.description}</h4>
-                      <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-bold uppercase">
+                      <h4 className="jersey-15-regular text-white text-lg">{quest.description}</h4>
+                      <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-m jersey-15-regular uppercase">
                         Active
                       </span>
                     </div>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-m">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-400">Reward</span>
-                        <span className="text-purple-400 font-bold">{formatEther(quest.rewardAmount)} POL</span>
+                        <span className="text-purple-400 jersey-15-regular">{formatEther(quest.rewardAmount)} POL</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-400">Duration</span>
-                        <span className="text-gray-300">{formatDuration(quest.startTime, quest.endTime)}</span>
+                        <span className="text-gray-300 jersey-20-regular">{formatDuration(quest.startTime, quest.endTime)}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-400">Completions</span>
-                        <span className="text-gray-300">
+                        <span className="text-gray-300 jersey-20-regular">
                           {quest.maxCompletions === 0n ? 'Unlimited' : `${quest.completionCount}/${quest.maxCompletions}`}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">{formatDate(quest.startTime)}</span>
-                        <span className="text-gray-500">→ {formatDate(quest.endTime)}</span>
+                      <div className="flex items-center justify-between text-m">
+                        <span className="text-gray-500 jersey-20-regular">{formatDate(quest.startTime)}</span>
+                        <span className="text-gray-500 jersey-20-regular">→ {formatDate(quest.endTime)}</span>
                       </div>
                     </div>
                   </div>
@@ -369,31 +371,31 @@ export default function EnhancedRewardDashboard() {
         <div className="space-y-6">
           {/* Contract Stats */}
           <div className="p-5 bg-[#1a1a1a]/50 border border-white/10 rounded-2xl">
-            <h4 className="font-black text-white uppercase tracking-wide text-sm mb-4">
+            <h4 className="jersey-15-regular text-white uppercase tracking-wide text-m mb-4">
               Contract Overview
             </h4>
-            <div className="space-y-3 text-sm">
+            <div className="space-y-3 text-m">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Total Paid</span>
-                <span className="text-white font-bold">
+                <span className="text-white jersey-15-regular">
                   {contractStats ? formatEther(contractStats.paid).slice(0, 8) : '0'} POL
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Badge Holders</span>
-                <span className="text-white font-bold">
+                <span className="text-white jersey-15-regular">
                   {contractStats ? contractStats.holders.toString() : '0'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Total Quests</span>
-                <span className="text-white font-bold">
+                <span className="text-white jersey-15-regular">
                   {contractStats ? contractStats.questCount.toString() : '0'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Pool Balance</span>
-                <span className="text-white font-bold">
+                <span className="text-white jersey-15-regular">
                   {contractStats ? formatEther(contractStats.balance).slice(0, 8) : '0'} POL
                 </span>
               </div>
@@ -403,22 +405,22 @@ export default function EnhancedRewardDashboard() {
           {/* Commission Tiers */}
           {commissionTiers.length > 0 && (
             <div className="p-5 bg-[#1a1a1a]/50 border border-white/10 rounded-2xl">
-              <h4 className="font-black text-white uppercase tracking-wide text-sm mb-4">
+              <h4 className="jersey-15-regular text-white uppercase tracking-wide text-m mb-4">
                 Fee Tiers
               </h4>
               <div className="space-y-2">
                 {commissionTiers.map((tier, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
+                  <div key={index} className="flex items-center justify-between text-m">
                     <span className="text-gray-400">
                       {formatEther(tier.threshold)}+ POL
                     </span>
-                    <span className="text-purple-400 font-bold">
+                    <span className="text-purple-400 jersey-15-regular">
                       {(Number(tier.rate) / 100).toFixed(2)}%
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="text-gray-600 text-xs mt-3">
+              <p className="text-gray-600 text-m jersey-20-regular mt-3">
                 Lower fees based on your contribution volume
               </p>
             </div>
@@ -426,23 +428,29 @@ export default function EnhancedRewardDashboard() {
 
           {/* Help Card */}
           <div className="p-5 bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20 rounded-2xl">
-            <h4 className="font-black text-white uppercase tracking-wide text-sm mb-2">
+            <h4 className="jersey-15-regular text-white uppercase tracking-wide text-m mb-2">
               Need Help?
             </h4>
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-gray-400 text-m jersey-20-regular mb-4">
               Learn more about the collaborator program and how rewards work.
             </p>
-            <a
-              href="#"
-              className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 text-sm font-bold transition-colors"
+            <button
+              onClick={() => setShowHelpModal(true)}
+              className="jersey-20-regular inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 text-sm transition-colors"
             >
               View Documentation
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />
               </svg>
-            </a>
+            </button>
           </div>
+
+          {/* Help Modal */}
+          <CollaboratorHelpModal 
+            isOpen={showHelpModal} 
+            onClose={() => setShowHelpModal(false)} 
+          />
         </div>
       </div>
     </div>

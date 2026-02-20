@@ -82,8 +82,8 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h2 className="text-4xl font-bold text-white mb-4">Explore All Skills</h2>
-        <p className="text-gray-400 max-w-2xl mx-auto">
+        <h2 className="jersey-15-regular text-5xl md:text-6xl text-white mb-4">Explore All Skills</h2>
+        <p className="jersey-20-regular text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto">
           Browse through 85 unique skill combinations organized by category and rarity. Click on any rarity to expand and explore all available skills.
         </p>
       </motion.div>
@@ -99,10 +99,10 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
           >
             {/* Category Header */}
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="jersey-15-regular text-3xl md:text-4xl text-white mb-2">
                 {SKILL_CATEGORY_NAMES[category]}
               </h3>
-              <p className="text-gray-400">{SKILL_CATEGORY_DESCRIPTIONS[category]}</p>
+              <p className="jersey-20-regular text-lg md:text-xl text-gray-400">{SKILL_CATEGORY_DESCRIPTIONS[category]}</p>
             </div>
 
             {/* Rarity Sections */}
@@ -133,13 +133,13 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
 
                         {/* Rarity Name */}
                         <div className="text-left">
-                          <h4 className="text-lg font-semibold text-white">
+                          <h4 className="jersey-15-regular text-xl md:text-2xl text-white">
                             {RARITY_NAMES[rarity]}
                           </h4>
                         </div>
 
                         {/* Skill Count Badge */}
-                        <div className="ml-4 px-3 py-1 bg-gray-800/50 rounded-full text-sm text-gray-300">
+                        <div className="ml-4 px-3 py-1 bg-gray-800/50 rounded-full jersey-20-regular text-base md:text-lg text-gray-300">
                           {skillCount} {skillCount === 1 ? 'skill' : 'skills'}
                         </div>
                       </div>
@@ -210,8 +210,8 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h3 className="text-lg font-bold text-white mb-4">📊 Rarity Effects</h3>
-        <p className="text-sm text-gray-400 mb-4">
+        <h3 className="jersey-15-regular text-2xl md:text-3xl text-white mb-4">📊 Rarity Effects</h3>
+        <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-4">
           Rarity multiplies the base effect of each skill. Higher rarity = stronger benefits.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -225,9 +225,9 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: RARITY_COLOR_MAP[rarity] }}
                 />
-                <span className="font-semibold text-white">{RARITY_NAMES[rarity]}</span>
+                <span className="jersey-15-regular text-lg md:text-xl text-white">{RARITY_NAMES[rarity]}</span>
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="jersey-20-regular text-sm md:text-base text-gray-400">
                 {rarity === Rarity.COMMON && '1.0x'}
                 {rarity === Rarity.UNCOMMON && '1.1x'}
                 {rarity === Rarity.RARE && '1.2x'}
@@ -247,10 +247,10 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
         transition={{ duration: 0.6, delay: 0.2 }}
       >
         <div className="flex gap-4">
-          <div className="text-2xl">💡</div>
+          <div className="text-3xl md:text-4xl">💡</div>
           <div>
-            <h4 className="font-bold text-white mb-2">Pro Tips</h4>
-            <ul className="text-sm text-gray-300 space-y-1">
+            <h4 className="jersey-15-regular text-xl md:text-2xl text-white mb-2">Pro Tips</h4>
+            <ul className="jersey-20-regular text-base md:text-lg text-gray-300 space-y-1">
               <li>✨ Combine different skill types to maximize your benefits</li>
               <li>🚀 Higher rarity skills provide stronger effects with multipliers</li>
               <li>⏰ Skills last 30 days and can be renewed before expiration</li>

@@ -24,8 +24,8 @@ const AnnouncementModal: React.FC = () => {
 
     const features = [
         {
-            title: "Airdrop Security",
-            desc: "Advanced security filters",
+            title: "New Colab Page",
+            desc: "Collaboration hub",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -34,8 +34,8 @@ const AnnouncementModal: React.FC = () => {
             color: "bg-blue-500/10 text-blue-400"
         },
         {
-            title: "Optimized",
-            desc: "Airdrop page performance",
+            title: "New Styles",
+            desc: "Improved fonts and styles",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -45,7 +45,7 @@ const AnnouncementModal: React.FC = () => {
         },
         {
             title: "Bug Fixes",
-            desc: "AI Chat logic repairs",
+            desc: "Errors resolved",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -54,8 +54,8 @@ const AnnouncementModal: React.FC = () => {
             color: "bg-emerald-500/10 text-emerald-400"
         },
         {
-            title: "AI Security",
-            desc: "Active thread monitoring",
+            title: "Performance",
+            desc: "Speed improvements",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8zm6 12h8m-4-4v4" />
@@ -64,8 +64,8 @@ const AnnouncementModal: React.FC = () => {
             color: "bg-sky-500/10 text-sky-400"
         },
         {
-            title: "Styles",
-            desc: "Premium UI components",
+            title: "Smart Staking v2.0",
+            desc: "Enhanced staking",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4zm12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-9 7a1 1 0 0 1-1-1v-2l2-2 2 2 3-3 4 4v2a1 1 0 0 1-1 1H7z" />
@@ -74,8 +74,8 @@ const AnnouncementModal: React.FC = () => {
             color: "bg-pink-500/10 text-pink-400"
         },
         {
-            title: "Stable",
-            desc: "DDoS protection active",
+            title: "Ecosystem",
+            desc: "Better integration",
             icon: (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7zm0 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2zM6 8h.01M6 16h.01" />
@@ -127,10 +127,10 @@ const AnnouncementModal: React.FC = () => {
                                     <img src="/favicon1.png" alt="NuxChain" className="w-8 h-8 sm:w-10 sm:h-10" />
                                 </div>
                                 <div className="pt-0.5 sm:pt-1 min-w-0">
-                                    <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2 truncate">
-                                        Wave 3 Update <span className="text-xl sm:text-2xl shrink-0">🚀</span>
+                                    <h2 className="jersey-15-regular text-4xl sm:text-5xl text-white flex items-center gap-2 truncate">
+                                        Wave 4.0 <span className="text-3xl sm:text-4xl shrink-0">🚀</span>
                                     </h2>
-                                    <p className="text-xs sm:text-sm font-medium text-slate-500/80 mt-0.5 tracking-tight">V3.0.0</p>
+                                    <p className="jersey-20-regular text-base sm:text-lg text-slate-500/80 mt-0.5 tracking-tight">V4.0.0</p>
                                 </div>
                             </div>
 
@@ -144,12 +144,12 @@ const AnnouncementModal: React.FC = () => {
                                         transition={{ delay: 0.1 + idx * 0.05 }}
                                         className="group relative flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300 cursor-default"
                                     >
-                                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center shrink-0 ${feature.color} border border-white/5 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
-                                            <div className="scale-[0.85] sm:scale-100">{feature.icon}</div>
+                                        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-lg flex items-center justify-center shrink-0 ${feature.color} border border-white/5 shadow-lg group-hover:scale-105 transition-transform duration-300`}>
+                                            <div className="scale-90 sm:scale-100">{feature.icon}</div>
                                         </div>
                                         <div className="min-w-0 w-full text-center sm:text-left">
-                                            <h3 className="text-white font-bold text-[12px] sm:text-[13px] leading-tight group-hover:text-blue-400 transition-colors truncate">{feature.title}</h3>
-                                            <p className="text-slate-500 font-medium text-[10px] sm:text-[11px] mt-1 leading-tight">{feature.desc}</p>
+                                            <h3 className="jersey-15-regular text-white text-base sm:text-lg leading-tight group-hover:text-blue-400 transition-colors truncate">{feature.title}</h3>
+                                            <p className="jersey-20-regular text-slate-500 text-sm sm:text-base mt-1 leading-tight">{feature.desc}</p>
                                         </div>
                                     </motion.div>
                                 ))}
@@ -161,14 +161,14 @@ const AnnouncementModal: React.FC = () => {
                                     whileHover={{ scale: 1.01, translateY: -1 }}
                                     whileTap={{ scale: 0.99 }}
                                     onClick={handleAirdropAction}
-                                    className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-blue-900/40 to-blue-700/30 border border-blue-500/40 text-blue-100 font-bold text-base sm:text-lg rounded-2xl transition-all hover:from-blue-800/50 hover:to-blue-600/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] shadow-xl"
+                                    className="w-full py-4 sm:py-5 bg-gradient-to-r from-blue-900/40 to-blue-700/30 border border-blue-500/40 text-blue-100 jersey-20-regular text-xl sm:text-2xl rounded-2xl transition-all hover:from-blue-800/50 hover:to-blue-600/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] shadow-xl"
                                 >
                                     Claim Airdrop
                                 </motion.button>
 
                                 <button
                                     onClick={handleClose}
-                                    className="text-slate-500 text-xs sm:text-sm font-semibold hover:text-slate-300 transition-colors"
+                                    className="text-slate-500 jersey-20-regular text-base sm:text-lg font-semibold hover:text-slate-300 transition-colors"
                                 >
                                     Maybe later
                                 </button>

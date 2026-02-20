@@ -114,12 +114,12 @@ const ProfileStaking: React.FC = () => {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className={`font-bold text-gradient ${
-          isMobile ? 'text-2xl' : 'text-3xl'
+        <h1 className={`font-bold jersey-15-regular text-gradient ${
+          isMobile ? 'text-4xl' : 'text-5xl'
         }`}>
           My Staking
         </h1>
-        <p className={`text-gray-400 mt-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Gestiona tus posiciones de staking</p>
+        <p className={`text-gray-400 mt-2 jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'}`}>Gestiona tus posiciones de staking</p>
       </header>
 
       {isConnected ? (

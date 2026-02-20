@@ -94,6 +94,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui'],
         mono: ['Fira Code', 'monospace'],
+        jersey: ['Jersey 10', 'sans-serif'],
       },
       keyframes: {
         'fade-in': {

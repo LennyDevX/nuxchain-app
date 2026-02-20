@@ -1,5 +1,7 @@
 import { useAccount } from 'wagmi'
 import { memo, lazy, Suspense, useEffect } from 'react'
+import { isMaintenanceMode } from '../config/maintenance'
+import StakingMaintenance from './StakingMaintenance'
 import GlobalBackground from '../ui/gradientBackground'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
@@ -27,6 +29,7 @@ const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingPoolChart = lazy(() => import('../components/staking/StakingPoolChart'))
 const TreasuryPoolChart = lazy(() => import('../components/staking/TreasuryPoolChart'))
+const PoolCarousel = lazy(() => import('../components/staking/PoolCarousel'))
 const TabNavigation = lazy(() => import('../components/staking/TabNavigation'))
 const RewardsHub = lazy(() => import('../components/staking/RewardsHub'))
 const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYIndicator'))
@@ -41,6 +44,11 @@ const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDR
 
 const Staking = memo(() => {
   const { isConnected } = useAccount()
+
+  // Check maintenance mode
+  if (isMaintenanceMode('staking')) {
+    return <StakingMaintenance />;
+  }
 
   if (!isConnected) {
     return <ConnectWallet pageName="Staking" />;
@@ -98,10 +106,10 @@ const StakingDashboard = memo(() => {
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
           <header className="mb-8 text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold text-gradient mb-2">
+            <h1 className="jersey-15-regular text-4xl lg:text-5xl font-bold text-gradient mb-2">
               Smart Staking
             </h1>
-            <p className="text-white/60 text-sm lg:text-base">
+            <p className="jersey-20-regular text-white/60 text-base lg:text-lg">
               Earn automatic rewards by staking your POL tokens
             </p>
           </header>
@@ -132,8 +140,27 @@ const StakingDashboard = memo(() => {
                   icon: '🏠',
                   content: (
                     <div className="space-y-6 py-6">
-                      {/* ═══════ CHARTS SECTION - 3 columns grid ═══════ */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* ═══════ STAKING FORM - AHORA ARRIBA ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <StakingForm
+                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                          pendingRewards={user.pendingRewards}
+                          isPaused={pool.isPaused}
+                          userStaked={user.totalDeposit}
+                        />
+                      </Suspense>
+
+                      {/* ═══════ CHARTS SECTION - Mobile: Carousel, Desktop: 3 columns grid ═══════ */}
+                      
+                      {/* Mobile Carousel - Only visible on mobile */}
+                      <div className="lg:hidden">
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <PoolCarousel />
+                        </Suspense>
+                      </div>
+                      
+                      {/* Desktop Grid - Only visible on desktop (lg+) */}
+                      <div className="hidden lg:grid lg:grid-cols-3 gap-6">
                         {/* Staking Pool Chart */}
                         <Suspense fallback={<LoadingSpinner />}>
                           <StakingPoolChart />
@@ -153,16 +180,6 @@ const StakingDashboard = memo(() => {
                           <TreasuryPoolChart />
                         </Suspense>
                       </div>
-
-                      {/* ═══════ STAKING FORM ═══════ */}
-                      <Suspense fallback={<LoadingSpinner />}>
-                        <StakingForm
-                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-                          pendingRewards={user.pendingRewards}
-                          isPaused={pool.isPaused}
-                          userStaked={user.totalDeposit}
-                        />
-                      </Suspense>
 
                       {/* ═══════ REWARDS HUB ═══════ */}
                       <Suspense fallback={<LoadingSpinner />}>

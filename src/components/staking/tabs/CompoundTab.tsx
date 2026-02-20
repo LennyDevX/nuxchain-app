@@ -28,17 +28,17 @@ const CompoundTab = memo(({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <p className="text-white/80 mb-4">
+        <p className="jersey-20-regular text-white/80 text-sm lg:text-base mb-4">
           Automatically reinvest your rewards to maximize earnings
         </p>
-        <p className="text-2xl font-bold text-white mb-2">
+        <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-white mb-2">
           {pendingRewards ? `${parseFloat(formatEther(pendingRewards)).toFixed(6)} POL` : '0 POL'}
         </p>
-        <p className="text-sm text-white/60">
+        <p className="jersey-20-regular text-sm lg:text-base text-white/60">
           Available to compound
         </p>
         {userStaked && userStaked > 0n && (
-          <p className="text-sm text-emerald-400 mt-2">
+          <p className="jersey-20-regular text-sm lg:text-base text-emerald-400 mt-2">
             New total after compound: {pendingRewards ? `${parseFloat(formatEther(userStaked + pendingRewards)).toFixed(6)} POL` : '0 POL'}
           </p>
         )}
@@ -46,7 +46,7 @@ const CompoundTab = memo(({
 
       {/* Period Selector Grid for Compound */}
       <div className="space-y-3">
-        <label className="text-white/80 text-sm font-medium">Lockup Period for Compounded Rewards</label>
+        <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium">Lockup Period for Compounded Rewards</label>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {STAKING_PERIODS.map((period) => (
             <button
@@ -62,12 +62,12 @@ const CompoundTab = memo(({
               `}
             >
               <div className="text-center">
-                <p className={`text-sm font-bold mb-1 ${
+                <p className={`jersey-15-regular text-sm lg:text-base font-bold mb-1 ${
                   compoundLockupDuration === period.value ? 'text-emerald-400' : 'text-white'
                 }`}>
                   {period.label}
                 </p>
-                <p className="text-xs text-white/60">{period.roi.annual}</p>
+                <p className="jersey-20-regular text-xs lg:text-sm text-white/60">{period.roi.annual}</p>
               </div>
               {compoundLockupDuration === period.value && (
                 <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
@@ -80,7 +80,7 @@ const CompoundTab = memo(({
       <button
         onClick={onCompound}
         disabled={isPending || isConfirming || !pendingRewards || pendingRewards === 0n}
-        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg jersey-20-regular text-lg lg:text-xl"
       >
         {isPending || isConfirming ? 'Processing...' : 'Compound Now'}
       </button>

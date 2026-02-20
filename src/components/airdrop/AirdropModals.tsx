@@ -35,37 +35,37 @@ function AirdropModals({ showSuccess, setShowSuccess, tokensPerUser }: AirdropMo
             </div>
           </div>
 
-          <h2 className="text-4xl font-black text-white mb-4 tracking-tighter uppercase leading-none">
+          <h2 className="jersey-15-regular text-3xl sm:text-5xl md:text-6xl font-black text-white mb-4 tracking-tighter uppercase leading-tight">
             Welcome to <br/>
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">The Universe</span>
           </h2>
           
-          <p className="text-gray-400 text-lg mb-8 font-medium">
+          <p className="jersey-15-regular text-sm sm:text-xl md:text-2xl text-gray-300 mb-8 font-medium">
             Your presence in the Nuxchain ecosystem has been verified and registered.
           </p>
 
-          <div className="relative group p-6 rounded-3xl bg-white/5 border border-white/10 mb-8 transition-transform duration-500 hover:scale-[1.02]">
+          <div className="relative group p-4 sm:p-6 md:p-8 rounded-3xl bg-white/5 border border-white/10 mb-8 transition-transform duration-500 hover:scale-[1.02]">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Allocation Secured</p>
+            <p className="jersey-15-regular text-xs sm:text-sm md:text-base font-bold uppercase tracking-[0.2em] mb-3 text-gray-400">Allocation Secured</p>
             <div className="flex flex-col items-center">
-              <span className="text-5xl font-black text-white tracking-tighter">
+              <span className="jersey-20-regular text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter">
                 {tokensPerUser.toLocaleString()}
               </span>
-              <span className="text-purple-400 font-black text-xl tracking-widest mt-1">$NUX</span>
+              <span className="jersey-20-regular text-xl sm:text-3xl md:text-4xl text-purple-400 font-black tracking-widest mt-2">$NUX</span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <button
               onClick={() => setShowSuccess(false)}
-              className="w-full py-4 sm:py-5 bg-white text-black rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all duration-300 hover:bg-gray-200 active:scale-95 shadow-[0_20px_40px_-15px_rgba(255,255,255,0.2)]"
+              className="jersey-20-regular w-full py-3 sm:py-4 md:py-5 bg-white text-black rounded-xl sm:rounded-2xl font-black text-sm sm:text-base md:text-lg uppercase tracking-widest transition-all duration-300 hover:bg-gray-200 active:scale-95 shadow-[0_20px_40px_-15px_rgba(255,255,255,0.2)]"
             >
               Close
             </button>
 
             <button
               onClick={() => navigate('/staking')}
-              className="w-full py-4 sm:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl sm:rounded-2xl font-black text-base sm:text-lg uppercase tracking-widest transition-all duration-300 hover:from-purple-500 hover:to-pink-500 active:scale-95 shadow-[0_20px_40px_-15px_rgba(147,51,234,0.3)]"
+              className="jersey-20-regular w-full py-3 sm:py-4 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl sm:rounded-2xl font-black text-sm sm:text-base md:text-lg uppercase tracking-widest transition-all duration-300 hover:from-purple-500 hover:to-pink-500 active:scale-95 shadow-[0_20px_40px_-15px_rgba(147,51,234,0.3)]"
             >
               Staking
             </button>

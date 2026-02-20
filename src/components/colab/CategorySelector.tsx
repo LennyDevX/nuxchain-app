@@ -115,7 +115,7 @@ interface CategorySelectorProps {
   onContinue?: () => void;
 }
 
-export default function CategorySelector({ onSelectRole, selectedRole, onContinue }: CategorySelectorProps) {
+export default function CategorySelector({ onSelectRole, selectedRole }: CategorySelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { availability, availableCount, mintedCount } = useAvatarAvailability();
 
@@ -131,10 +131,10 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
     <div className="space-y-8">
       {/* Header with Stats */}
       <div className="text-center space-y-3">
-        <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
+        <h2 className="jersey-15-regular text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
           Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Avatar</span>
         </h2>
-        <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+        <p className="jersey-20-regular text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
           Select from 12 exclusive collaborator slots. Each avatar grants access to specific quest types.
           Complete quests to earn POL rewards, claimable with tiered fees (2% → 1% based on volume).
         </p>
@@ -173,13 +173,13 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
               {category.icon}
             </div>
             
-            <h3 className={`font-black text-lg mb-2 uppercase tracking-wide transition-colors ${
+            <h3 className={`jersey-15-regular font-black text-lg mb-2 uppercase tracking-wide transition-colors ${
               selectedCategory === category.id ? 'text-white' : 'text-gray-300 group-hover:text-white'
             }`}>
               {category.name}
             </h3>
             
-            <p className={`text-sm leading-relaxed transition-colors ${
+            <p className={`jersey-20-regular text-sm md:text-base leading-relaxed transition-colors ${
               selectedCategory === category.id ? 'text-white/80' : 'text-gray-500 group-hover:text-gray-400'
             }`}>
               {category.description}
@@ -209,8 +209,8 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
               {selectedCategoryData.icon}
             </div>
             <div>
-              <h3 className="font-black text-xl uppercase tracking-wide">{selectedCategoryData.name} Avatars</h3>
-              <p className="text-gray-400 text-sm">Select an available avatar slot</p>
+              <h3 className="jersey-20-regular inline-block text-lg md:text-xl uppercase tracking-wide">{selectedCategoryData.name} Avatars</h3>
+              <p className="jersey-20-regular text-gray-400 text-sm">Select an available avatar slot</p>
             </div>
           </div>
 
@@ -234,23 +234,23 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
                   }`}
                 >
                   {isMinted && (
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-gray-700 rounded-lg flex items-center gap-1">
-                      <LockIcon className="w-3 h-3 text-gray-400" />
-                      <span className="text-gray-400 text-[10px] font-bold uppercase">Minted</span>
-                    </div>
+                    <span className="jersey-20-regular inline-flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-full text-gray-500 text-sm uppercase">
+                      <LockIcon className="w-3 h-3" />
+                      Unavailable
+                    </span>
                   )}
 
                   {!isMinted && selectedRole?.id === role.id && (
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center gap-1">
-                      <CheckIcon className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400 text-[10px] font-bold uppercase">Selected</span>
-                    </div>
+                    <span className="jersey-20-regular inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-green-400 text-sm uppercase">
+                      <CheckIcon className="w-3 h-3" />
+                      Selected
+                    </span>
                   )}
 
                   <div className="flex items-start gap-4 mb-4">
                     {/* Circular Avatar */}
                     <div 
-                      className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2"
+                      className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden flex-shrink-0 border-2"
                       style={{ 
                         borderColor: isMinted ? '#374151' : rarityColor,
                         boxShadow: !isMinted ? `0 0 15px ${rarityColor}40` : 'none'
@@ -264,7 +264,7 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Slot #{role.id}</span>
-                      <h4 className="font-black text-white uppercase tracking-wide text-sm mb-1 truncate">
+                      <h4 className="jersey-15-regular font-black text-white uppercase tracking-wide text-sm mb-1 truncate">
                         {role.name}
                       </h4>
                       <div className="flex flex-wrap gap-1">
@@ -362,26 +362,26 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
                       {selectedRole.rarityName}
                     </span>
                   </div>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">
+                  <h3 className="jersey-15-regular text-2xl text-white uppercase tracking-tighter mb-2">
                     {selectedRole.name}
                   </h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <p className="jersey-20-regular text-gray-400 leading-relaxed">
                     {selectedRole.description}
                   </p>
                 </div>
                 
                 {/* Quest Access Info */}
                 <div className="p-3 bg-white/5 rounded-xl">
-                  <span className="text-gray-400 text-xs font-bold uppercase">Quest Access</span>
-                  <p className="text-purple-400 text-sm font-medium">{selectedRole.questAccess}</p>
+                  <span className="jersey-15-regular text-gray-400 text-xs uppercase">Quest Access</span>
+                  <p className="jersey-20-regular text-purple-400 text-sm">{selectedRole.questAccess}</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-bold text-white text-sm uppercase tracking-wide mb-2">Requirements</h4>
+                    <h4 className="jersey-15-regular text-white text-sm uppercase tracking-wide mb-2">Requirements</h4>
                     <ul className="space-y-1">
                       {selectedRole.requirements.map((req, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-gray-400 text-sm">
+                        <li key={idx} className="jersey-20-regular flex items-center gap-2 text-gray-400 text-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
                           {req}
                         </li>
@@ -389,10 +389,10 @@ export default function CategorySelector({ onSelectRole, selectedRole, onContinu
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-bold text-white text-sm uppercase tracking-wide mb-2">Benefits</h4>
+                    <h4 className="jersey-15-regular text-white text-sm uppercase tracking-wide mb-2">Benefits</h4>
                     <ul className="space-y-1">
                       {selectedRole.benefits.map((benefit, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-gray-400 text-sm">
+                        <li key={idx} className="jersey-20-regular flex items-center gap-2 text-gray-400 text-sm">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                           {benefit}
                         </li>

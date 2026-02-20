@@ -12,8 +12,7 @@ import {
   BarChart, Bar,
   PieChart, Pie, Cell,
   ResponsiveContainer,
-  XAxis, YAxis, Tooltip,
-  CartesianGrid,
+  XAxis, Tooltip,
 } from 'recharts';
 import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 import TreasuryManagerABI from '../../abi/Treasury/TreasuryManager.json';
@@ -58,13 +57,13 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: { co
   );
 }
 
-// Stat card
+// Stat card - Mobile optimized
 function StatCard({ label, value, sub, accent = C.purple }: { label: string; value: string; sub?: string; accent?: string }) {
   return (
-    <div className="bg-[#0a0a0a]/50 rounded-xl p-4 border border-[rgba(255,255,255,0.05)]">
-      <p className="text-xs text-slate-500 uppercase tracking-wider mb-2 font-semibold">{label}</p>
-      <p className="text-xl font-bold" style={{ color: accent }}>{value}</p>
-      {sub && <p className="text-xs text-slate-600 mt-1">{sub}</p>}
+    <div className="bg-[#0a0a0a]/50 rounded-xl p-3 sm:p-4 border border-[rgba(255,255,255,0.05)]">
+      <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider mb-1 sm:mb-2 font-semibold">{label}</p>
+      <p className="text-base sm:text-xl font-bold" style={{ color: accent }}>{value}</p>
+      {sub && <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5 sm:mt-1">{sub}</p>}
     </div>
   );
 }
@@ -199,17 +198,17 @@ export default function AdminContractStats() {
       transition={{ duration: 0.4 }}
     >
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(139,92,246,0.15)] flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-[rgba(255,255,255,0.05)]">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
           <div>
             <h3 className="text-sm font-bold text-white">Contract Statistics</h3>
-            <p className="text-[10px] text-slate-500">Real-time protocol metrics</p>
+            <p className="text-[10px] text-slate-500 hidden sm:block">Real-time protocol metrics</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -219,11 +218,11 @@ export default function AdminContractStats() {
               : 'text-[#10b981] border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)]'
           }`}>
             <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? 'bg-red-400' : 'bg-[#10b981]'} animate-pulse`} />
-            {isPaused ? 'Paused' : 'Active'}
+            <span className="hidden sm:inline">{isPaused ? 'Paused' : 'Active'}</span>
           </span>
           <button
             onClick={() => refetch()}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all min-w-[36px] min-h-[36px] flex items-center justify-center"
             title="Refresh"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,43 +233,44 @@ export default function AdminContractStats() {
         </div>
       </div>
 
-      <div className="p-5 space-y-6">
+      <div className="p-4 sm:p-5 space-y-5">
 
         {/* ════════════════════════════════════════
-            SECTION 1 — TOTAL POOL BALANCE + TREND
+            SECTION 1 — STAKING POOL (Mobile Optimized)
         ════════════════════════════════════════ */}
         <Section title="Staking Pool">
-          {/* KPI row */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* KPI row - Mobile: 2 cols */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <StatCard
-              label="Total Pool Balance"
+              label="Pool Balance"
               value={`${fmt(poolBalance)} POL`}
-              sub="Total value locked"
+              sub="TVL"
               accent={C.purple}
             />
             <StatCard
-              label="Unique Stakers"
+              label="Stakers"
               value={uniqueUsers?.toString() ?? '0'}
               sub="Active users"
               accent={C.blue}
             />
           </div>
 
-          {/* Area chart — pool balance trend */}
+          {/* Area chart — pool balance trend (simplified for mobile) */}
           {poolChartData.length > 0 && (
             <div className="bg-[#0a0a0a]/40 rounded-xl p-3 border border-[rgba(255,255,255,0.04)]">
-              <p className="text-[10px] text-slate-500 mb-2">Pool Balance Trend (7d estimate)</p>
-              <ResponsiveContainer width="100%" height={110}>
-                <AreaChart data={poolChartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+              <p className="text-[10px] text-slate-500 mb-2 flex items-center justify-between">
+                <span>7d Trend</span>
+                <span className="text-[#8b5cf6] font-medium">{fmt(poolBalance)} POL</span>
+              </p>
+              <ResponsiveContainer width="100%" height={100}>
+                <AreaChart data={poolChartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="poolGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%"  stopColor={C.purple} stopOpacity={0.3} />
                       <stop offset="95%" stopColor={C.purple} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                  <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} width={32} />
+                  <XAxis dataKey="day" tick={{ fill: '#64748b', fontSize: 8 }} axisLine={false} tickLine={false} interval={2} />
                   <Tooltip content={<ChartTip />} />
                   <Area
                     type="monotone"
@@ -280,72 +280,72 @@ export default function AdminContractStats() {
                     strokeWidth={2}
                     fill="url(#poolGrad)"
                     dot={false}
-                    activeDot={{ r: 4, fill: C.purple, stroke: '#0B0F19', strokeWidth: 2 }}
+                    activeDot={{ r: 3, fill: C.purple, stroke: '#0B0F19', strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
 
-          {/* Contract meta */}
-          <div className="flex items-center justify-between text-[10px] text-slate-600 px-1">
-            <span className="font-mono">{ownerAddress?.slice(0, 10)}...{ownerAddress?.slice(-6)}</span>
+          {/* Contract meta - Mobile optimized */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] text-slate-600">
+            <span className="font-mono text-[10px]">{ownerAddress?.slice(0, 8)}...{ownerAddress?.slice(-4)}</span>
             <div className="flex gap-1.5">
-              <span className="px-1.5 py-0.5 bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] rounded-full border border-[rgba(139,92,246,0.2)]">Owner</span>
+              <span className="px-1.5 py-0.5 bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] rounded-full border border-[rgba(139,92,246,0.2)] text-[10px]">Owner</span>
               <a
                 href={`https://polygonscan.com/address/${STAKING_CONTRACT}`}
                 target="_blank" rel="noopener noreferrer"
-                className="px-1.5 py-0.5 bg-[rgba(59,130,246,0.1)] text-[#3b82f6] rounded-full border border-[rgba(59,130,246,0.2)] hover:bg-[rgba(59,130,246,0.2)] transition-all"
+                className="px-1.5 py-0.5 bg-[rgba(59,130,246,0.1)] text-[#3b82f6] rounded-full border border-[rgba(59,130,246,0.2)] hover:bg-[rgba(59,130,246,0.2)] transition-all text-[10px] flex items-center gap-0.5"
               >
-                Polygonscan ↗
+                Explorer ↗
               </a>
             </div>
           </div>
         </Section>
 
         {/* ═══════════════════════════════════
-            SECTION 2 — TREASURY HEALTH
+            SECTION 2 — TREASURY HEALTH (Mobile Optimized)
         ═══════════════════════════════════ */}
         <Section title="Treasury Health">
-          {/* Status badges */}
-          <div className="flex gap-2 flex-wrap">
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+          {/* Status badges - Horizontal scroll on mobile */}
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
               emergencyMode
                 ? 'text-red-400 border-red-500/30 bg-red-500/10'
                 : 'text-[#10b981] border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)]'
             }`}>
-              {emergencyMode ? '⚠ Emergency Mode' : '✓ Normal Operation'}
+              {emergencyMode ? '⚠ Emergency' : '✓ Normal'}
             </span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+            <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
               distReady
                 ? 'text-[#10b981] border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)]'
                 : 'text-amber-400 border-amber-500/30 bg-amber-500/10'
             }`}>
-              Next dist: {distReady ? 'Ready' : nextDistLabel}
+              {distReady ? 'Ready' : nextDistLabel}
             </span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+            <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
               isTreasuryCorrect
                 ? 'text-[#10b981] border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)]'
                 : 'text-red-400 border-red-500/30 bg-red-500/10'
             }`}>
-              {isTreasuryCorrect ? '✓ Treasury OK' : '⚠ Treasury Mismatch'}
+              {isTreasuryCorrect ? '✓ Treasury OK' : '⚠ Mismatch'}
             </span>
           </div>
 
-          {/* KPI row - 4 cards */}
-          <div className="grid grid-cols-4 gap-3">
-            <StatCard label="Total Received"   value={`${fmt(totalReceived)} POL`}  accent={C.green}  />
-            <StatCard label="Distributed"      value={`${fmt(totalDist)} POL`}      accent={C.blue}   />
-            <StatCard label="Available"        value={`${fmt(availableBal)} POL`}   accent={C.cyan}   />
+          {/* KPI Grid - 2x2 en mobile y desktop */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <StatCard label="Received" value={`${fmt(totalReceived)} POL`} sub="Total in" accent={C.green} />
+            <StatCard label="Distributed" value={`${fmt(totalDist)} POL`} sub="Total out" accent={C.blue} />
+            <StatCard label="Available" value={`${fmt(availableBal)} POL`} sub="Liquid" accent={C.cyan} />
             {allocPie.length > 0 && (
-              <div className="bg-[#0a0a0a]/50 rounded-xl p-4 border border-[rgba(255,255,255,0.05)] flex flex-col items-center justify-center">
-                <ResponsiveContainer width="100%" height={80}>
+              <div className="bg-[#0a0a0a]/50 rounded-xl p-3 border border-[rgba(255,255,255,0.05)] flex flex-col items-center justify-center">
+                <ResponsiveContainer width="100%" height={70}>
                   <PieChart>
                     <Pie
                       data={allocPie}
                       cx="50%" cy="50%"
-                      innerRadius={14}
-                      outerRadius={26}
+                      innerRadius={15}
+                      outerRadius={28}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -356,22 +356,38 @@ export default function AdminContractStats() {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <p className="text-xs text-slate-500 mt-1">Allocations</p>
+                <p className="text-[10px] text-slate-500 mt-1">Allocations</p>
               </div>
             )}
           </div>
 
+          {/* Allocation Breakdown - AHORA ANTES de Funds Flow */}
+          {allocPie.length > 0 && (
+            <div className="bg-[#0a0a0a]/40 rounded-xl p-3 border border-[rgba(255,255,255,0.04)]">
+              <p className="text-[10px] sm:text-xs text-slate-500 mb-2 font-semibold">Allocation Breakdown</p>
+              <div className="grid grid-cols-2 gap-2">
+                {allocPie.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between bg-[#0a0a0a]/40 p-2 rounded-lg border border-[rgba(255,255,255,0.02)] min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: d.color }} />
+                      <span className="text-[10px] text-slate-300 font-medium truncate">{d.name}</span>
+                    </div>
+                    <span className="text-[10px] font-bold flex-shrink-0 ml-1" style={{ color: d.color }}>{d.value}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Treasury flow bar chart */}
-          <div className="bg-[#0a0a0a]/40 rounded-xl p-4 border border-[rgba(255,255,255,0.04)]">
-            <p className="text-xs text-slate-500 mb-3 font-semibold">Funds Flow (POL)</p>
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={flowData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barSize={18}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 9 }} axisLine={false} tickLine={false} width={32} />
+          <div className="bg-[#0a0a0a]/40 rounded-xl p-3 border border-[rgba(255,255,255,0.04)]">
+            <p className="text-[10px] sm:text-xs text-slate-500 mb-2 font-semibold">Funds Flow (POL)</p>
+            <ResponsiveContainer width="100%" height={100}>
+              <BarChart data={flowData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }} barSize={14}>
+                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 8 }} axisLine={false} tickLine={false} interval={0} />
                 <Tooltip content={<ChartTip />} />
                 {flowData.map((d, i) => (
-                  <Bar key={i} dataKey="value" name={d.label} fill={d.color} radius={[4, 4, 0, 0]}>
+                  <Bar key={i} dataKey="value" name={d.label} fill={d.color} radius={[3, 3, 0, 0]}>
                     {flowData.map((_fd, fi) => (
                       <Cell key={fi} fill={flowData[fi].color} fillOpacity={0.8} />
                     ))}
@@ -381,58 +397,100 @@ export default function AdminContractStats() {
             </ResponsiveContainer>
           </div>
 
-          {/* Allocation legend below cards */}
-          {allocPie.length > 0 && (
-            <div className="bg-[#0a0a0a]/40 rounded-xl p-4 border border-[rgba(255,255,255,0.04)]">
-              <p className="text-xs text-slate-500 mb-3 font-semibold">Revenue Allocation Breakdown</p>
-              <div className="grid grid-cols-2 gap-3">
-                {allocPie.map((d, i) => (
-                  <div key={i} className="flex items-center justify-between bg-[#0a0a0a]/40 p-2.5 rounded-lg border border-[rgba(255,255,255,0.02)]">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                      <span className="text-xs text-slate-300 font-medium">{d.name}</span>
-                    </div>
-                    <span className="text-sm font-bold" style={{ color: d.color }}>{d.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Reserve fund */}
-          <div className="bg-[#0a0a0a]/40 rounded-xl p-4 border border-[rgba(255,255,255,0.04)]">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-slate-500 font-semibold">Reserve Fund</p>
-              <span className="text-xs text-amber-400 font-bold">{fmtPct(reservePct)}% allocation</span>
-            </div>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-sm font-bold text-amber-400">{fmt(reserveBal)} POL</p>
-                <p className="text-xs text-slate-600 mt-0.5">Balance</p>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-[#10b981]">{fmt(reserveAccum)} POL</p>
-                <p className="text-xs text-slate-600 mt-0.5">Accumulated</p>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-400">{fmt(reserveWith)} POL</p>
-                <p className="text-xs text-slate-600 mt-0.5">Withdrawn</p>
-              </div>
-            </div>
-            {/* Reserve bar */}
-            {reserveAccum && reserveAccum > 0n && (
-              <div className="mt-3">
-                <div className="h-2 bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-amber-400 transition-all"
-                    style={{ width: `${Math.min(100, (Number(reserveBal ?? 0n) / Number(reserveAccum)) * 100).toFixed(1)}%` }}
-                  />
+          {/* Reserve fund - Optimizado para mobile sin overflow */}
+          <div className="card-unified rounded-xl p-4 sm:p-5 border border-[rgba(245,158,11,0.2)] bg-gradient-to-br from-[rgba(245,158,11,0.05)] to-[rgba(245,158,11,0.02)]">
+            {/* Header compacto */}
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.25)] flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                 </div>
-                <p className="text-xs text-slate-600 mt-1">
-                  {((Number(reserveBal ?? 0n) / Number(reserveAccum)) * 100).toFixed(1)}% of accumulated retained
-                </p>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Reserve Fund</p>
+                  <p className="text-[10px] text-slate-500 truncate">Emergency backup</p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 flex-shrink-0">
+                {fmtPct(reservePct)}%
+              </span>
+            </div>
+
+            {/* Métricas - 3 cols compacto, texto responsive */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+              {/* Balance */}
+              <div className="relative p-2 sm:p-3.5 rounded-lg sm:rounded-xl bg-[#0a0a0a]/60 border border-amber-500/20 min-w-0">
+                <div className="absolute top-1 right-1">
+                  <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
+                </div>
+                <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mb-0.5 truncate">Balance</p>
+                <p className="text-sm sm:text-lg font-bold text-amber-400 truncate">{fmt(reserveBal)}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-600 truncate">POL</p>
+              </div>
+
+              {/* Accumulated */}
+              <div className="p-2 sm:p-3.5 rounded-lg sm:rounded-xl bg-[#0a0a0a]/40 border border-white/5 min-w-0">
+                <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mb-0.5 truncate">Accum</p>
+                <p className="text-sm sm:text-lg font-bold text-emerald-400 truncate">{fmt(reserveAccum)}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-600 truncate">POL</p>
+              </div>
+
+              {/* Withdrawn */}
+              <div className="p-2 sm:p-3.5 rounded-lg sm:rounded-xl bg-[#0a0a0a]/40 border border-white/5 min-w-0">
+                <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider mb-0.5 truncate">Withdrawn</p>
+                <p className="text-sm sm:text-lg font-bold text-slate-400 truncate">{fmt(reserveWith)}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-600 truncate">POL</p>
+              </div>
+            </div>
+
+            {/* Barra de progreso mejorada con indicadores */}
+            {reserveAccum && reserveAccum > 0n && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-slate-500">Reserve utilization</span>
+                  <span className="font-bold text-amber-400">
+                    {((Number(reserveBal ?? 0n) / Number(reserveAccum)) * 100).toFixed(1)}% retained
+                  </span>
+                </div>
+                <div className="relative h-3 bg-[rgba(255,255,255,0.05)] rounded-full overflow-hidden">
+                  {/* Fondo con patron sutil */}
+                  <div className="absolute inset-0 opacity-30" style={{
+                    backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,0.03) 8px, rgba(255,255,255,0.03) 16px)'
+                  }} />
+                  {/* Barra principal */}
+                  <motion.div
+                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-500 to-amber-400"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (Number(reserveBal ?? 0n) / Number(reserveAccum)) * 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                  {/* Indicador de umbral (80%) */}
+                  <div className="absolute inset-y-0 w-0.5 bg-white/20" style={{ left: '80%' }}>
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-[8px] text-white/40">80%</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-slate-600">
+                  <span>0 POL</span>
+                  <span>{fmt(reserveAccum)} POL</span>
+                </div>
               </div>
             )}
+
+            {/* Estado del reserve como footer */}
+            <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  (reserveBal ?? 0n) > 0n ? 'bg-emerald-400' : 'bg-slate-600'
+                }`} />
+                <span className="text-[10px] text-slate-400">
+                  {(reserveBal ?? 0n) > 0n ? 'Reserve funded' : 'Empty reserve'}
+                </span>
+              </div>
+              <span className="text-[10px] text-slate-500">
+                {((Number(reserveWith ?? 0n) / (Number(reserveAccum ?? 1n) || 1)) * 100).toFixed(1)}% withdrawn
+              </span>
+            </div>
           </div>
 
           {/* Treasury manager link */}

@@ -11,12 +11,12 @@ const ProfileRewards: React.FC = () => {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className={`font-bold bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent ${
-          isMobile ? 'text-2xl' : 'text-3xl'
+        <h1 className={`font-bold jersey-15-regular text-gradient ${
+          isMobile ? 'text-4xl' : 'text-5xl'
         }`}>
           Rewards for Sale
         </h1>
-        <p className={`text-gray-400 mt-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+        <p className={`text-gray-400 mt-2 jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'}`}>
           Earnings received from NFT sales in the marketplace
         </p>
       </header>

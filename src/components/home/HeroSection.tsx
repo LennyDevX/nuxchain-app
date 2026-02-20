@@ -44,15 +44,7 @@ function HeroSection() {
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
                 {/* Badge */}
-                <motion.div
-                  className="inline-flex items-center gap-2 w-fit px-3 py-1 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                >
-                  <span className="text-purple-400 font-bold text-sm">✨</span>
-                  <span className="text-xs font-semibold text-purple-200">Future of Creators</span>
-                </motion.div>
+                
 
                 {/* Main Heading */}
                 <motion.div
@@ -60,7 +52,7 @@ function HeroSection() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                  <h1 className="text-3xl font-black mb-2 leading-tight">
+                  <h1 className="jersey-15-regular text-4xl font-black mb-2 leading-tight">
                     <motion.span
                       className="inline-block"
                       initial={{ opacity: 0 }}
@@ -81,7 +73,7 @@ function HeroSection() {
                   </h1>
 
                   <motion.p
-                    className="text-sm text-slate-300 leading-relaxed"
+                    className="jersey-20-regular text-xl text-slate-300 leading-relaxed"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.55 }}
@@ -108,8 +100,8 @@ function HeroSection() {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <ResponsiveImage
-                    src="/DragonixCardNFTs.png"
-                    alt="Dragonix NFT Card"
+                    src="/AvatarsNFTs/Avatar12-remove-bg.png"
+                    alt="Avatar NFT"
                     mobileSize="w-32 h-32"
                     tabletSize="w-32 h-32"
                     desktopSize="w-32 h-32"
@@ -128,23 +120,23 @@ function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-2xl">
                 <div className="flex-shrink-0 w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-[10px]">
                   ⚡
                 </div>
-                <span className="text-slate-200">Lightning-fast & low fees</span>
+                <span className="jersey-15-regular text-slate-200">Lightning-fast & low fees</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-2xl">
                 <div className="flex-shrink-0 w-4 h-4 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-[10px]">
                   🔒
                 </div>
-                <span className="text-slate-200">Secure & decentralized</span>
+                <span className="jersey-15-regular text-slate-200">Secure & decentralized</span>
               </div>
-              <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-2 text-2xl">
                 <div className="flex-shrink-0 w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-[10px]">
                   ✨
                 </div>
-                <span className="text-slate-200">Freedom & ownership</span>
+                <span className="jersey-15-regular text-slate-200">Freedom & ownership</span>
               </div>
             </motion.div>
 
@@ -155,7 +147,7 @@ function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
             >
-              <Link to="/tokenization" className="group px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95">
+              <Link to="/tokenization" className="jersey-20-regular group px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-3xl flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95">
                 Start Creating
                 <motion.span
                   className="inline-block transition-transform"
@@ -179,15 +171,7 @@ function HeroSection() {
               transition={{ duration: 0.7, delay: 0.1 }}
             >
               {/* Badge */}
-              <motion.div
-                className="inline-flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-              >
-                <span className="text-purple-400 font-bold">✨</span>
-                <span className="text-sm font-semibold text-purple-200">Welcome to the Future of Creators</span>
-              </motion.div>
+              
 
               {/* Main Heading */}
               <motion.div
@@ -195,7 +179,7 @@ function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
               >
-                <h1 className="text-5xl lg:text-7xl font-black mb-4 leading-tight">
+                <h1 className="jersey-15-regular text-5xl lg:text-7xl font-black mb-4 leading-tight">
                   <span className="inline-block">Your Place</span>
                   <br />
                   <span className="inline-block text-gradient-2">
@@ -203,7 +187,7 @@ function HeroSection() {
                   </span>
                 </h1>
 
-                <p className="text-lg lg:text-xl text-slate-300 leading-relaxed max-w-lg">
+                <p className="jersey-20-regular text-xl lg:text-2xl text-slate-300 leading-relaxed max-w-lg">
                   Empower creators and communities with a unified DeFi ecosystem. Tokenize your work, monetize with NFTs, secure value with staking, and reward your followers with airdrops.
                 </p>
               </motion.div>
@@ -215,23 +199,23 @@ function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
               >
-                <div className="flex items-center gap-3 text-sm lg:text-base">
+                <div className="flex items-center gap-3  lg:text-2xl">
                   <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-xs">
                     ⚡
                   </div>
-                  <span className="text-slate-200">Lightning-fast transactions & low fees</span>
+                  <span className="jersey-15-regular text-slate-200">Lightning-fast transactions & low fees</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm lg:text-base">
+                <div className="flex items-center gap-3 text-xl lg:text-2xl">
                   <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 flex items-center justify-center text-xs">
                     🔒
                   </div>
-                  <span className="text-slate-200">Secure & decentralized ecosystem</span>
+                  <span className="jersey-15-regular text-slate-200">Secure & decentralized ecosystem</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm lg:text-base">
+                <div className="flex items-center gap-3 text-xl lg:text-2xl">
                   <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-xs">
                     ✨
                   </div>
-                  <span className="text-slate-200">Freedom, ownership & monetization</span>
+                  <span className="jersey-15-regular text-slate-200">Freedom, ownership & monetization</span>
                 </div>
               </motion.div>
 
@@ -242,7 +226,7 @@ function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
               >
-                <Link to="/tokenization" className="group px-6 lg:px-8 py-3 lg:py-4 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105">
+                <Link to="/tokenization" className="jersey-20-regular group px-6 lg:px-8 py-3 lg:py-4 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-2xl flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/50 hover:scale-105">
                   Start Creating Now
                   <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
                 </Link>
@@ -270,8 +254,8 @@ function HeroSection() {
                   }}
                 >
                   <ResponsiveImage
-                    src="/DragonixCardNFTs.png"
-                    alt="Dragonix NFT Card"
+                    src="/AvatarsNFTs/Avatar12-remove-bg.png"
+                    alt="Avatar NFT"
                     mobileSize="w-full h-full"
                     tabletSize="md:w-full md:h-full"
                     desktopSize="lg:w-full lg:h-full"
@@ -283,9 +267,9 @@ function HeroSection() {
 
                 {/* Floating Card */}
                 <div className="absolute -bottom-6 -left-6 bg-slate-800/95 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-4 shadow-xl max-w-xs animate-float">
-                  <p className="text-xs font-semibold text-purple-300 mb-2">✨ Limited Edition</p>
-                  <p className="text-sm font-bold text-white">Exclusive NFT Collections</p>
-                  <p className="text-xs text-slate-400 mt-1">Mint your first NFT today</p>
+                  <p className="jersey-20-regular text-xl text-purple-300 mb-2">✨ Limited Edition</p>
+                  <p className="jersey-20-regular text-xl text-white">Exclusive NFT Collections</p>
+                  <p className="jersey-20-regular text-xl text-slate-400 mt-1">Mint your first NFT today</p>
                 </div>
               </div>
             </motion.div>

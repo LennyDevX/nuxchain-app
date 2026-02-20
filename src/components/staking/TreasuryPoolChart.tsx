@@ -121,7 +121,7 @@ export function TreasuryPoolChart() {
       >
         <div className="flex flex-col items-center justify-center h-[320px]">
           <div className="w-48 h-48 rounded-full border-4 border-white/10 border-t-violet-500 animate-spin" />
-          <p className="text-white/60 text-sm mt-4">Loading treasury data...</p>
+          <p className="jersey-20-regular text-white/60 text-sm lg:text-base mt-4">Loading treasury data...</p>
         </div>
       </motion.div>
     );
@@ -139,8 +139,8 @@ export function TreasuryPoolChart() {
           <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mb-4">
             <span className="text-3xl">⚠️</span>
           </div>
-          <p className="text-white/80 text-base font-semibold mb-2">Treasury Not Deployed</p>
-          <p className="text-white/60 text-sm text-center max-w-xs">
+          <p className="jersey-15-regular text-white/80 text-base lg:text-lg font-semibold mb-2">Treasury Not Deployed</p>
+          <p className="jersey-20-regular text-white/60 text-sm lg:text-base text-center max-w-xs">
             The Treasury Manager contract is not configured or deployed on this network.
           </p>
         </div>
@@ -157,8 +157,8 @@ export function TreasuryPoolChart() {
     >
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-1">Treasury Pool</h3>
-        <p className="text-sm text-white/60">Fund allocation distribution</p>
+        <h3 className="jersey-15-regular text-xl lg:text-3xl font-bold text-white mb-1">Treasury Pool</h3>
+        <p className="jersey-20-regular text-sm lg:text-base text-white/60">Fund allocation distribution</p>
       </div>
 
       {/* Chart */}
@@ -170,16 +170,16 @@ export function TreasuryPoolChart() {
       <div className="pt-4 border-t border-white/10">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-white/60 mb-1">Treasury Balance</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="jersey-20-regular text-sm lg:text-base text-white/60 mb-1">Treasury Balance</p>
+            <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-white">
               {stats?.currentBalance || '0.00'} POL
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-white/40">
+            <p className="jersey-20-regular text-xs lg:text-sm text-white/40">
               {stats?.autoDistEnabled ? 'Auto-distribution enabled' : 'Manual distribution'}
             </p>
-            <p className="text-xs text-white/40 mt-1">
+            <p className="jersey-20-regular text-xs lg:text-sm text-white/40 mt-1">
               Weekly cycle (7 days)
             </p>
           </div>
@@ -192,10 +192,10 @@ export function TreasuryPoolChart() {
           {allocations.items.map((item, index) => (
             <div key={index} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm">{item.emoji}</span>
-                <span className="text-sm text-white/80">{item.name}</span>
+                <span className="jersey-20-regular text-sm lg:text-base">{item.emoji}</span>
+                <span className="jersey-20-regular text-sm lg:text-base text-white/80">{item.name}</span>
               </div>
-              <span className="text-sm font-medium text-white">
+              <span className="jersey-20-regular text-sm lg:text-base font-medium text-white">
                 {item.percentage}%
               </span>
             </div>

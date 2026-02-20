@@ -17,7 +17,7 @@ function AISection() {
           transition={{ duration: 0.7, delay: isMobile ? 0.1 : 0.2 }}
         >
           <motion.h2
-            className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 ${isMobile ? 'text-center' : ''}`}
+            className={`jersey-15-regular ${isMobile ? 'text-4xl' : 'md:text-7xl'} text-white mb-6 ${isMobile ? 'text-center' : ''}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
@@ -26,7 +26,7 @@ function AISection() {
           </motion.h2>
 
           <motion.p
-            className={`${isMobile ? 'text-base mb-6' : 'text-xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
+            className={`jersey-20-regular ${isMobile ? 'text-3xl mb-6' : 'text-2xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -45,15 +45,15 @@ function AISection() {
           >
             <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
               <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Intelligent market analysis</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-3xl' : 'text-2xl'}`}>Intelligent market analysis</span>
             </div>
             <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
               <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>24/7 personalized assistance</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-3xl' : 'text-2xl'}`}>24/7 personalized assistance</span>
             </div>
             <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
               <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Smart trading recommendations</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-3xl' : 'text-2xl'}`}>Smart trading recommendations</span>
             </div>
           </motion.div>
 
@@ -65,7 +65,7 @@ function AISection() {
           >
             <Link
               to="/chat"
-              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary inline-block text-center`}
+              className={`jersey-20-regular ${isMobile ? 'mt-6 px-6 py-2 text-3xl' : 'mt-8 px-8 py-3 text-2xl'} btn-primary inline-block text-center`}
             >
               Chat with Nuxbee
             </Link>

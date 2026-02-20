@@ -101,7 +101,7 @@ const ProfileSidebar: React.FC = () => {
         <div className="flex items-center gap-4 mb-6">
           <div className="relative w-12 h-12 flex-shrink-0">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-pulse opacity-75"></div>
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-xl">
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white jersey-15-regular font-bold text-xl shadow-xl">
               {username.charAt(0).toUpperCase()}
             </div>
           </div>
@@ -117,7 +117,7 @@ const ProfileSidebar: React.FC = () => {
                     if (e.key === 'Enter') handleSaveUsername();
                     if (e.key === 'Escape') handleCancelEdit();
                   }}
-                  className="w-full bg-white/10 border border-purple-500/50 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-400"
+                  className="w-full bg-white/10 border border-purple-500/50 rounded-lg px-3 py-1.5 text-white jersey-20-regular text-lg focus:outline-none focus:border-purple-400"
                   placeholder="Enter username"
                   maxLength={20}
                   autoFocus
@@ -125,13 +125,13 @@ const ProfileSidebar: React.FC = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveUsername}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-medium hover:from-green-500 hover:to-emerald-500 transition-all"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 rounded-lg jersey-20-regular text-sm font-medium hover:from-green-500 hover:to-emerald-500 transition-all"
                   >
                     ✓
                   </button>
                   <button
                     onClick={handleCancelEdit}
-                    className="flex-1 bg-white/10 text-gray-300 px-3 py-1 rounded-lg text-xs font-medium hover:bg-white/20 transition-all"
+                    className="flex-1 bg-white/10 text-gray-300 px-3 py-1 rounded-lg jersey-20-regular text-sm font-medium hover:bg-white/20 transition-all"
                   >
                     ✕
                   </button>
@@ -140,7 +140,7 @@ const ProfileSidebar: React.FC = () => {
             ) : (
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="text-white font-bold text-base truncate">{username}</h4>
+                  <h4 className="jersey-15-regular text-white font-bold text-xl truncate">{username}</h4>
                   <button
                     onClick={handleStartEdit}
                     className="flex-shrink-0 opacity-60 hover:opacity-100 active:opacity-100 transition-opacity p-1"
@@ -150,7 +150,7 @@ const ProfileSidebar: React.FC = () => {
                     </svg>
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 font-mono truncate">
+                <p className="jersey-20-regular text-sm text-gray-400 font-mono truncate">
                   {isConnected && address ? formatAddress(address) : '@not_connected'}
                 </p>
               </div>
@@ -178,8 +178,8 @@ const ProfileSidebar: React.FC = () => {
               >
                 <span className="text-2xl">{it.icon}</span>
                 <div className="text-left">
-                  <p className="text-white font-bold text-sm">{it.label}</p>
-                  <p className="text-gray-400 text-xs">Tap to visit</p>
+                  <p className="jersey-15-regular text-white font-bold text-lg">{it.label}</p>
+                  <p className="jersey-20-regular text-gray-400 text-sm">Tap to visit</p>
                 </div>
               </Link>
             ))}
@@ -204,7 +204,7 @@ const ProfileSidebar: React.FC = () => {
 
           {/* Current Tab Label */}
           <div className="text-center">
-            <p className="text-xs text-gray-400">
+            <p className="jersey-20-regular text-sm text-gray-400">
               {items[activeTab].label} <span className="text-gray-600">• {activeTab + 1}/{items.length}</span>
             </p>
           </div>
@@ -221,7 +221,7 @@ const ProfileSidebar: React.FC = () => {
         {/* Avatar with gradient border */}
         <div className="relative w-24 h-24 mx-auto mb-4">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-pulse opacity-75"></div>
-          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-3xl shadow-xl">
+          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white jersey-15-regular font-bold text-4xl shadow-xl">
             {username.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -237,7 +237,7 @@ const ProfileSidebar: React.FC = () => {
                 if (e.key === 'Enter') handleSaveUsername();
                 if (e.key === 'Escape') handleCancelEdit();
               }}
-              className="w-full bg-white/10 border border-purple-500/50 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:border-purple-400"
+              className="w-full bg-white/10 border border-purple-500/50 rounded-lg px-3 py-2 text-white jersey-20-regular text-xl text-center focus:outline-none focus:border-purple-400"
               placeholder="Enter username"
               maxLength={20}
               autoFocus
@@ -245,13 +245,13 @@ const ProfileSidebar: React.FC = () => {
             <div className="flex gap-2">
               <button
                 onClick={handleSaveUsername}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:from-green-500 hover:to-emerald-500 transition-all"
+                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1.5 rounded-lg jersey-20-regular text-lg font-medium hover:from-green-500 hover:to-emerald-500 transition-all"
               >
                 ✓ Save
               </button>
               <button
                 onClick={handleCancelEdit}
-                className="flex-1 bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-white/20 transition-all"
+                className="flex-1 bg-white/10 text-gray-300 px-3 py-1.5 rounded-lg jersey-20-regular text-lg font-medium hover:bg-white/20 transition-all"
               >
                 ✕ Cancel
               </button>
@@ -260,7 +260,7 @@ const ProfileSidebar: React.FC = () => {
         ) : (
           <div className="group">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <h4 className="text-white font-bold text-xl">{username}</h4>
+              <h4 className="jersey-15-regular text-white font-bold text-2xl">{username}</h4>
               <button
                 onClick={handleStartEdit}
                 className="opacity-60 hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
@@ -271,7 +271,7 @@ const ProfileSidebar: React.FC = () => {
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-gray-400 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
+            <p className="jersey-20-regular text-sm text-gray-400 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
               {isConnected && address ? formatAddress(address) : '@not_connected'}
             </p>
           </div>
@@ -290,15 +290,15 @@ const ProfileSidebar: React.FC = () => {
                 : 'text-gray-300 hover:bg-white/5 hover:text-white'
             }`}
           >
-            <span className="text-xl">{it.icon}</span>
-            <span className="font-medium">{it.label}</span>
+            <span className="text-2xl">{it.icon}</span>
+            <span className="jersey-15-regular font-medium text-lg">{it.label}</span>
           </Link>
         ))}
 
         {/* Active Skills NFTs Section */}
         {isConnected && (
           <div className="mt-6 pt-4 border-t border-white/10">
-            <h5 className="text-white/60 text-xs font-semibold uppercase mb-3 px-2">
+            <h5 className="jersey-15-regular text-white/60 text-sm font-semibold uppercase mb-3 px-2">
               🎯 Active Skills
             </h5>
             {isLoadingSkills ? (

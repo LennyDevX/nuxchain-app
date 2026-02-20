@@ -18,11 +18,11 @@ function NFTSection() {
             transition={{ duration: 0.7, delay: 0.2 }}
           >
             <ResponsiveImage
-              src="/DragonixCardMinting.jpg"
-              alt="Dragonix NFT Card"
+              src="/AvatarsNFTs/Avatar1-remove-bg.png"
+              alt="Avatar NFT"
               mobileSize="w-92 h-92"
-              tabletSize="md:w-92 md:h-92"
-              desktopSize="lg:w-92 lg:h-92"
+              tabletSize="md:w-112 md:h-112"
+              desktopSize="lg:w-112 lg:h-112"
               className="rounded-2xl shadow-lg"
               objectFit="contain"
               priority
@@ -38,7 +38,7 @@ function NFTSection() {
           transition={{ duration: 0.7, delay: 0.1 }}
         >
           <motion.h2
-            className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 ${isMobile ? 'text-center' : ''}`}
+            className={`jersey-15-regular ${isMobile ? 'text-5xl' : 'md:text-7xl'} font-bold text-white mb-6 ${isMobile ? 'text-center' : ''}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -47,7 +47,7 @@ function NFTSection() {
           </motion.h2>
 
           <motion.p
-            className={`${isMobile ? 'text-base mb-6' : 'text-xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
+            className={`jersey-20-regular ${isMobile ? 'text-3xl mb-6' : 'text-2xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
@@ -64,17 +64,17 @@ function NFTSection() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
+            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : 'text-3xl'}`}>
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Exclusive collectible designs</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Exclusive collectible designs</span>
             </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
+            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : 'text-3xl'}`}>
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Special staking bonuses</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Special staking bonuses</span>
             </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
+            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : 'text-3xl'}`}>
               <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Marketplace integration</span>
+              <span className={`jersey-15-regular text-white/80 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Marketplace integration</span>
             </div>
           </motion.div>
 
@@ -86,7 +86,7 @@ function NFTSection() {
           >
             <Link
               to="/nfts"
-              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary inline-block text-center`}
+              className={`jersey-20-regular ${isMobile ? 'mt-6 px-6 py-2 text-3xl' : 'mt-8 px-8 py-3 text-2xl'} btn-primary inline-block text-center`}
             >
               Explore NFTs
             </Link>

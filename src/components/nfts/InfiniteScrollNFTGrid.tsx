@@ -95,7 +95,7 @@ export default function InfiniteScrollNFTGrid({
           className="mb-4"
         />
         {isPreloading && (
-          <div className="text-center mt-4 text-xs text-white/40">
+          <div className="jersey-20-regular text-center mt-4 text-xs lg:text-sm text-white/40">
             Preloading images: {preloadedCount}/{imageUrls.length}
           </div>
         )}
@@ -111,11 +111,11 @@ export default function InfiniteScrollNFTGrid({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-white mb-2">Error Loading NFTs</h3>
-        <p className="text-white/60 mb-6">{error}</p>
+        <h3 className="jersey-15-regular text-2xl lg:text-3xl font-bold text-white mb-2">Error Loading NFTs</h3>
+        <p className="jersey-20-regular text-white/60 mb-6 text-base lg:text-lg">{error}</p>
         <button 
           onClick={() => window.location.reload()}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200"
+          className="jersey-20-regular bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 text-base lg:text-lg"
         >
           Try Again
         </button>
@@ -131,11 +131,11 @@ export default function InfiniteScrollNFTGrid({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-white mb-2">You don't have any NFTs yet</h3>
-        <p className="text-white/60 mb-6">Create your first NFT and start your collection</p>
+        <h3 className="jersey-15-regular text-2xl lg:text-3xl font-bold text-white mb-2">You don't have any NFTs yet</h3>
+        <p className="jersey-20-regular text-white/60 mb-6 text-base lg:text-lg">Create your first NFT and start your collection</p>
         <button 
           onClick={onCreateNFT}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200"
+          className="jersey-20-regular bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 text-xl lg:text-2xl"
         >
           Create my first NFT
         </button>
@@ -147,7 +147,7 @@ export default function InfiniteScrollNFTGrid({
     <div className="space-y-6">
       {/* Progress indicator */}
       {totalCount > 0 && (
-        <div className="flex items-center justify-between text-sm text-white/60 bg-white/5 rounded-lg p-3">
+        <div className="jersey-20-regular flex items-center justify-between text-sm lg:text-base text-white/60 bg-white/5 rounded-lg p-3">
           <span>Showing {loadedCount} of {totalCount} NFTs</span>
           <div className="flex items-center space-x-2">
             <div className="w-32 bg-white/10 rounded-full h-2">
@@ -156,7 +156,7 @@ export default function InfiniteScrollNFTGrid({
                 style={{ width: `${(loadedCount / totalCount) * 100}%` }}
               ></div>
             </div>
-            <span>{Math.round((loadedCount / totalCount) * 100)}%</span>
+            <span className="jersey-20-regular">{Math.round((loadedCount / totalCount) * 100)}%</span>
           </div>
         </div>
       )}
@@ -192,7 +192,7 @@ export default function InfiniteScrollNFTGrid({
           ) : (
             <button
               onClick={onLoadMore}
-              className="bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm"
+              className="jersey-20-regular bg-white/10 hover:bg-white/20 border border-white/20 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 backdrop-blur-sm text-base lg:text-lg"
             >
               Load More NFTs
             </button>
@@ -203,7 +203,7 @@ export default function InfiniteScrollNFTGrid({
       {/* End of collection indicator */}
       {!hasMore && nfts.length > 0 && (
         <div className="text-center py-8">
-          <div className="inline-flex items-center space-x-2 text-white/60 bg-white/5 rounded-full px-4 py-2">
+          <div className="jersey-20-regular inline-flex items-center space-x-2 text-white/60 bg-white/5 rounded-full px-4 py-2 text-sm lg:text-base">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>

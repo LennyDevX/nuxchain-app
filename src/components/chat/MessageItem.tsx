@@ -27,9 +27,9 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
   const markdownStyle = useMemo(() => ({
     backgroundColor: 'transparent',
     color: '#f3f4f6',
-    fontSize: getOptimizedFontSize(14, isMobile) + 'px',
-    lineHeight: isMobile ? '1.4' : '1.5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif'
+    fontSize: getOptimizedFontSize(isMobile ? 16 : 18, isMobile) + 'px',
+    lineHeight: isMobile ? '1.5' : '1.6',
+    fontFamily: 'jersey-20-regular, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
   }), [isMobile])
 
 
@@ -158,34 +158,38 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                   }}
                   components={{
                     h1: (props) => <h1 {...props} style={{ 
-                      fontSize: isMobile ? '1.5rem' : '1.75rem',
+                      fontSize: isMobile ? '1.75rem' : '2rem',
                       fontWeight: '700',
                       color: '#ffffff',
                       margin: '1.5rem 0 1rem 0',
                       paddingBottom: '0.5rem',
                       borderBottom: '2px solid rgba(139, 92, 246, 0.3)',
-                      lineHeight: '1.3'
+                      lineHeight: '1.3',
+                      fontFamily: 'jersey-15-regular, sans-serif'
                     }} />,
                     h2: (props) => <h2 {...props} style={{ 
-                      fontSize: isMobile ? '1.25rem' : '1.5rem',
+                      fontSize: isMobile ? '1.5rem' : '1.75rem',
                       fontWeight: '600',
                       color: '#e5e7eb',
                       margin: '1.25rem 0 0.75rem 0',
                       paddingLeft: '0.5rem',
                       borderLeft: '4px solid rgba(139, 92, 246, 0.6)',
-                      lineHeight: '1.3'
+                      lineHeight: '1.3',
+                      fontFamily: 'jersey-15-regular, sans-serif'
                     }} />,
                     h3: (props) => <h3 {...props} style={{ 
-                      fontSize: isMobile ? '1.125rem' : '1.25rem',
+                      fontSize: isMobile ? '1.25rem' : '1.5rem',
                       fontWeight: '600',
                       color: '#d1d5db',
                       margin: '1rem 0 0.5rem 0',
-                      lineHeight: '1.4'
+                      lineHeight: '1.4',
+                      fontFamily: 'jersey-15-regular, sans-serif'
                     }} />,
                     p: (props) => <p {...props} style={{ 
                       margin: '0.75rem 0',
-                      lineHeight: '1.6',
-                      color: '#f3f4f6'
+                      lineHeight: '1.7',
+                      color: '#f3f4f6',
+                      fontSize: isMobile ? '1rem' : '1.125rem'
                     }} />,
                     strong: (props) => <strong {...props} style={{ 
                       fontWeight: '700',
@@ -243,8 +247,8 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
               </motion.div>
             ) : (
               <motion.p 
-                className={`leading-relaxed whitespace-pre-wrap ${
-                  isMobile ? 'text-xs' : 'text-sm'
+                className={`jersey-20-regular leading-relaxed whitespace-pre-wrap ${
+                  isMobile ? 'text-base' : 'text-lg'
                 }`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -254,10 +258,10 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
               </motion.p>
             )}
             <motion.p 
-              className={`mt-2 ${
+              className={`mt-2 jersey-20-regular ${
                 message.role === 'user' ? 'text-white/70' : 'text-white/50'
               } ${
-                isMobile ? 'text-xs' : 'text-xs'
+                isMobile ? 'text-sm' : 'text-base'
               }`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -25,8 +25,8 @@ export default function MarketplaceSidebar() {
       <aside className="card-unified h-full p-6">
         <div className="text-center space-y-4">
           <div className="text-4xl">👛</div>
-          <p className="text-white font-semibold">Connect Your Wallet</p>
-          <p className="text-sm text-white/60">Connect your wallet to see your profile and stats</p>
+          <p className="jersey-15-regular text-white font-semibold">Connect Your Wallet</p>
+          <p className="jersey-20-regular text-sm text-white/60">Connect your wallet to see your profile and stats</p>
         </div>
       </aside>
     );
@@ -84,8 +84,8 @@ export default function MarketplaceSidebar() {
           </div>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-1">Level {level}</h3>
-        <p className="text-xs text-white/60 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
+        <h3 className="jersey-15-regular text-lg md:text-xl font-bold text-white mb-1">Level {level}</h3>
+        <p className="jersey-20-regular text-xs text-white/60 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
           {address ? formatAddress(address) : '@not_connected'}
         </p>
         
@@ -96,7 +96,7 @@ export default function MarketplaceSidebar() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="text-xs text-blue-300 text-center">
+            <p className="jersey-20-regular text-xs text-blue-300 text-center">
               Create your first NFT to activate your profile
             </p>
           </motion.div>
@@ -111,9 +111,9 @@ export default function MarketplaceSidebar() {
         transition={{ duration: 0.5, delay: 0.2, type: 'spring', stiffness: 250, damping: 28 }}
       >
         <div className="flex justify-between items-center">
-          <span className="text-sm font-semibold text-white">Experience</span>
+          <span className="jersey-15-regular text-sm md:text-base text-white">Experience</span>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/60">{currentXP.toString()} XP</span>
+            <span className="jersey-20-regular text-xs text-white/60">{currentXP.toString()} XP</span>
             {/* ✅ Botón Refresh XP */}
             <button
               onClick={() => {
@@ -139,14 +139,14 @@ export default function MarketplaceSidebar() {
             />
           </div>
           <div className="flex justify-between text-xs text-white/40 mt-1.5">
-            <span>Lvl {level}</span>
-            <span className="text-purple-400 font-semibold">{isNaN(progress) ? 0 : progress.toFixed(0)}%</span>
-            <span>Lvl {level + 1}</span>
+            <span className="jersey-20-regular">Lvl {level}</span>
+            <span className="jersey-15-regular text-purple-400 font-semibold">{isNaN(progress) ? 0 : progress.toFixed(0)}%</span>
+            <span className="jersey-20-regular">Lvl {level + 1}</span>
           </div>
         </div>
 
         <div className="text-center">
-          <p className="text-xs text-white/60">
+          <p className="jersey-20-regular text-xs text-white/60">
             {xpRemaining?.toString() || '0'} XP to next level
           </p>
         </div>
@@ -159,7 +159,7 @@ export default function MarketplaceSidebar() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3, staggerChildren: 0.08, delayChildren: 0.3 }}
       >
-        <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-3">
+        <h4 className="jersey-15-regular text-xs md:text-sm text-white/60 uppercase tracking-wide mb-3">
           Your Stats
         </h4>
 
@@ -174,9 +174,9 @@ export default function MarketplaceSidebar() {
           >
             <div className="flex items-center space-x-3">
               <span className="text-xl">🎨</span>
-              <span className="text-sm text-white/80">Created</span>
+              <span className="jersey-20-regular text-sm text-white/80">Created</span>
             </div>
-            <span className="text-lg font-bold text-white">
+            <span className="jersey-15-regular text-lg md:text-xl text-white">
               {profile.nftsCreated.toString()}
             </span>
           </motion.div>
@@ -191,9 +191,9 @@ export default function MarketplaceSidebar() {
           >
             <div className="flex items-center space-x-3">
               <span className="text-xl">💰</span>
-              <span className="text-sm text-white/80">Sold</span>
+              <span className="jersey-20-regular text-sm text-white/80">Sold</span>
             </div>
-            <span className="text-lg font-bold text-white">
+            <span className="jersey-15-regular text-lg md:text-xl text-white">
               {profile.nftsSold.toString()}
             </span>
           </motion.div>
@@ -208,9 +208,9 @@ export default function MarketplaceSidebar() {
           >
             <div className="flex items-center space-x-3">
               <span className="text-xl">🛒</span>
-              <span className="text-sm text-white/80">Bought</span>
+              <span className="jersey-20-regular text-sm text-white/80">Bought</span>
             </div>
-            <span className="text-lg font-bold text-white">
+            <span className="jersey-15-regular text-lg md:text-xl text-white">
               {profile.nftsBought.toString()}
             </span>
           </motion.div>
@@ -226,10 +226,10 @@ export default function MarketplaceSidebar() {
         whileHover={{ scale: 1.02 }}
       >
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wide">
+          <h4 className="jersey-15-regular text-xs md:text-sm text-white/60 uppercase tracking-wide">
             🏆 Achievements
           </h4>
-          <span className="text-xs text-purple-400 font-bold">{totalUnlocked}</span>
+          <span className="jersey-15-regular text-xs md:text-sm text-purple-400 font-bold">{totalUnlocked}</span>
         </div>
 
         <div className="space-y-2">
@@ -239,7 +239,7 @@ export default function MarketplaceSidebar() {
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
-          <p className="text-xs text-white/60 text-center">
+          <p className="jersey-20-regular text-xs text-white/60 text-center">
             {completionPercentage.toFixed(0)}% Complete
           </p>
         </div>
@@ -258,13 +258,13 @@ export default function MarketplaceSidebar() {
             <div className="flex items-center space-x-3 mb-3">
               <span className="text-2xl">👥</span>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-white">Referrals</div>
-                <div className="text-xs text-white/60">
+                <div className="jersey-15-regular text-sm md:text-base text-white">Referrals</div>
+                <div className="jersey-20-regular text-xs text-white/60">
                   {typeof profile.referralCount === 'bigint' ? profile.referralCount.toString() : profile.referralCount} friends invited
                 </div>
               </div>
             </div>
-            <button className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-lg hover:opacity-90 transition-opacity">
+            <button className="w-full px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white jersey-20-regular text-xs md:text-sm rounded-lg hover:opacity-90 transition-opacity">
               Invite More Friends
             </button>
           </div>
@@ -280,7 +280,7 @@ export default function MarketplaceSidebar() {
       >
         <div className="flex items-center justify-center space-x-2 text-xs text-white/40">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <span>Active</span>
+          <span className="jersey-20-regular">Active</span>
         </div>
       </motion.div>
     </motion.aside>

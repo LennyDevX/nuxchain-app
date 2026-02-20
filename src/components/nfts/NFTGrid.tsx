@@ -135,7 +135,7 @@ export default function NFTGrid({ nfts, loading, error, onListNFT, onCreateNFT }
           onClick={onCreateNFT}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200"
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white jersey-20-regular text-xl lg:text-2xl px-8 py-3 rounded-xl font-semibold transition-all duration-200"
         >
           Create my first NFT
         </motion.button>

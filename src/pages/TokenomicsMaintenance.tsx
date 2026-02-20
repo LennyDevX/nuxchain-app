@@ -47,17 +47,6 @@ const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
         );
     }
 
-    const formatTime = (seconds: number) => {
-        const days = Math.floor(seconds / 86400);
-        const hours = Math.floor((seconds % 86400) / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-
-        return { days, hours, minutes, seconds: secs };
-    };
-
-    const time = formatTime(timeRemaining);
-
     return (
         <div className="maintenance-wrapper">
             <div className="blob blob-1"></div>
@@ -69,76 +58,20 @@ const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
                     <div className="maintenance-header">
                         <div className="maintenance-icon-wrapper">
                             <div className="maintenance-icon">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.5"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <line x1="12" y1="1" x2="12" y2="23"></line>
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                </svg>
+                                <img 
+                                    src="/NuxCoin.png" 
+                                    alt="NUX Token" 
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain'
+                                    }}
+                                />
                             </div>
                             <div className="icon-glow"></div>
                         </div>
                         <h1>Tokenomics 2.0</h1>
                         <p className="maintenance-subtitle">Economic Protocol Upgrade</p>
-                    </div>
-
-                    <div className="countdown-container" style={{
-                        margin: '1.5rem 0 2rem 0',
-                        padding: 'clamp(1rem, 3vw, 2rem)',
-                        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
-                        borderRadius: '1rem',
-                        border: '1px solid rgba(168, 85, 247, 0.3)'
-                    }}>
-                        <h2 style={{
-                            fontSize: 'clamp(1.125rem, 5vw, 1.5rem)',
-                            fontWeight: '700',
-                            marginBottom: '1.25rem',
-                            background: 'linear-gradient(to right, #a78bfa, #60a5fa)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            textAlign: 'center'
-                        }}>
-                            New distribution model arrives in:
-                        </h2>
-                        <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(4, 1fr)',
-                            gap: 'clamp(0.5rem, 2vw, 1rem)',
-                        }}>
-                            {[
-                                { label: 'Days', val: time.days, color: '#a78bfa' },
-                                { label: 'Hours', val: time.hours, color: '#60a5fa' },
-                                { label: 'Minutes', val: time.minutes, color: '#ec4899' },
-                                { label: 'Seconds', val: time.seconds, color: '#34d399' }
-                            ].map((item, idx) => (
-                                <div key={idx} style={{
-                                    textAlign: 'center',
-                                    padding: 'clamp(0.5rem, 2vw, 1rem)',
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    borderRadius: '0.5rem',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                                }}>
-                                    <div style={{
-                                        fontSize: 'clamp(1.25rem, 5vw, 2rem)',
-                                        fontWeight: '700',
-                                        color: item.color,
-                                        lineHeight: '1'
-                                    }}>{item.val}</div>
-                                    <div style={{
-                                        fontSize: 'clamp(0.6rem, 1.5vw, 0.75rem)',
-                                        color: '#9ca3af',
-                                        marginTop: '0.25rem',
-                                        textTransform: 'uppercase'
-                                    }}>{item.label}</div>
-                                </div>
-                            ))}
-                        </div>
                     </div>
 
                     <div className="maintenance-message">

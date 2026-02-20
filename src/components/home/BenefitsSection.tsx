@@ -120,13 +120,11 @@ function BenefitsSection() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <div className="inline-flex items-center justify-center px-4 py-2 bg-white/5 border border-white/10 rounded-full mb-6 backdrop-blur-sm">
-            <span className="text-sm font-medium text-white/80">Complete Ecosystem</span>
-          </div>
-          <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-4 leading-tight`}>
+          
+          <h2 className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'} text-white mb-4 leading-tight`}>
             Nuxchain <span className="text-gradient">Ecosystem</span>
           </h2>
-          <p className={`${isMobile ? 'text-sm' : 'text-lg'} text-white/70 max-w-3xl mx-auto leading-relaxed`}>
+          <p className={`jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'} text-white/70 max-w-3xl mx-auto leading-relaxed`}>
             Innovative components designed to revolutionize the Web3 experience and power your DeFi strategy
           </p>
         </motion.div>
@@ -157,10 +155,10 @@ function BenefitsSection() {
 
                 {/* Text Content */}
                 <div className="flex-1">
-                  <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-white mb-2.5 group-hover:text-white transition-colors`}>
+                  <h3 className={`jersey-15-regular ${isMobile ? 'text-xl' : 'text-xl lg:text-2xl'} text-white mb-2.5 group-hover:text-white transition-colors`}>
                     {isMobile ? card.shortTitle : card.title}
                   </h3>
-                  <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-white/70 leading-relaxed group-hover:text-white/80 transition-colors`}>
+                  <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-base lg:text-lg'} text-white/70 leading-relaxed group-hover:text-white/80 transition-colors`}>
                     {card.description}
                   </p>
                 </div>

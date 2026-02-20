@@ -88,7 +88,7 @@ export default function ModernSelect({
           bg-white/5 backdrop-blur-md
           border border-white/10
           rounded-lg
-          text-sm font-medium
+          jersey-20-regular text-xl md:text-2xl
           transition-all duration-300 ease-out
           flex items-center justify-between
           group
@@ -164,7 +164,7 @@ export default function ModernSelect({
                 onKeyDown={(e) => handleKeyDown(e, option.value)}
                 className={`
                   w-full px-4 py-2.5
-                  text-sm font-medium text-left
+                  jersey-20-regular text-sm md:text-base text-left
                   transition-all duration-200
                   flex items-center gap-2
                   group

@@ -48,7 +48,7 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
   return (
     <section className="relative py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <motion.h2
-        className="text-3xl sm:text-4xl font-bold text-white mb-8 sm:mb-12 text-center px-2"
+        className="jersey-15-regular text-5xl md:text-6xl text-white mb-8 sm:mb-12 text-center px-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
@@ -73,8 +73,8 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
               <div className="flex items-start gap-3 sm:gap-4">
                 <span className="text-xl sm:text-2xl flex-shrink-0">{item.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-white mb-1 text-sm sm:text-base">{item.title}</h4>
-                  <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+                  <h4 className="jersey-15-regular text-white mb-1 text-base md:text-lg">{item.title}</h4>
+                  <p className="jersey-20-regular text-sm md:text-base text-gray-400 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             </motion.div>
@@ -90,31 +90,31 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
         >
           {skillsByRarity[Rarity.COMMON] && skillsByRarity[Rarity.COMMON].length > 0 && (
             <div className="p-4 sm:p-6 bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-800 rounded-lg">
-              <div className="text-xs sm:text-sm text-gray-400 mb-2">COMMON SKILLS</div>
-              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              <div className="jersey-20-regular text-sm md:text-base text-gray-400 mb-2">COMMON SKILLS</div>
+              <div className="jersey-20-regular text-3xl md:text-4xl text-white mb-1">
                 {skillsByRarity[Rarity.COMMON].length}
               </div>
-              <div className="text-xs sm:text-sm text-gray-500">Baseline effects</div>
+              <div className="jersey-20-regular text-sm md:text-base text-gray-500">Baseline effects</div>
             </div>
           )}
 
           {skillsByRarity[Rarity.EPIC] && skillsByRarity[Rarity.EPIC].length > 0 && (
             <div className="p-4 sm:p-6 bg-gradient-to-br from-purple-900/30 to-purple-800/10 border border-purple-500/50 rounded-lg">
-              <div className="text-xs sm:text-sm text-purple-300 mb-2">EPIC SKILLS</div>
-              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              <div className="jersey-20-regular text-sm md:text-base text-purple-300 mb-2">EPIC SKILLS</div>
+              <div className="jersey-20-regular text-3xl md:text-4xl text-white mb-1">
                 {skillsByRarity[Rarity.EPIC].length}
               </div>
-              <div className="text-xs sm:text-sm text-purple-300/70">2.8x effect multiplier</div>
+              <div className="jersey-20-regular text-sm md:text-base text-purple-300/70">2.8x effect multiplier</div>
             </div>
           )}
 
           {skillsByRarity[Rarity.LEGENDARY] && skillsByRarity[Rarity.LEGENDARY].length > 0 && (
             <div className="p-4 sm:p-6 bg-gradient-to-br from-orange-900/30 to-orange-800/10 border border-orange-500/50 rounded-lg">
-              <div className="text-xs sm:text-sm text-orange-300 mb-2">LEGENDARY SKILLS</div>
-              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              <div className="jersey-20-regular text-sm md:text-base text-orange-300 mb-2">LEGENDARY SKILLS</div>
+              <div className="jersey-20-regular text-3xl md:text-4xl text-white mb-1">
                 {skillsByRarity[Rarity.LEGENDARY].length}
               </div>
-              <div className="text-xs sm:text-sm text-orange-300/70">3.5x effect multiplier</div>
+              <div className="jersey-20-regular text-sm md:text-base text-orange-300/70">3.5x effect multiplier</div>
             </div>
           )}
 
@@ -129,9 +129,9 @@ export const SkillsStakingImpact: React.FC<SkillsStakingImpactProps> = ({
             }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            <div className="text-xs sm:text-sm text-blue-300 mb-2">MAXIMUM COMBINED BOOST</div>
-            <div className="text-3xl sm:text-4xl font-bold text-white mb-1">{totalStakingBoost}%</div>
-            <div className="text-xs sm:text-sm text-blue-300/70">with top 3 staking skills active</div>
+            <div className="jersey-20-regular text-sm md:text-base text-blue-300 mb-2">MAXIMUM COMBINED BOOST</div>
+            <div className="jersey-20-regular text-4xl md:text-5xl text-white mb-1">{totalStakingBoost}%</div>
+            <div className="jersey-20-regular text-sm md:text-base text-blue-300/70">with top 3 staking skills active</div>
           </motion.div>
         </motion.div>
       </div>

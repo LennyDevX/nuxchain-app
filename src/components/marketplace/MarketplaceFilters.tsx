@@ -150,7 +150,7 @@ export default memo(function MarketplaceFilters({
               bg-white/5 backdrop-blur-md
               border border-white/10
               rounded-lg
-              text-sm text-white placeholder-white/40
+              jersey-20-regular text-xl lg:text-2xl text-white placeholder-white/40
               transition-all duration-300
               focus:outline-none focus:bg-white/10 focus:border-purple-500/50
               focus:ring-2 focus:ring-purple-500/20
@@ -177,7 +177,7 @@ export default memo(function MarketplaceFilters({
             whileTap={{ scale: 0.95 }}
             className={`
               h-11 px-4 flex items-center gap-2
-              rounded-lg border font-medium text-sm
+              rounded-lg border jersey-20-regular text-lg lg:text-xl
               transition-all duration-300
               ${hasActiveFilters || isFilterOpen
                 ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10'
@@ -228,12 +228,12 @@ export default memo(function MarketplaceFilters({
               aria-expanded={isPriceOpen}
               aria-haspopup="true"
               className={`
-                w-full h-11 px-4 
+                w-full px-4 py-2.5 
                 bg-white/5 backdrop-blur-md
                 border border-white/10
                 rounded-lg
-                text-sm font-medium
-                transition-all duration-300
+                jersey-20-regular text-xl md:text-2xl
+                transition-all duration-300 ease-out
                 flex items-center justify-between
                 group
                 ${hasPriceFilter
@@ -266,7 +266,7 @@ export default memo(function MarketplaceFilters({
             {/* Price Dropdown */}
             {isPriceOpen && (
               <div className="absolute z-50 w-full mt-2 p-4 bg-[#1a1a1a]/95 backdrop-blur-xl border border-white/15 rounded-lg shadow-2xl">
-                <label className="block text-xs font-medium text-white/60 mb-2">
+                <label className="block jersey-20-regular text-xs md:text-sm text-white/60 mb-2">
                   Price Range (POL)
                 </label>
                 <div className="grid grid-cols-2 gap-2 mb-3">
@@ -275,14 +275,14 @@ export default memo(function MarketplaceFilters({
                     placeholder="Min"
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
+                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white jersey-20-regular text-sm md:text-base placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
+                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white jersey-20-regular text-sm md:text-base placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -294,14 +294,14 @@ export default memo(function MarketplaceFilters({
                       setIsPriceOpen(false);
                     }}
                     aria-label="Clear price range filter"
-                    className="flex-1 px-3 py-2 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-colors"
+                    className="flex-1 px-3 py-2 jersey-20-regular text-xs md:text-sm text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-colors"
                   >
                     Clear
                   </button>
                   <button
                     onClick={handlePriceFilter}
                     aria-label="Apply price range filter"
-                    className="flex-1 px-3 py-2 text-xs font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
+                    className="flex-1 px-3 py-2 jersey-20-regular text-xs md:text-sm font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
                   >
                     Apply
                   </button>
@@ -319,7 +319,7 @@ export default memo(function MarketplaceFilters({
             <button
               onClick={() => onCategoryChange('all')}
               aria-label={`Remove ${currentFilters.category} category filter`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/15 border border-purple-500/30 rounded-full text-xs font-medium text-purple-300 hover:bg-purple-500/25 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/15 border border-purple-500/30 rounded-full jersey-20-regular text-xs md:text-sm text-purple-300 hover:bg-purple-500/25 transition-colors"
             >
               <span>{categories.find(c => c.name === currentFilters.category)?.icon || '📁'}</span>
               <span>{currentFilters.category.charAt(0).toUpperCase() + currentFilters.category.slice(1)}</span>
@@ -332,7 +332,7 @@ export default memo(function MarketplaceFilters({
             <button
               onClick={() => onPriceRangeChange(0, Infinity)}
               aria-label={`Remove price filter: ${currentFilters.priceRange.min} to ${currentFilters.priceRange.max === Infinity ? 'unlimited' : currentFilters.priceRange.max} POL`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 border border-green-500/30 rounded-full text-xs font-medium text-green-300 hover:bg-green-500/25 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 border border-green-500/30 rounded-full jersey-20-regular text-xs md:text-sm text-green-300 hover:bg-green-500/25 transition-colors"
             >
               <span>💵</span>
               <span>
@@ -374,27 +374,27 @@ export default memo(function MarketplaceFilters({
               />
 
               <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
-                <label className="block text-xs font-medium text-white/60 mb-2">Price Range (POL)</label>
+                <label className="block jersey-20-regular text-xs md:text-sm text-white/60 mb-2">Price Range (POL)</label>
                 <div className="grid grid-cols-2 gap-2 mb-2">
                   <input
                     type="number"
                     placeholder="Min"
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
+                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white jersey-20-regular text-sm md:text-base placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
+                    className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white jersey-20-regular text-sm md:text-base placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20"
                   />
                 </div>
                 <button
                   onClick={handlePriceFilter}
                   aria-label="Apply price range filter"
-                  className="w-full px-3 py-2 text-xs font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
+                  className="w-full px-3 py-2 jersey-20-regular text-xs md:text-sm font-semibold bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all"
                 >
                   Apply Price Filter
                 </button>
@@ -404,7 +404,7 @@ export default memo(function MarketplaceFilters({
                 <button
                   onClick={clearFilters}
                   aria-label="Clear all active filters"
-                  className="w-full h-9 px-4 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-all duration-200"
+                  className="w-full h-9 px-4 jersey-20-regular text-xs md:text-sm text-white/60 border border-white/10 rounded-lg hover:bg-white/5 hover:text-white/80 transition-all duration-200"
                 >
                   Clear all filters
                 </button>

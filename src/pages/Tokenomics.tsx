@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { isMaintenanceMode } from '../config/maintenance';
 import { motion } from 'framer-motion';
 import { Doughnut } from 'react-chartjs-2';
 import {
@@ -16,6 +17,12 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Tokenomics: React.FC = () => {
     const isMobile = useIsMobile();
+
+    // Check maintenance mode (handled by TokenomicsMaintenance wrapper in router;
+    // this guard prevents direct access bypassing the wrapper)
+    if (isMaintenanceMode('tokenomics')) {
+        return null;
+    }
 
     const data = {
         labels: ['Community & Ecosystem', 'Dev Team', 'Marketing', 'Staking Rewards'],
@@ -80,10 +87,10 @@ const Tokenomics: React.FC = () => {
                     className="text-center mb-10 sm:mb-16 relative"
                 >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-purple-500/10 blur-[80px] sm:blur-[100px] rounded-full -z-10" />
-                    <h1 className={`font-bold mb-4 bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-3xl' : 'text-6xl tracking-tight'}`}>
+                    <h1 className={`jersey-15-regular mb-4 bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-4xl' : 'text-7xl md:text-8xl tracking-tight'}`}>
                         Tokenomics
                     </h1>
-                    <p className={`text-slate-400 max-w-2xl mx-auto font-medium ${isMobile ? 'text-xs px-2' : 'text-lg'}`}>
+                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-2' : 'text-2xl md:text-3xl'}`}>
                         A community-first economy designed for sustainable growth and long-term utility on Solana.
                     </p>
                 </motion.div>
@@ -110,25 +117,25 @@ const Tokenomics: React.FC = () => {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 1 }}
-                                    className={`text-slate-500 font-bold uppercase tracking-[0.2em] mb-1 ${isMobile ? 'text-[8px]' : 'text-xs'}`}
+                                    className={`jersey-20-regular text-slate-500 uppercase tracking-[0.2em] mb-1 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}
                                 >
                                     Total Supply
                                 </motion.span>
-                                <span className={`font-black text-white leading-none ${isMobile ? 'text-xl' : 'text-4xl'}`}>
-                                    1,000,000,000
+                                <span className={`jersey-20-regular text-white leading-none ${isMobile ? 'text-2xl' : 'text-5xl md:text-6xl'}`}>
+                                    21,000,000
                                 </span>
-                                <span className={`text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 font-bold mt-1 ${isMobile ? 'text-[10px]' : 'text-xl'}`}>
+                                <span className={`jersey-15-regular text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 mt-1 ${isMobile ? 'text-xs' : 'text-2xl md:text-3xl'}`}>
                                     $NUX TOKENS
                                 </span>
                             </div>
                         </div>
 
                         {/* Custom Legend */}
-                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'text-[10px]' : 'text-sm'}`}>
+                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'text-xs' : 'text-base md:text-lg'}`}>
                             {data.labels.map((label, idx) => (
                                 <div key={idx} className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 p-2 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-white/10 transition-colors cursor-default">
                                     <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0" style={{ backgroundColor: data.datasets[0].backgroundColor[idx] }} />
-                                    <span className="text-slate-300 font-semibold truncate">{label}</span>
+                                    <span className="jersey-20-regular text-slate-300 truncate">{label}</span>
                                 </div>
                             ))}
                         </div>
@@ -146,14 +153,14 @@ const Tokenomics: React.FC = () => {
                             <TokenInfoCard icon={<BarChart3Icon />} title="Token ID" value="Nuxchain" gradient="from-purple-500/20 to-transparent" />
                             <TokenInfoCard icon={<ZapIcon />} title="Ticker" value="$NUX" gradient="from-blue-500/20 to-transparent" />
                             <TokenInfoCard icon={<GlobeIcon />} title="Network" value="Solana" gradient="from-emerald-500/20 to-transparent" />
-                            <TokenInfoCard icon={<CpuIcon />} title="Supply Cap" value="1B Fixed" gradient="from-pink-500/20 to-transparent" />
+                            <TokenInfoCard icon={<CpuIcon />} title="Supply Cap" value="21M Fixed" gradient="from-pink-500/20 to-transparent" />
                         </div>
 
                         {/* Allocation Progress Bars */}
                         <div className={`card-unified relative overflow-hidden backdrop-blur-xl border-white/20 ${isMobile ? 'p-5 py-6' : 'p-8'}`}>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full" />
-                            <h3 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-black text-white tracking-tight flex items-center gap-2 sm:gap-3`}>
-                                Distribution <span className="text-xs sm:text-sm font-normal text-slate-500">Breakdown</span>
+                            <h3 className={`jersey-15-regular text-white tracking-tight flex items-center gap-2 sm:gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>
+                                Distribution <span className="jersey-20-regular text-xs sm:text-sm text-slate-500">Breakdown</span>
                             </h3>
 
                             <div className={`space-y-5 sm:y-6 ${isMobile ? 'mt-6' : 'mt-8'}`}>
@@ -288,14 +295,14 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                     transition={{ duration: 0.6 }}
                 >
                     <div className="inline-block mb-4">
-                        <span className={`px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 font-bold uppercase tracking-wider ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                        <span className={`jersey-15-regular px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 uppercase tracking-wider ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>
                             Polygon Network
                         </span>
                     </div>
-                    <h2 className={`font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-2xl' : 'text-5xl tracking-tight'}`}>
+                    <h2 className={`jersey-15-regular mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-3xl' : 'text-6xl md:text-7xl tracking-tight'}`}>
                         Ecosystem Economy
                     </h2>
-                    <p className={`text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-xs px-4' : 'text-base'}`}>
+                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-4' : 'text-xl md:text-2xl'}`}>
                         A comprehensive DeFi and NFT ecosystem on Polygon with staking, marketplace, skills, and gamification
                     </p>
                 </motion.div>
@@ -334,7 +341,7 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                 transition={{ duration: 0.6 }}
                 className={`card-unified border-white/20 backdrop-blur-xl ${isMobile ? 'p-6' : 'p-8'}`}
             >
-                <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white mb-6 flex items-center gap-3`}>
+                <h3 className={`jersey-15-regular text-white mb-6 flex items-center gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>
                     <span className="text-2xl">💰</span> Revenue Streams
                 </h3>
                 <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
@@ -350,10 +357,10 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                             <div className={`w-1 h-full ${stream.color} rounded-full`} />
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-white`}>{stream.source}</h4>
-                                    <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-black text-emerald-400`}>{stream.percentage}{typeof stream.percentage === 'number' ? '%' : ''}</span>
+                                    <h4 className={`jersey-15-regular text-white ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>{stream.source}</h4>
+                                    <span className={`jersey-20-regular text-emerald-400 ${isMobile ? 'text-sm' : 'text-base md:text-lg'}`}>{stream.percentage}{typeof stream.percentage === 'number' ? '%' : ''}</span>
                                 </div>
-                                <p className="text-slate-400 text-xs">{stream.description}</p>
+                                <p className="jersey-20-regular text-slate-400 text-sm md:text-base">{stream.description}</p>
                             </div>
                         </motion.div>
                     ))}
@@ -390,13 +397,13 @@ const EconomyFeatureCard: React.FC<{
         <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-50`} />
         <div className="relative z-10">
             <div className="text-4xl mb-3">{feature.icon}</div>
-            <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-white mb-2`}>{feature.title}</h3>
-            <p className="text-slate-400 text-xs mb-4 line-clamp-2">{feature.description}</p>
+            <h3 className={`jersey-15-regular text-white mb-2 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>{feature.title}</h3>
+            <p className="jersey-20-regular text-slate-400 text-sm md:text-base mb-4 line-clamp-2">{feature.description}</p>
             <div className="space-y-2">
                 {feature.metrics.map((metric, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs">
-                        <span className="text-slate-500">{metric.label}</span>
-                        <span className="font-bold text-white">{metric.value}</span>
+                    <div key={idx} className="flex justify-between items-center text-sm md:text-base">
+                        <span className="jersey-20-regular text-slate-500">{metric.label}</span>
+                        <span className="jersey-15-regular text-white">{metric.value}</span>
                     </div>
                 ))}
             </div>
@@ -452,7 +459,7 @@ const EconomyDetail: React.FC<{ featureId: string; isMobile: boolean }> = ({ fea
 
     return (
         <div>
-            <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-black text-white mb-6`}>{detail.title}</h3>
+            <h3 className={`jersey-15-regular text-white mb-6 ${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'}`}>{detail.title}</h3>
             <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                 {detail.items.map((item, idx) => (
                     <motion.div
@@ -464,8 +471,8 @@ const EconomyDetail: React.FC<{ featureId: string; isMobile: boolean }> = ({ fea
                     >
                         <div className="text-2xl shrink-0">{item.icon}</div>
                         <div>
-                            <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-bold text-white mb-1`}>{item.title}</h4>
-                            <p className="text-slate-400 text-xs">{item.description}</p>
+                            <h4 className={`jersey-15-regular text-white mb-1 ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>{item.title}</h4>
+                            <p className="jersey-20-regular text-slate-400 text-sm md:text-base">{item.description}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -483,8 +490,8 @@ const TokenInfoCard: React.FC<{ icon: React.ReactNode; title: string; value: str
             {React.cloneElement(icon as React.ReactElement<{ className: string }>, { className: 'w-6 h-6' })}
         </div>
         <div>
-            <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest">{title}</p>
-            <p className="text-white font-black text-lg">{value}</p>
+            <p className="jersey-20-regular text-slate-400 text-xs uppercase tracking-widest">{title}</p>
+            <p className="jersey-15-regular text-white text-xl md:text-2xl">{value}</p>
         </div>
     </motion.div>
 );
@@ -493,10 +500,10 @@ const AllocationItem: React.FC<{ label: string; percentage: number; description:
     <div className="space-y-3">
         <div className="flex justify-between items-end">
             <div>
-                <span className="text-slate-200 font-bold block leading-none mb-1">{label}</span>
-                <span className="text-slate-500 text-[11px] font-medium">{description}</span>
+                <span className="jersey-15-regular text-slate-200 block leading-none mb-1">{label}</span>
+                <span className="jersey-20-regular text-slate-500 text-xs md:text-sm">{description}</span>
             </div>
-            <span className="text-white font-black text-xl leading-none">{percentage}%</span>
+            <span className="jersey-15-regular text-white text-2xl md:text-3xl leading-none">{percentage}%</span>
         </div>
         <div className="w-full bg-slate-800/50 h-3 rounded-full overflow-hidden border border-white/5 p-[2px]">
             <motion.div

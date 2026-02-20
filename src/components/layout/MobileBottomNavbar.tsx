@@ -154,7 +154,7 @@ const MobileBottomNavbar: React.FC = () => {
                   </motion.div>
 
                   <motion.span
-                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
+                    className={`jersey-20-regular text-s mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
                       }`}
                     animate={{
                       scale: active ? 1.05 : 1,
@@ -194,7 +194,7 @@ const MobileBottomNavbar: React.FC = () => {
               >
                 <MenuIcon isActive={false} />
               </motion.div>
-              <span className="text-xs mt-2 font-medium truncate max-w-full text-gray-400 transition-colors duration-200">
+              <span className="jersey-20-regular text-s mt-2  truncate max-w-full text-gray-400 transition-colors duration-200">
                 Menú
               </span>
               {/* Indicador de notificación dinámico */}
@@ -274,7 +274,7 @@ const MobileBottomNavbar: React.FC = () => {
                         className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                       />
                     </div>
-                    <span className="text-lg font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent antialiased">
+                    <span className="text-4xl jersey-15-regular tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent antialiased">
                       Nuxchain
                     </span>
                   </div>
@@ -328,7 +328,7 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="text-white font-medium">Perfil</span>
+                      <span className="jersey-20-regular text-white">Perfil</span>
                     </Link>
                   </motion.div>
 
@@ -346,7 +346,7 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                       </svg>
-                      <span className="text-white font-medium">Airdrops</span>
+                      <span className="jersey-20-regular text-white">Airdrops</span>
                       {isMaintenanceMode('airdrop') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50 ml-auto"
@@ -371,7 +371,7 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                      <span className="text-white font-medium">AI Chat</span>
+                      <span className="jersey-20-regular text-white">AI Chat</span>
                     </Link>
                   </motion.div>
 
@@ -389,7 +389,7 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="text-white font-medium">Tokenomics</span>
+                      <span className="jersey-20-regular text-white">Tokenomics</span>
                       {isMaintenanceMode('tokenomics') && (
                         <motion.div
                           className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)] ml-auto"

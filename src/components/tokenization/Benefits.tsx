@@ -39,7 +39,7 @@ function Benefits() {
       y: 0,
       transition: {
         duration: shouldReduceMotion ? 0 : 0.35,
-        ease: 'easeOut',
+        ease: 'easeOut' as const,
       },
     },
   };
@@ -54,10 +54,10 @@ function Benefits() {
           transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
           className="mb-3 sm:mb-4 md:mb-5 text-center"
         >
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">
-            🌟 Why Create NFTs?
+          <h2 className="jersey-15-regular text-3xl md:text-5xl font-bold text-white mb-1">
+            Why Create NFTs?
           </h2>
-          <p className="text-white/50 text-xs sm:text-sm">
+          <p className="jersey-20-regular text-white/50 text-xl">
             Unlock the power of digital ownership and passive income
           </p>
         </motion.div>
@@ -109,10 +109,10 @@ function Benefits() {
 
                       {/* Title & Short Description */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-bold text-sm sm:text-base md:text-lg leading-snug text-left">
+                        <h3 className="jersey-15-regular text-white font-bold text-xl leading-snug text-left">
                           {benefit.title}
                         </h3>
-                        <p className="text-white/50 text-xs sm:text-sm mt-0.5">
+                        <p className="jersey-20-regular text-white/50 text-lg mt-0.5">
                           {benefit.description}
                         </p>
                       </div>
@@ -149,7 +149,7 @@ function Benefits() {
                         animate={{ y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <p className="text-white/70 text-xs sm:text-sm leading-relaxed">
+                        <p className="jersey-20-regular text-white/70 text-lg leading-relaxed">
                           {benefit.fullDescription}
                         </p>
 
@@ -160,8 +160,8 @@ function Benefits() {
                           transition={{ delay: 0.15, duration: 0.25 }}
                           className="mt-2.5 pt-2.5 border-t border-white/5"
                         >
-                          <p className="text-purple-300 text-xs font-medium">
-                            ✨ Ready to unlock this benefit? Start minting your NFTs today
+                          <p className="jersey-20-regular text-purple-300 text-lg font-medium">
+                            Ready to unlock this benefit? Start minting your NFTs today
                           </p>
                         </motion.div>
                       </motion.div>
@@ -190,11 +190,11 @@ function Benefits() {
           transition={{ delay: 0.4, duration: 0.3 }}
           className="mt-3 sm:mt-4 p-2 sm:p-2.5 rounded-lg border border-blue-500/20 bg-gradient-to-r from-blue-500/8 to-cyan-500/8 backdrop-blur-sm"
         >
-          <p className="text-blue-200/80 text-xs sm:text-sm text-center leading-snug">
-            💡 <span className="font-semibold">Pro Tip:</span> Ask to{' '}
+          <p className="jersey-20-regular text-blue-200/80 text-lg text-center leading-snug">
+            Pro Tip: Ask to{' '}
             <a
               href="/chat"
-              className="text-purple-400 font-bold text-base sm:text-lg underline hover:text-purple-500 transition-colors"
+              className="jersey-20-regular text-purple-400 font-bold text-2xl underline hover:text-purple-500 transition-colors"
               style={{ fontSize: '1.1em' }}
             >
               Nuxbee AI

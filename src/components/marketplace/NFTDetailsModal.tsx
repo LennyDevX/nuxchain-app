@@ -106,10 +106,10 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
               {/* Header */}
               <motion.div variants={itemVariants} className="relative z-10 flex justify-between items-start p-4 md:p-5 border-b border-white/8">
                 <div className="flex-1 min-w-0 pr-3">
-                  <h2 className="font-bold text-white text-base md:text-lg line-clamp-1">
+                  <h2 className="jersey-15-regular text-white text-base md:text-lg lg:text-xl line-clamp-1">
                     {nft.name || `NFT #${nft.tokenId}`}
                   </h2>
-                  <p className="text-xs text-white/50 mt-0.5">Collection • Token #{nft.tokenId}</p>
+                  <p className="jersey-20-regular text-xs text-white/50 mt-0.5">Collection • Token #{nft.tokenId}</p>
                 </div>
                 <motion.button
                   onClick={onClose}
@@ -134,8 +134,8 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                   {/* Description Section */}
                   {nft.description && (
                     <motion.div variants={itemVariants} className="p-3 md:p-4 space-y-1.5">
-                      <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Description</p>
-                      <p className="text-xs md:text-sm text-white/80 leading-relaxed line-clamp-2 hover:line-clamp-none transition-all">
+                      <p className="jersey-20-regular text-xs font-bold text-white/60 uppercase tracking-widest">Description</p>
+                      <p className="jersey-20-regular text-xs md:text-sm text-white/80 leading-relaxed line-clamp-2 hover:line-clamp-none transition-all">
                         {nft.description}
                       </p>
                     </motion.div>
@@ -143,7 +143,7 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
 
                   {/* Details Section */}
                   <motion.div variants={itemVariants} className="p-3 md:p-4 space-y-2">
-                    <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Details</p>
+                    <p className="jersey-20-regular text-xs font-bold text-white/60 uppercase tracking-widest">Details</p>
                     <div className="space-y-1.5">
                       {/* Creator */}
                       {nft.creator && (
@@ -151,9 +151,9 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                           whileHover={{ x: 4 }}
                           className="bg-gradient-to-r from-white/6 to-white/3 border border-white/10 rounded-lg p-2.5 backdrop-blur group hover:border-white/20 transition-all duration-200"
                         >
-                          <p className="text-xs text-white/50 font-semibold mb-0.5">Creator</p>
+                          <p className="jersey-20-regular text-xs text-white/50 font-semibold mb-0.5">Creator</p>
                           <div className="flex items-center justify-between gap-2">
-                            <code className="text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.creator)}</code>
+                            <code className="jersey-20-regular text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.creator)}</code>
                             <motion.button
                               onClick={() => copyToClipboard(nft.creator!, 'creator')}
                               whileHover={{ scale: 1.15 }}
@@ -176,9 +176,9 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                           whileHover={{ x: 4 }}
                           className="bg-gradient-to-r from-white/6 to-white/3 border border-white/10 rounded-lg p-2.5 backdrop-blur group hover:border-white/20 transition-all duration-200"
                         >
-                          <p className="text-xs text-white/50 font-semibold mb-0.5">Owner</p>
+                          <p className="jersey-20-regular text-xs text-white/50 font-semibold mb-0.5">Owner</p>
                           <div className="flex items-center justify-between gap-2">
-                            <code className="text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.owner)}</code>
+                            <code className="jersey-20-regular text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.owner)}</code>
                             <motion.button
                               onClick={() => copyToClipboard(nft.owner, 'owner')}
                               whileHover={{ scale: 1.15 }}
@@ -201,9 +201,9 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                           whileHover={{ x: 4 }}
                           className="bg-gradient-to-r from-white/6 to-white/3 border border-white/10 rounded-lg p-2.5 backdrop-blur group hover:border-white/20 transition-all duration-200"
                         >
-                          <p className="text-xs text-white/50 font-semibold mb-0.5">Contract</p>
+                          <p className="jersey-20-regular text-xs text-white/50 font-semibold mb-0.5">Contract</p>
                           <div className="flex items-center justify-between gap-2">
-                            <code className="text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.contract)}</code>
+                            <code className="jersey-20-regular text-xs md:text-sm text-white/90 font-mono">{formatAddress(nft.contract)}</code>
                             <motion.button
                               onClick={() => nft.contract && copyToClipboard(nft.contract, 'contract')}
                               whileHover={{ scale: 1.15 }}
@@ -225,7 +225,7 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                   {/* Attributes Section */}
                   {nft.attributes && nft.attributes.length > 0 && (
                     <motion.div variants={itemVariants} className="p-3 md:p-4 space-y-2">
-                      <p className="text-xs font-bold text-white/60 uppercase tracking-widest">Attributes</p>
+                      <p className="jersey-20-regular text-xs font-bold text-white/60 uppercase tracking-widest">Attributes</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5">
                         {nft.attributes.slice(0, 6).map((attr, idx) => (
                           <motion.div
@@ -233,8 +233,8 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                             whileHover={{ y: -2 }}
                             className="bg-gradient-to-br from-white/8 to-white/3 border border-white/12 rounded-lg p-2 text-center backdrop-blur hover:border-white/20 transition-all duration-200"
                           >
-                            <p className="text-xs text-white/50 mb-0.5">{attr.trait_type}</p>
-                            <p className="text-xs font-semibold text-white/90 truncate">{attr.value}</p>
+                            <p className="jersey-20-regular text-xs text-white/50 mb-0.5">{attr.trait_type}</p>
+                            <p className="jersey-15-regular text-xs text-white/90 truncate">{attr.value}</p>
                           </motion.div>
                         ))}
                       </div>
@@ -256,15 +256,15 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                     whileHover={{ scale: 1.05 }}
                     className={`${isMobile ? 'w-full' : ''}`}
                   >
-                    <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-1">Price</p>
+                    <p className="jersey-20-regular text-xs text-white/50 font-semibold uppercase tracking-widest mb-1">Price</p>
                     <div className={`flex ${isMobile ? 'justify-center' : 'items-baseline'} gap-1.5`}>
-                      <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                      <span className="jersey-15-regular text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                         {nft.priceInEth ? (nft.priceInEth < 0.01 ? nft.priceInEth.toFixed(6) : nft.priceInEth.toFixed(2)) : '0.10'}
                       </span>
-                      <span className="text-sm md:text-base font-semibold text-white/70">POL</span>
+                      <span className="jersey-20-regular text-sm md:text-base font-semibold text-white/70">POL</span>
                     </div>
                     {polPrice && (
-                      <p className="text-xs text-white/40 mt-0.5">
+                      <p className="jersey-20-regular text-xs text-white/40 mt-0.5">
                         ≈ {convertPOLToUSD(nft.priceInEth || 0.1)}
                       </p>
                     )}
@@ -275,10 +275,10 @@ export const NFTDetailsModal: React.FC<NFTDetailsModalProps> = ({ nft, isOpen, o
                     onClick={handleBuyClick}
                     whileHover={{ scale: 1.08, boxShadow: '0 20px 50px rgba(168, 85, 247, 0.4)' }}
                     whileTap={{ scale: 0.96 }}
-                    className={`relative font-semibold rounded-lg transition-all duration-300 ${
+                    className={`relative jersey-20-regular font-semibold rounded-lg transition-all duration-300 ${
                       isMobile
-                        ? 'w-full py-2.5 text-sm'
-                        : 'px-6 py-2.5 text-sm whitespace-nowrap'
+                        ? 'w-full py-2.5 text-sm md:text-base'
+                        : 'px-6 py-2.5 text-sm md:text-base whitespace-nowrap'
                     }`}
                     style={{
                       background: 'linear-gradient(135deg, #8b5cf6 0%, #dc2626 100%)',

@@ -20,13 +20,13 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon, color }
           {icon}
         </div>
         {change && (
-          <span className={`text-sm font-medium ${change.includes('+') ? 'text-green-400' : 'text-red-400'}`}>
+          <span className={`text-sm font-medium jersey-20-regular ${change.includes('+') ? 'text-green-400' : 'text-red-400'}`}>
             {change}
           </span>
         )}
       </div>
-      <p className="text-sm font-medium text-slate-400 mb-1">{title}</p>
-      <h3 className="text-3xl font-bold">{value}</h3>
+      <p className="text-sm font-medium text-slate-400 mb-1 jersey-20-regular">{title}</p>
+      <h3 className="text-3xl font-bold jersey-20-regular">{value}</h3>
     </div>
   );
 };
@@ -78,12 +78,12 @@ const StatCards: React.FC = () => {
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto">
         <h2 
-          className="text-3xl font-bold mb-4"
+          className="text-3xl font-bold mb-4 jersey-15-regular"
         >
           Impact of Our Artificial Intelligence
         </h2>
         <p 
-          className="text-slate-400"
+          className="text-slate-400 jersey-20-regular"
         >
           These numbers show the real impact of our AI tools on our users' experience and investment strategies.
         </p>
@@ -101,52 +101,52 @@ const StatCards: React.FC = () => {
       <div
         className="mt-12"
       >
-        <h3 className="text-xl font-bold mb-6 text-center">Evolution of Our AI Tools</h3>
+        <h3 className="text-xl font-bold mb-6 text-center jersey-15-regular">Evolution of Our AI Tools</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-content p-6">
-            <h4 className="font-semibold text-lg mb-4">2022</h4>
+            <h4 className="font-semibold text-lg mb-4 jersey-15-regular">2022</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <CheckIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Lanzamiento de NuxAI Beta</span>
+                <span className="text-slate-300 jersey-20-regular">Lanzamiento de NuxAI Beta</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Primera versión de IA para Staking</span>
+                <span className="text-slate-300 jersey-20-regular">Primera versión de IA para Staking</span>
               </li>
             </ul>
           </div>
           <div className="card-content p-6">
-            <h4 className="font-semibold text-lg mb-4">2023</h4>
+            <h4 className="font-semibold text-lg mb-4 jersey-15-regular">2023</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <CheckIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Integración con NFT Analytics</span>
+                <span className="text-slate-300 jersey-20-regular">Integración con NFT Analytics</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Lanzamiento del Asistente de IA</span>
+                <span className="text-slate-300 jersey-20-regular">Lanzamiento del Asistente de IA</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Optimizador de Cartera</span>
+                <span className="text-slate-300 jersey-20-regular">Optimizador de Cartera</span>
               </li>
             </ul>
           </div>
           <div className="card-content p-6">
-            <h4 className="font-semibold text-lg mb-4">2024 (Planificado)</h4>
+            <h4 className="font-semibold text-lg mb-4 jersey-15-regular">2024 (Planificado)</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">NFT Analytics Dashboard</span>
+                <span className="text-slate-300 jersey-20-regular">NFT Analytics Dashboard</span>
               </li>
               <li className="flex items-start gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">AI-Powered Trading Bot</span>
+                <span className="text-slate-300 jersey-20-regular">AI-Powered Trading Bot</span>
               </li>
               <li className="flex items-start gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <span className="text-slate-300">Governance AI</span>
+                <span className="text-slate-300 jersey-20-regular">Governance AI</span>
               </li>
             </ul>
           </div>

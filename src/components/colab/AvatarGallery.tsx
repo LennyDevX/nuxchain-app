@@ -52,10 +52,10 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
+        <h2 className="jersey-15-regular text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
           Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Avatar</span>
         </h2>
-        <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+        <p className="jersey-20-regular text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
           12 exclusive collaborator slots. Each avatar is unique and can only be minted once. 
           Select an available avatar to join the NuxChain ecosystem.
         </p>
@@ -64,23 +64,23 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
           <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
             <UsersIcon className="w-4 h-4 text-purple-400" />
-            <span className="text-gray-400 text-sm">Total Slots:</span>
-            <span className="text-white font-black">{TOTAL_AVATAR_SLOTS}</span>
+            <span className="jersey-15-regular text-gray-400 text-sm">Total Slots:</span>
+            <span className="jersey-20-regular text-white">{TOTAL_AVATAR_SLOTS}</span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-xl border border-green-500/20">
             <CheckIcon className="w-4 h-4 text-green-400" />
-            <span className="text-gray-400 text-sm">Available:</span>
-            <span className="text-green-400 font-black">{availableCount}</span>
+            <span className="jersey-15-regular text-gray-400 text-sm">Available:</span>
+            <span className="jersey-20-regular text-green-400">{availableCount}</span>
           </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-500/10 rounded-xl border border-gray-500/20">
             <LockIcon className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-400 text-sm">Minted:</span>
-            <span className="text-gray-400 font-black">{mintedCount}</span>
+            <span className="jersey-15-regular text-gray-400 text-sm">Minted:</span>
+            <span className="jersey-20-regular text-gray-400">{mintedCount}</span>
           </div>
           <button
             onClick={refresh}
             disabled={isLoading}
-            className="px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl text-purple-400 text-sm font-bold uppercase tracking-wide transition-all disabled:opacity-50"
+            className="jersey-20-regular px-4 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl text-purple-400 text-sm uppercase tracking-wide transition-all disabled:opacity-50"
           >
             {isLoading ? 'Loading...' : 'Refresh'}
           </button>
@@ -91,7 +91,7 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
       {!isConnected && (
         <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center gap-3">
           <WalletIcon className="w-5 h-5 text-amber-400" />
-          <span className="text-amber-400 text-sm font-bold">
+          <span className="jersey-20-regular text-amber-400 text-sm">
             Connect your wallet to check avatar availability and mint
           </span>
         </div>
@@ -155,7 +155,7 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
                   {isMinted && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
                       <LockIcon className="w-10 h-10 text-gray-500 mb-1" />
-                      <span className="text-gray-400 font-bold uppercase text-[10px] tracking-wider">
+                      <span className="jersey-15-regular text-gray-400 uppercase text-[10px] tracking-wider">
                         Minted
                       </span>
                     </div>
@@ -174,13 +174,13 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
                   <div 
                     className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-black/80 backdrop-blur-sm rounded-full border border-white/20"
                   >
-                    <span className="text-white font-black text-xs">#{avatar.id}</span>
+                    <span className="jersey-20-regular text-white text-xs">#{avatar.id}</span>
                   </div>
                 </div>
 
                 {/* Rarity Badge - floating */}
                 <div 
-                  className="absolute -top-2 -right-2 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg"
+                  className="jersey-15-regular absolute -top-2 -right-2 px-2 py-1 rounded-full text-[10px] uppercase tracking-wider shadow-lg"
                   style={{ 
                     backgroundColor: `${rarityColor}`,
                     color: '#000',
@@ -193,25 +193,25 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
 
               {/* Bottom Info */}
               <div className="mt-4 text-center">
-                <h3 className={`font-black text-sm uppercase tracking-wide mb-1 transition-colors ${
+                <h3 className={`jersey-15-regular text-sm md:text-base uppercase tracking-wide mb-1 transition-colors ${
                   isSelected ? 'text-green-400' : 'text-white'
                 }`}>
                   {avatar.name}
                 </h3>
-                <p className="text-gray-500 text-xs mb-2">{avatar.role}</p>
+                <p className="jersey-20-regular text-gray-500 text-xs md:text-sm mb-2">{avatar.role}</p>
                 {isMinted ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-full text-gray-500 text-[10px] font-bold uppercase">
+                  <span className="jersey-15-regular inline-flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-full text-gray-500 text-[10px] uppercase">
                     <LockIcon className="w-3 h-3" />
                     Unavailable
                   </span>
                 ) : isSelected ? (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-green-400 text-[10px] font-bold uppercase">
+                  <span className="jersey-15-regular inline-flex items-center gap-1 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-green-400 text-[10px] uppercase">
                     <CheckIcon className="w-3 h-3" />
                     Selected
                   </span>
                 ) : (
                   <span 
-                    className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase transition-all"
+                    className="jersey-15-regular inline-block px-3 py-1 rounded-full text-[10px] uppercase transition-all"
                     style={{ 
                       backgroundColor: `${rarityColor}20`,
                       color: rarityColor,
@@ -231,19 +231,19 @@ export default function AvatarGallery({ onSelectAvatar, selectedAvatar }: Avatar
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-amber-500"></span>
-          <span className="text-gray-400">Legendary (Slots 1-3)</span>
+          <span className="jersey-20-regular text-gray-400">Legendary (Slots 1-3)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-pink-500"></span>
-          <span className="text-gray-400">Epic (Slots 4-6)</span>
+          <span className="jersey-20-regular text-gray-400">Epic (Slots 4-6)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-          <span className="text-gray-400">Rare (Slots 7-9)</span>
+          <span className="jersey-20-regular text-gray-400">Rare (Slots 7-9)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-          <span className="text-gray-400">Uncommon (Slots 10-12)</span>
+          <span className="jersey-20-regular text-gray-400">Uncommon (Slots 10-12)</span>
         </div>
       </div>
     </div>

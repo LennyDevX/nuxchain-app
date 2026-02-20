@@ -52,8 +52,8 @@ export default function RewardDashboard() {
                 <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <span className="text-amber-500 text-2xl">⚠️</span>
                 </div>
-                <h3 className="text-xl font-bold text-white">Badge Required</h3>
-                <p className="text-slate-400 max-w-sm mx-auto">
+                <h3 className="jersey-15-regular text-xl font-bold text-white">Badge Required</h3>
+                <p className="jersey-20-regular text-slate-400 max-w-sm mx-auto">
                     You need a Moderator Badge NFT to access rewards. Go to the "Identification" tab to mint yours.
                 </p>
             </div>
@@ -65,24 +65,24 @@ export default function RewardDashboard() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="p-6 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
-                    <p className="text-slate-400 text-sm mb-1">Pending Rewards</p>
+                    <p className="jersey-15-regular text-slate-400 text-sm mb-1">Pending Rewards</p>
                     <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold text-cyan-400">{MOCK_REWARDS.pending}</span>
-                        <span className="text-slate-500 mb-1 font-medium">NUX</span>
+                        <span className="jersey-20-regular text-3xl text-cyan-400">{MOCK_REWARDS.pending}</span>
+                        <span className="jersey-20-regular text-slate-500 mb-1">NUX</span>
                     </div>
                 </div>
 
                 <div className="p-6 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
-                    <p className="text-slate-400 text-sm mb-1">Total Claimed</p>
+                    <p className="jersey-15-regular text-slate-400 text-sm mb-1">Total Claimed</p>
                     <div className="flex items-end gap-2">
-                        <span className="text-3xl font-bold text-white">{MOCK_REWARDS.totalClaimed}</span>
-                        <span className="text-slate-500 mb-1 font-medium">NUX</span>
+                        <span className="jersey-20-regular text-3xl text-white">{MOCK_REWARDS.totalClaimed}</span>
+                        <span className="jersey-20-regular text-slate-500 mb-1">NUX</span>
                     </div>
                 </div>
 
                 <div className="p-6 bg-slate-800/50 border border-slate-700/50 rounded-2xl">
-                    <p className="text-slate-400 text-sm mb-1">Next Distribution</p>
-                    <span className="text-xl font-semibold text-slate-200">{MOCK_REWARDS.nextDistribution}</span>
+                    <p className="jersey-15-regular text-slate-400 text-sm mb-1">Next Distribution</p>
+                    <span className="jersey-20-regular text-xl text-slate-200">{MOCK_REWARDS.nextDistribution}</span>
                 </div>
             </div>
 
@@ -92,20 +92,20 @@ export default function RewardDashboard() {
 
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Available for Withdrawal</h3>
-                        <p className="text-slate-400">Claim your worked hours rewards directly to your wallet.</p>
+                        <h3 className="jersey-15-regular text-2xl text-white mb-2">Available for Withdrawal</h3>
+                        <p className="jersey-20-regular text-slate-400">Claim your worked hours rewards directly to your wallet.</p>
                     </div>
 
                     <div className="w-full md:w-auto">
                         {showSuccess ? (
-                            <div className="px-8 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold text-center">
+                            <div className="jersey-20-regular px-8 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-center">
                                 Payment Sent!
                             </div>
                         ) : (
                             <button
                                 onClick={handleClaim}
                                 disabled={claiming || MOCK_REWARDS.pending === "0.00"}
-                                className="w-full md:w-auto px-12 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] disabled:opacity-50"
+                                className="jersey-20-regular w-full md:w-auto px-12 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] disabled:opacity-50"
                             >
                                 {claiming ? "Processing..." : "Claim Rewards"}
                             </button>
@@ -116,23 +116,23 @@ export default function RewardDashboard() {
 
             {/* History Table */}
             <div>
-                <h3 className="text-xl font-bold text-white mb-6">Reward History</h3>
+                <h3 className="jersey-15-regular text-xl text-white mb-6">Reward History</h3>
                 <div className="overflow-hidden border border-slate-800 rounded-2xl">
                     <table className="w-full text-left">
                         <thead className="bg-slate-800/50">
                             <tr>
-                                <th className="px-6 py-4 text-slate-400 font-semibold text-sm">Date</th>
-                                <th className="px-6 py-4 text-slate-400 font-semibold text-sm">Amount</th>
-                                <th className="px-6 py-4 text-slate-400 font-semibold text-sm">Status</th>
+                                <th className="jersey-20-regular px-6 py-4 text-slate-400 text-sm">Date</th>
+                                <th className="jersey-20-regular px-6 py-4 text-slate-400 text-sm">Amount</th>
+                                <th className="jersey-20-regular px-6 py-4 text-slate-400 text-sm">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800">
                             {MOCK_REWARDS.history.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
-                                    <td className="px-6 py-4 text-slate-300">{item.date}</td>
-                                    <td className="px-6 py-4 text-white font-medium">{item.amount}</td>
+                                    <td className="jersey-20-regular px-6 py-4 text-slate-300">{item.date}</td>
+                                    <td className="jersey-20-regular px-6 py-4 text-white">{item.amount}</td>
                                     <td className="px-6 py-4">
-                                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full">
+                                        <span className="jersey-20-regular px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full">
                                             {item.status}
                                         </span>
                                     </td>

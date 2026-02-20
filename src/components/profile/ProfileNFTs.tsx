@@ -81,10 +81,12 @@ const ProfileNFTs: React.FC = () => {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className={`font-bold jersey-15-regular text-gradient ${
+            isMobile ? 'text-4xl' : 'text-5xl'
+          }`}>
             My NFTs
           </h1>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className={`jersey-20-regular text-gray-400 mt-2 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             Colección de NFTs en tu wallet {totalCount > 0 && `(${totalCount})`}
           </p>
         </div>

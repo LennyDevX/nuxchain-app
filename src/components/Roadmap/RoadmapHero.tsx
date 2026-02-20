@@ -48,7 +48,7 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
       >
         <motion.div variants={itemVariants}>
           <motion.span
-            className={`inline-block px-3 py-1 font-semibold tracking-wider text-purple-400 bg-purple-900/20 rounded-full border border-purple-500/30 ${isMobile ? 'text-xs mb-4' : 'text-xs mb-6'
+            className={`inline-block px-3 py-1 jersey-15-regular tracking-wider text-purple-400 bg-purple-900/20 rounded-full border border-purple-500/30 ${isMobile ? 'text-xs mb-4' : 'text-sm md:text-base mb-6'
               }`}
             whileHover={{ scale: 1.05, borderColor: 'rgb(192, 132, 250)' }}
             transition={{ type: 'spring', stiffness: 300 }}
@@ -58,7 +58,7 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
         </motion.div>
 
         <motion.h1
-          className={`font-bold text-gradient ${isMobile ? 'text-3xl mb-4' : 'text-4xl sm:text-5xl md:text-6xl mb-6'
+          className={`jersey-15-regular text-gradient ${isMobile ? 'text-4xl mb-4' : 'text-5xl sm:text-6xl md:text-7xl mb-6'
             }`}
           variants={itemVariants}
         >
@@ -66,7 +66,7 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
         </motion.h1>
 
         <motion.p
-          className={`text-slate-300 max-w-3xl mx-auto ${isMobile ? 'text-base mb-6' : 'text-xl mb-10'
+          className={`jersey-20-regular text-slate-300 max-w-3xl mx-auto ${isMobile ? 'text-lg mb-6' : 'text-xl md:text-2xl mb-10'
             }`}
           variants={itemVariants}
         >
@@ -88,14 +88,14 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             whileHover={{ y: -4, scale: 1.02 }}
           >
             <motion.div
-              className={`font-bold text-green-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}
+              className={`jersey-15-regular text-green-400 ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, delay: 0.3 }}
             >
               3
             </motion.div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Phases</div>
+            <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>Phases</div>
           </motion.div>
           <motion.div
             className="card-content p-4"
@@ -103,14 +103,14 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             whileHover={{ y: -4, scale: 1.02 }}
           >
             <motion.div
-              className={`font-bold text-blue-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}
+              className={`jersey-15-regular text-blue-400 ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, delay: 0.35 }}
             >
               {total}
             </motion.div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Milestones</div>
+            <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>Milestones</div>
           </motion.div>
           <motion.div
             className="card-content p-4"
@@ -118,14 +118,14 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             whileHover={{ y: -4, scale: 1.02 }}
           >
             <motion.div
-              className={`font-bold text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}
+              className={`jersey-15-regular text-purple-400 ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
             >
               {achieved.length}
             </motion.div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Achieved</div>
+            <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>Achieved</div>
           </motion.div>
           <motion.div
             className="card-content p-4"
@@ -133,14 +133,14 @@ const RoadmapHero: React.FC<RoadmapHeroProps> = ({ isMobile }) => {
             whileHover={{ y: -4, scale: 1.02 }}
           >
             <motion.div
-              className={`font-bold text-amber-400 ${isMobile ? 'text-2xl' : 'text-3xl'}`}
+              className={`jersey-15-regular text-amber-400 ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, delay: 0.45 }}
             >
               {progress}%
             </motion.div>
-            <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Progress</div>
+            <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>Progress</div>
           </motion.div>
         </motion.div>
       </motion.div>

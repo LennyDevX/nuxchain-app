@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { isMaintenanceMode } from '../config/maintenance';
+import ColabMaintenance from './ColabMaintenance';
 import { useAccount } from 'wagmi';
 import AvatarGallery from '../components/colab/AvatarGallery';
 import CategorySelector, { type BadgeRole } from '../components/colab/CategorySelector';
@@ -23,6 +25,11 @@ export default function ColabPortal() {
   const [txHash, setTxHash] = useState<string | null>(null);
   
   const { mintNFT, loading: mintLoading, error: mintError } = useMintNFT();
+
+  // Check maintenance mode after all hooks are called
+  if (isMaintenanceMode('colab')) {
+    return <ColabMaintenance />;
+  }
 
   const handleAvatarSelect = (avatar: AvatarSlot) => {
     setSelectedAvatar(avatar);
@@ -136,10 +143,10 @@ export default function ColabPortal() {
                 {/* Hero Section */}
                 <div className="relative pt-24 md:pt-32 pb-12 md:pb-20 px-4 overflow-hidden">
                     <div className="max-w-7xl mx-auto relative z-10 text-center">
-                        <h1 className="text-4xl md:text-7xl font-black mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#8b5cf6] via-[#ec4899] to-[#ef4444] animate-gradient-text uppercase tracking-tighter">
+                        <h1 className="text-4xl md:text-7xl jersey-15-regular mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#8b5cf6] via-[#ec4899] to-[#ef4444] animate-gradient-text uppercase tracking-tighter">
                             Collaborator Portal
                         </h1>
-                        <p className="text-gray-400 text-base md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 font-medium leading-relaxed">
+                        <p className="jersey-20-regular text-gray-400 text-base md:text-xl max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">
                             Welcome, Moderator. This is your dedicated space to manage your identity within NuxChain and claim your rewards.
                         </p>
 
@@ -147,10 +154,10 @@ export default function ColabPortal() {
                 {activeTab === 'identification' && (
                   <div className="max-w-md mx-auto mb-8">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-gray-400 text-xs font-bold uppercase tracking-wide">
+                      <span className="jersey-20-regular text-gray-400 text-xs uppercase tracking-wide">
                         Step {getStepNumber()} of {getTotalSteps()}
                       </span>
-                      <span className="text-purple-400 text-xs font-bold uppercase tracking-wide">
+                      <span className="jersey-20-regular text-purple-400 text-xs uppercase tracking-wide">
                         {mintingStep === 'gallery' && 'Select Avatar'}
                         {mintingStep === 'selection' && 'Confirm Role'}
                         {mintingStep === 'customization' && 'Customize Badge'}
@@ -169,7 +176,7 @@ export default function ColabPortal() {
                 <div className="flex flex-row justify-center gap-3 md:gap-4 mb-8 md:mb-12 w-full max-w-md mx-auto">
                     <button
                         onClick={() => setActiveTab('identification')}
-                        className={`flex-1 py-3 md:py-4 rounded-xl font-black uppercase tracking-wider text-xs md:text-base transition-all duration-300 ${activeTab === 'identification'
+                        className={`flex-1 py-3 md:py-4 rounded-xl jersey-20-regular uppercase tracking-wider text-xs md:text-xl transition-all duration-300 ${activeTab === 'identification'
                             ? 'bg-gradient-to-r from-[#8b5cf6] to-[#5b21b6] text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] scale-105'
                             : 'bg-[#1a1a1a]/40 text-gray-400 border border-white/5 hover:border-purple-500/30'
                             }`}
@@ -178,7 +185,7 @@ export default function ColabPortal() {
                     </button>
                     <button
                         onClick={() => setActiveTab('rewards')}
-                        className={`flex-1 py-3 md:py-4 rounded-xl font-black uppercase tracking-wider text-xs md:text-base transition-all duration-300 ${activeTab === 'rewards'
+                        className={`flex-1 py-3 md:py-4 rounded-xl jersey-20-regular uppercase tracking-wider text-xs md:text-xl transition-all duration-300 ${activeTab === 'rewards'
                             ? 'bg-gradient-to-r from-[#8b5cf6] to-[#5b21b6] text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] scale-105'
                             : 'bg-[#1a1a1a]/40 text-gray-400 border border-white/5 hover:border-purple-500/30'
                             }`}
@@ -208,7 +215,7 @@ export default function ColabPortal() {
                                                 <div className="mt-8 flex justify-center">
                                                     <button
                                                         onClick={() => setMintingStep('selection')}
-                                                        className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white font-black text-lg uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] transform hover:-translate-y-1 active:scale-[0.98]"
+                                                        className="px-12 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white font-black text-lg jersey-20-regular uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] transform hover:-translate-y-1 active:scale-[0.98]"
                                                     >
                                                         Continue to Role Selection →
                                                     </button>
@@ -221,7 +228,7 @@ export default function ColabPortal() {
                                             <div className="mb-6">
                                                 <button
                                                     onClick={handleBackToGallery}
-                                                    className="text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wide flex items-center gap-2 transition-colors"
+                                                    className="jersey-20-regular text-gray-400 hover:text-white text-sm uppercase tracking-wide flex items-center gap-2 transition-colors"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
                                                         <path d="m12 19-7-7 7-7" />
@@ -238,7 +245,7 @@ export default function ColabPortal() {
                                                 <button
                                                     onClick={() => canProceedToCustomization && setMintingStep('customization')}
                                                     disabled={!canProceedToCustomization}
-                                                    className={`px-12 py-4 font-black text-lg uppercase tracking-[0.2em] rounded-2xl transition-all ${
+                                                    className={`px-12 py-4 jersey-20-regular text-lg uppercase tracking-[0.2em] rounded-2xl transition-all ${
                                                         canProceedToCustomization
                                                             ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white shadow-[0_10px_30px_rgba(139,92,246,0.4)] transform hover:-translate-y-1 active:scale-[0.98] cursor-pointer'
                                                             : 'bg-white/5 border-2 border-dashed border-white/10 text-gray-600 cursor-not-allowed'

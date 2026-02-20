@@ -122,10 +122,10 @@ export default function ModNFTMint() {
             {/* Content Side */}
             <div className="w-full md:w-1/2 space-y-6 md:space-y-8 text-center md:text-left">
                 <div>
-                    <h2 className="text-3xl md:text-5xl font-black text-white mb-3 md:mb-4 uppercase tracking-tighter leading-none">
+                    <h2 className="jersey-15-regular text-3xl md:text-5xl text-white mb-3 md:mb-4 uppercase tracking-tighter leading-none">
                         Claim <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 block md:inline mt-1 md:mt-0">{currentBadge.role}</span> Badge
                     </h2>
-                    <p className="text-gray-400 text-base md:text-lg font-medium leading-relaxed">
+                    <p className="jersey-20-regular text-gray-400 text-base md:text-lg leading-relaxed">
                         {currentBadge.description} This NFT verifies your contribution to the NuxChain ecosystem.
                     </p>
                 </div>
@@ -133,15 +133,15 @@ export default function ModNFTMint() {
                 <div className="space-y-4 text-left">
                     <div className="p-4 md:p-5 bg-gradient-to-r from-purple-500/10 to-transparent border-l-4 border-purple-500 rounded-r-xl">
                         <ul className="space-y-2 md:space-y-3">
-                            <li className="flex items-center gap-3 text-gray-300 font-bold text-xs md:text-sm uppercase tracking-wide">
+                            <li className="flex items-center gap-3 jersey-15-regular text-gray-300 text-xs md:text-sm uppercase tracking-wide">
                                 <span className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-[10px] flex-shrink-0">✓</span>
                                 Zero Cost Minting
                             </li>
-                            <li className="flex items-center gap-3 text-gray-300 font-bold text-xs md:text-sm uppercase tracking-wide">
+                            <li className="flex items-center gap-3 jersey-15-regular text-gray-300 text-xs md:text-sm uppercase tracking-wide">
                                 <span className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-[10px] flex-shrink-0">✓</span>
                                 Verified On-Chain ID
                             </li>
-                            <li className="flex items-center gap-3 text-gray-300 font-bold text-xs md:text-sm uppercase tracking-wide">
+                            <li className="flex items-center gap-3 jersey-15-regular text-gray-300 text-xs md:text-sm uppercase tracking-wide">
                                 <span className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 text-[10px] flex-shrink-0">✓</span>
                                 Revenue Share Eligible
                             </li>
@@ -151,19 +151,19 @@ export default function ModNFTMint() {
 
                 <div className="pt-2">
                     {!isConnected ? (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs md:text-sm font-black uppercase tracking-widest text-center">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl jersey-15-regular text-red-400 text-xs md:text-sm uppercase tracking-widest text-center">
                             Wallet Connection Required
                         </div>
                     ) : success ? (
                         <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-2xl animate-scaleIn text-center">
-                            <h3 className="text-green-500 font-black mb-3 uppercase tracking-widest">
+                            <h3 className="jersey-15-regular text-green-500 mb-3 uppercase tracking-widest">
                                 Verification Success
                             </h3>
                             <a
                                 href={`https://polygonscan.com/tx/${txHash}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block bg-white/5 hover:bg-white/10 px-6 py-3 rounded-xl text-white text-xs font-black border border-white/10 transition-all uppercase tracking-widest"
+                                className="inline-block jersey-15-regular bg-white/5 hover:bg-white/10 px-6 py-3 rounded-xl text-white text-xs border border-white/10 transition-all uppercase tracking-widest"
                             >
                                 View Receipt
                             </a>
@@ -172,7 +172,7 @@ export default function ModNFTMint() {
                         <button
                             onClick={handleMintBadge}
                             disabled={isMinting || loading}
-                            className="w-full py-4 md:py-5 bg-gradient-to-r from-[#8b5cf6] via-[#ec4899] to-[#ef4444] hover:opacity-90 text-white font-black text-lg md:text-xl uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
+                            className="jersey-20-regular w-full py-4 md:py-5 bg-gradient-to-r from-[#8b5cf6] via-[#ec4899] to-[#ef4444] hover:opacity-90 text-white text-lg md:text-xl uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
                         >
                             {isMinting || loading ? (
                                 <span className="flex items-center justify-center gap-3">
@@ -187,7 +187,7 @@ export default function ModNFTMint() {
                     )}
 
                     {error && (
-                        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold text-center uppercase tracking-widest animate-shake">
+                        <div className="jersey-20-regular mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center uppercase tracking-widest animate-shake">
                             {error}
                         </div>
                     )}

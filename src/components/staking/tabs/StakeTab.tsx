@@ -47,7 +47,7 @@ const StakeTab = memo(({
     <div className="space-y-6">
       <div>
         <label
-          className="block text-white/80 font-medium mb-2"
+          className="block jersey-15-regular text-white/80 font-medium mb-2"
           style={{ fontSize: `${fontSize.label}px` }}
         >
           Amount to deposit (POL)
@@ -58,30 +58,30 @@ const StakeTab = memo(({
             value={depositAmount}
             onChange={handleAmountChange}
             placeholder="0.0"
-            className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+            className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 jersey-20-regular text-white placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
           />
           {depositAmount && (
             <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <p className="text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
+              <p className="jersey-20-regular text-blue-400" style={{ fontSize: `${fontSize.hint}px` }}>
                 💡 6% Commission: {(parseFloat(depositAmount) * 0.06).toFixed(4)} POL
               </p>
-              <p className="text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
+              <p className="jersey-20-regular text-white/60" style={{ fontSize: `${fontSize.hint - 1}px` }}>
                 Effective deposit amount: {(parseFloat(depositAmount) * 0.94).toFixed(4)} POL
               </p>
             </div>
           )}
-          <div className="absolute right-3 top-3 text-white/60 text-sm">
+          <div className="absolute right-3 top-3 jersey-20-regular text-white/60 text-sm lg:text-base">
             POL
           </div>
         </div>
-        <div className="mt-2 text-sm text-white/60">
+        <div className="mt-2 jersey-20-regular text-sm lg:text-base text-white/60">
           Balance: {balance ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(4)} ${balance.symbol}` : '0 POL'}
         </div>
       </div>
 
       {/* Period Selector Grid */}
       <div className="space-y-3">
-        <label className="text-white/80 text-sm font-medium">Lockup Period</label>
+        <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium">Lockup Period</label>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {STAKING_PERIODS.map((period) => (
             <button
@@ -97,12 +97,12 @@ const StakeTab = memo(({
               `}
             >
               <div className="text-center">
-                <p className={`text-sm font-bold mb-1 ${
+                <p className={`jersey-15-regular text-sm lg:text-base font-bold mb-1 ${
                   lockupDuration === period.value ? 'text-emerald-400' : 'text-white'
                 }`}>
                   {period.label}
                 </p>
-                <p className="text-xs text-white/60">{period.roi.annual}</p>
+                <p className="jersey-20-regular text-xs lg:text-sm text-white/60">{period.roi.annual}</p>
               </div>
               {lockupDuration === period.value && (
                 <div className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
@@ -115,7 +115,7 @@ const StakeTab = memo(({
       <button
         onClick={onDeposit}
         disabled={!depositAmount || isPending || isConfirming || isPaused}
-        className="w-full btn-primary"
+        className="w-full btn-primary jersey-20-regular text-lg lg:text-xl"
       >
         {isPaused ? 'Contract Paused' : isPending || isConfirming ? 'Processing...' : 'Stake Now'}
       </button>

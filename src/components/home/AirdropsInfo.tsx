@@ -17,7 +17,7 @@ const AirdropsInfo = () => {
           transition={{ duration: 0.7, delay: 0.1 }}
         >
           <motion.h2
-            className={`${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 text-center md:text-left`}
+            className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-4xl md:text-7xl'} font-bold text-white mb-6 text-center md:text-left`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.25 }}
@@ -25,7 +25,7 @@ const AirdropsInfo = () => {
             Exclusive <span className="text-gradient">NFT Airdrops</span>
           </motion.h2>
           <motion.p
-            className={`${isMobile ? 'text-lg' : 'text-xl'} text-gray-300 mb-8 text-center md:text-left`}
+            className={`jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'} text-gray-300 mb-8 text-center md:text-left`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -40,13 +40,13 @@ const AirdropsInfo = () => {
           >
             <button
               onClick={() => navigate('/airdrops')}
-              className={`bg-white text-purple-600 ${isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'} btn-primary`}
+              className={`jersey-20-regular bg-white text-purple-600 ${isMobile ? 'px-6 py-3 text-xl' : 'px-8 py-4 text-2xl'} btn-primary`}
             >
               Explore Airdrops
             </button>
             <button
               onClick={() => navigate('/nfts')}
-              className={`border-2 border-white text-white ${isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'} btn-secondary`}
+              className={`jersey-20-regular border-2 border-white text-white ${isMobile ? 'px-6 py-3 text-xl' : 'px-8 py-4 text-2xl'} btn-secondary`}
             >
               Learn More About NFTs
             </button>

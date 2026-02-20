@@ -44,18 +44,18 @@ function StatCard({ title, value, subtitle, icon, loading }: StatCardProps) {
       whileHover={{ scale: 1.02, y: -4 }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-white/60 text-xs font-medium truncate uppercase tracking-wide">{title}</span>
-        <span className="text-xl group-hover:scale-110 transition-transform duration-300">{icon}</span>
+        <span className="jersey-20-regular text-white/60 text-xl md:text-2xl uppercase tracking-wide">{title}</span>
+        <span className="text-2xl md:text-3xl group-hover:scale-110 transition-transform duration-300">{icon}</span>
       </div>
 
       <div className="mb-2">
-        <h3 className="text-2xl font-bold text-white truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+        <h3 className="jersey-15-regular text-3xl md:text-4xl text-white truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
           {typeof value === 'number' ? value.toLocaleString() : value}
         </h3>
       </div>
 
       {subtitle && (
-        <div className="text-white/50 text-sm truncate font-medium">
+        <div className="jersey-20-regular text-white/50 text-xl md:text-xl truncate">
           {subtitle}
         </div>
       )}
@@ -151,11 +151,11 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
       >
         {/* Left side: Floor Price info */}
         <div className="flex-1 pr-4">
-          <p className="text-xs text-white/60 mb-1.5">Floor Price</p>
-          <p className="font-bold text-white text-base">
+          <p className="jersey-20-regular text-base text-white/60 mb-1.5">Floor Price</p>
+          <p className="jersey-15-regular font-bold text-white text-2xl">
             {loading ? '...' : `${formattedStats.floorPrice} POL`}
           </p>
-          <p className="text-xs text-white/50 font-medium">
+          <p className="jersey-20-regular text-lg text-white/50">
             {loading ? '...' : formattedStats.floorPriceUSD}
           </p>
         </div>
@@ -229,6 +229,7 @@ function MarketplaceStatsComponent({ stats, loading = false, className = '' }: M
                 value={`${formattedStats.totalMarketValue} POL`}
                 subtitle={formattedStats.totalMarketValueUSD}
                 icon="📈"
+                
                 loading={loading}
               />
             </motion.div>

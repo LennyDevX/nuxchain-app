@@ -22,7 +22,29 @@ body {
   background: var(--primary-black);
   color: var(--pure-white);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Jersey 10 font for titles */
+.font-jersey {
+  font-family: 'Jersey 10', cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Jersey 15 font for titles */
+.jersey-15-regular {
+  font-family: "Jersey 15", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Jersey 20 font for paragraphs and text */
+.jersey-20-regular {
+  font-family: "Jersey 20", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 * {

@@ -62,7 +62,7 @@ export default function ProgressIndicator({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-2xl font-bold text-white mb-2"
+          className="jersey-15-regular text-3xl md:text-4xl font-bold text-white mb-2"
         >
           {phase === 'success' ? '🎉 NFT Created Successfully!' : 
            phase === 'confirming' ? '⏳ Confirming Transaction...' :
@@ -73,7 +73,7 @@ export default function ProgressIndicator({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="text-white/60"
+          className="jersey-20-regular text-white/60 text-base md:text-lg"
         >
           {phase === 'success' ? 'Your NFT is now live on the blockchain!' :
            phase === 'confirming' ? 'Please wait while the transaction is confirmed' :

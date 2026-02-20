@@ -251,30 +251,30 @@ function CollaboratorQuestsTab() {
         {error && <ErrorBanner message={error} onClose={() => {}} />}
       </div>
 
-      {/* Create Form */}
-      <div className="p-5 bg-[#0d0d0d] border border-purple-500/20 rounded-2xl space-y-4">
+      {/* Create Form - Mobile Optimized */}
+      <div className="p-4 sm:p-5 bg-[#0d0d0d] border border-purple-500/20 rounded-xl space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-2 h-2 rounded-full bg-purple-500" />
-          <h3 className="text-white font-black text-sm uppercase tracking-wider">Create Collaborator Quest</h3>
+          <h3 className="text-white font-bold text-sm uppercase tracking-wider">Create Quest</h3>
         </div>
-        <p className="text-xs text-gray-500">Quests fund rewards from the Treasury Manager (20% of protocol revenue). Badge holders claim after completion.</p>
+        <p className="text-[10px] sm:text-xs text-gray-500">Quests fund rewards from Treasury Manager (20% protocol revenue).</p>
 
-        <TextArea label="Description" value={description} onChange={setDescription} placeholder="Complete 5 community moderation tasks this week…" />
+        <TextArea label="Description" value={description} onChange={setDescription} placeholder="Complete 5 community tasks this week…" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InputField label="Reward Amount (POL)" value={rewardAmount} onChange={setRewardAmount} type="number" placeholder="10" min="0" step="0.01" note="Human-readable POL (e.g. 10 = 10 POL)" />
-          <InputField label="Max Completions" value={maxCompletions} onChange={setMaxCompletions} type="number" placeholder="50" min="1" note="Max users who can complete this quest" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <InputField label="Reward (POL)" value={rewardAmount} onChange={setRewardAmount} type="number" placeholder="10" min="0" step="0.01" note="Human-readable POL" />
+          <InputField label="Max Users" value={maxCompletions} onChange={setMaxCompletions} type="number" placeholder="50" min="1" note="Max completions allowed" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InputField label="Start Date" value={startDate} onChange={setStartDate} type="datetime-local" />
-          <InputField label="End Date" value={endDate} onChange={setEndDate} type="datetime-local" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <InputField label="Start" value={startDate} onChange={setStartDate} type="datetime-local" />
+          <InputField label="End" value={endDate} onChange={setEndDate} type="datetime-local" />
         </div>
 
         <button
           onClick={handleCreate}
           disabled={!formValid || createLoading}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-black text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
         >
           {createLoading ? <><Spinner /> Submitting…</> : <><PlusIcon /> Create Quest</>}
         </button>
@@ -314,28 +314,27 @@ function CollaboratorQuestsTab() {
             : 0;
 
           return (
-            <div key={quest.id.toString()} className="p-4 bg-[#0d0d0d] border border-white/5 rounded-xl space-y-3 hover:border-purple-500/20 transition-colors">
-              <div className="flex items-start justify-between gap-3">
+            <div key={quest.id.toString()} className="p-3 sm:p-4 bg-[#0d0d0d] border border-white/5 rounded-xl space-y-2 sm:space-y-3 hover:border-purple-500/20 transition-colors">
+              <div className="flex items-start justify-between gap-2 sm:gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                     <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded px-1.5 py-0.5">
-                      QUEST #{quest.id.toString()}
+                      #{quest.id.toString()}
                     </span>
                     <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded px-1.5 py-0.5">
                       {rewardEther} POL
                     </span>
                   </div>
-                  <p className="text-white text-sm leading-relaxed">{quest.description}</p>
-                  <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                    <span>Start: {start.toLocaleDateString()}</span>
-                    <span>End: {end.toLocaleDateString()}</span>
-                    <span>{quest.completionCount.toString()}/{quest.maxCompletions.toString()} completions</span>
+                  <p className="text-white text-sm leading-relaxed truncate-2-lines">{quest.description}</p>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mt-1.5 text-[10px] sm:text-xs text-gray-500">
+                    <span>{start.toLocaleDateString()} - {end.toLocaleDateString()}</span>
+                    <span>{quest.completionCount.toString()}/{quest.maxCompletions.toString()} done</span>
                   </div>
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <div className="h-1 sm:h-1.5 bg-white/5 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
                   style={{ width: `${Math.min(progress, 100)}%` }}
@@ -346,16 +345,16 @@ function CollaboratorQuestsTab() {
               <div className="flex items-center gap-2 pt-1">
                 <button
                   onClick={() => setBatchQuestId(quest.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-colors"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] sm:text-xs font-bold hover:bg-blue-500/20 transition-colors min-h-[36px]"
                 >
-                  <UsersIcon /> Batch Complete
+                  <UsersIcon /> <span className="hidden sm:inline">Batch</span> Complete
                 </button>
                 <button
                   onClick={() => deactivateQuest(quest.id)}
                   disabled={deactivateLoading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-colors disabled:opacity-50 ml-auto"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] sm:text-xs font-bold hover:bg-red-500/20 transition-colors disabled:opacity-50 ml-auto min-h-[36px]"
                 >
-                  {deactivateLoading ? <Spinner /> : <TrashIcon />} Deactivate
+                  {deactivateLoading ? <Spinner /> : <><TrashIcon /> <span className="hidden sm:inline">Deactivate</span></>}
                 </button>
               </div>
             </div>
@@ -588,45 +587,49 @@ function MarketplaceQuestsTab() {
 
 type TabId = 'collaborator' | 'marketplace';
 
-const TABS: { id: TabId; label: string; color: string; dot: string }[] = [
-  { id: 'collaborator', label: 'Collaborator Quests', color: 'from-purple-600 to-indigo-600', dot: 'bg-purple-500' },
-  { id: 'marketplace',  label: 'Marketplace Quests',  color: 'from-pink-600 to-red-600',     dot: 'bg-pink-500'   },
+const TABS: { id: TabId; label: string; shortLabel: string; color: string; dot: string; icon: string }[] = [
+  { id: 'collaborator', label: 'Collaborator Quests', shortLabel: 'Collab', color: 'from-purple-600 to-indigo-600', dot: 'bg-purple-500', icon: '👥' },
+  { id: 'marketplace',  label: 'Marketplace Quests', shortLabel: 'Market',  color: 'from-pink-600 to-red-600',     dot: 'bg-pink-500',   icon: '🏪'   },
 ];
 
 export default function QuestManager() {
   const [activeTab, setActiveTab] = useState<TabId>('collaborator');
 
   return (
-    <div className="card-unified rounded-2xl p-6 border border-[rgba(139,92,246,0.15)] space-y-6">
+    <div className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl flex items-center justify-center border border-purple-500/20">
-            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
+            <svg className="w-4 h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
           <div>
-            <h2 className="text-white font-black text-base">Quest Manager</h2>
-            <p className="text-slate-400 text-xs">Create & manage quests for Collaborator Portal and Marketplace</p>
+            <h3 className="text-sm font-bold text-white">Quest Manager</h3>
+            <p className="text-[10px] text-slate-500">Create & manage quests for Collaborator Portal and Marketplace</p>
           </div>
         </div>
       </div>
 
-      {/* Tab Bar */}
+      <div className="p-4 sm:p-5 space-y-5">
+
+      {/* Tab Bar - Mobile Optimized */}
       <div className="flex gap-2 p-1 bg-[#0a0a0a] border border-white/5 rounded-xl">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-black uppercase tracking-wide transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wide transition-all min-h-[44px] ${
               activeTab === tab.id
                 ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
                 : 'text-gray-500 hover:text-gray-300'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${activeTab === tab.id ? 'bg-white' : tab.dot} transition-colors`} />
-            {tab.label}
+            <span className="sm:hidden">{tab.icon}</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${activeTab === tab.id ? 'bg-white' : tab.dot} transition-colors hidden sm:inline`} />
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="sm:hidden">{tab.shortLabel}</span>
           </button>
         ))}
       </div>
@@ -634,6 +637,7 @@ export default function QuestManager() {
       {/* Tab Content */}
       {activeTab === 'collaborator' && <CollaboratorQuestsTab />}
       {activeTab === 'marketplace'  && <MarketplaceQuestsTab />}
+      </div>
     </div>
   );
 }

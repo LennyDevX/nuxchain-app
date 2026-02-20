@@ -91,7 +91,7 @@ export default function NFTDetails({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="text-2xl font-bold text-white mb-6"
+        className="jersey-15-regular text-3xl md:text-5xl font-bold text-white mb-6"
       >
         NFT Details
       </motion.h2>
@@ -103,7 +103,7 @@ export default function NFTDetails({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.15 }}
         >
-          <label className="block text-white font-medium mb-2">Name *</label>
+          <label className="jersey-20-regular block text-white font-medium mb-2">Name *</label>
           <motion.input
             type="text"
             value={formData.name}
@@ -121,7 +121,7 @@ export default function NFTDetails({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <label className="block text-white font-medium mb-2">Description *</label>
+          <label className="jersey-20-regular block text-white font-medium mb-2">Description *</label>
           <motion.textarea
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -138,7 +138,7 @@ export default function NFTDetails({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.25 }}
         >
-          <label className="block text-white font-medium mb-2">Category</label>
+          <label className="jersey-20-regular block text-white font-medium mb-2">Category</label>
           <motion.select
             value={formData.category}
             onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
@@ -160,7 +160,7 @@ export default function NFTDetails({
           transition={{ delay: 0.28 }}
         >
           <div className="flex justify-between items-center mb-2">
-            <label className="block text-white font-medium">Number of Copies</label>
+            <label className="jersey-20-regular block text-white font-medium">Number of Copies</label>
             <span className={`text-xs font-bold px-2 py-1 rounded ${formData.count > 1 ? 'bg-blue-500/20 text-blue-300' : 'bg-green-500/20 text-green-300'
               }`}>
               {formData.count > 1 ? 'Commercial (Multiple)' : 'Exclusive (1/1)'}
@@ -200,23 +200,23 @@ export default function NFTDetails({
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-2">
-            <p className="text-white/60 text-xs">
+            <p className="jersey-20-regular text-white/60 text-sm">
               {formData.count === 1
                 ? "This will create a single, unique NFT."
                 : `This will create ${formData.count} identical copies in one batch transaction (gas optimized).`}
             </p>
             {formData.count > 1 && formData.count <= 50 && (
-              <p className="text-green-300 text-[11px] font-medium bg-green-500/10 px-2 py-1 rounded border border-green-500/30 flex items-center gap-1">
+              <p className="jersey-20-regular text-green-300 text-xs font-medium bg-green-500/10 px-2 py-1 rounded border border-green-500/30 flex items-center gap-1">
                 <span>✅</span> Batch minting saves ~{Math.round((formData.count - 1) * 30)}% gas vs individual mints
               </p>
             )}
             {formData.count > 50 && formData.count <= 100 && (
-              <p className="text-yellow-300 text-[11px] font-semibold bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/30 flex items-center gap-1">
+              <p className="jersey-20-regular text-yellow-300 text-xs font-semibold bg-yellow-500/10 px-2 py-1 rounded border border-yellow-500/30 flex items-center gap-1">
                 <span>⚡</span> Large batch: Estimated gas ~{Math.round((300000 + formData.count * 200000) / 1000000)} million. Recommended: ≤50 copies
               </p>
             )}
             {formData.count > 100 && (
-              <p className="text-orange-300 text-[11px] font-semibold bg-orange-500/10 px-2 py-1 rounded border border-orange-500/30 flex items-center gap-1">
+              <p className="jersey-20-regular text-orange-300 text-xs font-semibold bg-orange-500/10 px-2 py-1 rounded border border-orange-500/30 flex items-center gap-1">
                 <span>⚠️</span> Very large batch: High gas costs. Max 500 copies. Consider splitting into smaller batches.
               </p>
             )}
@@ -229,7 +229,7 @@ export default function NFTDetails({
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <label className="block text-white font-medium mb-3">NFT Type</label>
+          <label className="jersey-20-regular block text-white font-medium mb-3">NFT Type</label>
           <div className="grid grid-cols-2 gap-3">
             {['standard', 'skill'].map((type) => {
               const isSkillNFT = type === 'skill';
@@ -255,13 +255,13 @@ export default function NFTDetails({
                     }`}
                 >
                   <div className="text-2xl mb-1">{type === 'standard' ? '🖼️' : '⚡'}</div>
-                  <div className="text-white font-medium">{type === 'standard' ? 'Standard NFT' : 'Skill NFT'}</div>
+                  <div className="jersey-20-regular text-white font-medium text-base md:text-lg">{type === 'standard' ? 'Standard NFT' : 'Skill NFT'}</div>
                   {isDisabled ? (
-                    <div className="text-red-400 text-xs mt-1">
+                    <div className="jersey-20-regular text-red-400 text-xs mt-1">
                       🔒 Requires 200 POL staked ({stakedAmount.toFixed(2)}/{200})
                     </div>
                   ) : (
-                    <div className="text-white/60 text-xs mt-1">{type === 'standard' ? 'Simple NFT (no skills)' : 'NFT with multiple abilities'}</div>
+                    <div className="jersey-20-regular text-white/60 text-xs mt-1">{type === 'standard' ? 'Simple NFT (no skills)' : 'NFT with multiple abilities'}</div>
                   )}
                 </motion.button>
               );
@@ -279,8 +279,8 @@ export default function NFTDetails({
             <div className="space-y-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-white font-medium">Skills Configuration</h3>
-                  <p className="text-white/60 text-sm">Add up to 3 active skills (First skill is FREE)</p>
+                  <h3 className="jersey-15-regular text-white font-medium text-lg md:text-xl">Skills Configuration</h3>
+                  <p className="jersey-20-regular text-white/60 text-sm md:text-base">Add up to 3 active skills (First skill is FREE)</p>
                 </div>
                 {formData.skills.length < 3 && availableSkills.length > formData.skills.length && canAddMoreSkills && (
                   <button
@@ -296,7 +296,7 @@ export default function NFTDetails({
                         skills: [...prev.skills, { skillType: nextAvailableSkill, level: 10, rarity: 0 }]
                       }));
                     }}
-                    className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-1 transition-colors"
+                    className="jersey-20-regular text-purple-400 hover:text-purple-300 text-sm md:text-base flex items-center gap-1 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -305,27 +305,27 @@ export default function NFTDetails({
                   </button>
                 )}
                 {formData.skills.length >= 3 && (
-                  <p className="text-yellow-400 text-xs">🔒 Maximum 3 active skills reached (Security Limit)</p>
+                  <p className="jersey-20-regular text-yellow-400 text-xs">🔒 Maximum 3 active skills reached (Security Limit)</p>
                 )}
                 {!canAddMoreSkills && formData.skills.length > 0 && (
-                  <p className="text-orange-400 text-xs">⏰ You have reached your active skills limit ({skillsUntilLimit}/3). Wait for skills to expire to add new ones.</p>
+                  <p className="jersey-20-regular text-orange-400 text-xs">⏰ You have reached your active skills limit ({skillsUntilLimit}/3). Wait for skills to expire to add new ones.</p>
                 )}
                 {availableSkills.length <= formData.skills.length && formData.skills.length > 0 && formData.skills.length < 3 && (
-                  <p className="text-yellow-400 text-xs">All available skills are already added</p>
+                  <p className="jersey-20-regular text-yellow-400 text-xs">All available skills are already added</p>
                 )}
               </div>
 
               {/* Skills List */}
               {formData.skills.length === 0 ? (
                 <div className="text-center py-6 text-white/60">
-                  <p>No skills added yet. Click "Add Skill" to get started.</p>
+                  <p className="jersey-20-regular">No skills added yet. Click "Add Skill" to get started.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {formData.skills.map((skill, index) => (
                     <div key={index} className="p-3 bg-white/10 rounded-lg border border-white/20 space-y-3">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-white font-medium text-sm">
+                        <span className="jersey-20-regular text-white font-medium text-sm">
                           Skill #{index + 1}
                           {index === 0 && <span className="ml-2 text-green-400">(FREE - Auto-assigned)</span>}
                           {index > 0 && (

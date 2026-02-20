@@ -205,13 +205,13 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
               <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-start justify-between z-10">
                 {/* Token ID Badge */}
                 <div className="backdrop-blur-xl bg-black/80 border border-white/20 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-lg">
-                  <span className="text-[10px] sm:text-xs font-bold text-white">#{nft.tokenId}</span>
+                  <span className="jersey-20-regular text-[10px] sm:text-xs font-bold text-white">#{nft.tokenId}</span>
                 </div>
 
                 {/* Status Badge - LISTED or SOLD */}
                 {nft.isForSale ? (
                   <div className="backdrop-blur-xl bg-gradient-to-r from-emerald-500 to-green-500 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-lg animate-pulse">
-                    <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-0.5 sm:gap-1">
+                    <span className="jersey-20-regular text-[10px] sm:text-xs font-bold text-white flex items-center gap-0.5 sm:gap-1">
                       <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
@@ -222,7 +222,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                 ) : address && nft.owner?.toLowerCase() !== address.toLowerCase() && nft.owner?.toLowerCase() !== nft.creator?.toLowerCase() ? (
                   // Only show SOLD badge if I'm NOT the owner (someone else bought it)
                   <div className="backdrop-blur-xl bg-gradient-to-r from-blue-500 to-purple-500 rounded-full px-2 sm:px-3 py-1 sm:py-1.5 shadow-lg">
-                    <span className="text-[10px] sm:text-xs font-bold text-white flex items-center gap-0.5 sm:gap-1">
+                    <span className="jersey-20-regular text-[10px] sm:text-xs font-bold text-white flex items-center gap-0.5 sm:gap-1">
                       <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
@@ -240,17 +240,17 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                   <div className="backdrop-blur-xl bg-black/60 border border-white/20 rounded-xl p-2 sm:p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] sm:text-xs text-gray-300 mb-0.5 sm:mb-1">Current Price</p>
-                        <p className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 truncate">
+                        <p className="jersey-20-regular text-[10px] sm:text-xs text-gray-300 mb-0.5 sm:mb-1">Current Price</p>
+                        <p className="jersey-20-regular text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 truncate">
                           {formattedPricePOL}
                         </p>
                         {formattedPriceUSD && (
-                          <p className="text-[10px] sm:text-xs text-emerald-400 font-medium truncate">≈ {formattedPriceUSD}</p>
+                          <p className="jersey-20-regular text-[10px] sm:text-xs text-emerald-400 font-medium truncate">≈ {formattedPriceUSD}</p>
                         )}
                       </div>
                       <motion.button
                         onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
-                        className="backdrop-blur-xl bg-purple-600/80 hover:bg-purple-500 active:bg-purple-700 border border-purple-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
+                        className="jersey-20-regular backdrop-blur-xl bg-purple-600/80 hover:bg-purple-500 active:bg-purple-700 border border-purple-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.94 }}
                         transition={{ type: 'spring', stiffness: 300 }}
@@ -264,12 +264,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                   <div className="backdrop-blur-xl bg-black/60 border border-blue-500/30 rounded-xl p-2 sm:p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] sm:text-xs text-gray-300 mb-0.5">Status</p>
-                        <p className="text-base sm:text-lg font-bold text-blue-400">Sold</p>
+                        <p className="jersey-20-regular text-[10px] sm:text-xs text-gray-300 mb-0.5">Status</p>
+                        <p className="jersey-20-regular text-base sm:text-lg font-bold text-blue-400">Sold</p>
                       </div>
                       <motion.button
                         onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
-                        className="backdrop-blur-xl bg-blue-600/80 hover:bg-blue-500 active:bg-blue-700 border border-blue-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
+                        className="jersey-20-regular backdrop-blur-xl bg-blue-600/80 hover:bg-blue-500 active:bg-blue-700 border border-blue-400/50 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition-all duration-200 touch-manipulation whitespace-nowrap"
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.94 }}
                         transition={{ type: 'spring', stiffness: 300 }}
@@ -282,7 +282,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                   // State 3: NFT is NOT listed AND I AM the owner - Show List for Sale button
                   <motion.button
                     onClick={(e) => { e.stopPropagation(); handleListNFT(); }}
-                    className="w-full backdrop-blur-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-bold text-white transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
+                    className="jersey-20-regular w-full backdrop-blur-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 active:from-purple-700 active:to-blue-700 border border-purple-400/50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base font-bold text-white transition-all duration-300 flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation"
                     whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)' }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 300 }}
@@ -315,7 +315,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
             {/* Compact Info Bar at Bottom */}
             <div className="px-3 sm:px-4 py-2 sm:py-3 bg-black/40 backdrop-blur-sm border-t border-white/10">
               <div className="flex items-center justify-between text-[10px] sm:text-xs">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-gray-400 min-w-0 flex-1">
+                <div className="jersey-20-regular flex items-center gap-1.5 sm:gap-2 text-gray-400 min-w-0 flex-1">
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -323,7 +323,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleFlip(e); }}
-                  className="text-purple-400 hover:text-purple-300 active:text-purple-500 font-medium flex items-center gap-0.5 sm:gap-1 transition-colors touch-manipulation whitespace-nowrap"
+                  className="jersey-20-regular text-purple-400 hover:text-purple-300 active:text-purple-500 font-medium flex items-center gap-0.5 sm:gap-1 transition-colors touch-manipulation whitespace-nowrap"
                 >
                   <span className="hidden sm:inline">View More</span>
                   <span className="sm:hidden">More</span>
@@ -355,8 +355,8 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
             <div className="relative p-4 sm:p-5 border-b border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-lg sm:text-xl font-bold text-white truncate">{nft.name || `NFT #${nft.tokenId}`}</h3>
-                  <p className="text-xs sm:text-sm text-purple-300/80 mt-0.5">Token ID: <span className="font-mono">{nft.tokenId}</span></p>
+                  <h3 className="jersey-15-regular text-lg sm:text-xl font-bold text-white truncate">{nft.name || `NFT #${nft.tokenId}`}</h3>
+                  <p className="jersey-20-regular text-xs sm:text-sm text-purple-300/80 mt-0.5">Token ID: <span className="font-mono">{nft.tokenId}</span></p>
                 </div>
                 <button
                   onClick={handleFlip}
@@ -375,8 +375,8 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                 {/* Description Section */}
                 {nft.description && (
                   <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4">
-                    <h4 className="text-xs sm:text-sm font-semibold text-gray-300 mb-2">About</h4>
-                    <p className="text-sm sm:text-base text-white leading-relaxed">
+                    <h4 className="jersey-15-regular text-xs sm:text-sm font-semibold text-gray-300 mb-2">About</h4>
+                    <p className="jersey-20-regular text-sm sm:text-base text-white leading-relaxed">
                       {nft.description}
                     </p>
                   </div>
@@ -384,7 +384,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
 
                 {/* Addresses Section - Creator, Owner & Contract */}
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 sm:p-4">
-                  <h4 className="text-xs sm:text-sm font-semibold text-gray-300 mb-3">Details</h4>
+                  <h4 className="jersey-15-regular text-xs sm:text-sm font-semibold text-gray-300 mb-3">Details</h4>
                   <div className="space-y-3">
                     {/* Creator Address */}
                     <motion.button
@@ -397,12 +397,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <p className="text-xs sm:text-sm text-purple-300 font-medium flex-1">Creator</p>
+                        <p className="jersey-20-regular text-xs sm:text-sm text-purple-300 font-medium flex-1">Creator</p>
                         <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.creator ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <p className={`text-xs sm:text-sm text-white font-mono bg-purple-600/15 px-3 py-2 rounded-lg truncate transition-colors ${copiedAddress === nft.creator ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-purple-600/25'}`}>
+                      <p className={`jersey-20-regular text-xs sm:text-sm text-white font-mono bg-purple-600/15 px-3 py-2 rounded-lg truncate transition-colors ${copiedAddress === nft.creator ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-purple-600/25'}`}>
                         {nft.creator}
                       </p>
                     </motion.button>
@@ -418,12 +418,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <p className="text-xs sm:text-sm text-blue-300 font-medium flex-1">Owner</p>
+                        <p className="jersey-20-regular text-xs sm:text-sm text-blue-300 font-medium flex-1">Owner</p>
                         <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.owner ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <p className={`text-xs sm:text-sm text-white font-mono bg-blue-600/15 px-3 py-2 rounded-lg truncate transition-colors ${copiedAddress === nft.owner ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-blue-600/25'}`}>
+                      <p className={`jersey-20-regular text-xs sm:text-sm text-white font-mono bg-blue-600/15 px-3 py-2 rounded-lg truncate transition-colors ${copiedAddress === nft.owner ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-blue-600/25'}`}>
                         {nft.owner}
                       </p>
                     </motion.button>
@@ -439,12 +439,12 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        <p className="text-xs sm:text-sm text-indigo-300 font-medium flex-1">Contract</p>
+                        <p className="jersey-20-regular text-xs sm:text-sm text-indigo-300 font-medium flex-1">Contract</p>
                         <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400 flex-shrink-0 transition-opacity ${copiedAddress === nft.contract ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                       </div>
-                      <p className={`text-xs sm:text-sm text-white font-mono bg-indigo-600/15 px-3 py-2 rounded-lg break-all transition-colors ${copiedAddress === nft.contract ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-indigo-600/25'}`}>
+                      <p className={`jersey-20-regular text-xs sm:text-sm text-white font-mono bg-indigo-600/15 px-3 py-2 rounded-lg break-all transition-colors ${copiedAddress === nft.contract ? 'bg-emerald-600/30 text-emerald-200' : 'group-hover:bg-indigo-600/25'}`}>
                         {nft.contract}
                       </p>
                     </motion.button>
@@ -459,9 +459,9 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                         <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        <h4 className="text-xs sm:text-sm font-semibold text-gray-300">Attributes</h4>
+                        <h4 className="jersey-15-regular text-xs sm:text-sm font-semibold text-gray-300">Attributes</h4>
                       </div>
-                      <span className="text-xs sm:text-sm text-purple-300 bg-purple-600/20 px-3 py-1 rounded-full font-medium">
+                      <span className="jersey-20-regular text-xs sm:text-sm text-purple-300 bg-purple-600/20 px-3 py-1 rounded-full font-medium">
                         {nft.attributes.length}
                       </span>
                     </div>
@@ -483,8 +483,8 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
                             whileTap={{ scale: 0.98 }}
                             transition={{ type: 'spring', stiffness: 300 }}
                           >
-                            <p className="text-[9px] sm:text-xs text-gray-400 mb-2 font-medium line-clamp-2">{attr.trait_type}</p>
-                            <p className={`text-xs sm:text-sm font-bold line-clamp-3 ${isSpecialAttr ? 'text-purple-200' : 'text-white'}`}>
+                            <p className="jersey-15-regular text-[9px] sm:text-xs text-gray-400 mb-2 font-medium line-clamp-2">{attr.trait_type}</p>
+                            <p className={`jersey-20-regular text-xs sm:text-sm font-bold line-clamp-3 ${isSpecialAttr ? 'text-purple-200' : 'text-white'}`}>
                               {formattedValue}
                             </p>
                           </motion.div>
@@ -498,7 +498,7 @@ function NFTCardDesktop({ nft, onListNFT }: Omit<NFTCardProps, 'isMobile'>) {
 
             {/* Fixed Footer - Message hint */}
             <div className="relative p-4 sm:p-5 border-t border-white/5 bg-black/40 backdrop-blur-md flex-shrink-0 text-center">
-              <p className="text-xs sm:text-sm text-purple-300/60 py-1">Tap card to flip back • Click addresses to copy</p>
+              <p className="jersey-20-regular text-xs sm:text-sm text-purple-300/60 py-1">Tap card to flip back • Click addresses to copy</p>
             </div>
           </div>
         </div>

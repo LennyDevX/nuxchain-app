@@ -25,6 +25,14 @@ const LabsPage: React.FC = () => {
         isMobile ? 'py-12 px-4' : 'py-20 px-4 sm:px-6 lg:px-8'
       }`}>
         <div className="relative z-10 max-w-5xl mx-auto text-center">
+          
+          
+          <h1 className={`font-bold text-gradient jersey-15-regular ${
+            isMobile ? 'text-5xl mb-4' : 'text-4xl sm:text-5xl md:text-6xl mb-6'
+          }`}>
+            {isMobile ? 'AI Innovation' : 'AI Innovation and Technology'}
+          </h1>
+
           <div>
             <span className={`inline-block px-3 py-1 font-semibold tracking-wider text-purple-400 bg-purple-900/20 rounded-full border border-purple-500/30 ${
               isMobile ? 'text-xs mb-4' : 'text-xs mb-6'
@@ -33,14 +41,8 @@ const LabsPage: React.FC = () => {
             </span>
           </div>
           
-          <h1 className={`font-bold text-gradient ${
-            isMobile ? 'text-3xl mb-4' : 'text-4xl sm:text-5xl md:text-6xl mb-6'
-          }`}>
-            {isMobile ? 'AI Innovation' : 'AI Innovation and Technology'}
-          </h1>
-          
-          <p className={`text-slate-300 max-w-3xl mx-auto ${
-            isMobile ? 'text-base mb-6' : 'text-xl mb-10'
+          <p className={`text-slate-300 max-w-3xl mx-auto jersey-20-regular ${
+            isMobile ? 'text-xl mb-6' : 'text-xl mb-10'
           }`}>
             {isMobile 
               ? 'Exploring blockchain limits with AI. Optimize your staking and NFTs.'
@@ -53,12 +55,12 @@ const LabsPage: React.FC = () => {
           }`}>
             <button 
               onClick={handleScrollToInnovation}
-              className={`btn-primary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
+              className={`btn-primary jersey-20-regular ${isMobile ? 'py-3 text-xl' : 'py-3 px-8 text-2xl'}`}>
               {isMobile ? 'Explore' : 'Explore Projects'}
             </button>
             <button 
               onClick={handleChatRedirect}
-              className={`btn-secondary ${isMobile ? 'py-2.5 text-sm' : ''}`}>
+              className={`btn-secondary jersey-20-regular ${isMobile ? 'py-3 text-xl' : 'py-3 px-8 text-2xl'}`}>
               {isMobile ? 'Meet AI' : 'Meet Our AI'}
             </button>
           </div>
@@ -78,11 +80,11 @@ const LabsPage: React.FC = () => {
           {/* Innovation Showcase */}
           <section ref={innovationRef}>
             <div className={`text-center ${isMobile ? 'mb-6' : 'mb-12'}`}>
-              <h2 className={`font-bold mb-4 ${
-                isMobile ? 'text-2xl' : 'text-3xl'
+              <h2 className={`font-bold mb-4 jersey-15-regular text-gradient ${
+                isMobile ? 'text-4xl' : 'text-5xl'
               }`}>Innovative Projects</h2>
-              <p className={`text-slate-400 max-w-3xl mx-auto ${
-                isMobile ? 'text-sm px-4' : ''
+              <p className={`text-slate-400 max-w-3xl mx-auto jersey-20-regular ${
+                isMobile ? 'text-xl px-4' : 'text-3xl'
               }`}>
                 {isMobile 
                   ? 'Projects revolutionizing blockchain ecosystem'
@@ -98,13 +100,13 @@ const LabsPage: React.FC = () => {
           {/* Future Projections */}
           <section>
             <div className={`text-center ${isMobile ? 'mb-6' : 'mb-12'}`}>
-              <h2 className={`font-bold mb-4 ${
-                isMobile ? 'text-2xl' : 'text-3xl'
+              <h2 className={`font-bold mb-4 jersey-15-regular text-gradient ${
+                isMobile ? 'text-4xl' : 'text-5xl'
               }`}>
-                {isMobile ? 'Future Projections' : 'Future Projections'}
+                {isMobile ? 'Future Roadmap' : 'Future Roadmap'}
               </h2>
-              <p className={`text-slate-400 max-w-3xl mx-auto ${
-                isMobile ? 'text-sm px-4' : ''
+              <p className={`text-slate-400 max-w-3xl mx-auto jersey-20-regular ${
+                isMobile ? 'text-xl px-4' : 'text-3xl'
               }`}>
                 {isMobile 
                   ? 'Our goals for the next 12 months'
@@ -124,15 +126,15 @@ const LabsPage: React.FC = () => {
               >
                 <div>
                   <h3 
-                    className={`font-bold text-green-400 ${
-                      isMobile ? 'text-xl' : 'text-3xl'
+                    className={`font-bold text-green-400 jersey-20-regular ${
+                      isMobile ? 'text-2xl' : 'text-3xl'
                     }`}
                     aria-live="polite"
                   >
                     +30%
                   </h3>
-                  <p className={`text-slate-400 ${
-                    isMobile ? 'text-xs' : ''
+                  <p className={`text-slate-400 jersey-20-regular ${
+                    isMobile ? 'text-xl' : 'text-lg'
                   }`}>
                     {isMobile ? 'Avg Return' : 'Avg Return Potential'}
                   </p>
@@ -142,7 +144,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-green-500" style={{ width: '25%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Expected improvement for early adopters</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Expected improvement for early adopters</p>
                   </div>
                 )}
               </div>
@@ -154,15 +156,15 @@ const LabsPage: React.FC = () => {
               >
                 <div>
                   <h3 
-                    className={`font-bold text-blue-400 ${
-                      isMobile ? 'text-xl' : 'text-3xl'
+                    className={`font-bold text-blue-400 jersey-20-regular ${
+                      isMobile ? 'text-3xl' : 'text-4xl'
                     }`}
                     aria-live="polite"
                   >
                     5k+
                   </h3>
-                  <p className={`text-slate-400 ${
-                    isMobile ? 'text-xs' : ''
+                  <p className={`text-slate-400 jersey-20-regular ${
+                    isMobile ? 'text-2xl' : 'text-xl'
                   }`}>
                     {isMobile ? 'Target Users' : 'Target Active Users'}
                   </p>
@@ -172,7 +174,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-blue-500" style={{ width: '40%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Goal for the end of 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Goal for the end of 2026</p>
                   </div>
                 )}
               </div>
@@ -184,15 +186,15 @@ const LabsPage: React.FC = () => {
               >
                 <div>
                   <h3 
-                    className={`font-bold text-purple-400 ${
-                      isMobile ? 'text-xl' : 'text-3xl'
+                    className={`font-bold text-purple-400 jersey-20-regular ${
+                      isMobile ? 'text-3xl' : 'text-4xl'
                     }`}
                     aria-live="polite"
                   >
                     85%
                   </h3>
-                  <p className={`text-slate-400 ${
-                    isMobile ? 'text-xs' : ''
+                  <p className={`text-slate-400 jersey-20-regular ${
+                    isMobile ? 'text-2xl' : 'text-lg'
                   }`}>
                     {isMobile ? 'AI Accuracy' : 'AI Recommendation Accuracy'}
                   </p>
@@ -202,7 +204,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-purple-500" style={{ width: '85%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Target accuracy rate by Q2 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Target accuracy rate by Q2 2026</p>
                   </div>
                 )}
               </div>
@@ -214,15 +216,15 @@ const LabsPage: React.FC = () => {
               >
                 <div>
                   <h3 
-                    className={`font-bold text-amber-400 ${
-                      isMobile ? 'text-xl' : 'text-3xl'
+                    className={`font-bold text-amber-400 jersey-20-regular ${
+                      isMobile ? 'text-2xl' : 'text-3xl'
                     }`}
                     aria-live="polite"
                   >
                     5
                   </h3>
-                  <p className={`text-slate-400 ${
-                    isMobile ? 'text-xs' : ''
+                  <p className={`text-slate-400 jersey-20-regular ${
+                    isMobile ? 'text-xl' : 'text-lg'
                   }`}>
                     {isMobile ? 'New Features' : 'Planned Features'}
                   </p>
@@ -232,7 +234,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-amber-500" style={{ width: '60%' }}></div>
                     </div>
-                    <p className="text-sm text-slate-400 mt-2">Major launches planned in 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Major launches planned in 2026</p>
                   </div>
                 )}
               </div>
@@ -245,11 +247,11 @@ const LabsPage: React.FC = () => {
               isMobile ? 'p-4 rounded-2xl' : 'p-8'
             }`}>
               <div className="relative z-10">
-                <h2 className={`font-bold ${isMobile ? 'mb-2 text-base' : 'mb-4 text-3xl'}`}>
+                <h2 className={`font-bold jersey-15-regular ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-4xl'}`}>
                   {isMobile ? 'Try our AI tools?' : 'Want to try our AI tools?'}
                 </h2>
-                <p className={`text-slate-400 max-w-2xl mx-auto ${
-                  isMobile ? 'text-xs mb-4 leading-tight' : 'text-base mb-8'
+                <p className={`text-slate-400 max-w-2xl mx-auto jersey-20-regular ${
+                  isMobile ? 'text-xl mb-4 leading-tight' : 'text-sm mb-8'
                 }`}>
                   {isMobile 
                     ? 'join us!'
@@ -260,8 +262,8 @@ const LabsPage: React.FC = () => {
                   href="https://discord.gg/szZP2JcSq4" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className={`inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 ${
-                    isMobile ? 'w-full px-4 py-2 text-sm font-semibold' : 'px-8 py-6 text-lg'
+                  className={`inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 jersey-20-regular font-semibold ${
+                    isMobile ? 'w-full px-4 py-3 text-xl' : 'px-8 py-4 text-lg'
                   }`}>
                   {isMobile ? 'Start Now' : 'Get Started Now'}
                 </a>

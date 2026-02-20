@@ -361,18 +361,18 @@ function Airdrop() {
                       <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-colors duration-500"></div>
 
                       <div className="relative z-10 text-center py-8 px-6 sm:py-10 bg-transparent rounded-3xl">
-                        <h3 className="text-3xl sm:text-4xl font-black mb-1 tracking-tight uppercase">
+                        <h3 className="jersey-15-regular text-2xl lg:text-3xl font-black mb-1 tracking-tight uppercase">
                           <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient-text">
                             Welcome to the Universe
                           </span>
                         </h3>
 
                         <div className="max-w-md mx-auto space-y-4 text-gray-200 text-sm sm:text-base leading-relaxed mb-8">
-                          <p className="opacity-90 font-medium">
+                          <p className="jersey-20-regular opacity-90 font-medium">
                             Your registration has been detected in our database. You're already part of the early adopter elite!
                           </p>
                           <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="text-white font-black text-lg sm:text-xl tracking-tight">
+                            <p className="jersey-20-regular text-white font-black text-xl lg:text-3xl tracking-tight">
                               Your <span className="text-blue-400">{TOKENS_PER_USER.toLocaleString()} NUX</span> airdrop will be sent soon.
                             </p>
                           </div>
@@ -380,14 +380,14 @@ function Airdrop() {
 
                         <div className="flex flex-col gap-4 justify-center items-center">
                           <div className="flex flex-col items-center gap-2">
-                            <div className="px-6 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                            <div className="jersey-20-regular px-6 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-sm lg:text-xl font-black uppercase tracking-[0.2em] flex items-center gap-2">
                               <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                               </span>
                               Registration Confirmed
                             </div>
-                            <p className="text-gray-500 text-[10px] font-mono">
+                            <p className="jersey-20-regular text-gray-500 text-sm lg:text-xl font-mono">
                               Wallet: <span className="text-gray-300">{formData.wallet.slice(0, 6)}...{formData.wallet.slice(-6)}</span>
                             </p>
                           </div>
@@ -406,11 +406,11 @@ function Airdrop() {
                           </svg>
                         </div>
 
-                        <h3 className="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight uppercase">
+                        <h3 className="jersey-15-regular text-2xl lg:text-3xl font-black text-white mb-4 flex items-center gap-2">
                           <span className="bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">Waitlist Initialized</span>
                         </h3>
 
-                        <p className="text-xl text-white font-medium mb-6">You missed the first wave!</p>
+                        <p className="jersey-20-regular text-xl lg:text-3xl text-white font-medium mb-6">You missed the first wave!</p>
 
                         <div className="max-w-md mx-auto space-y-4 text-gray-400 text-base leading-relaxed mb-10">
                           <p>
@@ -422,7 +422,7 @@ function Airdrop() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                          <div className="px-6 py-3 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                          <div className="jersey-20-regular px-6 py-3 bg-red-500/10 border border-red-500/30 rounded-full text-red-400 text-sm lg:text-xl font-bold uppercase tracking-widest flex items-center gap-2">
                             <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
                             Sold Out
                           </div>
@@ -430,14 +430,14 @@ function Airdrop() {
                             href="https://x.com/nuxchain"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-full font-bold text-sm transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center gap-2"
+                            className="jersey-20-regular px-8 py-3 bg-white text-black hover:bg-gray-200 rounded-full font-bold text-sm lg:text-xl transition-all duration-300 transform hover:scale-105 shadow-xl flex items-center gap-2"
                           >
                             Follow for Phase 2
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z" /></svg>
                           </a>
                         </div>
 
-                        <p className="mt-12 text-[10px] uppercase tracking-[0.2em] text-gray-500 font-bold">
+                        <p className="mt-12 text-sm lg:text-xl uppercase tracking-[0.2em] text-gray-500 font-bold">
                           Official $NUX ecosystem registration
                         </p>
                       </div>
@@ -462,9 +462,9 @@ function Airdrop() {
                         <div className="mt-3 p-4 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center gap-2">
                           <svg className="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          <span className="text-sm text-blue-300">Analyzing wallet security...</span>
+                          <span className="jersey-20-regular text-sm sm:text-base text-blue-300">Analyzing wallet security...</span>
                         </div>
                       )}
 
@@ -474,7 +474,7 @@ function Airdrop() {
                           <svg className="w-5 h-5 text-orange-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          <p className="text-xs text-orange-200/80">
+                          <p className="jersey-20-regular text-xl sm:text-xl text-orange-200/80">
                             <strong className="text-orange-400 block mb-0.5">Solana Required!</strong>
                             This airdrop is exclusively for the <span className="text-white font-bold">Solana Network</span>. Please connect a Solana wallet (like Phantom, Solflare or OKX) to claim your tokens.
                           </p>
@@ -489,7 +489,7 @@ function Airdrop() {
               <div className="lg:col-span-5 space-y-5 sm:space-y-6">
                 {/* Live Stats Card */}
                 <div className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl rounded-2xl border border-purple-500/30 p-6 lg:p-8">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  <h3 className="jersey-15-regular text-2xl lg:text-3xl font-black text-white mb-4 flex items-center gap-2">
                     <svg className="w-6 h-6 text-purple-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                     </svg>
@@ -498,7 +498,7 @@ function Airdrop() {
 
                   {/* Progress Bar */}
                   <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
+                    <div className="jersey-20-regular flex justify-between text-sm lg:text-xl mb-2">
                       <span className="text-gray-400">Pool Progress</span>
                       <span className="text-purple-300 font-semibold">{poolProgress.toFixed(1)}%</span>
                     </div>
@@ -513,18 +513,18 @@ function Airdrop() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Registered</p>
-                      <p className="text-2xl font-bold text-white">{isLoadingCount ? '...' : registeredUsers.toLocaleString()}</p>
+                      <p className="jersey-20-regular text-xs sm:text-sm text-gray-400 uppercase tracking-wider font-semibold">Registered</p>
+                      <p className="jersey-20-regular text-2xl sm:text-3xl font-bold text-white">{isLoadingCount ? '...' : registeredUsers.toLocaleString()}</p>
                     </div>
                     <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Remaining</p>
-                      <p className="text-2xl font-bold text-white">{isLoadingCount ? '...' : usersRemaining.toLocaleString()}</p>
+                      <p className="jersey-20-regular text-xs sm:text-sm text-gray-400 uppercase tracking-wider font-semibold">Remaining</p>
+                      <p className="jersey-20-regular text-2xl sm:text-3xl font-bold text-white">{isLoadingCount ? '...' : usersRemaining.toLocaleString()}</p>
                     </div>
                   </div>
 
                   <div className="text-center">
-                    <p className="text-xs text-gray-500 mb-2">Token Distribution</p>
-                    <p className="text-sm text-purple-400 font-semibold">
+                    <p className="jersey-20-regular text-xs sm:text-sm text-gray-500 mb-2">Token Distribution</p>
+                    <p className="jersey-20-regular text-sm sm:text-base text-purple-400 font-semibold">
                         Deadline: <span className="text-purple-400 font-semibold">Mar 15, 2026</span>
                     </p>
                   </div>
@@ -532,30 +532,30 @@ function Airdrop() {
 
                 {/* Benefits Card */}
                 <div className="bg-gradient-to-br from-blue-900/40 to-indigo-900/40 backdrop-blur-xl rounded-2xl border border-blue-500/30 p-6 lg:p-8">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                  <h3 className="jersey-15-regular text-xl sm:text-2xl font-black text-white mb-4 flex items-center gap-2">
+                                      <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                     Why Join?
                   </h3>
-                  <ul className="space-y-3 text-sm text-gray-300">
+                  <ul className="jersey-20-regular space-y-3 text-xl lg:text-xl text-gray-300">
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">{(TOKENS_PER_USER / 1000).toLocaleString()}K NUX tokens</strong> - Launch price allocation</span>
+                      <span className="text-white">{(TOKENS_PER_USER / 1000).toLocaleString()}K NUX tokens - Launch price allocation</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">Solana network</strong> - Fast & low-cost transactions</span>
+                      <span className="text-white">Solana network  - Fast & low-cost transactions</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span><strong className="text-white">Early adopter</strong> exclusive benefits</span>
+                      <span className="text-white">Early adopter exclusive benefits</span>
                     </li>
                   </ul>
                 </div>

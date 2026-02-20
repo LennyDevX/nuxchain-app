@@ -147,7 +147,7 @@ function Chat() {
                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping absolute"></div>
                         <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
                       </div>
-                      <span className="text-cyan-300 font-medium text-sm">Analyzing URL content...</span>
+                      <span className="text-cyan-300 jersey-20-regular text-sm md:text-base">Analyzing URL content...</span>
                     </div>
                   </motion.div>
                 )}
@@ -166,7 +166,7 @@ function Chat() {
                         <div className="w-2 h-2 bg-purple-400 rounded-full animate-ping absolute"></div>
                         <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                       </div>
-                      <span className="text-purple-300 font-medium text-sm">{blockchainAction}</span>
+                      <span className="text-purple-300 jersey-20-regular text-sm md:text-base">{blockchainAction}</span>
                     </div>
                   </motion.div>
                 )}
@@ -185,7 +185,7 @@ function Chat() {
                         <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping absolute"></div>
                         <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                       </div>
-                      <span className="text-blue-300 font-medium text-sm">Searching in KB...</span>
+                      <span className="text-blue-300 jersey-20-regular text-sm md:text-base">Searching in KB...</span>
                     </div>
                   </motion.div>
                 )}
@@ -223,7 +223,7 @@ function Chat() {
               
               {!isMobile && (
                 <motion.p 
-                  className="text-xs text-white/40 mt-3 text-center"
+                  className="text-xs md:text-sm text-white/40 mt-3 text-center jersey-20-regular"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.35 }}

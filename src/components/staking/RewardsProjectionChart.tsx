@@ -216,9 +216,9 @@ export function RewardsProjectionChart({
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <p className="text-white/40 text-xs font-medium">{period.label}</p>
-            <p className="text-white font-semibold text-sm mt-1">{period.value}</p>
-            <p className="text-white/30 text-xs">POL</p>
+            <p className="jersey-15-regular text-white/40 text-xs lg:text-sm font-medium">{period.label}</p>
+            <p className="jersey-20-regular text-white font-semibold text-sm lg:text-base mt-1">{period.value}</p>
+            <p className="jersey-20-regular text-white/30 text-xs lg:text-sm">POL</p>
           </motion.div>
         ))}
       </div>
@@ -227,13 +227,13 @@ export function RewardsProjectionChart({
       <div className="flex items-center gap-2 bg-emerald-500/10 px-3 py-3 rounded-lg border border-emerald-500/20">
         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
         <div>
-          <p className="text-emerald-400 text-sm font-semibold">{pending} POL</p>
-          <p className="text-emerald-300/70 text-xs">Pending Rewards</p>
+          <p className="jersey-20-regular text-emerald-400 text-sm lg:text-base font-semibold">{pending} POL</p>
+          <p className="jersey-20-regular text-emerald-300/70 text-xs lg:text-sm">Pending Rewards</p>
         </div>
       </div>
 
       {/* Info Footer */}
-      <p className="text-white/40 text-xs px-1">
+      <p className="jersey-20-regular text-white/40 text-xs lg:text-sm px-1">
         📈 Chart shows cumulative rewards growth. Hover over points for exact values.
       </p>
     </motion.div>

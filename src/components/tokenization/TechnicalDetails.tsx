@@ -113,10 +113,10 @@ function TechnicalDetails() {
           transition={{ duration: 0.4 }}
           className="mb-2 sm:mb-2.5 md:mb-3 text-center"
         >
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+          <h2 className="jersey-15-regular text-3xl md:text-5xl font-bold text-white">
             🔧 Technical Details
           </h2>
-          <p className="text-white/60 text-xs mt-0.5">
+          <p className="jersey-20-regular text-white/60 text-xl mt-0.5">
             Built on proven blockchain technology
           </p>
         </motion.div>
@@ -142,12 +142,12 @@ function TechnicalDetails() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base mb-0.5">
+                  <h3 className="jersey-15-regular text-white font-semibold text-xl mb-0.5">
                     {detail.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-white/70 text-xs leading-tight line-clamp-3">
+                  <p className="jersey-20-regular text-white/70 text-lg leading-tight line-clamp-3">
                     {detail.description}
                   </p>
                 </div>
@@ -165,17 +165,17 @@ function TechnicalDetails() {
         </motion.div>
 
         {/* Security Info */}
-         <motion.div
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.3 }}
           className="mt-3 sm:mt-4 p-2 sm:p-2.5 rounded-lg border border-blue-500/20 bg-gradient-to-r from-blue-500/8 to-cyan-500/8 backdrop-blur-sm"
         >
-          <p className="text-blue-200/80 text-xs sm:text-sm text-center leading-snug">
+          <p className="jersey-20-regular text-blue-200/80 text-lg text-center leading-snug">
             💡 <span className="font-semibold">Pro Tip:</span> Ask to{' '}
             <a
               href="/chat"
-              className="text-purple-400 font-bold text-base sm:text-lg underline hover:text-purple-500 transition-colors"
+              className="jersey-20-regular text-purple-400 font-bold text-2xl underline hover:text-purple-500 transition-colors"
               style={{ fontSize: '1.1em' }}
             >
               Nuxbee AI

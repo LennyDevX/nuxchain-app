@@ -72,10 +72,10 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🏅</span>
-            <h3 className="text-white font-semibold text-sm">Badge Collection</h3>
+            <span className="text-2xl lg:text-3xl">🏅</span>
+            <h3 className="jersey-15-regular text-white font-semibold text-2xl lg:text-3xl">Badge Collection</h3>
           </div>
-          <span className="text-white/40 text-xs">
+          <span className="jersey-20-regular text-white/40 text-base lg:text-lg">
             {earnedCount}/{totalCount} earned
           </span>
         </div>
@@ -92,7 +92,7 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
           </div>
           {progressPercent === 100 && (
             <motion.span
-              className="absolute -top-5 right-0 text-amber-400 text-[10px] font-bold"
+              className="jersey-15-regular absolute -top-5 right-0 text-amber-400 text-base lg:text-lg font-bold"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
             >
@@ -125,7 +125,7 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
                 </span>
 
                 {/* Name */}
-                <p className={`text-[10px] font-medium leading-tight ${
+                <p className={`jersey-15-regular text-sm lg:text-base font-medium leading-tight ${
                   badge.earned ? 'text-white/80' : 'text-white/25'
                 }`}>
                   {badge.name}
@@ -134,14 +134,14 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
                 {/* Tooltip on hover */}
                 {badge.earned && (
                   <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 bg-gray-900/95 backdrop-blur-sm border border-white/10 rounded-lg p-2.5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-xl">
-                    <p className="text-white text-xs font-semibold mb-0.5">
+                    <p className="jersey-15-regular text-white text-base lg:text-lg font-semibold mb-0.5">
                       {badge.icon} {badge.name}
                     </p>
-                    <p className="text-white/50 text-[10px] mb-1">
+                    <p className="jersey-20-regular text-white/50 text-sm lg:text-base mb-1">
                       {badge.description}
                     </p>
                     {badge.earnedAt && (
-                      <p className="text-amber-400/60 text-[9px]">
+                      <p className="jersey-20-regular text-amber-400/60 text-xs lg:text-sm">
                         Earned {badge.earnedAt.toLocaleDateString()}
                       </p>
                     )}
@@ -151,10 +151,10 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
                 {/* Lock tooltip for unearned */}
                 {!badge.earned && (
                   <div className="absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-36 bg-gray-900/95 backdrop-blur-sm border border-white/10 rounded-lg p-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 shadow-xl">
-                    <p className="text-white/60 text-[10px] font-medium mb-0.5">
+                    <p className="jersey-15-regular text-white/60 text-sm lg:text-base font-medium mb-0.5">
                       {badge.icon} {badge.name}
                     </p>
-                    <p className="text-white/30 text-[10px]">
+                    <p className="jersey-20-regular text-white/30 text-sm lg:text-base">
                       {badge.description}
                     </p>
                   </div>
@@ -177,7 +177,7 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
       {/* Milestone hints */}
       {earnedCount < totalCount && (
         <div className="px-5 pb-4 border-t border-white/5 pt-3">
-          <p className="text-white/30 text-[10px] uppercase tracking-wide mb-1.5">Next Badges</p>
+          <p className="jersey-15-regular text-white/30 text-base lg:text-lg uppercase tracking-wide mb-1.5">Next Badges</p>
           <div className="flex flex-wrap gap-1.5">
             {allBadges
               .filter((b) => !b.earned)
@@ -185,7 +185,7 @@ const BadgeGallery: React.FC<BadgeGalleryProps> = memo(({ badges, isLoading }) =
               .map((badge) => (
                 <span
                   key={badge.id}
-                  className="inline-flex items-center gap-1 bg-white/5 border border-white/5 rounded-full px-2 py-0.5 text-white/30 text-[10px]"
+                  className="inline-flex items-center gap-1 bg-white/5 border border-white/5 rounded-full px-2 py-0.5 jersey-20-regular text-white/30 text-sm lg:text-base"
                 >
                   {badge.icon} {badge.description}
                 </span>

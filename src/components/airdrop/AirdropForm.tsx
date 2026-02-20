@@ -43,12 +43,14 @@ function AirdropForm({
           onChange={handleInputChange}
           tabIndex={-1}
           autoComplete="off"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          disabled={isSubmitting}
         />
       </div>
 
       {/* Name Input */}
       <div className="space-y-1.5">
-        <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-300">
+        <label htmlFor="name" className="jersey-15-regular block text-xl sm:text-xl font-medium text-gray-300">
           Full Name *
         </label>
         <input
@@ -58,7 +60,7 @@ function AirdropForm({
           value={formData.name}
           onChange={handleInputChange}
           placeholder="Enter your full name"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
           disabled={isSubmitting}
           required
           minLength={3}
@@ -67,7 +69,7 @@ function AirdropForm({
 
       {/* Email Input */}
       <div className="space-y-1.5">
-        <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-300">
+        <label htmlFor="email" className="jersey-15-regular block text-xl sm:text-xl font-medium text-gray-300">
           Email Address *
         </label>
         <input
@@ -77,7 +79,7 @@ function AirdropForm({
           value={formData.email}
           onChange={handleInputChange}
           placeholder="you@example.com"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
           disabled={isSubmitting}
           required
         />
@@ -86,20 +88,20 @@ function AirdropForm({
       {/* Wallet Input - READ ONLY */}
       <div className="space-y-1.5">
         <div className="flex flex-wrap justify-between items-end gap-1.5 px-1">
-          <label htmlFor="wallet" className="block text-xs sm:text-sm font-medium text-gray-300">
+          <label htmlFor="wallet" className="jersey-15-regular block text-xl sm:text-xl font-medium text-gray-300">
             Wallet Address * (Auto-Connected)
           </label>
           {solanaConnected ? (
             <div className="flex items-center gap-1.5 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-[10px] text-green-400 font-bold uppercase tracking-widest leading-none">
+              <span className="jersey-20-regular text-[10px] sm:text-xs text-green-400 font-bold uppercase tracking-widest leading-none">
                 ✓ Connected
               </span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
               <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
-              <span className="text-[10px] text-orange-400 font-bold uppercase tracking-widest leading-none">
+              <span className="jersey-20-regular text-[10px] sm:text-xl text-orange-400 font-bold uppercase tracking-widest leading-none">
                 ⚠ Not Connected
               </span>
             </div>
@@ -188,8 +190,8 @@ function AirdropForm({
               )}
             </div>
             <div className="text-right">
-              <p className="text-xs sm:text-sm font-semibold text-emerald-300">
-                Score: <span className="text-lg">{walletMetrics.trustScore || 50}</span>/100
+              <p className="text-xl sm:text-xl font-semibold text-emerald-300">
+                Score: <span className="text-xl">{walletMetrics.trustScore || 50}</span>/100
               </p>
             </div>
           </div>
@@ -221,7 +223,7 @@ function AirdropForm({
           {/* Approval Reasons */}
           {walletMetrics.approvalReasons && walletMetrics.approvalReasons.length > 0 && (
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded p-3 space-y-2">
-              <p className="text-xs font-semibold text-emerald-300">Approval Reasons:</p>
+              <p className="text-xl font-semibold text-emerald-300">Approval Reasons:</p>
               <ul className="space-y-1">
                 {walletMetrics.approvalReasons.map((reason, idx) => (
                   <li key={idx} className="text-xs text-emerald-200 flex items-start gap-2">
@@ -239,7 +241,7 @@ function AirdropForm({
               <svg className="w-4 h-4 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v-1h8v1z" />
               </svg>
-              <p className="text-xs text-blue-200 font-semibold">🏦 Wallet funded from verified exchange</p>
+              <p className="text-xl text-blue-200 font-semibold">🏦 Wallet funded from verified exchange</p>
             </div>
           )}
         </div>
@@ -252,7 +254,7 @@ function AirdropForm({
       <button
         type="submit"
         disabled={isSubmitting || !solanaConnected}
-        className="w-full py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 text-white font-bold text-sm sm:text-base rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-lg disabled:shadow-none"
+        className="w-full py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 jersey-20-regular text-white font-bold text-xl sm:text-2xl rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-lg disabled:shadow-none"
       >
         {isSubmitting ? (
           <div className="flex items-center justify-center gap-2">

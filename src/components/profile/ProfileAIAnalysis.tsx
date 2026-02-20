@@ -70,10 +70,10 @@ const ProfileAIAnalysisContent: React.FC = () => {
       {/* Header */}
       <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'}`}>
         <div>
-          <h2 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent`}>
+          <h2 className={`font-bold jersey-15-regular text-gradient ${isMobile ? 'text-4xl' : 'text-5xl'}`}>
             🤖 Advanced AI Analysis
           </h2>
-          <p className={`text-gray-400 mt-1 ${isMobile ? 'text-sm' : ''}`}>
+          <p className={`text-gray-400 mt-1 jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             Comprehensive insights with Skills, Gamification & Portfolio analysis
           </p>
         </div>

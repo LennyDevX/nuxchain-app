@@ -50,16 +50,16 @@ const TokenizationSection: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl lg:text-5xl'} font-bold text-gradient ${isMobile ? 'text-center' : ''}`}>
+              <h2 className={`jersey-15-regular ${isMobile ? 'text-4xl' : 'text-4xl lg:text-7xl'} text-gradient ${isMobile ? 'text-center' : ''}`}>
                 Tokenization
               </h2>
-              <h3 className={`${isMobile ? 'text-lg' : 'text-2xl lg:text-3xl'} font-semibold text-white ${isMobile ? 'text-center' : ''}`}>
+              <h3 className={`jersey-15-regular ${isMobile ? 'text-xl' : 'text-2xl lg:text-3xl'} text-white ${isMobile ? 'text-center' : ''}`}>
                 Turn Your Images into NFTs
               </h3>
             </motion.div>
 
             <motion.p
-              className={`${isMobile ? 'text-base mb-4' : 'text-lg mb-6'} text-gray-300 leading-relaxed ${isMobile ? 'text-center' : ''}`}
+              className={`${isMobile ? 'text-xl mb-4' : 'text-2xl mb-6'} text-gray-300 jersey-15-regular leading-relaxed ${isMobile ? 'text-center' : ''}`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
@@ -78,15 +78,15 @@ const TokenizationSection: React.FC = () => {
             >
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Simplified tokenization process</span>
+                <span className={`jersey-15-regular text-gray-300 ${isMobile ? 'text-2xl' : 'text-2xl'}`}>Simplified tokenization process</span>
               </div>
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Blockchain authenticity certification</span>
+                <span className={`jersey-15-regular text-gray-300 ${isMobile ? 'text-2xl' : 'text-2xl'}`}>Blockchain authenticity certification</span>
               </div>
               <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
                 <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <span className={`text-gray-300 ${isMobile ? 'text-sm' : ''}`}>Integrated marketplace for sales</span>
+                <span className={`jersey-15-regular text-gray-300 ${isMobile ? 'text-2xl' : 'text-2xl'}`}>Integrated marketplace for sales</span>
               </div>
             </motion.div>
 
@@ -98,7 +98,7 @@ const TokenizationSection: React.FC = () => {
             >
               <button
                 onClick={handleTokenizeClick}
-                className={`group relative ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4'} btn-primary`}
+                className={`jersey-20-regular group relative ${isMobile ? 'px-6 py-3 text-xl' : 'px-8 py-4 text-3xl'} btn-primary`}
               >
                 <span className="relative z-10">Tokenize Image</span>
               </button>

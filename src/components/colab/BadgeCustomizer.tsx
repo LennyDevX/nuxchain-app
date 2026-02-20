@@ -106,7 +106,7 @@ export default function BadgeCustomizer({
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors font-bold uppercase text-sm tracking-wide"
+          className="flex items-center gap-2 jersey-15-regular text-gray-400 hover:text-white transition-colors uppercase text-sm tracking-wide"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <path d="m12 19-7-7 7-7" />
@@ -123,10 +123,10 @@ export default function BadgeCustomizer({
       </div>
 
       <div className="text-center space-y-3">
-        <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
+        <h2 className="jersey-15-regular text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
           Customize Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Badge</span>
         </h2>
-        <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
+        <p className="jersey-20-regular text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
           Personalize your collaborator badge with your identity and social links.
         </p>
       </div>
@@ -134,7 +134,7 @@ export default function BadgeCustomizer({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Badge Preview */}
         <div className="space-y-6">
-          <h3 className="font-black text-white uppercase tracking-wide text-lg">Badge Preview</h3>
+          <h3 className="jersey-15-regular font-black text-white uppercase tracking-wide text-lg">Badge Preview</h3>
           
           <div className="relative group">
             <div className={`absolute -inset-1 bg-gradient-to-r ${RARITY_COLORS[selectedRole.rarity as keyof typeof RARITY_COLORS]} rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-500`} />
@@ -187,27 +187,27 @@ export default function BadgeCustomizer({
 
                 {/* Badge Info */}
                 <div className="space-y-2">
-                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter">
+                  <h4 className="jersey-15-regular text-2xl text-white uppercase tracking-tighter">
                     {customization.displayName || selectedRole.role}
                   </h4>
-                  <p className="text-purple-400 font-bold text-sm uppercase tracking-wide">
+                  <p className="jersey-20-regular text-purple-400 text-sm uppercase tracking-wide">
                     {selectedRole.role}
                   </p>
                 </div>
 
                 {/* Skills */}
                 <div className="flex flex-wrap justify-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs font-bold uppercase">
+                  <span className="jersey-15-regular px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs uppercase">
                     {SKILL_NAMES[selectedRole.skillType]}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase bg-gradient-to-r ${RARITY_COLORS[selectedRole.rarity as keyof typeof RARITY_COLORS]} text-white`}>
+                  <span className={`jersey-15-regular px-3 py-1 rounded-full text-xs uppercase bg-gradient-to-r ${RARITY_COLORS[selectedRole.rarity as keyof typeof RARITY_COLORS]} text-white`}>
                     Level 1
                   </span>
                 </div>
 
                 {/* Bio Preview */}
                 {customization.bio && (
-                  <p className="text-gray-400 text-sm max-w-xs">
+                  <p className="jersey-20-regular text-gray-400 text-sm max-w-xs">
                     "{customization.bio}"
                   </p>
                 )}
@@ -245,12 +245,12 @@ export default function BadgeCustomizer({
 
         {/* Customization Form */}
         <div className="space-y-6">
-          <h3 className="font-black text-white uppercase tracking-wide text-lg">Identity Details</h3>
+          <h3 className="jersey-15-regular font-black text-white uppercase tracking-wide text-lg">Identity Details</h3>
           
           <div className="space-y-4">
             {/* Display Name */}
             <div>
-              <label className="block text-gray-400 text-sm font-bold uppercase tracking-wide mb-2">
+              <label className="jersey-15-regular block text-gray-400 text-sm uppercase tracking-wide mb-2">
                 Display Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -271,9 +271,9 @@ export default function BadgeCustomizer({
 
             {/* Bio */}
             <div>
-              <label className="block text-gray-400 text-sm font-bold uppercase tracking-wide mb-2">
+              <label className="jersey-15-regular block text-gray-400 text-sm uppercase tracking-wide mb-2">
                 Bio / Description
-                <span className="text-gray-600 ml-2">
+                <span className="jersey-20-regular text-gray-600 ml-2">
                   ({customization.bio.length}/200)
                 </span>
               </label>
@@ -296,8 +296,8 @@ export default function BadgeCustomizer({
 
             {/* Social Links */}
             <div className="space-y-3">
-              <label className="block text-gray-400 text-sm font-bold uppercase tracking-wide">
-                Social Links <span className="text-gray-600">(Optional)</span>
+              <label className="jersey-15-regular block text-gray-400 text-sm uppercase tracking-wide">
+                Social Links <span className="jersey-20-regular text-gray-600">(Optional)</span>
               </label>
               
               <div className="flex items-center gap-3">
@@ -355,7 +355,7 @@ export default function BadgeCustomizer({
                   onChange={(e) => handleInputChange('acceptTerms', e.target.checked)}
                   className="w-5 h-5 rounded border-white/20 bg-transparent text-purple-500 focus:ring-purple-500/20 mt-0.5"
                 />
-                <span className="text-gray-400 text-sm leading-relaxed">
+                <span className="jersey-20-regular text-gray-400 text-sm leading-relaxed">
                   I understand that this badge NFT represents my role as a NuxChain collaborator and agree to the 
                   <a href="#" className="text-purple-400 hover:text-purple-300 underline">Terms of Service</a> and 
                   <a href="#" className="text-purple-400 hover:text-purple-300 underline">Collaborator Agreement</a>.
@@ -370,7 +370,7 @@ export default function BadgeCustomizer({
             <button
               onClick={handleMint}
               disabled={isMinting}
-              className="w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white font-black text-lg uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
+              className="jersey-20-regular w-full py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 hover:opacity-90 text-white text-lg uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_10px_30px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-[0.98]"
             >
               {isMinting ? (
                 <span className="flex items-center justify-center gap-3">

@@ -59,7 +59,7 @@ function Navbar() {
                     className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]"
                   />
                 </div>
-                <span className="text-xl font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-pink-400 transition-all duration-300 antialiased">
+                <span className="text-4xl jersey-15-regular tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-pink-400 transition-all duration-300 antialiased">
                   Nuxchain
                 </span>
               </motion.div>
@@ -91,7 +91,7 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${isActive(link.path)
+                      className={`jersey-20-regular inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xl transition-all duration-200 relative ${isActive(link.path)
                         ? 'bg-blue-100 text-blue-700 shadow-sm'
                         : 'text-white/80 hover:text-white hover:bg-white/10'
                         }`}

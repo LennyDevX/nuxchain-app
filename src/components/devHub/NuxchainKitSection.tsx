@@ -122,13 +122,13 @@ function NuxchainKitSection() {
     <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className="card-form">
         <div className="text-center mb-8">
-          <div className="inline-block mb-4 px-4 py-2 bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 rounded-full text-sm font-semibold text-purple-300">
+          <span className="inline-block mb-4 px-3 py-1 text-xs font-semibold tracking-widest text-purple-400 uppercase bg-purple-500/10 rounded-full border border-purple-500/20 jersey-20-regular">
             🚀 Coming Soon
-          </div>
-          <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold mb-4`}>
-            Introducing <span className="text-gradient">Nuxchain Kit</span>
+          </span>
+          <h2 className={`font-bold jersey-15-regular text-gradient ${isMobile ? 'text-4xl mb-3' : 'text-5xl mb-4'}`}>
+            Introducing Nuxchain Kit
           </h2>
-          <p className="text-white/70 max-w-3xl mx-auto leading-relaxed">
+          <p className={`jersey-20-regular text-slate-300 max-w-3xl mx-auto leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             A comprehensive developer toolkit and API platform to build Web3 solutions faster than ever. 
             Deploy smart contracts, manage NFTs, process transactions, and integrate blockchain functionality 
             into your applications with just a few lines of code.
@@ -137,43 +137,43 @@ function NuxchainKitSection() {
 
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'} mb-8`}>
           {features.map((feature, index) => (
-            <div key={index} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:border-purple-400/30 transition-all">
+            <div key={index} className="bg-black/20 rounded-xl p-4 border border-white/5 hover:border-purple-500/20 transition-all">
               <div className="text-3xl mb-2">{feature.icon}</div>
-              <h3 className="text-lg font-bold mb-1 text-white">{feature.title}</h3>
-              <p className="text-white/60 text-sm">{feature.description}</p>
+              <h3 className="text-base font-bold jersey-15-regular text-white mb-1">{feature.title}</h3>
+              <p className="jersey-20-regular text-slate-400 text-sm">{feature.description}</p>
             </div>
           ))}
         </div>
 
         <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl p-6 border border-purple-400/20">
-          <h3 className="text-xl font-bold mb-3 text-purple-300">What You'll Be Able To Do:</h3>
+          <h3 className="text-xl font-bold jersey-15-regular mb-3 text-purple-300">What You'll Be Able To Do:</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Deploy staking contracts with custom parameters via API</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Deploy staking contracts with custom parameters via API</p>
               </div>
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Create and manage NFT collections programmatically</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Create and manage NFT collections programmatically</p>
               </div>
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Integrate marketplace functionality into your dApp</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Integrate marketplace functionality into your dApp</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Query blockchain data with simplified GraphQL endpoints</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Query blockchain data with simplified GraphQL endpoints</p>
               </div>
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Automate token distributions and airdrops</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Automate token distributions and airdrops</p>
               </div>
               <div className="flex items-start">
                 <span className="text-purple-400 mr-2">▸</span>
-                <p className="text-white/80 text-sm">Access AI-powered analytics and insights</p>
+                <p className="jersey-20-regular text-slate-300 text-sm">Access AI-powered analytics and insights</p>
               </div>
             </div>
           </div>
@@ -182,10 +182,10 @@ function NuxchainKitSection() {
         <div className="mt-8">
           {!isFormVisible ? (
             <div className="text-center">
-              <p className="text-white/50 text-sm mb-4">
+              <p className="jersey-20-regular text-slate-500 text-sm mb-4">
                 Join the waitlist to get early access and exclusive developer benefits
               </p>
-              <button onClick={handleToggleForm} className="btn-primary px-8 py-3">
+              <button onClick={handleToggleForm} className="btn-primary jersey-20-regular px-8 py-3">
                 🔔 Notify Me When Available
               </button>
             </div>
@@ -193,8 +193,8 @@ function NuxchainKitSection() {
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-semibold text-white">Join the Nuxchain Kit waitlist</h3>
-                  <p className="text-white/60 text-sm">
+                  <h3 className="text-xl font-bold jersey-15-regular text-white">Join the Nuxchain Kit waitlist</h3>
+                  <p className="jersey-20-regular text-slate-400 text-sm">
                     We will notify you as soon as the API is available.
                   </p>
                 </div>
@@ -212,7 +212,7 @@ function NuxchainKitSection() {
               <form className="grid gap-4" onSubmit={handleSubmit}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2" htmlFor="waitlist-name">
+                    <label className="block text-sm font-medium text-slate-400 mb-2 jersey-20-regular" htmlFor="waitlist-name">
                       Full name
                     </label>
                     <input
@@ -225,7 +225,7 @@ function NuxchainKitSection() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-white/70 mb-2" htmlFor="waitlist-specialization">
+                    <label className="block text-sm font-medium text-slate-400 mb-2 jersey-20-regular" htmlFor="waitlist-specialization">
                       Area of specialization
                     </label>
                     <select
@@ -246,7 +246,7 @@ function NuxchainKitSection() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2" htmlFor="waitlist-email">
+                  <label className="block text-sm font-medium text-white/70 mb-2 jersey-20-regular" htmlFor="waitlist-email">
                     Work email
                   </label>
                   <input
@@ -272,12 +272,12 @@ function NuxchainKitSection() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <button
                     type="submit"
-                    className="btn-primary px-8 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="btn-primary jersey-20-regular px-8 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={status === 'loading'}
                   >
                     {status === 'loading' ? 'Submitting...' : 'Submit' }
                   </button>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-slate-600 jersey-20-regular">
                     Your information will be used solely to share updates about Nuxchain Kit.
                   </p>
                 </div>

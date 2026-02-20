@@ -39,7 +39,15 @@ export function AIAnalysisProvider({ children }: { children: ReactNode }) {
     const portfolioAnalysis = analysis.portfolioAnalysis;
     
     // Generate recommendations based on wallet balance
-    const recommendations = generateBalanceRecommendations(availableBalance, portfolioAnalysis);
+    // Convert contract basis points to APYRatesInput for generateBalanceRecommendations
+    const apyRatesInput = {
+      flexible:  constants.apyRates.flexible,
+      locked30:  constants.apyRates.locked30,
+      locked90:  constants.apyRates.locked90,
+      locked180: constants.apyRates.locked180,
+      locked365: constants.apyRates.locked365,
+    };
+    const recommendations = generateBalanceRecommendations(availableBalance, portfolioAnalysis, apyRatesInput);
     
     // Calculate opportunity score
     const oppScore = calculateOpportunityScore(availableBalance, portfolioAnalysis);
@@ -65,7 +73,7 @@ export function AIAnalysisProvider({ children }: { children: ReactNode }) {
       enhancedPortfolio: enhanced,
       opportunityScore: oppScore,
     };
-  }, [walletBalance, analysis.portfolioAnalysis]);
+  }, [walletBalance, analysis.portfolioAnalysis, constants.apyRates]);
   
   // Estado de configuración
   const [config, setConfig] = useState<AIAnalysisConfig>(() => {
@@ -107,17 +115,6 @@ export function AIAnalysisProvider({ children }: { children: ReactNode }) {
       setIsRefreshing(false);
     }
   }, [analysis, constants]);
-  
-  // Auto-refresh
-  useEffect(() => {
-    if (config.autoRefreshInterval <= 0) return;
-    
-    const interval = setInterval(() => {
-      analysis.refreshAnalysis();
-    }, config.autoRefreshInterval);
-    
-    return () => clearInterval(interval);
-  }, [config.autoRefreshInterval, analysis]);
   
   // Ajustar para mobile
   useEffect(() => {

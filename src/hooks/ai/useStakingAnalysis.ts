@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useUserStaking } from '../staking/useUserStaking';
 import {
   calculateStakingScore,
@@ -85,15 +85,6 @@ export function useStakingAnalysis(): StakingAnalysis {
   const refreshAnalysis = () => {
     setLastUpdateTime(Date.now());
   };
-
-  // Auto-refresh cada 30 segundos si hay cambios en los datos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLastUpdateTime(Date.now());
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   return {
     score,

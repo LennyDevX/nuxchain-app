@@ -51,12 +51,12 @@ const ProfileAIAnalysisContent: React.FC = () => {
     await refreshAnalysis();
   };
 
-  if (analysis.isLoading) {
+  if (analysis.isLoading && !analysis.lastUpdate) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-          <p className="mt-4 text-gray-400">Analyzing your staking performance...</p>
+          <p className="jersey-20-regular mt-4 text-slate-400 text-lg">Analyzing your staking performance...</p>
         </div>
       </div>
     );
@@ -82,7 +82,7 @@ const ProfileAIAnalysisContent: React.FC = () => {
             onClick={handleRefresh}
             disabled={isRefreshing}
             aria-label={isRefreshing ? 'Refreshing AI analysis' : 'Refresh AI analysis'}
-            className={`btn-primary ${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-2'} rounded-lg flex items-center justify-center gap-2 hover:scale-105 transition-all disabled:opacity-50`}
+            className={`jersey-20-regular btn-primary ${isMobile ? 'px-3 py-2 text-base' : 'px-4 py-2 text-lg'} rounded-lg flex items-center justify-center gap-2 hover:scale-105 transition-all disabled:opacity-50`}
           >
             <span className={isRefreshing ? 'animate-spin inline-block' : ''}>🔄</span>
             {!isMobile && <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>}
@@ -90,8 +90,9 @@ const ProfileAIAnalysisContent: React.FC = () => {
           <button
             onClick={() => setShowWelcome(true)}
             className={`${isMobile ? 'px-3 py-2' : 'px-4 py-2'} bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all`}
+            aria-label="Show tutorial"
           >
-            <span className="text-lg">💡</span>
+            <span className="text-xl">💡</span>
           </button>
         </div>
       </div>
@@ -107,16 +108,16 @@ const ProfileAIAnalysisContent: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`jersey-20-regular flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg text-lg'
+                : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white text-lg'
             }`}
           >
             <span>{tab.icon}</span>
-            <span className={isMobile ? 'text-sm' : ''}>{tab.label}</span>
+            <span>{tab.label}</span>
             {tab.badge !== undefined && (
-              <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+              <span className="jersey-20-regular px-2 py-0.5 bg-white/20 rounded-full text-sm font-bold">
                 {tab.badge}
               </span>
             )}

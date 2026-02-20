@@ -538,14 +538,39 @@ export function evaluatePortfolioEfficiency(
   return { score: Math.round(score), rating, feedback };
 }
 
-// APY rates by lockup duration
-const APY_BY_LOCKUP: Record<number, number> = {
-  0: 43.80,      // Flexible
-  30: 87.60,     // 30 days
-  90: 122.64,    // 90 days
-  180: 149.28,   // 180 days
-  365: 219.00,   // 365 days
+// Default APY rates by lockup duration (fallback if contract rates not available)
+export const DEFAULT_APY_BY_LOCKUP: Record<number, number> = {
+  0: 26.30,      // Flexible
+  30: 43.80,     // 30 days
+  90: 78.80,     // 90 days
+  180: 105.10,   // 180 days
+  365: 157.70,   // 365 days
 };
+
+/**
+ * APY rates interface matching contract basis points converted to percentages
+ */
+export interface APYRatesInput {
+  flexible: number;   // percentage (e.g. 26.30)
+  locked30: number;
+  locked90: number;
+  locked180: number;
+  locked365: number;
+}
+
+/**
+ * Convert APYRatesInput to lookup Record
+ */
+export function apyRatesToLookup(rates?: APYRatesInput): Record<number, number> {
+  if (!rates) return DEFAULT_APY_BY_LOCKUP;
+  return {
+    0:   rates.flexible  / 100,  // contract stores basis points (2630 = 26.30%)
+    30:  rates.locked30  / 100,
+    90:  rates.locked90  / 100,
+    180: rates.locked180 / 100,
+    365: rates.locked365 / 100,
+  };
+}
 
 const MIN_STAKE = 5;
 const MAX_STAKE = 10000;
@@ -555,8 +580,10 @@ const MAX_STAKE = 10000;
  */
 export function generateBalanceRecommendations(
   availableBalance: number,
-  portfolioAnalysis: PortfolioAnalysis | null
+  portfolioAnalysis: PortfolioAnalysis | null,
+  apyRates?: APYRatesInput
 ): BalanceRecommendation[] {
+  const APY_BY_LOCKUP = apyRatesToLookup(apyRates);
   const recommendations: BalanceRecommendation[] = [];
 
   // Not enough to stake

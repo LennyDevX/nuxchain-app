@@ -72,7 +72,7 @@ function AppRoutes() {
         <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
-        <Route path="/dev-hub" element={<CTAHub />} />
+        <Route path="/devhub" element={<CTAHub />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
         <Route path="/tutorial" element={<Tutorial />} />

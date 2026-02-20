@@ -260,7 +260,7 @@ const ProfileSidebar: React.FC = () => {
         ) : (
           <div className="group">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <h4 className="jersey-15-regular text-white font-bold text-2xl">{username}</h4>
+              <h4 className="jersey-15-regular text-white font-bold text-3xl">{username}</h4>
               <button
                 onClick={handleStartEdit}
                 className="opacity-60 hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
@@ -271,7 +271,7 @@ const ProfileSidebar: React.FC = () => {
                 </svg>
               </button>
             </div>
-            <p className="jersey-20-regular text-sm text-gray-400 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
+            <p className="jersey-20-regular text-base text-gray-400 font-mono bg-black/20 rounded-full px-3 py-1 inline-block">
               {isConnected && address ? formatAddress(address) : '@not_connected'}
             </p>
           </div>
@@ -291,14 +291,14 @@ const ProfileSidebar: React.FC = () => {
             }`}
           >
             <span className="text-2xl">{it.icon}</span>
-            <span className="jersey-15-regular font-medium text-lg">{it.label}</span>
+            <span className="jersey-15-regular font-medium text-xl">{it.label}</span>
           </Link>
         ))}
 
         {/* Active Skills NFTs Section */}
         {isConnected && (
           <div className="mt-6 pt-4 border-t border-white/10">
-            <h5 className="jersey-15-regular text-white/60 text-sm font-semibold uppercase mb-3 px-2">
+            <h5 className="jersey-15-regular text-white/60 text-base font-semibold uppercase mb-3 px-2">
               🎯 Active Skills
             </h5>
             {isLoadingSkills ? (
@@ -323,10 +323,10 @@ const ProfileSidebar: React.FC = () => {
                        '🌟'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs font-medium truncate">
+                      <p className="text-white text-sm font-medium truncate">
                         {SKILL_TYPE_NAMES[Number(skillType) as SkillType] || 'Unknown'}
                       </p>
-                      <p className="text-white/40 text-[10px]">
+                      <p className="text-white/40 text-xs">
                         Active
                       </p>
                     </div>
@@ -335,10 +335,10 @@ const ProfileSidebar: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-4 px-3">
-                <p className="text-white/40 text-xs">No active skills</p>
+                <p className="text-white/40 text-sm">No active skills</p>
                 <Link
                   to="/staking"
-                  className="text-purple-400 hover:text-purple-300 text-xs mt-1 inline-block"
+                  className="text-purple-400 hover:text-purple-300 text-sm mt-1 inline-block"
                 >
                   Stake to earn skills →
                 </Link>

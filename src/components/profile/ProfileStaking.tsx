@@ -119,7 +119,9 @@ const ProfileStaking: React.FC = () => {
         }`}>
           My Staking
         </h1>
-        <p className={`text-gray-400 mt-2 jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'}`}>Gestiona tus posiciones de staking</p>
+        <p className={`text-gray-400 mt-2 jersey-20-regular font-medium ${
+          isMobile ? 'text-lg' : 'text-xl'
+        }`}>Manage your staking positions</p>
       </header>
 
       {isConnected ? (
@@ -136,44 +138,68 @@ const ProfileStaking: React.FC = () => {
             }`}>
               {/* Total Staked */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Staked</h3>
-                <p className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>Total Staked</h3>
+                <p className={`jersey-15-regular font-bold text-white ${
+                  isMobile ? 'text-lg' : 'text-2xl'
+                }`}>
                   {parseFloat(totalStaked).toFixed(isMobile ? 2 : 4)} POL
                 </p>
-                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>
                   {activePositions} position{activePositions !== 1 ? 's' : ''}
                 </p>
               </div>
 
               {/* Rewards Earned */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>Rewards</h3>
-                <p className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>Rewards</h3>
+                <p className={`jersey-15-regular font-bold text-green-400 ${
+                  isMobile ? 'text-lg' : 'text-2xl'
+                }`}>
                   {parseFloat(pendingRewards).toFixed(6)} POL
                 </p>
-                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Claimable</p>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>Claimable</p>
               </div>
 
               {/* APY */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>APY</h3>
-                <p className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>{estimatedAPY}%</p>
-                <p className={`text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-xs'}`}>Annual Yield</p>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>APY</h3>
+                <p className={`jersey-15-regular font-bold text-purple-400 ${
+                  isMobile ? 'text-lg' : 'text-2xl'
+                }`}>{estimatedAPY}%</p>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>Annual Yield</p>
               </div>
 
               {/* Available to Withdraw */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''} ${
                 withdrawalInfo.isLocked ? 'border-orange-500/30' : 'border-green-500/30'
               }`}>
-                <h3 className={`font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                }`}>
                   Available
                 </h3>
-                <p className={`font-bold ${isMobile ? 'text-lg' : 'text-2xl'} ${
+                <p className={`jersey-15-regular font-bold ${
+                  isMobile ? 'text-lg' : 'text-2xl'
+                } ${
                   withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-400'
                 }`}>
                   {withdrawalInfo.isLocked ? '🔒 Locked' : `${parseFloat(withdrawalInfo.amount).toFixed(isMobile ? 2 : 4)} POL`}
                 </p>
-                <p className={`mt-1 ${isMobile ? 'text-xs' : 'text-xs'} ${
+                <p className={`jersey-20-regular mt-1 ${
+                  isMobile ? 'text-xs' : 'text-sm'
+                } ${
                   withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-500'
                 }`}>
                   {withdrawalInfo.isLocked 
@@ -188,8 +214,10 @@ const ProfileStaking: React.FC = () => {
           <section className="card-content border border-white/5 hover:border-purple-500/20 transition-all duration-300">
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-3">Manage Your Staking</h2>
-                <p className={`${isMobile ? 'text-sm' : 'text-base'} text-gray-400`}>
+                <h2 className="jersey-15-regular text-2xl font-bold text-white mb-3">Manage Your Staking</h2>
+                <p className={`jersey-20-regular font-medium ${
+                  isMobile ? 'text-sm' : 'text-base'
+                } text-gray-400`}>
                   {activePositions > 0 
                     ? `View and manage your ${activePositions} active position${activePositions !== 1 ? 's' : ''}`
                     : 'Ready to start earning? Visit the staking dashboard'}
@@ -198,7 +226,7 @@ const ProfileStaking: React.FC = () => {
 
               <a
                 href="/staking"
-                className="w-full md:w-96 py-4 px-8 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-lg shadow-lg hover:shadow-purple-500/50 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+                className="w-full md:w-96 py-4 px-8 rounded-xl  text-xl : md:text-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white jersey-15-regular font-bold shadow-lg hover:shadow-purple-500/50 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -210,7 +238,7 @@ const ProfileStaking: React.FC = () => {
         </>
       ) : (
         <div className="card-content text-center py-16">
-          <p className="text-gray-400">Connect your wallet to view your staking positions</p>
+          <p className="jersey-20-regular text-xl text-gray-400">Connect your wallet to view your staking positions</p>
         </div>
       )}
     </div>

@@ -13,6 +13,7 @@ const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
+const PriceFeed = lazy(() => import(/* webpackChunkName: "price-feed" */ '../pages/PriceFeed'));
 const Profile = lazy(() => import(/* webpackChunkName: "profile" */ '../pages/Profile'));
 const Blog = lazy(() => import(/* webpackChunkName: "blog" */ '../pages/Blog'));
 const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevHub'));
@@ -66,6 +67,7 @@ function AppRoutes() {
         <Route path="/create-my-nfts" element={<Tokenization />} />
         <Route path="/tokenization" element={<Tokenization />} />
         <Route path="/labs" element={<Labs />} />
+        <Route path="/labs/price-feed" element={<PriceFeed />} />
         <Route path="/skills" element={<Skills />} />
         <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />

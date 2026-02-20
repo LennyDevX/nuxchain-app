@@ -3,13 +3,14 @@
  * Integra análisis de skills, gamificación y portafolio
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useUserStaking } from '../staking/useUserStaking';
 import { useUserProfile } from '../marketplace/useUserProfile';
 import { useSkillNFTs } from '../staking/useSkillNFTs';
 import { useQuestStatus } from '../marketplace/useQuestStatus';
 import { useAchievementStatus } from '../marketplace/useAchievementStatus';
 import { usePortfolioAnalysis } from '../ai/usePortfolioAnalysis';
+import { useGamificationData } from '../marketplace/useGamificationData';
 import {
   analyzeSkills,
   calculateSkillAPYImpact,
@@ -72,6 +73,7 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
   const questStatus = useQuestStatus();
   const achievementStatus = useAchievementStatus();
   const portfolioData = usePortfolioAnalysis();
+  const gamificationOnChain = useGamificationData();
   
   const [lastUpdate, setLastUpdate] = useState<number>(Date.now());
 
@@ -81,18 +83,17 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
     
     return {
       userXP: userProfile.totalXP || 0n,
-      // ✅ Allow level 0 (no default fallback to 1)
       userLevel: userProfile.level ?? 0,
-      completedQuests: questStatus.completedQuests,
-      totalQuests: questStatus.totalQuests,
+      completedQuests: gamificationOnChain.totalQuestsCompleted || questStatus.completedQuests,
+      totalQuests: (gamificationOnChain.totalQuestsCompleted + gamificationOnChain.totalQuestsInProgress) || questStatus.totalQuests,
       unlockedAchievements: achievementStatus.unlockedAchievements,
       totalAchievements: achievementStatus.totalAchievements,
       referrals: Number(userProfile.userProfile.referralCount || 0),
-      nftsMinted: Number(userProfile.userProfile.nftsCreated || 0),
-      nftsSold: Number(userProfile.userProfile.nftsSold || 0),
-      nftsBought: Number(userProfile.userProfile.nftsBought || 0),
+      nftsMinted: gamificationOnChain.nftsCreated || Number(userProfile.userProfile.nftsCreated || 0),
+      nftsSold: gamificationOnChain.nftsSold || Number(userProfile.userProfile.nftsSold || 0),
+      nftsBought: gamificationOnChain.nftsBought || Number(userProfile.userProfile.nftsBought || 0),
     };
-  }, [userProfile, questStatus, achievementStatus]);
+  }, [userProfile, questStatus, achievementStatus, gamificationOnChain]);
 
   // Análisis de skills
   const skillAnalysis = useMemo(() => {
@@ -322,19 +323,10 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
     return baseRecommendations;
   }, [stakingData, enhancedAPY, overallScore, skillAnalysis, gamificationAnalysis, portfolioAnalysis]);
 
-  // Función de refresh
+  // Función de refresh (solo manual)
   const refreshAnalysis = () => {
     setLastUpdate(Date.now());
   };
-
-  // Auto-refresh cada 60 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLastUpdate(Date.now());
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const isLoading = stakingData.isLoading || skillsData.isLoading || userProfile.isLoading || 
                     questStatus.isLoading || achievementStatus.isLoading || portfolioData.isLoading;

@@ -51,8 +51,8 @@ export function useSkillNFTs(): UseSkillNFTsReturn {
       enabled: !!address && isConnected,
       staleTime: 60000, // 60 seconds - data is fresh
       gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache much longer
-      refetchInterval: false, // ✅ CRITICAL: Don't auto-refetch, only refetch on window focus
-      refetchOnWindowFocus: true, // Refetch when user returns to window
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
       refetchOnMount: false, // Don't refetch on component mount if data exists
     }
   });
@@ -66,8 +66,8 @@ export function useSkillNFTs(): UseSkillNFTsReturn {
       enabled: !!address && isConnected,
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
-      refetchInterval: false, // ✅ CRITICAL: Disable auto-refetch
-      refetchOnWindowFocus: true,
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });
@@ -126,8 +126,8 @@ export function useNFTSkillDetails(tokenId: bigint | null) {
       enabled: !!tokenId,
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
-      refetchInterval: false, // ✅ Disable auto-refetch
-      refetchOnWindowFocus: true,
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });

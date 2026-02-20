@@ -17,88 +17,108 @@ function FlipCard({ icon, title, description, features, color, backContent }: Fl
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
-    <div 
-      className="relative h-[400px] cursor-pointer perspective-1000"
+    <div
+      className="relative h-[460px] cursor-pointer"
+      style={{ perspective: '1200px' }}
       onClick={() => setIsFlipped(!isFlipped)}
     >
-      <div 
-        className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${
-          isFlipped ? 'rotate-y-180' : ''
-        }`}
+      <div
+        className="relative w-full h-full transition-transform duration-700"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
       >
-        {/* Front Side */}
-        <div className="absolute w-full h-full backface-hidden">
-          <div className="card-unified group h-full flex flex-col">
-            <div className={`absolute inset-0 bg-gradient-to-br ${color} rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-            
-            <div className="relative flex-1 flex flex-col">
-              <div className="text-purple-400 mb-4">{icon}</div>
-              
-              <h3 className="text-2xl font-bold mb-3">{title}</h3>
-              <p className="text-white/70 mb-4 leading-relaxed flex-1">{description}</p>
-              
-              <ul className="space-y-2 mb-4">
+        {/* ── FRONT ── */}
+        <div
+          className="absolute inset-0"
+          style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+        >
+          <div className={`h-full rounded-2xl border border-white/8 bg-black/30 backdrop-blur-sm overflow-hidden flex flex-col group hover:border-purple-500/30 transition-colors duration-300`}>
+            {/* Accent bar top */}
+            <div className={`h-0.5 w-full bg-gradient-to-r ${color.replace('/20', '')}`} />
+
+            <div className="flex flex-col flex-1 p-7">
+              {/* Icon + title row */}
+              <div className="flex items-start gap-4 mb-5">
+                <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${color} border border-white/10 flex items-center justify-center text-purple-300`}>
+                  {icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold jersey-15-regular text-white leading-tight">{title}</h3>
+                  <p className="text-xs text-slate-500 jersey-20-regular mt-0.5">Click to explore →</p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="jersey-20-regular text-slate-300 text-base leading-relaxed mb-6">{description}</p>
+
+              {/* Features */}
+              <ul className="space-y-2.5 mt-auto">
                 {features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center text-sm text-white/60">
-                    <svg className="w-4 h-4 mr-2 text-purple-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {feature}
+                  <li key={idx} className="flex items-center gap-2.5">
+                    <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    <span className="jersey-20-regular text-slate-400 text-sm">{feature}</span>
                   </li>
                 ))}
               </ul>
-              
-              <div className="flex items-center text-purple-400 font-semibold text-sm">
-                Click to learn more
-                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Back Side */}
-        <div className="absolute w-full h-full backface-hidden rotate-y-180">
-          <div className="card-unified h-full flex flex-col bg-gradient-to-br from-purple-900/30 to-indigo-900/30">
-            <div className="relative flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-purple-300">{backContent.title}</h3>
-                <button className="text-white/60 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* ── BACK ── */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+          }}
+        >
+          <div className="h-full rounded-2xl border border-purple-500/25 bg-black/40 backdrop-blur-sm overflow-hidden flex flex-col">
+            {/* Accent bar top */}
+            <div className={`h-0.5 w-full bg-gradient-to-r ${color.replace('/20', '')}`} />
+
+            <div className="flex flex-col flex-1 p-7 min-h-0">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-5 flex-shrink-0">
+                <div>
+                  <h3 className="text-lg font-bold jersey-15-regular text-white">{backContent.title}</h3>
+                  <p className="text-xs text-slate-500 jersey-20-regular mt-0.5">Click anywhere to go back</p>
+                </div>
+                <div className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-slate-500">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </button>
+                </div>
               </div>
-              
-              <div className="space-y-3 mb-4 flex-1 overflow-y-auto">
+
+              {/* Details — scrollable */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 min-h-0">
                 {backContent.details.map((detail, idx) => (
-                  <div key={idx} className="flex items-start">
-                    <span className="text-purple-400 mr-2 mt-1">▸</span>
-                    <p className="text-white/80 text-sm leading-relaxed">{detail}</p>
+                  <div key={idx} className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-purple-400 mt-2" />
+                    <p className="jersey-20-regular text-slate-300 text-sm leading-relaxed">{detail}</p>
                   </div>
                 ))}
               </div>
 
+              {/* Tech stack — always visible at bottom */}
               {backContent.techStack && (
-                <div className="mt-auto pt-4 border-t border-white/10">
-                  <p className="text-xs text-white/50 mb-2">Tech Stack:</p>
+                <div className="flex-shrink-0 pt-4 border-t border-white/8">
+                  <p className="text-xs text-slate-600 mb-2.5 jersey-20-regular uppercase tracking-wider">Tech Stack</p>
                   <div className="flex flex-wrap gap-2">
                     {backContent.techStack.map((tech, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-purple-600/20 border border-purple-400/30 rounded text-xs text-purple-300">
+                      <span
+                        key={idx}
+                        className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg text-xs text-purple-300 jersey-20-regular"
+                      >
                         {tech}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
-              
-              <div className="flex items-center text-purple-400 font-semibold text-sm mt-4">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-                </svg>
-                Click to go back
-              </div>
             </div>
           </div>
         </div>

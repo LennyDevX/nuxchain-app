@@ -58,7 +58,7 @@ export function useUserStaking(): UserStakingData {
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
       refetchInterval: false, // ✅ Disable auto-refetch
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });
@@ -73,7 +73,7 @@ export function useUserStaking(): UserStakingData {
       staleTime: 30000, // 30 seconds for rewards
       gcTime: 3 * 60 * 1000, // 3 minutes cache
       refetchInterval: false, // ✅ Disable auto-refetch
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });
@@ -88,7 +88,7 @@ export function useUserStaking(): UserStakingData {
       staleTime: 60000, // 60 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes cache
       refetchInterval: false, // ✅ Disable auto-refetch
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
   });

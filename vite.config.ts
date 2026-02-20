@@ -59,6 +59,10 @@ export default defineConfig({
         changeOrigin: true
         // No rewrite, server now handles /api prefix
       },
+      '/api/uniswap': {
+        target: 'http://localhost:3003',
+        changeOrigin: true
+      },
       '/api': {
         target: 'http://localhost:3002',
         changeOrigin: true,

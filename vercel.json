@@ -21,6 +21,10 @@
     "api/price/pol.ts": {
       "maxDuration": 10,
       "memory": 256
+    },
+    "api/uniswap/prices.ts": {
+      "maxDuration": 15,
+      "memory": 512
     }
   },
   "rewrites": [

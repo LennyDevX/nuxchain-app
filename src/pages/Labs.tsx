@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import AIFeaturesSection from '../components/labs/AIFeaturesSection';
-import InnovationShowcase from '../components/labs/InnovationShowcase';
+import PlatformMission from '../components/labs/PlatformMission';
+import UniswapPriceFeed from '../components/labs/UniswapPriceFeed';
+import { Link } from 'react-router-dom';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import { useNavigate } from 'react-router-dom';
@@ -77,25 +79,65 @@ const LabsPage: React.FC = () => {
             <AIFeaturesSection />
           </section>
 
-          {/* Innovation Showcase */}
+          {/* Platform Mission — AI + NFTs + Tokens */}
           <section ref={innovationRef}>
             <div className={`text-center ${isMobile ? 'mb-6' : 'mb-12'}`}>
               <h2 className={`font-bold mb-4 jersey-15-regular text-gradient ${
                 isMobile ? 'text-4xl' : 'text-5xl'
-              }`}>Innovative Projects</h2>
+              }`}>What We Build</h2>
               <p className={`text-slate-400 max-w-3xl mx-auto jersey-20-regular ${
-                isMobile ? 'text-xl px-4' : 'text-3xl'
+                isMobile ? 'text-xl px-4' : 'text-2xl'
               }`}>
-                {isMobile 
-                  ? 'Projects revolutionizing blockchain ecosystem'
-                  : 'Discover the projects we\'re developing to revolutionize the blockchain ecosystem.'
+                {isMobile
+                  ? 'AI · NFTs · Tokens — tools for everyone'
+                  : 'Tools that are useful inside and outside the NuxChain ecosystem.'
                 }
               </p>
             </div>
-            <InnovationShowcase />
+            <PlatformMission />
           </section>
 
-         
+          {/* Uniswap Live Price Feed — teaser card */}
+          <section>
+            <div className={`card-unified relative overflow-hidden ${isMobile ? 'p-4' : 'p-6'}`}>
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-600/5 via-transparent to-transparent pointer-events-none" />
+              <div className="relative z-10">
+                <div className={`flex items-center justify-between ${isMobile ? 'flex-col gap-4 text-center' : ''}`}>
+                  <div className={`flex items-center gap-4 ${isMobile ? 'flex-col' : ''}`}>
+                    <div className="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                        <polyline points="16 7 22 7 22 13" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className={`font-bold text-white jersey-15-regular ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Live Price Feed</h3>
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        </span>
+                      </div>
+                      <p className={`text-slate-400 jersey-20-regular ${isMobile ? 'text-lg' : 'text-sm'}`}>
+                        Real-time token prices · Powered by Uniswap API · Updates every 30s
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/labs/price-feed"
+                    className={`flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-pink-600/20 hover:bg-pink-600/30 border border-pink-500/30 text-pink-300 font-semibold transition-all duration-200 hover:scale-105 jersey-20-regular ${isMobile ? 'w-full justify-center text-xl' : 'text-3xl'}`}
+                  >
+                    Open Price Feed →
+                  </Link>
+                </div>
+                {!isMobile && (
+                  <div className="mt-5 pt-5 border-t border-white/5">
+                    <UniswapPriceFeed />
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
 
           {/* Future Projections */}
           <section>
@@ -131,7 +173,7 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    +30%
+                    +27%
                   </h3>
                   <p className={`text-slate-400 jersey-20-regular ${
                     isMobile ? 'text-xl' : 'text-lg'
@@ -144,7 +186,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-green-500" style={{ width: '25%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Expected improvement for early adopters</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Integración de Swap, powered by Uniswap, con rutas eficiente y mejor precio</p>
                   </div>
                 )}
               </div>
@@ -204,7 +246,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-purple-500" style={{ width: '85%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Target accuracy rate by Q2 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Nuxbee AI 2.0 Q3 2026</p>
                   </div>
                 )}
               </div>
@@ -234,7 +276,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-amber-500" style={{ width: '60%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Major launches planned in 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Integración de Swap Q2 2026</p>
                   </div>
                 )}
               </div>
@@ -259,7 +301,7 @@ const LabsPage: React.FC = () => {
                   }
                 </p>
                 <a 
-                  href="https://discord.gg/szZP2JcSq4" 
+                  href="https://t.me/+ESghwuU2rCpiNmI5" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className={`inline-block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 jersey-20-regular font-semibold ${

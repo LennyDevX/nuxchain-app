@@ -459,6 +459,86 @@ app.get('/api/gridbot/data', async (req, res) => {
   }
 });
 
+// ============================================================================
+// UNISWAP PRICE FEED ENDPOINT - COINGECKO PROXY (dev fallback)
+// ============================================================================
+
+const TRACKED_TOKENS_DEV = [
+  { id: 'eth',   symbol: 'ETH',  name: 'Ethereum',        coingeckoId: 'ethereum',                color: '#627EEA' },
+  { id: 'pol',   symbol: 'POL',  name: 'Polygon',          coingeckoId: 'polygon-ecosystem-token', color: '#8247E5' },
+  { id: 'usdc',  symbol: 'USDC', name: 'USD Coin',         coingeckoId: 'usd-coin',                color: '#2775CA' },
+  { id: 'wbtc',  symbol: 'WBTC', name: 'Wrapped Bitcoin',  coingeckoId: 'wrapped-bitcoin',         color: '#F7931A' },
+  { id: 'uni',   symbol: 'UNI',  name: 'Uniswap',          coingeckoId: 'uniswap',                 color: '#FF007A' },
+];
+
+app.get('/api/uniswap/prices', async (req, res) => {
+  try {
+    const cacheKey = 'uniswap_prices_dev';
+    const cached = getCached(cacheKey);
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
+    const ids = TRACKED_TOKENS_DEV.map(t => t.coingeckoId).join(',');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`,
+      {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'NuxChain-Dev/1.0'
+        }
+      }
+    );
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko error: ${response.status}`);
+    }
+
+    const cgData = await response.json();
+
+    const prices = TRACKED_TOKENS_DEV.map(token => {
+      const cg = cgData[token.coingeckoId] || {};
+      return {
+        id: token.id,
+        symbol: token.symbol,
+        name: token.name,
+        price: cg.usd ?? 0,
+        change24h: cg.usd_24h_change ?? 0,
+        volume24h: cg.usd_24h_vol ?? 0,
+        color: token.color,
+        source: 'coingecko',
+      };
+    });
+
+    const result = {
+      success: true,
+      data: prices,
+      timestamp: Date.now(),
+      cached: false,
+      source: 'coingecko',
+    };
+
+    setCached(cacheKey, result);
+    res.setHeader('X-Cache', 'MISS');
+    return res.json(result);
+
+  } catch (error) {
+    console.error('[Uniswap Prices Dev] Error:', error.message);
+    const fallback = TRACKED_TOKENS_DEV.map(t => ({
+      id: t.id, symbol: t.symbol, name: t.name,
+      price: 0, change24h: 0, volume24h: 0,
+      color: t.color, source: 'fallback',
+    }));
+    return res.json({ success: false, data: fallback, timestamp: Date.now() });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -467,6 +547,8 @@ app.use((req, res) => {
     method: req.method,
     availableEndpoints: [
       'GET /api/health/status',
+      'GET /api/market/prices',
+      'GET /api/uniswap/prices',
       'GET /api/gridbot/data?type=current',
       'GET /api/gridbot/data?type=history',
       'GET /api/gridbot/data?type=all'

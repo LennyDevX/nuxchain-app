@@ -379,9 +379,9 @@ function calculateMetrics(signatures: ConfirmedSignatureInfo[] | null): {
     .filter(s => s.blockTime !== null && s.blockTime !== undefined && s.blockTime > 0)
     .sort((a, b) => (b.blockTime || 0) - (a.blockTime || 0)); // Newest first
 
-  // If we have some valid signatures, use them
-  // But if we have ANY transactions even without blockTime, it's a real wallet
-  const transactionCount = Math.max(validSignatures.length, 0);
+  // Use ALL confirmed signatures for the count, not just those with blockTime.
+  // Some RPC nodes omit blockTime on certain txs — those are still real transactions.
+  const transactionCount = signatures.length;
   
   let walletAgeDays = 0;
   let lastTransactionDays = 0;

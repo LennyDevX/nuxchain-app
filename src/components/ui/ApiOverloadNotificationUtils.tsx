@@ -74,36 +74,28 @@ export function showApiOverloadToast(retryAfter = 30): void {
   }
 
   let timeRemaining = retryAfter
+  const TOAST_ID = 'api-overload'
 
-  // Mostrar toast inicial
-  let toastId = toast.custom(
+  // Show initial toast with stable ID (update-in-place on each tick)
+  toast.custom(
     <ApiOverloadToast timeRemaining={timeRemaining} retryAfter={retryAfter} />,
-    {
-      position: 'top-center',
-      duration: Infinity
-    }
+    { id: TOAST_ID, position: 'top-center', duration: Infinity }
   )
+  notificationState.toastId = TOAST_ID
 
-  notificationState.toastId = toastId
-
-  // Actualizar countdown cada segundo
+  // Update countdown in-place every second — no dismiss/recreate
   notificationState.intervalId = setInterval(() => {
     timeRemaining -= 1
 
     if (timeRemaining > 0) {
-      toast.dismiss(toastId)
-      toastId = toast.custom(
+      toast.custom(
         <ApiOverloadToast timeRemaining={timeRemaining} retryAfter={retryAfter} />,
-        {
-          position: 'top-center',
-          duration: Infinity
-        }
+        { id: TOAST_ID, position: 'top-center', duration: Infinity }
       )
-      notificationState.toastId = toastId
     } else {
       clearInterval(notificationState.intervalId!)
       notificationState.intervalId = null
-      toast.dismiss(toastId)
+      toast.dismiss(TOAST_ID)
       notificationState.toastId = null
 
       toast.success('✨ Retrying API request...', {

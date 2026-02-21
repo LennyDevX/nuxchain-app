@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
-import { nftToasts } from '../../utils/toasts/nftToasts';
+import { nftToasts } from '../../utils/toasts';
 import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
@@ -79,19 +79,7 @@ export default function ListingModal({ isOpen, onClose, tokenId, onSuccess }: Li
       // Dismiss any existing loading toasts
       toast.dismiss();
       
-      const toastId = toast.loading('📋 Listing NFT...', {
-        position: 'top-center',
-        style: {
-          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-          color: '#fff',
-          fontSize: '14px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '16px 24px',
-          boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
-          border: '1px solid rgba(139, 92, 246, 0.5)'
-        }
-      });
+      const toastId = nftToasts.processingTransaction('Listing NFT');
       setLoadingToastId(toastId);
       
       await writeListContract({

@@ -146,16 +146,16 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
           <div className="flex items-center gap-3">
             <span className="text-3xl">🏆</span>
             <div>
-              <h3 className="jersey-15-regular text-lg lg:text-xl font-semibold text-white">Quests & Achievements</h3>
-              <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Complete tasks to earn XP and rewards</p>
+              <h3 className="jersey-15-regular text-2xl lg:text-3xl font-semibold text-white">Quests & Achievements</h3>
+              <p className="jersey-20-regular text-white/40 text-base lg:text-lg">Complete tasks to earn XP and rewards</p>
             </div>
           </div>
           {userXP && (() => {
             const { title, color } = formatLevel(userXP.currentLevel);
             return (
               <div className="flex items-center gap-2">
-                <span className={`jersey-20-regular text-xs lg:text-sm ${color}`}>{title}</span>
-                <div className="px-3 py-1.5 rounded-full jersey-15-regular text-sm lg:text-base font-bold bg-amber-500/20 border border-amber-500/30 text-amber-300">
+                <span className={`jersey-20-regular text-sm lg:text-base ${color}`}>{title}</span>
+                <div className="px-4 py-2 rounded-full jersey-15-regular text-base lg:text-lg font-bold bg-amber-500/20 border border-amber-500/30 text-amber-300">
                   Lv.{userXP.currentLevel}
                 </div>
               </div>
@@ -167,8 +167,8 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
         {userXP && (
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="jersey-20-regular text-white/40 text-sm lg:text-base">XP Progress</span>
-              <span className="jersey-20-regular text-amber-400 text-sm lg:text-base font-medium">
+              <span className="jersey-20-regular text-white/40 text-base lg:text-lg">XP Progress</span>
+              <span className="jersey-20-regular text-amber-400 text-base lg:text-lg font-medium">
                 {formatXP(userXP.currentXP)} / {formatXP(userXP.xpForNextLevel)}
               </span>
             </div>
@@ -181,10 +181,10 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
               />
             </div>
             <div className="flex items-center justify-between mt-2">
-              <span className="jersey-20-regular text-white/30 text-xs lg:text-sm">
+              <span className="jersey-20-regular text-white/30 text-sm lg:text-base">
                 Total earned: {userXP.totalXPEarned.toString()} XP
               </span>
-              <span className="jersey-20-regular text-white/30 text-xs lg:text-sm">
+              <span className="jersey-20-regular text-white/30 text-sm lg:text-base">
                 {badgeCount} badge{badgeCount !== 1 ? 's' : ''}
               </span>
             </div>
@@ -194,8 +194,8 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
         {/* Auto-Compound Toggle */}
         <div className="bg-white/5 rounded-lg p-4 border border-white/5 mb-5 flex items-center justify-between">
           <div>
-            <p className="jersey-15-regular text-white text-sm lg:text-base font-medium">Auto-Compound</p>
-            <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">
+            <p className="jersey-15-regular text-white text-base lg:text-lg font-medium">Auto-Compound</p>
+            <p className="jersey-20-regular text-white/40 text-sm lg:text-base">
               {autoCompoundConfig?.isEnabled
                 ? `Active • Min: ${autoCompoundConfig.minAmount} POL`
                 : 'Automatically reinvest rewards'}
@@ -224,7 +224,7 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 jersey-15-regular text-sm lg:text-base font-medium transition-colors capitalize ${
+              className={`flex-1 py-3 jersey-15-regular text-base lg:text-lg font-medium transition-colors capitalize ${
                 activeTab === tab
                   ? 'text-amber-400 border-b-2 border-amber-400'
                   : 'text-white/40 hover:text-white/60'
@@ -232,12 +232,12 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
             >
               {tab}
               {tab === 'quests' && unclaimedQuests.length > 0 && (
-                <span className="ml-1.5 px-2 py-0.5 rounded-full jersey-20-regular text-xs bg-amber-500/20 text-amber-400">
+                <span className="ml-1.5 px-3 py-1 rounded-full jersey-20-regular text-base lg:text-lg bg-amber-500/20 text-amber-400">
                   {unclaimedQuests.length}
                 </span>
               )}
               {tab === 'achievements' && unclaimedAchievements.length > 0 && (
-                <span className="ml-1.5 px-2 py-0.5 rounded-full jersey-20-regular text-xs bg-purple-500/20 text-purple-400">
+                <span className="ml-1.5 px-3 py-1 rounded-full jersey-20-regular text-base lg:text-lg bg-purple-500/20 text-purple-400">
                   {unclaimedAchievements.length}
                 </span>
               )}
@@ -261,10 +261,10 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
               {questRewards.length === 0 ? (
                 <div className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-white/10">
                   <span className="text-4xl mb-3 block">📋</span>
-                  <p className="jersey-20-regular text-white/60 text-base lg:text-lg font-medium">
+                  <p className="jersey-20-regular text-white/60 text-lg lg:text-xl font-medium">
                     {depositQuestProgress.isComplete ? 'Quest Complete!' : 'Active Deposit Quest'}
                   </p>
-                  <p className="jersey-20-regular text-white/40 text-sm lg:text-base mt-2">
+                  <p className="jersey-20-regular text-white/40 text-base lg:text-lg mt-2">
                     {depositQuestProgress.isComplete 
                       ? 'You have completed 3 deposits! Great job!'
                       : `Complete ${depositQuestProgress.targetDeposits} deposits to earn rewards`}
@@ -273,10 +273,10 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                   {/* Deposit quest progress */}
                   <div className="mt-4 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="jersey-15-regular text-amber-300 text-sm lg:text-base font-medium">
+                      <span className="jersey-15-regular text-amber-300 text-lg lg:text-xl font-medium">
                         {depositQuestProgress.isComplete ? '✅ Quest Completed!' : 'Deposit Progress'}
                       </span>
-                      <span className="jersey-20-regular text-white font-bold text-sm lg:text-base">
+                      <span className="jersey-20-regular text-white font-bold text-lg lg:text-xl">
                         {depositQuestProgress.currentDeposits} / {depositQuestProgress.targetDeposits}
                       </span>
                     </div>
@@ -288,7 +288,7 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                         transition={{ duration: 0.5 }}
                       />
                     </div>
-                    <p className="jersey-20-regular text-white/50 text-xs lg:text-sm mt-2">
+                    <p className="jersey-20-regular text-white/50 text-base lg:text-lg mt-2">
                       {depositQuestProgress.isComplete 
                         ? 'You\'ve unlocked the deposit quest achievement!'
                         : `${depositQuestProgress.remaining} more deposit${depositQuestProgress.remaining !== 1 ? 's' : ''} needed`}
@@ -296,9 +296,9 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                   </div>
                 </div>
               ) : (
-                questRewards.map((quest) => (
+                questRewards.map((quest, index) => (
                   <div
-                    key={quest.questId}
+                    key={`quest-${quest.questId}-${index}`}
                     className={`bg-white/5 rounded-lg p-4 border flex items-center justify-between ${
                       quest.isClaimed ? 'border-white/5 opacity-50' :
                       quest.isExpired ? 'border-red-500/20 opacity-60' :
@@ -307,15 +307,15 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <span className="jersey-15-regular text-white text-sm lg:text-base font-medium">Quest #{quest.questId}</span>
+                        <span className="jersey-15-regular text-white text-base lg:text-lg font-medium">Quest #{quest.questId}</span>
                         {quest.isClaimed && (
-                          <span className="jersey-20-regular text-xs lg:text-sm text-emerald-400">✓ Claimed</span>
+                          <span className="jersey-20-regular text-sm lg:text-base text-emerald-400">✓ Claimed</span>
                         )}
                         {quest.isExpired && !quest.isClaimed && (
-                          <span className="jersey-20-regular text-xs lg:text-sm text-red-400">Expired</span>
+                          <span className="jersey-20-regular text-sm lg:text-base text-red-400">Expired</span>
                         )}
                       </div>
-                      <p className="jersey-20-regular text-white/50 text-xs lg:text-sm mt-1">Reward: {quest.rewardAmount} POL</p>
+                      <p className="jersey-20-regular text-white/50 text-sm lg:text-base mt-1">Reward: {quest.rewardAmount} POL</p>
                       {quest.expiresAt && !quest.isClaimed && !quest.isExpired && (
                         <p className="jersey-20-regular text-white/30 text-xs lg:text-sm mt-1">
                           Expires: {quest.expiresAt.toLocaleDateString()}
@@ -324,7 +324,7 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                     </div>
                     {!quest.isClaimed && !quest.isExpired && (
                       <motion.button
-                        className="px-4 py-2 rounded-lg jersey-15-regular text-xs lg:text-sm font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
+                        className="px-4 py-2 rounded-lg jersey-15-regular text-sm lg:text-base font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         disabled={isTransacting}
@@ -365,18 +365,18 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <span className="jersey-15-regular text-white text-sm lg:text-base font-medium">
+                        <span className="jersey-15-regular text-white text-base lg:text-lg font-medium">
                           Achievement #{achievement.achievementId}
                         </span>
                         {achievement.isClaimed && (
-                          <span className="jersey-20-regular text-xs lg:text-sm text-emerald-400">✓ Claimed</span>
+                          <span className="jersey-20-regular text-sm lg:text-base text-emerald-400">✓ Claimed</span>
                         )}
                       </div>
-                      <p className="jersey-20-regular text-white/50 text-xs lg:text-sm mt-1">Reward: {achievement.rewardAmount} POL</p>
+                      <p className="jersey-20-regular text-white/50 text-sm lg:text-base mt-1">Reward: {achievement.rewardAmount} POL</p>
                     </div>
                     {!achievement.isClaimed && !achievement.isExpired && (
                       <motion.button
-                        className="px-4 py-2 rounded-lg jersey-15-regular text-xs lg:text-sm font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 transition-colors"
+                        className="px-4 py-2 rounded-lg jersey-15-regular text-sm lg:text-base font-medium bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 transition-colors"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         disabled={isTransacting}
@@ -401,9 +401,9 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
             >
               {badges.length === 0 ? (
                 <div className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-white/10">
-                  <span className="text-4xl mb-3 block">🏅</span>
-                  <p className="jersey-20-regular text-white/60 text-base lg:text-lg font-medium">No badges earned yet</p>
-                  <p className="jersey-20-regular text-white/40 text-sm lg:text-base mt-2">Complete quests and achievements to earn badges!</p>
+                  <span className="text-3xl mb-3 block">🏅</span>
+                  <p className="jersey-20-regular text-white/60 text-lg lg:text-xl font-medium">No badges earned yet</p>
+                  <p className="jersey-20-regular text-white/40 text-base lg:text-lg mt-2">Complete quests and achievements to earn badges!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
@@ -442,7 +442,7 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
         <div className="px-5 pb-4">
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-            <span className="jersey-20-regular text-amber-400 text-sm lg:text-base">
+            <span className="jersey-20-regular text-amber-400 text-base lg:text-lg">
               {isPending ? 'Confirm in wallet...' : 'Processing transaction...'}
             </span>
           </div>

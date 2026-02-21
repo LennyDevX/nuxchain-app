@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { toast } from 'react-hot-toast';
+import { tokenizationToasts } from '../utils/toasts';
 import useMintNFT from '../hooks/nfts/useMintNFT';
 import { useUserStaking } from '../hooks/staking/useUserStaking';
 
@@ -89,17 +89,6 @@ function Tokenization() {
       return;
     }
 
-    // Gas limit warning for large batches (estimate: 300k base + 200k per NFT)
-    if (formData.count > 50) {
-      const estimatedGas = 300000 + (formData.count * 200000);
-      const blockGasLimit = 30000000; // Polygon block gas limit
-      
-      if (estimatedGas > blockGasLimit * 0.8) {
-        setError(`⚠️ Batch size too large (${formData.count} copies). This might exceed gas limits. Try minting fewer copies (max recommended: 50 per batch).`);
-        return;
-      }
-    }
-
     // Check staking requirement for Skill NFTs (200 POL minimum)
     if (formData.nftType === 'skill') {
       const stakedAmount = parseFloat(totalStaked || '0');
@@ -115,22 +104,17 @@ function Tokenization() {
       return;
     }
 
+    let mintToastId: string | undefined;
     try {
       setError(null);
 
       // Show loading toast while minting
-      const mintToastId = toast.loading('Minting NFT...', {
-        position: 'top-center',
-        style: {
-          background: '#3b82f6',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
-        }
-      });
+      const batchCount = Math.ceil(formData.count / 100);
+      mintToastId = tokenizationToasts.mintingInProgress(
+        formData.count > 100
+          ? `⏳ Minting ${formData.count} NFTs in ${batchCount} batches of 100...`
+          : undefined
+      );
 
       const result = await mintNFT({
         file: selectedFile,
@@ -142,29 +126,13 @@ function Tokenization() {
         skills: formData.skills
       });
 
-      // Dismiss loading toast
-      toast.dismiss(mintToastId);
-
       if (result.success) {
         // Show batch-aware success toast
         const isBatch = formData.count > 1;
         const tokenDisplay = isBatch && result.tokenIds && result.tokenIds.length > 1
           ? `NFTs #${result.tokenIds[0]}-${result.tokenIds[result.tokenIds.length - 1]} (${result.tokenIds.length} copies)`
           : `NFT #${result.tokenId}`;
-        
-        toast.success(`✨ ${tokenDisplay} Minted!`, {
-          duration: 5000,
-          position: 'top-center',
-          style: {
-            background: '#10b981',
-            color: '#fff',
-            fontSize: '15px',
-            fontWeight: '600',
-            borderRadius: '12px',
-            padding: '14px 24px',
-            boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
-          }
-        });
+        tokenizationToasts.mintingSuccess(formData.name, tokenDisplay, mintToastId);
 
         // Clear form after success
         setTimeout(() => {
@@ -185,25 +153,9 @@ function Tokenization() {
 
     } catch (err) {
       console.error('Error creating NFT:', err);
-      toast.dismiss();
-
       const errorMsg = err instanceof Error ? err.message : 'Failed to create NFT';
       setError(errorMsg || mintError);
-
-      // Show error toast - simple message
-      toast.error('Minting failed', {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: '#ef4444',
-          color: '#fff',
-          fontSize: '15px',
-          fontWeight: '600',
-          borderRadius: '12px',
-          padding: '14px 24px',
-          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)'
-        }
-      });
+      tokenizationToasts.mintingError(errorMsg || 'Minting failed', mintToastId);
     }
   };
 

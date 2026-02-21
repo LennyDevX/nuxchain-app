@@ -118,17 +118,6 @@ export function useUserDeposits(): UseUserDepositsReturn {
         const isLocked = currentTime < unlockTime;
         const isActive = amount > 0n;
 
-        console.log(`[useUserDeposits] Deposit ${index}:`, {
-          amount: amount.toString(),
-          depositTime: depositTime.toString(),
-          lastClaimTime: lastClaimTime.toString(),
-          lockupDuration: lockupDuration.toString(),
-          lockupDays: Number(lockupDuration) / 86400,
-          unlockTime: unlockTime.toString(),
-          isLocked,
-          isActive
-        });
-
         return {
           index,
           amount,
@@ -141,10 +130,6 @@ export function useUserDeposits(): UseUserDepositsReturn {
         } as UserDeposit;
       })
       .filter((deposit): deposit is UserDeposit => deposit !== null);
-
-    console.log(`[useUserDeposits] Total active deposits:`, parsedDeposits.filter(d => d.isActive).length);
-    console.log(`[useUserDeposits] Total locked deposits:`, parsedDeposits.filter(d => d.isActive && d.isLocked).length);
-    console.log(`[useUserDeposits] Total flexible deposits:`, parsedDeposits.filter(d => d.isActive && !d.isLocked).length);
 
     return parsedDeposits;
   }, [depositsData]);

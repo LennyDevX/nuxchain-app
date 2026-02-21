@@ -27,9 +27,10 @@ const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pa
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
 const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
 const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
+const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 
 function AppRoutes() {
-  // ⚡ Smart preloading: Only preload on fast connections and after idle
+  // Smart preloading: Only preload on fast connections and after idle
   useEffect(() => {
     // Check connection speed using Network Information API
     const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
@@ -82,6 +83,7 @@ function AppRoutes() {
         <Route path="/admin/dashboard" element={<Admin />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
+        <Route path="/nux" element={<Nux />} />
       </Routes>
     </Suspense>
   );

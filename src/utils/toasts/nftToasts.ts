@@ -4,66 +4,14 @@
  */
 
 import toast from 'react-hot-toast'
+import { makeToastStyle, toastDurations, DEFAULT_POSITION } from './toastStyles'
 
-/**
- * 🎨 Toast Style Presets for NFT
- */
-const nftToastStyles = {
-  success: {
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
-    border: '1px solid rgba(139, 92, 246, 0.5)',
-    icon: '✨'
-  },
-  error: {
-    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)',
-    border: '1px solid rgba(239, 68, 68, 0.5)',
-    icon: '⚠️'
-  },
-  info: {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
-    border: '1px solid rgba(59, 130, 246, 0.5)',
-    icon: 'ℹ️'
-  },
-  warning: {
-    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
-    border: '1px solid rgba(245, 158, 11, 0.5)',
-    icon: '⚡'
-  },
-  loading: {
-    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(6, 182, 212, 0.3)',
-    border: '1px solid rgba(6, 182, 212, 0.5)',
-    icon: '⏳'
-  }
+const s = {
+  success: makeToastStyle('premium'),
+  error:   makeToastStyle('error'),
+  info:    makeToastStyle('info'),
+  warning: makeToastStyle('warning'),
+  loading: makeToastStyle('comment'),
 }
 
 /**
@@ -72,330 +20,74 @@ const nftToastStyles = {
 export const nftToasts = {
   // Purchase/Buying NFTs
   purchaseSuccess: (nftName: string, price: string) => {
-    toast.success(
-      `🎉 Successfully purchased "${nftName}" for ${price} POL!`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.success.background,
-          color: nftToastStyles.success.color,
-          fontSize: nftToastStyles.success.fontSize,
-          fontWeight: nftToastStyles.success.fontWeight,
-          borderRadius: nftToastStyles.success.borderRadius,
-          padding: nftToastStyles.success.padding,
-          boxShadow: nftToastStyles.success.boxShadow,
-          border: nftToastStyles.success.border
-        }
-      }
-    )
+    toast.success(`🎉 Successfully purchased "${nftName}" for ${price} POL!`, { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.success })
   },
 
   purchaseError: (error: string) => {
-    toast.error(
-      `❌ Purchase failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`❌ Purchase failed: ${error}`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   insufficientBalance: (needed: string, available: string) => {
-    toast.error(
-      `💸 Insufficient balance. Need ${needed} POL, have ${available} POL`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`💸 Insufficient balance. Need ${needed} POL, have ${available} POL`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   // Listing NFTs
   listingSuccess: (nftName: string, price: string) => {
-    toast.success(
-      `📋 "${nftName}" listed for ${price} POL!`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.success.background,
-          color: nftToastStyles.success.color,
-          fontSize: nftToastStyles.success.fontSize,
-          fontWeight: nftToastStyles.success.fontWeight,
-          borderRadius: nftToastStyles.success.borderRadius,
-          padding: nftToastStyles.success.padding,
-          boxShadow: nftToastStyles.success.boxShadow,
-          border: nftToastStyles.success.border
-        }
-      }
-    )
+    toast.success(`📋 "${nftName}" listed for ${price} POL!`, { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.success })
   },
 
   listingError: (error: string) => {
-    toast.error(
-      `❌ Listing failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`❌ Listing failed: ${error}`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   // Transferring NFTs
   transferSuccess: (nftName: string, recipient: string) => {
-    toast.success(
-      `🔄 "${nftName}" transferred to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.success.background,
-          color: nftToastStyles.success.color,
-          fontSize: nftToastStyles.success.fontSize,
-          fontWeight: nftToastStyles.success.fontWeight,
-          borderRadius: nftToastStyles.success.borderRadius,
-          padding: nftToastStyles.success.padding,
-          boxShadow: nftToastStyles.success.boxShadow,
-          border: nftToastStyles.success.border
-        }
-      }
-    )
+    toast.success(`🔄 "${nftName}" transferred to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`, { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.success })
   },
 
   transferError: (error: string) => {
-    toast.error(
-      `❌ Transfer failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`❌ Transfer failed: ${error}`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   // Canceling listings
   cancelListingSuccess: (nftName: string) => {
-    toast.success(
-      `✅ Listing cancelled for "${nftName}"`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.success.background,
-          color: nftToastStyles.success.color,
-          fontSize: nftToastStyles.success.fontSize,
-          fontWeight: nftToastStyles.success.fontWeight,
-          borderRadius: nftToastStyles.success.borderRadius,
-          padding: nftToastStyles.success.padding,
-          boxShadow: nftToastStyles.success.boxShadow,
-          border: nftToastStyles.success.border
-        }
-      }
-    )
+    toast.success(`✅ Listing cancelled for "${nftName}"`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.success })
   },
 
   cancelListingError: (error: string) => {
-    toast.error(
-      `❌ Cancel failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`❌ Cancel failed: ${error}`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   // Copy to clipboard
   addressCopied: (type: string) => {
-    toast(
-      `📋 ${type} copied to clipboard!`,
-      {
-        duration: 2000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.info.background,
-          color: nftToastStyles.info.color,
-          fontSize: nftToastStyles.info.fontSize,
-          fontWeight: nftToastStyles.info.fontWeight,
-          borderRadius: nftToastStyles.info.borderRadius,
-          padding: nftToastStyles.info.padding,
-          boxShadow: nftToastStyles.info.boxShadow,
-          border: nftToastStyles.info.border
-        }
-      }
-    )
+    toast(`📋 ${type} copied to clipboard!`, { duration: toastDurations.short, position: DEFAULT_POSITION, style: s.info })
   },
 
   // NFT Not found/Invalid
   nftNotFound: () => {
-    toast.error(
-      `❌ NFT not found or has been removed`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`❌ NFT not found or has been removed`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   walletNotConnected: () => {
-    toast.error(
-      `🔐 Please connect your wallet to purchase NFTs`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`🔐 Please connect your wallet to purchase NFTs`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   // Favorites/Likes
   addedToFavorites: (nftName: string) => {
-    toast(
-      `❤️ "${nftName}" added to favorites!`,
-      {
-        duration: 3000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.success.background,
-          color: nftToastStyles.success.color,
-          fontSize: nftToastStyles.success.fontSize,
-          fontWeight: nftToastStyles.success.fontWeight,
-          borderRadius: nftToastStyles.success.borderRadius,
-          padding: nftToastStyles.success.padding,
-          boxShadow: nftToastStyles.success.boxShadow,
-          border: nftToastStyles.success.border
-        }
-      }
-    )
+    toast(`❤️ "${nftName}" added to favorites!`, { duration: toastDurations.default, position: DEFAULT_POSITION, style: s.success })
   },
 
   removedFromFavorites: (nftName: string) => {
-    toast(
-      `💔 "${nftName}" removed from favorites`,
-      {
-        duration: 3000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.info.background,
-          color: nftToastStyles.info.color,
-          fontSize: nftToastStyles.info.fontSize,
-          fontWeight: nftToastStyles.info.fontWeight,
-          borderRadius: nftToastStyles.info.borderRadius,
-          padding: nftToastStyles.info.padding,
-          boxShadow: nftToastStyles.info.boxShadow,
-          border: nftToastStyles.info.border
-        }
-      }
-    )
+    toast(`💔 "${nftName}" removed from favorites`, { duration: toastDurations.default, position: DEFAULT_POSITION, style: s.info })
   },
 
   // Loading states
   processingTransaction: (action: string) => {
-    toast.loading(
-      `⏳ ${action}... This may take a few moments`,
-      {
-        duration: Infinity,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.loading.background,
-          color: nftToastStyles.loading.color,
-          fontSize: nftToastStyles.loading.fontSize,
-          fontWeight: nftToastStyles.loading.fontWeight,
-          borderRadius: nftToastStyles.loading.borderRadius,
-          padding: nftToastStyles.loading.padding,
-          boxShadow: nftToastStyles.loading.boxShadow,
-          border: nftToastStyles.loading.border
-        }
-      }
-    )
+    return toast.loading(`⏳ ${action}... This may take a few moments`, { duration: toastDurations.loading, position: DEFAULT_POSITION, style: s.loading })
   },
 
   // Generic error
   error: (message: string) => {
-    toast.error(
-      message,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: nftToastStyles.error.background,
-          color: nftToastStyles.error.color,
-          fontSize: nftToastStyles.error.fontSize,
-          fontWeight: nftToastStyles.error.fontWeight,
-          borderRadius: nftToastStyles.error.borderRadius,
-          padding: nftToastStyles.error.padding,
-          boxShadow: nftToastStyles.error.boxShadow,
-          border: nftToastStyles.error.border
-        }
-      }
-    )
+    toast.error(message, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   }
 }

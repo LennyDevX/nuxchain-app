@@ -4,66 +4,14 @@
  */
 
 import toast from 'react-hot-toast'
+import { makeToastStyle, toastDurations, DEFAULT_POSITION } from './toastStyles'
 
-/**
- * 🎨 Toast Style Presets for Skills System
- */
-const skillToastStyles = {
-  purchase: {
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
-    border: '1px solid rgba(139, 92, 246, 0.5)',
-    icon: '⚡'
-  },
-  activation: {
-    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)',
-    border: '1px solid rgba(16, 185, 129, 0.5)',
-    icon: '✨'
-  },
-  upgrade: {
-    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
-    border: '1px solid rgba(245, 158, 11, 0.5)',
-    icon: '⬆️'
-  },
-  benefit: {
-    background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(6, 182, 212, 0.3)',
-    border: '1px solid rgba(6, 182, 212, 0.5)',
-    icon: '💎'
-  },
-  error: {
-    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)',
-    border: '1px solid rgba(239, 68, 68, 0.5)',
-    icon: '⚠️'
-  }
+const s = {
+  purchase:   makeToastStyle('premium'),
+  activation: makeToastStyle('success'),
+  upgrade:    makeToastStyle('warning'),
+  benefit:    makeToastStyle('comment'),
+  error:      makeToastStyle('error'),
 }
 
 /**
@@ -77,23 +25,7 @@ export const skillToasts = {
    * @param rarity Rareza del skill
    */
   skillPurchased: (skillName: string, price: string, rarity: string) => {
-    toast.success(
-      `⚡ Skill Adquirido!\n"${skillName}" (${rarity})\n${price} POL`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.purchase.background,
-          color: skillToastStyles.purchase.color,
-          fontSize: skillToastStyles.purchase.fontSize,
-          fontWeight: skillToastStyles.purchase.fontWeight,
-          borderRadius: skillToastStyles.purchase.borderRadius,
-          padding: skillToastStyles.purchase.padding,
-          boxShadow: skillToastStyles.purchase.boxShadow,
-          border: skillToastStyles.purchase.border
-        }
-      }
-    )
+    toast.success(`⚡ Skill Adquirido!\n"${skillName}" (${rarity})\n${price} POL`, { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.purchase })
   },
 
   /**
@@ -102,23 +34,7 @@ export const skillToasts = {
    * @param benefit Beneficio principal
    */
   skillActivated: (skillName: string, benefit: string) => {
-    toast.success(
-      `✨ Skill Activado!\n"${skillName}"\n${benefit}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.activation.background,
-          color: skillToastStyles.activation.color,
-          fontSize: skillToastStyles.activation.fontSize,
-          fontWeight: skillToastStyles.activation.fontWeight,
-          borderRadius: skillToastStyles.activation.borderRadius,
-          padding: skillToastStyles.activation.padding,
-          boxShadow: skillToastStyles.activation.boxShadow,
-          border: skillToastStyles.activation.border
-        }
-      }
-    )
+    toast.success(`✨ Skill Activado!\n"${skillName}"\n${benefit}`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.activation })
   },
 
   /**
@@ -128,23 +44,7 @@ export const skillToasts = {
    * @param improvedBenefit Beneficio mejorado
    */
   skillUpgraded: (skillName: string, newLevel: number, improvedBenefit: string) => {
-    toast.success(
-      `⬆️ Skill Mejorado!\n"${skillName}" → Nivel ${newLevel}\n${improvedBenefit}`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.upgrade.background,
-          color: skillToastStyles.upgrade.color,
-          fontSize: skillToastStyles.upgrade.fontSize,
-          fontWeight: skillToastStyles.upgrade.fontWeight,
-          borderRadius: skillToastStyles.upgrade.borderRadius,
-          padding: skillToastStyles.upgrade.padding,
-          boxShadow: skillToastStyles.upgrade.boxShadow,
-          border: skillToastStyles.upgrade.border
-        }
-      }
-    )
+    toast.success(`⬆️ Skill Mejorado!\n"${skillName}" → Nivel ${newLevel}\n${improvedBenefit}`, { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.upgrade })
   },
 
   /**
@@ -153,23 +53,7 @@ export const skillToasts = {
    * @param skillName Nombre del skill que otorga el descuento
    */
   discountApplied: (discountPercent: number, skillName: string) => {
-    toast(
-      `💰 ¡Descuento Aplicado!\n${discountPercent}% OFF gracias a "${skillName}"`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.benefit.background,
-          color: skillToastStyles.benefit.color,
-          fontSize: skillToastStyles.benefit.fontSize,
-          fontWeight: skillToastStyles.benefit.fontWeight,
-          borderRadius: skillToastStyles.benefit.borderRadius,
-          padding: skillToastStyles.benefit.padding,
-          boxShadow: skillToastStyles.benefit.boxShadow,
-          border: skillToastStyles.benefit.border
-        }
-      }
-    )
+    toast(`💰 ¡Descuento Aplicado!\n${discountPercent}% OFF gracias a "${skillName}"`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.benefit })
   },
 
   /**
@@ -178,23 +62,7 @@ export const skillToasts = {
    * @param benefitDescription Descripción del beneficio
    */
   benefitActivated: (skillName: string, benefitDescription: string) => {
-    toast(
-      `💎 Beneficio Activo!\n"${skillName}"\n${benefitDescription}`,
-      {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.benefit.background,
-          color: skillToastStyles.benefit.color,
-          fontSize: skillToastStyles.benefit.fontSize,
-          fontWeight: skillToastStyles.benefit.fontWeight,
-          borderRadius: skillToastStyles.benefit.borderRadius,
-          padding: skillToastStyles.benefit.padding,
-          boxShadow: skillToastStyles.benefit.boxShadow,
-          border: skillToastStyles.benefit.border
-        }
-      }
-    )
+    toast(`💎 Beneficio Activo!\n"${skillName}"\n${benefitDescription}`, { duration: toastDurations.medium, position: DEFAULT_POSITION, style: s.benefit })
   },
 
   /**
@@ -203,23 +71,7 @@ export const skillToasts = {
    * @param bonusPercent Bonificación adicional del combo
    */
   comboActivated: (comboName: string, bonusPercent: number) => {
-    toast.success(
-      `🔥 ¡COMBO ACTIVADO!\n"${comboName}"\n+${bonusPercent}% Bonus Extra`,
-      {
-        duration: 7000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.upgrade.background,
-          color: skillToastStyles.upgrade.color,
-          fontSize: skillToastStyles.upgrade.fontSize,
-          fontWeight: skillToastStyles.upgrade.fontWeight,
-          borderRadius: skillToastStyles.upgrade.borderRadius,
-          padding: skillToastStyles.upgrade.padding,
-          boxShadow: skillToastStyles.upgrade.boxShadow,
-          border: skillToastStyles.upgrade.border
-        }
-      }
-    )
+    toast.success(`🔥 ¡COMBO ACTIVADO!\n"${comboName}"\n+${bonusPercent}% Bonus Extra`, { duration: toastDurations.critical, position: DEFAULT_POSITION, style: s.upgrade })
   },
 
   /**
@@ -228,23 +80,7 @@ export const skillToasts = {
    * @param skillName Skill que otorga el bonus
    */
   stakingBonusEarned: (bonusReward: string, skillName: string) => {
-    toast.success(
-      `💰 ¡Bonus de Staking Ganado!\n+${bonusReward} gracias a "${skillName}"`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.benefit.background,
-          color: skillToastStyles.benefit.color,
-          fontSize: skillToastStyles.benefit.fontSize,
-          fontWeight: skillToastStyles.benefit.fontWeight,
-          borderRadius: skillToastStyles.benefit.borderRadius,
-          padding: skillToastStyles.benefit.padding,
-          boxShadow: skillToastStyles.benefit.boxShadow,
-          border: skillToastStyles.benefit.border
-        }
-      }
-    )
+    toast.success(`💰 ¡Bonus de Staking Ganado!\n+${bonusReward} gracias a "${skillName}"`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.benefit })
   },
 
   /**
@@ -253,23 +89,7 @@ export const skillToasts = {
    * @param skillName Skill que otorga el bonus
    */
   xpBonusEarned: (xpBonus: number, skillName: string) => {
-    toast(
-      `✨ ¡XP Bonus Ganado!\n+${xpBonus} XP extra por "${skillName}"`,
-      {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.benefit.background,
-          color: skillToastStyles.benefit.color,
-          fontSize: skillToastStyles.benefit.fontSize,
-          fontWeight: skillToastStyles.benefit.fontWeight,
-          borderRadius: skillToastStyles.benefit.borderRadius,
-          padding: skillToastStyles.benefit.padding,
-          boxShadow: skillToastStyles.benefit.boxShadow,
-          border: skillToastStyles.benefit.border
-        }
-      }
-    )
+    toast(`✨ ¡XP Bonus Ganado!\n+${xpBonus} XP extra por "${skillName}"`, { duration: toastDurations.medium, position: DEFAULT_POSITION, style: s.benefit })
   },
 
   /**
@@ -278,46 +98,14 @@ export const skillToasts = {
    * @param bonusReward Recompensa por completar
    */
   collectionCompleted: (collectionName: string, bonusReward: string) => {
-    toast.success(
-      `🏆 ¡Colección Completa!\n"${collectionName}"\nRecompensa: ${bonusReward}`,
-      {
-        duration: 7000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.upgrade.background,
-          color: skillToastStyles.upgrade.color,
-          fontSize: skillToastStyles.upgrade.fontSize,
-          fontWeight: skillToastStyles.upgrade.fontWeight,
-          borderRadius: skillToastStyles.upgrade.borderRadius,
-          padding: skillToastStyles.upgrade.padding,
-          boxShadow: skillToastStyles.upgrade.boxShadow,
-          border: skillToastStyles.upgrade.border
-        }
-      }
-    )
+    toast.success(`🏆 ¡Colección Completa!\n"${collectionName}"\nRecompensa: ${bonusReward}`, { duration: toastDurations.critical, position: DEFAULT_POSITION, style: s.upgrade })
   },
 
   /**
    * Notificación de skill ya poseído
    */
   skillAlreadyOwned: () => {
-    toast.error(
-      `⚠️ Ya posees este Skill`,
-      {
-        duration: 3000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.error.background,
-          color: skillToastStyles.error.color,
-          fontSize: skillToastStyles.error.fontSize,
-          fontWeight: skillToastStyles.error.fontWeight,
-          borderRadius: skillToastStyles.error.borderRadius,
-          padding: skillToastStyles.error.padding,
-          boxShadow: skillToastStyles.error.boxShadow,
-          border: skillToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`⚠️ Ya posees este Skill`, { duration: toastDurations.default, position: DEFAULT_POSITION, style: s.error })
   },
 
   /**
@@ -326,45 +114,13 @@ export const skillToasts = {
    * @param current Balance actual
    */
   insufficientFunds: (required: string, current: string) => {
-    toast.error(
-      `💸 Fondos Insuficientes\nRequiere: ${required} POL\nTienes: ${current} POL`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.error.background,
-          color: skillToastStyles.error.color,
-          fontSize: skillToastStyles.error.fontSize,
-          fontWeight: skillToastStyles.error.fontWeight,
-          borderRadius: skillToastStyles.error.borderRadius,
-          padding: skillToastStyles.error.padding,
-          boxShadow: skillToastStyles.error.boxShadow,
-          border: skillToastStyles.error.border
-        }
-      }
-    )
+    toast.error(`💸 Fondos Insuficientes\nRequiere: ${required} POL\nTienes: ${current} POL`, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   },
 
   /**
    * Error genérico
    */
   error: (message: string) => {
-    toast.error(
-      message,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: skillToastStyles.error.background,
-          color: skillToastStyles.error.color,
-          fontSize: skillToastStyles.error.fontSize,
-          fontWeight: skillToastStyles.error.fontWeight,
-          borderRadius: skillToastStyles.error.borderRadius,
-          padding: skillToastStyles.error.padding,
-          boxShadow: skillToastStyles.error.boxShadow,
-          border: skillToastStyles.error.border
-        }
-      }
-    )
+    toast.error(message, { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error })
   }
 }

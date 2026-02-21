@@ -1,4 +1,6 @@
 // Utility functions for handling smart contract custom errors
+import toast from 'react-hot-toast'
+import { makeToastStyle, toastDurations, DEFAULT_POSITION } from '../toasts/toastStyles'
 
 export interface ContractError {
   name: string;
@@ -101,10 +103,12 @@ export function showContractError(error: unknown, customMessage?: string): void 
   const errorMessage = parseContractError(error);
   const fullMessage = customMessage ? `${customMessage}: ${errorMessage}` : errorMessage;
   
-  // You can replace this with your preferred notification system
-  alert(fullMessage);
+  toast.error(fullMessage, {
+    duration: toastDurations.error,
+    position: DEFAULT_POSITION,
+    style: makeToastStyle('error'),
+  });
   
-  // Also log the original error for debugging
   console.error('Contract Error:', error);
 }
 

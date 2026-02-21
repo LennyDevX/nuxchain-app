@@ -101,21 +101,19 @@ export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigatio
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content - only mount the active tab to avoid multiple wallet hook instances */}
       <div
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className="relative"
       >
-        {/* Render all tabs but show only the active one - preserves component state */}
         {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`min-h-[400px] ${activeTab === tab.id ? 'block' : 'hidden'}`}
-          >
-            {tab.content}
-          </div>
+          activeTab === tab.id ? (
+            <div key={tab.id} className="min-h-[400px]">
+              {tab.content}
+            </div>
+          ) : null
         ))}
       </div>
     </div>

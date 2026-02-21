@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { formatEther } from 'viem';
 import useCollaboratorQuestAdmin from '../../hooks/colab/useCollaboratorQuestAdmin';
 import useMarketplaceQuestAdmin, { QUEST_TYPE_NAMES, QuestType } from '../../hooks/marketplace/useMarketplaceQuestAdmin';
-import { getBlockExplorerUrl } from '../../abi/contracts.config';
+import { gamificationToasts } from '../../utils/toasts';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -30,11 +30,6 @@ const RefreshIcon = () => (
   </svg>
 );
 
-const ExternalLinkIcon = () => (
-  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-  </svg>
-);
 
 const UsersIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,28 +38,6 @@ const UsersIcon = () => (
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function TxToast({ hash, label, onClose }: { hash: string; label: string; onClose: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 8000);
-    return () => clearTimeout(t);
-  }, [onClose]);
-  return (
-    <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-sm">
-      <CheckIcon />
-      <span className="text-emerald-400 font-medium">{label}</span>
-      <a
-        href={getBlockExplorerUrl(hash)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="ml-auto flex items-center gap-1 text-emerald-300 hover:text-white transition-colors"
-      >
-        View tx <ExternalLinkIcon />
-      </a>
-      <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors ml-1">✕</button>
-    </div>
-  );
-}
 
 function ErrorBanner({ message, onClose }: { message: string; onClose: () => void }) {
   return (
@@ -206,29 +179,22 @@ function CollaboratorQuestsTab() {
   const [endDate, setEndDate] = useState('');
   const [maxCompletions, setMaxCompletions] = useState('');
 
-  // Toasts
-  const [toasts, setToasts] = useState<{ id: number; hash: string; label: string }[]>([]);
-  const addToast = (hash: string, label: string) =>
-    setToasts(t => [...t, { id: Date.now(), hash, label }]);
-  const removeToast = (id: number) => setToasts(t => t.filter(x => x.id !== id));
-
   // Batch modal
   const [batchQuestId, setBatchQuestId] = useState<bigint | null>(null);
 
   // Track tx success for toasts
   useEffect(() => {
     if (createSuccess && createHash) {
-      const hash = createHash;
       setTimeout(() => {
-        addToast(hash, 'Quest created successfully');
+        gamificationToasts.txConfirmed();
         setDescription(''); setRewardAmount(''); setStartDate(''); setEndDate(''); setMaxCompletions('');
         refresh();
       }, 0);
     }
   }, [createSuccess, createHash, refresh]);
 
-  useEffect(() => { if (deactivateSuccess && deactivateHash) { const h = deactivateHash; setTimeout(() => { addToast(h, 'Quest deactivated'); refresh(); }, 0); } }, [deactivateSuccess, deactivateHash, refresh]);
-  useEffect(() => { if (batchSuccess && batchHash) { const h = batchHash; setTimeout(() => { addToast(h, 'Batch completion submitted'); setBatchQuestId(null); refresh(); }, 0); } }, [batchSuccess, batchHash, refresh]);
+  useEffect(() => { if (deactivateSuccess && deactivateHash) { setTimeout(() => { gamificationToasts.txConfirmed(); refresh(); }, 0); } }, [deactivateSuccess, deactivateHash, refresh]);
+  useEffect(() => { if (batchSuccess && batchHash) { setTimeout(() => { gamificationToasts.txConfirmed(); setBatchQuestId(null); refresh(); }, 0); } }, [batchSuccess, batchHash, refresh]);
 
   const handleCreate = () => {
     if (!description || !rewardAmount || !startDate || !endDate || !maxCompletions) return;
@@ -245,11 +211,8 @@ function CollaboratorQuestsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Toasts */}
-      <div className="space-y-2">
-        {toasts.map(t => <TxToast key={t.id} hash={t.hash} label={t.label} onClose={() => removeToast(t.id)} />)}
-        {error && <ErrorBanner message={error} onClose={() => {}} />}
-      </div>
+      {/* Errors */}
+      {error && <ErrorBanner message={error} onClose={() => {}} />}
 
       {/* Create Form - Mobile Optimized */}
       <div className="p-4 sm:p-5 bg-[#0d0d0d] border border-purple-500/20 rounded-xl space-y-4">
@@ -399,16 +362,10 @@ function MarketplaceQuestsTab() {
   const [requirement, setRequirement] = useState('');
   const [xpReward, setXpReward] = useState('');
 
-  // Toasts
-  const [toasts, setToasts] = useState<{ id: number; hash: string; label: string }[]>([]);
-  const addToast = (hash: string, label: string) => setToasts(t => [...t, { id: Date.now(), hash, label }]);
-  const removeToast = (id: number) => setToasts(t => t.filter(x => x.id !== id));
-
   useEffect(() => {
     if (createSuccess && createHash) {
-      const hash = createHash;
       setTimeout(() => {
-        addToast(hash, 'Marketplace quest created');
+        gamificationToasts.txConfirmed();
         setTitle(''); setDescription(''); setRequirement(''); setXpReward('');
         refresh();
       }, 0);
@@ -416,7 +373,7 @@ function MarketplaceQuestsTab() {
   }, [createSuccess, createHash, refresh]);
 
   useEffect(() => {
-    if (deactivateSuccess && deactivateHash) { const h = deactivateHash; setTimeout(() => { addToast(h, 'Quest deactivated'); refresh(); }, 0); }
+    if (deactivateSuccess && deactivateHash) { setTimeout(() => { gamificationToasts.txConfirmed(); refresh(); }, 0); }
   }, [deactivateSuccess, deactivateHash, refresh]);
 
   const handleCreate = () => {
@@ -434,11 +391,8 @@ function MarketplaceQuestsTab() {
 
   return (
     <div className="space-y-6">
-      {/* Toasts */}
-      <div className="space-y-2">
-        {toasts.map(t => <TxToast key={t.id} hash={t.hash} label={t.label} onClose={() => removeToast(t.id)} />)}
-        {error && <ErrorBanner message={error} onClose={() => {}} />}
-      </div>
+      {/* Errors */}
+      {error && <ErrorBanner message={error} onClose={() => {}} />}
 
       {/* Stats strip */}
       {systemStats && (

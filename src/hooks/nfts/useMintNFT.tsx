@@ -165,89 +165,97 @@ export default function useMintNFT() {
         client: { public: publicClient, wallet: walletClient }
       });
 
-      const royaltyBasisPoints = Math.floor(royalty || 250); // 2.5% default
+      const royaltyBasisPoints = BigInt(Math.floor(royalty || 250)); // 2.5% default
 
-      // Decide which function to call based on count
-      const isBatch = count > 1;
-      const mintFunctionName = isBatch ? 'createStandardNFTBatch' : 'createStandardNFT';
-      const mintArgs = isBatch
-        ? [metadataUrl, normalizedCategory, royaltyBasisPoints, BigInt(count)]
-        : [metadataUrl, normalizedCategory, royaltyBasisPoints];
-
-      console.log(`🔨 Minting ${isBatch ? count + ' copies' : 'Standard NFT'}...`);
-
-      // Estimate gas for minting
-      let gasEstimate = 500000n;
-      if (isBatch) {
-        // Adjust gas for batch: base + (per item extra)
-        gasEstimate = 300000n + (BigInt(count) * 200000n);
+      // Split into chunks of 100 to stay within block gas limits
+      const CHUNK_SIZE = 100;
+      const chunks: number[] = [];
+      let remaining = count;
+      while (remaining > 0) {
+        chunks.push(Math.min(CHUNK_SIZE, remaining));
+        remaining -= CHUNK_SIZE;
       }
 
-      try {
-        const estimated = await coreContract.estimateGas[mintFunctionName](mintArgs);
-        gasEstimate = (estimated * 130n) / 100n; // 30% buffer for batching
-        console.log("⛽ Gas estimate:", gasEstimate.toString());
-      } catch {
-        console.warn("⚠️ Gas estimation failed, using fallback:", gasEstimate.toString());
-      }
+      console.log(`🔨 Minting ${count} copies in ${chunks.length} chunk(s) of up to ${CHUNK_SIZE}...`);
 
-      const tx = await coreContract.write[mintFunctionName](mintArgs, {
-        gas: gasEstimate
-      });
-
-      console.log("✅ NFT minted! TX:", tx);
-      setTxHash(tx);
-
-      // Step 5: Wait for confirmation
-      console.log("⏳ Waiting for confirmation...");
-      const receipt = await publicClient?.waitForTransactionReceipt({ hash: tx });
-
-      if (!receipt || receipt.status !== 'success') {
-        throw new Error('Transaction failed on blockchain');
-      }
-
-      // Extract token IDs from logs or return value
       let tokenId: number | null = null;
       let tokenIds: number[] = [];
-      
-      try {
-        if (isBatch) {
-          // For batch minting, extract all token IDs from TokenCreated events
-          const tokenCreatedLogs = receipt.logs.filter(log => 
-            log.topics.length >= 3 && 
-            log.topics[0] === '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f' // TokenCreated event signature
-          );
-          
-          if (tokenCreatedLogs.length > 0) {
-            tokenIds = tokenCreatedLogs.map(log => parseInt(log.topics[2] || '0', 16));
-            tokenId = tokenIds[0]; // First token ID for backward compatibility
-            console.log(`🎟️ Batch Minted! Token IDs: ${tokenIds[0]}-${tokenIds[tokenIds.length - 1]} (${tokenIds.length} NFTs)`);
-          } else {
-            // Fallback: calculate range based on first token ID
-            const firstLog = receipt.logs.find(log => log.topics.length >= 3);
-            if (firstLog?.topics[2]) {
-              const firstId = parseInt(firstLog.topics[2], 16);
-              tokenIds = Array.from({ length: count }, (_, i) => firstId + i);
-              tokenId = firstId;
-              console.log(`🎟️ Batch Minted! Token IDs: ${firstId}-${firstId + count - 1} (${count} NFTs)`);
-            }
-          }
-        } else {
-          // Single NFT minting
-          const tokenCreatedLogs = receipt.logs.filter(log => log.topics.length >= 3);
-          if (tokenCreatedLogs.length > 0) {
-            const firstLog = tokenCreatedLogs[0];
-            const topic2 = firstLog.topics[2];
-            if (topic2) {
-              tokenId = parseInt(topic2, 16);
-              tokenIds = [tokenId];
-              console.log(`🎟️ Token ID: ${tokenId}`);
-            }
-          }
+      let lastTx = '';
+
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+        const chunkCount = chunks[chunkIndex];
+        const isBatch = chunkCount > 1;
+        const mintFunctionName = isBatch ? 'createStandardNFTBatch' : 'createStandardNFT';
+        const mintArgs = isBatch
+          ? [metadataUrl, normalizedCategory, royaltyBasisPoints, BigInt(chunkCount)] as const
+          : [metadataUrl, normalizedCategory, royaltyBasisPoints] as const;
+
+        console.log(`� Chunk ${chunkIndex + 1}/${chunks.length}: minting ${chunkCount} NFT(s)...`);
+
+        // Gas: ~80k per NFT + 200k base, capped at 29M (Polygon block limit safety)
+        const MAX_GAS = 29_000_000n;
+        let gasEstimate = isBatch
+          ? BigInt(Math.min(Number(200_000n + BigInt(chunkCount) * 80_000n), Number(MAX_GAS)))
+          : 300_000n;
+
+        try {
+          const estimated = await coreContract.estimateGas[mintFunctionName](mintArgs as unknown as never[]);
+          const withBuffer = (estimated * 130n) / 100n;
+          gasEstimate = withBuffer > MAX_GAS ? MAX_GAS : withBuffer;
+          console.log(`⛽ Gas estimate chunk ${chunkIndex + 1}:`, gasEstimate.toString());
+        } catch {
+          console.warn(`⚠️ Gas estimation failed for chunk ${chunkIndex + 1}, using fallback:`, gasEstimate.toString());
         }
-      } catch (err) {
-        console.warn("⚠️ Could not extract token ID from logs:", err);
+
+        const tx = await coreContract.write[mintFunctionName](mintArgs as unknown as never[], {
+          gas: gasEstimate
+        });
+
+        console.log(`✅ Chunk ${chunkIndex + 1} TX:`, tx);
+        lastTx = tx;
+        if (chunkIndex === 0) setTxHash(tx);
+
+        console.log(`⏳ Waiting for confirmation of chunk ${chunkIndex + 1}...`);
+        const receipt = await publicClient?.waitForTransactionReceipt({ hash: tx });
+
+        if (!receipt || receipt.status !== 'success') {
+          throw new Error(`Transaction failed on blockchain (chunk ${chunkIndex + 1}/${chunks.length})`);
+        }
+
+        // Extract token IDs from this chunk's receipt
+        try {
+          if (isBatch) {
+            const tokenCreatedLogs = receipt.logs.filter(log =>
+              log.topics.length >= 3 &&
+              log.topics[0] === '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f'
+            );
+
+            if (tokenCreatedLogs.length > 0) {
+              const chunkIds = tokenCreatedLogs.map(log => parseInt(log.topics[2] || '0', 16));
+              tokenIds = [...tokenIds, ...chunkIds];
+            } else {
+              const firstLog = receipt.logs.find(log => log.topics.length >= 3);
+              if (firstLog?.topics[2]) {
+                const firstId = parseInt(firstLog.topics[2], 16);
+                const chunkIds = Array.from({ length: chunkCount }, (_, i) => firstId + i);
+                tokenIds = [...tokenIds, ...chunkIds];
+              }
+            }
+          } else {
+            const singleLog = receipt.logs.find(log => log.topics.length >= 3);
+            if (singleLog?.topics[2]) {
+              const id = parseInt(singleLog.topics[2], 16);
+              tokenIds = [...tokenIds, id];
+            }
+          }
+        } catch (err) {
+          console.warn(`⚠️ Could not extract token IDs from chunk ${chunkIndex + 1} logs:`, err);
+        }
       }
+
+      tokenId = tokenIds[0] ?? null;
+      const tx = lastTx;
+      console.log(`🎟️ All chunks done! Total token IDs: ${tokenIds.length} (first: ${tokenId}, last: ${tokenIds[tokenIds.length - 1]})`);
 
       // Step 6: Register skills if provided
       if (skills && skills.length > 0 && tokenId) {

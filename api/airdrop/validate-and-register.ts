@@ -53,13 +53,13 @@ function rotateRpc() {
  * 🔄 Helper for RPC retries with endpoint rotation
  * Enhanced Feb 2026: Aggressive retry with timeout and better rate-limit detection
  */
-async function withRetry<T>(fn: (conn: Connection) => Promise<T>, retries = 5, delay = 300): Promise<T> {
+async function withRetry<T>(fn: (conn: Connection) => Promise<T>, retries = 3, delay = 500): Promise<T> {
   let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
-      // Add timeout per request (3 seconds max)
+      // Add timeout per request (8 seconds max — gives RPC a fair chance within Vercel's 10s limit)
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('RPC timeout')), 3000)
+        setTimeout(() => reject(new Error('RPC timeout')), 8000)
       );
       return await Promise.race([fn(connection), timeoutPromise]);
     } catch (error: unknown) {
@@ -399,6 +399,15 @@ async function validateWalletOnChain(wallet: string): Promise<{
       signatures = await withRetry((conn) => conn.getSignaturesForAddress(pubkey, { limit: 1000 }));
       const duration = Date.now() - startTime;
       console.log(`✅ [API] Fetched ${signatures.length} signatures for ${wallet.slice(0, 8)}... in ${duration}ms`);
+
+      // ⚠️ EMPTY ARRAY GUARD: If RPC returned [] but wallet has SOL balance,
+      // the wallet almost certainly has at least a funding transaction.
+      // Some RPC nodes return empty arrays under load instead of throwing.
+      // Treat this as an RPC data issue, not a truly empty wallet.
+      if (signatures.length === 0 && solBalance > 0) {
+        console.warn(`⚠️ [API] Wallet ${wallet.slice(0, 8)}... has ${solBalance.toFixed(6)} SOL but RPC returned 0 signatures — likely incomplete RPC response. Flagging as rpcError for graceful fallback.`);
+        rpcError = true;
+      }
     } catch (e) {
       const errorMsg = (e as Error).message;
       console.error(`❌ [API] RPC failed to fetch signatures for ${wallet.slice(0, 8)}... after all retries. Error: ${errorMsg}`);

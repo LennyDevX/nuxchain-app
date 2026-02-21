@@ -15,6 +15,7 @@ function Navbar() {
     { path: '/airdrop', label: 'Airdrop' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
+    { path: '/nux', label: 'NUX' },
     { path: '/tokenomics', label: 'Tokenomics' },
     { path: '/chat', label: 'Chat' }
   ]
@@ -97,6 +98,13 @@ function Navbar() {
                         }`}
                     >
                       {link.label}
+                      {link.path === '/nux' && (
+                        <motion.div
+                          className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.7)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      )}
                       {link.path === '/airdrop' && isMaintenanceMode('airdrop') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"

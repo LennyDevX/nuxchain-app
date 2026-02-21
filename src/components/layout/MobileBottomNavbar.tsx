@@ -328,7 +328,8 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="jersey-20-regular text-white">Perfil</span>
+                      <span className="jersey-20-regular text-white">Profile</span>
+                      <span className="ml-auto jersey-20-regular text-sm text-gradient">All My Data</span>
                     </Link>
                   </motion.div>
 
@@ -347,6 +348,16 @@ const MobileBottomNavbar: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                       </svg>
                       <span className="jersey-20-regular text-white">Airdrops</span>
+                      {!isMaintenanceMode('airdrop') && (
+                        <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40">
+                          <motion.span
+                            className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.6, 1] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                          <span className="jersey-20-regular text-emerald-400 text-xs">LIVE</span>
+                        </span>
+                      )}
                       {isMaintenanceMode('airdrop') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50 ml-auto"
@@ -372,6 +383,34 @@ const MobileBottomNavbar: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                       <span className="jersey-20-regular text-white">AI Chat</span>
+                      <motion.span
+                        className="ml-auto jersey-20-regular text-sm text-gradient"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        Try Now!
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+
+                  {/* NUX Token */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Link
+                      to="/nux"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors relative"
+                    >
+                      <span className="text-xl">🪙</span>
+                      <span className="jersey-20-regular text-amber-400">NUX Token</span>
+                      <motion.div
+                        className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.6)] ml-auto"
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
                     </Link>
                   </motion.div>
 
@@ -379,7 +418,7 @@ const MobileBottomNavbar: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.45 }}
                   >
                     <Link
                       to="/tokenomics"

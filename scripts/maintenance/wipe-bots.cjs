@@ -16,6 +16,23 @@ const DELETE_RULES = {
     KEEP_REAL: 0,                  // Real User (0-30): Always keep
 };
 
+// 🛡️ Protection rules - NEVER delete these regardless of other signals
+const PROTECTION_RULES = {
+    CERTIFIED_HUMAN_MAX_SCORE: 15,  // 0-15 score = Certified Human, always protected
+    TRUST_INDICATOR_THRESHOLD: 40,  // Must have +40 trust score (e.g., veteran + cex)
+    VETERAN_WALLET_MIN_DAYS: 180,   // 6+ months old wallets are protected
+    CEX_FUNDED_BONUS: true,         // CEX funded wallets get extra protection
+};
+
+// Indicators that indicate a REAL user (positive signals with + prefix)
+const TRUST_INDICATORS = [
+    '+veteran-wallet',    // 6+ months old
+    '+established-wallet', // 3+ months old
+    '+cex-funded',        // Funded by known CEX
+    '+power-user',        // 100+ transactions
+    '+whale',             // 1+ SOL balance
+];
+
 // ============================================================================
 // CSV PARSING & ANALYSIS LOADING
 // ============================================================================
@@ -131,10 +148,12 @@ async function wipeBots(dryRun = true) {
 
         // ====== STEP 3: Classify Wallets for Deletion ======
         const classification = {
-            toDelete: [],      // Bots & Suspicious
-            toKeep: [],        // Real users & Uncertain (for review)
-            noAnalysis: [],    // Not in analysis report
-            invalidFormat: []  // EVM or malformed
+            toDelete: [],           // Bots & Suspicious
+            toKeep: [],             // Real users & Uncertain (for review)
+            certifiedHumans: [],    // 🏆 NEVER DELETE - Best users (0-15 score)
+            protectedVeterans: [],  // 🛡️ Protected: 6+ months old or CEX funded
+            noAnalysis: [],         // Not in analysis report
+            invalidFormat: []       // EVM or malformed
         };
 
         console.log('🔍 Classifying wallets...');
@@ -170,27 +189,62 @@ async function wipeBots(dryRun = true) {
                 continue;
             }
 
-            // 3. Risk-based Classification
-            const { riskScore, classification: status } = riskData;
+            // 3. Risk-based Classification with Protection Logic
+            const { riskScore, classification: status, indicators } = riskData;
 
-            if (status === 'Likely Bot' || riskScore >= DELETE_RULES.AUTO_DELETE_BOT) {
+            // 🛡️ PROTECTION CHECKS - Never delete these users
+            const hasTrustIndicators = indicators && TRUST_INDICATORS.some(ti => indicators.includes(ti));
+            const isCertifiedHuman = status === 'Certified Human' || riskScore <= PROTECTION_RULES.CERTIFIED_HUMAN_MAX_SCORE;
+            const isVeteranWallet = indicators && indicators.includes('+veteran-wallet');
+            const isCEXFunded = indicators && indicators.includes('+cex-funded');
+            const isProtected = isCertifiedHuman || (isVeteranWallet && isCEXFunded) || (isVeteranWallet && hasTrustIndicators);
+
+            // 🏆 CERTIFIED HUMANS - Never delete
+            if (isCertifiedHuman) {
+                classification.certifiedHumans.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    status,
+                    riskScore,
+                    indicators
+                });
+            }
+            // 🛡️ PROTECTED VETERANS - Never delete (veteran + trust signals)
+            else if (isProtected) {
+                classification.protectedVeterans.push({
+                    id: doc.id,
+                    wallet,
+                    email: data.email || 'N/A',
+                    status,
+                    riskScore,
+                    reason: `Protected: ${isVeteranWallet ? 'veteran' : ''} ${isCEXFunded ? 'cex-funded' : ''} ${hasTrustIndicators ? 'trust-indicators' : ''}`.trim()
+                });
+            }
+            // 🗑️ LIKELY BOTS - Delete
+            else if (status === 'Likely Bot' || riskScore >= DELETE_RULES.AUTO_DELETE_BOT) {
                 classification.toDelete.push({
                     id: doc.id,
                     wallet,
                     email: data.email || 'N/A',
                     reason: `Likely Bot (${riskScore}/100)`,
-                    riskScore
+                    riskScore,
+                    status
                 });
-            } else if (status === 'Suspicious' || riskScore >= DELETE_RULES.AUTO_DELETE_SUSPICIOUS) {
+            }
+            // 🗑️ SUSPICIOUS - Delete
+            else if (status === 'Suspicious' || riskScore >= DELETE_RULES.AUTO_DELETE_SUSPICIOUS) {
                 classification.toDelete.push({
                     id: doc.id,
                     wallet,
                     email: data.email || 'N/A',
                     reason: `Suspicious (${riskScore}/100)`,
-                    riskScore
+                    riskScore,
+                    status
                 });
-            } else {
-                // Real User or Uncertain: Keep for safety
+            }
+            // ✅ REAL USERS & UNCERTAIN - Keep
+            else {
                 classification.toKeep.push({
                     id: doc.id,
                     wallet,
@@ -213,17 +267,24 @@ async function wipeBots(dryRun = true) {
 
         const totalToDelete = classification.toDelete.length;
         const totalToKeep = classification.toKeep.length;
+        const certifiedHumans = classification.certifiedHumans.length;
+        const protectedVeterans = classification.protectedVeterans.length;
+        const totalProtected = certifiedHumans + protectedVeterans + totalToKeep;
+
+        console.log('�️  PROTECTED (Will NEVER be deleted):');
+        console.log(`   ${certifiedHumans.toString().padStart(4)} 🏆 Certified Humans (0-15 score)`);
+        console.log(`   ${protectedVeterans.toString().padStart(4)} 🛡️  Protected Veterans (6mo+ & trust signals)`);
+        console.log(`   ${totalToKeep.toString().padStart(4)} ✅ Real Users & Uncertain`);
+        console.log(`   ${classification.noAnalysis.length.toString().padStart(4)} 📋 No analysis data (safety: keep)`);
+        console.log(`   ${totalProtected.toString().padStart(4)} TOTAL PROTECTED\n`);
 
         console.log('🗑️  FOR DELETION:');
         console.log(`   ${classification.invalidFormat.length.toString().padStart(4)} EVM/Invalid Wallets`);
         console.log(`   ${totalToDelete.toString().padStart(4)} Bots & Suspicious (from analysis)`);
         console.log(`   ${(classification.invalidFormat.length + totalToDelete).toString().padStart(4)} TOTAL DELETE\n`);
 
-        console.log('✅ KEEPING (Safety-first):');
-        console.log(`   ${totalToKeep.toString().padStart(4)} Real Users & Uncertain`);
-        console.log(`   ${classification.noAnalysis.length.toString().padStart(4)} No analysis data (unanalyzed)\n`);
-
-        console.log(`📈 Efficiency: ${((totalToDelete / docs.length) * 100).toFixed(1)}% of DB will be cleaned\n`);
+        console.log(`📈 Efficiency: ${((totalToDelete / docs.length) * 100).toFixed(1)}% of DB will be cleaned`);
+        console.log(`🛡️  Protection Rate: ${((totalProtected / docs.length) * 100).toFixed(1)}% of DB is protected\n`);
 
         // ====== STEP 5: Detailed Breakdown (if not dry-run) ======
         if (!dryRun && totalToDelete > 0) {
@@ -232,8 +293,19 @@ async function wipeBots(dryRun = true) {
                 .sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))
                 .slice(0, 10)
                 .forEach((item, idx) => {
+                    console.log(`   ${idx + 1}. ${item.wallet.substring(0, 8)}... (${item.email}) - Score: ${item.riskScore} [${item.status}]`);
+                });
+            console.log('');
+        }
+
+        if (certifiedHumans > 0) {
+            console.log('🏆 CERTIFIED HUMANS PROTECTED:');
+            classification.certifiedHumans
+                .slice(0, 5)
+                .forEach((item, idx) => {
                     console.log(`   ${idx + 1}. ${item.wallet.substring(0, 8)}... (${item.email}) - Score: ${item.riskScore}`);
                 });
+            if (certifiedHumans > 5) console.log(`   ... and ${certifiedHumans - 5} more`);
             console.log('');
         }
 

@@ -1,5 +1,8 @@
+import { useRef } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import type { WalletMetrics } from '../forms/wallet-analysis-service';
 import AirdropRequirements from './AirdropRequirements';
+import type React from 'react';
 
 interface AirdropFormProps {
   formData: {
@@ -18,6 +21,12 @@ interface AirdropFormProps {
   handleSubmit: (e: React.FormEvent) => Promise<void>;
   onOpenRequirements: () => void;
   walletMetrics: WalletMetrics | null;
+  onCaptchaVerify: (token: string) => void;
+  onCaptchaExpire: () => void;
+  captchaToken: string | null;
+  walletSignature: string | null;
+  isSigningWallet: boolean;
+  onSignWallet: () => Promise<void>;
 }
 
 function AirdropForm({
@@ -28,8 +37,16 @@ function AirdropForm({
   handleInputChange,
   handleSubmit,
   onOpenRequirements,
-  walletMetrics
+  walletMetrics,
+  onCaptchaVerify,
+  onCaptchaExpire,
+  captchaToken,
+  walletSignature,
+  isSigningWallet,
+  onSignWallet,
 }: AirdropFormProps) {
+  const captchaRef = useRef<HCaptcha>(null);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {/* Honeypot field - invisible to humans */}
@@ -43,7 +60,7 @@ function AirdropForm({
           onChange={handleInputChange}
           tabIndex={-1}
           autoComplete="off"
-          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-2xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
           disabled={isSubmitting}
         />
       </div>
@@ -60,7 +77,7 @@ function AirdropForm({
           value={formData.name}
           onChange={handleInputChange}
           placeholder="Enter your full name"
-          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-2xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
           disabled={isSubmitting}
           required
           minLength={3}
@@ -79,7 +96,7 @@ function AirdropForm({
           value={formData.email}
           onChange={handleInputChange}
           placeholder="you@example.com"
-          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-base placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+          className="jersey-15-regular w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-900/50 border border-gray-700 rounded-lg sm:rounded-xl text-white text-sm sm:text-2xl placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
           disabled={isSubmitting}
           required
         />
@@ -250,10 +267,77 @@ function AirdropForm({
       {/* Requirements Dropdown - Modular Component */}
       <AirdropRequirements onOpenModal={onOpenRequirements} />
 
+      {/* Web3 Wallet Signature Verification */}
+      {solanaConnected && (
+        <div className={`rounded-xl border p-4 transition-all duration-300 ${
+          walletSignature
+            ? 'bg-emerald-500/10 border-emerald-500/30'
+            : 'bg-amber-500/10 border-amber-500/30'
+        }`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              {walletSignature ? (
+                <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-amber-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd" />
+                </svg>
+              )}
+              <div>
+                <p className={`jersey-15-regular text-sm font-bold ${
+                  walletSignature ? 'text-emerald-300' : 'text-amber-300'
+                }`}>
+                  {walletSignature ? '✓ Wallet Ownership Verified' : '🔐 Verify Wallet Ownership'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {walletSignature
+                    ? 'Cryptographic proof confirmed'
+                    : 'Sign a message to prove you own this wallet'}
+                </p>
+              </div>
+            </div>
+            {!walletSignature && (
+              <button
+                type="button"
+                onClick={onSignWallet}
+                disabled={isSigningWallet || isSubmitting}
+                className="flex-shrink-0 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 jersey-20-regular text-sm rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSigningWallet ? (
+                  <span className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 border-2 border-amber-300/30 border-t-amber-300 rounded-full animate-spin"></div>
+                    Signing...
+                  </span>
+                ) : 'Sign Message'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* hCaptcha */}
+      {solanaConnected && (
+        <div className="flex flex-col items-center gap-2">
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
+            onVerify={onCaptchaVerify}
+            onExpire={onCaptchaExpire}
+            theme="dark"
+            size="normal"
+          />
+          {!captchaToken && (
+            <p className="text-xs text-gray-500">Complete the captcha to continue</p>
+          )}
+        </div>
+      )}
+
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting || !solanaConnected}
+        disabled={isSubmitting || !solanaConnected || !captchaToken || !walletSignature}
         className="w-full py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:from-gray-600 disabled:to-gray-600 jersey-20-regular text-white font-bold text-xl sm:text-2xl rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:transform-none shadow-lg disabled:shadow-none"
       >
         {isSubmitting ? (
@@ -263,6 +347,10 @@ function AirdropForm({
           </div>
         ) : !solanaConnected ? (
           'Connect Wallet First'
+        ) : !walletSignature ? (
+          'Sign Wallet First'
+        ) : !captchaToken ? (
+          'Complete Captcha First'
         ) : (
           'Join Airdrop'
         )}

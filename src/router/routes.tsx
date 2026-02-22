@@ -22,12 +22,13 @@ const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skil
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
-const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
+const About = lazy(() => import(/* webpackChunkName: "about" */ '../pages/About'));
 const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
 const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
 const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
 const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
+const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
 
 function AppRoutes() {
   // Smart preloading: Only preload on fast connections and after idle
@@ -76,7 +77,8 @@ function AppRoutes() {
         <Route path="/devhub" element={<CTAHub />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
-        <Route path="/tutorial" element={<Tutorial />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/tutorial" element={<About />} />
         <Route path="/tokenomics" element={<Tokenomics />} />
         <Route path="/colab" element={<ColabPortal />} />
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -84,6 +86,7 @@ function AppRoutes() {
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/nux" element={<Nux />} />
+        <Route path="/rewards" element={<Rewards />} />
       </Routes>
     </Suspense>
   );

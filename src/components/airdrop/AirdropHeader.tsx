@@ -46,7 +46,7 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
               <p className="jersey-15-regular text-amber-400 text-2xl sm:text-3xl font-black">WHITELIST</p>
               <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.000015 SOL</p>
               <p className="jersey-20-regular text-amber-300/70 text-base mt-2">40% off • Min: 5,000 NUX</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 7</p>
+              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 2-14</p>
             </div>
           </div>
 
@@ -59,7 +59,7 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
               <p className="jersey-15-regular text-blue-400 text-2xl sm:text-3xl font-black">PRESALE</p>
               <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.000025 SOL</p>
               <p className="jersey-20-regular text-blue-300/70 text-xl mt-2">Public • Min: 1,000 NUX</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 14</p>
+              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 2-22</p>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
               <p className="jersey-15-regular text-emerald-400 text-2xl sm:text-3xl font-black">LP / TGE</p>
               <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.00004 SOL</p>
               <p className="jersey-20-regular text-emerald-300/70 text-xl mt-2">Market • Raydium LP</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 21</p>
+              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 24</p>
             </div>
           </div>
         </div>

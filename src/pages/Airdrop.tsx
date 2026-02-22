@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
+import bs58 from 'bs58';
 import { db } from '../components/firebase/config';
 import { submitAirdropRegistration, getRegisteredUsersCount, checkUserRegistration } from '../components/forms/airdrop-service';
 import { analyzeWalletMetrics, type WalletMetrics } from '../components/forms/wallet-analysis-service';
@@ -82,7 +82,7 @@ function Airdrop() {
   const { isConnected: evmConnected } = useAccount();
 
   // Solana wallet hooks
-  const { publicKey: solanaPublicKey, connected: solanaConnected } = useWallet();
+  const { publicKey: solanaPublicKey, connected: solanaConnected, signMessage } = useWallet();
 
   // Form and UI states
   const [formData, setFormData] = useState({
@@ -106,6 +106,11 @@ function Airdrop() {
   const [detectedNetwork, setDetectedNetwork] = useState<'solana' | 'evm' | null>(null);
   const [isAnalyzingWallet, setIsAnalyzingWallet] = useState(false);
   const [walletMetrics, setWalletMetrics] = useState<WalletMetrics | null>(null);
+
+  // Security: hCaptcha + Web3 signature
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [walletSignature, setWalletSignature] = useState<string | null>(null);
+  const [isSigningWallet, setIsSigningWallet] = useState(false);
 
   // Browser and device tracking
   const [mountTime] = useState(Date.now());
@@ -147,6 +152,34 @@ function Airdrop() {
       analyzeWallet();
     }
   }, [formData.wallet, solanaConnected, solanaPublicKey]);
+
+  // Reset security state when wallet disconnects
+  useEffect(() => {
+    if (!solanaConnected) {
+      setCaptchaToken(null);
+      setWalletSignature(null);
+    }
+  }, [solanaConnected]);
+
+  const handleSignWallet = useCallback(async () => {
+    if (!solanaPublicKey || !signMessage) {
+      setSubmitStatus({ type: 'error', message: 'Wallet does not support message signing. Please use Phantom or Solflare.' });
+      return;
+    }
+    setIsSigningWallet(true);
+    try {
+      const message = `NuxChain Airdrop Registration\nWallet: ${solanaPublicKey.toBase58()}\nTimestamp: ${Date.now()}\nNonce: ${Math.random().toString(36).slice(2)}`;
+      const encodedMessage = new TextEncoder().encode(message);
+      const signature = await signMessage(encodedMessage);
+      const signatureBase58 = bs58.encode(signature);
+      setWalletSignature(signatureBase58);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Signing cancelled';
+      setSubmitStatus({ type: 'error', message: `Wallet signing failed: ${msg}` });
+    } finally {
+      setIsSigningWallet(false);
+    }
+  }, [solanaPublicKey, signMessage]);
 
   // Wallet connection effect
   useEffect(() => {
@@ -280,7 +313,9 @@ function Airdrop() {
           fingerprint: deviceFingerprint,
           browserInfo,
           submitTime: Date.now(),
-          pageLoadTime: mountTime
+          pageLoadTime: mountTime,
+          captchaToken: captchaToken || '',
+          walletSignature: walletSignature || '',
         }
       );
 
@@ -322,7 +357,7 @@ function Airdrop() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateForm, mountTime, userAgent, deviceFingerprint, browserInfo]);
+  }, [formData, validateForm, mountTime, userAgent, deviceFingerprint, browserInfo, captchaToken, walletSignature]);
 
   // Countdown target date - March 15, 2026 23:59:59
   const airdropEndDate = new Date(2026, 2, 15, 23, 59, 59);
@@ -361,7 +396,6 @@ function Airdrop() {
                       name={formData.name}
                       email={formData.email}
                       walletAddress={formData.wallet}
-                      onClose={() => setIsAlreadyRegistered(false)}
                     />
                   ) : isPoolFull ? (
                     <div className="relative overflow-hidden group">
@@ -422,6 +456,12 @@ function Airdrop() {
                         handleSubmit={handleSubmit}
                         onOpenRequirements={() => setIsRequirementsOpen(true)}
                         walletMetrics={walletMetrics}
+                        onCaptchaVerify={(token) => setCaptchaToken(token)}
+                        onCaptchaExpire={() => setCaptchaToken(null)}
+                        captchaToken={captchaToken}
+                        walletSignature={walletSignature}
+                        isSigningWallet={isSigningWallet}
+                        onSignWallet={handleSignWallet}
                       />
                       
                       {/* Wallet Metrics Display - REMOVED (integrated in form) */}

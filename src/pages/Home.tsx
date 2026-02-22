@@ -3,17 +3,20 @@ import HeroSection from '../components/home/HeroSection'
 import Footer from '../components/layout/footer'
 import AnnouncementModal from '../components/home/AnnouncementModal'
 import { useLazyRender } from '../hooks/performance/useLazyRender'
+import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { HeroSkeletonLoader } from '../components/ui/SkeletonLoader'
 
-// Lazy load heavy components with animations
-const StakingSection = lazy(() => import('../components/home/StakingSection'))
+// Lazy load all sections
 const NFTSection = lazy(() => import('../components/home/NFTSection'))
+const RewardsHubSection = lazy(() => import('../components/home/RewardsHubSection'))
+const CrossChainSection = lazy(() => import('../components/home/CrossChainSection'))
+const NuxTokenSection = lazy(() => import('../components/home/NuxTokenSection'))
+const StakingSection = lazy(() => import('../components/home/StakingSection'))
 const AISection = lazy(() => import('../components/home/AISection'))
 const TokenizationSection = lazy(() => import('../components/home/TokenizationSection'))
 const AirdropsInfo = lazy(() => import('../components/home/AirdropsInfo'))
 const BenefitsSection = lazy(() => import('../components/home/BenefitsSection'))
 
-// Loading skeleton fallback - Optimizado con HeroSkeletonLoader
 const SectionLoader = () => (
   <div className="w-full py-20 px-4">
     <div className="max-w-7xl mx-auto">
@@ -22,10 +25,9 @@ const SectionLoader = () => (
   </div>
 )
 
-// Intersection observer for lazy rendering
 const LazySection = ({ children }: { children: React.ReactNode }) => {
-  const { ref, isVisible } = useLazyRender({ rootMargin: '100px 0px' })
-
+  const isMobile = useIsMobile()
+  const { ref, isVisible } = useLazyRender({ rootMargin: isMobile ? '50px 0px' : '100px 0px', isMobile })
   return <div ref={ref}>{isVisible ? children : <SectionLoader />}</div>
 }
 
@@ -35,46 +37,63 @@ function Home() {
       <AnnouncementModal />
       <HeroSection />
 
-
-
+      {/* 1. NFT Collection — infinite avatar scroll */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <NFTSection />
         </Suspense>
       </LazySection>
 
+      {/* 2. NUX Rewards Hub */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
-          <AISection />
+          <RewardsHubSection />
         </Suspense>
       </LazySection>
 
+      {/* 3. Cross-Chain Architecture */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
-          <TokenizationSection />
+          <CrossChainSection />
         </Suspense>
       </LazySection>
 
+      {/* 4. NUX Token */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
-          <AirdropsInfo />
+          <NuxTokenSection />
         </Suspense>
       </LazySection>
 
+      {/* 5. Staking */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <StakingSection />
         </Suspense>
       </LazySection>
 
+      {/* 6. AI */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
-          <div className="w-full py-20 px-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-
-          </div>
+          <AISection />
         </Suspense>
       </LazySection>
 
+      {/* 7. Tokenization / Create NFT */}
+      <LazySection>
+        <Suspense fallback={<SectionLoader />}>
+          <TokenizationSection />
+        </Suspense>
+      </LazySection>
+
+      {/* 8. Airdrops */}
+      <LazySection>
+        <Suspense fallback={<SectionLoader />}>
+          <AirdropsInfo />
+        </Suspense>
+      </LazySection>
+
+      {/* 9. Ecosystem overview */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <BenefitsSection />

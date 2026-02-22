@@ -52,7 +52,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
         {/* Owned Badge */}
         {isOwned && (
           <div className="absolute top-4 left-4 z-20 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-1">
-            <span className="jersey-15-regular text-sm md:text-base text-green-400">✓ OWNED</span>
+            <span className="jersey-15-regular text-base md:text-lg text-green-400">✓ OWNED</span>
           </div>
         )}
 
@@ -64,7 +64,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
             transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
             className="absolute top-2 right-2 z-20 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg px-3 py-1.5 shadow-lg"
           >
-            <span className="jersey-15-regular text-sm md:text-base text-white">✨ FREE</span>
+            <span className="jersey-15-regular text-base md:text-lg text-white">✨ FREE</span>
           </motion.div>
         )}
 

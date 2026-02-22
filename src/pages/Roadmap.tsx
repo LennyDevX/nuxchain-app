@@ -30,12 +30,12 @@ const RoadmapPage: React.FC = () => {
             }`}>
               <div className="relative z-10">
                 <h2 className={`jersey-15-regular mb-4 ${
-                  isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'
+                  isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'
                 }`}>
                   Join Us on This Journey
                 </h2>
                 <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${
-                  isMobile ? 'text-base mb-6' : 'text-xl md:text-2xl mb-8'
+                  isMobile ? 'text-lg mb-6' : 'text-xl md:text-2xl mb-8'
                 }`}>
                   Be part of the revolution in blockchain technology. Follow our progress and contribute to the future of decentralized finance.
                 </p>

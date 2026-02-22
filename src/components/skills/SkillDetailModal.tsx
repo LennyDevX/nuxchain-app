@@ -67,24 +67,24 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, isOpe
               {/* Details Grid */}
               <div className="space-y-4 mb-6">
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="jersey-20-regular text-sm md:text-base text-gray-400 mb-1">SKILL TYPE</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">SKILL TYPE</p>
                   <p className="jersey-15-regular text-xl md:text-2xl text-white">{SKILL_TYPE_NAMES[skill.skillType]}</p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="jersey-20-regular text-sm md:text-base text-gray-400 mb-1">EFFECT</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">EFFECT</p>
                   <p className="jersey-15-regular text-xl md:text-2xl" style={{ color: skill.color }}>
                     {skill.effectFormatted}
                   </p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="jersey-20-regular text-sm md:text-base text-gray-400 mb-1">DESCRIPTION</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">DESCRIPTION</p>
                   <p className="jersey-20-regular text-base md:text-lg text-gray-300">{skill.description}</p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="jersey-20-regular text-sm md:text-base text-gray-400 mb-1">EFFECT STRENGTH</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">EFFECT STRENGTH</p>
                   <p className="jersey-15-regular text-xl md:text-2xl text-white">{skill.effectValue}%</p>
                 </div>
               </div>

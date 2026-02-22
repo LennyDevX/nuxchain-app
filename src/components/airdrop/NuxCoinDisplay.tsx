@@ -16,7 +16,7 @@ function NuxCoinDisplay({ size = 'lg', className = '' }: NuxCoinDisplayProps) {
       {/* Coin image with floating animation */}
       <div className={`relative ${sizeClasses[size]} mx-auto`}>
         <img
-          src="/NuxCoin.png"
+          src="/assets/tokens/NuxLogo.png"
           alt="NUX Token"
           className="w-full h-full object-contain animate-float"
           style={{

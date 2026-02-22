@@ -14,7 +14,6 @@ const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
     message
 }) => {
     const [isMaintenance, setIsMaintenance] = useState(isMaintenanceMode('tokenomics'));
-    const [timeRemaining, setTimeRemaining] = useState(getMaintenanceTimeRemaining('tokenomics'));
     const config = getMaintenanceConfig('tokenomics');
     const displayMessage = message || config.message;
 
@@ -26,7 +25,6 @@ const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
             const remaining = getMaintenanceTimeRemaining('tokenomics');
 
             setIsMaintenance(currentMaintenanceStatus);
-            setTimeRemaining(remaining);
 
             if (remaining <= 0 && !currentMaintenanceStatus && wasInMaintenance) {
                 clearInterval(interval);
@@ -59,7 +57,7 @@ const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
                         <div className="maintenance-icon-wrapper">
                             <div className="maintenance-icon">
                                 <img 
-                                    src="/NuxCoin.png" 
+                                    src="/assets/tokens/NuxLogo.png" 
                                     alt="NUX Token" 
                                     style={{
                                         width: '100%',

@@ -70,7 +70,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       STAKING_DEPOSIT: `Staked ${details.amount} POL${
         details.lockupDuration ? ` (${formatLockupDuration(details.lockupDuration)})` : ''
       }`,
-      STAKING_WITHDRAW: `Withdrew ${details.amount} POL`,
+      STAKING_WITHDRAW: `Claimed ${details.amount} POL rewards`,
       STAKING_WITHDRAW_ALL: `Withdrew all ${details.amount} POL`,
       STAKING_COMPOUND: `Compounded ${details.amount} POL rewards`,
       STAKING_AUTO_COMPOUND: `Auto-compounded ${details.amount} POL rewards`,

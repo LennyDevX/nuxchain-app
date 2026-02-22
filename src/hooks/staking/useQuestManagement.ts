@@ -84,6 +84,8 @@ export interface QuestManagementReturn {
   isConfirming: boolean;
   isConfirmed: boolean;
   txHash: `0x${string}` | undefined;
+  error: Error | null;
+  reset: () => void;
 
   // Loading
   isLoading: boolean;
@@ -103,9 +105,15 @@ export function useQuestManagement(): QuestManagementReturn {
     chainId: chain?.id,
   }), [chain?.id]);
 
-  // Write contract setup
-  const { writeContract, data: txHash, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
+  // Write contract setup - with error handling (suppress default error UI)
+  const { writeContract, data: txHash, isPending, error: writeError, reset: resetWrite } = useWriteContract({
+    mutation: {
+      onError: () => {
+        // Suppress default wagmi error UI - we handle it ourselves with custom toast
+      },
+    },
+  });
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: waitError } = useWaitForTransactionReceipt({ hash: txHash });
 
   // Multicall: Fetch all gamification data
   const { data: multicallData, isLoading, refetch } = useReadContracts({
@@ -300,23 +308,32 @@ export function useQuestManagement(): QuestManagementReturn {
     }
   }, [multicallData]);
 
-  // Write functions
+  // Write functions - with error suppression
   const claimQuestReward = useCallback((questId: number) => {
-    writeContract({
-      address: GAMIFICATION_ADDRESS,
-      abi: EnhancedSmartStakingGamificationABI.abi as Abi,
-      functionName: 'claimQuestReward',
-      args: [BigInt(questId)],
-    });
+    try {
+      writeContract({
+        address: GAMIFICATION_ADDRESS,
+        abi: EnhancedSmartStakingGamificationABI.abi as Abi,
+        functionName: 'claimQuestReward',
+        args: [BigInt(questId)],
+      });
+    } catch (err) {
+      // Error is handled by the hook's error state and toast notification
+      console.log('[useQuestManagement] Claim quest error suppressed:', err);
+    }
   }, [writeContract]);
 
   const claimAchievementReward = useCallback((achievementId: number) => {
-    writeContract({
-      address: GAMIFICATION_ADDRESS,
-      abi: EnhancedSmartStakingGamificationABI.abi as Abi,
-      functionName: 'claimAchievementReward',
-      args: [BigInt(achievementId)],
-    });
+    try {
+      writeContract({
+        address: GAMIFICATION_ADDRESS,
+        abi: EnhancedSmartStakingGamificationABI.abi as Abi,
+        functionName: 'claimAchievementReward',
+        args: [BigInt(achievementId)],
+      });
+    } catch (err) {
+      console.log('[useQuestManagement] Claim achievement error suppressed:', err);
+    }
   }, [writeContract]);
 
   const enableAutoCompound = useCallback((minAmount: bigint) => {
@@ -358,6 +375,8 @@ export function useQuestManagement(): QuestManagementReturn {
     txHash,
     isLoading,
     refetch: refetchAll,
+    error: writeError || waitError,
+    reset: resetWrite,
   };
 }
 

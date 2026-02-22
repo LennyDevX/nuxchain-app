@@ -46,7 +46,7 @@ function AirdropSection() {
             className="order-2 md:order-1 -mx-4 sm:-mx-6 md:mx-0 aspect-square md:aspect-auto flex items-center justify-center"
           >
             <ResponsiveImage
-              src="/DragonixPassportCard.jpg"
+              src="/assets/unused/DragonixPassportCard.jpg"
               alt="Airdrop Passport Card"
               className="w-full h-auto object-contain md:scale-110 lg:scale-125"
             />

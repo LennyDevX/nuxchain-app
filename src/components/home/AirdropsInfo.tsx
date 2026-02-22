@@ -62,7 +62,7 @@ const AirdropsInfo = () => {
             transition={{ duration: 0.7, delay: 0.2 }}
           >
             <div className="relative rounded-2xl overflow-hidden shadow-lg">
-              <img src="/Airdrops.webp" alt="NFT Airdrops" className="w-92 h-92 object-cover mx-auto" />
+              <img src="/assets/unused/Airdrops.webp" alt="NFT Airdrops" className="w-92 h-92 object-cover mx-auto" />
             </div>
           </motion.div>
         )}

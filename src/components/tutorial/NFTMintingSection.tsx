@@ -87,7 +87,7 @@ function NFTMintingSection() {
             className="order-1 lg:order-2 -mx-4 sm:-mx-6 lg:mx-0"
           >
             <ResponsiveImage
-              src="/DragonixCardNFTs.png"
+              src="/assets/unused/DragonixCardNFTs.png"
               alt="NFT Minting Dragon"
               className="w-full h-auto object-contain scale-110 md:scale-125 lg:scale-150"
             />

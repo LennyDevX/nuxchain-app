@@ -25,28 +25,11 @@ export default defineConfig({
       },
     })
   ],
-  resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
-  },
-  // Exclude subgraph AssemblyScript code from browser bundle
-  optimizeDeps: {
-    exclude: [
-      '@graphprotocol/graph-ts',
-      '@graphprotocol/graph-cli',
-      'subgraph'
-    ],
-    // CRITICAL: Force React to be pre-bundled and loaded first
-    include: [
-      'react',
-      'react-dom',
-      'react/jsx-runtime',
-      'react/jsx-dev-runtime',
-      'scheduler'
-    ],
-    // Force Vite to run optimizeDeps even if node_modules changes
-    force: true
-  },
+  // Disable error overlay in development (prevents ugly red error screens)
   server: {
+    hmr: {
+      overlay: false
+    },
     proxy: {
       // Proxy para rutas de API en desarrollo
       '/gemini': {

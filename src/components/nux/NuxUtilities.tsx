@@ -79,8 +79,8 @@ export default function NuxUtilities() {
         transition={{ duration: 0.5 }}
         className="text-center mb-8"
       >
-        <h2 className="jersey-15-regular text-4xl lg:text-5xl text-gradient mb-3">NUX Utilities</h2>
-        <p className="jersey-20-regular text-white/50 text-lg lg:text-xl">Real utility across the entire NuxChain ecosystem</p>
+        <h2 className="jersey-15-regular text-5xl md:text-8xl text-gradient mb-3">NUX Utilities</h2>
+        <p className="jersey-20-regular text-white/50 text-xl md:text-3xl">Real utility across the entire NuxChain ecosystem</p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -102,13 +102,13 @@ export default function NuxUtilities() {
               {statusBadge(u.status)}
             </div>
 
-            <p className="jersey-20-regular text-white/60 text-base leading-relaxed">{u.desc}</p>
+            <p className="jersey-20-regular text-white/60 text-xl leading-relaxed">{u.desc}</p>
 
             <div className="flex flex-wrap gap-2 mt-auto">
               {u.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="jersey-20-regular text-sm px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-white/50"
+                  className="jersey-20-regular text-xl px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-white/50"
                 >
                   {tag}
                 </span>

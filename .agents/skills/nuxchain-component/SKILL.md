@@ -22,13 +22,53 @@ Create React components that match the NuxChain design system exactly.
 
 **Never use default Tailwind font sizes without a jersey class on text that is user-facing.**
 
+### Predefined Size Scale (mobile → desktop)
+
+Use `isMobile` ternaries or responsive prefixes. Always pair with the correct jersey class.
+
+| Element | Mobile | Desktop (lg/xl) |
+|---------|--------|------------------|
+| Page H1 | `text-4xl` | `text-6xl` |
+| Section H2 | `text-3xl` | `text-5xl` |
+| Card H3 | `text-2xl` | `text-3xl` |
+| Sub-heading | `text-xl` | `text-2xl` |
+| Body / description | `text-base` | `text-lg` |
+| Label / caption | `text-sm` | `text-base` |
+| Micro / footnote | `text-xs` | `text-sm` |
+| Hero H1 (special) | `text-5xl` | `text-8xl` |
+| Stat / number display | `text-3xl` | `text-5xl` |
+
 ```tsx
-// ✅ Correct
-<h2 className="text-4xl font-bold jersey-15-regular text-gradient">Section Title</h2>
-<p className="text-base jersey-20-regular text-slate-400">Description text here.</p>
+// ✅ Correct — H1 page title
+<h1 className={`jersey-15-regular font-bold text-gradient ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
+  Page Title
+</h1>
+
+// ✅ Correct — Section H2
+<h2 className={`jersey-15-regular text-gradient ${isMobile ? 'text-3xl' : 'text-5xl'}`}>
+  Section Title
+</h2>
+
+// ✅ Correct — Card H3
+<h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+  Card Title
+</h3>
+
+// ✅ Correct — Body text
+<p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-base' : 'text-lg'}`}>
+  Description text here.
+</p>
+
+// ✅ Correct — Label
+<span className={`jersey-20-regular text-white/50 ${isMobile ? 'text-sm' : 'text-base'}`}>
+  Label
+</span>
 
 // ❌ Wrong — missing jersey font
 <h2 className="text-4xl font-bold">Section Title</h2>
+
+// ❌ Wrong — using 4xl/5xl for body text
+<p className="jersey-20-regular text-4xl">Description</p>
 ```
 
 ## Color Palette

@@ -124,7 +124,7 @@ const AnnouncementModal: React.FC = () => {
                             {/* Header */}
                             <div className="flex items-start gap-4 mb-6">
                                 <div className="p-3 rounded-2xl bg-white/5 border border-white/10 shadow-inner shrink-0">
-                                    <img src="/favicon1.png" alt="NuxChain" className="w-8 h-8 sm:w-10 sm:h-10" />
+                                    <img src="/assets/unused/favicon1.png" alt="NuxChain" className="w-8 h-8 sm:w-10 sm:h-10" />
                                 </div>
                                 <div className="pt-0.5 sm:pt-1 min-w-0">
                                     <h2 className="jersey-15-regular text-4xl sm:text-5xl text-white flex items-center gap-2 truncate">

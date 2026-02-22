@@ -71,55 +71,55 @@ export const MAINTENANCE_CONFIG: {
   },
   staking: {
     // Staking - MAINTENANCE DISABLED
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days (5 * 24 * 60)
     message: 'We are upgrading the Staking system with enhanced features and improved rewards. The staking platform will be available in 5 days with better performance and new staking options.',
     startTime: getOrInitializeStartTime('staking', STAKING_START_TIME),
   },
   nfts: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
     startTime: getOrInitializeStartTime('nfts', NFTS_START_TIME),
   },
   marketplace: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
     startTime: getOrInitializeStartTime('marketplace', MARKETPLACE_START_TIME),
   },
   tokenomics: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days (5 * 24 * 60)
     message: 'Major Protocol Update: We are optimizing the $NUX Tokenomics to improve long-term sustainability and community rewards. Tokenomics 2.0 details arriving soon.',
     startTime: getOrInitializeStartTime('tokenomics', TOKENOMICS_START_TIME),
   },
   colab: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Colab Portal is being upgraded with new collaboration tools and enhanced builder rewards. We will be back shortly with exciting improvements.',
     startTime: getOrInitializeStartTime('colab', COLAB_START_TIME),
   },
   store: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Skills Store is undergoing major upgrades to bring you new skills, better pricing, and an improved purchasing experience. Back soon!',
     startTime: getOrInitializeStartTime('store', STORE_START_TIME),
   },
   labs: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'NuxChain Labs is being upgraded with new experimental tools and DeFi features. We will be back shortly with exciting new capabilities.',
     startTime: getOrInitializeStartTime('labs', LABS_START_TIME),
   },
   devhub: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Developer Hub is undergoing major improvements to bring you better documentation, tools, and builder resources. Back soon!',
     startTime: getOrInitializeStartTime('devhub', DEVHUB_START_TIME),
   },
   nux: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days
     message: 'The NUX Token page is being updated with the latest tokenomics, presale details, and cross-chain bridge information. Back very soon!',
     startTime: getOrInitializeStartTime('nux', NUX_START_TIME),

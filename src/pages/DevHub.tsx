@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
-import StakingMaintenance from './StakingMaintenance';
+import DevHubMaintenance from './DevHubMaintenance';
 import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
 import HeroSection from '../components/devHub/HeroSection';
@@ -15,7 +15,7 @@ function CTAHub() {
     document.title = 'Nuxchain | CTA Hub - Web3 Infrastructure for Developers';
   }, []);
 
-  if (isMaintenanceMode('devhub')) return <StakingMaintenance />;
+  if (isMaintenanceMode('devhub')) return <DevHubMaintenance />;
 
   return (
     <GlobalBackground>

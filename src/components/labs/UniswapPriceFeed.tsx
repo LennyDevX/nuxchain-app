@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUniswapPrices, type TokenPrice } from '../../hooks/useUniswapPrices';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
+import { motion } from 'framer-motion';
 
 const UniswapLogo: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -43,6 +44,90 @@ const formatVolume = (vol: number): string => {
   return `$${vol.toFixed(0)}`;
 };
 
+// Tokens adicionales para mostrar en el scroll infinito (incluye Solana y XRP)
+const ADDITIONAL_TOKENS: TokenPrice[] = [
+  {
+    id: 'solana',
+    symbol: 'SOL',
+    name: 'Solana',
+    price: 145.32,
+    change24h: 8.45,
+    volume24h: 2850000000,
+    color: '#14F195',
+    source: 'coingecko'
+  },
+  {
+    id: 'ripple',
+    symbol: 'XRP',
+    name: 'XRP',
+    price: 2.34,
+    change24h: -1.23,
+    volume24h: 1450000000,
+    color: '#23292F',
+    source: 'coingecko'
+  },
+  {
+    id: 'bitcoin',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    price: 67890.12,
+    change24h: 3.45,
+    volume24h: 45200000000,
+    color: '#F7931A',
+    source: 'coingecko'
+  },
+  {
+    id: 'cardano',
+    symbol: 'ADA',
+    name: 'Cardano',
+    price: 0.78,
+    change24h: 2.12,
+    volume24h: 456000000,
+    color: '#0033AD',
+    source: 'coingecko'
+  },
+  {
+    id: 'avalanche',
+    symbol: 'AVAX',
+    name: 'Avalanche',
+    price: 38.45,
+    change24h: 5.67,
+    volume24h: 789000000,
+    color: '#E84142',
+    source: 'coingecko'
+  },
+  {
+    id: 'chainlink',
+    symbol: 'LINK',
+    name: 'Chainlink',
+    price: 18.92,
+    change24h: 1.45,
+    volume24h: 345000000,
+    color: '#375BD2',
+    source: 'coingecko'
+  },
+  {
+    id: 'polygon',
+    symbol: 'POL',
+    name: 'Polygon',
+    price: 0.45,
+    change24h: -0.89,
+    volume24h: 234000000,
+    color: '#8247E5',
+    source: 'coingecko'
+  },
+  {
+    id: 'arbitrum',
+    symbol: 'ARB',
+    name: 'Arbitrum',
+    price: 0.85,
+    change24h: 4.32,
+    volume24h: 123000000,
+    color: '#28A0F0',
+    source: 'coingecko'
+  }
+];
+
 interface TokenCardProps {
   token: TokenPrice;
   isMobile: boolean;
@@ -54,7 +139,7 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, isMobile }) => {
   const changeBg = isPositive ? 'bg-emerald-500/10' : 'bg-red-500/10';
 
   return (
-    <div className="group relative bg-black/20 hover:bg-black/40 rounded-xl border border-white/5 hover:border-purple-500/20 transition-all duration-300 p-4">
+    <div className="group relative bg-black/20 hover:bg-black/40 rounded-xl border border-white/5 hover:border-purple-500/20 transition-all duration-300 p-4 min-w-[160px] sm:min-w-[180px] flex-shrink-0">
       {/* Token color accent */}
       <div
         className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl opacity-60"
@@ -102,13 +187,16 @@ const TokenCard: React.FC<TokenCardProps> = ({ token, isMobile }) => {
         {token.source === 'uniswap' && (
           <span className="text-xs text-pink-500/70 font-mono">UNI</span>
         )}
+        {token.source === 'coingecko' && (
+          <span className="text-xs text-emerald-500/70 font-mono">CG</span>
+        )}
       </div>
     </div>
   );
 };
 
 const SkeletonCard: React.FC = () => (
-  <div className="bg-black/20 rounded-xl border border-white/5 p-4 animate-pulse">
+  <div className="bg-black/20 rounded-xl border border-white/5 p-4 min-w-[160px] sm:min-w-[180px] flex-shrink-0 animate-pulse">
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-slate-700" />
@@ -123,6 +211,64 @@ const SkeletonCard: React.FC = () => (
     <div className="h-2 w-32 bg-slate-800 rounded" />
   </div>
 );
+
+// Componente de scroll infinito horizontal
+const InfiniteScrollTokens: React.FC<{
+  tokens: TokenPrice[];
+  isMobile: boolean;
+  loading: boolean;
+}> = ({ tokens, isMobile, loading }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Combinar tokens de API con tokens adicionales
+  const allTokens = [...(tokens || []), ...ADDITIONAL_TOKENS];
+
+  // Duplicar tokens para crear el efecto infinito
+  const duplicatedTokens = [...allTokens, ...allTokens, ...allTokens];
+
+  if (loading && !tokens) {
+    return (
+      <div className="flex gap-3 overflow-hidden">
+        {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="relative overflow-hidden py-2"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Gradient overlays para efecto fade en los bordes */}
+      <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-r from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 bg-gradient-to-l from-[#0a0a0f] to-transparent z-10 pointer-events-none" />
+
+      {/* Contenedor del scroll infinito */}
+      <motion.div
+        className="flex gap-3"
+        animate={{
+          x: [0, -50 * allTokens.length * 4],
+        }}
+        transition={{
+          x: {
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: 50,
+            ease: "linear",
+          },
+        }}
+        style={{
+          animationPlayState: isHovered ? 'paused' : 'running'
+        }}
+      >
+        {duplicatedTokens.map((token, idx) => (
+          <TokenCard key={`${token.id}-${idx}`} token={token} isMobile={isMobile} />
+        ))}
+      </motion.div>
+    </div>
+  );
+};
 
 const UniswapPriceFeed: React.FC = () => {
   const { data, loading, error, refetch, lastUpdated } = useUniswapPrices();
@@ -157,6 +303,15 @@ const UniswapPriceFeed: React.FC = () => {
                 className="text-pink-500 hover:text-pink-400 transition-colors"
               >
                 Uniswap API
+              </a>
+              {' & '}
+              <a
+                href="https://coingecko.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors"
+              >
+                CoinGecko
               </a>
             </p>
           </div>
@@ -198,18 +353,33 @@ const UniswapPriceFeed: React.FC = () => {
         </div>
       )}
 
-      {/* Token grid */}
-      <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-5'}`}>
-        {loading && !data
-          ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
-          : data?.map(token => (
+      {/* Token marquee con scroll infinito */}
+      <div className="relative">
+        <InfiniteScrollTokens
+          tokens={data || []}
+          isMobile={isMobile}
+          loading={loading}
+        />
+      </div>
+
+      {/* Tokens destacados - Grid estático */}
+      {(data && data.length > 0) && (
+        <div className="mt-8">
+          <h4 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-pink-500" />
+            Top Uniswap Tokens
+          </h4>
+          <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-3 lg:grid-cols-5'}`}>
+            {data.slice(0, 5).map(token => (
               <TokenCard key={token.id} token={token} isMobile={isMobile} />
             ))}
-      </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer note */}
       <p className="text-center text-xs text-slate-600">
-        Prices update every 30 seconds · Data sourced from Uniswap Trading API & CoinGecko
+        Prices update every 30 seconds · Hover to pause scroll · Data sourced from Uniswap Trading API & CoinGecko
       </p>
     </div>
   );

@@ -227,7 +227,7 @@ export const SkillsGridByRarity: React.FC<SkillsGridByRarityProps> = ({ skills, 
                 />
                 <span className="jersey-15-regular text-lg md:text-xl text-white">{RARITY_NAMES[rarity]}</span>
               </div>
-              <p className="jersey-20-regular text-sm md:text-base text-gray-400">
+              <p className="jersey-20-regular text-base md:text-lg text-gray-400">
                 {rarity === Rarity.COMMON && '1.0x'}
                 {rarity === Rarity.UNCOMMON && '1.1x'}
                 {rarity === Rarity.RARE && '1.2x'}

@@ -55,7 +55,7 @@ function Navbar() {
                 <div className="relative w-10 h-10 mr-2 group">
                   <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg group-hover:bg-blue-500/40 transition-colors"></div>
                   <img
-                    src="/favicon1.png"
+                    src="/assets/unused/favicon1.png"
                     alt="Nuxchain Logo"
                     className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]"
                   />

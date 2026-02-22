@@ -22,7 +22,7 @@ const ColabMaintenance: React.FC = () => {
           >
             <div className="relative">
               <motion.img
-                src="/NuxCoin.png"
+                src="/assets/tokens/NuxLogo.png"
                 alt="NUX Token Colab"
                 className="w-56 h-56 md:w-72 md:h-72 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                 animate={{

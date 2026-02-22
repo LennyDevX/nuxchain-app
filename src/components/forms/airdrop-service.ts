@@ -128,6 +128,8 @@ export async function submitAirdropRegistration(
     };
     submitTime: number;
     pageLoadTime: number;
+    captchaToken?: string;
+    walletSignature?: string;
   }
 ) {
   try {
@@ -215,6 +217,8 @@ export async function submitAirdropRegistration(
         userAgent: navigator.userAgent,
         browserInfo: deviceData?.browserInfo,
         timeToSubmit: deviceData ? deviceData.submitTime - deviceData.pageLoadTime : 0,
+        captchaToken: deviceData?.captchaToken || '',
+        walletSignature: deviceData?.walletSignature || '',
       }),
     });
 

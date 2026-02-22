@@ -97,6 +97,7 @@ export function ResponsiveImage({
           sizes={sizes}
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}
+          fetchPriority={priority ? 'high' : 'auto'}
           className={`
             w-full h-full ${objectFitClass}
             transition-opacity duration-300

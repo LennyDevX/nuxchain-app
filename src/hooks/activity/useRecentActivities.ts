@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAccount, usePublicClient } from 'wagmi';
 import { parseAbiItem, formatEther } from 'viem';
 
@@ -58,6 +58,7 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fetchedForAddress = useRef<string | null>(null);
 
   // Función para convertir duración de segundos a texto legible
   const formatLockupDuration = (seconds: number): string => {
@@ -82,13 +83,15 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       const currentBlock = await publicClient.getBlockNumber();
       console.log('📦 Current block:', currentBlock.toString());
       
-      // Alchemy Free Tier: 500 CU/s limit (5000 CU per 10-second window)
-      // eth_getLogs ≈ 75 CU per request
-      // Safe rate: ~2.5 requests/second = 187 CU/s (very conservative)
-      const BLOCKS_TO_FETCH = 50000;  // ~28 hours on Polygon (to capture deposit at block 77171365)
-      const CHUNK_SIZE = 10;
-      const DELAY_BETWEEN_CHUNKS = 400; // 400ms = 2.5 req/s (safer for large ranges)
-      const fromBlock = currentBlock - BigInt(BLOCKS_TO_FETCH);
+      // Alchemy Free Tier: max 10 block range, 500 CU/s limit
+      // Aggressive rate limiting to prevent console spam
+      const BLOCKS_TO_FETCH = 500;   // ~25 minutes of data (much smaller)
+      const CHUNK_SIZE = 5;          // 5 blocks per request (safer)
+      const MAX_CHUNKS = 20;         // Max 20 requests per fetch (prevents infinite loops)
+      const DELAY_BETWEEN_CHUNKS = 500; // 500ms between requests (2 req/s max)
+      const fromBlock = currentBlock > BigInt(BLOCKS_TO_FETCH) 
+        ? currentBlock - BigInt(BLOCKS_TO_FETCH) 
+        : BigInt(0);
       
       console.log('📊 Block range:', fromBlock.toString(), 'to', currentBlock.toString());
       console.log('📏 Total blocks:', BLOCKS_TO_FETCH);
@@ -117,10 +120,18 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       // Helper to fetch logs in small chunks with rate limiting
       const fetchLogsInChunks = async (eventConfig: any) => {
         const allLogs: any[] = [];
+        let chunkCount = 0;
         
-        for (let offset = 0; offset < BLOCKS_TO_FETCH; offset += CHUNK_SIZE) {
+        for (let offset = 0; offset < BLOCKS_TO_FETCH && chunkCount < MAX_CHUNKS; offset += CHUNK_SIZE) {
+          chunkCount++;
           const chunkFrom = fromBlock + BigInt(offset);
-          const chunkTo = fromBlock + BigInt(Math.min(offset + CHUNK_SIZE - 1, BLOCKS_TO_FETCH - 1));
+          const chunkTo = fromBlock + BigInt(Math.min(offset + CHUNK_SIZE, BLOCKS_TO_FETCH));
+          
+          // Validate block range
+          if (chunkFrom >= chunkTo || chunkFrom < BigInt(0)) {
+            console.warn(`[Staking] Invalid block range: ${chunkFrom} to ${chunkTo}, skipping`);
+            continue;
+          }
           
           try {
             const logs = await fetchWithRetry(() => publicClient.getLogs({
@@ -128,14 +139,19 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
               fromBlock: chunkFrom,
               toBlock: chunkTo,
             }));
-            allLogs.push(...logs);
+            if (logs && logs.length > 0) {
+              allLogs.push(...logs);
+            }
             
             // Add delay between chunks to respect CU/s limit
-            if (offset + CHUNK_SIZE < BLOCKS_TO_FETCH) {
+            if (offset + CHUNK_SIZE < BLOCKS_TO_FETCH && chunkCount < MAX_CHUNKS) {
               await delay(DELAY_BETWEEN_CHUNKS);
             }
-          } catch (err) {
-            console.warn(`Skipping chunk [${chunkFrom}, ${chunkTo}]:`, err);
+          } catch (err: any) {
+            // Only log serious errors, skip warnings for empty chunks
+            if (!err.message?.includes('Internal error') && !err.message?.includes('compute units')) {
+              console.warn(`[Staking] Chunk error [${chunkFrom}, ${chunkTo}]:`, err.message?.slice(0, 50));
+            }
           }
         }
         
@@ -246,11 +262,14 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
     try {
       const currentBlock = await publicClient.getBlockNumber();
       
-      // Alchemy Free Tier: 500 CU/s limit
-      const BLOCKS_TO_FETCH = 50000;  // ~28 hours on Polygon
-      const CHUNK_SIZE = 10;
-      const DELAY_BETWEEN_CHUNKS = 400; // 400ms = 2.5 req/s
-      const fromBlock = currentBlock - BigInt(BLOCKS_TO_FETCH);
+      // Alchemy Free Tier: max 10 block range, 500 CU/s limit
+      const BLOCKS_TO_FETCH = 500;   // ~25 minutes of data
+      const CHUNK_SIZE = 5;          // 5 blocks per request (safer)
+      const MAX_CHUNKS = 20;         // Max 20 requests per fetch
+      const DELAY_BETWEEN_CHUNKS = 500; // 500ms between requests
+      const fromBlock = currentBlock > BigInt(BLOCKS_TO_FETCH) 
+        ? currentBlock - BigInt(BLOCKS_TO_FETCH) 
+        : BigInt(0);
 
       // Helper to add delay between requests
       const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -276,10 +295,18 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       // Helper to fetch logs in small chunks with rate limiting
       const fetchLogsInChunks = async (eventConfig: any) => {
         const allLogs: any[] = [];
+        let chunkCount = 0;
         
-        for (let offset = 0; offset < BLOCKS_TO_FETCH; offset += CHUNK_SIZE) {
+        for (let offset = 0; offset < BLOCKS_TO_FETCH && chunkCount < MAX_CHUNKS; offset += CHUNK_SIZE) {
+          chunkCount++;
           const chunkFrom = fromBlock + BigInt(offset);
-          const chunkTo = fromBlock + BigInt(Math.min(offset + CHUNK_SIZE - 1, BLOCKS_TO_FETCH - 1));
+          const chunkTo = fromBlock + BigInt(Math.min(offset + CHUNK_SIZE, BLOCKS_TO_FETCH));
+          
+          // Validate block range
+          if (chunkFrom >= chunkTo || chunkFrom < BigInt(0)) {
+            console.warn(`[Marketplace] Invalid block range: ${chunkFrom} to ${chunkTo}, skipping`);
+            continue;
+          }
           
           try {
             const logs = await fetchWithRetry(() => publicClient.getLogs({
@@ -287,14 +314,19 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
               fromBlock: chunkFrom,
               toBlock: chunkTo,
             }));
-            allLogs.push(...logs);
+            if (logs && logs.length > 0) {
+              allLogs.push(...logs);
+            }
             
             // Add delay between chunks to respect CU/s limit
-            if (offset + CHUNK_SIZE < BLOCKS_TO_FETCH) {
+            if (offset + CHUNK_SIZE < BLOCKS_TO_FETCH && chunkCount < MAX_CHUNKS) {
               await delay(DELAY_BETWEEN_CHUNKS);
             }
-          } catch (err) {
-            console.warn(`Skipping marketplace chunk [${chunkFrom}, ${chunkTo}]:`, err);
+          } catch (err: any) {
+            // Only log serious errors, skip warnings for empty chunks
+            if (!err.message?.includes('Internal error') && !err.message?.includes('compute units')) {
+              console.warn(`[Marketplace] Chunk error [${chunkFrom}, ${chunkTo}]:`, err.message?.slice(0, 50));
+            }
           }
         }
         
@@ -540,6 +572,9 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       setActivities([]);
       return;
     }
+    // Only fetch once per address to prevent infinite loops
+    if (fetchedForAddress.current === address) return;
+    fetchedForAddress.current = address;
 
     console.log('🚀 [Main] Starting activity fetch for address:', address);
     setIsLoading(true);
@@ -574,10 +609,13 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
     }
   }, [address, getStakingEvents, getMarketplaceEvents, maxActivities]);
 
-  // Cargar actividades al montar el componente o cuando cambie la dirección
+  // Cargar actividades cuando cambie la dirección (reset guard on address change)
   useEffect(() => {
+    if (address !== fetchedForAddress.current) {
+      fetchedForAddress.current = null;
+    }
     fetchActivities();
-  }, [fetchActivities]);
+  }, [address]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     activities,

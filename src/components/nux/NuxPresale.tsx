@@ -14,7 +14,7 @@ const phases = [
   {
     step: '02',
     title: 'Whitelist Phase',
-    desc: 'Exclusive access for airdrop registrants at 0.000015 SOL/NUX (cheapest, 40% off). Min: 5,000 NUX. Mar 7.',
+    desc: 'Exclusive access for airdrop registrants at 0.000015 SOL/NUX (cheapest, 40% off). Min: 5,000 NUX. Mar 2-14.',
     icon: '📋',
     color: 'text-amber-500',
     border: 'border-amber-500/30',
@@ -23,7 +23,7 @@ const phases = [
   {
     step: '03',
     title: 'Public Presale',
-    desc: 'Open presale on Smithii Launchpad at 0.000025 SOL/NUX. 15M NUX allocation. Min: 1,000 NUX. Mar 14.',
+    desc: 'Open presale on Smithii Launchpad at 0.000025 SOL/NUX. 15M NUX allocation. Min: 1,000 NUX. Mar 2-22.',
     icon: '🚀',
     color: 'text-purple-400',
     border: 'border-purple-400/30',
@@ -32,7 +32,7 @@ const phases = [
   {
     step: '04',
     title: 'TGE & LP Creation',
-    desc: 'Liquidity Pool created on Raydium with presale funds. LP tokens burned. Market price 0.00004 SOL. Mar 21.',
+    desc: 'Liquidity Pool created on Raydium with presale funds. LP tokens burned. Market price 0.00004 SOL. Mar 24.',
     icon: '📈',
     color: 'text-emerald-400',
     border: 'border-emerald-400/30',
@@ -41,7 +41,7 @@ const phases = [
   {
     step: '05',
     title: 'Airdrop Distribution',
-    desc: '40,000 NUX per registered user via 3-phase vesting: 10K at TGE (Mar 21), 20K after 3 months (Jun 21), 10K after 6 months (Sep 21).',
+    desc: '40,000 NUX per registered user via 3-phase vesting: 10K at TGE (Mar 24), 20K after 3 months (Jun 24), 10K after 6 months (Sep 24).',
     icon: '🎁',
     color: 'text-pink-400',
     border: 'border-pink-400/30',
@@ -134,9 +134,9 @@ export default function NuxPresale() {
 
             <div className="grid grid-cols-3 gap-3 mb-4 text-center">
               {[
-                { tier: 'Whitelist', price: '0.000015', date: 'Mar 7', min: '5K NUX', tc: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                { tier: 'Presale', price: '0.000025', date: 'Mar 14', min: '1K NUX', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 21', min: 'Market', tc: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+                { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K NUX', tc: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+                { tier: 'Presale', price: '0.000025', date: 'Mar 2-22', min: '1K NUX', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', tc: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
               ].map(t => (
                 <motion.div 
                   key={t.tier} 

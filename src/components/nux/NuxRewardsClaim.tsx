@@ -18,27 +18,27 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const steps = [
   {
     step: '01',
-    icon: '📸',
-    title: 'Activity Snapshot',
-    desc: 'At presale close, a snapshot of all Polygon activity is taken — staking history, NFT holdings, skill purchases, and airdrop registrations are all recorded. Registered users receive up to 40,000 NUX in 3 distribution phases.',
-    color: 'text-amber-400',
-    border: 'border-amber-400/30',
+    icon: '🔗',
+    title: 'Link Your Wallets',
+    desc: 'Connect your Polygon wallet (activity chain) and Solana wallet (rewards chain). Both wallets are linked off-chain — no transaction needed. Your Polygon wallet earns activity points; your Solana wallet receives NUX rewards.',
+    color: 'text-purple-400',
+    border: 'border-purple-400/30',
   },
   {
     step: '02',
-    icon: '🔍',
-    title: 'Wallet Verification',
-    desc: 'Your registered Solana wallet is matched to your Polygon address. Each vesting phase requires wallet activity verification to prevent bot claims. The 20,000,000 NUX rewards pool is distributed via Smithii Vesting.',
+    icon: '📊',
+    title: 'Earn Activity Score',
+    desc: 'Every on-chain action on Polygon counts toward your NUX Rewards: staking deposits, NFT minting & trading, skill purchases, marketplace activity, and governance participation. The more you engage, the higher your monthly allocation.',
     color: 'text-emerald-400',
     border: 'border-emerald-400/30',
   },
   {
     step: '03',
-    icon: '🚀',
-    title: '3-Phase Distribution',
-    desc: 'Phase 1: 10,000 NUX at TGE (Mar 21). Phase 2: 20,000 NUX after 3 months (Jun 21). Phase 3: 10,000 NUX after 6 months (Sep 21). Total: 40,000 NUX per verified user.',
-    color: 'text-blue-400',
-    border: 'border-blue-400/30',
+    icon: '�',
+    title: 'Monthly NUX Distribution',
+    desc: 'Every 30 days, the NUX Rewards Hub evaluates your activity score and distributes NUX tokens directly to your Solana wallet as SPL tokens. Zero gas fees for recipients. The 20M NUX rewards pool is distributed monthly to active users based on their contribution to the ecosystem.',
+    color: 'text-amber-400',
+    border: 'border-amber-400/30',
   },
 ];
 
@@ -140,7 +140,7 @@ export default function NuxRewardsClaim() {
                 transition={{ delay: i * 0.08 }}
               >
                 <div className={`flex-shrink-0 rounded-lg bg-white/5 border ${s.border} flex items-center justify-center ${isMobile ? 'w-9 h-9' : 'w-10 h-10'}`}>
-                  <span className={`jersey-15-regular text-sm ${s.color}`}>{s.step}</span>
+                  <span className={`jersey-15-regular text-2xl  ${s.color}`}>{s.step}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5">
@@ -160,7 +160,7 @@ export default function NuxRewardsClaim() {
             </p>
             <div className={`grid grid-cols-3 gap-2 text-center`}>
               {[
-                { phase: 'TGE', amount: '10K NUX', date: 'Mar 21', color: 'text-amber-400' },
+                { phase: 'TGE', amount: '10K NUX', date: 'Mar 24', color: 'text-amber-400' },
                 { phase: '+3mo', amount: '20K NUX', date: 'Jun 21', color: 'text-emerald-400' },
                 { phase: '+6mo', amount: '10K NUX', date: 'Sep 21', color: 'text-blue-400' },
               ].map(p => (
@@ -183,9 +183,9 @@ export default function NuxRewardsClaim() {
             </p>
             <div className="grid grid-cols-3 gap-2 text-center mb-3">
               {[
-                { tier: 'Whitelist', price: '0.000015', date: 'Mar 7', min: '5K NUX', color: 'text-amber-400' },
-                { tier: 'Presale', price: '0.000025', date: 'Mar 14', min: '1K NUX', color: 'text-blue-400' },
-                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 21', min: 'Market', color: 'text-emerald-400' },
+                { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K NUX', color: 'text-amber-400' },
+                { tier: 'Presale', price: '0.000025', date: 'Mar 2-22', min: '1K NUX', color: 'text-blue-400' },
+                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', color: 'text-emerald-400' },
               ].map(t => (
                 <div key={t.tier} className="p-2 rounded-lg bg-white/5">
                   <p className={`jersey-20-regular ${t.color} ${isMobile ? 'text-base' : 'text-lg'}`}>{t.tier}</p>

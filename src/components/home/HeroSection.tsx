@@ -158,6 +158,17 @@ function HeroSection() {
                   →
                 </motion.span>
               </Link>
+              <Link to="/about" className="jersey-20-regular group px-4 py-2 rounded-lg border border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/10 text-white text-2xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-95">
+                About Nuxchain
+                <motion.span
+                  className="inline-block transition-transform"
+                  initial={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  →
+                </motion.span>
+              </Link>
             </motion.div>
           </div>
         ) : (
@@ -230,7 +241,10 @@ function HeroSection() {
                   Start Creating Now
                   <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
                 </Link>
-
+                <Link to="/about" className="jersey-20-regular group px-6 lg:px-8 py-3 lg:py-4 rounded-lg border border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/10 text-white text-2xl flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105">
+                  About Nuxchain
+                  <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </Link>
               </motion.div>
             </motion.div>
 

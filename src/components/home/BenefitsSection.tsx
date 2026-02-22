@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import React from 'react'
@@ -179,4 +180,4 @@ function BenefitsSection() {
   )
 }
 
-export default BenefitsSection
+export default memo(BenefitsSection)

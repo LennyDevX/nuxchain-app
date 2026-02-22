@@ -24,7 +24,7 @@ const Tokenomics: React.FC = () => {
     const descriptions: Record<string, string> = {
         'Presale': 'Early investors & public sale',
         'Liquidity Pool': 'DEX liquidity provision',
-        'Activity Rewards': 'Airdrops & user incentives',
+        'Activity Rewards': 'NUX Rewards Hub — Monthly distribution based on Polygon activity',
         'Dev Team': 'Development & operations',
         'Marketing': 'Growth & partnerships',
         'Ecosystem': 'Treasury & ecosystem fund',
@@ -330,7 +330,7 @@ const Tokenomics: React.FC = () => {
                                 <AllocationItem
                                     label="Activity Rewards"
                                     percentage={20}
-                                    description="Airdrop & rewards — 20M NUX"
+                                    description="NUX Rewards Hub — Monthly to active users — 20M NUX"
                                     color="bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
                                     index={2}
                                     isHovered={hoveredIndex === 2}

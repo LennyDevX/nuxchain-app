@@ -19,9 +19,7 @@ export default function NuxHero() {
           animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 2, repeat: Infinity }}
         />
-        <span className={`jersey-20-regular text-amber-400 tracking-widest uppercase ${isMobile ? 'text-base' : 'text-lg'}`}>
-          3-Tier Launch: Whitelist → Presale → LP
-        </span>
+        
       </motion.div>
 
       {/* Title */}
@@ -86,6 +84,7 @@ export default function NuxHero() {
             <span className={`jersey-20-regular ${b.text} ${isMobile ? 'text-base' : 'text-lg'}`}>{b.label}</span>
           </div>
         ))}
+        
       </motion.div>
     </section>
   );

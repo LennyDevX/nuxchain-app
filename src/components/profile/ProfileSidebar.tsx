@@ -3,11 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useSkillNFTs } from '../../hooks/staking/useSkillNFTs';
+import { useSolanaWallet } from '../../hooks/web3/useSolanaWallet';
 import { SKILL_TYPE_NAMES, type SkillType } from '../../types/contracts';
 
 const ProfileSidebar: React.FC = () => {
   const location = useLocation();
   const { address, isConnected } = useAccount();
+  const { isConnected: isSolanaConnected, address: solanaAddress, wallet: solanaWalletName } = useSolanaWallet();
   const { activeSkills, isLoading: isLoadingSkills } = useSkillNFTs();
   const [username, setUsername] = useState('User');
   const [isEditingName, setIsEditingName] = useState(false);
@@ -342,6 +344,64 @@ const ProfileSidebar: React.FC = () => {
                 >
                   Stake to earn skills →
                 </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Wallet Linked Section */}
+        {isConnected && (
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <h5 className="jersey-15-regular text-white/60 text-base font-semibold uppercase mb-3 px-2 flex items-center gap-2">
+              🔗 Wallet Linked
+              {isSolanaConnected && <span className="text-emerald-400 text-xs">✓ Synced</span>}
+            </h5>
+            
+            {/* Polygon Wallet */}
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 mb-2">
+              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <span className="text-purple-400">⬡</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/60 text-xs">Polygon</p>
+                <p className="text-white text-sm font-mono truncate">{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}</p>
+              </div>
+              {isConnected && <span className="text-emerald-400 text-xs">✓</span>}
+            </div>
+
+            {/* Solana Wallet */}
+            <div className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${isSolanaConnected ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/10'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isSolanaConnected ? 'bg-emerald-500/20' : 'bg-white/10'}`}>
+                <span className={isSolanaConnected ? 'text-emerald-400' : 'text-white/40'}>◎</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white/60 text-xs">Solana {solanaWalletName && `(${solanaWalletName})`}</p>
+                <p className="text-white text-sm font-mono truncate">
+                  {solanaAddress ? `${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}` : 'Not linked'}
+                </p>
+              </div>
+              {isSolanaConnected ? (
+                <span className="text-emerald-400 text-xs">✓</span>
+              ) : (
+                <Link to="/nux" className="text-amber-400 text-xs hover:text-amber-300">
+                  Link →
+                </Link>
+              )}
+            </div>
+
+            {/* Rewards Status */}
+            {isConnected && isSolanaConnected && (
+              <div className="mt-3 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-emerald-400 text-xs text-center">
+                  ✅ Ready to claim NUX rewards on Solana
+                </p>
+              </div>
+            )}
+            {isConnected && !isSolanaConnected && (
+              <div className="mt-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <p className="text-amber-400 text-xs text-center">
+                  ⚠️ Link Solana wallet to claim rewards
+                </p>
               </div>
             )}
           </div>

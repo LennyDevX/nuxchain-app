@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
-import StakingMaintenance from './StakingMaintenance';
+import NuxMaintenance from './NuxMaintenance';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import NuxHero from '../components/nux/NuxHero';
 import NuxStatsBar from '../components/nux/NuxStatsBar';
@@ -13,7 +13,7 @@ import NuxBridge from '../components/nux/NuxBridge';
 const Nux = memo(() => {
   const isMobile = useIsMobile();
 
-  if (isMaintenanceMode('nux')) return <StakingMaintenance />;
+  if (isMaintenanceMode('nux')) return <NuxMaintenance />;
 
   return (
     <div className={`min-h-screen py-6 lg:py-10 ${isMobile ? 'pb-32' : ''}`}>

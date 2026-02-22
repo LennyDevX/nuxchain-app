@@ -25,7 +25,7 @@ const MarketplaceMaintenance: React.FC = () => {
           >
             <div className="relative">
               <motion.img
-                src="/DragonixRed_Warrior.png"
+                src="/assets/nfts/dragonix/DragonixRed_Warrior.png"
                 alt="Dragonix Warrior"
                 className="w-64 h-auto md:w-80 drop-shadow-[0_0_35px_rgba(239,68,68,0.4)]"
                 animate={{

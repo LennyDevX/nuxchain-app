@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <img src="/favicon1.png" alt="Nuxchain" className="w-10 h-10" />
+              <img src="/assets/unused/favicon1.png" alt="Nuxchain" className="w-10 h-10" />
               <h3 className="jersey-15-regular text-4xl font-bold text-gradient">
                 Nuxchain
               </h3>

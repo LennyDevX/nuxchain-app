@@ -263,7 +263,7 @@ function WalletConnect() {
             }`} />
           </>
         ) : (
-          <span className="jersey-20-regular text-2xl">Connect Wallet</span>
+          <span className="jersey-20-regular text-xl">Connect Wallet</span>
         )}
       </button>
 
@@ -449,10 +449,10 @@ function WalletConnect() {
                         const key = getConnectorKey(connector)
                         const title = (connector as { name?: string }).name || key
                         const walletLogos: Record<string, string> = {
-                          metamask: '/MetaMaskLogo.png',
-                          phantom: '/PhantomLogo.png',
-                          okx: '/OKXLogo.webp',
-                          walletconnect: '/WalletConnect.png',
+                          metamask: '/assets/wallets/MetaMaskLogo.png',
+                          phantom: '/assets/wallets/PhantomLogo.png',
+                          okx: '/assets/wallets/OKXLogo.webp',
+                          walletconnect: '/assets/wallets/WalletConnect.png',
                           injected: '💼'
                         }
                         const logoUrl = walletLogos[key]
@@ -534,7 +534,6 @@ function WalletConnect() {
 
                       <div className="bg-black/60 rounded-2xl p-4 border border-white/5 shadow-inner">
                         <p className="jersey-20-regular text-sm text-purple-400 mb-1.5 tracking-tight">{typeof solanaWalletName === 'string' ? solanaWalletName : solanaWalletName?.adapter?.name || 'Solana'}</p>
-                        <p className="jersey-20-regular text-[11px] text-green-400/60 italic mb-3 tracking-[0.1em] uppercase">Mainnet Beta Reliable</p>
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-[13px] text-gray-400 font-mono truncate tracking-tight">{solanaPublicKey.toBase58()}</p>
                           <button
@@ -631,7 +630,7 @@ function WalletConnect() {
                           }}
                           className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center bg-gradient-to-br from-purple-600/10 to-indigo-600/5 border border-purple-500/30 hover:scale-[1.02]`}
                         >
-                          <img src="/PhantomLogo.png" className="w-10 h-10 mb-2" />
+                          <img src="/assets/wallets/PhantomLogo.png" className="w-10 h-10 mb-2" />
                           <span className="font-black text-white text-xs tracking-tight">Phantom</span>
                           <span className="text-[8px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full uppercase mt-1">Popular</span>
                         </button>
@@ -670,7 +669,7 @@ function WalletConnect() {
                         }}
                         className={`rounded-2xl transition-all duration-300 p-3 flex flex-col items-center text-center bg-black border ${address && lastUsedWallet === 'okx' ? 'border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.3)] ring-1 ring-purple-500/50' : 'border-white/10'} hover:scale-[1.02]`}
                       >
-                        <img src="/OKXLogo.webp" className="w-10 h-10 mb-2" />
+                        <img src="/assets/wallets/OKXLogo.webp" className="w-10 h-10 mb-2" />
                         <span className="font-black text-white text-xs tracking-tight">OKX Wallet</span>
                         {address && lastUsedWallet === 'okx' && <span className="text-[8px] bg-purple-600 text-white px-1.5 py-0.5 rounded-full uppercase italic mt-1">Sync</span>}
                       </button>

@@ -43,7 +43,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h3 className="text-lg font-bold text-white mb-4">Rarity Guide</h3>
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-4">Rarity Guide</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[Rarity.COMMON, Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC, Rarity.LEGENDARY].map(
             (rarity) => (
@@ -52,7 +52,7 @@ export const SkillsGrid: React.FC<SkillsGridProps> = ({ skills, onSkillClick }) 
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: RARITY_COLOR_MAP[rarity] }}
                 />
-                <span className="text-sm text-gray-300">
+                <span className="text-base md:text-lg text-gray-300">
                   {rarity === Rarity.COMMON && 'Common'}
                   {rarity === Rarity.UNCOMMON && 'Uncommon'}
                   {rarity === Rarity.RARE && 'Rare'}

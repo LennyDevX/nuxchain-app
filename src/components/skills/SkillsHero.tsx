@@ -49,15 +49,15 @@ export const SkillsHero: React.FC<SkillsHeroProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-base md:text-lg">
             <div className="text-center">
               <div className="jersey-15-regular text-yellow-400 text-lg md:text-xl mb-1">⏰ 30 Days</div>
-              <div className="jersey-20-regular text-gray-400 text-sm md:text-base">Duration per skill</div>
+              <div className="jersey-20-regular text-gray-400 text-base md:text-lg">Duration per skill</div>
             </div>
             <div className="text-center">
               <div className="jersey-15-regular text-green-400 text-lg md:text-xl mb-1">💰 250 POL</div>
-              <div className="jersey-20-regular text-gray-400 text-sm md:text-base">Min. staking required</div>
+              <div className="jersey-20-regular text-gray-400 text-base md:text-lg">Min. staking required</div>
             </div>
             <div className="text-center">
               <div className="jersey-15-regular text-blue-400 text-lg md:text-xl mb-1">⚡ Max 3</div>
-              <div className="jersey-20-regular text-gray-400 text-sm md:text-base">Active per type</div>
+              <div className="jersey-20-regular text-gray-400 text-base md:text-lg">Active per type</div>
             </div>
           </div>
         </motion.div>
@@ -71,15 +71,15 @@ export const SkillsHero: React.FC<SkillsHeroProps> = ({
         >
           <div className="p-3 sm:p-4 md:p-6 bg-gray-900/50 border border-gray-800 rounded-lg hover:border-purple-500/50 transition-all">
             <div className="jersey-20-regular text-4xl md:text-5xl text-purple-400 mb-1">{totalSkillsCount}</div>
-            <div className="jersey-15-regular text-sm md:text-base text-gray-400">Total Skills</div>
+            <div className="jersey-15-regular text-base md:text-lg text-gray-400">Total Skills</div>
           </div>
           <div className="p-3 sm:p-4 md:p-6 bg-gray-900/50 border border-gray-800 rounded-lg hover:border-blue-500/50 transition-all">
             <div className="jersey-20-regular text-4xl md:text-5xl text-blue-400 mb-1">17</div>
-            <div className="jersey-15-regular text-sm md:text-base text-gray-400">Skill Types</div>
+            <div className="jersey-15-regular text-base md:text-lg text-gray-400">Skill Types</div>
           </div>
           <div className="p-3 sm:p-4 md:p-6 bg-gray-900/50 border border-gray-800 rounded-lg hover:border-orange-500/50 transition-all col-span-2 sm:col-span-1">
             <div className="jersey-20-regular text-4xl md:text-5xl text-orange-400 mb-1">+{totalBoostPercentage}%</div>
-            <div className="jersey-15-regular text-sm md:text-base text-gray-400">Max APY Boost</div>
+            <div className="jersey-15-regular text-base md:text-lg text-gray-400">Max APY Boost</div>
           </div>
         </motion.div>
       </motion.div>

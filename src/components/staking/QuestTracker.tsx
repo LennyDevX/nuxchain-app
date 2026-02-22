@@ -32,6 +32,8 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
     isPending,
     isConfirming,
     isConfirmed,
+    error,
+    reset,
     isLoading: isLoadingQuests,
     refetch,
   } = useQuestManagement();
@@ -45,7 +47,7 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
   const prevBadgeCountRef = useRef(badgeCount);
   const pendingToastRef = useRef<string | null>(null);
 
-  // Consolidated transaction effect: handles pending toast, confirmed toast, and refetch
+  // Consolidated transaction effect: handles pending toast, confirmed toast, errors, and refetch
   useEffect(() => {
     // Show pending toast when transaction starts
     if (isPending && !pendingToastRef.current) {
@@ -61,7 +63,14 @@ const QuestTracker: React.FC<QuestTrackerProps> = memo(({ className = '' }) => {
       const timer = setTimeout(() => refetch(), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isPending, isConfirmed, refetch]);
+
+    // Handle error (user rejection, etc.)
+    if (error && pendingToastRef.current) {
+      gamificationToasts.txFailed(error.message || 'Transaction cancelled', pendingToastRef.current);
+      pendingToastRef.current = null;
+      reset(); // Reset the write contract state
+    }
+  }, [isPending, isConfirmed, error, refetch, reset]);
 
   // Detect level-up and badge unlocks - consolidated detection effect
   useEffect(() => {

@@ -18,8 +18,8 @@ if (import.meta.env.DEV) {
 const appName = 'Nuxchain'
 const appUrl = typeof window !== 'undefined' ? window.location.origin : 'https://nuxchain-app.vercel.app'
 const appIconUrl = typeof window !== 'undefined'
-  ? `${window.location.origin}/Dragonix.jpg`
-  : 'https://nuxchain-app.vercel.app/Dragonix.jpg'
+  ? `${window.location.origin}/assets/nfts/dragonix/Dragonix.png`
+  : 'https://nuxchain-app.vercel.app/assets/nfts/dragonix/Dragonix.png'
 
 export const config = createConfig({
   chains: [polygon, polygonAmoy],

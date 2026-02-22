@@ -6,7 +6,7 @@ export const OKX_WALLET_NAME = 'OKX Wallet' as WalletName<'OKX Wallet'>;
 export class OkxWalletAdapter extends BaseWalletAdapter {
     name = OKX_WALLET_NAME;
     url = 'https://www.okx.com/web3';
-    icon = '/OKXLogo.webp';
+    icon = '/assets/wallets/OKXLogo.webp';
     supportedTransactionVersions = new Set(['legacy', 0] as const);
 
     private _publicKey: PublicKey | null = null;

@@ -14,8 +14,8 @@ export default function NuxBridge() {
         viewport={{ once: true }} transition={{ duration: 0.5 }}
         className="text-center mb-8"
       >
-        <h2 className="jersey-15-regular text-4xl lg:text-5xl text-gradient mb-3">Cross-Chain Bridge</h2>
-        <p className="jersey-20-regular text-white/50 text-lg lg:text-xl max-w-2xl mx-auto">
+        <h2 className="jersey-15-regular text-4xl lg:text-7xl text-gradient mb-3">Cross-Chain Bridge</h2>
+        <p className="jersey-20-regular text-white/50 text-lg lg:text-2xl max-w-2xl mx-auto">
           Move tokens natively between Polygon and Solana using Wormhole — the most secure cross-chain messaging protocol.
         </p>
       </motion.div>
@@ -29,8 +29,8 @@ export default function NuxBridge() {
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-8">
           <span className="text-2xl mt-0.5">🔧</span>
           <div>
-            <p className="jersey-15-regular text-amber-300 text-lg mb-1">Native Integration Coming Soon</p>
-            <p className="jersey-20-regular text-white/50 text-base leading-relaxed">
+            <p className="jersey-15-regular text-amber-300 text-2xl mb-1">Native Integration Coming Soon</p>
+            <p className="jersey-20-regular text-white/50 text-xl leading-relaxed">
               The Wormhole Connect widget requires dependencies that are not yet compatible with our current tech stack (React 19). 
               We are actively exploring alternatives to bring the bridge natively into NuxChain. 
               In the meantime, you can use the official Portal Bridge below — same protocol, same security.
@@ -39,7 +39,7 @@ export default function NuxBridge() {
         </div>
 
         {/* How it works */}
-        <p className="jersey-15-regular text-white/70 text-xl mb-5">How to bridge via Portal</p>
+        <p className="jersey-15-regular text-white/70 text-2xl mb-5">How to bridge via Portal</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {steps.map((s, i) => (
             <motion.div
@@ -50,10 +50,10 @@ export default function NuxBridge() {
             >
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl">{s.icon}</span>
-                <span className="jersey-20-regular text-white/40 text-sm">Step {i + 1}</span>
+                <span className="jersey-20-regular text-white/40 text-xl">Step {i + 1}</span>
               </div>
-              <p className="jersey-15-regular text-white text-base mb-1">{s.title}</p>
-              <p className="jersey-20-regular text-white/50 text-sm leading-relaxed">{s.desc}</p>
+              <p className="jersey-15-regular text-white text-xl mb-1">{s.title}</p>
+              <p className="jersey-20-regular text-white/50 text-lg leading-relaxed">{s.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -67,8 +67,8 @@ export default function NuxBridge() {
             { icon: '⚡', label: 'Native Token Transfers', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
           ].map((b) => (
             <div key={b.label} className={`flex items-center gap-2 px-4 py-2 rounded-full border ${b.bg}`}>
-              <span className="text-sm">{b.icon}</span>
-              <span className={`jersey-20-regular text-sm ${b.color}`}>{b.label}</span>
+              <span className="text-2xl">{b.icon}</span>
+              <span className={`jersey-20-regular text-lg ${b.color}`}>{b.label}</span>
             </div>
           ))}
         </div>

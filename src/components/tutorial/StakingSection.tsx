@@ -38,7 +38,7 @@ function StakingSection() {
             className="-mx-4 sm:-mx-6 md:mx-0 aspect-square md:aspect-auto flex items-center justify-center"
           >
             <ResponsiveImage
-              src="/DragonixPol.jpg"
+              src="/assets/unused/DragonixPol.jpg"
               alt="Staking POL Dragon"
               className="w-full h-auto object-contain md:scale-110 lg:scale-125"
             />

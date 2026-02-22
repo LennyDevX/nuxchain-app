@@ -25,7 +25,7 @@ const TokenizationSection: React.FC = () => {
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <ResponsiveImage
-                src="/tokenization.webp"
+                src="/assets/unused/tokenization.webp"
                 alt="NFT Tokenization"
                 mobileSize="w-92 h-92"
                 tabletSize="md:w-92 md:h-92"

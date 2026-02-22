@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -17,6 +17,18 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Tokenomics: React.FC = () => {
     const isMobile = useIsMobile();
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+    // Descriptions for tooltips
+    const descriptions: Record<string, string> = {
+        'Presale': 'Early investors & public sale',
+        'Liquidity Pool': 'DEX liquidity provision',
+        'Activity Rewards': 'Airdrops & user incentives',
+        'Dev Team': 'Development & operations',
+        'Marketing': 'Growth & partnerships',
+        'Ecosystem': 'Treasury & ecosystem fund',
+    };
 
     // Check maintenance mode (handled by TokenomicsMaintenance wrapper in router;
     // this guard prevents direct access bypassing the wrapper)
@@ -25,26 +37,49 @@ const Tokenomics: React.FC = () => {
     }
 
     const data = {
-        labels: ['Community & Ecosystem', 'Dev Team', 'Marketing', 'Staking Rewards'],
+        labels: ['Presale', 'Liquidity Pool', 'Activity Rewards', 'Dev Team', 'Marketing', 'Ecosystem'],
         datasets: [
             {
                 label: 'Token Distribution',
-                data: [55, 20, 15, 10],
+                data: [15, 15, 20, 15, 15, 20],
                 backgroundColor: [
-                    'rgba(168, 85, 247, 0.7)', // Purple
-                    'rgba(59, 130, 246, 0.7)', // Blue
-                    'rgba(236, 72, 153, 0.7)', // Pink
-                    'rgba(34, 197, 94, 0.7)',  // Green
+                    selectedIndex === null || selectedIndex === 0 ? 'rgba(251, 191, 36, 0.8)' : 'rgba(251, 191, 36, 0.2)',
+                    selectedIndex === null || selectedIndex === 1 ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.2)',
+                    selectedIndex === null || selectedIndex === 2 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(34, 197, 94, 0.2)',
+                    selectedIndex === null || selectedIndex === 3 ? 'rgba(236, 72, 153, 0.8)' : 'rgba(236, 72, 153, 0.2)',
+                    selectedIndex === null || selectedIndex === 4 ? 'rgba(168, 85, 247, 0.8)' : 'rgba(168, 85, 247, 0.2)',
+                    selectedIndex === null || selectedIndex === 5 ? 'rgba(6, 182, 212, 0.8)' : 'rgba(6, 182, 212, 0.2)',
+                ],
+                hoverBackgroundColor: [
+                    'rgba(251, 191, 36, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(34, 197, 94, 1)',
+                    'rgba(236, 72, 153, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(6, 182, 212, 1)',
                 ],
                 borderColor: [
-                    'rgba(168, 85, 247, 1)',
+                    'rgba(251, 191, 36, 1)',
                     'rgba(59, 130, 246, 1)',
-                    'rgba(236, 72, 153, 1)',
                     'rgba(34, 197, 94, 1)',
+                    'rgba(236, 72, 153, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(6, 182, 212, 1)',
                 ],
-                borderWidth: 2,
-                hoverOffset: 15,
-                spacing: 5,
+                borderWidth: selectedIndex !== null ? [3, 3, 3, 3, 3, 3] : [3, 3, 3, 3, 3, 3],
+                hoverOffset: selectedIndex !== null ? 
+                    [selectedIndex === 0 ? 30 : 0, selectedIndex === 1 ? 30 : 0, selectedIndex === 2 ? 30 : 0, selectedIndex === 3 ? 30 : 0, selectedIndex === 4 ? 30 : 0, selectedIndex === 5 ? 30 : 0] 
+                    : [0, 0, 0, 0, 0, 0],
+                spacing: 2,
+                hoverBorderWidth: 4,
+                hoverBorderColor: [
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                ],
             },
         ],
     };
@@ -52,28 +87,39 @@ const Tokenomics: React.FC = () => {
     const options: ChartOptions<'doughnut'> = {
         responsive: true,
         maintainAspectRatio: false,
-        hover: {
-            mode: 'nearest',
-            intersect: true
+        animation: {
+            animateScale: true,
+            animateRotate: true,
+            duration: 1000,
+            easing: 'easeOutQuart',
         },
+        hover: {
+            mode: undefined,
+        },
+        onHover: undefined,
         plugins: {
             legend: {
-                display: false, // Using custom legend
+                display: false,
             },
             tooltip: {
-                enabled: true,
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleFont: { size: 14, weight: 'bold' },
-                bodyFont: { size: 13 },
-                padding: 12,
-                cornerRadius: 8,
-                displayColors: true,
-                callbacks: {
-                    label: (context) => ` ${context.label}: ${context.parsed}%`,
-                },
+                enabled: false,
             },
         },
-        cutout: '75%',
+        cutout: '60%',
+        radius: '90%',
+        interaction: {
+            mode: undefined,
+        },
+        elements: {
+            arc: {
+                borderWidth: 3,
+                hoverBorderWidth: 6,
+                hoverBorderColor: '#ffffff',
+            },
+        },
+        layout: {
+            padding: 20,
+        },
     };
 
     return (
@@ -87,8 +133,8 @@ const Tokenomics: React.FC = () => {
                     className="text-center mb-10 sm:mb-16 relative"
                 >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-purple-500/10 blur-[80px] sm:blur-[100px] rounded-full -z-10" />
-                    <h1 className={`jersey-15-regular mb-4 bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-4xl' : 'text-7xl md:text-8xl tracking-tight'}`}>
-                        Tokenomics
+                    <h1 className={`jersey-15-regular mb-4 text-gradient leading-tight ${isMobile ? 'text-4xl' : 'text-7xl md:text-8xl tracking-tight'}`}>
+                        Treasury Manager
                     </h1>
                     <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-2' : 'text-2xl md:text-3xl'}`}>
                         A community-first economy designed for sustainable growth and long-term utility on Solana.
@@ -107,38 +153,135 @@ const Tokenomics: React.FC = () => {
                         {/* Chart Wrapper */}
                         <div className={`relative w-full aspect-square max-w-[320px] sm:max-w-[500px] group ${isMobile ? 'mb-6' : 'mb-12'}`}>
                             {/* Outer Glow */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/5 to-blue-500/5 blur-3xl rounded-full scale-110" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 to-blue-500/10 blur-3xl rounded-full scale-110 animate-pulse" />
 
                             <Doughnut data={data} options={options} />
 
-                            {/* Center Content */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-4">
-                                <motion.span
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 1 }}
-                                    className={`jersey-20-regular text-slate-500 uppercase tracking-[0.2em] mb-1 ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}
-                                >
-                                    Total Supply
-                                </motion.span>
-                                <span className={`jersey-20-regular text-white leading-none ${isMobile ? 'text-2xl' : 'text-5xl md:text-6xl'}`}>
-                                    21,000,000
-                                </span>
-                                <span className={`jersey-15-regular text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 mt-1 ${isMobile ? 'text-xs' : 'text-2xl md:text-3xl'}`}>
-                                    $NUX TOKENS
-                                </span>
-                            </div>
+                            {/* Center Logo */}
+                            <motion.div 
+                                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                animate={{ 
+                                    scale: hoveredIndex !== null ? 0.95 : 1,
+                                    rotate: hoveredIndex !== null ? 5 : 0
+                                }}
+                                transition={{ duration: 0.3, ease: "easeOut" }}
+                            >
+                                <img
+                                    src="/assets/tokens/NuxLogo.png"
+                                    alt="NUX Token"
+                                    className={`${isMobile ? 'w-28 h-28' : 'w-36 h-36 md:w-44 md:h-44'} object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.6)]`}
+                                />
+                            </motion.div>
+
+                            {/* Selection indicator ring */}
+                            <motion.div 
+                                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ 
+                                    opacity: selectedIndex !== null ? 1 : 0,
+                                    scale: selectedIndex !== null ? 1 : 0.8
+                                }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <div className={`${isMobile ? 'w-32 h-32' : 'w-40 h-40 md:w-48 md:h-48'} rounded-full border-2 border-white/30`} />
+                            </motion.div>
+
+                            {/* Custom Floating Tooltip - appears when card is clicked */}
+                            <AnimatePresence>
+                                {selectedIndex !== null && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
+                                    >
+                                        <div className="bg-slate-900/95 border border-white/20 rounded-2xl p-4 shadow-2xl backdrop-blur-xl min-w-[200px]">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div 
+                                                    className="w-4 h-4 rounded-full"
+                                                    style={{ backgroundColor: data.datasets[0].backgroundColor[selectedIndex] }}
+                                                />
+                                                <span className="jersey-15-regular text-white text-lg">
+                                                    {data.labels[selectedIndex]}
+                                                </span>
+                                                <span className="jersey-15-regular text-white text-xl ml-auto">
+                                                    {data.datasets[0].data[selectedIndex]}%
+                                                </span>
+                                            </div>
+                                            <p className="jersey-20-regular text-slate-300 text-sm mb-2">
+                                                {descriptions[data.labels[selectedIndex]]}
+                                            </p>
+                                            <p className="jersey-20-regular text-slate-400 text-xs">
+                                                {(data.datasets[0].data[selectedIndex] * 1000000).toLocaleString()} NUX tokens
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
-                        {/* Custom Legend */}
-                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'text-xs' : 'text-base md:text-lg'}`}>
-                            {data.labels.map((label, idx) => (
-                                <div key={idx} className="flex items-center gap-2 sm:gap-3 bg-white/5 border border-white/10 p-2 sm:p-3 rounded-xl sm:rounded-2xl hover:bg-white/10 transition-colors cursor-default">
-                                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0" style={{ backgroundColor: data.datasets[0].backgroundColor[idx] }} />
-                                    <span className="jersey-20-regular text-slate-300 truncate">{label}</span>
-                                </div>
-                            ))}
+                        {/* Custom Legend - Click to show tooltip */}
+                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'text-sm' : 'text-lg md:text-xl'}`}>
+                            {data.labels.map((label, idx) => {
+                                const isSelected = selectedIndex === idx;
+                                const isHovered = hoveredIndex === idx;
+                                return (
+                                    <motion.div 
+                                        key={idx} 
+                                        className={`flex flex-col gap-1 bg-white/5 border p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
+                                            isSelected
+                                                ? 'bg-white/20 border-white/50 scale-105 ring-2 ring-white/30' 
+                                                : isHovered
+                                                    ? 'bg-white/10 border-white/30'
+                                                    : 'border-white/10 hover:bg-white/8'
+                                        }`}
+                                        onClick={() => setSelectedIndex(isSelected ? null : idx)}
+                                        onMouseEnter={() => setHoveredIndex(idx)}
+                                        onMouseLeave={() => setHoveredIndex(null)}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <motion.div 
+                                                className="w-3 h-3 sm:w-5 sm:h-5 rounded-full shrink-0" 
+                                                style={{ backgroundColor: data.datasets[0].backgroundColor[idx] }}
+                                                animate={{ scale: isSelected ? 1.4 : isHovered ? 1.2 : 1 }}
+                                            />
+                                            <span className={`jersey-15-regular truncate transition-colors ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-300'}`}>
+                                                {label}
+                                            </span>
+                                            <span className={`jersey-15-regular ml-auto ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-400'}`}>
+                                                {data.datasets[0].data[idx]}%
+                                            </span>
+                                        </div>
+                                        <span className={`jersey-20-regular text-xs sm:text-sm truncate transition-colors ${isSelected ? 'text-slate-200' : isHovered ? 'text-slate-300' : 'text-slate-500'}`}>
+                                            {descriptions[label]}
+                                        </span>
+                                    </motion.div>
+                                );
+                            })}
                         </div>
+
+                        {/* Total Supply Display */}
+                        <motion.div 
+                            className={`mt-6 text-center ${isMobile ? 'mb-4' : 'mb-8'}`}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <div className="inline-flex flex-col items-center bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
+                                <span className={`jersey-20-regular text-slate-400 uppercase tracking-wider ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                                    Total Supply
+                                </span>
+                                <span className={`jersey-15-regular text-white ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}>
+                                    100,000,000
+                                </span>
+                                <span className={`jersey-15-regular text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+                                    $NUX
+                                </span>
+                            </div>
+                        </motion.div>
                     </motion.div>
 
                     {/* Right Column: Cards & Details */}
@@ -153,40 +296,76 @@ const Tokenomics: React.FC = () => {
                             <TokenInfoCard icon={<BarChart3Icon />} title="Token ID" value="Nuxchain" gradient="from-purple-500/20 to-transparent" />
                             <TokenInfoCard icon={<ZapIcon />} title="Ticker" value="$NUX" gradient="from-blue-500/20 to-transparent" />
                             <TokenInfoCard icon={<GlobeIcon />} title="Network" value="Solana" gradient="from-emerald-500/20 to-transparent" />
-                            <TokenInfoCard icon={<CpuIcon />} title="Supply Cap" value="21M Fixed" gradient="from-pink-500/20 to-transparent" />
+                            <TokenInfoCard icon={<CpuIcon />} title="Supply Cap" value="100M Fixed" gradient="from-pink-500/20 to-transparent" />
                         </div>
 
-                        {/* Allocation Progress Bars */}
-                        <div className={`card-unified relative overflow-hidden backdrop-blur-xl border-white/20 ${isMobile ? 'p-5 py-6' : 'p-8'}`}>
+                        {/* Allocation Progress Bars - 2x2 Grid Layout */}
+                        <div className={`card-unified relative overflow-hidden backdrop-blur-xl border-white/20 ${isMobile ? 'p-4' : 'p-6'}`}>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full" />
-                            <h3 className={`jersey-15-regular text-white tracking-tight flex items-center gap-2 sm:gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>
+                            <h3 className={`jersey-15-regular text-white tracking-tight flex items-center gap-2 sm:gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'} mb-4`}>
                                 Distribution <span className="jersey-20-regular text-xs sm:text-sm text-slate-500">Breakdown</span>
                             </h3>
 
-                            <div className={`space-y-5 sm:y-6 ${isMobile ? 'mt-6' : 'mt-8'}`}>
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                 <AllocationItem
-                                    label="Community & Ecosystem"
-                                    percentage={55}
-                                    description="Airdrops, LP, User Rewards & NFTs"
-                                    color="bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    label="Presale"
+                                    percentage={15}
+                                    description="Public & whitelist — 15M NUX"
+                                    color="bg-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                                    index={0}
+                                    isHovered={hoveredIndex === 0}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
+                                />
+                                <AllocationItem
+                                    label="Liquidity Pool"
+                                    percentage={15}
+                                    description="Raydium LP — 15M NUX"
+                                    color="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                                    index={1}
+                                    isHovered={hoveredIndex === 1}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
+                                />
+                                <AllocationItem
+                                    label="Activity Rewards"
+                                    percentage={20}
+                                    description="Airdrop & rewards — 20M NUX"
+                                    color="bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                                    index={2}
+                                    isHovered={hoveredIndex === 2}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
                                 />
                                 <AllocationItem
                                     label="Dev Team"
-                                    percentage={20}
-                                    description="Core dev, R&D and platform growth"
-                                    color="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                                    percentage={15}
+                                    description="Core dev & R&D — 15M NUX"
+                                    color="bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                                    index={3}
+                                    isHovered={hoveredIndex === 3}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
                                 />
                                 <AllocationItem
                                     label="Marketing & Growth"
                                     percentage={15}
-                                    description="Global outreach and partnerships"
-                                    color="bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                                    description="Global outreach — 15M NUX"
+                                    color="bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    index={4}
+                                    isHovered={hoveredIndex === 4}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Staking Rewards"
-                                    percentage={10}
-                                    description="Inflationary rewards for stakers"
-                                    color="bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                                    label="Ecosystem & Treasury"
+                                    percentage={20}
+                                    description="Skills, NFTs, AI — 20M NUX"
+                                    color="bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                                    index={5}
+                                    isHovered={hoveredIndex === 5}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
                                 />
                             </div>
                         </div>
@@ -299,7 +478,7 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                             Polygon Network
                         </span>
                     </div>
-                    <h2 className={`jersey-15-regular mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight ${isMobile ? 'text-3xl' : 'text-6xl md:text-7xl tracking-tight'}`}>
+                    <h2 className={`jersey-15-regular mb-4 text-gradient leading-tight ${isMobile ? 'text-3xl' : 'text-6xl md:text-7xl tracking-tight'}`}>
                         Ecosystem Economy
                     </h2>
                     <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-4' : 'text-xl md:text-2xl'}`}>
@@ -407,6 +586,12 @@ const EconomyFeatureCard: React.FC<{
                     </div>
                 ))}
             </div>
+            {/* See more indicator */}
+            <div className="mt-4 pt-3 border-t border-white/10">
+                <span className="jersey-20-regular text-sm text-purple-400 underline underline-offset-4 decoration-purple-400/50 hover:text-purple-300 hover:decoration-purple-300 transition-colors cursor-pointer">
+                    See more...
+                </span>
+            </div>
         </div>
     </motion.div>
 );
@@ -496,25 +681,40 @@ const TokenInfoCard: React.FC<{ icon: React.ReactNode; title: string; value: str
     </motion.div>
 );
 
-const AllocationItem: React.FC<{ label: string; percentage: number; description: string; color: string }> = ({ label, percentage, description, color }) => (
-    <div className="space-y-3">
-        <div className="flex justify-between items-end">
-            <div>
-                <span className="jersey-15-regular text-slate-200 block leading-none mb-1">{label}</span>
-                <span className="jersey-20-regular text-slate-500 text-xs md:text-sm">{description}</span>
+const AllocationItem: React.FC<{ label: string; percentage: number; description: string; color: string; index: number; isHovered: boolean; onHover: (index: number | null) => void; isMobile: boolean }> = ({ label, percentage, description, color, index, isHovered, onHover, isMobile }) => (
+    <motion.div 
+        className={`space-y-2 p-3 sm:p-4 rounded-xl transition-all cursor-pointer border ${isHovered ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/10 hover:bg-white/8 hover:border-white/20'}`}
+        onMouseEnter={() => onHover(index)}
+        onMouseLeave={() => onHover(null)}
+        whileHover={{ scale: 1.02, y: -2 }}
+        title={`${label}: ${percentage}% - ${description}`}
+    >
+        <div className="flex justify-between items-start">
+            <div className="flex-1 min-w-0">
+                <span className={`jersey-15-regular block leading-tight mb-1 ${isMobile ? 'text-sm' : 'text-base md:text-lg'} ${isHovered ? 'text-white' : 'text-slate-200'}`}>{label}</span>
+                <span className={`jersey-20-regular ${isMobile ? 'text-xs' : 'text-sm'} ${isHovered ? 'text-slate-300' : 'text-slate-400'} truncate block`}>{description}</span>
             </div>
-            <span className="jersey-15-regular text-white text-2xl md:text-3xl leading-none">{percentage}%</span>
+            <motion.span 
+                className={`jersey-15-regular text-white leading-none ml-2 ${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'}`}
+                animate={{ scale: isHovered ? 1.15 : 1 }}
+            >
+                {percentage}%
+            </motion.span>
         </div>
-        <div className="w-full bg-slate-800/50 h-3 rounded-full overflow-hidden border border-white/5 p-[2px]">
+        <div className="w-full bg-slate-800/50 h-2.5 md:h-3 rounded-full overflow-hidden border border-white/5 p-[2px]">
             <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${percentage}%` }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.5, ease: "circOut" }}
                 className={`h-full rounded-full ${color}`}
+                animate={{ 
+                    filter: isHovered ? 'brightness(1.4) saturate(1.2)' : 'brightness(1)',
+                    scale: isHovered ? 1.02 : 1,
+                }}
             />
         </div>
-    </div>
+    </motion.div>
 );
 
 export default Tokenomics;

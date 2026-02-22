@@ -10,14 +10,15 @@ import Footer from '../components/layout/footer';
 import AirdropHeader from '../components/airdrop/AirdropHeader';
 import AirdropForm from '../components/airdrop/AirdropForm';
 import AirdropFeatures from '../components/airdrop/AirdropFeatures';
+import AirdropSuccess from '../components/airdrop/AirdropSuccess';
 // import WalletMetricsDisplay from '../components/airdrop/WalletMetrics'; // Integrated in form
 import AirdropModals from '../components/airdrop/AirdropModals';
 import RequirementsModal from '../components/airdrop/RequirementsModal';
 import '../styles/nux-coin-display.css';
 
 // Configuration constants
-const MAX_USERS = 10000;
-const TOKENS_PER_USER = 6000;
+const MAX_USERS = 5000;
+const TOKENS_PER_USER = 40000;
 
 // Memoized fingerprint generation to avoid recreating on every render
 function generateFingerprint(): string {
@@ -179,7 +180,7 @@ function Airdrop() {
   }, [solanaConnected, evmConnected, solanaPublicKey]);
 
   useEffect(() => {
-    document.title = `Nuxchain | NUX Token Airdrop - Get ${TOKENS_PER_USER.toLocaleString()} NUX Tokens`;
+    document.title = `Nuxchain | NUX Token Airdrop - Get ${TOKENS_PER_USER.toLocaleString()} NUX Tokens (100M Supply)`;
   }, []);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -356,44 +357,12 @@ function Airdrop() {
                       <p className="text-gray-400 font-medium animate-pulse tracking-wide">Syncing with Nuxchain Universe...</p>
                     </div>
                   ) : isAlreadyRegistered ? (
-                    <div className="relative overflow-hidden group">
-                      <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-colors duration-500"></div>
-                      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl group-hover:bg-purple-600/20 transition-colors duration-500"></div>
-
-                      <div className="relative z-10 text-center py-8 px-6 sm:py-10 bg-transparent rounded-3xl">
-                        <h3 className="jersey-15-regular text-2xl lg:text-3xl font-black mb-1 tracking-tight uppercase">
-                          <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient-text">
-                            Welcome to the Universe
-                          </span>
-                        </h3>
-
-                        <div className="max-w-md mx-auto space-y-4 text-gray-200 text-sm sm:text-base leading-relaxed mb-8">
-                          <p className="jersey-20-regular opacity-90 font-medium">
-                            Your registration has been detected in our database. You're already part of the early adopter elite!
-                          </p>
-                          <div className="p-3 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="jersey-20-regular text-white font-black text-xl lg:text-3xl tracking-tight">
-                              Your <span className="text-blue-400">{TOKENS_PER_USER.toLocaleString()} NUX</span> airdrop will be sent soon.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4 justify-center items-center">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="jersey-20-regular px-6 py-2 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-sm lg:text-xl font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                              </span>
-                              Registration Confirmed
-                            </div>
-                            <p className="jersey-20-regular text-gray-500 text-sm lg:text-xl font-mono">
-                              Wallet: <span className="text-gray-300">{formData.wallet.slice(0, 6)}...{formData.wallet.slice(-6)}</span>
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <AirdropSuccess 
+                      name={formData.name}
+                      email={formData.email}
+                      walletAddress={formData.wallet}
+                      onClose={() => setIsAlreadyRegistered(false)}
+                    />
                   ) : isPoolFull ? (
                     <div className="relative overflow-hidden group">
                       <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-colors duration-500"></div>
@@ -543,19 +512,19 @@ function Airdrop() {
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-white">{(TOKENS_PER_USER / 1000).toLocaleString()}K NUX tokens - Launch price allocation</span>
+                      <span className="text-white">40K NUX tokens + Whitelist access</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-white">Solana network  - Fast & low-cost transactions</span>
+                      <span className="text-white">3-Phase vesting: 10K + 20K + 10K</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <svg className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-white">Early adopter exclusive benefits</span>
+                      <span className="text-white">Exclusive Whitelist: Buy at $0.0015 (cheapest)</span>
                     </li>
                   </ul>
                 </div>

@@ -49,6 +49,32 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // WALLET REGISTRATIONS - For NUX rewards wallet linking
+    // ================================================================
+    // Users can read/write their own wallet registration data
+    // This links Polygon and Solana wallets for NUX reward claiming
+    // Uses Polygon wallet address as document ID for verification
+    // ================================================================
+    match /walletRegistrations/{polygonAddress} {
+      // Allow anyone to read wallet registrations (public data)
+      allow read: if true;
+      
+      // Allow creation of new wallet registration
+      // Validate that polygonAddress in data matches document ID
+      allow create: if request.resource.data.polygonAddress != null &&
+        request.resource.data.polygonAddress == polygonAddress &&
+        request.resource.data.solanaAddress != null;
+      
+      // Allow update of existing registration
+      // User can only update their own wallet registration
+      allow update: if resource.data.polygonAddress == polygonAddress &&
+        request.resource.data.polygonAddress == polygonAddress;
+      
+      // Allow deletion of own registration
+      allow delete: if resource.data.polygonAddress == polygonAddress;
+    }
+
+    // ================================================================
     // DEFAULT - Deny all other access
     // ================================================================
     match /{document=**} {

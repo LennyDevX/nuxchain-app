@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
-import StakingMaintenance from './StakingMaintenance';
+import LabsMaintenance from './LabsMaintenance';
 import AIFeaturesSection from '../components/labs/AIFeaturesSection';
 import PlatformMission from '../components/labs/PlatformMission';
 import UniswapPriceFeed from '../components/labs/UniswapPriceFeed';
@@ -14,7 +14,7 @@ const LabsPage: React.FC = () => {
   const navigate = useNavigate();
   const innovationRef = useRef<HTMLElement>(null);
 
-  if (isMaintenanceMode('labs')) return <StakingMaintenance />;
+  if (isMaintenanceMode('labs')) return <LabsMaintenance />;
 
   const handleScrollToInnovation = () => {
     innovationRef.current?.scrollIntoView({ behavior: 'smooth' });

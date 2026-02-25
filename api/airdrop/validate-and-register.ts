@@ -35,8 +35,9 @@ const RPC_ENDPOINTS = [
   'https://solana-api.projectserum.com'
 ].filter(Boolean) as string[];
 
-// Randomize starting index to distribute load across public nodes in serverless env
-let currentRpcIndex = Math.floor(Math.random() * RPC_ENDPOINTS.length);
+// Always start with the premium endpoint (index 0 = QuickNode/Helius env var).
+// Only rotate to public fallbacks on retries — prevents cold-start hits on throttled public nodes.
+let currentRpcIndex = 0;
 let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], 'confirmed');
 
 /**
@@ -656,7 +657,15 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
       wallet,
       fingerprint,
       ipAddress,
-    } = req.body;
+      walletHint, // Optional: frontend pre-analysis result used as fallback during RPC degradation
+    } = req.body as {
+      name: string;
+      email: string;
+      wallet: string;
+      fingerprint: string;
+      ipAddress: string;
+      walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean };
+    };
 
     // Log validation attempt
     await logAuditEvent({
@@ -759,33 +768,56 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
     // ========================================
     const walletValidation = await validateWalletOnChain(wallet);
 
-    if (!walletValidation.isValid) {
+    // 🛡️ HINT RESCUE: If backend RPC was degraded (RPC_UNAVAILABLE) but the frontend
+    // pre-validated the wallet with a high trust score, approve as rpcVerified=false.
+    // This prevents false rejections for real users during temporary RPC outages.
+    const isRpcIssue = walletValidation.reason?.startsWith('RPC_UNAVAILABLE:');
+    const frontendConfirmed =
+      walletHint &&
+      typeof walletHint.trustScore === 'number' && walletHint.trustScore >= 70 &&
+      typeof walletHint.transactionCount === 'number' && walletHint.transactionCount > 0;
+
+    const effectiveValidation =
+      isRpcIssue && frontendConfirmed
+        ? { ...walletValidation, isValid: true, rpcVerified: false, hintRescued: true }
+        : walletValidation;
+
+    if (isRpcIssue && frontendConfirmed) {
+      console.warn(
+        `⚠️ [HINT_RESCUE] Approving ${wallet.slice(0, 8)}... via frontend hint ` +
+        `(trustScore: ${walletHint!.trustScore}, txns: ${walletHint!.transactionCount}) ` +
+        `— backend RPC was degraded. Manual review recommended.`
+      );
+    }
+
+    if (!effectiveValidation.isValid) {
       // Log detailed reason for admin review
       await logSecurityViolation(
         EventType.WALLET_TOO_NEW,
-        `Rejection: ${walletValidation.reason}`,
+        `Rejection: ${effectiveValidation.reason}`,
         ipAddress,
         email,
         wallet,
         {
-          balance: walletValidation.balance,
-          transactionCount: walletValidation.transactionCount,
-          walletAgeDays: walletValidation.walletAgeDays,
+          balance: effectiveValidation.balance,
+          transactionCount: effectiveValidation.transactionCount,
+          walletAgeDays: effectiveValidation.walletAgeDays,
         }
       );
       
       // Provide specific user-friendly error based on reason type
       // Feb 2026: More helpful messages while maintaining security
-      let userMessage = walletValidation.reason || 'Wallet does not meet registration requirements.';
+      let userMessage = effectiveValidation.reason || 'Wallet does not meet registration requirements.';
       
       // Parse reason prefix for categorization
-      if (walletValidation.reason?.startsWith('RPC_UNAVAILABLE:')) {
-        userMessage = 'Our verification service is temporarily busy. Please wait 30 seconds and try again, or add a bit more SOL to your wallet (minimum 0.001 SOL for instant approval during high load).';
-      } else if (walletValidation.reason?.startsWith('NO_TRANSACTIONS:')) {
+      if (effectiveValidation.reason?.startsWith('RPC_UNAVAILABLE:')) {
+        // Removed misleading "add more SOL" suggestion — real users with any balance are rescued by hint
+        userMessage = 'Our on-chain verification service is temporarily unavailable. Please wait 30 seconds and try again. If the issue persists, contact support on Discord.';
+      } else if (effectiveValidation.reason?.startsWith('NO_TRANSACTIONS:')) {
         userMessage = 'Your wallet has no transaction history. Please make at least 1 transaction on Solana mainnet and try again.';
-      } else if (walletValidation.reason?.startsWith('INSUFFICIENT_BALANCE:')) {
+      } else if (effectiveValidation.reason?.startsWith('INSUFFICIENT_BALANCE:')) {
         // Extract the specific balance requirement from the reason
-        userMessage = walletValidation.reason.replace('INSUFFICIENT_BALANCE: ', '');
+        userMessage = effectiveValidation.reason.replace('INSUFFICIENT_BALANCE: ', '');
       }
       
       return res.status(400).json({
@@ -857,8 +889,11 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
     const duration = Date.now() - startTime;
     
     // Track RPC-unverified approvals for monitoring
-    if (walletValidation.rpcVerified === false) {
-      console.log(`⚠️ [RPC_UNVERIFIED] Approved ${wallet.slice(0, 8)}... without RPC verification (Balance: ${walletValidation.balance.toFixed(6)} SOL) - Manual review recommended`);
+    if (effectiveValidation.rpcVerified === false) {
+      const rescueNote = (effectiveValidation as typeof effectiveValidation & { hintRescued?: boolean }).hintRescued
+        ? `rescued by frontend hint (trustScore: ${walletHint?.trustScore ?? '?'}, txns: ${walletHint?.transactionCount ?? '?'})`
+        : `sufficient balance fallback`;
+      console.log(`⚠️ [RPC_UNVERIFIED] Approved ${wallet.slice(0, 8)}... without RPC verification — ${rescueNote}. Manual review recommended.`);
     }
     
     await logAuditEvent({

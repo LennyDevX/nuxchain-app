@@ -36,43 +36,43 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
 
       {/* 3-Tier Launch Details */}
       <div className="w-full max-w-4xl mb-6 sm:mb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
           {/* Tier 1: Whitelist */}
-          <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/40 backdrop-blur-md">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-amber-500 rounded-full">
-              <span className="jersey-15-regular text-white text-base font-bold">TIER 1</span>
+          <div className="relative p-4 sm:p-5 lg:p-6 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/40 backdrop-blur-md">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-1 sm:py-1.5 bg-amber-500 rounded-full">
+              <span className="jersey-15-regular text-white text-xs sm:text-base font-bold">TIER 1</span>
             </div>
-            <div className="mt-3 text-center">
-              <p className="jersey-15-regular text-amber-400 text-2xl sm:text-3xl font-black">WHITELIST</p>
-              <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.000015 SOL</p>
-              <p className="jersey-20-regular text-amber-300/70 text-base mt-2">40% off • Min: 5,000 NUX</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 2-14</p>
+            <div className="mt-4 sm:mt-3 text-center">
+              <p className="jersey-15-regular text-amber-400 text-lg sm:text-2xl lg:text-3xl font-black">WHITELIST</p>
+              <p className="jersey-20-regular text-white text-xl sm:text-3xl lg:text-4xl font-bold mt-2 sm:mt-3">0.000015 SOL</p>
+              <p className="jersey-20-regular text-amber-300/70 text-xs sm:text-base lg:text-lg mt-2 sm:mt-2">40% off • Min: 5K NUX</p>
+              <p className="jersey-20-regular text-white/50 text-sm sm:text-base lg:text-lg mt-2">Mar 2-14</p>
             </div>
           </div>
 
           {/* Tier 2: Presale */}
-          <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/40 backdrop-blur-md">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-blue-500 rounded-full">
-              <span className="jersey-15-regular text-white text-xl font-bold">TIER 2</span>
+          <div className="relative p-4 sm:p-5 lg:p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/40 backdrop-blur-md">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-1 sm:py-1.5 bg-blue-500 rounded-full">
+              <span className="jersey-15-regular text-white text-xs sm:text-base lg:text-lg font-bold">TIER 2</span>
             </div>
-            <div className="mt-3 text-center">
-              <p className="jersey-15-regular text-blue-400 text-2xl sm:text-3xl font-black">PRESALE</p>
-              <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.000025 SOL</p>
-              <p className="jersey-20-regular text-blue-300/70 text-xl mt-2">Public • Min: 1,000 NUX</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 2-22</p>
+            <div className="mt-4 sm:mt-3 text-center">
+              <p className="jersey-15-regular text-blue-400 text-lg sm:text-2xl lg:text-3xl font-black">PRESALE</p>
+              <p className="jersey-20-regular text-white text-xl sm:text-3xl lg:text-4xl font-bold mt-2 sm:mt-3">0.000025 SOL</p>
+              <p className="jersey-20-regular text-blue-300/70 text-xs sm:text-base lg:text-lg mt-2 sm:mt-2">Public • Min: 1K NUX</p>
+              <p className="jersey-20-regular text-white/50 text-sm sm:text-base lg:text-lg mt-2">Mar 2-22</p>
             </div>
           </div>
 
           {/* Tier 3: LP/TGE */}
-          <div className="relative p-5 sm:p-6 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/40 backdrop-blur-md">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-emerald-500 rounded-full">
-              <span className="jersey-15-regular text-white text-base font-bold">TIER 3</span>
+          <div className="relative p-4 sm:p-5 lg:p-6 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/40 backdrop-blur-md col-span-2 sm:col-span-1">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-1 sm:py-1.5 bg-emerald-500 rounded-full">
+              <span className="jersey-15-regular text-white text-xs sm:text-base font-bold">TIER 3</span>
             </div>
-            <div className="mt-3 text-center">
-              <p className="jersey-15-regular text-emerald-400 text-2xl sm:text-3xl font-black">LP / TGE</p>
-              <p className="jersey-20-regular text-white text-3xl sm:text-4xl font-bold mt-2">0.00004 SOL</p>
-              <p className="jersey-20-regular text-emerald-300/70 text-xl mt-2">Market • Raydium LP</p>
-              <p className="jersey-20-regular text-white/50 text-xl mt-2">Mar 24</p>
+            <div className="mt-4 sm:mt-3 text-center">
+              <p className="jersey-15-regular text-emerald-400 text-lg sm:text-2xl lg:text-3xl font-black">LP / TGE</p>
+              <p className="jersey-20-regular text-white text-xl sm:text-3xl lg:text-4xl font-bold mt-2 sm:mt-3">0.00004 SOL</p>
+              <p className="jersey-20-regular text-emerald-300/70 text-xs sm:text-base lg:text-lg mt-2 sm:mt-2">Market • Raydium LP</p>
+              <p className="jersey-20-regular text-white/50 text-sm sm:text-base lg:text-lg mt-2">Mar 24</p>
             </div>
           </div>
         </div>

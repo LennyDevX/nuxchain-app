@@ -286,12 +286,12 @@ function AirdropForm({
                 </svg>
               )}
               <div>
-                <p className={`jersey-15-regular text-sm font-bold ${
+                <p className={`jersey-15-regular text-2xl md:text-xl font-bold ${
                   walletSignature ? 'text-emerald-300' : 'text-amber-300'
                 }`}>
                   {walletSignature ? '✓ Wallet Ownership Verified' : '🔐 Verify Wallet Ownership'}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-lg : md:text-xl jersey-20-regular text-gray-400">
                   {walletSignature
                     ? 'Cryptographic proof confirmed'
                     : 'Sign a message to prove you own this wallet'}
@@ -303,7 +303,7 @@ function AirdropForm({
                 type="button"
                 onClick={onSignWallet}
                 disabled={isSigningWallet || isSubmitting}
-                className="flex-shrink-0 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 jersey-20-regular text-sm rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-shrink-0 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 jersey-20-regular text-2xl rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSigningWallet ? (
                   <span className="flex items-center gap-1.5">

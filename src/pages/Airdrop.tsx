@@ -316,6 +316,15 @@ function Airdrop() {
           pageLoadTime: mountTime,
           captchaToken: captchaToken || '',
           walletSignature: walletSignature || '',
+          // Pass frontend pre-analysis as a hint so the backend can rescue
+          // legitimate users when its own RPC calls are temporarily degraded
+          walletHint: walletMetrics
+            ? {
+                trustScore: walletMetrics.trustScore ?? 0,
+                transactionCount: walletMetrics.transactionCount,
+                isLegit: walletMetrics.isLegit,
+              }
+            : undefined,
         }
       );
 

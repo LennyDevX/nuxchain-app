@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import { ZapIcon, CpuIcon, GlobeIcon, BarChart3Icon } from '../components/ui/CustomIcons';
+import { ZapIcon, CpuIcon, GlobeIcon, BarChart3Icon, XIcon } from '../components/ui/CustomIcons';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -19,6 +19,7 @@ const Tokenomics: React.FC = () => {
     const isMobile = useIsMobile();
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [expandedModal, setExpandedModal] = useState<string | null>(null);
 
     // Descriptions for tooltips
     const descriptions: Record<string, string> = {
@@ -133,10 +134,10 @@ const Tokenomics: React.FC = () => {
                     className="text-center mb-10 sm:mb-16 relative"
                 >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-purple-500/10 blur-[80px] sm:blur-[100px] rounded-full -z-10" />
-                    <h1 className={`jersey-15-regular mb-4 text-gradient leading-tight ${isMobile ? 'text-4xl' : 'text-7xl md:text-8xl tracking-tight'}`}>
+                    <h1 className={`jersey-15-regular mb-6 text-gradient leading-tight ${isMobile ? 'text-5xl' : 'text-7xl md:text-8xl tracking-tight'}`}>
                         Treasury Manager
                     </h1>
-                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-2' : 'text-2xl md:text-3xl'}`}>
+                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-lg px-2 leading-relaxed' : 'text-2xl md:text-3xl'}`}>
                         A community-first economy designed for sustainable growth and long-term utility on Solana.
                     </p>
                 </motion.div>
@@ -222,14 +223,14 @@ const Tokenomics: React.FC = () => {
                         </div>
 
                         {/* Custom Legend - Click to show tooltip */}
-                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'text-sm' : 'text-lg md:text-xl'}`}>
+                        <div className={`grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[320px] sm:max-w-[500px] ${isMobile ? 'gap-4' : 'text-lg md:text-xl'}`}>
                             {data.labels.map((label, idx) => {
                                 const isSelected = selectedIndex === idx;
                                 const isHovered = hoveredIndex === idx;
                                 return (
                                     <motion.div 
                                         key={idx} 
-                                        className={`flex flex-col gap-1 bg-white/5 border p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all cursor-pointer ${
+                                        className={`flex flex-col gap-2 bg-white/5 border p-4 sm:p-5 rounded-2xl transition-all cursor-pointer ${
                                             isSelected
                                                 ? 'bg-white/20 border-white/50 scale-105 ring-2 ring-white/30' 
                                                 : isHovered
@@ -242,20 +243,20 @@ const Tokenomics: React.FC = () => {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                     >
-                                        <div className="flex items-center gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-3">
                                             <motion.div 
-                                                className="w-3 h-3 sm:w-5 sm:h-5 rounded-full shrink-0" 
+                                                className={`rounded-full shrink-0 ${isMobile ? 'w-6 h-6' : 'w-3 h-3 sm:w-5 sm:h-5'}`}
                                                 style={{ backgroundColor: data.datasets[0].backgroundColor[idx] }}
                                                 animate={{ scale: isSelected ? 1.4 : isHovered ? 1.2 : 1 }}
                                             />
-                                            <span className={`jersey-15-regular truncate transition-colors ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-300'}`}>
+                                            <span className={`jersey-15-regular truncate transition-colors ${isMobile ? 'text-base' : ''} ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-300'}`}>
                                                 {label}
                                             </span>
-                                            <span className={`jersey-15-regular ml-auto ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-400'}`}>
+                                            <span className={`jersey-15-regular ml-auto ${isMobile ? 'text-lg' : ''} ${isSelected ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-400'}`}>
                                                 {data.datasets[0].data[idx]}%
                                             </span>
                                         </div>
-                                        <span className={`jersey-20-regular text-xs sm:text-sm truncate transition-colors ${isSelected ? 'text-slate-200' : isHovered ? 'text-slate-300' : 'text-slate-500'}`}>
+                                        <span className={`jersey-20-regular truncate transition-colors ${isMobile ? 'text-base' : 'text-xs sm:text-sm'} ${isSelected ? 'text-slate-200' : isHovered ? 'text-slate-300' : 'text-slate-500'}`}>
                                             {descriptions[label]}
                                         </span>
                                     </motion.div>
@@ -265,19 +266,19 @@ const Tokenomics: React.FC = () => {
 
                         {/* Total Supply Display */}
                         <motion.div 
-                            className={`mt-6 text-center ${isMobile ? 'mb-4' : 'mb-8'}`}
+                            className={`mt-8 text-center ${isMobile ? 'mb-4' : 'mb-8'}`}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
                         >
-                            <div className="inline-flex flex-col items-center bg-white/5 border border-white/10 rounded-2xl px-6 py-4">
-                                <span className={`jersey-20-regular text-slate-400 uppercase tracking-wider ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                            <div className={`inline-flex flex-col items-center bg-white/5 border border-white/10 rounded-3xl ${isMobile ? 'px-8 py-8' : 'px-6 py-4'}`}>
+                                <span className={`jersey-20-regular text-slate-400 uppercase tracking-wider ${isMobile ? 'text-sm' : 'text-sm'}`}>
                                     Total Supply
                                 </span>
-                                <span className={`jersey-15-regular text-white ${isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'}`}>
+                                <span className={`jersey-15-regular text-white ${isMobile ? 'text-5xl' : 'text-4xl md:text-5xl'}`}>
                                     100,000,000
                                 </span>
-                                <span className={`jersey-15-regular text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>
+                                <span className={`jersey-15-regular text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400 ${isMobile ? 'text-3xl' : 'text-xl md:text-2xl'}`}>
                                     $NUX
                                 </span>
                             </div>
@@ -300,10 +301,10 @@ const Tokenomics: React.FC = () => {
                         </div>
 
                         {/* Allocation Progress Bars - 2x2 Grid Layout */}
-                        <div className={`card-unified relative overflow-hidden backdrop-blur-xl border-white/20 ${isMobile ? 'p-4' : 'p-6'}`}>
+                        <div className={`card-unified relative overflow-hidden backdrop-blur-xl border-white/20 ${isMobile ? 'p-6' : 'p-6'}`}>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full" />
-                            <h3 className={`jersey-15-regular text-white tracking-tight flex items-center gap-2 sm:gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'} mb-4`}>
-                                Distribution <span className="jersey-20-regular text-xs sm:text-sm text-slate-500">Breakdown</span>
+                            <h3 className={`jersey-15-regular text-white tracking-tight flex items-center gap-3 ${isMobile ? 'text-3xl' : 'text-3xl md:text-4xl'} mb-8`}>
+                                Distribution <span className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xs sm:text-sm'} text-slate-500`}>Breakdown</span>
                             </h3>
 
                             <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -381,7 +382,11 @@ const Tokenomics: React.FC = () => {
                     transition={{ duration: 0.8, delay: 0.6 }}
                     className={`${isMobile ? 'mt-12' : 'mt-24'}`}
                 >
-                    <PolygonEconomySection isMobile={isMobile} />
+                    <PolygonEconomySection 
+                        isMobile={isMobile}
+                        expandedModal={expandedModal}
+                        setExpandedModal={setExpandedModal}
+                    />
                 </motion.div>
             </div>
         </GlobalBackground>
@@ -401,7 +406,7 @@ interface EconomyFeature {
     icon: string;
 }
 
-const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
+const PolygonEconomySection: React.FC<{ isMobile: boolean; expandedModal: string | null; setExpandedModal: (id: string | null) => void }> = ({ isMobile, expandedModal, setExpandedModal }) => {
     const [activeFeature, setActiveFeature] = useState<string>('staking');
 
     const economyFeatures: EconomyFeature[] = [
@@ -474,14 +479,14 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                     transition={{ duration: 0.6 }}
                 >
                     <div className="inline-block mb-4">
-                        <span className={`jersey-15-regular px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 uppercase tracking-wider ${isMobile ? 'text-xs' : 'text-sm md:text-base'}`}>
+                        <span className={`jersey-15-regular px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10 text-blue-300 uppercase tracking-wider ${isMobile ? 'text-sm' : 'text-sm md:text-base'}`}>
                             Polygon Network
                         </span>
                     </div>
-                    <h2 className={`jersey-15-regular mb-4 text-gradient leading-tight ${isMobile ? 'text-3xl' : 'text-6xl md:text-7xl tracking-tight'}`}>
+                    <h2 className={`jersey-15-regular mb-6 text-gradient leading-tight ${isMobile ? 'text-5xl' : 'text-6xl md:text-7xl tracking-tight'}`}>
                         Ecosystem Economy
                     </h2>
-                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-sm px-4' : 'text-xl md:text-2xl'}`}>
+                    <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-lg px-4 leading-relaxed' : 'text-xl md:text-2xl'}`}>
                         A comprehensive DeFi and NFT ecosystem on Polygon with staking, marketplace, skills, and gamification
                     </p>
                 </motion.div>
@@ -494,23 +499,40 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                         key={feature.id}
                         feature={feature}
                         isActive={activeFeature === feature.id}
-                        onClick={() => setActiveFeature(feature.id)}
+                        onClick={() => {
+                            if (isMobile) {
+                                setExpandedModal(feature.id);
+                            } else {
+                                setActiveFeature(feature.id);
+                            }
+                        }}
                         delay={idx * 0.1}
                         isMobile={isMobile}
                     />
                 ))}
             </div>
 
-            {/* Feature Detail Panel */}
-            <motion.div
-                key={activeFeature}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className={`card-unified border-white/20 backdrop-blur-xl mb-12 ${isMobile ? 'p-6' : 'p-8'}`}
-            >
-                <EconomyDetail featureId={activeFeature} isMobile={isMobile} />
-            </motion.div>
+            {/* Feature Detail Panel - Desktop Only */}
+            {!isMobile && (
+                <motion.div
+                    key={activeFeature}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className={`card-unified border-white/20 backdrop-blur-xl mb-12 p-8`}
+                >
+                    <EconomyDetail featureId={activeFeature} />
+                </motion.div>
+            )}
+
+            {/* Mobile Modal - Fullscreen Drawer */}
+            {isMobile && (
+                <FeatureModal
+                    featureId={expandedModal}
+                    isOpen={expandedModal !== null}
+                    onClose={() => setExpandedModal(null)}
+                />
+            )}
 
             {/* Revenue Streams */}
             <motion.div
@@ -520,10 +542,10 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                 transition={{ duration: 0.6 }}
                 className={`card-unified border-white/20 backdrop-blur-xl ${isMobile ? 'p-6' : 'p-8'}`}
             >
-                <h3 className={`jersey-15-regular text-white mb-6 flex items-center gap-3 ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>
-                    <span className="text-2xl">💰</span> Revenue Streams
+                <h3 className={`jersey-15-regular text-white mb-8 flex items-center gap-3 ${isMobile ? 'text-3xl' : 'text-3xl md:text-4xl'}`}>
+                    <span className={`${isMobile ? 'text-5xl' : 'text-2xl'}`}>💰</span> Revenue Streams
                 </h3>
-                <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+                <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
                     {revenueStreams.map((stream, idx) => (
                         <motion.div
                             key={stream.source}
@@ -531,15 +553,15 @@ const PolygonEconomySection: React.FC<{ isMobile: boolean }> = ({ isMobile }) =>
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                            className={`flex items-start gap-4 p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors ${isMobile ? 'gap-5' : ''}`}
                         >
-                            <div className={`w-1 h-full ${stream.color} rounded-full`} />
+                            <div className={`w-1.5 rounded-full flex-shrink-0 ${stream.color}`} style={{ minHeight: '100%' }} />
                             <div className="flex-1">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className={`jersey-15-regular text-white ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>{stream.source}</h4>
-                                    <span className={`jersey-20-regular text-emerald-400 ${isMobile ? 'text-sm' : 'text-base md:text-lg'}`}>{stream.percentage}{typeof stream.percentage === 'number' ? '%' : ''}</span>
+                                <div className={`flex items-center justify-between gap-3 mb-3 ${isMobile ? 'mb-4' : ''}`}>
+                                    <h4 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-lg md:text-xl'}`}>{stream.source}</h4>
+                                    <span className={`jersey-20-regular text-emerald-400 ${isMobile ? 'text-xl' : 'text-base md:text-lg'}`}>{stream.percentage}{typeof stream.percentage === 'number' ? '%' : ''}</span>
                                 </div>
-                                <p className="jersey-20-regular text-slate-400 text-sm md:text-base">{stream.description}</p>
+                                <p className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-lg' : 'text-sm md:text-base'}`}>{stream.description}</p>
                             </div>
                         </motion.div>
                     ))}
@@ -575,21 +597,21 @@ const EconomyFeatureCard: React.FC<{
     >
         <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-50`} />
         <div className="relative z-10">
-            <div className="text-4xl mb-3">{feature.icon}</div>
-            <h3 className={`jersey-15-regular text-white mb-2 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>{feature.title}</h3>
-            <p className="jersey-20-regular text-slate-400 text-sm md:text-base mb-4 line-clamp-2">{feature.description}</p>
-            <div className="space-y-2">
+            <div className={`mb-3 ${isMobile ? 'text-5xl' : 'text-4xl'}`}>{feature.icon}</div>
+            <h3 className={`jersey-15-regular text-white mb-2 ${isMobile ? 'text-2xl' : 'text-xl md:text-2xl'}`}>{feature.title}</h3>
+            <p className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-base' : 'text-sm md:text-base'} mb-4 line-clamp-2`}>{feature.description}</p>
+            <div className={`space-y-3 ${isMobile ? 'mb-4' : ''}`}>
                 {feature.metrics.map((metric, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-sm md:text-base">
-                        <span className="jersey-20-regular text-slate-500">{metric.label}</span>
-                        <span className="jersey-15-regular text-white">{metric.value}</span>
+                    <div key={idx} className={`flex justify-between items-center ${isMobile ? 'text-base' : 'text-sm md:text-base'}`}>
+                        <span className={`jersey-20-regular text-slate-500 ${isMobile ? 'text-base' : ''}`}>{metric.label}</span>
+                        <span className={`jersey-15-regular text-white ${isMobile ? 'text-lg' : ''}`}>{metric.value}</span>
                     </div>
                 ))}
             </div>
             {/* See more indicator */}
-            <div className="mt-4 pt-3 border-t border-white/10">
-                <span className="jersey-20-regular text-sm text-purple-400 underline underline-offset-4 decoration-purple-400/50 hover:text-purple-300 hover:decoration-purple-300 transition-colors cursor-pointer">
-                    See more...
+            <div className={`pt-3 border-t border-white/10 ${isMobile ? 'mt-4' : 'mt-4'}`}>
+                <span className={`jersey-20-regular text-purple-400 underline underline-offset-4 decoration-purple-400/50 hover:text-purple-300 hover:decoration-purple-300 transition-colors cursor-pointer ${isMobile ? 'text-base' : 'text-sm'}`}>
+                    {isMobile ? 'View Details →' : 'See more...'}
                 </span>
             </div>
         </div>
@@ -600,7 +622,7 @@ const EconomyFeatureCard: React.FC<{
 // ECONOMY DETAIL PANEL
 // ════════════════════════════════════════════════════════════════════════════════════════
 
-const EconomyDetail: React.FC<{ featureId: string; isMobile: boolean }> = ({ featureId, isMobile }) => {
+const EconomyDetail: React.FC<{ featureId: string; isMobile?: boolean }> = ({ featureId }) => {
     const details: Record<string, { title: string; items: { icon: string; title: string; description: string; }[] }> = {
         staking: {
             title: 'Smart Staking Features',
@@ -644,20 +666,20 @@ const EconomyDetail: React.FC<{ featureId: string; isMobile: boolean }> = ({ fea
 
     return (
         <div>
-            <h3 className={`jersey-15-regular text-white mb-6 ${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'}`}>{detail.title}</h3>
-            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2'}`}>
+            <h3 className={`jersey-15-regular text-white mb-6 text-3xl`}>{detail.title}</h3>
+            <div className={`grid gap-3 grid-cols-2`}>
                 {detail.items.map((item, idx) => (
                     <motion.div
                         key={idx}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="flex items-start gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
+                        className={`flex flex-col items-start gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5`}
                     >
-                        <div className="text-2xl shrink-0">{item.icon}</div>
-                        <div>
-                            <h4 className={`jersey-15-regular text-white mb-1 ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>{item.title}</h4>
-                            <p className="jersey-20-regular text-slate-400 text-sm md:text-base">{item.description}</p>
+                        <div className={`shrink-0 text-4xl`}>{item.icon}</div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className={`jersey-15-regular text-white text-base leading-tight line-clamp-2`}>{item.title}</h4>
+                            <p className={`jersey-20-regular text-slate-400 text-sm leading-snug line-clamp-3`}>{item.description}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -716,5 +738,59 @@ const AllocationItem: React.FC<{ label: string; percentage: number; description:
         </div>
     </motion.div>
 );
+
+// ════════════════════════════════════════════════════════════════════════════════════════
+// FEATURE MODAL - Mobile Fullscreen Drawer
+// ════════════════════════════════════════════════════════════════════════════════════════
+
+interface FeatureModalProps {
+    featureId: string | null;
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const FeatureModal: React.FC<FeatureModalProps> = ({ featureId, isOpen, onClose }) => {
+    return (
+        <AnimatePresence>
+            {isOpen && featureId && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
+                    />
+
+                    {/* Drawer */}
+                    <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                        className="fixed bottom-0 left-0 right-0 bg-slate-950 border-t border-white/20 rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto"
+                    >
+                        {/* Header */}
+                        <div className="sticky top-0 bg-slate-950 border-b border-white/10 px-5 py-4 flex items-center justify-between z-50">
+                            <h2 className="jersey-15-regular text-3xl text-white">Details</h2>
+                            <button
+                                onClick={onClose}
+                                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                            >
+                                <XIcon className="w-6 h-6 text-white" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="px-5 py-7 pb-20">
+                            <EconomyDetail featureId={featureId} />
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+};
 
 export default Tokenomics;

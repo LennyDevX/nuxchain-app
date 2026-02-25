@@ -54,12 +54,14 @@ export async function validateRegistrationOnServer(
     screenResolution: string;
     timezone: string;
     language: string;
-  }
+  },
+  walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean },
+  resolvedIP?: string
 ) {
   try {
     console.log('🔍 Validating registration on server...');
 
-    const ipAddress = await getClientIP();
+    const ipAddress = resolvedIP ?? await getClientIP();
 
     const response = await fetch('/api/airdrop/validate', {
       method: 'POST',
@@ -72,6 +74,7 @@ export async function validateRegistrationOnServer(
         ipAddress,
         userAgent: navigator.userAgent,
         browserInfo,
+        ...(walletHint ? { walletHint } : {}),
       }),
     });
 
@@ -130,6 +133,7 @@ export async function submitAirdropRegistration(
     pageLoadTime: number;
     captchaToken?: string;
     walletSignature?: string;
+    walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean };
   }
 ) {
   try {
@@ -183,6 +187,9 @@ export async function submitAirdropRegistration(
 
     console.log('✅ Client-side validations passed');
 
+    // Resolve IP once — reused for both validate and submit to guarantee consistency
+    const resolvedIP = await getClientIP();
+
     // ========================================
     // STEP 1: SERVER-SIDE VALIDATION
     // ========================================
@@ -193,7 +200,9 @@ export async function submitAirdropRegistration(
       normalizedEmail,
       normalizedWallet,
       deviceData?.fingerprint || 'unknown',
-      deviceData?.browserInfo
+      deviceData?.browserInfo,
+      deviceData?.walletHint,
+      resolvedIP
     );
 
     console.log('✅ Server validation passed');
@@ -203,7 +212,7 @@ export async function submitAirdropRegistration(
     // ========================================
     console.log('📝 Submitting registration...');
 
-    const ipAddress = await getClientIP();
+    const ipAddress = resolvedIP;
 
     const response = await fetch('/api/airdrop/submit', {
       method: 'POST',

@@ -306,9 +306,9 @@ export function useAdvancedStakingAnalysis(): AdvancedStakingAnalysis {
       }> }).recommendations;
       
       if (recs && recs.length > 0) {
-        recs.slice(0, 3).forEach(rec => {
+        recs.slice(0, 3).forEach((rec, idx) => {
           baseRecommendations.push({
-            id: `portfolio-${rec.type}`,
+            id: `portfolio-${rec.type}-${idx}`,
             title: rec.title,
             description: rec.description,
             priority: rec.priority,

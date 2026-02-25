@@ -76,7 +76,7 @@ const AIAnalysisOverview: React.FC = () => {
                 <span className={`jersey-20-regular ${isMobile ? 'text-4xl' : 'text-5xl'} font-black text-white`}>
                   {overallScore.overallScore}
                 </span>
-                <span className="jersey-20-regular text-slate-400 text-base mt-1">/ 100</span>
+                <span className="jersey-20-regular text-slate-400 text-xl mt-1">/ 100</span>
               </div>
             </div>
             
@@ -98,13 +98,13 @@ const AIAnalysisOverview: React.FC = () => {
             {/* Enhanced APY */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/20">
               <div className="flex items-center justify-between">
-                <span className="jersey-20-regular text-slate-400 text-base">Enhanced APY</span>
-                <span className="jersey-20-regular text-2xl font-bold text-green-400">
+                <span className="jersey-20-regular text-slate-400 text-xl">Enhanced APY</span>
+                <span className="jersey-20-regular text-3xl font-bold text-green-400">
                   {analysis.enhancedAPY.toFixed(1)}%
                 </span>
               </div>
               {analysis.skillAnalysis && analysis.skillAnalysis.totalSkillBoost > 0 && (
-                <p className="jersey-20-regular text-sm text-green-400/60 mt-1">
+                <p className="jersey-20-regular text-xl text-green-400/60 mt-1">
                   +{(analysis.enhancedAPY - parseFloat(String(analysis.overallScore.breakdown.rewardsScore || '0'))).toFixed(1)}% from skills
                 </p>
               )}
@@ -113,12 +113,12 @@ const AIAnalysisOverview: React.FC = () => {
             {/* Active Skills */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-violet-500/5 border border-purple-500/20">
               <div className="flex items-center justify-between">
-                <span className="jersey-20-regular text-slate-400 text-base">Active Skills</span>
-                <span className="jersey-20-regular text-2xl font-bold text-purple-400">
+                <span className="jersey-20-regular text-slate-400 text-xl">Active Skills</span>
+                <span className="jersey-20-regular text-3xl font-bold text-purple-400">
                   {analysis.skillAnalysis?.activeSkills || 0}
                 </span>
               </div>
-              <p className="jersey-20-regular text-sm text-purple-400/60 mt-1">
+              <p className="jersey-20-regular text-xl text-purple-400/60 mt-1">
                 +{analysis.skillAnalysis?.totalSkillBoost || 0}% total boost
               </p>
             </div>
@@ -127,11 +127,11 @@ const AIAnalysisOverview: React.FC = () => {
             <div className="p-4 rounded-xl bg-gradient-to-r from-pink-500/10 to-rose-500/5 border border-pink-500/20">
               <div className="flex items-center justify-between">
                 <span className="jersey-20-regular text-slate-400 text-base">Level</span>
-                <span className="jersey-20-regular text-2xl font-bold text-pink-400">
+                <span className="jersey-20-regular text-3xl font-bold text-pink-400">
                   {analysis.gamificationAnalysis?.levelProgress.currentLevel || 0}
                 </span>
               </div>
-              <p className="jersey-20-regular text-sm text-pink-400/60 mt-1">
+              <p className="jersey-20-regular text-xl text-pink-400/60 mt-1">
                 {analysis.gamificationAnalysis?.levelProgress.xpProgress.toFixed(0) || 0}% to next level
               </p>
             </div>
@@ -139,12 +139,12 @@ const AIAnalysisOverview: React.FC = () => {
             {/* Portfolio Score */}
             <div className="p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/5 border border-blue-500/20">
               <div className="flex items-center justify-between">
-                <span className="jersey-20-regular text-slate-400 text-base">Portfolio Health</span>
-                <span className="jersey-20-regular text-2xl font-bold text-blue-400">
+                <span className="jersey-20-regular text-slate-400 text-xl">Portfolio Health</span>
+                <span className="jersey-20-regular text-3xl font-bold text-blue-400">
                   {analysis.portfolioAnalysis?.diversificationScore || 0}
                 </span>
               </div>
-              <p className="jersey-20-regular text-sm text-blue-400/60 mt-1">
+              <p className="jersey-20-regular text-xl text-blue-400/60 mt-1">
                 {analysis.portfolioAnalysis?.riskLevel || 'N/A'} risk level
               </p>
             </div>

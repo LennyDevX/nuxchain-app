@@ -8,6 +8,34 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+// Firebase Admin (lazy init)
+let _db = null;
+async function getFirestoreDb() {
+  if (_db) return _db;
+  try {
+    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+    const { getFirestore } = await import('firebase-admin/firestore');
+    if (getApps().length === 0) {
+      const svcAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+      if (svcAccount) {
+        initializeApp({ credential: cert(JSON.parse(svcAccount)) });
+      } else {
+        // Fallback: load serviceAccountKey.json from project root
+        const { readFileSync } = await import('fs');
+        const { resolve } = await import('path');
+        const keyPath = resolve(__dirname, '../../serviceAccountKey.json');
+        const key = JSON.parse(readFileSync(keyPath, 'utf8'));
+        initializeApp({ credential: cert(key) });
+      }
+    }
+    _db = getFirestore();
+    console.log('✅ Firebase Admin initialized (launchpad)');
+  } catch (err) {
+    console.error('❌ Firebase Admin init failed:', err.message);
+  }
+  return _db;
+}
+
 // Obtener directorio actual en ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -537,6 +565,46 @@ app.get('/api/uniswap/prices', async (req, res) => {
     }));
     return res.json({ success: false, data: fallback, timestamp: Date.now() });
   }
+});
+
+// ============================================================================
+// LAUNCHPAD ENDPOINTS
+// ============================================================================
+
+// GET /api/launchpad/verify-whitelist?wallet=<pubkey>
+app.get('/api/launchpad/verify-whitelist', async (req, res) => {
+  const { wallet } = req.query;
+  if (!wallet || typeof wallet !== 'string' || wallet.trim().length < 32) {
+    return res.status(400).json({ eligible: false, error: 'Invalid wallet address' });
+  }
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.status(500).json({ eligible: false, error: 'Database unavailable' });
+    const snap = await db
+      .collection('nuxchainAirdropRegistrations')
+      .where('wallet', '==', wallet.trim())
+      .limit(1)
+      .get();
+    if (snap.empty) {
+      return res.json({ eligible: false, reason: 'Wallet not registered in Airdrop' });
+    }
+    const doc = snap.docs[0].data();
+    console.log(`[verify-whitelist] ✅ ${wallet.trim().slice(0, 8)}... is eligible`);
+    return res.json({
+      eligible: true,
+      tier: 1,
+      name: doc.name || '',
+      registeredAt: doc.createdAt?.toDate?.()?.toISOString() || null,
+    });
+  } catch (err) {
+    console.error('[verify-whitelist] Error:', err.message);
+    return res.status(500).json({ eligible: false, error: 'Internal server error' });
+  }
+});
+
+// GET /api/launchpad/stats
+app.get('/api/launchpad/stats', async (req, res) => {
+  res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
 });
 
 // 404 handler

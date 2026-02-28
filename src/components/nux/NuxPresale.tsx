@@ -14,7 +14,7 @@ const phases = [
   {
     step: '02',
     title: 'Whitelist Phase',
-    desc: 'Exclusive access for airdrop registrants at 0.000015 SOL/NUX (cheapest, 40% off). Min: 5,000 NUX. Mar 2-14.',
+    desc: 'Exclusive access for airdrop registrants at 0.000015 SOL/NUX (cheapest, 40% off). Min: 5,000 NUX. Max: 200K NUX per wallet. Mar 2-14.',
     icon: '📋',
     color: 'text-amber-500',
     border: 'border-amber-500/30',
@@ -23,7 +23,7 @@ const phases = [
   {
     step: '03',
     title: 'Public Presale',
-    desc: 'Public presale on NuxChain Launchpad at 0.000025 SOL/NUX. 7M NUX allocation. Min: 1,000 NUX. Mar 15-22.',
+    desc: 'Public presale on NuxChain Launchpad at 0.000025 SOL/NUX. 13M NUX allocation. Min: 1,000 NUX. Max: 500K NUX per wallet. Mar 15-22.',
     icon: '🚀',
     color: 'text-purple-400',
     border: 'border-purple-400/30',
@@ -32,7 +32,7 @@ const phases = [
   {
     step: '04',
     title: 'TGE & LP Creation',
-    desc: 'Liquidity Pool created on Raydium with presale funds. LP tokens burned. Market price 0.00004 SOL. Mar 24.',
+    desc: 'Liquidity Pool created on NuxChain DEX with presale funds. LP tokens burned. Market price 0.00004 SOL. Mar 24.',
     icon: '📈',
     color: 'text-emerald-400',
     border: 'border-emerald-400/30',
@@ -60,8 +60,8 @@ const phases = [
 
 const presaleDetails = [
   { label: 'Total Supply', value: '100,000,000 NUX', highlight: true },
-  { label: 'Whitelist Allocation', value: '8,000,000 NUX (8%)', highlight: false },
-  { label: 'Presale Allocation', value: '7,000,000 NUX (7%)', highlight: false },
+  { label: 'Whitelist Allocation', value: '12,000,000 NUX (12%)', highlight: false },
+  { label: 'Presale Allocation', value: '13,000,000 NUX (13%)', highlight: false },
   { label: 'Whitelist Price', value: '0.000015 SOL (40% off)', highlight: true },
   { label: 'Whitelist Min', value: '5,000 NUX', highlight: false },
   { label: 'Presale Price', value: '0.000025 SOL', highlight: false },
@@ -134,9 +134,9 @@ export default function NuxPresale() {
 
             <div className="grid grid-cols-3 gap-3 mb-4 text-center">
               {[
-                { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K NUX', tc: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                { tier: 'Presale', price: '0.000025', date: 'Mar 15-22', min: '1K NUX', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
-                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', tc: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+                { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K', max: '200K', tc: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+                { tier: 'Presale', price: '0.000025', date: 'Mar 15-22', min: '1K', max: '500K', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', max: '∞', tc: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
               ].map(t => (
                 <motion.div 
                   key={t.tier} 
@@ -148,7 +148,7 @@ export default function NuxPresale() {
                   <p className={`jersey-20-regular text-white font-bold leading-tight ${isMobile ? 'text-xl' : 'text-3xl'}`}>{t.price}</p>
                   <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>SOL</p>
                   <p className={`jersey-20-regular text-white/40 mt-1 ${isMobile ? 'text-sm' : 'text-base'}`}>{t.date}</p>
-                  <p className={`jersey-20-regular text-emerald-400 ${isMobile ? 'text-sm' : 'text-base'}`}>{t.min}</p>
+                  <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>{t.min} - {t.max}</p>
                 </motion.div>
               ))}
             </div>
@@ -170,7 +170,7 @@ export default function NuxPresale() {
 
             <div className={`rounded-lg bg-white/5 border border-white/10 mb-3 ${isMobile ? 'p-2' : 'p-3'}`}>
               <p className={`jersey-20-regular text-white/40 text-center ${isMobile ? 'text-sm' : 'text-base'}`}>
-                Platform: <span className="text-amber-400">tools.smithii.io</span> · Telegram & X
+                Min/Max per wallet
               </p>
             </div>
 

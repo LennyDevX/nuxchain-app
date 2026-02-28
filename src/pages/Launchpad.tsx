@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../hooks/mobile';
 import { LAUNCHPAD_CONFIG, getActiveTier } from '../constants/launchpad';
@@ -16,22 +16,24 @@ interface RawStats {
 
 export default function Launchpad() {
   const isMobile = useIsMobile();
-  const [stats, setStats] = useState<RawStats | null>(null);
+  const [stats] = useState<RawStats | null>(null);
   const [buyTier, setBuyTier] = useState<TierId | null>(null);
   const activeTier = getActiveTier();
 
-  // Fetch stats every 30s
+  // Fetch stats every 30s - DISABLED for now
+  /*
   useEffect(() => {
     async function fetchStats() {
       try {
         const res = await fetch('/api/launchpad/stats');
         if (res.ok) setStats(await res.json());
-      } catch { /* silent */ }
+      } catch { }
     }
     fetchStats();
     const id = setInterval(fetchStats, 30_000);
     return () => clearInterval(id);
   }, []);
+  */
 
   // Date of next upcoming event
   const now = new Date();
@@ -150,8 +152,8 @@ export default function Launchpad() {
             <p className="jersey-20-regular text-slate-500 text-xl md:text-2xl leading-relaxed max-w-xl mx-auto">
               💡 <span className="text-slate-400">Tier 3 (LP)</span> price of{' '}
               <span className="text-purple-400">0.00004 SOL</span> is the{' '}
-              <em>initial</em> liquidity pool price on Raydium. After launch, the market moves freely.
-              {' '}SOL raised in Tier 1 &amp; 2 will bootstrap the Raydium pool — <span className="text-amber-300">50% of the LP tokens are locked permanently</span>, the rest supports operations.
+              <em>initial</em> liquidity pool price on NuxChain. After launch, the market moves freely.
+              {' '}SOL raised in Tier 1 &amp; 2 will bootstrap the NuxChain pool — <span className="text-amber-300">50% of the LP tokens are locked permanently</span>, the rest supports operations.
             </p>
           </div>
         </motion.div>

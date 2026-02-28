@@ -180,16 +180,16 @@ export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCar
         </button>
       ) : (
         <a
-          href="https://raydium.io/liquidity/"
+          href="https://nuxchain.io/swap/"
           target="_blank"
           rel="noopener noreferrer"
           className={`w-full py-3 rounded-xl jersey-20-regular text-xl text-white font-medium text-center block transition-all duration-200
-            ${status === 'live'
-              ? `bg-gradient-to-r ${colors.btn} shadow-lg`
+            ${status === 'live' 
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90' 
               : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/10'
             }`}
         >
-          {status === 'upcoming' ? 'Coming Mar 24 on Raydium' : 'Trade on Raydium →'}
+          {status === 'upcoming' ? 'Coming Mar 24 on NuxChain' : 'Trade on NuxChain →'}
         </a>
       )}
     </motion.div>

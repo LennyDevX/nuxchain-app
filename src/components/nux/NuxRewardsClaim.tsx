@@ -4,16 +4,7 @@ import { useAccount } from 'wagmi';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useSolanaWallet } from '../../hooks/web3/useSolanaWallet';
 import { useWalletRegistration } from '../../hooks/web3/useWalletRegistration';
-import { Doughnut } from 'react-chartjs-2';
 import NuxWelcomeUniverse from './NuxWelcomeUniverse';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 const steps = [
   {
@@ -34,9 +25,9 @@ const steps = [
   },
   {
     step: '03',
-    icon: '�',
+    icon: '💰',
     title: 'Monthly NUX Distribution',
-    desc: 'Every 30 days, the NUX Rewards Hub evaluates your activity score and distributes NUX tokens directly to your Solana wallet as SPL tokens. Zero gas fees for recipients. The 20M NUX rewards pool is distributed monthly to active users based on their contribution to the ecosystem.',
+    desc: 'Every 30 days, the NUX Rewards Hub evaluates your activity score and distributes NUX tokens directly to your Solana wallet as SPL tokens. Zero gas fees for recipients. The 15M NUX rewards pool is distributed monthly to active users based on their contribution to the ecosystem.',
     color: 'text-amber-400',
     border: 'border-amber-400/30',
   },
@@ -52,41 +43,6 @@ export default function NuxRewardsClaim() {
 
   // Use isRegistered from Firebase to determine if we show success state
   const showSuccessState = isRegistered || submitted;
-
-  // Tokenomics chart data
-  const tokenomicsData = {
-    labels: ['Presale', 'Liquidity', 'Rewards', 'Dev', 'Marketing', 'Ecosystem'],
-    datasets: [{
-      data: [15, 15, 20, 15, 15, 20],
-      backgroundColor: [
-        'rgba(251, 191, 36, 0.8)',
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(34, 197, 94, 0.8)',
-        'rgba(236, 72, 153, 0.8)',
-        'rgba(168, 85, 247, 0.8)',
-        'rgba(6, 182, 212, 0.8)',
-      ],
-      borderColor: [
-        'rgba(251, 191, 36, 1)',
-        'rgba(59, 130, 246, 1)',
-        'rgba(34, 197, 94, 1)',
-        'rgba(236, 72, 153, 1)',
-        'rgba(168, 85, 247, 1)',
-        'rgba(6, 182, 212, 1)',
-      ],
-      borderWidth: 2,
-    }],
-  };
-
-  const tokenomicsOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false },
-    },
-    cutout: '65%',
-  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,20 +72,20 @@ export default function NuxRewardsClaim() {
         </p>
       </motion.div>
 
-      <div className={`grid gap-5 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-5'}`}>
+      <div className={`grid gap-5 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
 
-        {/* Left — How it works (3-step) — wider col */}
+        {/* Card 1: How It Works - Steps */}
         <motion.div
-          className={`card-unified ${isMobile ? 'p-4' : 'p-6 lg:col-span-3'}`}
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          className={`card-unified ${isMobile ? 'p-4' : 'p-6'}`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
           <h3 className={`jersey-15-regular text-white mb-4 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>How It Works</h3>
 
-          {/* Steps — compact on mobile */}
-          <div className={`space-y-3 ${isMobile ? 'mb-4' : 'mb-5'}`}>
+          {/* Steps */}
+          <div className="space-y-3">
             {steps.map((s, i) => (
               <motion.div
                 key={s.step}
@@ -152,96 +108,113 @@ export default function NuxRewardsClaim() {
               </motion.div>
             ))}
           </div>
+        </motion.div>
 
-          {/* Vesting schedule — compact */}
-          <div className={`rounded-xl bg-emerald-500/10 border border-emerald-500/20 ${isMobile ? 'p-3 mb-3' : 'p-4 mb-4'}`}>
-            <p className={`jersey-20-regular text-emerald-300 mb-2 ${isMobile ? 'text-xl' : 'text-xl'}`}>
-              🏦 Pool: <span className="text-white font-semibold">20,000,000 NUX</span> (20% of 100M)
+        {/* Card 2: Vesting Schedule */}
+        <motion.div
+          className={`card-unified ${isMobile ? 'p-4' : 'p-6'}`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <h3 className={`jersey-15-regular text-white mb-4 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Vesting Schedule</h3>
+          
+          <div className={`rounded-xl bg-emerald-500/10 border border-emerald-500/20 ${isMobile ? 'p-3' : 'p-4'}`}>
+            <p className={`jersey-20-regular text-emerald-300 mb-3 ${isMobile ? 'text-xl' : 'text-xl'}`}>
+              🏦 Pool: <span className="text-white font-semibold">15,000,000 NUX</span> (15% of 100M)
             </p>
-            <div className={`grid grid-cols-3 gap-2 text-center`}>
+            <div className={`grid grid-cols-3 gap-2 text-center mb-3`}>
               {[
-                { phase: 'TGE', amount: '10K NUX', date: 'Mar 24', color: 'text-amber-400' },
-                { phase: '+3mo', amount: '20K NUX', date: 'Jun 21', color: 'text-emerald-400' },
-                { phase: '+6mo', amount: '10K NUX', date: 'Sep 21', color: 'text-blue-400' },
+                { phase: 'TGE', amount: '10K', date: 'Mar 24', color: 'text-amber-400' },
+                { phase: '+3mo', amount: '20K', date: 'Jun 21', color: 'text-emerald-400' },
+                { phase: '+6mo', amount: '10K', date: 'Sep 21', color: 'text-blue-400' },
               ].map(p => (
                 <div key={p.phase} className="p-2 rounded-lg bg-white/5">
-                  <p className={`jersey-20-regular ${p.color} ${isMobile ? 'text-xl' : 'text-xl'}`}>{p.phase}</p>
-                  <p className={`jersey-15-regular text-white ${isMobile ? 'text-3xl' : 'text-5xl'}`}>{p.amount}</p>
-                  <p className={`jersey-20-regular text-white/40 ${isMobile ? 'text-xl' : 'text-xl'}`}>{p.date}</p>
+                  <p className={`jersey-20-regular ${p.color} ${isMobile ? 'text-lg' : 'text-xl'}`}>{p.phase}</p>
+                  <p className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-4xl'}`}>{p.amount}</p>
+                  <p className={`jersey-20-regular text-white/40 ${isMobile ? 'text-sm' : 'text-lg'}`}>{p.date}</p>
                 </div>
               ))}
             </div>
-            <p className={`jersey-20-regular text-white/40 mt-2 pt-2 border-t border-white/10 ${isMobile ? 'text-xl' : 'text-xl'}`}>
-              Total: 40,000 NUX per verified user · Smithii Vesting
+            <p className={`jersey-20-regular text-white/50 text-center ${isMobile ? 'text-base' : 'text-lg'} mb-3`}>
+              Total: 40,000 NUX per verified user
             </p>
-          </div>
-
-          {/* Whitelist price table */}
-          <div className={`rounded-xl bg-amber-500/10 border border-amber-500/30 ${isMobile ? 'p-3' : 'p-4'}`}>
-            <p className={`jersey-15-regular text-amber-400 mb-2 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-              ⭐ Whitelist Access for Registered Users
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-center mb-3">
-              {[
-                { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K NUX', color: 'text-amber-400' },
-                { tier: 'Presale', price: '0.000025', date: 'Mar 2-22', min: '1K NUX', color: 'text-blue-400' },
-                { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', color: 'text-emerald-400' },
-              ].map(t => (
-                <div key={t.tier} className="p-2 rounded-lg bg-white/5">
-                  <p className={`jersey-20-regular ${t.color} ${isMobile ? 'text-base' : 'text-lg'}`}>{t.tier}</p>
-                  <p className={`jersey-15-regular text-white leading-tight ${isMobile ? 'text-3xl' : 'text-5xl'}`}>{t.price} SOL</p>
-                  <p className={`jersey-20-regular text-white/40 ${isMobile ? 'text-sm' : 'text-sm'}`}>{t.date}</p>
-                  <p className={`jersey-20-regular text-emerald-400 ${isMobile ? 'text-sm' : 'text-sm'}`}>{t.min}</p>
-                </div>
-              ))}
-            </div>
-            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-              <p className={`jersey-20-regular text-purple-300 ${isMobile ? 'text-base' : 'text-lg'}`}>
-                🏛️ Unsold tokens → treasury hold + additional community rewards
-              </p>
+            
+            {/* Additional Vesting Details */}
+            <div className="space-y-2 pt-3 border-t border-emerald-500/20">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 text-sm">⏰</span>
+                <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  <span className="text-white font-medium">TGE (Mar 24):</span> 25% of rewards unlocked immediately
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 text-sm">📈</span>
+                <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  <span className="text-white font-medium">+3mo (Jun 21):</span> 50% of remaining rewards
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400 text-sm">🎯</span>
+                <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  <span className="text-white font-medium">+6mo (Sep 21):</span> Final 25% released
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-purple-400 text-sm">🔒</span>
+                <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  <span className="text-white font-medium">Smart Vesting:</span> Automatic distribution via smart contracts
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>
 
-        {/* Right — Registration form + Tokenomics Chart — sticky on desktop */}
+        {/* Card 3: Whitelist Pricing */}
         <motion.div
-          className={`card-unified lg:col-span-2 lg:self-start lg:sticky lg:top-6 ${isMobile ? 'p-4' : 'p-6'}`}
-          initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
+          className={`card-unified ${isMobile ? 'p-4' : 'p-6'}`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {/* Tokenomics Chart - Compact - Hidden when submitted */}
-          {!showSuccessState && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className={isMobile ? 'text-lg' : 'text-xl'}>🥧</span>
-                <h4 className={`jersey-15-regular text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>Token Distribution</h4>
+          <h3 className={`jersey-15-regular text-amber-400 mb-4 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>⭐ Whitelist Access</h3>
+          
+          <div className="grid grid-cols-3 gap-2 text-center mb-3">
+            {[
+              { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', max: '200K', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+              { tier: 'Presale', price: '0.000025', date: 'Mar 15-22', max: '500K', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+              { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', max: 'Market', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+            ].map(t => (
+              <div key={t.tier} className={`p-2 rounded-lg ${t.bg}`}>
+                <p className={`jersey-20-regular ${t.color} ${isMobile ? 'text-sm' : 'text-lg'}`}>{t.tier}</p>
+                <p className={`jersey-15-regular text-white leading-tight ${isMobile ? 'text-xl' : 'text-3xl'}`}>{t.price}</p>
+                <p className={`jersey-20-regular text-white/50 ${isMobile ? 'text-xs' : 'text-sm'}`}>SOL/NUX</p>
+                <p className={`jersey-20-regular text-white/40 ${isMobile ? 'text-xs' : 'text-sm'}`}>{t.date}</p>
+                <p className={`jersey-20-regular ${t.color} ${isMobile ? 'text-xs' : 'text-sm'}`}>Max: {t.max}</p>
               </div>
-              <div className={`relative mx-auto ${isMobile ? 'w-32 h-32' : 'w-40 h-40'}`}>
-                <Doughnut data={tokenomicsData} options={tokenomicsOptions} />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <img
-                    src="/assets/tokens/NuxLogo.png"
-                    alt="NUX"
-                    className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} object-contain drop-shadow-lg`}
-                  />
-                </div>
-              </div>
-              <p className={`jersey-20-regular text-white/50 text-center mt-2 ${isMobile ? 'text-base' : 'text-lg'}`}>
-                100M Total Supply
-              </p>
-            </div>
-          )}
+            ))}
+          </div>
+          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+            <p className={`jersey-20-regular text-purple-300 ${isMobile ? 'text-sm' : 'text-base'}`}>
+              🏛️ Unsold tokens → treasury hold + community rewards
+            </p>
+          </div>
+        </motion.div>
 
-          {!showSuccessState && (
-            <>
-              <h3 className={`jersey-15-regular text-white mb-1 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Register Solana Wallet</h3>
-              <p className={`jersey-20-regular text-white/50 mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>
-                Link your wallet to receive NUX after presale.
-              </p>
-            </>
-          )}
+        {/* Card 4: Wallet Registration */}
+        <motion.div
+          className={`card-unified ${isMobile ? 'p-4' : 'p-6'}`}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <h3 className={`jersey-15-regular text-white mb-1 ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Register Wallet</h3>
+          <p className={`jersey-20-regular text-white/50 mb-4 ${isMobile ? 'text-base' : 'text-lg'}`}>
+            Link wallets to receive NUX after presale.
+          </p>
 
           <AnimatePresence mode="wait">
             {showSuccessState ? (
@@ -256,41 +229,38 @@ export default function NuxRewardsClaim() {
               >
                 {/* Polygon wallet display */}
                 <div>
-                  <label className="jersey-20-regular block text-white/60 text-base mb-1">
-                    Polygon Wallet (connected)
+                  <label className="jersey-20-regular block text-white/60 text-sm mb-1">
+                    Polygon Wallet
                   </label>
-                  <div className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 font-mono text-base truncate">
+                  <div className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 font-mono text-sm truncate">
                     {isConnected ? address : (
-                      <span className="text-red-400 text-base">Connect your Polygon wallet first</span>
+                      <span className="text-red-400 text-sm">Connect Polygon wallet first</span>
                     )}
                   </div>
                 </div>
 
                 {/* Solana wallet - Auto-detected */}
                 <div>
-                  <label className="jersey-20-regular block text-white/60 text-base mb-1">
-                    Solana Wallet {isSolanaConnected && solanaWalletName ? `(${solanaWalletName})` : ''}
+                  <label className="jersey-20-regular block text-white/60 text-sm mb-1">
+                    Solana Wallet
                   </label>
                   {isSolanaConnected ? (
-                    <div className="w-full px-3 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-base truncate flex items-center gap-2">
+                    <div className="w-full px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-sm truncate flex items-center gap-2">
                       <span className="text-emerald-400">✓</span>
                       <span className="text-white/70">{solanaAddress}</span>
                     </div>
                   ) : (
-                    <div className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-amber-500/30 text-amber-400 text-base flex items-center gap-2">
+                    <div className="w-full px-3 py-2 rounded-xl bg-white/5 border border-amber-500/30 text-amber-400 text-sm flex items-center gap-2">
                       <span className="text-amber-400">⚠</span>
-                      <span className="text-white/50">Connect your Solana wallet via the navbar</span>
+                      <span className="text-white/50">Connect via navbar</span>
                     </div>
                   )}
-                  <p className="jersey-20-regular text-white/30 text-sm mt-1">
-                    Phantom, Solflare, or any Solana wallet (auto-detected)
-                  </p>
                 </div>
 
                 {/* Info box */}
-                <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                  <p className="jersey-20-regular text-blue-300 text-base leading-relaxed">
-                    🔒 Free registration. No transaction needed. Wallets linked off-chain.
+                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <p className="jersey-20-regular text-blue-300 text-sm">
+                    🔒 Free registration. No gas fees.
                   </p>
                 </div>
 
@@ -309,15 +279,9 @@ export default function NuxRewardsClaim() {
                       Registering...
                     </>
                   ) : (
-                    <>🔗 Link Wallets & Register</>
+                    <>🔗 Link & Register</>
                   )}
                 </button>
-
-                {!isConnected && (
-                  <p className="jersey-20-regular text-red-400/70 text-base text-center">
-                    Connect your Polygon wallet via the navbar first.
-                  </p>
-                )}
               </motion.form>
             )}
           </AnimatePresence>

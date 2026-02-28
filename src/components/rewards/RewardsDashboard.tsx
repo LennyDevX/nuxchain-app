@@ -126,7 +126,7 @@ export default function RewardsDashboard() {
               <p className="font-mono text-white/80 text-base break-all">
                 {registrationData?.solanaAddress ? truncate(registrationData.solanaAddress) : solanaAddress ? truncate(solanaAddress) : <span className="text-amber-400/70 text-lg">Not linked yet</span>}
               </p>
-              <p className="jersey-20-regular text-white/40 text-sm mt-2">NUX token distribution via Smithii</p>
+              <p className="jersey-20-regular text-white/40 text-sm mt-2">NUX token distribution via NuxChain</p>
             </div>
           </div>
         )}

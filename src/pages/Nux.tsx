@@ -4,7 +4,6 @@ import NuxMaintenance from './NuxMaintenance';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import NuxHero from '../components/nux/NuxHero';
 import NuxStatsBar from '../components/nux/NuxStatsBar';
-import NuxTokenomics from '../components/nux/NuxTokenomics';
 import NuxUtilities from '../components/nux/NuxUtilities';
 import NuxRewardsClaim from '../components/nux/NuxRewardsClaim';
 import NuxPresale from '../components/nux/NuxPresale';
@@ -30,9 +29,6 @@ const Nux = memo(() => {
 
         {/* Presale roadmap */}
         <NuxPresale />
-
-        {/* Tokenomics */}
-        <NuxTokenomics />
 
         {/* Utilities */}
         <NuxUtilities />

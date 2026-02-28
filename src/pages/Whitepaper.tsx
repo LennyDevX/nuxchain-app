@@ -24,7 +24,7 @@ const Star        = ({ size = 20 }) => <Icon size={size} d="M12 2l3.09 6.26L22 9
 const ChevronRight = ({ size = 20, className = '' }: { size?: number; className?: string }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
 
 const WHITEPAPER_PDF_URL = '/nuxchain-whitepaper.pdf';
-const MINT_ADDRESS = 'FRnAMJ7p4bgTeAbkhq5cKAX8Xif86h71Nn3nHnXPedtp';
+const MINT_ADDRESS = 'Cmpy3SvMJRKSXcfaDsLWC4gidhTQNwxeHXBmAgM5Ydja';
 
 // ─── Section Components ────────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ function HighlightCard({
         <Icon size={20} />
       </div>
       <h4 className="jersey-15-regular text-white font-bold text-lg leading-snug">{title}</h4>
-      <p className="text-white/60 text-lg leading-relaxed">{description}</p>
+      <p className="jersey-20-regular text-white/60 text-lg leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -138,13 +138,13 @@ export default function Whitepaper() {
 
             {/* Metadata strip */}
             <div className="flex flex-wrap gap-6 justify-center mt-4 jersey-20-regular text-lg text-white/40">
-              <span>100M NUX Fixed Supply</span>
+              <span className="jersey-20-regular text-lg">100M NUX Fixed Supply</span>
               <span>·</span>
-              <span>Polygon + Solana</span>
+              <span className="jersey-20-regular text-lg">Polygon + Solana</span>
               <span>·</span>
-              <span>Non-mintable · Non-freezable</span>
+              <span className="jersey-20-regular text-lg">Non-mintable · Non-freezable</span>
               <span>·</span>
-              <span>Fully On-Chain Metadata</span>
+              <span className="jersey-20-regular text-lg">Fully On-Chain Metadata</span>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function Whitepaper() {
               ['01', 'Abstract'],
               ['02', 'Problem Statement'],
               ['03', 'Platform Architecture'],
-              ['04', 'SmartStaking v4.0'],
+              ['04', 'SmartStaking v6.2'],
               ['05', 'NFT Marketplace'],
               ['06', 'NUX Token'],
               ['07', 'Tokenomics'],
@@ -250,7 +250,7 @@ export default function Whitepaper() {
           </p>
           <div className="grid sm:grid-cols-2 gap-5">
             <HighlightCard icon={Cpu} accent="purple" title="Frontend Layer" description="React 19 + Vite 7.1 + TypeScript 5.7 + TailwindCSS 4.0. Wagmi v2 + Viem 2.38 for EVM interactions. Mobile-first PWA with offline support and push notifications." />
-            <HighlightCard icon={Shield} accent="green" title="Smart Contract Layer" description="EnhancedSmartStaking v4.0 on Polygon Mainnet with 9 modular contracts. GameifiedMarketplace v2.0 with 10 modules. Fully audited with gas-optimized upgradeable proxy pattern." />
+            <HighlightCard icon={Shield} accent="green" title="Smart Contract Layer" description="EnhancedSmartStaking v6.2 on Polygon Mainnet with 9 modular contracts. GameifiedMarketplace v2.0 with 10 modules. Fully audited with gas-optimized upgradeable proxy pattern." />
             <HighlightCard icon={Zap} accent="amber" title="API / Backend Layer" description="Vercel Serverless Functions with TypeScript. Redis-backed rate limiting, distributed deduplicator, Firebase Admin for auth. Gemini AI integration for Nuxbee AI assistant." />
             <HighlightCard icon={Globe} accent="cyan" title="Blockchain Infrastructure" description="Polygon Mainnet for EVM contracts. Solana Mainnet for NUX SPL token. QuickNode RPC for low-latency blockchain data. IPFS (Pinata) for decentralized asset storage." />
           </div>
@@ -258,10 +258,10 @@ export default function Whitepaper() {
 
         {/* ── 04 SmartStaking ── */}
         <section id="staking">
-          <SectionTag label="04 — EnhancedSmartStaking v4.0" />
+          <SectionTag label="04 — EnhancedSmartStaking v6.2" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Staking Protocol</h2>
           <p className="jersey-20-regular text-white/60 text-lg leading-relaxed">
-            The EnhancedSmartStaking v4.0 system is the core yield-generation engine. Users deposit POL tokens 
+            The EnhancedSmartStaking v6.2 system is the core yield-generation engine. Users deposit POL tokens 
             and earn continuous rewards calculated hourly, with lockup multipliers providing enhanced APY for committed capital.
           </p>
 
@@ -272,11 +272,11 @@ export default function Whitepaper() {
             </div>
             <div className="divide-y divide-white/5">
               {[
-                { period: 'Flexible (No Lockup)', rate: '0.005% / hr', apy: '43.8%',  multiplier: '1x',   accent: 'text-white/50' },
-                { period: '30 Days',              rate: '0.010% / hr', apy: '87.6%',  multiplier: '2x',   accent: 'text-blue-400' },
-                { period: '90 Days',              rate: '0.014% / hr', apy: '122.6%', multiplier: '2.8x', accent: 'text-cyan-400' },
-                { period: '180 Days',             rate: '0.017% / hr', apy: '149.3%', multiplier: '3.4x', accent: 'text-purple-400' },
-                { period: '365 Days',             rate: '0.025% / hr', apy: '219%',   multiplier: '5x',   accent: 'text-amber-400' },
+                { period: 'Flexible (No Lockup)', rate: '~9.6% / yr', apy: '9.6%', multiplier: '1x', accent: 'text-white/50' },
+                { period: '30 Days', rate: '~17.2% / yr', apy: '17.2%', multiplier: '1.8x', accent: 'text-blue-400' },
+                { period: '90 Days', rate: '~22.7% / yr', apy: '22.7%', multiplier: '2.4x', accent: 'text-cyan-400' },
+                { period: '180 Days', rate: '~30.3% / yr', apy: '30.3%', multiplier: '3.2x', accent: 'text-purple-400' },
+                { period: '365 Days', rate: '~31.9% / yr', apy: '31.9%', multiplier: '3.3x', accent: 'text-amber-400' },
               ].map((row) => (
                 <div key={row.period} className="grid grid-cols-4 px-6 py-4 text-lg">
                   <span className="jersey-20-regular text-white/70">{row.period}</span>
@@ -298,8 +298,8 @@ export default function Whitepaper() {
               { label: 'Compound',          value: 'Yes — any time' },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between rounded-xl bg-white/5 px-4 py-3 border border-white/10">
-                <span className="text-white/50">{label}</span>
-                <span className="text-white font-medium">{value}</span>
+                <span className="jersey-20-regular text-white/50">{label}</span>
+                <span className="jersey-15-regular text-white font-medium">{value}</span>
               </div>
             ))}
           </div>
@@ -334,11 +334,11 @@ export default function Whitepaper() {
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 mb-8">
             <div className="flex flex-wrap gap-4 justify-between text-lg">
               <div>
-                <div className="text-white/40 mb-1">Token Address (Solana)</div>
+                <div className="jersey-20-regular text-white/40 mb-1">Token Address (Solana)</div>
                 <code className="text-amber-300 text-sm font-mono break-all">{MINT_ADDRESS}</code>
               </div>
               <div className="text-right">
-                <div className="text-white/40 mb-1">Verification</div>
+                <div className="jersey-20-regular text-white/40 mb-1">Verification</div>
                 <a
                   href={`https://solscan.io/token/${MINT_ADDRESS}`}
                   target="_blank"
@@ -366,28 +366,32 @@ export default function Whitepaper() {
 
           <div className="grid sm:grid-cols-2 gap-10 items-start">
             <div className="space-y-4">
-              <TokenomicBar label="Community & Ecosystem Rewards" pct={35} color="bg-purple-500" />
-              <TokenomicBar label="Launchpad & Public Sale"       pct={20} color="bg-amber-500" />
-              <TokenomicBar label="Team & Advisors (3yr vest)"    pct={15} color="bg-pink-500" />
-              <TokenomicBar label="Treasury & DAO Reserve"        pct={15} color="bg-cyan-500" />
-              <TokenomicBar label="Liquidity Provision"           pct={10} color="bg-green-500" />
-              <TokenomicBar label="Marketing & Partnerships"      pct={5}  color="bg-blue-500" />
+              <TokenomicBar label="Whitelist (Tier 1)" pct={12} color="bg-amber-500" />
+              <TokenomicBar label="Public Presale (Tier 2)" pct={13} color="bg-orange-500" />
+              <TokenomicBar label="LP Bootstrap" pct={15} color="bg-blue-500" />
+              <TokenomicBar label="Airdrop & Rewards" pct={15} color="bg-emerald-500" />
+              <TokenomicBar label="Dev Team" pct={15} color="bg-pink-500" />
+              <TokenomicBar label="Marketing" pct={10} color="bg-purple-500" />
+              <TokenomicBar label="Ecosystem & Treasury" pct={15} color="bg-cyan-500" />
+              <TokenomicBar label="Reserve" pct={5} color="bg-slate-500" />
             </div>
             <div className="space-y-3 text-lg">
               {[
-                { color: 'bg-purple-500', label: 'Community & Ecosystem',  pct: '35%', desc: '35M NUX — staking rewards, quests, achievements' },
-                { color: 'bg-amber-500',  label: 'Launchpad / Public Sale', pct: '20%', desc: '20M NUX — initial liquidity & fundraising' },
-                { color: 'bg-pink-500',   label: 'Team & Advisors',         pct: '15%', desc: '15M NUX — 3-year linear vesting' },
-                { color: 'bg-cyan-500',   label: 'Treasury & DAO',          pct: '15%', desc: '15M NUX — governance-controlled reserve' },
-                { color: 'bg-green-500',  label: 'Liquidity',               pct: '10%', desc: '10M NUX — DEX liquidity (50% locked)' },
-                { color: 'bg-blue-500',   label: 'Marketing',               pct: '5%',  desc: '5M NUX — partnerships, campaigns' },
-              ].map(({ color, label, pct, desc }) => (
+                { color: 'bg-amber-500', label: 'Whitelist', pct: '12%', amount: '12M', desc: 'Tier 1 at 0.000015 SOL/NUX, max 200K per wallet' },
+                { color: 'bg-orange-500', label: 'Public Presale', pct: '13%', amount: '13M', desc: 'Tier 2 at 0.000025 SOL/NUX, max 500K per wallet' },
+                { color: 'bg-blue-500', label: 'LP Bootstrap', pct: '15%', amount: '15M', desc: 'NuxChain LP — 50% of SOL raised + NUX, LP burned at TGE' },
+                { color: 'bg-emerald-500', label: 'Airdrop & Rewards', pct: '15%', amount: '15M', desc: '40K NUX per user, 3-phase vesting (10K/20K/10K)' },
+                { color: 'bg-pink-500', label: 'Dev Team', pct: '15%', amount: '15M', desc: '12-month cliff + 24-month linear vesting' },
+                { color: 'bg-purple-500', label: 'Marketing', pct: '10%', amount: '10M', desc: 'Global outreach, KOLs, exchange listings' },
+                { color: 'bg-cyan-500', label: 'Ecosystem & Treasury', pct: '15%', amount: '15M', desc: 'Skills, NFTs, AI features, grants & DAO' },
+                { color: 'bg-slate-500', label: 'Reserve', pct: '5%', amount: '5M', desc: 'CEX listings, emergency liquidity' },
+              ].map(({ color, label, pct, amount, desc }) => (
                 <div key={label} className="flex gap-3 items-start">
                   <div className={`w-3 h-3 rounded-full mt-0.5 shrink-0 ${color}`} />
                   <div>
-                    <span className="text-white font-medium">{label}</span>
-                    <span className="text-white/40 ml-2">{pct}</span>
-                    <p className="text-white/40 text-sm mt-0.5">{desc}</p>
+                    <span className="jersey-15-regular text-white font-medium">{label}</span>
+                    <span className="jersey-20-regular text-white/40 ml-2">{pct} ({amount} NUX)</span>
+                    <p className="jersey-20-regular text-white/40 text-base mt-0.5">{desc}</p>
                   </div>
                 </div>
               ))}
@@ -435,7 +439,7 @@ export default function Whitepaper() {
                 period: 'Q4 2024 – Q3 2025',
                 color: 'border-green-500/40 bg-green-500/5',
                 badge: 'bg-green-500/20 text-green-400',
-                items: ['Nuxchain Platform Beta', 'SmartStaking v4.0 + Gamification', 'GameifiedMarketplace v2.0', 'Profile & Dashboard', 'Nuxbee AI 1.0', 'Roadmap Visualization'],
+                items: ['Nuxchain Platform Beta', 'SmartStaking v6.2 + Gamification', 'GameifiedMarketplace v2.0', 'Profile & Dashboard', 'Nuxbee AI 1.0', 'Roadmap Visualization'],
               },
               {
                 phase: 'Phase 2',
@@ -462,7 +466,7 @@ export default function Whitepaper() {
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {items.map((item) => (
-                    <div key={item} className="flex items-center gap-2 text-lg text-white/60">
+                    <div key={item} className="flex items-center gap-2 jersey-20-regular text-lg text-white/60">
                       <ArrowRight size={12} className="text-white/30 shrink-0" />
                       {item}
                     </div>
@@ -479,22 +483,22 @@ export default function Whitepaper() {
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Risk Disclosure</h2>
           <div className="rounded-2xl border border-white/10 bg-white/3 p-6 space-y-3 jersey-20-regular text-lg text-white/60 leading-relaxed">
             <p>
-              <span className="text-white font-medium">Smart Contract Risk:</span>{' '}
+              <span className="jersey-15-regular text-white font-medium">Smart Contract Risk:</span>{' '}
               Despite security audits, smart contracts may contain undiscovered vulnerabilities. Users should only 
               deposit amounts they can afford to lose.
             </p>
             <p>
-              <span className="text-white font-medium">Market Risk:</span>{' '}
+              <span className="jersey-15-regular text-white font-medium">Market Risk:</span>{' '}
               POL and NUX token prices are subject to high volatility. APY calculations are denominated in POL 
               and do not guarantee USD-equivalent returns.
             </p>
             <p>
-              <span className="text-white font-medium">Lockup Risk:</span>{' '}
+              <span className="jersey-15-regular text-white font-medium">Lockup Risk:</span>{' '}
               Staked funds are locked for the chosen duration. Early withdrawal is not possible during an active 
               lockup period. Select lockup periods appropriate for your liquidity needs.
             </p>
             <p>
-              <span className="text-white font-medium">Regulatory Risk:</span>{' '}
+              <span className="jersey-15-regular text-white font-medium">Regulatory Risk:</span>{' '}
               The regulatory landscape for DeFi and digital assets is evolving. Users are responsible for 
               compliance with applicable laws in their jurisdictions.
             </p>

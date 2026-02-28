@@ -20,8 +20,8 @@ export const LAUNCHPAD_CONFIG = {
       price: 0.000015,          // SOL per NUX
       discount: '40% off',
       minBuy: 5_000,            // NUX
-      maxBuy: 500_000,          // NUX per wallet
-      cap: 8_000_000,           // Total NUX available (8% of supply)
+      maxBuy: 200_000,          // NUX per wallet - limitado para evitar whales
+      cap: 12_000_000,          // Total NUX available (12% of supply) - INCREASED
       start: new Date('2026-03-02T00:00:00Z'),
       end: new Date('2026-03-14T23:59:59Z'),
       requiresWhitelist: true,
@@ -35,8 +35,8 @@ export const LAUNCHPAD_CONFIG = {
       price: 0.000025,
       discount: 'Public',
       minBuy: 1_000,
-      maxBuy: 500_000,
-      cap: 7_000_000,           // Total NUX available (7% of supply)
+      maxBuy: 500_000,          // NUX per wallet - más permisivo por pool más grande
+      cap: 13_000_000,          // Total NUX available (13% of supply) - INCREASED
       start: new Date('2026-03-15T00:00:00Z'),
       end: new Date('2026-03-22T23:59:59Z'),
       requiresWhitelist: false,
@@ -56,7 +56,7 @@ export const LAUNCHPAD_CONFIG = {
       end: null,
       requiresWhitelist: false,
       color: 'purple',
-      description: 'Raydium liquidity pool opens. Price determined by market.',
+      description: 'NuxChain liquidity pool opens. Price determined by market.',
     },
   },
 } as const;

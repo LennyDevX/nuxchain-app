@@ -29,6 +29,8 @@ const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'
 const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
 const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
+const Launchpad = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/Launchpad'));
+const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
 
 function AppRoutes() {
   // Smart preloading: Only preload on fast connections and after idle
@@ -87,6 +89,8 @@ function AppRoutes() {
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/nux" element={<Nux />} />
         <Route path="/rewards" element={<Rewards />} />
+        <Route path="/launchpad" element={<Launchpad />} />
+        <Route path="/whitepaper" element={<Whitepaper />} />
       </Routes>
     </Suspense>
   );

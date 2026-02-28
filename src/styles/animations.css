@@ -512,6 +512,28 @@
 }
 
 /* ========================================
+   NEBULA BACKGROUND DRIFT
+   ======================================== */
+@keyframes nebula-drift {
+  0% {
+    background-position: 0% 0%, 100% 100%, 50% 100%, 80% 10%;
+    opacity: 1;
+  }
+  33% {
+    background-position: 30% 20%, 70% 80%, 20% 60%, 60% 40%;
+    opacity: 0.88;
+  }
+  66% {
+    background-position: 60% 40%, 40% 60%, 80% 30%, 30% 70%;
+    opacity: 0.95;
+  }
+  100% {
+    background-position: 100% 80%, 0% 20%, 60% 10%, 10% 90%;
+    opacity: 0.9;
+  }
+}
+
+/* ========================================
    RESPONSIVE ADJUSTMENTS
    ======================================== */
 

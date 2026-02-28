@@ -5,7 +5,6 @@ import AIFeaturesSection from '../components/labs/AIFeaturesSection';
 import PlatformMission from '../components/labs/PlatformMission';
 import UniswapPriceFeed from '../components/labs/UniswapPriceFeed';
 import { Link } from 'react-router-dom';
-import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,7 +24,7 @@ const LabsPage: React.FC = () => {
   };
 
   return (
-    <GlobalBackground>
+    <>
       {/* Hero Section */}
       <section className={`relative overflow-hidden ${
         isMobile ? 'py-12 px-4' : 'py-20 px-4 sm:px-6 lg:px-8'
@@ -318,7 +317,7 @@ const LabsPage: React.FC = () => {
           </section>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 };
 

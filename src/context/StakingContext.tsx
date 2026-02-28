@@ -1,11 +1,12 @@
 import { useMemo, useRef, useEffect, type ReactNode } from 'react';
-import { useAccount, useReadContracts } from 'wagmi';
+import { useAccount, useReadContracts, useBalance } from 'wagmi';
 import type { Abi } from 'viem';
 import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
 import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json';
 import EnhancedSmartStakingGamificationABI from '../abi/SmartStaking/EnhancedSmartStakingGamification.json';
+import EnhancedSmartStakingViewStatsABI from '../abi/SmartStaking/EnhancedSmartStakingViewStats.json';
 import { StakingContext } from './StakingContextDefinition';
-import type { StakingContextType, PoolData, UserStakingData, GamificationData, ProtocolHealthData, AnalyticsData } from './StakingContext.types';
+import type { StakingContextType, PoolData, UserStakingData, GamificationData, ProtocolHealthData, AnalyticsData, CircuitBreakerData, ReferralData, LockupAnalysisData, PoolHealthData, StakingRatesInfo } from './StakingContext.types';
 
 // ============================================
 // CONSTANTS
@@ -14,6 +15,7 @@ import type { StakingContextType, PoolData, UserStakingData, GamificationData, P
 const STAKING_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 const VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`;
 const GAMIFICATION_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS as `0x${string}`;
+const VIEW_STATS_ADDRESS = import.meta.env.VITE_STAKING_VIEW_STATS_ADDRESS as `0x${string}`;
 
 // ============================================
 // DEFAULTS
@@ -64,6 +66,37 @@ const DEFAULT_ANALYTICS: AnalyticsData = {
   },
 };
 
+const DEFAULT_CIRCUIT_BREAKER: CircuitBreakerData = {
+  enabled: false,
+  reserveRatio: 0n,
+  isBlocked: false,
+};
+
+const DEFAULT_REFERRAL: ReferralData = {
+  referrer: null,
+  totalReferralsMade: 0n,
+  boostEndTime: 0n,
+  boostActive: false,
+  currentBoostBps: 0n,
+};
+
+const DEFAULT_LOCKUP_ANALYSIS: LockupAnalysisData = {
+  totalFlexible: 0n,
+  totalLocked30: 0n,
+  totalLocked90: 0n,
+  totalLocked180: 0n,
+  totalLocked365: 0n,
+  nextUnlockAmount: 0n,
+  nextUnlockTime: 0n,
+};
+
+const DEFAULT_POOL_HEALTH: PoolHealthData = {
+  healthStatus: 3,
+  statusMessage: 'Healthy',
+  reserveRatio: 0n,
+  description: '',
+};
+
 // ============================================
 // PROVIDER
 // ============================================
@@ -103,9 +136,10 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     ],
     query: {
       enabled: hasValidConfig,
-      staleTime: 60000,
+      staleTime: 15_000,
       gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
+      refetchInterval: 20_000,
+      refetchOnWindowFocus: true,
     },
   });
 
@@ -129,9 +163,10 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     ],
     query: {
       enabled: !!address && isConnected && hasValidConfig,
-      staleTime: 30000,
+      staleTime: 15_000,
       gcTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
+      refetchInterval: 20_000,
+      refetchOnWindowFocus: true,
     },
   });
 
@@ -164,6 +199,11 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     abi: EnhancedSmartStakingGamificationABI.abi as Abi,
   }), []);
 
+  const viewStatsConfig = useMemo(() => ({
+    address: VIEW_STATS_ADDRESS,
+    abi: EnhancedSmartStakingViewStatsABI.abi as Abi,
+  }), []);
+
   const { data: gamifData, isLoading: isGamifLoading, refetch: refetchGamifRaw } = useReadContracts({
     contracts: [
       { ...gamifConfig, functionName: 'getUserXPInfo', args: [address] },
@@ -179,9 +219,57 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // ── v6.2.0 ViewStats Data Multicall ──
+  const { data: statsV620Data } = useReadContracts({
+    contracts: [
+      { ...viewStatsConfig, functionName: 'getPoolHealth' },
+      { ...viewStatsConfig, functionName: 'getStakingRatesInfo' },
+      { ...viewStatsConfig, functionName: 'getUserLockupAnalysis', args: [address] },
+      { ...viewStatsConfig, functionName: 'getReferralInfo', args: [address] },
+      { ...viewStatsConfig, functionName: 'getExpiringDeposits', args: [address, BigInt(259200)] },
+    ],
+    query: {
+      enabled: !!address && isConnected && hasValidConfig,
+      staleTime: 60000,
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  });
+
+  // ── v6.2.0 Circuit Breaker + Reinvestment (Core public vars) ──
+  const { data: coreV620Data } = useReadContracts({
+    contracts: [
+      { ...poolConfig, functionName: 'circuitBreakerEnabled' },
+      { ...poolConfig, functionName: 'circuitBreakerReserveRatio' },
+      { ...poolConfig, functionName: 'reinvestmentPercentage', args: [address] },
+    ],
+    query: {
+      enabled: !!address && isConnected && hasValidConfig,
+      staleTime: 60000,
+      gcTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  });
+
+  // ── Real on-chain native balance (ground truth after emergency withdrawals) ──
+  const { data: nativeBalData } = useBalance({
+    address: STAKING_ADDRESS,
+    query: {
+      enabled: hasValidConfig,
+      staleTime: 15_000,
+      refetchInterval: 20_000,
+      refetchOnWindowFocus: true,
+    },
+  });
+
   // ── Parse Pool Data ──
   const pool = useMemo((): PoolData => {
     if (!poolData) return DEFAULT_POOL;
+
+    // Ground-truth native balance — caps all accounting values when lower
+    // (emergency withdrawals drain ETH/POL bypassing Solidity storage vars)
+    const storageBal: bigint = (poolData[0]?.result as bigint) || 0n;
+    const nativeBal: bigint  = nativeBalData?.value ?? storageBal;
 
     const globalStatsRaw = poolData[4]?.result as {
       totalValueLocked?: number;
@@ -197,18 +285,18 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     if (globalStatsRaw) {
       if (Array.isArray(globalStatsRaw)) {
         globalStats = {
-          totalValueLocked: BigInt(globalStatsRaw[0] || 0),
+          totalValueLocked: nativeBal < BigInt(globalStatsRaw[0] || 0) ? nativeBal : BigInt(globalStatsRaw[0] || 0),
           totalUniqueUsers: BigInt(globalStatsRaw[1] || 0),
-          contractBalance: BigInt(globalStatsRaw[2] || 0),
+          contractBalance: nativeBal < BigInt(globalStatsRaw[2] || 0) ? nativeBal : BigInt(globalStatsRaw[2] || 0),
           availableRewards: BigInt(globalStatsRaw[3] || 0),
           healthStatus: Number(globalStatsRaw[4] || 0),
           timestamp: BigInt(globalStatsRaw[5] || 0),
         };
       } else {
         globalStats = {
-          totalValueLocked: BigInt(globalStatsRaw.totalValueLocked || 0),
+          totalValueLocked: nativeBal < BigInt(globalStatsRaw.totalValueLocked || 0) ? nativeBal : BigInt(globalStatsRaw.totalValueLocked || 0),
           totalUniqueUsers: BigInt(globalStatsRaw.totalUniqueUsers || 0),
-          contractBalance: BigInt(globalStatsRaw.contractBalance || 0),
+          contractBalance: nativeBal < BigInt(globalStatsRaw.contractBalance || 0) ? nativeBal : BigInt(globalStatsRaw.contractBalance || 0),
           availableRewards: BigInt(globalStatsRaw.availableRewards || 0),
           healthStatus: Number(globalStatsRaw.healthStatus || 0),
           timestamp: BigInt(globalStatsRaw.timestamp || 0),
@@ -216,14 +304,17 @@ export function StakingProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // totalPoolBalance is capped by nativeBal above
+    const totalPoolBalance = nativeBal < storageBal ? nativeBal : storageBal;
+
     return {
-      totalPoolBalance: (poolData[0]?.result as bigint) || 0n,
+      totalPoolBalance,
       uniqueUsersCount: (poolData[1]?.result as bigint) || 0n,
       isPaused: (poolData[2]?.result as boolean) || false,
       contractVersion: (poolData[3]?.result as bigint) || 0n,
       globalStats,
     };
-  }, [poolData]);
+  }, [poolData, nativeBalData]);
 
   // ── Parse User Data ──
   const user = useMemo((): UserStakingData => {
@@ -433,7 +524,80 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     };
   }, [gamifData]);
 
-  // Update previous level ref
+  // ── Parse Circuit Breaker & Reinvestment ──
+  const circuitBreaker = useMemo((): CircuitBreakerData => {
+    if (!coreV620Data) return DEFAULT_CIRCUIT_BREAKER;
+    const enabled = Boolean(coreV620Data[0]?.result);
+    const reserveRatio = BigInt((coreV620Data[1]?.result as bigint) || 0n);
+    return {
+      enabled,
+      reserveRatio,
+      isBlocked: enabled, // simplified: if circuit breaker is on, deposits are blocked
+    };
+  }, [coreV620Data]);
+
+  const reinvestmentPercentage = useMemo((): bigint => {
+    if (!coreV620Data) return 0n;
+    return BigInt((coreV620Data[2]?.result as bigint) || 0n);
+  }, [coreV620Data]);
+
+  // ── Parse Pool Health & Staking Rates ──
+  const poolHealth = useMemo((): PoolHealthData => {
+    if (!statsV620Data?.[0]?.result) return DEFAULT_POOL_HEALTH;
+    const raw = statsV620Data[0].result as Record<string, unknown>;
+    return {
+      healthStatus: Number(raw.healthStatus ?? 3),
+      statusMessage: String(raw.statusMessage ?? 'Healthy'),
+      reserveRatio: BigInt((raw.reserveRatio as bigint) ?? 0n),
+      description: String(raw.description ?? ''),
+    };
+  }, [statsV620Data]);
+
+  const stakingRates = useMemo((): StakingRatesInfo | null => {
+    if (!statsV620Data?.[1]?.result) return null;
+    const raw = statsV620Data[1].result as Record<string, unknown>;
+    if (!raw.lockupPeriods) return null;
+    return {
+      lockupPeriods: raw.lockupPeriods as readonly bigint[],
+      hourlyROI: raw.hourlyROI as readonly bigint[],
+      annualAPY: raw.annualAPY as readonly bigint[],
+      periodNames: raw.periodNames as readonly string[],
+    };
+  }, [statsV620Data]);
+
+  // ── Parse Lockup Analysis ──
+  const lockupAnalysis = useMemo((): LockupAnalysisData => {
+    if (!statsV620Data?.[2]?.result) return DEFAULT_LOCKUP_ANALYSIS;
+    const raw = statsV620Data[2].result as Record<string, unknown>;
+    return {
+      totalFlexible: BigInt((raw.totalFlexible as bigint) ?? 0n),
+      totalLocked30: BigInt((raw.totalLocked30 as bigint) ?? 0n),
+      totalLocked90: BigInt((raw.totalLocked90 as bigint) ?? 0n),
+      totalLocked180: BigInt((raw.totalLocked180 as bigint) ?? 0n),
+      totalLocked365: BigInt((raw.totalLocked365 as bigint) ?? 0n),
+      nextUnlockAmount: BigInt((raw.nextUnlockAmount as bigint) ?? 0n),
+      nextUnlockTime: BigInt((raw.nextUnlockTime as bigint) ?? 0n),
+    };
+  }, [statsV620Data]);
+
+  // ── Parse Referral Data ──
+  const referral = useMemo((): ReferralData => {
+    if (!statsV620Data?.[3]?.result) return DEFAULT_REFERRAL;
+    const raw = statsV620Data[3].result as unknown[];
+    if (Array.isArray(raw)) {
+      const referrerAddr = raw[0] as string;
+      return {
+        referrer: referrerAddr && referrerAddr !== '0x0000000000000000000000000000000000000000' ? referrerAddr as `0x${string}` : null,
+        totalReferralsMade: BigInt((raw[1] as bigint) ?? 0n),
+        boostEndTime: BigInt((raw[2] as bigint) ?? 0n),
+        boostActive: Boolean(raw[3]),
+        currentBoostBps: BigInt((raw[4] as bigint) ?? 0n),
+      };
+    }
+    return DEFAULT_REFERRAL;
+  }, [statsV620Data]);
+
+  // ── Update previous level ref ──
   useEffect(() => {
     if (gamification.level > 1) {
       previousLevelRef.current = gamification.level;
@@ -471,11 +635,18 @@ export function StakingProvider({ children }: { children: ReactNode }) {
     stakingAddress: STAKING_ADDRESS,
     viewAddress: VIEW_ADDRESS,
     gamificationAddress: GAMIFICATION_ADDRESS,
+    viewStatsAddress: VIEW_STATS_ADDRESS,
     pool,
     user,
     gamification,
     protocolHealth,
     analytics,
+    circuitBreaker,
+    referral,
+    lockupAnalysis,
+    poolHealth,
+    stakingRates,
+    reinvestmentPercentage,
     isLoading: isPoolLoading || isUserLoading || isGamifLoading,
     isPoolLoading,
     isUserLoading,

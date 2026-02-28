@@ -10,7 +10,7 @@ const fadeUp = (delay = 0) => ({
 
 const chains = [
   {
-    icon: '🔷',
+    icon: '/assets/tokens/PolLogo.webp',
     name: 'Polygon',
     subtitle: 'Activity Chain',
     color: 'purple',
@@ -18,7 +18,7 @@ const chains = [
     tags: ['Staking', 'NFT Minting', 'Marketplace', 'Skills', 'Governance'],
   },
   {
-    icon: '◎',
+    icon: '/assets/tokens/SolanaLogo.png',
     name: 'Solana',
     subtitle: 'Rewards Chain',
     color: 'green',
@@ -42,7 +42,7 @@ export function ArchitectureSection() {
           {chains.map((chain, i) => (
             <motion.div key={i} {...fadeUp(i * 0.05)} className="card-unified p-8">
               <div className="flex items-center gap-4 mb-5">
-                <div className={`w-14 h-14 rounded-xl bg-${chain.color}-500/20 border border-${chain.color}-500/40 flex items-center justify-center text-3xl`}>{chain.icon}</div>
+                <div className={`w-14 h-14 rounded-xl bg-${chain.color}-500/20 border border-${chain.color}-500/40 flex items-center justify-center overflow-hidden`}><img src={chain.icon} alt={chain.name} className="w-full h-full object-contain" /></div>
                 <div>
                   <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{chain.name}</h3>
                   <p className={`jersey-20-regular text-${chain.color}-300 text-lg`}>{chain.subtitle}</p>

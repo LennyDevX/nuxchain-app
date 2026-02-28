@@ -1,5 +1,4 @@
 import React from 'react';
-import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import RoadmapHero from '../components/roadmap/RoadmapHero';
 import MilestonesGrid from '../components/roadmap/MilestonesGrid';
@@ -8,7 +7,7 @@ const RoadmapPage: React.FC = () => {
   const isMobile = useIsMobile();
 
   return (
-    <GlobalBackground>
+    <>
       {/* Hero Section */}
       <RoadmapHero isMobile={isMobile} />
 
@@ -57,7 +56,7 @@ const RoadmapPage: React.FC = () => {
           </section>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 };
 

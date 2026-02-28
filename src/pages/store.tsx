@@ -12,7 +12,7 @@ import type { SkillData, SkillType } from '../components/skills/config';
 import { Rarity } from '../types/contracts';
 import { SkillsCatalog } from '../components/store/SkillsCatalog';
 import { MySkills } from '../components/store/MySkills';
-import GlobalBackground from '../ui/gradientBackground';
+
 import { useSkillsStore } from '../hooks/skills/useSkillsStore';
 import { useUserStaking } from '../hooks/staking/useUserStaking';
 
@@ -145,7 +145,7 @@ export default function Store() {
   }
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Compact Header */}
@@ -583,6 +583,6 @@ export default function Store() {
         </motion.div>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 }

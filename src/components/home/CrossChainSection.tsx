@@ -9,6 +9,8 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay },
 });
 
+
+
 function CrossChainSection() {
   const isMobile = useIsMobile();
 
@@ -40,7 +42,7 @@ function CrossChainSection() {
           {/* Polygon */}
           <motion.div {...fadeUp(0.1)} className="card-unified p-8 border-purple-500/30 hover:border-purple-400/60 transition-all">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-4xl">🔷</div>
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center overflow-hidden"><img src="/assets/tokens/PolLogo.webp" alt="Polygon" className="w-full h-full object-contain" /></div>
               <div>
                 <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Polygon</h3>
                 <p className="jersey-20-regular text-purple-300 text-lg">Activity Chain</p>
@@ -72,7 +74,7 @@ function CrossChainSection() {
           {/* Solana */}
           <motion.div {...fadeUp(0.15)} className="card-unified p-8 border-green-500/30 hover:border-green-400/60 transition-all">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-green-500/20 border border-green-500/40 flex items-center justify-center text-4xl">◎</div>
+              <div className="w-28 h-28 rounded-xl flex items-center justify-center overflow-hidden"><img src="/assets/tokens/SolanaLogo.png" alt="Solana" className="w-full h-full object-contain" /></div>
               <div>
                 <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Solana</h3>
                 <p className="jersey-20-regular text-green-300 text-lg">Rewards Chain</p>

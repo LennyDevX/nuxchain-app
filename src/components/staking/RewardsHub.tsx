@@ -1,4 +1,4 @@
-import React, { memo, useState, useMemo } from 'react';
+import React, { memo, useState, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatEther, parseEther } from 'viem';
 import {
@@ -15,7 +15,10 @@ import {
 import { Line } from 'react-chartjs-2';
 import { useStakingAnalytics } from '../../hooks/staking/useStakingAnalytics';
 import { useDynamicAPY } from '../../hooks/apy/useDynamicAPY';
+import { useStakingV620 } from '../../hooks/staking/useStakingV620';
 import { STAKING_PERIODS } from '../../constants/stakingConstants';
+
+const APYRatesTable = lazy(() => import('./APYRatesTable'));
 
 // Register Chart.js components
 ChartJS.register(
@@ -47,6 +50,9 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
   // Projection data
   const { rewardsProjection, loadingProjection } = useStakingAnalytics();
 
+  // On-chain staking rates — single source of truth for APY values
+  const { stakingRates } = useStakingV620();
+
   // Note: Dynamic APY hook available for future enhancements
   useDynamicAPY(currentTVL);
 
@@ -56,9 +62,9 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
     const validAmount = !isNaN(stakingAmount) && stakingAmount >= 10 ? stakingAmount : 10;
     
     const period = STAKING_PERIODS[selectedPeriod];
-    
+
     // Ensure period exists and has valid data
-    if (!period || !period.roi || !period.value) {
+    if (!period || !period.value) {
       return {
         dailyReward: '0.00',
         monthlyReward: '0.00',
@@ -69,8 +75,11 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
     }
 
     const baseAmount = parseEther(validAmount.toString());
-    // Extract numeric value from string like "~19.7%"
-    const baseAPY = parseFloat(period.roi.annual.replace(/[^0-9.]/g, ''));
+    // Use on-chain APY if available, else fall back to constants
+    const onchainAPYBps = stakingRates?.annualAPY?.[selectedPeriod];
+    const baseAPY = onchainAPYBps
+      ? Number(onchainAPYBps) / 100
+      : parseFloat((period.roi?.annual ?? '0').replace(/[^0-9.]/g, ''));
 
     // Validate baseAPY is a valid number
     if (isNaN(baseAPY) || baseAPY <= 0) {
@@ -99,7 +108,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
       finalAmount: formatEther(finalAmount),
       apy: baseAPY
     };
-  }, [stakingAmount, selectedPeriod]);
+  }, [stakingAmount, selectedPeriod, stakingRates]);
 
   const formatAmount = (value: string): string => {
     const num = parseFloat(value);
@@ -226,6 +235,15 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
   }
 
   return (
+    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+      {/* Left column: On-chain APY rates table */}
+      <Suspense fallback={<div className="h-48 bg-white/5 animate-pulse rounded-xl" />}>
+        <APYRatesTable />
+      </Suspense>
+
+      {/* Right column: Rewards Hub card */}
     <motion.div
       className={`card-unified rounded-xl border border-white/10 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 ${className}`}
       initial={{ opacity: 0, y: 10 }}
@@ -245,7 +263,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
         <div className="flex gap-1 p-5 pt-3">
           <motion.button
             onClick={() => setActiveTab('projection')}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all md:text-base ${
+            className={`flex-1 py-2 px-3 rounded-lg jersey-15-regular text-3xl font-medium transition-all md:jersey-15-regular ${
               activeTab === 'projection'
                 ? 'bg-purple-500/30 text-purple-300 border border-purple-500/40'
                 : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/5'
@@ -257,7 +275,7 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
           </motion.button>
           <motion.button
             onClick={() => setActiveTab('calculator')}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all md:text-base ${
+            className={`flex-1 py-2 px-3 rounded-lg jersey-15-regular text-3xl font-medium transition-all md:jersey-15-regular ${
               activeTab === 'calculator'
                 ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40'
                 : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/5'
@@ -347,20 +365,28 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
               <div>
                 <label className="jersey-15-regular text-white/80 text-sm lg:text-base font-medium block mb-2">Lockup Period</label>
                 <div className="grid grid-cols-5 gap-1">
-                  {STAKING_PERIODS.map((period, index) => (
-                    <button
-                      key={period.value}
-                      onClick={() => setSelectedPeriod(index)}
-                      className={`py-2 px-1 rounded-lg jersey-15-regular text-sm lg:text-base font-medium transition-all ${
-                        selectedPeriod === index
-                          ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40'
-                          : 'bg-white/5 text-white/50 hover:bg-white/10'
-                      }`}
-                    >
-                      <div className="jersey-20-regular text-xs lg:text-sm opacity-70">{period.roi.annual}</div>
-                      <div className="jersey-15-regular">{period.value === '0' ? 'Flex' : `${period.value}d`}</div>
-                    </button>
-                  ))}
+                  {STAKING_PERIODS.map((period, index) => {
+                    const liveAPYBps = stakingRates?.annualAPY?.[index];
+                    const liveAPYPct = liveAPYBps
+                      ? (Number(liveAPYBps) / 100).toFixed(1) + '%'
+                      : period.roi?.annual ?? '-';
+                    return (
+                      <button
+                        key={period.value}
+                        onClick={() => setSelectedPeriod(index)}
+                        className={`py-2 px-1 rounded-lg jersey-15-regular text-sm lg:text-base font-medium transition-all ${
+                          selectedPeriod === index
+                            ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-500/40'
+                            : 'bg-white/5 text-white/50 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className={`jersey-20-regular text-xs lg:text-sm font-bold ${
+                          selectedPeriod === index ? 'text-indigo-300' : 'text-emerald-400/70'
+                        }`}>{liveAPYPct}</div>
+                        <div className="jersey-15-regular text-[11px] lg:text-xs mt-0.5">{period.value === '0' ? 'Flex' : `${period.value}d`}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -417,6 +443,9 @@ const RewardsHub: React.FC<RewardsHubProps> = memo(({ currentTVL, className = ''
         </AnimatePresence>
       </div>
     </motion.div>
+
+    </div>
+    </div>
   );
 });
 

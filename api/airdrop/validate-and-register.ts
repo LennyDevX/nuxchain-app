@@ -199,6 +199,89 @@ const DATA_CENTER_IP_RANGES = [
 // This prevents desynchronization between frontend and backend
 
 // ============================================================================
+// HCAPTCHA SERVER-SIDE VERIFICATION
+// ============================================================================
+
+/**
+ * Verify hCaptcha token server-side.
+ * Returns true if valid or if secret key is not configured (development mode).
+ */
+async function verifyHCaptcha(token: string | undefined): Promise<{ valid: boolean; reason?: string }> {
+  const secret = process.env.HCAPTCHA_SECRET_KEY;
+
+  if (!secret) {
+    console.warn('⚠️ [HCAPTCHA] HCAPTCHA_SECRET_KEY not set — skipping captcha verification (dev mode)');
+    return { valid: true };
+  }
+
+  if (!token || token.trim() === '') {
+    return { valid: false, reason: 'Missing captcha token. Please complete the captcha challenge.' };
+  }
+
+  try {
+    const params = new URLSearchParams({ secret, response: token });
+    const res = await fetch('https://hcaptcha.com/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    const data = (await res.json()) as { success: boolean; 'error-codes'?: string[] };
+
+    if (!data.success) {
+      const errorCodes = data['error-codes']?.join(', ') ?? 'unknown';
+      console.warn(`⚠️ [HCAPTCHA] Verification failed: ${errorCodes}`);
+      return { valid: false, reason: `Captcha verification failed (${errorCodes}). Please try the captcha again.` };
+    }
+
+    return { valid: true };
+  } catch (err) {
+    // Network error: fail open (do not block real users due to hCaptcha outage)
+    console.error('❌ [HCAPTCHA] Verification request error (failing open):', (err as Error).message);
+    return { valid: true };
+  }
+}
+
+// ============================================================================
+// BOT PATTERN DETECTION
+// ============================================================================
+
+/**
+ * Detect sequential/auto-generated email patterns used by bot farms.
+ * Examples: abhishekji100003@gmail.com | username12345678@domain.com
+ * Returns true only when confident it's automation — not for random numbers.
+ */
+function hasSequentialEmailPattern(email: string): boolean {
+  const local = email.split('@')[0]?.toLowerCase() ?? '';
+
+  const patterns = [
+    /^[a-z]{3,}\d{6,}$/,          // name + 6+ digits: abhishekji100003
+    /^[a-z]{2,}\d{4,}[a-z]{2,}$/, // letters + 4+ digits + letters: abc1234def
+    /^[a-z]\d{8,}$/,              // single letter + 8+ digits: a18114373585
+    /jjh\d*$/,                    // ends with 'jjh' (known farm suffix pattern)
+    /^(user|mail|temp|test|bot)\d{4,}/i, // generic prefixes + numbers
+  ];
+
+  return patterns.some(p => p.test(local));
+}
+
+/**
+ * Detect MEGA-farm wallet combo: young wallet + minimal activity + empty/tiny balance.
+ * This combination is responsible for ~95% of Likely Bot registrations in the CSV data.
+ */
+function isMegaFarmCombo(
+  walletAgeDays: number,
+  transactionCount: number,
+  solBalance: number
+): boolean {
+  // Must match ALL three criteria simultaneously
+  const isYoung = walletAgeDays < 30 && walletAgeDays >= 0;
+  const isLowActivity = transactionCount <= 5;
+  const isBareMinimum = solBalance < 0.005;
+
+  return isYoung && isLowActivity && isBareMinimum;
+}
+
+// ============================================================================
 // VALIDATION FUNCTIONS
 // ============================================================================
 
@@ -298,8 +381,8 @@ async function checkIPFarm(ipAddress: string): Promise<{
 
     const count = snapshot.size;
 
-    // More than 3 registrations from same IP = suspicious
-    if (count >= 3) {
+    // More than 2 registrations from same IP = suspicious (tightened from 3)
+    if (count >= 2) {
       return {
         isRisky: true,
         count,
@@ -440,25 +523,33 @@ async function validateWalletOnChain(wallet: string): Promise<{
     // Backend must do the same for consistency!
     // ============================================================================
     const MIN_SOL_BALANCE = 0.01; // Minimum 0.01 SOL - synchronized with frontend
-    const MIN_WALLET_AGE = 3; // Minimum 3 days - synchronized with frontend (Feb 2026)
+    const MIN_WALLET_AGE = 14; // Minimum 14 days (raised from 3 - reduces fresh bot wallets)
     const MIN_TRANSACTIONS = 1;
     const LEGACY_WALLET_AGE = 90; // Wallets older than 90 days are "Legacy"
     
-    // Active wallet thresholds for age exception (Feb 2026: More lenient for real users)
-    const ACTIVE_WALLET_TX_THRESHOLD = 2;  // Reduced from 3 - Real users often have 2+ txs
-    const ACTIVE_WALLET_BALANCE_THRESHOLD = 0.02;  // Reduced from 0.05 - More reasonable for new users
+    // Active wallet thresholds for age exception
+    const ACTIVE_WALLET_TX_THRESHOLD = 5;  // Raised from 2 - MEGA-farm prepares wallets with 2-3 txs exactly
+    const ACTIVE_WALLET_BALANCE_THRESHOLD = 0.02;  // 0.02 SOL minimum for active wallet exception
     
     // High balance threshold - users with significant SOL are clearly legitimate
     const HIGH_BALANCE_THRESHOLD = 0.1; // 0.1 SOL = ~$15-20 USD - real user investment
 
     // ========================================
-    // PRE-CHECK: Real users with any transaction history get a pass
+    // PRE-CHECK: Tiered auto-approval for wallets with transaction history
+    // Only wallets that meet at least ONE quality signal are auto-approved.
+    // This prevents MEGA-farm wallets (young + few txs + tiny balance) from bypassing.
     // ========================================
     const hasHistory = transactionCount > 0;
+    const isEstablishedWallet = walletAgeDays >= 30;   // 30+ days old = established user
+    const isVeryActiveWallet = transactionCount >= 50;  // 50+ txs = power user
+    const isHighValueWallet = solBalance >= 0.5;        // 0.5+ SOL = real financial commitment (~$80)
 
-    if (hasHistory) {
-      // Any wallet with confirmed transactions is considered legitimate
-      console.log(`✅ [REAL USER] Wallet ${wallet.slice(0, 8)}... has ${transactionCount} confirmed transactions - auto-approved (Balance: ${solBalance.toFixed(6)} SOL, Age: ${walletAgeDays} days)`);
+    if (hasHistory && (isEstablishedWallet || isVeryActiveWallet || isHighValueWallet)) {
+      // Wallet has history AND at least one quality signal → auto-approve
+      const reason = isEstablishedWallet ? `${walletAgeDays}d old` :
+                     isVeryActiveWallet   ? `${transactionCount} txs` :
+                                            `${solBalance.toFixed(4)} SOL`;
+      console.log(`✅ [REAL USER] Wallet ${wallet.slice(0, 8)}... auto-approved (${reason}, ${transactionCount} txs, ${solBalance.toFixed(6)} SOL)`);
       return {
         isValid: true,
         exists: true,
@@ -466,6 +557,11 @@ async function validateWalletOnChain(wallet: string): Promise<{
         transactionCount,
         walletAgeDays,
       };
+    }
+
+    // wallets with history but NO quality signals fall through to strict validation
+    if (hasHistory) {
+      console.log(`⚠️ [NEEDS_VALIDATION] Wallet ${wallet.slice(0, 8)}... has history but no quality signal (age: ${walletAgeDays}d, txs: ${transactionCount}, bal: ${solBalance.toFixed(6)} SOL) — applying strict rules`);
     }
 
     // 📡 [RPC FALLBACK] Graceful handling of network outages
@@ -629,7 +725,8 @@ async function checkDeviceFingerprint(fingerprint: string): Promise<{
 
     const count = snapshot.size;
 
-    if (count >= 2) {
+    // Only 1 registration per device (tightened from 2)
+    if (count >= 1) {
       return {
         isDuplicate: true,
         count,
@@ -657,6 +754,7 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
       wallet,
       fingerprint,
       ipAddress,
+      captchaToken, // hCaptcha token from frontend
       walletHint, // Optional: frontend pre-analysis result used as fallback during RPC degradation
     } = req.body as {
       name: string;
@@ -664,6 +762,7 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
       wallet: string;
       fingerprint: string;
       ipAddress: string;
+      captchaToken?: string;
       walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean };
     };
 
@@ -680,7 +779,25 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
     });
 
     // ========================================
-    // 0. DISTRIBUTED RATE LIMITING (FIRST LINE OF DEFENSE)
+    // 0a. HCAPTCHA VERIFICATION (FIRST LINE OF DEFENSE)
+    // ========================================
+    const captchaResult = await verifyHCaptcha(captchaToken);
+    if (!captchaResult.valid) {
+      await logSecurityViolation(
+        EventType.BOT_DETECTED,
+        `hCaptcha failed: ${captchaResult.reason}`,
+        ipAddress,
+        email,
+        wallet
+      );
+      return res.status(403).json({
+        success: false,
+        error: captchaResult.reason ?? 'Captcha verification failed. Please try again.',
+      });
+    }
+
+    // ========================================
+    // 0b. DISTRIBUTED RATE LIMITING
     // ========================================
     const rateLimitResult = await checkDistributedRateLimit(req, {
       windowMs: 60000,   // 1 minute
@@ -754,6 +871,20 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
       });
     }
 
+    // Check sequential/auto-generated email pattern (bot farm indicator)
+    if (hasSequentialEmailPattern(email)) {
+      await logSecurityViolation(
+        EventType.BOT_DETECTED,
+        `Sequential email pattern detected: ${email}`,
+        ipAddress,
+        email,
+        wallet
+      );
+      // Do NOT reject immediately — flag for combined check after wallet validation
+      // Some real users have number-heavy emails. We flag here and check in combo below.
+      console.warn(`⚠️ [EMAIL_PATTERN] Flagged sequential email: ${email}`);
+    }
+
     // Check duplicate email (with normalization)
     const duplicateCheck = await checkDuplicates(email, wallet);
     if (duplicateCheck.hasDuplicate) {
@@ -788,6 +919,41 @@ export async function validateAirdropRegistration(req: Request, res: Response) {
         `(trustScore: ${walletHint!.trustScore}, txns: ${walletHint!.transactionCount}) ` +
         `— backend RPC was degraded. Manual review recommended.`
       );
+    }
+
+    // ========================================
+    // 3b. MEGA-FARM COMBINATION DETECTION
+    // ========================================
+    // Checks the exact profile responsible for ~95% of Likely Bot registrations:
+    // young wallet + minimal activity + near-zero balance (simultaneously)
+    if (
+      effectiveValidation.isValid &&
+      isMegaFarmCombo(
+        effectiveValidation.walletAgeDays,
+        effectiveValidation.transactionCount,
+        effectiveValidation.balance
+      )
+    ) {
+      await logSecurityViolation(
+        EventType.BOT_DETECTED,
+        `MEGA-farm combo blocked: age=${effectiveValidation.walletAgeDays}d, ` +
+          `txs=${effectiveValidation.transactionCount}, balance=${effectiveValidation.balance.toFixed(6)} SOL`,
+        ipAddress,
+        email,
+        wallet
+      );
+      console.warn(
+        `🚫 [MEGA_FARM] Blocked ${wallet.slice(0, 8)}... — ` +
+        `age: ${effectiveValidation.walletAgeDays}d, ` +
+        `txs: ${effectiveValidation.transactionCount}, ` +
+        `bal: ${effectiveValidation.balance.toFixed(6)} SOL`
+      );
+      return res.status(403).json({
+        success: false,
+        error: 'Wallet does not meet the minimum activity requirements for this airdrop. ' +
+               'Your wallet must be at least 30 days old, have more than 5 transactions, ' +
+               'or hold at least 0.005 SOL.',
+      });
     }
 
     if (!effectiveValidation.isValid) {
@@ -1015,6 +1181,10 @@ export async function submitAirdropRegistration(req: Request, res: Response) {
         timezone: browserInfo?.timezone || 'unknown',
         language: browserInfo?.language || 'unknown',
         timeToSubmit: timeToSubmit || 0,
+        // Wallet on-chain metrics (for post-registration analysis and airdrop scoring)
+        walletAgeDays: req.body?.walletMetrics?.walletAgeDays ?? 0,
+        walletTxCount: req.body?.walletMetrics?.transactionCount ?? 0,
+        walletBalance: req.body?.walletMetrics?.balance ?? 0,
         network: 'solana',
         airdropAmount: '6000',
         status: 'registered',

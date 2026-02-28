@@ -289,7 +289,7 @@ export default function AdminContractStats() {
 
           {/* Contract meta - Mobile optimized */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] text-slate-600">
-            <span className="font-mono text-[10px]">{ownerAddress?.slice(0, 8)}...{ownerAddress?.slice(-4)}</span>
+            <span className="font-mono text-[10px]">{ownerAddress?.slice(0, 4)}...{ownerAddress?.slice(-4)}</span>
             <div className="flex gap-1.5">
               <span className="px-1.5 py-0.5 bg-[rgba(139,92,246,0.1)] text-[#8b5cf6] rounded-full border border-[rgba(139,92,246,0.2)] text-[10px]">Owner</span>
               <a

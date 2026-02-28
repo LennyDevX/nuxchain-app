@@ -9,7 +9,7 @@ import EnhancedRewardDashboard from '../components/colab/EnhancedRewardDashboard
 import { type AvatarSlot } from '../data/AvatarData';
 import useMintNFT from '../hooks/nfts/useMintNFT';
 import Footer from '../components/layout/footer';
-import GlobalBackground from '../ui/gradientBackground';
+
 
 type MintingStep = 'gallery' | 'selection' | 'customization' | 'success';
 
@@ -138,7 +138,7 @@ export default function ColabPortal() {
   const getTotalSteps = () => 4;
 
     return (
-        <GlobalBackground>
+        <>
             <div className="min-h-screen text-white selection:bg-purple-500/30">
                 {/* Hero Section */}
                 <div className="relative pt-24 md:pt-32 pb-12 md:pb-20 px-4 overflow-hidden">
@@ -323,6 +323,6 @@ export default function ColabPortal() {
 
                 <Footer />
             </div>
-        </GlobalBackground>
+        </>
     );
 }

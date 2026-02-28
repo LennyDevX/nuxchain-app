@@ -238,12 +238,14 @@ const MobileBottomNavbar: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsMenuOpen(false)}
           >
             {/* Backdrop with blur */}
             <motion.div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                const walletOpen = document.querySelector('.wallet-dropdown');
+                if (!walletOpen) setIsMenuOpen(false);
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -252,6 +254,7 @@ const MobileBottomNavbar: React.FC = () => {
             {/* Menu Panel */}
             <motion.div
               className="relative w-full bg-black/90 backdrop-blur-md border-t border-white/20 rounded-t-3xl"
+              onClick={(e) => e.stopPropagation()}
               initial={{ y: 500, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 500, opacity: 0 }}
@@ -294,19 +297,14 @@ const MobileBottomNavbar: React.FC = () => {
                 >
                   {/* Connect Wallet */}
                   <motion.div
-                    className="p-4 rounded-xl bg-white/5 border border-white/10"
+                    className="flex justify-center p-4 rounded-xl bg-white/5 border border-white/10"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                     whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                    onClick={(e) => {
-                      // Permitir que el WalletConnect capture eventos de click
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <WalletConnect />
-                    </div>
+                    <WalletConnect />
                   </motion.div>
 
                   {/* Profile Link */}
@@ -324,7 +322,7 @@ const MobileBottomNavbar: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       <span className="jersey-20-regular text-white text-2xl">Profile</span>
-                      <span className="ml-auto jersey-20-regular text-lg text-gradient">All My Data</span>
+                      <span className="ml-auto jersey-20-regular text-xl text-gradient">All My Data</span>
                     </Link>
                   </motion.div>
 
@@ -350,7 +348,7 @@ const MobileBottomNavbar: React.FC = () => {
                             animate={{ scale: [1, 1.5, 1], opacity: [1, 0.6, 1] }}
                             transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                           />
-                          <span className="jersey-20-regular text-emerald-400 text-base">LIVE</span>
+                          <span className="jersey-20-regular text-emerald-400 text-xl">LIVE</span>
                         </span>
                       )}
                       {isMaintenanceMode('airdrop') && (
@@ -379,11 +377,34 @@ const MobileBottomNavbar: React.FC = () => {
                       </svg>
                       <span className="jersey-20-regular text-white text-xl">AI Chat</span>
                       <motion.span
-                        className="ml-auto jersey-20-regular text-sm text-gradient"
+                        className="ml-auto jersey-20-regular text-xl text-gradient"
                         animate={{ opacity: [0.7, 1, 0.7] }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                       >
                         Try Now!
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+
+                  {/* Launchpad */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.38 }}
+                  >
+                    <Link
+                      to="/launchpad"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors relative"
+                    >
+                      <span className="text-xl">🚀</span>
+                      <span className="jersey-20-regular text-purple-400 text-xl">Launchpad</span>
+                      <motion.span
+                        className="ml-auto jersey-20-regular text-xl px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-bold"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        NEW
                       </motion.span>
                     </Link>
                   </motion.div>

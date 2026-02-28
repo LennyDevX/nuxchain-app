@@ -237,10 +237,10 @@ function WalletConnect() {
       <button
         ref={buttonRef}
         onClick={() => setShowDropdown(!showDropdown)}
-        className={`w-full transition-all duration-300 ${
+        className={`transition-all duration-300 ${
           (isConnected && address) || solanaPublicKey
-            ? 'bg-black/40 border border-white/10 hover:border-purple-500/50 px-6 py-2.5 rounded-2xl flex items-center justify-between gap-3 group shadow-xl'
-            : 'btn-primary flex items-center justify-center space-x-2'
+            ? 'bg-black/40 border border-white/10 hover:border-purple-500/50 px-5 py-2 rounded-2xl flex items-center justify-between gap-3 group shadow-xl'
+            : 'btn-primary flex items-center justify-center px-6 py-2.5 rounded-xl whitespace-nowrap'
         }`}
       >
         {((isConnected && address) || solanaPublicKey) ? (
@@ -249,7 +249,7 @@ function WalletConnect() {
               <span className="jersey-15-regular text-[10px] uppercase tracking-[0.2em] text-purple-400/80 leading-none mb-1 group-hover:text-purple-400 transition-colors">
                 {activeTab === 'evm' ? (isConnected ? 'EVM Connected' : 'Connect EVM') : (solanaPublicKey ? 'SOL Connected' : 'Connect SOL')}
               </span>
-              <span className="jersey-20-regular text-xl text-white tracking-tighter leading-none">
+              <span className="jersey-20-regular text-lg text-white tracking-tighter leading-none">
                 {activeTab === 'evm' 
                   ? (address ? (ensName || `${address.slice(0, 6)}...${address.slice(-4)}`) : 'Tap to connect')
                   : (solanaPublicKey ? `${solanaPublicKey.toBase58().slice(0, 4)}...${solanaPublicKey.toBase58().slice(-4)}` : 'Tap to connect')
@@ -263,7 +263,7 @@ function WalletConnect() {
             }`} />
           </>
         ) : (
-          <span className="jersey-20-regular text-xl">Connect Wallet</span>
+          <span className="jersey-20-regular text-lg font-bold">Connect Wallet</span>
         )}
       </button>
 

@@ -105,7 +105,7 @@ export default function ContractDropdown({ onContractSelect }: { onContractSelec
                             )}
                           </div>
                           <p className="text-xs text-slate-400 font-mono truncate">
-                            {contract.address.slice(0, 8)}...{contract.address.slice(-6)}
+                            {contract.address.slice(0, 4)}...{contract.address.slice(-4)}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">

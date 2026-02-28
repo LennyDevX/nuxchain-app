@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import GlobalBackground from '../ui/gradientBackground';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import {
   SkillDetailModal,
@@ -74,16 +73,16 @@ const SkillsDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <GlobalBackground>
+      <>
         <div className="min-h-screen flex items-center justify-center">
           <LoadingSpinner size="xl" text="Loading Skills..." />
         </div>
-      </GlobalBackground>
+      </>
     );
   }
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen text-white relative">
         {/* Hero Section */}
         <SkillsHero
@@ -113,7 +112,7 @@ const SkillsDashboard: React.FC = () => {
         isOpen={modalState.isOpen}
         onClose={handleCloseModal}
       />
-    </GlobalBackground>
+    </>
   );
 };
 

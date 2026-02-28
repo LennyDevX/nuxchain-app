@@ -40,9 +40,12 @@ export default defineConfig({
       '/api/market': {
         target: 'http://localhost:3003',
         changeOrigin: true
-        // No rewrite, server now handles /api prefix
       },
       '/api/uniswap': {
+        target: 'http://localhost:3003',
+        changeOrigin: true
+      },
+      '/api/launchpad': {
         target: 'http://localhost:3003',
         changeOrigin: true
       },

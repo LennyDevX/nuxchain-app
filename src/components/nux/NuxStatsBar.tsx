@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 
 const stats = [
   { label: 'Total Supply', value: '100,000,000', unit: 'NUX — Fixed Forever', icon: '🪙', color: 'text-amber-400' },
-  { label: 'Presale Allocation', value: '15,000,000', unit: 'NUX (15%)', icon: '🚀', color: 'text-blue-400' },
-  { label: 'Activity Rewards Pool', value: '20,000,000', unit: 'NUX (20%)', icon: '🎁', color: 'text-emerald-400' },
-  { label: 'Ecosystem & Treasury', value: '20,000,000', unit: 'NUX (20%)', icon: '🔗', color: 'text-purple-400' },
+  { label: 'Presale Allocation', value: '13,000,000', unit: 'NUX (13%)', icon: '🚀', color: 'text-blue-400' },
+  { label: 'Activity Rewards Pool', value: '15,000,000', unit: 'NUX (15%)', icon: '🎁', color: 'text-emerald-400' },
+  { label: 'Ecosystem & Treasury', value: '15,000,000', unit: 'NUX (15%)', icon: '🔗', color: 'text-purple-400' },
 ];
 
 export default function NuxStatsBar() {

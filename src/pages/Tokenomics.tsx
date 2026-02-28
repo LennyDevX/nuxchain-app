@@ -23,9 +23,9 @@ const Tokenomics: React.FC = () => {
 
     // Descriptions for tooltips
     const descriptions: Record<string, string> = {
-        'Whitelist': 'Tier 1 exclusive — Airdrop registrants at 0.000015 SOL/NUX (40% off)',
-        'Public Presale': 'Tier 2 open sale — 0.000025 SOL/NUX. Mar 15–22',
-        'LP Bootstrap': 'Raydium LP — 50% of SOL raised + NUX at 0.00004 SOL. LP burned.',
+        'Whitelist': 'Tier 1 exclusive — Airdrop registrants at 0.000015 SOL/NUX (40% off). Max 200K per wallet',
+        'Public Presale': 'Tier 2 open sale — 0.000025 SOL/NUX. Max 500K per wallet. Mar 15–22',
+        'LP Bootstrap': 'NuxChain LP — 50% of SOL raised + NUX at 0.00004 SOL. LP burned.',
         'Airdrop & Rewards': 'NUX Rewards — 40,000 NUX per registered user, 3-phase vesting',
         'Dev Team': 'Core dev & R&D — 12mo cliff + 24mo linear vesting',
         'Marketing': 'Global outreach, KOLs & exchange listings',
@@ -44,7 +44,7 @@ const Tokenomics: React.FC = () => {
         datasets: [
             {
                 label: 'Token Distribution',
-                data: [8, 7, 15, 20, 15, 10, 20, 5],
+                data: [12, 13, 15, 15, 15, 10, 15, 5],
                 backgroundColor: [
                     selectedIndex === null || selectedIndex === 0 ? 'rgba(251, 191, 36, 0.8)' : 'rgba(251, 191, 36, 0.2)',
                     selectedIndex === null || selectedIndex === 1 ? 'rgba(249, 115, 22, 0.8)' : 'rgba(249, 115, 22, 0.2)',
@@ -320,8 +320,8 @@ const Tokenomics: React.FC = () => {
                             <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                 <AllocationItem
                                     label="Whitelist"
-                                    percentage={8}
-                                    description="Tier 1 — 8M NUX @ 0.000015 SOL"
+                                    percentage={12}
+                                    description="Tier 1 — 12M NUX @ 0.000015 SOL"
                                     color="bg-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
                                     index={0}
                                     isHovered={hoveredIndex === 0}
@@ -330,8 +330,8 @@ const Tokenomics: React.FC = () => {
                                 />
                                 <AllocationItem
                                     label="Public Presale"
-                                    percentage={7}
-                                    description="Tier 2 — 7M NUX @ 0.000025 SOL"
+                                    percentage={13}
+                                    description="Tier 2 — 13M NUX @ 0.000025 SOL"
                                     color="bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                                     index={1}
                                     isHovered={hoveredIndex === 1}
@@ -341,7 +341,7 @@ const Tokenomics: React.FC = () => {
                                 <AllocationItem
                                     label="LP Bootstrap"
                                     percentage={15}
-                                    description="Raydium LP — 15M NUX reserved"
+                                    description="NuxChain LP — 15M NUX reserved"
                                     color="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                                     index={2}
                                     isHovered={hoveredIndex === 2}
@@ -350,7 +350,7 @@ const Tokenomics: React.FC = () => {
                                 />
                                 <AllocationItem
                                     label="Airdrop & Rewards"
-                                    percentage={20}
+                                    percentage={15}
                                     description="40K NUX/user — 3-phase vesting"
                                     color="bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
                                     index={3}
@@ -380,7 +380,7 @@ const Tokenomics: React.FC = () => {
                                 />
                                 <AllocationItem
                                     label="Ecosystem & Treasury"
-                                    percentage={20}
+                                    percentage={15}
                                     description="Skills, NFTs, AI & DAO governance"
                                     color="bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                                     index={6}

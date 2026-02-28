@@ -85,11 +85,11 @@ function AirdropHeader({ tokensPerUser, airdropEndDate }: AirdropHeaderProps) {
           <div className="relative z-10 text-center">
             
             <p className="jersey-15-regular text-4xl sm:text-6xl text-gradient font-black">
-              20,000,000 NUX
+              15,000,000 NUX
             </p>
             <p className="jersey-20-regular text-amber-300 text-xl sm:text-2xl mb-1">🎁 Community Rewards Pool (100M Supply)</p>
             <p className="jersey-20-regular text-white/60 text-lg sm:text-xl mt-2">
-              20% allocated for airdrop & ecosystem rewards
+              15% allocated for airdrop & ecosystem rewards
             </p>
             <div className="mt-4 p-3 rounded-xl bg-white/5 border border-amber-500/20">
               <p className="jersey-20-regular text-amber-200/80 text-base sm:text-lg">

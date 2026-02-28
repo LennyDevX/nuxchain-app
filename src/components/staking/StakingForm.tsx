@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther, formatUnits } from 'viem'
@@ -27,7 +27,7 @@ interface StakingFormProps {
 function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userStaked }: StakingFormProps) {
   const { address } = useAccount()
   const isMobile = useIsMobile()
-  const { refetchUser } = useStakingContext()
+  const { refetchUser, circuitBreaker } = useStakingContext()
   // State for form
   const [depositAmount, setDepositAmount] = useState('')
   const [lockupDuration, setLockupDuration] = useState('0') // default: Flexible
@@ -533,11 +533,20 @@ function StakingForm({ stakingContractAddress, pendingRewards, isPaused, userSta
 
             <button
               onClick={handleDeposit}
-              disabled={!depositAmount || isPending || isConfirming || isPaused}
-              className="w-full btn-primary jersey-20-regular text-xl py-4"
+              disabled={!depositAmount || isPending || isConfirming || isPaused || circuitBreaker?.isBlocked}
+              title={circuitBreaker?.isBlocked ? 'Deposits temporarily paused by circuit breaker' : undefined}
+              className="w-full btn-primary jersey-20-regular text-xl py-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPaused ? 'Contract Paused' : isPending || isConfirming ? 'Processing...' : 'Stake Now'}
+              {circuitBreaker?.isBlocked
+                ? '🛑 Deposits Temporarily Paused'
+                : isPaused
+                ? 'Contract Paused'
+                : isPending || isConfirming
+                ? 'Processing...'
+                : 'Stake Now'}
             </button>
+
+
           </div>
         )}
 

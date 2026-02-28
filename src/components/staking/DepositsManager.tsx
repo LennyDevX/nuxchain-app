@@ -1,6 +1,10 @@
-import React, { memo, useState, useEffect, useMemo } from 'react';
+import React, { memo, useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDepositManagement, type DepositDetail } from '../../hooks/staking/useDepositManagement';
+import { useStakingContext } from '../../context/useStakingContext';
+
+const EarlyExitWarning = lazy(() => import('./EarlyExitWarning'));
+const ReinvestmentSettings = lazy(() => import('./ReinvestmentSettings'));
 
 interface DepositsManagerProps {
   className?: string;
@@ -14,6 +18,7 @@ type FilterType = 'all' | 'flexible' | 'locked' | 'withdrawable';
  */
 const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }) => {
   const [filter, setFilter] = useState<FilterType>('all');
+  const { user } = useStakingContext();
   const {
     deposits,
     depositsByType,
@@ -200,6 +205,20 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
 
       {/* Deposits List */}
       <div className="p-5 pt-3 space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+        {/* Early exit warning for flexible deposits < 7 days */}
+        {filter === 'flexible' || filter === 'all' ? (
+          <Suspense fallback={null}>
+            <EarlyExitWarning
+              deposits={deposits
+                .filter(d => d.lockupDays === 0)
+                .map(d => ({
+                  depositId: BigInt(d.index),
+                  amount: d.amountRaw,
+                  startTime: BigInt(Math.floor(d.depositDate.getTime() / 1000)),
+                }))}
+            />
+          </Suspense>
+        ) : null}
         <AnimatePresence mode="popLayout">
           {filteredDeposits.length === 0 ? (
             <motion.div
@@ -234,6 +253,13 @@ const DepositsManager: React.FC<DepositsManagerProps> = memo(({ className = '' }
           </div>
         </div>
       )}
+
+      {/* Auto-Reinvestment Settings */}
+      <Suspense fallback={null}>
+        <div className="border-t border-white/10 px-5 pt-5">
+          <ReinvestmentSettings pendingRewardsWei={user?.pendingRewards} />
+        </div>
+      </Suspense>
     </motion.div>
   );
 });

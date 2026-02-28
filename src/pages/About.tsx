@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import Footer from '../components/layout/footer';
-import GlobalBackground from '../ui/gradientBackground';
 import {
   AboutSection,
   NFTEconomySection,
@@ -28,7 +27,7 @@ function About() {
   const isMobile = useIsMobile();
 
   return (
-    <GlobalBackground>
+    <>
       <div className={`min-h-screen text-white ${isMobile ? 'pb-32' : 'pb-20'}`}>
         
         {/* Hero with animated background */}
@@ -197,7 +196,7 @@ function About() {
 
         <Footer />
       </div>
-    </GlobalBackground>
+    </>
   );
 }
 

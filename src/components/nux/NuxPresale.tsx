@@ -23,7 +23,7 @@ const phases = [
   {
     step: '03',
     title: 'Public Presale',
-    desc: 'Open presale on Smithii Launchpad at 0.000025 SOL/NUX. 15M NUX allocation. Min: 1,000 NUX. Mar 2-22.',
+    desc: 'Public presale on NuxChain Launchpad at 0.000025 SOL/NUX. 7M NUX allocation. Min: 1,000 NUX. Mar 15-22.',
     icon: '🚀',
     color: 'text-purple-400',
     border: 'border-purple-400/30',
@@ -60,14 +60,14 @@ const phases = [
 
 const presaleDetails = [
   { label: 'Total Supply', value: '100,000,000 NUX', highlight: true },
-  { label: 'Presale Allocation', value: '15,000,000 NUX (15%)', highlight: false },
+  { label: 'Whitelist Allocation', value: '8,000,000 NUX (8%)', highlight: false },
+  { label: 'Presale Allocation', value: '7,000,000 NUX (7%)', highlight: false },
   { label: 'Whitelist Price', value: '0.000015 SOL (40% off)', highlight: true },
   { label: 'Whitelist Min', value: '5,000 NUX', highlight: false },
   { label: 'Presale Price', value: '0.000025 SOL', highlight: false },
   { label: 'Presale Min', value: '1,000 NUX', highlight: false },
   { label: 'LP/TGE Price', value: '0.00004 SOL', highlight: true },
   { label: 'Blockchain', value: 'Solana (SPL Token)', highlight: false },
-  { label: 'Launchpad', value: 'Smithii Token Launchpad', highlight: false },
   { label: 'Liquidity Lock', value: 'LP tokens burned at TGE', highlight: false },
 ];
 
@@ -135,7 +135,7 @@ export default function NuxPresale() {
             <div className="grid grid-cols-3 gap-3 mb-4 text-center">
               {[
                 { tier: 'Whitelist', price: '0.000015', date: 'Mar 2-14', min: '5K NUX', tc: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-                { tier: 'Presale', price: '0.000025', date: 'Mar 2-22', min: '1K NUX', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
+                { tier: 'Presale', price: '0.000025', date: 'Mar 15-22', min: '1K NUX', tc: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20' },
                 { tier: 'LP/TGE', price: '0.00004', date: 'Mar 24', min: 'Market', tc: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
               ].map(t => (
                 <motion.div 

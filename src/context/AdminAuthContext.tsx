@@ -4,7 +4,7 @@
  * SECURITY IMPLEMENTATION:
  * - Uses wallet signature verification (not storing private keys)
  * - Session expires after 1 hour
- * - Owner wallet verification: 0xed639e84179FCEcE1d7BEe91ab1C6888fbBdD0cf
+ * - Owner wallet loaded from VITE_DEPLOYER_ADDRESS (env variable)
  */
 
 import { useState, useEffect } from 'react';
@@ -13,8 +13,8 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { verifyMessage } from 'viem';
 import { AdminAuthContext } from './AdminAuthContext.types';
 
-// Owner wallet address (from .env configuration)
-const ADMIN_OWNER_ADDRESS = '0xed639e84179FCEcE1d7BEe91ab1C6888fbBdD0cf' as `0x${string}`;
+// Owner wallet address (read from .env — never hardcode)
+const ADMIN_OWNER_ADDRESS = (import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as `0x${string}`;
 
 interface AdminAuthProviderProps {
   children: ReactNode;

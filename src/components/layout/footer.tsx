@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <span className="jersey-20-regular px-2 py-1 bg-purple-500/20 rounded-full border border-purple-500/30">
-                Public Beta v3.0
+                Public Beta v4.1
               </span>
             </div>
           </div>
@@ -50,6 +50,7 @@ const Footer: React.FC = () => {
               <li><Link to="#" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Labs</Link>
                 <span className="jersey-20-regular px-2 py-0.5  m-2 bg-orange-500/20 text-orange-300 text-sm rounded-full border border-orange-500/30">Coming Soon</span>
               </li>
+              <li><Link to="/whitepaper" className="jersey-20-regular text-gray-400 hover:text-purple-400 transition-colors text-base">Whitepaper</Link></li>
             </ul>
           </div>
 

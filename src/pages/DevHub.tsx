@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { isMaintenanceMode } from '../config/maintenance';
 import DevHubMaintenance from './DevHubMaintenance';
-import GlobalBackground from '../ui/gradientBackground';
 import Footer from '../components/layout/footer';
 import HeroSection from '../components/devHub/HeroSection';
 import ToolsGrid from '../components/devHub/ToolsGrid';
@@ -18,7 +17,7 @@ function CTAHub() {
   if (isMaintenanceMode('devhub')) return <DevHubMaintenance />;
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen text-white">
         <HeroSection />
         <ToolsGrid />
@@ -28,7 +27,7 @@ function CTAHub() {
         <UseCasesSection />
         <Footer />
       </div>
-    </GlobalBackground>
+    </>
   );
 }
 

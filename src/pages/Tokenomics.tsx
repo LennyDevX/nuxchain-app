@@ -9,7 +9,7 @@ import {
     Legend,
     type ChartOptions
 } from 'chart.js';
-import GlobalBackground from '../ui/gradientBackground';
+
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import { ZapIcon, CpuIcon, GlobeIcon, BarChart3Icon, XIcon } from '../components/ui/CustomIcons';
 
@@ -23,12 +23,14 @@ const Tokenomics: React.FC = () => {
 
     // Descriptions for tooltips
     const descriptions: Record<string, string> = {
-        'Presale': 'Early investors & public sale',
-        'Liquidity Pool': 'DEX liquidity provision',
-        'Activity Rewards': 'NUX Rewards Hub — Monthly distribution based on Polygon activity',
-        'Dev Team': 'Development & operations',
-        'Marketing': 'Growth & partnerships',
-        'Ecosystem': 'Treasury & ecosystem fund',
+        'Whitelist': 'Tier 1 exclusive — Airdrop registrants at 0.000015 SOL/NUX (40% off)',
+        'Public Presale': 'Tier 2 open sale — 0.000025 SOL/NUX. Mar 15–22',
+        'LP Bootstrap': 'Raydium LP — 50% of SOL raised + NUX at 0.00004 SOL. LP burned.',
+        'Airdrop & Rewards': 'NUX Rewards — 40,000 NUX per registered user, 3-phase vesting',
+        'Dev Team': 'Core dev & R&D — 12mo cliff + 24mo linear vesting',
+        'Marketing': 'Global outreach, KOLs & exchange listings',
+        'Ecosystem & Treasury': 'Skills, NFTs, AI features, grants & DAO governance',
+        'Reserve': 'CEX listings, emergency liquidity & future opportunities',
     };
 
     // Check maintenance mode (handled by TokenomicsMaintenance wrapper in router;
@@ -38,42 +40,50 @@ const Tokenomics: React.FC = () => {
     }
 
     const data = {
-        labels: ['Presale', 'Liquidity Pool', 'Activity Rewards', 'Dev Team', 'Marketing', 'Ecosystem'],
+        labels: ['Whitelist', 'Public Presale', 'LP Bootstrap', 'Airdrop & Rewards', 'Dev Team', 'Marketing', 'Ecosystem & Treasury', 'Reserve'],
         datasets: [
             {
                 label: 'Token Distribution',
-                data: [15, 15, 20, 15, 15, 20],
+                data: [8, 7, 15, 20, 15, 10, 20, 5],
                 backgroundColor: [
                     selectedIndex === null || selectedIndex === 0 ? 'rgba(251, 191, 36, 0.8)' : 'rgba(251, 191, 36, 0.2)',
-                    selectedIndex === null || selectedIndex === 1 ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.2)',
-                    selectedIndex === null || selectedIndex === 2 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(34, 197, 94, 0.2)',
-                    selectedIndex === null || selectedIndex === 3 ? 'rgba(236, 72, 153, 0.8)' : 'rgba(236, 72, 153, 0.2)',
-                    selectedIndex === null || selectedIndex === 4 ? 'rgba(168, 85, 247, 0.8)' : 'rgba(168, 85, 247, 0.2)',
-                    selectedIndex === null || selectedIndex === 5 ? 'rgba(6, 182, 212, 0.8)' : 'rgba(6, 182, 212, 0.2)',
+                    selectedIndex === null || selectedIndex === 1 ? 'rgba(249, 115, 22, 0.8)' : 'rgba(249, 115, 22, 0.2)',
+                    selectedIndex === null || selectedIndex === 2 ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.2)',
+                    selectedIndex === null || selectedIndex === 3 ? 'rgba(34, 197, 94, 0.8)' : 'rgba(34, 197, 94, 0.2)',
+                    selectedIndex === null || selectedIndex === 4 ? 'rgba(236, 72, 153, 0.8)' : 'rgba(236, 72, 153, 0.2)',
+                    selectedIndex === null || selectedIndex === 5 ? 'rgba(168, 85, 247, 0.8)' : 'rgba(168, 85, 247, 0.2)',
+                    selectedIndex === null || selectedIndex === 6 ? 'rgba(6, 182, 212, 0.8)' : 'rgba(6, 182, 212, 0.2)',
+                    selectedIndex === null || selectedIndex === 7 ? 'rgba(100, 116, 139, 0.8)' : 'rgba(100, 116, 139, 0.2)',
                 ],
                 hoverBackgroundColor: [
                     'rgba(251, 191, 36, 1)',
+                    'rgba(249, 115, 22, 1)',
                     'rgba(59, 130, 246, 1)',
                     'rgba(34, 197, 94, 1)',
                     'rgba(236, 72, 153, 1)',
                     'rgba(168, 85, 247, 1)',
                     'rgba(6, 182, 212, 1)',
+                    'rgba(100, 116, 139, 1)',
                 ],
                 borderColor: [
                     'rgba(251, 191, 36, 1)',
+                    'rgba(249, 115, 22, 1)',
                     'rgba(59, 130, 246, 1)',
                     'rgba(34, 197, 94, 1)',
                     'rgba(236, 72, 153, 1)',
                     'rgba(168, 85, 247, 1)',
                     'rgba(6, 182, 212, 1)',
+                    'rgba(100, 116, 139, 1)',
                 ],
-                borderWidth: selectedIndex !== null ? [3, 3, 3, 3, 3, 3] : [3, 3, 3, 3, 3, 3],
-                hoverOffset: selectedIndex !== null ? 
-                    [selectedIndex === 0 ? 30 : 0, selectedIndex === 1 ? 30 : 0, selectedIndex === 2 ? 30 : 0, selectedIndex === 3 ? 30 : 0, selectedIndex === 4 ? 30 : 0, selectedIndex === 5 ? 30 : 0] 
-                    : [0, 0, 0, 0, 0, 0],
+                borderWidth: [3, 3, 3, 3, 3, 3, 3, 3],
+                hoverOffset: selectedIndex !== null ?
+                    [0, 1, 2, 3, 4, 5, 6, 7].map(i => selectedIndex === i ? 30 : 0)
+                    : [0, 0, 0, 0, 0, 0, 0, 0],
                 spacing: 2,
                 hoverBorderWidth: 4,
                 hoverBorderColor: [
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
                     'rgba(255, 255, 255, 0.8)',
                     'rgba(255, 255, 255, 0.8)',
                     'rgba(255, 255, 255, 0.8)',
@@ -124,7 +134,7 @@ const Tokenomics: React.FC = () => {
     };
 
     return (
-        <GlobalBackground>
+        <>
             <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4 py-6 pb-20' : 'px-4 sm:px-6 lg:px-8 py-20'}`}>
                 {/* Header Section */}
                 <motion.div
@@ -309,9 +319,9 @@ const Tokenomics: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                 <AllocationItem
-                                    label="Presale"
-                                    percentage={15}
-                                    description="Public & whitelist — 15M NUX"
+                                    label="Whitelist"
+                                    percentage={8}
+                                    description="Tier 1 — 8M NUX @ 0.000015 SOL"
                                     color="bg-amber-500 shadow-[0_0_15px_rgba(251,191,36,0.4)]"
                                     index={0}
                                     isHovered={hoveredIndex === 0}
@@ -319,52 +329,72 @@ const Tokenomics: React.FC = () => {
                                     isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Liquidity Pool"
-                                    percentage={15}
-                                    description="Raydium LP — 15M NUX"
-                                    color="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                                    label="Public Presale"
+                                    percentage={7}
+                                    description="Tier 2 — 7M NUX @ 0.000025 SOL"
+                                    color="bg-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                                     index={1}
                                     isHovered={hoveredIndex === 1}
                                     onHover={setHoveredIndex}
                                     isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Activity Rewards"
-                                    percentage={20}
-                                    description="NUX Rewards Hub — Monthly to active users — 20M NUX"
-                                    color="bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                                    label="LP Bootstrap"
+                                    percentage={15}
+                                    description="Raydium LP — 15M NUX reserved"
+                                    color="bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
                                     index={2}
                                     isHovered={hoveredIndex === 2}
                                     onHover={setHoveredIndex}
                                     isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Dev Team"
-                                    percentage={15}
-                                    description="Core dev & R&D — 15M NUX"
-                                    color="bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                                    label="Airdrop & Rewards"
+                                    percentage={20}
+                                    description="40K NUX/user — 3-phase vesting"
+                                    color="bg-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.4)]"
                                     index={3}
                                     isHovered={hoveredIndex === 3}
                                     onHover={setHoveredIndex}
                                     isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Marketing & Growth"
+                                    label="Dev Team"
                                     percentage={15}
-                                    description="Global outreach — 15M NUX"
-                                    color="bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    description="12mo cliff + 24mo linear — 15M NUX"
+                                    color="bg-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
                                     index={4}
                                     isHovered={hoveredIndex === 4}
                                     onHover={setHoveredIndex}
                                     isMobile={isMobile}
                                 />
                                 <AllocationItem
-                                    label="Ecosystem & Treasury"
-                                    percentage={20}
-                                    description="Skills, NFTs, AI — 20M NUX"
-                                    color="bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                                    label="Marketing"
+                                    percentage={10}
+                                    description="KOLs, listings & partnerships — 10M NUX"
+                                    color="bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
                                     index={5}
                                     isHovered={hoveredIndex === 5}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
+                                />
+                                <AllocationItem
+                                    label="Ecosystem & Treasury"
+                                    percentage={20}
+                                    description="Skills, NFTs, AI & DAO governance"
+                                    color="bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                                    index={6}
+                                    isHovered={hoveredIndex === 6}
+                                    onHover={setHoveredIndex}
+                                    isMobile={isMobile}
+                                />
+                                <AllocationItem
+                                    label="Reserve"
+                                    percentage={5}
+                                    description="CEX listings & future liquidity"
+                                    color="bg-slate-500 shadow-[0_0_15px_rgba(100,116,139,0.4)]"
+                                    index={7}
+                                    isHovered={hoveredIndex === 7}
                                     onHover={setHoveredIndex}
                                     isMobile={isMobile}
                                 />
@@ -389,7 +419,7 @@ const Tokenomics: React.FC = () => {
                     />
                 </motion.div>
             </div>
-        </GlobalBackground>
+        </>
     );
 };
 

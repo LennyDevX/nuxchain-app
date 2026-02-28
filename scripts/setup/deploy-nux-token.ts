@@ -2,6 +2,9 @@ import { Connection, Keypair } from '@solana/web3.js';
 import { createSecureToken, TokenConfig } from './solana-token-factory';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ============================================================================
 // 🚀 NUX TOKEN DEPLOYMENT SCRIPT
@@ -18,7 +21,7 @@ import * as path from 'path';
 async function main() {
   // 1. Configuration
   // Change this to 'mainnet-beta' for production deployment
-  const NETWORK: 'devnet' | 'mainnet-beta' = 'devnet'; 
+  const NETWORK: 'devnet' | 'mainnet-beta' = 'mainnet-beta'; 
   const RPC_URL = NETWORK === 'mainnet-beta' 
     ? 'https://api.mainnet-beta.solana.com' 
     : 'https://api.devnet.solana.com';

@@ -8,26 +8,7 @@ function HeroSection() {
 
   return (
     <div className="text-white relative overflow-hidden py-12 lg:py-16 flex items-center">
-      {/* Global Background - Same as GlobalBackground component */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Deep space base background */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse at center, #0a0a0a 0%, #000000 50%, #000000 100%)'
-          }}
-        ></div>
-
-        {/* Background nebula */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            background: 'radial-gradient(circle at 20% 30%, rgba(75, 0, 130, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(139, 0, 139, 0.2) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(25, 25, 112, 0.25) 0%, transparent 50%)',
-            backgroundSize: '100% 100%',
-            animation: 'nebula-drift 20s ease-in-out infinite alternate'
-          }}
-        ></div>
-      </div>
+      {/* Background provided by GlobalBackground parent */}
 
       {/* Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">

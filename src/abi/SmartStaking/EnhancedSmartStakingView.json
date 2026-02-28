@@ -49,6 +49,54 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseAPY",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateBoostedAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateFeeDiscount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "amount",
           "type": "uint256"
@@ -78,6 +126,30 @@
         }
       ],
       "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "baseLockTime",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateReducedLockTime",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -1817,6 +1889,35 @@
           "internalType": "struct EnhancedSmartStakingView.UserRewardsProjection",
           "name": "projection",
           "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserSkillSummary",
+      "outputs": [
+        {
+          "internalType": "uint256[5]",
+          "name": "boostedAPYs",
+          "type": "uint256[5]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "effectiveFeeDiscount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[5]",
+          "name": "reducedLockTimes",
+          "type": "uint256[5]"
         }
       ],
       "stateMutability": "view",

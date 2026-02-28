@@ -1,15 +1,17 @@
 /**
  * AdminLogin - Secure login page for admin panel
- * 
  * Uses wallet signature verification for authentication
- * Owner wallet: 0xed639e84179FCEcE1d7BEe91ab1C6888fbBdD0cf
  */
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount, useConnect } from 'wagmi';
 import { motion } from 'framer-motion';
+import GlobalBackground from '../ui/gradientBackground';
 import { useAdminAuth } from '../hooks/admin/useAdminAuth';
+
+const OWNER = (import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as string;
+const maskedOwner = OWNER ? `${OWNER.slice(0, 4)}...${OWNER.slice(-4)}` : '—';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -36,7 +38,8 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center px-4">
+    <GlobalBackground>
+    <div className="min-h-screen flex items-center justify-center px-4">
       <motion.div
         className="max-w-md w-full"
         initial={{ opacity: 0, y: 20 }}
@@ -91,7 +94,9 @@ export default function AdminLogin() {
                 <div>
                   <p className="text-sm text-red-400 font-medium">Access Denied</p>
                   <p className="text-xs text-gray-400 mt-1">Connected wallet is not the owner</p>
-                  <p className="text-xs text-gray-500 mt-2 font-mono break-all">Connected: {address}</p>
+                  <p className="text-xs text-gray-500 mt-2 font-mono">
+                    Connected: {address ? `${address.slice(0, 4)}...${address.slice(-4)}` : '—'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -178,10 +183,10 @@ export default function AdminLogin() {
             </div>
           </div>
 
-          {/* Owner Info */}
+          {/* Owner Info - censored for security */}
           <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
             <p className="text-xs text-gray-500 mb-1">Owner Wallet:</p>
-            <p className="text-xs text-gray-400 font-mono break-all">0xed639e84179FCEcE1d7BEe91ab1C6888fbBdD0cf</p>
+            <p className="text-xs text-gray-400 font-mono">{maskedOwner}</p>
           </div>
         </motion.div>
 
@@ -200,5 +205,6 @@ export default function AdminLogin() {
         </motion.button>
       </motion.div>
     </div>
+    </GlobalBackground>
   );
 }

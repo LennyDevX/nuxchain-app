@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import GlobalBackground from '../ui/gradientBackground';
 import UniswapPriceFeed from '../components/labs/UniswapPriceFeed';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
 
@@ -8,7 +7,7 @@ const PriceFeedPage: React.FC = () => {
   const isMobile = useIsMobile();
 
   return (
-    <GlobalBackground>
+    <>
       <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4 py-6 pb-32' : 'px-4 sm:px-6 lg:px-8 py-12'}`}>
 
         {/* Breadcrumb */}
@@ -112,7 +111,7 @@ const PriceFeedPage: React.FC = () => {
         </div>
 
       </div>
-    </GlobalBackground>
+    </>
   );
 };
 

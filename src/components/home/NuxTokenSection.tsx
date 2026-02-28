@@ -18,8 +18,8 @@ const tokenStats = [
 
 const tokenFeatures = [
   { icon: '🏆', title: 'Monthly Rewards', desc: 'Distributed to active users via the NUX Rewards Hub every 30 days.' },
-  { icon: '🔷', title: 'Polygon Native', desc: 'Activity tracked on Polygon — ultra-fast, ultra-cheap transactions.' },
-  { icon: '◎', title: 'Solana Distribution', desc: 'Rewards sent as SPL tokens to your Solana wallet. Zero gas for recipients.' },
+  { icon: '/assets/tokens/PolLogo.webp', title: 'Polygon Native', desc: 'Activity tracked on Polygon — ultra-fast, ultra-cheap transactions.', isImage: true },
+  { icon: '/assets/tokens/SolanaLogo.png', title: 'Solana Distribution', desc: 'Rewards sent as SPL tokens to your Solana wallet. Zero gas for recipients.', isImage: true },
   { icon: '📈', title: 'Staking Utility', desc: 'Stake NUX for governance rights and ecosystem fee discounts.' },
 ];
 
@@ -84,7 +84,11 @@ function NuxTokenSection() {
           <div className="space-y-4">
             {tokenFeatures.map((f, i) => (
               <motion.div key={i} {...fadeUp(0.1 + i * 0.09)} className="card-unified p-5 flex gap-4 items-start">
-                <span className="text-3xl flex-shrink-0">{f.icon}</span>
+                {f.isImage ? (
+                  <img src={f.icon} alt={f.title} className="w-8 h-8 flex-shrink-0 object-contain" />
+                ) : (
+                  <span className="text-3xl flex-shrink-0">{f.icon}</span>
+                )}
                 <div>
                   <h3 className={`jersey-15-regular text-white mb-1 ${isMobile ? 'text-xl' : 'text-2xl'}`}>{f.title}</h3>
                   <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-base' : 'text-lg'}`}>{f.desc}</p>

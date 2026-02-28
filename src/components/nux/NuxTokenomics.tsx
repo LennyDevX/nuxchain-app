@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 
 const allocations = [
-  { label: 'Presale', pct: 15, amount: '15,000,000', color: 'bg-amber-400', textColor: 'text-amber-400', borderColor: 'border-amber-400/30', desc: 'Public & whitelist presale on Smithii Launchpad — community entry point' },
-  { label: 'Liquidity Pool', pct: 15, amount: '15,000,000', color: 'bg-blue-400', textColor: 'text-blue-400', borderColor: 'border-blue-400/30', desc: 'Raydium LP — Funded by presale, LP tokens burned at TGE for permanent liquidity' },
-  { label: 'Polygon Activity Rewards', pct: 20, amount: '20,000,000', color: 'bg-emerald-400', textColor: 'text-emerald-400', borderColor: 'border-emerald-400/30', desc: 'Airdrop rewards for cross-chain activity — 40,000 NUX per registered user' },
-  { label: 'Dev Team', pct: 15, amount: '15,000,000', color: 'bg-pink-400', textColor: 'text-pink-400', borderColor: 'border-pink-400/30', desc: 'Core dev, R&D and platform growth — 12-month vesting schedule' },
-  { label: 'Marketing & Growth', pct: 15, amount: '15,000,000', color: 'bg-purple-400', textColor: 'text-purple-400', borderColor: 'border-purple-400/30', desc: 'Global outreach, KOLs, exchange listings and strategic partnerships' },
-  { label: 'Ecosystem & Treasury', pct: 20, amount: '20,000,000', color: 'bg-cyan-400', textColor: 'text-cyan-400', borderColor: 'border-cyan-400/30', desc: 'Skills marketplace, NFT integrations, AI features, grants and future growth' },
+  { label: 'Whitelist', pct: 8, amount: '8,000,000', color: 'bg-amber-400', textColor: 'text-amber-400', borderColor: 'border-amber-400/30', desc: 'Exclusive Tier 1 — Airdrop registrants at 0.000015 SOL/NUX (40% off). Mar 2–14.' },
+  { label: 'Public Presale', pct: 7, amount: '7,000,000', color: 'bg-orange-400', textColor: 'text-orange-400', borderColor: 'border-orange-400/30', desc: 'Open Tier 2 — Public sale at 0.000025 SOL/NUX. Min 1,000 NUX. Mar 15–22.' },
+  { label: 'LP Bootstrap', pct: 15, amount: '15,000,000', color: 'bg-blue-400', textColor: 'text-blue-400', borderColor: 'border-blue-400/30', desc: 'Raydium LP — 50% of SOL raised + equivalent NUX at 0.00004 SOL. LP tokens burned at TGE (Mar 24).' },
+  { label: 'Airdrop & Rewards', pct: 20, amount: '20,000,000', color: 'bg-emerald-400', textColor: 'text-emerald-400', borderColor: 'border-emerald-400/30', desc: '40,000 NUX per registered user — 3-phase vesting: 10K at TGE → 20K @ 3mo → 10K @ 6mo.' },
+  { label: 'Dev Team', pct: 15, amount: '15,000,000', color: 'bg-pink-400', textColor: 'text-pink-400', borderColor: 'border-pink-400/30', desc: 'Core dev, R&D and platform growth — 12-month cliff + 24-month linear vesting.' },
+  { label: 'Marketing', pct: 10, amount: '10,000,000', color: 'bg-purple-400', textColor: 'text-purple-400', borderColor: 'border-purple-400/30', desc: 'Global outreach, KOLs, exchange listings and strategic partnerships.' },
+  { label: 'Ecosystem & Treasury', pct: 20, amount: '20,000,000', color: 'bg-cyan-400', textColor: 'text-cyan-400', borderColor: 'border-cyan-400/30', desc: 'Skills marketplace, NFT integrations, AI features, grants and DAO governance releases.' },
+  { label: 'Reserve', pct: 5, amount: '5,000,000', color: 'bg-slate-400', textColor: 'text-slate-400', borderColor: 'border-slate-400/30', desc: 'CEX listings, emergency liquidity, future strategic opportunities.' },
 ];
 
 export default function NuxTokenomics() {

@@ -13,6 +13,7 @@ function Navbar() {
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
     { path: '/airdrop', label: 'Airdrop' },
+    { path: '/launchpad', label: 'LP' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
     { path: '/nux', label: 'NUX' },
@@ -98,6 +99,13 @@ function Navbar() {
                         }`}
                     >
                       {link.label}
+                      {link.path === '/launchpad' && (
+                        <motion.div
+                          className="w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
                       {link.path === '/nux' && (
                         <motion.div
                           className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.7)]"
@@ -112,14 +120,11 @@ function Navbar() {
                           transition={{ duration: 1, repeat: Infinity }}
                         />
                       )}
-                      {link.path === '/tokenomics' && isMaintenanceMode('tokenomics') && (
+                      {link.path === '/tokenomics' && (
                         <motion.div
-                          className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]"
-                          animate={{
-                            scale: [1, 1.4, 1],
-                            opacity: [0.8, 1, 0.8]
-                          }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
                         />
                       )}
                     </Link>

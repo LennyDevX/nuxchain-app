@@ -1,13 +1,8 @@
 /**
  * AdminTreasuryFix - Emergency component to fix treasury address configuration
- * 
- * ISSUE FOUND: Staking contract is sending commissions to wrong address
- * - Current: Unknown (check contract)
- * - Expected: 0x92BA711B203CF40bb6c5f7f509E0f48aa19e2cD9 (TreasuryManager)
- * 
- * This component allows the contract owner to:
- * 1. Query the current treasury address
- * 2. Update it to the correct Treasury Manager address
+ *
+ * Allows the contract owner to update the staking contract's treasury address
+ * to the correct TreasuryManager contract.
  */
 
 import { useState } from 'react';
@@ -83,10 +78,10 @@ export default function AdminTreasuryFix() {
 
   const formatAddress = (addr: string | undefined) => {
     if (!addr) return 'Loading...';
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
   };
 
-  const isCorrect = currentTreasury?.toString().toLowerCase() === TREASURY_MANAGER.toLowerCase();
+  const isCorrect = currentTreasury?.toString().toLowerCase() === TREASURY_MANAGER?.toLowerCase();
 
   return (
     <motion.div
@@ -154,22 +149,6 @@ export default function AdminTreasuryFix() {
           <p className="text-green-400 font-mono text-sm">{TREASURY_MANAGER}</p>
         </div>
       </div>
-
-      {/* Transaction Evidence */}
-      {!isCorrect && (
-        <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
-          <p className="text-sm text-orange-400 font-medium mb-2">📊 Evidence from Transaction</p>
-          <p className="text-xs text-gray-300">
-            In deposit tx <code className="text-orange-300">0x12b7c6437f3258f2ec1011183407a3dbd791f2d870d655bcce2f524214b568e5</code>:
-          </p>
-          <ul className="text-xs text-gray-300 mt-2 space-y-1 list-disc list-inside">
-            <li>Deposit: 10 POL</li>
-            <li>Commission (6%): 0.6 POL</li>
-            <li>Commission sent to: <code className="text-red-300">{currentTreasury?.toString()}</code></li>
-            <li>❌ Should go to: <code className="text-green-300">{TREASURY_MANAGER}</code></li>
-          </ul>
-        </div>
-      )}
 
       {/* Action Button */}
       {!isCorrect && (

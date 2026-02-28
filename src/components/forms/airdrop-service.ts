@@ -56,7 +56,8 @@ export async function validateRegistrationOnServer(
     language: string;
   },
   walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean },
-  resolvedIP?: string
+  resolvedIP?: string,
+  captchaToken?: string
 ) {
   try {
     console.log('🔍 Validating registration on server...');
@@ -74,6 +75,7 @@ export async function validateRegistrationOnServer(
         ipAddress,
         userAgent: navigator.userAgent,
         browserInfo,
+        captchaToken: captchaToken || '',
         ...(walletHint ? { walletHint } : {}),
       }),
     });
@@ -202,7 +204,8 @@ export async function submitAirdropRegistration(
       deviceData?.fingerprint || 'unknown',
       deviceData?.browserInfo,
       deviceData?.walletHint,
-      resolvedIP
+      resolvedIP,
+      deviceData?.captchaToken
     );
 
     console.log('✅ Server validation passed');
@@ -228,6 +231,11 @@ export async function submitAirdropRegistration(
         timeToSubmit: deviceData ? deviceData.submitTime - deviceData.pageLoadTime : 0,
         captchaToken: deviceData?.captchaToken || '',
         walletSignature: deviceData?.walletSignature || '',
+        walletMetrics: deviceData?.walletHint ? {
+          walletAgeDays: 0,            // will be enriched by validate response if cached
+          transactionCount: deviceData.walletHint.transactionCount,
+          balance: 0,
+        } : undefined,
       }),
     });
 

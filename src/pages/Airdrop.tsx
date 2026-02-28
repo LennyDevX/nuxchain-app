@@ -5,7 +5,7 @@ import bs58 from 'bs58';
 import { db } from '../components/firebase/config';
 import { submitAirdropRegistration, getRegisteredUsersCount, checkUserRegistration } from '../components/forms/airdrop-service';
 import { analyzeWalletMetrics, type WalletMetrics } from '../components/forms/wallet-analysis-service';
-import GlobalBackground from '../ui/gradientBackground';
+
 import Footer from '../components/layout/footer';
 import AirdropHeader from '../components/airdrop/AirdropHeader';
 import AirdropForm from '../components/airdrop/AirdropForm';
@@ -377,7 +377,7 @@ function Airdrop() {
   const poolProgress = Math.min(100, (registeredUsers / MAX_USERS) * 100);
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           {/* Header Section - Modular Component */}
@@ -599,7 +599,7 @@ function Airdrop() {
         isOpen={isRequirementsOpen} 
         onClose={() => setIsRequirementsOpen(false)} 
       />
-    </GlobalBackground>
+    </>
   );
 }
 

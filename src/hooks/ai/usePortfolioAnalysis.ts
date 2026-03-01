@@ -6,20 +6,13 @@
 import { useMemo } from 'react';
 import { useUserDeposits } from '../staking/useUserDeposits';
 import { useUserStaking } from '../staking/useUserStaking';
+import { useContractConstants } from './useContractConstants';
 import { 
   analyzePortfolio, 
   type StakingPosition, 
-  type PortfolioAnalysis 
+  type PortfolioAnalysis,
+  DEFAULT_APY_BY_LOCKUP,
 } from '../../utils/ai/portfolioAnalyzer';
-
-// APY rates by lockup duration (in basis points for precision)
-const APY_RATES: Record<number, number> = {
-  0: 43.80,      // Flexible
-  30: 87.60,     // 30 days
-  90: 122.64,    // 90 days
-  180: 149.28,   // 180 days
-  365: 219.00,   // 365 days
-};
 
 export interface UsePortfolioAnalysisReturn {
   portfolioAnalysis: PortfolioAnalysis | null;
@@ -29,15 +22,14 @@ export interface UsePortfolioAnalysisReturn {
 }
 
 /**
- * Get APY rate for a given lockup duration in days
+ * Get APY rate for a given lockup duration in days from contract rates (basis points -> %)
  */
-function getAPYForLockup(lockupDays: number): number {
-  // Find closest lockup tier
-  if (lockupDays === 0) return APY_RATES[0];
-  if (lockupDays <= 30) return APY_RATES[30];
-  if (lockupDays <= 90) return APY_RATES[90];
-  if (lockupDays <= 180) return APY_RATES[180];
-  return APY_RATES[365];
+function getAPYForLockup(lockupDays: number, apyLookup: Record<number, number>): number {
+  if (lockupDays === 0) return apyLookup[0];
+  if (lockupDays <= 30) return apyLookup[30];
+  if (lockupDays <= 90) return apyLookup[90];
+  if (lockupDays <= 180) return apyLookup[180];
+  return apyLookup[365];
 }
 
 /**
@@ -46,27 +38,18 @@ function getAPYForLockup(lockupDays: number): number {
 function calculateEstimatedRewards(
   amount: bigint,
   lockupDays: number,
-  depositTime: bigint
+  depositTime: bigint,
+  apyLookup: Record<number, number>
 ): bigint {
   const currentTime = BigInt(Math.floor(Date.now() / 1000));
   const timePassed = Number(currentTime - depositTime);
   const daysStaked = timePassed / 86400;
   
-  const apy = getAPYForLockup(lockupDays);
+  const apy = getAPYForLockup(lockupDays, apyLookup);
   const dailyRate = apy / 365 / 100;
   const estimatedRewards = Number(amount) * dailyRate * daysStaked;
   
   return BigInt(Math.floor(estimatedRewards));
-}
-
-/**
- * Calculate current ROI percentage for a position
- */
-function calculateCurrentROI(
-  lockupDays: number
-): number {
-  // Use the APY rate for this lockup period
-  return getAPYForLockup(lockupDays);
 }
 
 /**
@@ -76,6 +59,19 @@ function calculateCurrentROI(
 export function usePortfolioAnalysis(): UsePortfolioAnalysisReturn {
   const { deposits, isLoading: loadingDeposits, error: depositsError } = useUserDeposits();
   const { isLoading: loadingStaking, error: stakingError } = useUserStaking();
+  const { apyRates } = useContractConstants();
+
+  // Build APY lookup from contract rates (basis points / 100 = %)
+  const apyLookup = useMemo((): Record<number, number> => {
+    if (!apyRates || apyRates.flexible === 0) return DEFAULT_APY_BY_LOCKUP;
+    return {
+      0:   apyRates.flexible  / 100,
+      30:  apyRates.locked30  / 100,
+      90:  apyRates.locked90  / 100,
+      180: apyRates.locked180 / 100,
+      365: apyRates.locked365 / 100,
+    };
+  }, [apyRates]);
 
   // Transform deposits into StakingPosition format
   const positions = useMemo((): StakingPosition[] => {
@@ -88,9 +84,10 @@ export function usePortfolioAnalysis(): UsePortfolioAnalysisReturn {
         const estimatedRewards = calculateEstimatedRewards(
           deposit.amount,
           lockupDays,
-          deposit.depositTime
+          deposit.depositTime,
+          apyLookup
         );
-        const currentROI = calculateCurrentROI(lockupDays);
+        const currentROI = getAPYForLockup(lockupDays, apyLookup);
 
         const position = {
           depositId: BigInt(deposit.index),
@@ -117,7 +114,7 @@ export function usePortfolioAnalysis(): UsePortfolioAnalysisReturn {
     
     console.log(`[usePortfolioAnalysis] Total positions:`, transformedPositions.length);
     return transformedPositions;
-  }, [deposits]);
+  }, [deposits, apyLookup]);
 
   // Generate portfolio analysis
   const portfolioAnalysis = useMemo((): PortfolioAnalysis | null => {

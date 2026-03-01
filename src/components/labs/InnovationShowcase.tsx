@@ -36,18 +36,18 @@ const ProjectCard: React.FC<ProjectProps> = ({ title, description, icon, progres
               {category}
             </span>
           </div>
-          <h3 className={`font-bold mb-2 ${
-            isMobile ? 'text-sm' : 'text-xl'
+          <h3 className={`font-bold mb-2 jersey-15-regular ${
+            isMobile ? 'text-xl' : 'text-3xl'
           }`}>{title}</h3>
           {!isMobile && (
-            <p className="text-slate-400 text-sm">{description}</p>
+            <p className="text-slate-400 jersey-20-regular text-sm">{description}</p>
           )}
         </div>
         
         <div className="relative z-10">
           <div className="space-y-4">
             <div className={isMobile ? 'space-y-1' : 'space-y-2'}>
-              <div className={`flex justify-between ${isMobile ? 'text-xs' : 'text-sm'}`}>
+              <div className={`flex justify-between jersey-20-regular ${isMobile ? 'text-xl' : 'text-sm'}`}>
                 <span className="text-slate-400">Progress</span>
                 <span className="font-medium">{progress}%</span>
               </div>
@@ -135,8 +135,8 @@ const InnovationShowcase: React.FC = () => {
             onClick={() => filterProjects(category)}
             aria-pressed={activeFilter === category}
             aria-label={`Filter by ${category === 'all' ? 'all categories' : category}`}
-            className={`px-4 py-2 rounded-full transition-all duration-300 ${
-              isMobile ? 'text-xs px-3 py-1.5' : 'text-sm'
+            className={`px-4 py-2 rounded-full transition-all duration-300 jersey-20-regular ${
+              isMobile ? 'text-xl px-3 py-1.5' : 'text-2xl'
             } ${activeFilter === category 
               ? 'bg-purple-600 text-white font-medium' 
               : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}

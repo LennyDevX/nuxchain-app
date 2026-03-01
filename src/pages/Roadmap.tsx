@@ -1,14 +1,13 @@
 import React from 'react';
-import GlobalBackground from '../ui/gradientBackground';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import RoadmapHero from '../components/Roadmap/RoadmapHero';
-import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
+import RoadmapHero from '../components/roadmap/RoadmapHero';
+import MilestonesGrid from '../components/roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
   const isMobile = useIsMobile();
 
   return (
-    <GlobalBackground>
+    <>
       {/* Hero Section */}
       <RoadmapHero isMobile={isMobile} />
 
@@ -29,13 +28,13 @@ const RoadmapPage: React.FC = () => {
               isMobile ? 'p-6' : 'p-12'
             }`}>
               <div className="relative z-10">
-                <h2 className={`font-bold mb-4 ${
-                  isMobile ? 'text-xl' : 'text-3xl'
+                <h2 className={`jersey-15-regular mb-4 ${
+                  isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'
                 }`}>
                   Join Us on This Journey
                 </h2>
-                <p className={`text-slate-400 max-w-2xl mx-auto ${
-                  isMobile ? 'text-sm mb-6' : 'text-lg mb-8'
+                <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${
+                  isMobile ? 'text-lg mb-6' : 'text-xl md:text-2xl mb-8'
                 }`}>
                   Be part of the revolution in blockchain technology. Follow our progress and contribute to the future of decentralized finance.
                 </p>
@@ -46,7 +45,7 @@ const RoadmapPage: React.FC = () => {
                     href="https://discord.gg/szZP2JcSq4" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="btn-primary px-8 py-3 inline-block text-center"
+                    className="jersey-20-regular btn-primary px-8 py-3 inline-block text-center text-lg md:text-xl"
                   >
                     Join Community
                   </a>
@@ -57,7 +56,7 @@ const RoadmapPage: React.FC = () => {
           </section>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 };
 

@@ -128,18 +128,18 @@ contract EnhancedSmartStakingViewSkills {
         result.depositCount = dCount;
         result.lastWithdrawTime = lastWith;
         
-        // Try to get skill profile
+        // Get skill profile
         (bool successProfile, bytes memory dataProfile) = stakingContract.staticcall(
             abi.encodeWithSignature("getUserSkillProfile(address)", user)
         );
-        if (successProfile) {
-            result.skillProfile = abi.decode(dataProfile, (IStakingIntegration.UserSkillProfile));
-        }
+        require(successProfile, "View: getUserSkillProfile call failed");
+        result.skillProfile = abi.decode(dataProfile, (IStakingIntegration.UserSkillProfile));
         
-        // Try to get active skills
+        // Get active skills
         (bool successSkills, bytes memory dataSkills) = stakingContract.staticcall(
-            abi.encodeWithSignature("getActiveSkills(address)", user)
+            abi.encodeWithSignature("getActiveSkillCount(address)", user)
         );
+        require(successSkills, "View: getActiveSkillCount call failed");
         if (successSkills) {
             result.activeSkills = abi.decode(dataSkills, (IStakingIntegration.NFTSkill[]));
         }
@@ -221,38 +221,30 @@ contract EnhancedSmartStakingViewSkills {
         stats.depositCount = dCount;
         stats.lastWithdrawTime = lastWith;
         
-        // Get boosted rewards
+        // Get rewards (boosted by skills via CoreV2.calculateRewards which applies referral + skill boosts)
         (bool successBoosted, bytes memory dataBoosted) = stakingContract.staticcall(
-            abi.encodeWithSignature("calculateBoostedRewards(address)", user)
+            abi.encodeWithSignature("calculateRewards(address)", user)
         );
         if (successBoosted) {
             stats.boostedRewards = abi.decode(dataBoosted, (uint256));
         }
-        
-        // Get boosted rewards with rarity
-        (bool successRarity, bytes memory dataRarity) = stakingContract.staticcall(
-            abi.encodeWithSignature("calculateBoostedRewardsWithRarityMultiplier(address)", user)
-        );
-        if (successRarity) {
-            stats.boostedRewardsWithRarity = abi.decode(dataRarity, (uint256));
-        }
+        stats.boostedRewardsWithRarity = stats.boostedRewards; // same source — rarity multiplier removed in v6.2
         
         // Get skill profile
         (bool successProfile, bytes memory dataProfile) = stakingContract.staticcall(
             abi.encodeWithSignature("getUserSkillProfile(address)", user)
         );
-        if (successProfile) {
-            IStakingIntegration.UserSkillProfile memory profile = abi.decode(
-                dataProfile, 
-                (IStakingIntegration.UserSkillProfile)
-            );
-            stats.userLevel = profile.level;
-            stats.userXP = profile.totalXP;
-            stats.maxActiveSkills = profile.maxActiveSkills;
-            stats.stakingBoostTotal = profile.stakingBoostTotal;
-            stats.feeDiscountTotal = profile.feeDiscountTotal;
-            stats.hasAutoCompound = profile.hasAutoCompound;
-        }
+        require(successProfile, "View: getUserSkillProfile call failed");
+        IStakingIntegration.UserSkillProfile memory profile = abi.decode(
+            dataProfile, 
+            (IStakingIntegration.UserSkillProfile)
+        );
+        stats.userLevel = profile.level;
+        stats.userXP = profile.totalXP;
+        stats.maxActiveSkills = profile.maxActiveSkills;
+        stats.stakingBoostTotal = profile.stakingBoostTotal;
+        stats.feeDiscountTotal = profile.feeDiscountTotal;
+        stats.hasAutoCompound = profile.hasAutoCompound;
         
         return stats;
     }
@@ -263,10 +255,7 @@ contract EnhancedSmartStakingViewSkills {
             abi.encodeWithSignature("getActiveSkills(address)", user)
         );
         
-        if (!success) {
-            return new SkillEffectiveness[](0);
-        }
-        
+        require(success, "View: getActiveSkills call failed");        
         IStakingIntegration.NFTSkill[] memory activeSkills = abi.decode(data, (IStakingIntegration.NFTSkill[]));
         SkillEffectiveness[] memory effectiveness = new SkillEffectiveness[](activeSkills.length);
         

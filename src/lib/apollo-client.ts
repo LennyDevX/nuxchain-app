@@ -2,8 +2,8 @@ import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 
-// The Graph Studio endpoint for nuxchain subgraph (v0.42 - Updated Feb 15, 2026 with new contract addresses)
-const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/122195/nuxchain/v0.42"
+// The Graph Studio endpoint for nuxchain subgraph (v0.43 - Updated Feb 27, 2026 - new account + new contract addresses)
+const SUBGRAPH_URL = import.meta.env.VITE_SUBGRAPH_URL || "https://api.studio.thegraph.com/query/1742913/nuxchain/v0.43"
 
 // ⚡ RATE LIMIT PROTECTION: Retry link with exponential backoff
 const retryLink = new RetryLink({

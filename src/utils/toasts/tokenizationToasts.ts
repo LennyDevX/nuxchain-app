@@ -4,66 +4,14 @@
  */
 
 import toast from 'react-hot-toast'
+import { makeToastStyle, toastDurations, DEFAULT_POSITION } from './toastStyles'
 
-/**
- * 🎨 Toast Style Presets for Tokenization
- */
-const tokenizationToastStyles = {
-  success: {
-    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)',
-    border: '1px solid rgba(16, 185, 129, 0.5)',
-    icon: '✅'
-  },
-  error: {
-    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(239, 68, 68, 0.3)',
-    border: '1px solid rgba(239, 68, 68, 0.5)',
-    icon: '⚠️'
-  },
-  warning: {
-    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
-    border: '1px solid rgba(245, 158, 11, 0.5)',
-    icon: '⚡'
-  },
-  info: {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)',
-    border: '1px solid rgba(59, 130, 246, 0.5)',
-    icon: 'ℹ️'
-  },
-  loading: {
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    color: '#fff',
-    fontSize: '14px',
-    fontWeight: '600',
-    borderRadius: '12px',
-    padding: '16px 24px',
-    boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)',
-    border: '1px solid rgba(139, 92, 246, 0.5)',
-    icon: '⏳'
-  }
+const s = {
+  success: makeToastStyle('success'),
+  error:   makeToastStyle('error'),
+  warning: makeToastStyle('warning'),
+  info:    makeToastStyle('info'),
+  loading: makeToastStyle('loading'),
 }
 
 /**
@@ -74,141 +22,52 @@ export const tokenizationToasts = {
   fileSelected: (fileName: string, size: string) => {
     toast.success(
       `📁 File "${fileName}" selected (${size})`,
-      {
-        duration: 3000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.success.background,
-          color: tokenizationToastStyles.success.color,
-          fontSize: tokenizationToastStyles.success.fontSize,
-          fontWeight: tokenizationToastStyles.success.fontWeight,
-          borderRadius: tokenizationToastStyles.success.borderRadius,
-          padding: tokenizationToastStyles.success.padding,
-          boxShadow: tokenizationToastStyles.success.boxShadow,
-          border: tokenizationToastStyles.success.border
-        }
-      }
+      { duration: toastDurations.default, position: DEFAULT_POSITION, style: s.success }
     )
   },
 
   fileUploadError: (error: string) => {
     toast.error(
       `❌ Upload failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
   fileSizeTooLarge: (maxSize: string) => {
     toast.error(
       `📦 File too large. Maximum size: ${maxSize}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
   invalidFileType: (acceptedTypes: string) => {
     toast.error(
       `❌ Invalid file type. Accepted: ${acceptedTypes}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
   // Minting
-  mintingInProgress: () => {
+  mintingInProgress: (message?: string) => {
     return toast.loading(
-      `⏳ Minting your NFT... This may take a few moments`,
-      {
-        duration: Infinity,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.loading.background,
-          color: tokenizationToastStyles.loading.color,
-          fontSize: tokenizationToastStyles.loading.fontSize,
-          fontWeight: tokenizationToastStyles.loading.fontWeight,
-          borderRadius: tokenizationToastStyles.loading.borderRadius,
-          padding: tokenizationToastStyles.loading.padding,
-          boxShadow: tokenizationToastStyles.loading.boxShadow,
-          border: tokenizationToastStyles.loading.border
-        }
-      }
+      message ?? `⏳ Minting your NFT... This may take a few moments`,
+      { duration: toastDurations.loading, position: DEFAULT_POSITION, style: s.loading }
     )
   },
 
-  mintingSuccess: (nftName: string, tokenId: string) => {
+  mintingSuccess: (nftName: string, tokenId: string, toastId?: string) => {
+    if (toastId) toast.dismiss(toastId)
     toast.success(
       `🎉 NFT "${nftName}" minted successfully! Token ID: ${tokenId}`,
-      {
-        duration: 8000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.success.background,
-          color: tokenizationToastStyles.success.color,
-          fontSize: tokenizationToastStyles.success.fontSize,
-          fontWeight: tokenizationToastStyles.success.fontWeight,
-          borderRadius: tokenizationToastStyles.success.borderRadius,
-          padding: tokenizationToastStyles.success.padding,
-          boxShadow: tokenizationToastStyles.success.boxShadow,
-          border: tokenizationToastStyles.success.border
-        }
-      }
+      { duration: toastDurations.critical, position: DEFAULT_POSITION, style: s.success }
     )
   },
 
-  mintingError: (error: string) => {
+  mintingError: (error: string, toastId?: string) => {
+    if (toastId) toast.dismiss(toastId)
     toast.error(
       `❌ Minting failed: ${error}`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
@@ -216,40 +75,14 @@ export const tokenizationToasts = {
   metadataValidationError: (field: string) => {
     toast.error(
       `❌ Invalid metadata: ${field}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
   requiredFieldMissing: (fieldName: string) => {
     toast.error(
       `❌ Required field missing: ${fieldName}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
@@ -257,60 +90,21 @@ export const tokenizationToasts = {
   approvalRequested: () => {
     return toast.loading(
       `⏳ Requesting contract approval...`,
-      {
-        duration: Infinity,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.loading.background,
-          color: tokenizationToastStyles.loading.color,
-          fontSize: tokenizationToastStyles.loading.fontSize,
-          fontWeight: tokenizationToastStyles.loading.fontWeight,
-          borderRadius: tokenizationToastStyles.loading.borderRadius,
-          padding: tokenizationToastStyles.loading.padding,
-          boxShadow: tokenizationToastStyles.loading.boxShadow,
-          border: tokenizationToastStyles.loading.border
-        }
-      }
+      { duration: toastDurations.loading, position: DEFAULT_POSITION, style: s.loading }
     )
   },
 
   approvalSuccess: () => {
     toast.success(
       `✅ Contract approved successfully!`,
-      {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.success.background,
-          color: tokenizationToastStyles.success.color,
-          fontSize: tokenizationToastStyles.success.fontSize,
-          fontWeight: tokenizationToastStyles.success.fontWeight,
-          borderRadius: tokenizationToastStyles.success.borderRadius,
-          padding: tokenizationToastStyles.success.padding,
-          boxShadow: tokenizationToastStyles.success.boxShadow,
-          border: tokenizationToastStyles.success.border
-        }
-      }
+      { duration: toastDurations.medium, position: DEFAULT_POSITION, style: s.success }
     )
   },
 
   approvalError: (error: string) => {
     toast.error(
       `❌ Approval failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
@@ -318,60 +112,21 @@ export const tokenizationToasts = {
   uploadingToIPFS: () => {
     return toast.loading(
       `📤 Uploading to IPFS...`,
-      {
-        duration: Infinity,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.loading.background,
-          color: tokenizationToastStyles.loading.color,
-          fontSize: tokenizationToastStyles.loading.fontSize,
-          fontWeight: tokenizationToastStyles.loading.fontWeight,
-          borderRadius: tokenizationToastStyles.loading.borderRadius,
-          padding: tokenizationToastStyles.loading.padding,
-          boxShadow: tokenizationToastStyles.loading.boxShadow,
-          border: tokenizationToastStyles.loading.border
-        }
-      }
+      { duration: toastDurations.loading, position: DEFAULT_POSITION, style: s.loading }
     )
   },
 
   ipfsUploadSuccess: (ipfsHash: string) => {
     toast.success(
       `📦 Uploaded to IPFS: ${ipfsHash.slice(0, 10)}...`,
-      {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.success.background,
-          color: tokenizationToastStyles.success.color,
-          fontSize: tokenizationToastStyles.success.fontSize,
-          fontWeight: tokenizationToastStyles.success.fontWeight,
-          borderRadius: tokenizationToastStyles.success.borderRadius,
-          padding: tokenizationToastStyles.success.padding,
-          boxShadow: tokenizationToastStyles.success.boxShadow,
-          border: tokenizationToastStyles.success.border
-        }
-      }
+      { duration: toastDurations.medium, position: DEFAULT_POSITION, style: s.success }
     )
   },
 
   ipfsUploadError: (error: string) => {
     toast.error(
       `❌ IPFS upload failed: ${error}`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
@@ -379,40 +134,14 @@ export const tokenizationToasts = {
   walletNotConnected: () => {
     toast.error(
       `🔐 Please connect your wallet to tokenize assets`,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   },
 
   incorrectNetwork: (expectedNetwork: string) => {
     toast(
       `🌐 Please switch to ${expectedNetwork} network`,
-      {
-        duration: 6000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.warning.background,
-          color: tokenizationToastStyles.warning.color,
-          fontSize: tokenizationToastStyles.warning.fontSize,
-          fontWeight: tokenizationToastStyles.warning.fontWeight,
-          borderRadius: tokenizationToastStyles.warning.borderRadius,
-          padding: tokenizationToastStyles.warning.padding,
-          boxShadow: tokenizationToastStyles.warning.boxShadow,
-          border: tokenizationToastStyles.warning.border
-        }
-      }
+      { duration: toastDurations.long, position: DEFAULT_POSITION, style: s.warning }
     )
   },
 
@@ -420,20 +149,7 @@ export const tokenizationToasts = {
   processingTransaction: (step: string) => {
     return toast.loading(
       `⏳ ${step}... Please wait`,
-      {
-        duration: Infinity,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.loading.background,
-          color: tokenizationToastStyles.loading.color,
-          fontSize: tokenizationToastStyles.loading.fontSize,
-          fontWeight: tokenizationToastStyles.loading.fontWeight,
-          borderRadius: tokenizationToastStyles.loading.borderRadius,
-          padding: tokenizationToastStyles.loading.padding,
-          boxShadow: tokenizationToastStyles.loading.boxShadow,
-          border: tokenizationToastStyles.loading.border
-        }
-      }
+      { duration: toastDurations.loading, position: DEFAULT_POSITION, style: s.loading }
     )
   },
 
@@ -441,20 +157,7 @@ export const tokenizationToasts = {
   skillTokenBenefit: (benefit: string) => {
     toast(
       `✨ Skill Token Benefit: ${benefit}`,
-      {
-        duration: 4000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.info.background,
-          color: tokenizationToastStyles.info.color,
-          fontSize: tokenizationToastStyles.info.fontSize,
-          fontWeight: tokenizationToastStyles.info.fontWeight,
-          borderRadius: tokenizationToastStyles.info.borderRadius,
-          padding: tokenizationToastStyles.info.padding,
-          boxShadow: tokenizationToastStyles.info.boxShadow,
-          border: tokenizationToastStyles.info.border
-        }
-      }
+      { duration: toastDurations.medium, position: DEFAULT_POSITION, style: s.info }
     )
   },
 
@@ -462,20 +165,7 @@ export const tokenizationToasts = {
   error: (message: string) => {
     toast.error(
       message,
-      {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: tokenizationToastStyles.error.background,
-          color: tokenizationToastStyles.error.color,
-          fontSize: tokenizationToastStyles.error.fontSize,
-          fontWeight: tokenizationToastStyles.error.fontWeight,
-          borderRadius: tokenizationToastStyles.error.borderRadius,
-          padding: tokenizationToastStyles.error.padding,
-          boxShadow: tokenizationToastStyles.error.boxShadow,
-          border: tokenizationToastStyles.error.border
-        }
-      }
+      { duration: toastDurations.error, position: DEFAULT_POSITION, style: s.error }
     )
   }
 }

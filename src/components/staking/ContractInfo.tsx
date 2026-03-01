@@ -23,7 +23,7 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
       transition={{ duration: 0.5 }}
     >
       <motion.h3
-        className="text-lg font-bold text-white mb-3"
+        className="jersey-15-regular text-2xl lg:text-3xl font-bold text-white mb-3"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -45,9 +45,9 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
           transition={{ duration: 0.3, delay: 0.2 }}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
         >
-          <span className="text-white/60 text-sm">Version:</span>
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Version:</span>
           <motion.span
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium"
+            className="jersey-15-regular bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full text-xs lg:text-sm font-medium"
             whileHover={{ scale: 1.05 }}
           >
             Smart Staking v2
@@ -62,10 +62,10 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
           transition={{ duration: 0.3, delay: 0.25 }}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
         >
-          <span className="text-white/60 text-sm">Contract:</span>
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Contract:</span>
           <div className="flex items-center space-x-2">
             <motion.span
-              className="bg-white/10 text-white px-2 py-1 rounded-lg text-xs font-mono"
+              className="jersey-20-regular bg-white/10 text-white px-2 py-1 rounded-lg text-xs lg:text-sm font-mono"
               whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
             >
               {truncateAddress(contractAddress)}
@@ -94,7 +94,7 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
           transition={{ duration: 0.3, delay: 0.3 }}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
         >
-          <span className="text-white/60 text-sm">Status:</span>
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Status:</span>
           <div className="flex items-center space-x-2">
             <motion.div
               className={`w-2 h-2 rounded-full ${isPaused ? 'bg-red-500' : 'bg-green-500'}`}
@@ -102,7 +102,7 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
               transition={{ duration: 2, repeat: Infinity }}
             ></motion.div>
             <motion.span
-              className={`text-xs font-medium ${isPaused ? 'text-red-400' : 'text-green-400'}`}
+              className={`jersey-15-regular text-xs lg:text-sm font-medium ${isPaused ? 'text-red-400' : 'text-green-400'}`}
               whileHover={{ scale: 1.1 }}
             >
               {isPaused ? 'Paused' : 'Active'}
@@ -118,13 +118,69 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
           transition={{ duration: 0.3, delay: 0.35 }}
           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
         >
-          <span className="text-white/60 text-sm">Network:</span>
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Network:</span>
           <motion.span
-            className="bg-purple-600/20 text-purple-300 px-2 py-1 rounded-full text-xs font-medium border border-purple-500/30"
+            className="jersey-15-regular bg-purple-600/20 text-purple-300 px-2 py-1 rounded-full text-xs lg:text-sm font-medium border border-purple-500/30"
             whileHover={{ scale: 1.05, backgroundColor: 'rgba(126, 34, 206, 0.3)' }}
           >
             Polygon
           </motion.span>
+        </motion.div>
+
+        {/* Divider */}
+        <div className="border-t border-white/10 my-2"></div>
+
+        {/* Protocol Fee */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
+        >
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Protocol Fee:</span>
+          <span className="jersey-15-regular text-amber-400 text-xs lg:text-sm font-medium">2% APY</span>
+        </motion.div>
+
+        {/* Minimum Deposit */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.45 }}
+          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
+        >
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Min Deposit:</span>
+          <span className="jersey-15-regular text-cyan-400 text-xs lg:text-sm font-medium">10 POL</span>
+        </motion.div>
+
+        {/* Audit Status */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
+        >
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Audit:</span>
+          <motion.span
+            className="jersey-15-regular bg-green-600/20 text-green-300 px-2 py-1 rounded-full text-xs lg:text-sm font-medium border border-green-500/30"
+            whileHover={{ scale: 1.05, backgroundColor: 'rgba(34, 197, 94, 0.3)' }}
+          >
+            ✓ Verified
+          </motion.span>
+        </motion.div>
+
+        {/* Max APY Tier */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.55 }}
+          whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}
+        >
+          <span className="jersey-20-regular text-white/60 text-sm lg:text-base">Max Tier:</span>
+          <span className="jersey-15-regular text-pink-400 text-xs lg:text-sm font-medium">365 Days • 118%</span>
         </motion.div>
       </motion.div>
     </motion.div>

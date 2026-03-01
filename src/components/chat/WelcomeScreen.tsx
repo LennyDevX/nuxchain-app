@@ -63,7 +63,7 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
             <AnimatedAILogo size="large" className="w-24 h-24" />
           </motion.div>
           <motion.p 
-            className="text-white/70 text-lg"
+            className="jersey-20-regular text-white/70 text-lg md:text-xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
@@ -75,8 +75,8 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
         {/* Quick Questions */}
         <div className="mb-8">
           <motion.h2 
-            className={`font-semibold text-white mb-6 ${
-              isMobile ? 'text-lg' : 'text-xl'
+            className={`jersey-15-regular text-white mb-6 ${
+              isMobile ? 'text-xl' : 'text-2xl md:text-3xl'
             }`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -138,8 +138,8 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
                   </motion.span>
                   <div className={isMobile ? 'text-center w-full' : ''}>
                     <motion.h3 
-                      className={`font-semibold text-white group-hover:text-brand-purple-300 transition-colors ${
-                        isMobile ? 'text-sm' : 'text-base'
+                      className={`jersey-15-regular text-white group-hover:text-brand-purple-300 transition-colors ${
+                        isMobile ? 'text-base' : 'text-lg md:text-xl'
                       }`}
                       animate={{ opacity: [0.9, 1, 0.9] }}
                       transition={{ 
@@ -152,7 +152,7 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
                     </motion.h3>
                     {!isMobile && (
                       <motion.p 
-                        className="text-sm text-white/60 mt-1"
+                        className="jersey-20-regular text-base text-white/60 mt-1"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 + index * 0.1 }}
@@ -169,7 +169,7 @@ export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) 
 
         {/* Additional Info */}
         <motion.div 
-          className="text-white/50 text-sm"
+          className="text-white/50 jersey-20-regular text-base md:text-lg"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5 }}

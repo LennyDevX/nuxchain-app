@@ -168,6 +168,40 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "window",
+          "type": "uint256"
+        }
+      ],
+      "name": "getExpiringDeposits",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "indices",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "unlockTimes",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "getGlobalStats",
       "outputs": [
@@ -280,6 +314,45 @@
         {
           "internalType": "uint256",
           "name": "contractBalanceValue",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getReferralInfo",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalReferralsMade",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "boostEndTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "boostActive",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "currentBoostBps",
           "type": "uint256"
         }
       ],

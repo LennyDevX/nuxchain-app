@@ -45,11 +45,11 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
             </motion.div>
 
             {/* Name and Effect - Compact */}
-            <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">
+            <h4 className="jersey-15-regular text-lg md:text-2xl text-white mb-1 line-clamp-1">
               {skill.name.split(' - ')[0]}
             </h4>
             <p
-              className="text-xs font-semibold mb-2"
+              className="jersey-20-regular text-lg md:text-xl mb-2"
               style={{ color: skill.color }}
             >
               {skill.effectFormatted}
@@ -57,7 +57,7 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
 
             {/* Rarity Badge - Small */}
             <span
-              className="inline-block text-xs font-bold px-2 py-1 rounded-full text-white"
+              className="inline-block jersey-15-regular text-lg md:text-xl px-2 py-1 rounded-full text-white"
               style={{
                 backgroundColor: skill.color,
               }}
@@ -98,12 +98,12 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
           <div className="flex items-start justify-between mb-4">
             <motion.div
               animate={isHovered ? { scale: 1.2, rotate: 10 } : { scale: 1, rotate: 0 }}
-              className="text-4xl"
+              className="text-5xl"
             >
               {skill.icon}
             </motion.div>
             <span
-              className="text-xs font-bold px-2 py-1 rounded-full text-white"
+              className="jersey-15-regular text-lg md:text-xl px-2 py-1 rounded-full text-white"
               style={{
                 backgroundColor: skill.color,
               }}
@@ -114,13 +114,13 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
 
           {/* Name and Type */}
           <div className="mb-3">
-            <h3 className="text-lg font-bold text-white mb-1">{skill.name}</h3>
-            <p className="text-sm text-gray-400">{skill.effectLabel}</p>
+            <h3 className="jersey-15-regular text-xl md:text-2xl text-white mb-1">{skill.name}</h3>
+            <p className="jersey-20-regular text-base md:text-lg text-gray-400">{skill.effectLabel}</p>
           </div>
 
           {/* Effect Badge */}
           <motion.div
-            className="inline-block px-3 py-1 rounded-lg text-sm font-semibold text-white mb-4"
+            className="inline-block px-3 py-1 rounded-lg text-base md:text-lg jersey-15-regular text-white mb-4"
             style={{
               backgroundColor: `${skill.color}33`,
               border: `1px solid ${skill.color}`,
@@ -134,10 +134,10 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick, isCompact 
 
         {/* Footer */}
         <motion.div className="relative z-10 pt-4 border-t border-gray-700/50">
-          <p className="text-xs text-gray-500 mb-2">{skill.description}</p>
+          <p className="jersey-20-regular text-base md:text-lg text-gray-500 mb-2">{skill.description}</p>
           <motion.div
             animate={isHovered ? { x: 4 } : { x: 0 }}
-            className="inline-flex items-center gap-2 text-sm font-semibold"
+            className="inline-flex items-center gap-2 jersey-20-regular text-base md:text-lg"
             style={{ color: skill.color }}
           >
             View Details

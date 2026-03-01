@@ -55,11 +55,7 @@ function convertToMarketplaceNFT(nft: NFTData): MarketplaceNFT {
 }
 
 function Marketplace() {
-  // Check maintenance mode first
-  if (isMaintenanceMode('marketplace')) {
-    return <MarketplaceMaintenance />;
-  }
-
+  // All hooks must be called first, before any conditional returns
   const { isConnected } = useAccount();
   const isMobile = useIsMobile();
   
@@ -237,6 +233,11 @@ function Marketplace() {
     nftType // NEW
   };
 
+  // Check maintenance mode after all hooks are called
+  if (isMaintenanceMode('marketplace')) {
+    return <MarketplaceMaintenance />;
+  }
+
   if (!isConnected) {
     return <ConnectWallet pageName="Marketplace" />;
   }
@@ -259,10 +260,10 @@ function Marketplace() {
             <div className="col-span-9">
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-white mb-4 text-gradient">
-                  NFT Marketplace
+                <h1 className="jersey-15-regular text-4xl md:text-6xl font-bold text-white mb-4 text-gradient">
+                  NFTs Marketplace
                 </h1>
-                <p className="text-xl text-white/60 max-w-3xl mx-auto">
+                <p className="jersey-20-regular text-lg md:text-xl text-white/60 max-w-3xl mx-auto">
                   Discover, buy, and sell unique digital assets on our decentralized marketplace
                 </p>
               </div>
@@ -270,7 +271,7 @@ function Marketplace() {
               {/* Error State */}
               {error && (
                 <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <p className="text-red-400">
+                  <p className="jersey-20-regular text-red-400">
                     Error loading marketplace: {error}
                   </p>
                 </div>
@@ -318,13 +319,13 @@ function Marketplace() {
               {/* Main Content - NFT Grid */}
               <div>
                 <div className="mb-4 flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-white">
+                  <h2 className="jersey-15-regular text-lg md:text-xl font-semibold text-white">
                     {filteredNFTs.length} NFTs
                   </h2>
                   <button
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-4 py-2 text-sm"
+                    className="jersey-20-regular bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-4 py-2 text-sm md:text-base"
                   >
                     {refreshing ? 'Refreshing...' : 'Refresh'}
                   </button>
@@ -338,8 +339,8 @@ function Marketplace() {
                   ) : filteredNFTs.length === 0 ? (
                     <div className="col-span-full text-center py-16">
                       <div className="text-white/40 text-6xl mb-4">🔍</div>
-                      <h3 className="text-xl font-semibold text-white mb-2">No NFTs found</h3>
-                      <p className="text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
+                      <h3 className="jersey-15-regular text-lg md:text-xl font-semibold text-white mb-2">No NFTs found</h3>
+                      <p className="jersey-20-regular text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
                     </div>
                   ) : (
                     filteredNFTs.map((nft, index) => (
@@ -360,10 +361,10 @@ function Marketplace() {
           <>
             {/* Header */}
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-white mb-3">
-                NFT Marketplace
+              <h1 className="jersey-15-regular text-4xl text-gradient font-bold text-white mb-3">
+                NFTs Marketplace
               </h1>
-              <p className="text-base text-white/60 px-4">
+              <p className="jersey-20-regular text-lg text-white/60 px-4">
                 Discover, buy, and sell unique digital assets on our decentralized marketplace
               </p>
             </div>
@@ -371,7 +372,7 @@ function Marketplace() {
             {/* Error State */}
             {error && (
               <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-red-400">
+                <p className="jersey-20-regular text-xl text-red-400">
                   Error loading marketplace: {error}
                 </p>
               </div>
@@ -419,13 +420,13 @@ function Marketplace() {
             {/* Main Content - NFT Grid */}
             <div>
               <div className="mb-4 flex justify-between items-center flex-col gap-3 sm:flex-row">
-                <h2 className="text-lg font-semibold text-white">
+                <h2 className="jersey-15-regular text-xl font-semibold text-white">
                   {filteredNFTs.length} NFTs
                 </h2>
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-3 py-2 text-sm w-full sm:w-auto"
+                  className="jersey-20-regular bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium transition-all duration-200 disabled:opacity-50 px-3 py-2 text-xl w-full sm:w-auto"
                 >
                   {refreshing ? 'Refreshing...' : 'Refresh'}
                 </button>
@@ -439,8 +440,8 @@ function Marketplace() {
                 ) : filteredNFTs.length === 0 ? (
                   <div className="col-span-full text-center py-16">
                     <div className="text-white/40 text-6xl mb-4">🔍</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">No NFTs found</h3>
-                    <p className="text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
+                    <h3 className="jersey-15-regular text-xl font-semibold text-white mb-2">No NFTs found</h3>
+                    <p className="jersey-20-regular text-white/60">No NFTs found matching your criteria. Try adjusting your filters.</p>
                   </div>
                 ) : (
                   filteredNFTs.map((nft, index) => (
@@ -479,4 +480,5 @@ function Marketplace() {
     </div>
   );
 }
+
 export default memo(Marketplace);

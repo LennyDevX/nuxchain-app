@@ -43,13 +43,13 @@ const AIFeaturesSection: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className={`text-center max-w-3xl mx-auto ${isMobile ? 'px-4' : ''}`}>
-        <h2 className={`font-bold mb-4 ${
-          isMobile ? 'text-2xl' : 'text-3xl'
+        <h2 className={`font-bold mb-4 jersey-15-regular text-gradient ${
+          isMobile ? 'text-4xl' : 'text-5xl'
         }`}>
           AI-Powered Features
         </h2>
-        <p className={`text-slate-400 ${
-          isMobile ? 'text-sm' : ''
+        <p className={`text-slate-400 jersey-20-regular ${
+          isMobile ? 'text-xl' : 'text-2xl'
         }`}>
           {isMobile 
             ? 'Cutting-edge AI tools for smarter investing'
@@ -74,13 +74,13 @@ const AIFeaturesSection: React.FC = () => {
             }`}>
               {feature.icon}
             </div>
-            <h3 className={`font-bold mb-2 ${
-              isMobile ? 'text-sm' : 'text-xl'
+            <h3 className={`font-bold mb-2 jersey-15-regular ${
+              isMobile ? 'text-xl' : 'text-3xl'
             }`}>
               {feature.title}
             </h3>
-            <p className={`text-slate-400 ${
-              isMobile ? 'text-xs leading-tight' : 'text-sm'
+            <p className={`text-slate-400 jersey-20-regular ${
+              isMobile ? 'text-xl leading-tight' : 'text-sm'
             }`}>
               {feature.description}
             </p>

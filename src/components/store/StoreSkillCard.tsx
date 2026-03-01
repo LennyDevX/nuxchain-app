@@ -52,7 +52,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
         {/* Owned Badge */}
         {isOwned && (
           <div className="absolute top-4 left-4 z-20 bg-green-500/20 border border-green-500/30 rounded-full px-3 py-1">
-            <span className="text-xs font-bold text-green-400">✓ OWNED</span>
+            <span className="jersey-15-regular text-base md:text-lg text-green-400">✓ OWNED</span>
           </div>
         )}
 
@@ -64,7 +64,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
             transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
             className="absolute top-2 right-2 z-20 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg px-3 py-1.5 shadow-lg"
           >
-            <span className="text-xs font-black text-white">✨ FREE</span>
+            <span className="jersey-15-regular text-base md:text-lg text-white">✨ FREE</span>
           </motion.div>
         )}
 
@@ -80,7 +80,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
             </motion.div>
             <div className="flex flex-col items-end gap-1">
               <span
-                className="text-xs font-bold px-2 py-1 rounded-full text-white"
+                className="jersey-15-regular text-base md:text-lg px-3 py-1.5 rounded-full text-white"
                 style={{
                   backgroundColor: skill.color,
                 }}
@@ -92,15 +92,15 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
 
           {/* Name (Abstract - e.g. "Stake Boost I") */}
           <div className="mb-3">
-            <h3 className="text-lg font-bold text-white mb-1">
+            <h3 className="jersey-15-regular text-2xl md:text-3xl text-white mb-1">
               {skill.name.split(' - ')[0]}
             </h3>
-            <p className="text-sm text-gray-400">{skill.effectLabel}</p>
+            <p className="jersey-20-regular text-base md:text-lg text-gray-400">{skill.effectLabel}</p>
           </div>
 
           {/* Effect Badge - Exact values shown here */}
           <motion.div
-            className="inline-block px-3 py-1 rounded-lg text-sm font-semibold text-white mb-4"
+            className="inline-block px-3 py-1 rounded-lg text-base md:text-lg jersey-15-regular text-white mb-4"
             style={{
               backgroundColor: `${skill.color}33`,
               border: `1px solid ${skill.color}`,
@@ -114,17 +114,17 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
 
         {/* Footer - Price and Description */}
         <div className="relative z-10 pt-4 border-t border-gray-700/50">
-          <p className="text-xs text-gray-500 mb-3 line-clamp-2">{skill.description}</p>
+          <p className="jersey-20-regular text-base md:text-lg text-gray-500 mb-3 line-clamp-2">{skill.description}</p>
 
           {/* Price Section */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex flex-col">
               {isFree ? (
-                <span className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                <span className="jersey-15-regular text-3xl bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
                   FREE
                 </span>
               ) : (
-                <span className="text-xl font-bold text-white">
+                <span className="jersey-20-regular text-2xl md:text-3xl text-white">
                   {price} POL
                 </span>
               )}
@@ -133,7 +133,7 @@ export const StoreSkillCard = memo<StoreSkillCardProps>(({
             {!isOwned && (
               <motion.div
                 animate={isHovered ? { x: 4 } : { x: 0 }}
-                className="flex items-center gap-2 text-sm font-semibold"
+                className="flex items-center gap-2 jersey-20-regular text-base md:text-lg"
                 style={{ color: skill.color }}
               >
                 Buy

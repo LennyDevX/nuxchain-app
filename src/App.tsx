@@ -20,19 +20,30 @@ function AppContent() {
     <GlobalBackground>
       <NetworkAlert />
       <Navbar />
-      <AppRoutes />
+      <div className="md:pt-20">
+        <AppRoutes />
+      </div>
       <MobileBottomNavbar />
       <Toaster
         position="top-center"
+        containerStyle={{
+          top: 16,
+          left: 16,
+          right: 16,
+          maxWidth: '420px',
+          margin: '0 auto',
+        }}
         toastOptions={{
           duration: 4000,
           style: {
             background: '#1f2937',
             color: '#fff',
             border: '1px solid #374151',
+            maxWidth: '100%',
+            wordBreak: 'break-word',
           },
           success: {
-            duration: 3000,
+            duration: 4000,
             iconTheme: {
               primary: '#10b981',
               secondary: '#fff',
@@ -44,6 +55,9 @@ function AppContent() {
               primary: '#ef4444',
               secondary: '#fff',
             },
+          },
+          loading: {
+            duration: Infinity,
           },
         }}
       />

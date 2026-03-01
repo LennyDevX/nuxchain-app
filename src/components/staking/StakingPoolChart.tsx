@@ -151,7 +151,7 @@ export function StakingPoolChart() {
     ].reduce((sum, type) => sum + type.count, 0);
   }, [depositsByType]);
 
-  if (isLoading || !depositsByType) {
+  if (isLoading) {
     return (
       <motion.div 
         className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-6"
@@ -159,9 +159,58 @@ export function StakingPoolChart() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex flex-col items-center justify-center h-[320px]">
-          <div className="w-48 h-48 rounded-full border-4 border-white/10 border-t-emerald-500 animate-spin" />
-          <p className="text-white/60 text-sm mt-4">Loading staking data...</p>
+        <div className="mb-6">
+          <h3 className="jersey-15-regular text-2xl lg:text-4xl font-bold text-white mb-1">Staking Pool</h3>
+          <p className="jersey-20-regular text-base lg:text-lg text-white/60">Distribution by lockup period</p>
+        </div>
+        <div className="flex flex-col items-center justify-center h-[280px]">
+          <div className="w-20 h-20 rounded-full border-4 border-white/10 border-t-emerald-500 animate-spin" />
+          <p className="jersey-20-regular text-white/60 text-base lg:text-lg mt-4">Loading staking data...</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // All deposits are zero (e.g. after emergency withdrawal) — show empty state
+  const isPoolEmpty = depositsByType != null && [
+    depositsByType.flexible.totalAmountRaw,
+    depositsByType.locked30.totalAmountRaw,
+    depositsByType.locked90.totalAmountRaw,
+    depositsByType.locked180.totalAmountRaw,
+    depositsByType.locked365.totalAmountRaw,
+  ].every(v => v === 0n);
+
+  // No deposits yet — show empty state instead of infinite spinner
+  if (!depositsByType || isPoolEmpty) {
+    return (
+      <motion.div 
+        className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="mb-6">
+          <h3 className="jersey-15-regular text-2xl lg:text-4xl font-bold text-white mb-1">Staking Pool</h3>
+          <p className="jersey-20-regular text-base lg:text-lg text-white/60">Distribution by lockup period</p>
+        </div>
+        <div className="flex flex-col items-center justify-center h-[280px] gap-3">
+          <div className="w-24 h-24 rounded-full border-4 border-dashed border-white/20 flex items-center justify-center">
+            <span className="text-3xl">📊</span>
+          </div>
+          <p className="jersey-15-regular text-white/70 text-lg lg:text-xl font-semibold">No deposits yet</p>
+          <p className="jersey-20-regular text-white/40 text-sm lg:text-base text-center max-w-[220px]">
+            Stake POL to see your distribution chart
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+          <div>
+            <p className="jersey-20-regular text-sm lg:text-base text-white/60 mb-1">Total Deposits</p>
+            <p className="jersey-20-regular text-2xl lg:text-3xl font-semibold text-white">0</p>
+          </div>
+          <div>
+            <p className="jersey-20-regular text-sm lg:text-base text-white/60 mb-1">Total Staked</p>
+            <p className="jersey-20-regular text-2xl lg:text-3xl font-semibold text-emerald-400">0.00 POL</p>
+          </div>
         </div>
       </motion.div>
     );
@@ -176,8 +225,8 @@ export function StakingPoolChart() {
     >
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-white mb-1">Staking Pool</h3>
-        <p className="text-sm text-white/60">Distribution by lockup period</p>
+        <h3 className="jersey-15-regular text-2xl lg:text-4xl font-bold text-white mb-1">Staking Pool</h3>
+        <p className="jersey-20-regular text-base lg:text-lg text-white/60">Distribution by lockup period</p>
       </div>
 
       {/* Chart */}
@@ -188,12 +237,12 @@ export function StakingPoolChart() {
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
         <div>
-          <p className="text-xs text-white/60 mb-1">Total Deposits</p>
-          <p className="text-lg font-semibold text-white">{totalDeposits}</p>
+          <p className="jersey-20-regular text-sm lg:text-base text-white/60 mb-1">Total Deposits</p>
+          <p className="jersey-20-regular text-2xl lg:text-3xl font-semibold text-white">{totalDeposits}</p>
         </div>
         <div>
-          <p className="text-xs text-white/60 mb-1">Total Staked</p>
-          <p className="text-lg font-semibold text-emerald-400">{totalStaked} POL</p>
+          <p className="jersey-20-regular text-sm lg:text-base text-white/60 mb-1">Total Staked</p>
+          <p className="jersey-20-regular text-2xl lg:text-3xl font-semibold text-emerald-400">{totalStaked} POL</p>
         </div>
       </div>
     </motion.div>

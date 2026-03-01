@@ -6,13 +6,12 @@
 
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import GlobalBackground from '../ui/gradientBackground';
 import MarketOverview from '../components/market/MarketOverview';
 
 const Market = memo(() => {
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen pt-20 lg:pt-24 pb-12 lg:pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
@@ -83,7 +82,7 @@ const Market = memo(() => {
           </motion.div>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 });
 

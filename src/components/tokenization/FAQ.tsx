@@ -124,10 +124,10 @@ function FAQ() {
           transition={{ duration: 0.5 }}
           className="mb-3 sm:mb-4 md:mb-5 text-center"
         >
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1">
+          <h2 className="jersey-15-regular text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">
         ❓ Frequently Asked Questions
           </h2>
-          <p className="text-white/50 text-xs sm:text-sm">
+          <p className="jersey-20-regular text-white/50 text-sm sm:text-base">
         Everything you need to know about NFT creation
           </p>
         </motion.div>
@@ -177,11 +177,11 @@ function FAQ() {
 
                     {/* Question & Category */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-semibold text-sm sm:text-base leading-snug text-left">
+                      <h3 className="jersey-15-regular text-white font-semibold text-xl leading-snug text-left">
                         {item.question}
                       </h3>
                       <motion.p 
-                        className="text-white/40 text-xs mt-0.5"
+                        className="jersey-20-regular text-white/40 text-lg mt-0.5"
                         animate={{ opacity: openIndex === index ? 0.5 : 0.4 }}
                         transition={{ duration: 0.2 }}
                       >
@@ -221,7 +221,7 @@ function FAQ() {
                       animate={{ y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <p className="text-white/70 text-xs sm:text-sm leading-relaxed">
+                      <p className="jersey-20-regular text-white/70 text-lg leading-relaxed">
                         {item.answer}
                       </p>
                     </motion.div>
@@ -249,11 +249,11 @@ function FAQ() {
           transition={{ delay: 0.4, duration: 0.3 }}
           className="mt-3 sm:mt-4 p-2 sm:p-2.5 rounded-lg border border-blue-500/20 bg-gradient-to-r from-blue-500/8 to-cyan-500/8 backdrop-blur-sm"
         >
-          <p className="text-blue-200/80 text-xs sm:text-sm text-center leading-snug">
+          <p className="jersey-20-regular text-blue-200/80 text-lg text-center leading-snug">
             💡 <span className="font-semibold">Pro Tip:</span> Ask to{' '}
             <a
               href="/chat"
-              className="text-purple-400 font-bold text-base sm:text-lg underline hover:text-purple-500 transition-colors"
+              className="jersey-20-regular text-purple-400 font-bold text-2xl underline hover:text-purple-500 transition-colors"
               style={{ fontSize: '1.1em' }}
             >
               Nuxbee AI

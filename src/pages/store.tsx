@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { isMaintenanceMode } from '../config/maintenance';
+import StoreMaintenance from './StoreMaintenance';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
@@ -10,7 +12,7 @@ import type { SkillData, SkillType } from '../components/skills/config';
 import { Rarity } from '../types/contracts';
 import { SkillsCatalog } from '../components/store/SkillsCatalog';
 import { MySkills } from '../components/store/MySkills';
-import GlobalBackground from '../ui/gradientBackground';
+
 import { useSkillsStore } from '../hooks/skills/useSkillsStore';
 import { useUserStaking } from '../hooks/staking/useUserStaking';
 
@@ -137,8 +139,13 @@ export default function Store() {
     // TODO: Call useSkillsStore renewSkill method
   }, []);
 
+  // Check maintenance mode after all hooks are called
+  if (isMaintenanceMode('store')) {
+    return <StoreMaintenance />;
+  }
+
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Compact Header */}
@@ -149,12 +156,12 @@ export default function Store() {
           >
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <div>
-                <h1 className="text-4xl font-black text-white">
+                <h1 className="jersey-15-regular text-5xl md:text-6xl text-white">
                   <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                     Skills Store
                   </span>
                 </h1>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="jersey-20-regular text-xl md:text-2xl text-gray-400 mt-2">
                   {allSkills.length} skills available
                 </p>
               </div>
@@ -165,7 +172,7 @@ export default function Store() {
                 <div className="flex gap-2 bg-gray-800/50 rounded-lg p-1 border border-gray-700">
                   <button
                     onClick={() => setActiveTab('catalog')}
-                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap ${
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg jersey-20-regular transition-all text-base md:text-lg whitespace-nowrap ${
                       activeTab === 'catalog'
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
                         : 'text-gray-400 hover:text-white'
@@ -175,7 +182,7 @@ export default function Store() {
                   </button>
                   <button
                     onClick={() => setActiveTab('myskills')}
-                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap ${
+                    className={`flex-1 sm:flex-none px-4 py-2 rounded-lg jersey-20-regular transition-all text-base md:text-lg whitespace-nowrap ${
                       activeTab === 'myskills'
                         ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
                         : 'text-gray-400 hover:text-white'
@@ -185,7 +192,7 @@ export default function Store() {
                   </button>
                   <button
                     onClick={() => navigate('/skills')}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap text-gray-400 hover:text-white"
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg jersey-20-regular transition-all text-base md:text-lg whitespace-nowrap text-gray-400 hover:text-white"
                   >
                     ℹ️ Skills Info
                   </button>
@@ -193,16 +200,16 @@ export default function Store() {
 
                 {/* Wallet Status */}
                 {isConnected ? (
-                  <div className="flex items-center justify-between gap-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700 text-xs">
+                  <div className="flex items-center justify-between gap-2 bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700 text-base md:text-lg">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                      <span className="text-gray-300">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+                      <span className="jersey-20-regular text-gray-300">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
                     </div>
-                    <span className="font-semibold text-white">{userBalance.toFixed(2)} POL</span>
+                    <span className="jersey-20-regular text-white">{userBalance.toFixed(2)} POL</span>
                   </div>
                 ) : (
-                  <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg px-3 py-2 text-xs text-yellow-400">
-                    ⚠️ Connect wallet
+                  <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg px-3 py-2 text-base md:text-lg text-yellow-400">
+                    <span className="jersey-20-regular">⚠️ Connect wallet</span>
                   </div>
                 )}
               </div>
@@ -210,17 +217,17 @@ export default function Store() {
 
             {/* Quick Stats */}
             <div className="flex gap-3 flex-wrap">
-              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-xs">
-                <span className="text-purple-400 font-bold">{allSkills.length}</span>
-                <span className="text-gray-400"> Total</span>
+              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-base md:text-lg">
+                <span className="jersey-20-regular text-purple-400">{allSkills.length}</span>
+                <span className="jersey-20-regular text-gray-400"> Total</span>
               </div>
-              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-xs">
-                <span className="text-green-400 font-bold">{userSkills.length}</span>
-                <span className="text-gray-400"> Owned</span>
+              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-base md:text-lg">
+                <span className="jersey-20-regular text-green-400">{userSkills.length}</span>
+                <span className="jersey-20-regular text-gray-400"> Owned</span>
               </div>
-              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-xs">
-                <span className="text-blue-400 font-bold">{allSkills.length - userSkills.length}</span>
-                <span className="text-gray-400"> Available</span>
+              <div className="bg-gray-800/30 rounded px-3 py-1.5 border border-gray-700/50 text-base md:text-lg">
+                <span className="jersey-20-regular text-blue-400">{allSkills.length - userSkills.length}</span>
+                <span className="jersey-20-regular text-gray-400"> Available</span>
               </div>
             </div>
           </motion.div>
@@ -238,7 +245,7 @@ export default function Store() {
               onClick={() => setIsPricingExpanded(!isPricingExpanded)}
               className="w-full flex items-center justify-between bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-purple-500 transition-colors"
             >
-              <span className="font-bold text-white text-sm">💰 Pricing</span>
+              <span className="jersey-15-regular text-white text-lg md:text-2xl">💰 Pricing</span>
               <span className={`transition-transform ${isPricingExpanded ? 'rotate-180' : ''}`}>▼</span>
             </button>
 
@@ -249,16 +256,16 @@ export default function Store() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 space-y-2 text-xs overflow-hidden"
+                className="bg-gray-800/50 rounded-lg p-4 border border-gray-700 space-y-2 text-xl md:text-2xl overflow-hidden"
               >
                 {selectedCategory === 'ALL' || selectedCategory === SkillCategory.STAKING ? (
                   <>
-                    <div className="text-xs font-semibold text-gray-300 mb-2">⛓️ Staking Skills:</div>
-                    <div className="flex justify-between"><span className="text-gray-400">Common</span><span className="text-green-400 font-semibold">50 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-green-400 font-semibold">80 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Rare</span><span className="text-blue-400 font-semibold">100 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Epic</span><span className="text-purple-400 font-semibold">150 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 font-semibold">220 POL</span></div>
+                    <div className="jersey-15-regular text-gray-300 mb-2">⛓️ Staking Skills:</div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Common</span><span className="text-green-400 jersey-20-regular">50 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-green-400 jersey-20-regular">80 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Rare</span><span className="text-blue-400 jersey-20-regular">100 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Epic</span><span className="text-purple-400 jersey-20-regular">150 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 jersey-20-regular">220 POL</span></div>
                   </>
                 ) : null}
                 
@@ -268,15 +275,15 @@ export default function Store() {
                 
                 {selectedCategory === 'ALL' || selectedCategory === SkillCategory.MARKETPLACE ? (
                   <>
-                    <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Marketplace Skills:</div>
-                    <div className="flex justify-between"><span className="text-gray-400">Common</span><span className="text-gray-400 font-semibold">50 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-green-400 font-semibold">120 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Rare</span><span className="text-blue-400 font-semibold">200 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Epic</span><span className="text-purple-400 font-semibold">420 POL</span></div>
-                    <div className="flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 font-semibold">770 POL</span></div>
+                    <div className="jersey-15-regular text-gray-300 mb-2">🏪 Marketplace Skills:</div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Common</span><span className="text-gray-400 jersey-20-regular">50 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Uncommon</span><span className="text-green-400 jersey-20-regular">120 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Rare</span><span className="text-blue-400 jersey-20-regular">200 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Epic</span><span className="text-purple-400 jersey-20-regular">420 POL</span></div>
+                    <div className="jersey-15-regular flex justify-between"><span className="text-gray-400">Legendary</span><span className="text-orange-400 jersey-20-regular">770 POL</span></div>
                   </>
                 ) : null}
-                <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
+                <div className="mt-3 pt-3 border-t border-gray-700 text-xl md:text-xl jersey-15-regular text-gray-400">
                   <p>♻️ Renew: 50% off</p>
                 </div>
               </motion.div>
@@ -287,7 +294,7 @@ export default function Store() {
               onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
               className="w-full flex items-center justify-between card-unified rounded-lg p-3 hover:bg-white/10 transition-all"
             >
-              <span className="font-bold text-white text-sm">🔍 Search & Filters</span>
+              <span className="jersey-15-regular text-white text-lg md:text-xl">🔍 Search & Filters</span>
               <span className={`transition-transform ${isFiltersExpanded ? 'rotate-180' : ''}`}>▼</span>
             </button>
 
@@ -302,23 +309,23 @@ export default function Store() {
               >
                 {/* Search */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">🔍 Search</label>
+                  <label className="block text-xl text-gray-400 mb-2 jersey-15-regular">🔍 Search</label>
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Find skill..."
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xl jersey-20-regular text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all"
                   />
                 </div>
 
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">📂 Category</label>
+                  <label className="block text-xl  text-gray-400 mb-2 jersey-15-regular">📂 Category</label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | 'ALL')}
-                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-xs text-white focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-lg text-white focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
                       backgroundRepeat: 'no-repeat',
@@ -334,7 +341,7 @@ export default function Store() {
 
                 {/* Rarity Filter */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">✨ Rarity</label>
+                  <label className="block text-xs text-gray-400 mb-2 jersey-15-regular">✨ Rarity</label>
                   <div className="space-y-1.5">
                     {[
                       { value: 'ALL', label: 'All', color: 'text-gray-400' },
@@ -383,30 +390,30 @@ export default function Store() {
               >
                 {/* Pricing Guide - Compact */}
                 <div className="card-unified p-4">
-                  <h3 className="text-sm font-bold text-white mb-3">💰 Pricing</h3>
-                  <div className="space-y-2 text-xs">
+                  <h3 className="jersey-15-regular text-3xl text-white mb-3">💰 Pricing</h3>
+                  <div className="space-y-2">
                     {selectedCategory === 'ALL' || selectedCategory === SkillCategory.STAKING ? (
                       <>
-                        <div className="text-xs font-semibold text-gray-300 mb-2">⛓️ Staking Skills:</div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Common</span>
-                          <span className="text-green-400 font-semibold">50 POL</span>
+                        <div className="text-lg jersey-15-regular text-gray-300 mb-2">⛓️ Staking Skills:</div>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Common</span>
+                          <span className="text-green-400 jersey-20-regular">50 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Uncommon</span>
-                          <span className="text-green-400 font-semibold">80 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Uncommon</span>
+                          <span className="text-green-400 jersey-20-regular">80 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Rare</span>
-                          <span className="text-blue-400 font-semibold">100 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Rare</span>
+                          <span className="text-blue-400 jersey-20-regular">100 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Epic</span>
-                          <span className="text-purple-400 font-semibold">150 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Epic</span>
+                          <span className="text-purple-400 jersey-20-regular">150 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Legendary</span>
-                          <span className="text-orange-400 font-semibold">220 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Legendary</span>
+                          <span className="text-orange-400 jersey-20-regular">220 POL</span>
                         </div>
                       </>
                     ) : null}
@@ -417,38 +424,38 @@ export default function Store() {
                     
                     {selectedCategory === 'ALL' || selectedCategory === SkillCategory.MARKETPLACE ? (
                       <>
-                        <div className="text-xs font-semibold text-gray-300 mb-2">🏪 Marketplace Skills:</div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Common</span>
-                          <span className="text-gray-400 font-semibold">50 POL</span>
+                        <div className="text-base jersey-15-regular text-xl text-gray-300 mb-2">🏪 Marketplace Skills:</div>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Common</span>
+                          <span className="text-gray-400 jersey-20-regular">50 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Uncommon</span>
-                          <span className="text-green-400 font-semibold">120 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Uncommon</span>
+                          <span className="text-green-400 jersey-20-regular">120 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Rare</span>
-                          <span className="text-blue-400 font-semibold">200 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Rare</span>
+                          <span className="text-blue-400 jersey-20-regular">200 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Epic</span>
-                          <span className="text-purple-400 font-semibold">420 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Epic</span>
+                          <span className="text-purple-400 jersey-20-regular">420 POL</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Legendary</span>
-                          <span className="text-orange-400 font-semibold">770 POL</span>
+                        <div className="flex justify-between text-xl">
+                          <span className="text-gray-400 jersey-15-regular">Legendary</span>
+                          <span className="text-orange-400 jersey-20-regular">770 POL</span>
                         </div>
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
+                  <div className="mt-3 pt-3 border-t border-gray-700 text-2xl jersey-15-regular text-gray-400">
                     <p>♻️ Renew: 50% off</p>
                   </div>
                 </div>
 
                 {/* Search */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">🔍 Search</label>
+                  <label className="block text-xl text-gray-400 mb-2 jersey-15-regular">🔍 Search</label>
                   <input
                     type="text"
                     value={searchQuery}
@@ -460,7 +467,7 @@ export default function Store() {
 
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">📂 Category</label>
+                  <label className="block text-xl text-gray-400 mb-2 jersey-15-regular">📂 Category</label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value as SkillCategory | 'ALL')}
@@ -480,7 +487,7 @@ export default function Store() {
 
                 {/* Rarity Filter */}
                 <div>
-                  <label className="block text-xs text-gray-400 mb-2 font-semibold">✨ Rarity</label>
+                  <label className="block text-2xl text-gray-400 mb-2 jersey-15-regular">✨ Rarity</label>
                   <div className="space-y-1.5">
                     {[
                       { value: 'ALL', label: 'All', color: 'text-gray-400' },
@@ -499,7 +506,7 @@ export default function Store() {
                           onChange={() => setSelectedRarity(rarity.value === 'ALL' ? 'ALL' : parseInt(rarity.value as string) as Rarity)}
                           className="w-3 h-3"
                         />
-                        <span className={`text-xs ${rarity.color} group-hover:brightness-110`}>{rarity.label}</span>
+                        <span className={`text-xl jersey-15-regular ${rarity.color} group-hover:brightness-110`}>{rarity.label}</span>
                       </label>
                     ))}
                   </div>
@@ -534,8 +541,8 @@ export default function Store() {
             {!isConnected ? (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🔒</div>
-                <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
-                <p className="text-gray-400">
+                <h3 className="jersey-15-regular text-4xl text-white mb-2">Connect Your Wallet</h3>
+                <p className="jersey-20-regular text-gray-400">
                   Please connect your wallet to view your skills
                 </p>
               </div>
@@ -567,15 +574,15 @@ export default function Store() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-16 text-center text-gray-500 text-sm"
+          className="mt-16 text-center text-gray-500 text-lg lg:text-xl"
         >
-          <p>
+          <p className="jersey-20-regular">
             💡 Staking Skills: 50-220 POL • Marketplace Skills: 50-770 POL • 
             Renew expired skills for 50% off • Maximum 3 active skills • Skills last 30 days
           </p>
         </motion.div>
         </div>
       </div>
-    </GlobalBackground>
+    </>
   );
 }

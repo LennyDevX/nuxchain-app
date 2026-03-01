@@ -1,6 +1,7 @@
 import { useAccount } from 'wagmi'
-import { memo, lazy, Suspense, useEffect } from 'react'
-import GlobalBackground from '../ui/gradientBackground'
+import { memo, lazy, Suspense, useEffect, useState } from 'react'
+import { isMaintenanceMode } from '../config/maintenance'
+import StakingMaintenance from './StakingMaintenance'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import ConnectWallet from '../ui/ConnectWalletAlert'
 import { stakingLogger } from '../utils/log/stakingLogger'
@@ -27,6 +28,7 @@ const ContractInfo = lazy(() => import('../components/staking/ContractInfo'))
 const PoolInfo = lazy(() => import('../components/staking/PoolInfo'))
 const StakingPoolChart = lazy(() => import('../components/staking/StakingPoolChart'))
 const TreasuryPoolChart = lazy(() => import('../components/staking/TreasuryPoolChart'))
+const PoolCarousel = lazy(() => import('../components/staking/PoolCarousel'))
 const TabNavigation = lazy(() => import('../components/staking/TabNavigation'))
 const RewardsHub = lazy(() => import('../components/staking/RewardsHub'))
 const DynamicAPYIndicator = lazy(() => import('../components/staking/DynamicAPYIndicator'))
@@ -34,13 +36,97 @@ const DepositsManager = lazy(() => import('../components/staking/DepositsManager
 const SkillsManager = lazy(() => import('../components/staking/SkillsManager'))
 const QuestTracker = lazy(() => import('../components/staking/QuestTracker'))
 const BadgeGallery = lazy(() => import('../components/staking/BadgeGallery'))
+// v6.2.0 components
+const CircuitBreakerBanner = lazy(() => import('../components/staking/CircuitBreakerBanner'))
+const ExpiringDepositsAlert = lazy(() => import('../components/staking/ExpiringDepositsAlert'))
+const ReferralPanel = lazy(() => import('../components/staking/ReferralPanel'))
 // const ProjectionDebug = lazy(() => import('../components/debug/ProjectionDebug'))
 
 // Contract address from environment variables
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS
 
+// ─── Mobile Accordion Footer ────────────────────────────────────────────────
+function FooterAccordion({
+  poolBalance,
+  badgeCount,
+  isPaused,
+}: {
+  poolBalance: bigint;
+  badgeCount: number;
+  isPaused: boolean;
+}) {
+  const [open, setOpen] = useState<string | null>('apy');
+
+  const panels = [
+    {
+      id: 'apy',
+      label: '📈 APY Indicator',
+      content: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <DynamicAPYIndicator currentTVL={poolBalance} />
+        </Suspense>
+      ),
+    },
+    {
+      id: 'badges',
+      label: '🏆 Badge Gallery',
+      content: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <BadgeGallery badges={[]} badgeCount={badgeCount} />
+        </Suspense>
+      ),
+    },
+    {
+      id: 'contract',
+      label: '📄 Contract Info',
+      content: (
+        <Suspense fallback={<LoadingSpinner />}>
+          <ContractInfo
+            contractAddress={STAKING_CONTRACT_ADDRESS as string}
+            isPaused={isPaused}
+          />
+        </Suspense>
+      ),
+    },
+  ];
+
+  return (
+    <div className="lg:hidden mt-6 space-y-2">
+      {panels.map((panel) => (
+        <div
+          key={panel.id}
+          className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden"
+        >
+          <button
+            onClick={() => setOpen(open === panel.id ? null : panel.id)}
+            className="w-full flex items-center justify-between px-4 py-3 text-left"
+          >
+            <span className="jersey-15-regular text-white/80 text-base">{panel.label}</span>
+            <span
+              className={`text-white/40 transition-transform duration-200 ${
+                open === panel.id ? 'rotate-180' : ''
+              }`}
+            >
+              ▼
+            </span>
+          </button>
+          {open === panel.id && (
+            <div className="px-4 pb-4">{panel.content}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 const Staking = memo(() => {
   const { isConnected } = useAccount()
+
+  // Check maintenance mode
+  if (isMaintenanceMode('staking')) {
+    return <StakingMaintenance />;
+  }
 
   if (!isConnected) {
     return <ConnectWallet pageName="Staking" />;
@@ -90,20 +176,24 @@ const StakingDashboard = memo(() => {
   }, [pool.totalPoolBalance, pool.uniqueUsersCount, pool.isPaused]);
 
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen py-6 lg:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* ═══════════════════════════════════════════════════════════════
               HEADER - Compact & Clean
           ═══════════════════════════════════════════════════════════════ */}
-          <header className="mb-8 text-center">
-            <h1 className="text-3xl lg:text-4xl font-bold text-gradient mb-2">
-              Smart Staking
-            </h1>
-            <p className="text-white/60 text-sm lg:text-base">
+          <header className="mb-4 lg:mb-8 text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <h1 className="jersey-15-regular text-3xl lg:text-5xl font-bold text-gradient">
+                Smart Staking
+              </h1>
+             
+            </div>
+            <p className="jersey-20-regular text-white/60 text-base lg:text-lg">
               Earn automatic rewards by staking your POL tokens
             </p>
+            
           </header>
 
           {/* ═══════════════════════════════════════════════════════════════
@@ -121,7 +211,14 @@ const StakingDashboard = memo(() => {
           </section>
 
           {/* ═══════════════════════════════════════════════════════════════
-              TAB NAVIGATION SYSTEM - Overview / My Deposit / Skills / Active Quest
+              CIRCUIT BREAKER BANNER - v6.2.0
+          ═══════════════════════════════════════════════════════════════ */}
+          <Suspense fallback={null}>
+            <CircuitBreakerBanner />
+          </Suspense>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              TAB NAVIGATION SYSTEM - Overview / My Deposit / Skills / Active Quest / Referrals
           ═══════════════════════════════════════════════════════════════ */}
           <Suspense fallback={<div className="h-64 bg-white/5 animate-pulse rounded-2xl" />}>
             <TabNavigation
@@ -131,9 +228,33 @@ const StakingDashboard = memo(() => {
                   label: 'Overview',
                   icon: '🏠',
                   content: (
-                    <div className="space-y-6 py-6">
-                      {/* ═══════ CHARTS SECTION - 3 columns grid ═══════ */}
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="space-y-4 py-3 lg:py-6">
+                      {/* ═══════ EXPIRING DEPOSITS ALERT v6.2.0 ═══════ */}
+                      <Suspense fallback={null}>
+                        <ExpiringDepositsAlert />
+                      </Suspense>
+
+                      {/* ═══════ STAKING FORM - AHORA ARRIBA ═══════ */}
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <StakingForm
+                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
+                          pendingRewards={user.pendingRewards}
+                          isPaused={pool.isPaused}
+                          userStaked={user.totalDeposit}
+                        />
+                      </Suspense>
+
+                      {/* ═══════ CHARTS SECTION - Mobile: Carousel, Desktop: 3 columns grid ═══════ */}
+                      
+                      {/* Mobile Carousel - Only visible on mobile */}
+                      <div className="lg:hidden">
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <PoolCarousel />
+                        </Suspense>
+                      </div>
+                      
+                      {/* Desktop Grid - Only visible on desktop (lg+) */}
+                      <div className="hidden lg:grid lg:grid-cols-3 gap-6">
                         {/* Staking Pool Chart */}
                         <Suspense fallback={<LoadingSpinner />}>
                           <StakingPoolChart />
@@ -153,16 +274,6 @@ const StakingDashboard = memo(() => {
                           <TreasuryPoolChart />
                         </Suspense>
                       </div>
-
-                      {/* ═══════ STAKING FORM ═══════ */}
-                      <Suspense fallback={<LoadingSpinner />}>
-                        <StakingForm
-                          stakingContractAddress={STAKING_CONTRACT_ADDRESS}
-                          pendingRewards={user.pendingRewards}
-                          isPaused={pool.isPaused}
-                          userStaked={user.totalDeposit}
-                        />
-                      </Suspense>
 
                       {/* ═══════ REWARDS HUB ═══════ */}
                       <Suspense fallback={<LoadingSpinner />}>
@@ -202,6 +313,18 @@ const StakingDashboard = memo(() => {
                   )
                 },
                 {
+                  id: 'referrals',
+                  label: 'Referrals',
+                  icon: '🔗',
+                  content: (
+                    <div className="py-6">
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <ReferralPanel />
+                      </Suspense>
+                    </div>
+                  )
+                },
+                {
                   id: 'activequest',
                   label: 'Active Quest',
                   icon: '🎯',
@@ -220,30 +343,37 @@ const StakingDashboard = memo(() => {
 
           {/* ═══════════════════════════════════════════════════════════════
               FOOTER SECTION - Contract Info / Badge Gallery / Dynamic APY
+              Mobile: collapsible accordion | Desktop: 3-col grid
           ═══════════════════════════════════════════════════════════════ */}
-          <section className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Desktop grid */}
+          <section className="hidden lg:grid lg:grid-cols-3 gap-6 mt-8">
             <Suspense fallback={<LoadingSpinner />}>
               <ContractInfo
                 contractAddress={STAKING_CONTRACT_ADDRESS as string}
                 isPaused={pool.isPaused}
               />
             </Suspense>
-
             <Suspense fallback={<LoadingSpinner />}>
-              <BadgeGallery 
-                badges={[]} 
-                badgeCount={gamification.badgeCount} 
+              <BadgeGallery
+                badges={[]}
+                badgeCount={gamification.badgeCount}
               />
             </Suspense>
-
             <Suspense fallback={<LoadingSpinner />}>
               <DynamicAPYIndicator currentTVL={pool.totalPoolBalance} />
             </Suspense>
           </section>
 
+          {/* Mobile accordion */}
+          <FooterAccordion
+            poolBalance={pool.totalPoolBalance}
+            badgeCount={gamification.badgeCount}
+            isPaused={pool.isPaused}
+          />
+
         </div>
       </div>
-    </GlobalBackground>
+    </>
   )
 })
 

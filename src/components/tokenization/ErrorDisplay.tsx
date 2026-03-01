@@ -130,7 +130,7 @@ export default function ErrorDisplay({
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.15 }}
-                    className={`text-lg font-bold ${colors.text} mb-2`}
+                    className={`jersey-15-regular text-lg md:text-xl font-bold ${colors.text} mb-2`}
                   >
                     {title}
                   </motion.h3>
@@ -138,7 +138,7 @@ export default function ErrorDisplay({
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-white/80 text-sm leading-relaxed whitespace-pre-line"
+                    className="jersey-20-regular text-white/80 text-sm md:text-base leading-relaxed whitespace-pre-line"
                   >
                     {message}
                   </motion.p>

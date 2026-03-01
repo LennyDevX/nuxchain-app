@@ -72,20 +72,20 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
       </div>
 
       {/* Content */}
-      <h4 className={`font-bold ${isMobile ? 'text-sm mb-1' : 'text-lg mb-2'}`}>
+      <h4 className={`jersey-15-regular text-white ${isMobile ? 'text-xl mb-2' : 'text-xl md:text-2xl mb-2'}`}>
         {milestone.title}
       </h4>
-      <p className={`text-slate-400 ${isMobile ? 'text-xs leading-tight mb-2' : 'text-sm mb-4'}`}>
+      <p className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-base leading-snug mb-3' : 'text-base md:text-lg mb-4'}`}>
         {milestone.description}
       </p>
 
       {/* Footer */}
       <div className={`flex ${isMobile ? 'flex-col gap-2' : 'items-center justify-between'}`}>
-        <div className={`flex items-center gap-2 text-slate-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+        <div className={`flex items-center gap-2 text-slate-500 jersey-20-regular ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>
           <CalendarIcon className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} />
           <span>{milestone.date}</span>
         </div>
-        <span className={`px-2 py-1 text-xs font-medium rounded-full border w-fit ${getCategoryColor(milestone.category)}`}>
+        <span className={`jersey-20-regular px-2 py-1 text-base md:text-lg rounded-full border w-fit ${getCategoryColor(milestone.category)}`}>
           {milestone.category}
         </span>
       </div>
@@ -104,7 +104,7 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
         transition={{ duration: 0.6 }}
       >
         <motion.h2
-          className={`font-bold ${isMobile ? 'mb-2 text-xl' : 'mb-4 text-3xl'}`}
+          className={`jersey-15-regular ${isMobile ? 'mb-3 text-3xl' : 'mb-4 text-4xl md:text-5xl'}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.1 }}
@@ -112,7 +112,7 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
           Key Milestones
         </motion.h2>
         <motion.p
-          className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-base'}`}
+          className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -137,11 +137,11 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
             }`}>
             <CheckIcon className={`text-green-400 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
           </div>
-          <h3 className={`font-bold text-green-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
+          <h3 className={`jersey-15-regular text-green-400 ${isMobile ? 'text-2xl' : 'text-2xl md:text-3xl'}`}>
             Achieved Milestones
           </h3>
           <motion.span
-            className={`px-3 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-400 animate-pulse ${isMobile ? 'text-xs' : 'text-sm'
+            className={`jersey-20-regular px-3 py-1 rounded-full bg-green-900/30 text-green-400 animate-pulse ${isMobile ? 'text-base' : 'text-lg md:text-xl'
               }`}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -172,11 +172,11 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
             }`}>
             <ZapIcon className={`text-yellow-400 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
           </div>
-          <h3 className={`font-bold text-yellow-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
+          <h3 className={`jersey-15-regular text-yellow-400 ${isMobile ? 'text-2xl' : 'text-2xl md:text-3xl'}`}>
             In Progress
           </h3>
           <motion.span
-            className={`px-3 py-1 text-xs font-medium rounded-full bg-yellow-900/30 text-yellow-400 ${isMobile ? 'text-xs' : 'text-sm'
+            className={`jersey-20-regular px-3 py-1 rounded-full bg-yellow-900/30 text-yellow-400 ${isMobile ? 'text-base' : 'text-lg md:text-xl'
               }`}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -207,11 +207,11 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
             }`}>
             <CalendarIcon className={`text-purple-400 ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} />
           </div>
-          <h3 className={`font-bold text-purple-400 ${isMobile ? 'text-base' : 'text-xl'}`}>
+          <h3 className={`jersey-15-regular text-purple-400 ${isMobile ? 'text-2xl' : 'text-2xl md:text-3xl'}`}>
             Upcoming Milestones
           </h3>
           <motion.span
-            className={`px-3 py-1 text-xs font-medium rounded-full bg-purple-900/30 text-purple-400 ${isMobile ? 'text-xs' : 'text-sm'
+            className={`jersey-20-regular px-3 py-1 rounded-full bg-purple-900/30 text-purple-400 ${isMobile ? 'text-base' : 'text-lg md:text-xl'
               }`}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -233,14 +233,14 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <h3 className={`font-bold text-center ${isMobile ? 'mb-4 text-base' : 'mb-6 text-xl'}`}>
+        <h3 className={`jersey-15-regular text-center text-white ${isMobile ? 'mb-4 text-2xl' : 'mb-6 text-2xl md:text-3xl'}`}>
           Overall Progress
         </h3>
         <div className="max-w-4xl mx-auto">
           <div className={`flex items-center justify-between ${isMobile ? 'mb-2' : 'mb-3'}`}>
-            <span className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Roadmap Completion</span>
+            <span className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-lg' : 'text-xl md:text-2xl'}`}>Roadmap Completion</span>
             <motion.span
-              className={`font-bold text-green-400 ${isMobile ? 'text-sm' : 'text-base'}`}
+              className={`jersey-15-regular text-green-400 ${isMobile ? 'text-2xl' : 'text-xl md:text-2xl'}`}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 100, delay: 0.3 }}
@@ -278,10 +278,10 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className={`font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+              <div className={`jersey-15-regular text-green-400 ${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
                 {achievedMilestones.length}
               </div>
-              <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Achieved</div>
+              <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>Achieved</div>
             </motion.div>
             <motion.div
               className="text-center"
@@ -289,10 +289,10 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className={`font-bold text-yellow-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+              <div className={`jersey-15-regular text-yellow-400 ${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
                 {inProgressMilestones.length}
               </div>
-              <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>In Progress</div>
+              <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>In Progress</div>
             </motion.div>
             <motion.div
               className="text-center"
@@ -300,10 +300,10 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <div className={`font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+              <div className={`jersey-15-regular text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'}`}>
                 {upcomingMilestones.length}
               </div>
-              <div className={`text-slate-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>Upcoming</div>
+              <div className={`jersey-20-regular text-slate-400 ${isMobile ? 'text-base' : 'text-lg md:text-xl'}`}>Upcoming</div>
             </motion.div>
             {!isMobile && (
               <motion.div
@@ -312,10 +312,10 @@ const MilestonesGrid: React.FC<MilestonesGridProps> = ({ isMobile }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <div className={`font-bold text-blue-400 text-2xl`}>
+                <div className={`jersey-15-regular text-blue-400 text-3xl md:text-4xl`}>
                   {total}
                 </div>
-                <div className={`text-slate-400 text-sm`}>Total</div>
+                <div className={`jersey-20-regular text-slate-400 text-sm md:text-base`}>Total</div>
               </motion.div>
             )}
           </div>

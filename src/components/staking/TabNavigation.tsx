@@ -23,8 +23,6 @@ interface TabNavigationProps {
 export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigationProps) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id || '');
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll active tab into center view on mobile
@@ -51,33 +49,20 @@ export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigatio
     scrollTabIntoView(activeTab);
   }, [activeTab]);
 
-  // Handle swipe gestures for mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+  // Handle swipe gestures for mobile - DESHABILITADO para evitar interferencia con StakingForm
+  const handleTouchStart = () => {
+    // No-op: deshabilitado para evitar conflicto con tabs internos de StakingForm
+    return;
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
+  const handleTouchMove = () => {
+    // No-op: deshabilitado para evitar conflicto con tabs internos de StakingForm
+    return;
   };
 
   const handleTouchEnd = () => {
-    const swipeThreshold = 50;
-    const swipeDistance = touchStartX.current - touchEndX.current;
-    
-    if (Math.abs(swipeDistance) > swipeThreshold) {
-      const currentIndex = tabs.findIndex(tab => tab.id === activeTab);
-      
-      if (swipeDistance > 0 && currentIndex < tabs.length - 1) {
-        // Swipe left - next tab
-        setActiveTab(tabs[currentIndex + 1].id);
-      } else if (swipeDistance < 0 && currentIndex > 0) {
-        // Swipe right - previous tab
-        setActiveTab(tabs[currentIndex - 1].id);
-      }
-    }
-    
-    touchStartX.current = 0;
-    touchEndX.current = 0;
+    // No-op: deshabilitado para evitar conflicto con tabs internos de StakingForm
+    return;
   };
 
   return (
@@ -96,9 +81,9 @@ export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigatio
                 ref={(el) => { tabRefs.current[tab.id] = el; }}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  relative px-6 py-3 text-sm font-medium transition-all duration-200
+                  relative px-6 py-3 jersey-15-regular text-lg lg:text-xl font-medium transition-all duration-200
                   whitespace-nowrap focus:outline-none rounded-lg flex-shrink-0
-                  md:flex-1 md:px-8 md:py-4 md:text-base
+                  md:flex-1 md:px-8 md:py-4 md:text-2xl lg:text-3xl
                   ${
                     activeTab === tab.id
                       ? 'text-white bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-500/40'
@@ -107,8 +92,8 @@ export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigatio
                 `}
               >
                 <div className="flex items-center gap-2">
-                  {tab.icon && <span className="text-base">{tab.icon}</span>}
-                  <span>{tab.label}</span>
+                  {tab.icon && <span className="text-lg lg:text-xl">{tab.icon}</span>}
+                  <span className="jersey-15-regular">{tab.label}</span>
                 </div>
               </button>
             ))}
@@ -116,21 +101,19 @@ export function TabNavigation({ tabs, defaultTab, className = '' }: TabNavigatio
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* Tab Content - only mount the active tab to avoid multiple wallet hook instances */}
       <div
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className="relative"
       >
-        {/* Render all tabs but show only the active one - preserves component state */}
         {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`min-h-[400px] ${activeTab === tab.id ? 'block' : 'hidden'}`}
-          >
-            {tab.content}
-          </div>
+          activeTab === tab.id ? (
+            <div key={tab.id} className="min-h-[400px]">
+              {tab.content}
+            </div>
+          ) : null
         ))}
       </div>
     </div>

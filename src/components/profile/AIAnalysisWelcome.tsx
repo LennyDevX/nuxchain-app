@@ -104,12 +104,12 @@ const AIAnalysisWelcome: React.FC<WelcomeTutorialProps> = ({ onClose }) => {
           </div>
 
           {/* Title with gradient */}
-          <h2 className={`${isMobile ? 'text-xl' : 'text-3xl'} font-bold text-center mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent`}>
+          <h2 className={`font-bold jersey-15-regular text-center mb-2 text-gradient ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
             {currentStepData.title}
           </h2>
 
           {/* Description */}
-          <p className={`text-purple-400 text-center mb-6 font-medium ${isMobile ? 'text-sm' : 'text-lg'}`}>
+          <p className={`text-purple-400 text-center mb-6 font-medium jersey-20-regular ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             {currentStepData.description}
           </p>
 

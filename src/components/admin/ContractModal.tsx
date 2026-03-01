@@ -4,6 +4,7 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 interface Contract {
   name: string;
@@ -49,11 +50,7 @@ interface ContractModalProps {
   onContractSelect?: (address: string) => void;
 }
 
-export default function ContractModal({ isOpen, onClose }: ContractModalProps) {
-  const openPolygonscan = (address: string) => {
-    window.open(`https://polygonscan.com/address/${address}`, '_blank');
-  };
-
+export default function ContractModal({ isOpen, onClose, onContractSelect }: ContractModalProps) {
   const groupedContracts = CONTRACTS.reduce((acc, contract) => {
     if (!acc[contract.category]) {
       acc[contract.category] = [];
@@ -62,25 +59,27 @@ export default function ContractModal({ isOpen, onClose }: ContractModalProps) {
     return acc;
   }, {} as Record<string, Contract[]>);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop with blur */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[99998] flex items-center justify-center p-4"
-          >
-            {/* Modal content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-4xl max-h-[90vh] bg-[#0a0a0a]/95 backdrop-blur-xl border border-[rgba(139,92,246,0.3)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
+          />
+
+          {/* Modal content */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-4xl max-h-[85vh] bg-[#0B0F19]/95 backdrop-blur-3xl border border-[rgba(139,92,246,0.3)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-[rgba(139,92,246,0.2)]">
@@ -115,12 +114,20 @@ export default function ContractModal({ isOpen, onClose }: ContractModalProps) {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {contracts.map((contract) => (
-                        <div
+                        <motion.button
                           key={contract.address}
-                          className={`p-4 rounded-xl hover:bg-[rgba(139,92,246,0.1)] transition-all group border ${
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            if (contract.address && onContractSelect) {
+                              onContractSelect(contract.address);
+                              onClose();
+                            }
+                          }}
+                          className={`p-4 rounded-xl group border transition-all text-left ${
                             contract.receivesFunds 
-                              ? 'bg-[rgba(16,185,129,0.05)] border-[rgba(16,185,129,0.2)]' 
-                              : 'border-[rgba(139,92,246,0.15)]'
+                              ? 'bg-[rgba(16,185,129,0.05)] border-[rgba(16,185,129,0.2)] hover:bg-[rgba(16,185,129,0.15)] hover:border-[rgba(16,185,129,0.4)]' 
+                              : 'bg-[rgba(139,92,246,0.05)] border-[rgba(139,92,246,0.15)] hover:bg-[rgba(139,92,246,0.15)] hover:border-[rgba(139,92,246,0.3)]'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -139,27 +146,30 @@ export default function ContractModal({ isOpen, onClose }: ContractModalProps) {
                                 {contract.address ? `${contract.address.substring(0, 10)}...${contract.address.substring(contract.address.length - 8)}` : 'Not configured'}
                               </p>
                             </div>
-                            <button
-                              onClick={() => openPolygonscan(contract.address)}
-                              disabled={!contract.address}
-                              className="flex-shrink-0 p-2 rounded-lg bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            <a
+                              href={contract.address ? `https://polygonscan.com/address/${contract.address}` : '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-disabled={!contract.address}
+                              className={`flex-shrink-0 p-2 rounded-lg bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] transition-all ${!contract.address ? 'opacity-30 pointer-events-none' : ''}`}
                               title="View on PolygonScan"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                            </button>
+                            </a>
                           </div>
-                        </div>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
             </motion.div>
-          </motion.div>
-        </>
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

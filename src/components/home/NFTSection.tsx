@@ -1,99 +1,102 @@
 import { motion } from 'framer-motion'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import { Link } from 'react-router-dom'
-import { ResponsiveImage } from '../ui/ResponsiveImage'
+
+const AVATARS = [
+  { src: '/AvatarsNFTs/Avatar2.png', name: 'Avatar #002' },
+  { src: '/AvatarsNFTs/Avatar3.png', name: 'Avatar #003' },
+  { src: '/AvatarsNFTs/Avatar4.png', name: 'Avatar #004' },
+  { src: '/AvatarsNFTs/Avatar5.png', name: 'Avatar #005' },
+  { src: '/AvatarsNFTs/Avatar6.png', name: 'Avatar #006' },
+  { src: '/AvatarsNFTs/Avatar7.png', name: 'Avatar #007' },
+  { src: '/AvatarsNFTs/Avatar8.png', name: 'Avatar #008' },
+  { src: '/AvatarsNFTs/Avatar9.png', name: 'Avatar #009' },
+  { src: '/AvatarsNFTs/Avatar10.png', name: 'Avatar #010' },
+  { src: '/AvatarsNFTs/Avatar11.png', name: 'Avatar #011' },
+];
 
 function NFTSection() {
   const isMobile = useIsMobile()
+  const repeated = [...AVATARS, ...AVATARS, ...AVATARS]
 
   return (
-    <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
-      <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 lg:grid-cols-2 gap-12'} items-center`}>
-        {/* Imagen NFT - Izquierda - Ahora visible en desktop */}
-        {!isMobile && (
-          <motion.div
-            className="flex justify-center"
-            initial={{ opacity: 0, x: -30, y: 0 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-          >
-            <ResponsiveImage
-              src="/DragonixCardMinting.jpg"
-              alt="Dragonix NFT Card"
-              mobileSize="w-92 h-92"
-              tabletSize="md:w-92 md:h-92"
-              desktopSize="lg:w-92 lg:h-92"
-              className="rounded-2xl shadow-lg"
-              objectFit="contain"
-              priority
-            />
-          </motion.div>
-        )}
+    <section className={`relative z-10 border-t border-white/5 ${isMobile ? 'py-10' : 'py-24'} overflow-hidden`}>
+      {/* Header */}
+      <motion.div
+        className={`text-center px-4 ${isMobile ? 'mb-6' : 'mb-10'}`}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.55 }}
+      >
+        <span className="jersey-20-regular text-purple-400 text-lg uppercase tracking-widest">NFT Collections</span>
+        <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
+          Unique <span className="text-gradient">NFTs</span>
+        </h2>
+        <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          Collect exclusive Dragonix NFTs — each with real utility, staking bonuses, and marketplace integration.
+          Premium NFTs that empower you inside and outside the ecosystem.
+        </p>
+      </motion.div>
 
-        {/* Información - Derecha */}
+      {/* Infinite Scroll Strip */}
+      <div className="relative overflow-hidden mb-10">
+        {/* Left fade */}
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+        {/* Right fade */}
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+
         <motion.div
-          className={`animate-slide-up ${isMobile ? 'text-center' : ''}`}
-          initial={{ opacity: 0, x: isMobile ? 0 : 30, y: isMobile ? 20 : 0 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
+          className="flex gap-5 py-3"
+          animate={{ x: [0, -2400] }}
+          transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
         >
-          <motion.h2
-            className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 ${isMobile ? 'text-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Unique <span className="text-gradient">NFTs</span>
-          </motion.h2>
-
-          <motion.p
-            className={`${isMobile ? 'text-base mb-6' : 'text-xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            {isMobile
-              ? 'Discover and trade exclusive NFTs with special utilities and rewards.'
-              : 'Discover, collect and trade exclusive NFTs on our platform with cutting-edge technology. Each NFT is a unique digital asset with special utilities and rewards.'
-            }
-          </motion.p>
-
-          <motion.div
-            className={`space-y-${isMobile ? '3' : '4'} ${isMobile ? 'flex flex-col items-center' : ''}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Exclusive collectible designs</span>
-            </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Special staking bonuses</span>
-            </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Marketplace integration</span>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className={`${isMobile ? 'flex justify-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-          >
-            <Link
-              to="/nfts"
-              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary inline-block text-center`}
+          {repeated.map((avatar, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 group cursor-pointer"
             >
-              Explore NFTs
-            </Link>
-          </motion.div>
+              <div className={`relative rounded-2xl overflow-hidden border border-purple-500/20 hover:border-purple-400/60 transition-all duration-300 bg-white/5 ${isMobile ? 'w-32 h-32' : 'w-44 h-44'}`}
+                style={{ boxShadow: '0 0 20px rgba(168,85,247,0.1)' }}
+              >
+                <img
+                  src={avatar.src}
+                  alt={avatar.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <p className="jersey-20-regular text-white text-sm text-center">{avatar.name}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </motion.div>
       </div>
-    </div>
+
+      {/* Feature pills + CTAs */}
+      <motion.div
+        className="max-w-4xl mx-auto px-4 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.55, delay: 0.15 }}
+      >
+        <div className={`flex flex-wrap justify-center gap-2 mb-6 ${isMobile ? 'gap-2 mb-4' : 'gap-3 mb-8'}`}>
+          {['🎫 Access Passes', '📈 Staking Boosts', '🗳️ Governance', '⚡ On-chain Utility', '🌐 Cross-platform'].map(tag => (
+            <span key={tag} className="jersey-20-regular text-base px-4 py-2 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">{tag}</span>
+          ))}
+        </div>
+        <div className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-center'} gap-4`}>
+          <Link to="/nfts" className="btn-primary jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+            🎨 Explore NFTs
+          </Link>
+          <Link to="/create-my-nfts" className="jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/10 transition-all">
+            ✨ Create Your NFT
+          </Link>
+        </div>
+      </motion.div>
+    </section>
   );
 }
 

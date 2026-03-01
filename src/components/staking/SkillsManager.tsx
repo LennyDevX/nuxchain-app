@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo } from 'react';
+import React, { memo, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSkillsManagement, type ActiveSkillDetail } from '../../hooks/staking/useSkillsManagement';
 import { gamificationToasts } from '../../utils/toasts/gamificationToasts';
@@ -31,14 +31,20 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
     refetch,
   } = useSkillsManagement();
 
-  // Refetch after confirmed transaction + toast
+  const skillToastRef = useRef<string | undefined>(undefined);
+
+  // Loading → success toast pattern
   useEffect(() => {
+    if (isPending && !skillToastRef.current) {
+      skillToastRef.current = gamificationToasts.txPending('Processing skill transaction');
+    }
     if (isConfirmed) {
-      gamificationToasts.txConfirmed();
+      gamificationToasts.txConfirmed(skillToastRef.current);
+      skillToastRef.current = undefined;
       const timer = setTimeout(() => refetch(), 2000);
       return () => clearTimeout(timer);
     }
-  }, [isConfirmed, refetch]);
+  }, [isPending, isConfirmed, refetch]);
 
   // Calculate boost limit info
   const MAX_STAKING_BOOST = 3750; // 37.5%
@@ -63,20 +69,18 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
   }, [totalBoost, activeCount, maxSlots]);
 
   // Handle skill activation with validation & toast
-  const handleActivate = (tokenId: bigint, skillName: string, effectValue: number) => {
+  const handleActivate = (tokenId: bigint, _skillName: string, effectValue: number) => {
     const validation = validateSkillActivation(totalBoost, effectValue, activeCount, maxSlots);
     if (!validation.isValid) {
       gamificationToasts.boostLimitReached();
       return;
     }
     activateSkill(tokenId);
-    gamificationToasts.skillActivated(skillName, effectValue / 100);
   };
 
   // Handle skill deactivation with toast
-  const handleDeactivate = (tokenId: bigint, skillName: string) => {
+  const handleDeactivate = (tokenId: bigint) => {
     deactivateSkill(tokenId);
-    gamificationToasts.skillDeactivated(skillName);
   };
 
   if (isLoading) {
@@ -105,17 +109,17 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
           <div className="flex items-center gap-2">
             <span className="text-2xl">⚡</span>
             <div>
-              <h3 className="text-lg font-semibold text-white md:text-xl">Skills Manager</h3>
-              <p className="text-white/40 text-sm md:text-base">Activate NFT skills to boost rewards</p>
+              <h3 className="jersey-15-regular text-2xl lg:text-3xl font-semibold text-white">Skills Manager</h3>
+              <p className="jersey-20-regular text-white/40 text-base lg:text-lg">Activate NFT skills to boost rewards</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {hasAutoCompound && (
-              <span className="px-3 py-1 rounded-full text-xs md:text-sm bg-green-500/20 text-green-400 border border-green-500/30">
+              <span className="px-3 py-1 rounded-full jersey-20-regular text-sm lg:text-base bg-green-500/20 text-green-400 border border-green-500/30">
                 🔄 Auto
               </span>
             )}
-            <span className="px-3 py-1.5 rounded-full text-sm md:text-base font-bold bg-indigo-500/20 border border-indigo-500/30 text-indigo-300">
+            <span className="px-4 py-2 rounded-full jersey-15-regular text-base lg:text-lg font-bold bg-indigo-500/20 border border-indigo-500/30 text-indigo-300">
               {activeCount}/{maxSlots} Slots
             </span>
           </div>
@@ -124,21 +128,21 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
         {/* Skill Effectiveness Summary */}
         {skillEffectiveness && (
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/5">
-              <p className="text-white/40 text-xs md:text-sm">Base Rewards</p>
-              <p className="text-white/70 font-semibold text-base md:text-lg">{skillEffectiveness.baseRewards}</p>
-              <p className="text-white/30 text-xs md:text-sm">POL/day</p>
+            <div className="bg-white/5 rounded-lg p-4 text-center border border-white/5">
+              <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Base Rewards</p>
+              <p className="jersey-20-regular text-white/70 font-semibold text-lg lg:text-xl">{skillEffectiveness.baseRewards}</p>
+              <p className="jersey-20-regular text-white/30 text-sm lg:text-base">POL/day</p>
             </div>
-            <div className="bg-emerald-500/10 rounded-lg p-3 text-center border border-emerald-500/20">
-              <p className="text-emerald-400/60 text-xs md:text-sm">Boosted</p>
-              <p className="text-emerald-400 font-bold text-base md:text-lg">{skillEffectiveness.boostedRewards}</p>
-              <p className="text-emerald-400/30 text-xs md:text-sm">POL/day</p>
+            <div className="bg-emerald-500/10 rounded-lg p-4 text-center border border-emerald-500/20">
+              <p className="jersey-20-regular text-emerald-400/60 text-sm lg:text-base">Boosted</p>
+              <p className="jersey-20-regular text-emerald-400 font-bold text-lg lg:text-xl">{skillEffectiveness.boostedRewards}</p>
+              <p className="jersey-20-regular text-emerald-400/30 text-sm lg:text-base">POL/day</p>
             </div>
-            <div className="bg-white/5 rounded-lg p-3 text-center border border-white/5">
-              <p className="text-white/40 text-xs md:text-sm">Total Boost</p>
-              <p className="text-purple-400 font-bold text-base md:text-lg">+{(totalBoost / 100).toFixed(1)}%</p>
+            <div className="bg-white/5 rounded-lg p-4 text-center border border-white/5">
+              <p className="jersey-20-regular text-white/40 text-sm lg:text-base">Total Boost</p>
+              <p className="jersey-20-regular text-purple-400 font-bold text-lg lg:text-xl">+{(totalBoost / 100).toFixed(1)}%</p>
               {skillEffectiveness.feeDiscount > 0 && (
-                <p className="text-blue-400 text-xs md:text-sm">-{skillEffectiveness.feeDiscount}% fee</p>
+                <p className="jersey-20-regular text-blue-400 text-sm lg:text-base">-{skillEffectiveness.feeDiscount}% fee</p>
               )}
             </div>
           </div>
@@ -147,17 +151,17 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
         {/* Boost Limit Progress Bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-white/40 text-sm md:text-base">Staking Boost Limit</span>
-            <span className={`text-sm md:text-base font-medium ${
+            <span className="jersey-20-regular text-white/40 text-base lg:text-lg">Staking Boost Limit</span>
+            <span className={`jersey-15-regular text-base lg:text-lg font-medium ${
               boostUsagePercent >= 90 ? 'text-red-400' :
               boostUsagePercent >= 70 ? 'text-amber-400' : 'text-emerald-400'
             }`}>
               {(totalBoost / 100).toFixed(1)}% / 37.5%
             </span>
           </div>
-          <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden">
             <motion.div
-              className={`h-2.5 rounded-full ${
+              className={`h-3 rounded-full ${
                 boostUsagePercent >= 90 ? 'bg-gradient-to-r from-red-500 to-red-400' :
                 boostUsagePercent >= 70 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
                 'bg-gradient-to-r from-indigo-500 to-purple-500'
@@ -167,19 +171,19 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
               transition={{ duration: 0.5 }}
             />
           </div>
-          <p className="text-white/30 text-xs md:text-sm mt-1">
+          <p className="jersey-20-regular text-white/30 text-sm lg:text-base mt-1">
             Remaining: +{(remainingBoostBps / 100).toFixed(2)}% available
           </p>
         </div>
       </div>
 
       {/* Active Skills */}
-      <div className="px-5 pb-3">
-        <p className="text-white/40 text-sm md:text-base uppercase tracking-wide mb-3">Active Skills</p>
+      <div className="px-5 pb-4">
+        <p className="jersey-15-regular text-white/40 text-base lg:text-lg uppercase tracking-wide mb-3">Active Skills</p>
         {activeSkills.length === 0 ? (
           <div className="bg-white/5 rounded-lg p-6 text-center border border-dashed border-white/10">
-            <p className="text-white/40 text-base md:text-lg">No active skills</p>
-            <p className="text-white/30 text-sm md:text-base mt-2">Purchase skill NFTs from the marketplace to activate boosts</p>
+            <p className="jersey-20-regular text-white/40 text-lg lg:text-xl">No active skills</p>
+            <p className="jersey-20-regular text-white/30 text-base lg:text-lg mt-2">Purchase skill NFTs from the marketplace to activate boosts</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -188,7 +192,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
                 <SkillCard
                   key={skill.tokenId.toString()}
                   skill={skill}
-                  onDeactivate={(tokenId) => handleDeactivate(tokenId, skill.skillName)}
+                  onDeactivate={(tokenId) => handleDeactivate(tokenId)}
                   isTransacting={isPending || isConfirming}
                 />
               ))}
@@ -200,7 +204,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
       {/* Available Skills to Activate */}
       {availableSkills.length > 0 && activeCount < maxSlots && (
         <div className="px-5 pb-5 pt-3 border-t border-white/5">
-          <p className="text-white/40 text-sm md:text-base uppercase tracking-wide mb-3">Available Skills</p>
+          <p className="jersey-15-regular text-white/40 text-base lg:text-lg uppercase tracking-wide mb-3">Available Skills</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {availableSkills.filter(s => s.isEnabled).slice(0, 6).map((skill) => {
               const preview = previewSkillActivation(skill.defaultEffect);
@@ -218,14 +222,14 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
                   disabled={isPending || isConfirming || !canActivate}
                   onClick={() => handleActivate(BigInt(skill.skillType), skill.skillName, skill.defaultEffect)}
                 >
-                  <p className="text-white text-sm md:text-base font-medium">{skill.skillName}</p>
-                  <p className="text-white/40 text-xs md:text-sm">{formatSkillBoost(skill.defaultEffect)} boost</p>
+                  <p className="jersey-15-regular text-white text-base lg:text-lg font-medium">{skill.skillName}</p>
+                  <p className="jersey-20-regular text-white/40 text-sm lg:text-base">{formatSkillBoost(skill.defaultEffect)} boost</p>
                   {canActivate ? (
-                    <span className="text-blue-400 text-xs md:text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="jersey-20-regular text-blue-400 text-sm lg:text-base opacity-0 group-hover:opacity-100 transition-opacity">
                       → Total: +{preview.projectedPercent}%
                     </span>
                   ) : (
-                    <span className="text-red-400 text-xs md:text-sm">
+                    <span className="jersey-20-regular text-red-400 text-sm lg:text-base">
                       Exceeds limit
                     </span>
                   )}
@@ -241,7 +245,7 @@ const SkillsManager: React.FC<SkillsManagerProps> = memo(({ className = '' }) =>
         <div className="px-5 pb-4">
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-            <span className="text-blue-400 text-sm md:text-base">
+            <span className="jersey-20-regular text-blue-400 text-base lg:text-lg">
               {isPending ? 'Confirm in wallet...' : 'Processing transaction...'}
             </span>
           </div>
@@ -295,18 +299,18 @@ const SkillCard: React.FC<SkillCardProps> = memo(({ skill, onDeactivate, isTrans
         <div className="flex-1 min-w-0">
           {/* Skill Name and Badge Row */}
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-white text-sm md:text-base font-medium truncate">{skill.skillName}</span>
-            <span className={`${skill.rarityColor} text-xs md:text-sm font-bold px-2 py-0.5 rounded-full bg-white/5`}>
+            <span className="jersey-15-regular text-white text-base lg:text-lg font-medium truncate">{skill.skillName}</span>
+            <span className={`${skill.rarityColor} jersey-15-regular text-sm lg:text-base font-bold px-2 py-0.5 rounded-full bg-white/5`}>
               {skill.rarityName}
             </span>
-            <span className="text-white/40 text-xs md:text-sm">Lv.{skill.level}</span>
+            <span className="jersey-20-regular text-white/40 text-sm lg:text-base">Lv.{skill.level}</span>
           </div>
           
           {/* Effect and Time Row */}
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-emerald-400 text-xs md:text-sm font-medium">+{(skill.effectValue / 100).toFixed(1)}% boost</span>
+            <span className="jersey-20-regular text-emerald-400 text-sm lg:text-base font-medium">+{(skill.effectValue / 100).toFixed(1)}% boost</span>
             {skill.expiresAt && (
-              <span className={`text-xs md:text-sm px-2 py-0.5 rounded-full ${
+              <span className={`jersey-15-regular text-sm lg:text-base px-2 py-0.5 rounded-full ${
                 skill.isExpired 
                   ? 'bg-red-500/20 text-red-400' 
                   : skill.daysRemaining <= 3 
@@ -319,7 +323,7 @@ const SkillCard: React.FC<SkillCardProps> = memo(({ skill, onDeactivate, isTrans
           </div>
           
           {/* Applied Date */}
-          <p className="text-white/25 text-xs md:text-sm mt-1">
+          <p className="jersey-20-regular text-white/25 text-sm lg:text-base mt-1">
             Activated: {skill.appliedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </p>
         </div>
@@ -327,7 +331,7 @@ const SkillCard: React.FC<SkillCardProps> = memo(({ skill, onDeactivate, isTrans
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 ml-3">
           <motion.button
-            className="px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+            className="px-4 py-2 rounded-lg jersey-15-regular text-sm lg:text-base font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             disabled={isTransacting}

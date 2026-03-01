@@ -63,10 +63,10 @@ const CircularProgress: React.FC<{
         
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={`text-lg font-bold ${filled ? 'text-emerald-400' : 'text-white'}`}>
+          <span className={`jersey-20-regular text-2xl lg:text-3xl font-bold ${filled ? 'text-emerald-400' : 'text-white'}`}>
             {filled ? '✓' : '○'}
           </span>
-          <span className="text-[9px] text-white/50">{label}</span>
+          <span className="jersey-20-regular text-base lg:text-lg text-white/50">{label}</span>
         </div>
 
         {/* Filled indicator glow */}
@@ -77,10 +77,10 @@ const CircularProgress: React.FC<{
       
       {/* Label below */}
       <div className="mt-2 text-center">
-        <p className={`text-xs font-semibold ${filled ? 'text-emerald-400' : 'text-white/70'}`}>
+        <p className={`jersey-20-regular text-base lg:text-lg font-semibold ${filled ? 'text-emerald-400' : 'text-white/70'}`}>
           {total >= 1000 ? `${total/1000}M` : total} POL
         </p>
-        {filled && <p className="text-[9px] text-emerald-400/70">APY Adj</p>}
+        {filled && <p className="jersey-20-regular text-sm lg:text-base text-emerald-400/70">APY Adj</p>}
       </div>
     </motion.div>
   );
@@ -164,16 +164,16 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-cyan-400 text-lg">⚡</span>
-            <h4 className="text-sm font-semibold text-white">Dynamic APY</h4>
+            <span className="text-cyan-400 text-xl lg:text-2xl">⚡</span>
+            <h4 className="jersey-15-regular text-2xl lg:text-3xl font-semibold text-white">Dynamic APY</h4>
           </div>
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-amber-500/10 text-amber-400">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full jersey-20-regular text-[10px] lg:text-xs bg-amber-500/10 text-amber-400">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             {isNotDeployed ? 'Not Deployed' : 'Connecting...'}
           </div>
         </div>
         <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-          <p className="text-white/40 text-xs text-center">
+          <p className="jersey-20-regular text-white/40 text-xs lg:text-sm text-center">
             {isNotDeployed 
               ? '⚠️ DynamicAPYCalculator contract pending deployment.'
               : 'Loading contract data...'
@@ -186,58 +186,71 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
 
   return (
     <motion.div
-      className={`card-unified rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 ${className}`}
+      className={`card-unified rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 overflow-hidden ${className}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Compact Header - Horizontal Layout */}
-      <div className="p-3 border-b border-white/5">
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Icon + Title + Description inline */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-cyan-400">⚡</span>
+      {/* Header */}
+      <div className="px-4 pt-4 pb-3 border-b border-white/5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-cyan-400 text-xl">⚡</span>
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="text-sm font-semibold text-white">Dynamic APY</h4>
-                <span className="text-white/30 text-xs">•</span>
-                <p className="text-white/50 text-xs truncate">TVL-based scaling with treasury protection</p>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className={`text-xs font-medium ${multiplierInfo.color}`}>
-                  {multiplier} Multiplier
-                </span>
-                <span className="text-white/20 text-xs">|</span>
-                <span className="text-cyan-400 text-xs">{totalTVL} POL TVL</span>
-              </div>
+            <div>
+              <h4 className="jersey-15-regular text-2xl lg:text-3xl font-semibold text-white leading-none">Dynamic APY</h4>
+              <p className="jersey-20-regular text-white/40 text-xs lg:text-sm mt-0.5">TVL-based scaling · treasury protection</p>
             </div>
           </div>
-          
-          {/* Right: Status Badge */}
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0 ${
-            isEnabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-gray-500/10 text-gray-400'
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full jersey-20-regular text-xs font-medium border flex-shrink-0 ${
+            isEnabled
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`}></span>
+            <span className={`w-2 h-2 rounded-full ${isEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-gray-400'}`} />
             {isEnabled ? 'Live' : 'Static'}
+          </div>
+        </div>
+
+        {/* Hero Row: Multiplier + TVL */}
+        <div className="flex items-end justify-between">
+          {/* Multiplier — hero number */}
+          <div>
+            <p className="jersey-20-regular text-white/40 text-xs mb-0.5">Current Multiplier</p>
+            <motion.p
+              className={`jersey-15-regular font-bold text-4xl lg:text-5xl leading-none ${multiplierInfo.color}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              {multiplier}
+            </motion.p>
+            <p className={`jersey-20-regular text-sm mt-0.5 ${multiplierInfo.color}`}>{multiplierInfo.label}</p>
+          </div>
+
+          {/* TVL */}
+          <div className="text-right">
+            <p className="jersey-20-regular text-white/40 text-xs mb-0.5">Total TVL</p>
+            <p className="jersey-15-regular text-2xl lg:text-3xl text-cyan-400 font-bold leading-none">{totalTVL}</p>
+            <p className="jersey-20-regular text-white/40 text-xs mt-0.5">POL</p>
           </div>
         </div>
       </div>
 
-      {/* TVL Milestones - 3 Circular Progress Indicators */}
-      <div className="p-3">
+      {/* TVL Milestones */}
+      <div className="px-4 pt-3 pb-3">
         <div className="flex items-center justify-between mb-3">
-          <h5 className="text-[11px] font-medium text-white/70">
-            TVL Milestones (APY reduces after 1M)
-          </h5>
-          <span className="text-[10px] text-cyan-400">
+          <p className="jersey-20-regular text-white/50 text-xs lg:text-sm">
+            APY milestones · reduces after 1M POL
+          </p>
+          <span className="jersey-20-regular text-xs text-cyan-400">
             {tvlMilestones.filter(m => m.filled).length}/3
           </span>
         </div>
-        
+
         {/* Circular Progress Row */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-start justify-between gap-2">
           {tvlMilestones.map((milestone, index) => (
             <CircularProgress
               key={milestone.target}
@@ -250,35 +263,63 @@ const DynamicAPYIndicator: React.FC<DynamicAPYIndicatorProps> = memo(({
           ))}
         </div>
 
-        {/* TVL Progress Bar - Minimal */}
-        <div className="mt-6 pt-4 border-t border-white/5">
-          <div className="flex justify-between text-[9px] text-white/30 mb-1">
-            <span>0 POL</span>
-            <span className={isAPYReducing ? 'text-orange-400' : 'text-emerald-400'}>
-              {isAPYReducing ? 'APY Reducing' : 'Full APY'}
-            </span>
-            <span>4M POL</span>
+        {/* Circular TVL Progress Arc */}
+        <div className="mt-4 pt-3 border-t border-white/5 flex items-center gap-4">
+          {/* SVG Ring */}
+          <div className="relative flex-shrink-0 w-16 h-16">
+            <svg viewBox="0 0 64 64" className="w-full h-full -rotate-90">
+              {/* Track */}
+              <circle
+                cx="32" cy="32" r="26"
+                fill="none"
+                stroke="rgba(255,255,255,0.07)"
+                strokeWidth="7"
+              />
+              {/* Progress */}
+              <motion.circle
+                cx="32" cy="32" r="26"
+                fill="none"
+                stroke={isAPYReducing ? '#f59e0b' : '#10b981'}
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 26}
+                initial={{ strokeDashoffset: 2 * Math.PI * 26 }}
+                animate={{
+                  strokeDashoffset:
+                    2 * Math.PI * 26 *
+                    (1 - Math.min(parseFloat(totalTVL.replace(/,/g, '')) / 4000000, 1))
+                }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="jersey-15-regular text-[11px] font-bold text-white leading-none">
+                {Math.round(Math.min(parseFloat(totalTVL.replace(/,/g, '')) / 4000000 * 100, 100))}%
+              </span>
+            </div>
           </div>
-          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              className={`h-full ${isAPYReducing ? 'bg-gradient-to-r from-emerald-500 to-orange-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-500'}`}
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((parseFloat(totalTVL.replace(/,/g, '')) / 4000000) * 100, 100)}%` }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            />
+
+          {/* Labels */}
+          <div className="flex-1">
+            <p className={`jersey-15-regular text-sm font-semibold ${isAPYReducing ? 'text-orange-400' : 'text-emerald-400'}`}>
+              {isAPYReducing ? '⚠ APY Reducing' : '✓ Full APY Active'}
+            </p>
+            <p className="jersey-20-regular text-white/30 text-xs mt-0.5">
+              {totalTVL} / 4,000,000 POL
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Skill Boost - Compact */}
+      {/* Skill Boost */}
       {skillBoostBps > 0 && (
-        <div className="px-3 pb-3">
-          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs">🎮</span>
-              <span className="text-purple-300 text-xs">Skill Boost</span>
+        <div className="px-4 pb-4">
+          <div className="p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎮</span>
+              <span className="jersey-20-regular text-purple-300 text-sm lg:text-base">Skill Boost Active</span>
             </div>
-            <span className="text-purple-400 text-xs font-bold">+{(skillBoostBps / 100).toFixed(1)}%</span>
+            <span className="jersey-15-regular text-purple-400 text-lg lg:text-xl font-bold">+{(skillBoostBps / 100).toFixed(1)}%</span>
           </div>
         </div>
       )}

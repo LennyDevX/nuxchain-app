@@ -151,26 +151,26 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
     >
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-white mb-1">Pool Contract</h3>
-        <p className="text-sm text-white/60">Smart contract status & metrics</p>
+        <h3 className="jersey-15-regular text-xl lg:text-3xl font-bold text-white mb-1">Pool Contract</h3>
+        <p className="jersey-20-regular text-sm lg:text-base text-white/60">Smart contract status & metrics</p>
       </div>
 
       {/* Key Metrics - Vertical Compact Layout */}
       <div className="space-y-4">
         {/* Pool Contract Balance */}
         <div className="bg-white/5 rounded-lg p-4">
-          <p className="text-xs text-white/60 mb-1">Contract Reserve</p>
-          <p className="text-2xl font-bold text-emerald-400">
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-1">Contract Reserve</p>
+          <p className="jersey-20-regular text-2xl lg:text-3xl font-bold text-emerald-400">
             {formatPOL(poolContractBalance, 2)} POL
           </p>
-          <p className="text-xs text-white/40 mt-1">Available liquidity</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/40 mt-1">Available liquidity</p>
         </div>
 
         {/* Pool Health Status */}
         <div className="bg-white/5 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-white/60">Reserve Health</p>
-            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${getHealthStatus(healthStatus).borderColor} ${getHealthStatus(healthStatus).color}`}>
+            <p className="jersey-20-regular text-xs lg:text-sm text-white/60">Reserve Health</p>
+            <span className={`jersey-15-regular text-sm font-bold px-3 py-1 rounded-full border ${getHealthStatus(healthStatus).borderColor} ${getHealthStatus(healthStatus).color}`}>
               {getHealthStatus(healthStatus).text}
             </span>
           </div>
@@ -183,8 +183,8 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
             ></div>
           </div>
           
-          <p className="text-xs text-white/50">
-            Reserve Ratio: <span className={getHealthStatus(healthStatus).color}>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/50">
+            Reserve Ratio: <span className={`jersey-20-regular ${getHealthStatus(healthStatus).color}`}>
               {reserveRatio ? (Number(reserveRatio) / 100).toFixed(1) : '0'}%
             </span>
           </p>
@@ -192,33 +192,33 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
 
         {/* Commission Rate */}
         <div className="bg-white/5 rounded-lg p-4">
-          <p className="text-xs text-white/60 mb-1">Commission Rate</p>
-          <p className="text-lg font-semibold text-blue-400">6%</p>
-          <p className="text-xs text-white/40 mt-1">Per deposit transaction</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-1">Commission Rate</p>
+          <p className="jersey-20-regular text-lg lg:text-xl font-semibold text-blue-400">6%</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/40 mt-1">Per deposit transaction</p>
         </div>
 
         {/* Daily Withdrawal Limit */}
         <div className="bg-white/5 rounded-lg p-4">
-          <p className="text-xs text-white/60 mb-1">Daily Withdrawal Limit</p>
-          <p className="text-lg font-semibold text-orange-400">2,000 POL</p>
-          <p className="text-xs text-white/40 mt-1">Per 24 hours</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-1">Daily Withdrawal Limit</p>
+          <p className="jersey-20-regular text-lg lg:text-xl font-semibold text-orange-400">2,000 POL</p>
+          <p className="jersey-20-regular text-xs lg:text-sm text-white/40 mt-1">Per 24 hours</p>
         </div>
 
         {/* Flexible/Locked Ratio - Optional visibility for connected users */}
         {address && userTotalStaked > 0n && (
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/10 rounded-lg p-4">
-            <p className="text-xs text-white/60 mb-2">Flexible / Locked Staking</p>
+            <p className="jersey-20-regular text-xs lg:text-sm text-white/60 mb-2">Flexible / Locked Staking</p>
             <div className="flex items-center justify-between">
               <div className="text-center">
-                <p className="text-xs text-blue-400 mb-1">Flexible</p>
-                <p className="text-sm font-semibold text-white">
+                <p className="jersey-15-regular text-xs text-blue-400 mb-1">Flexible</p>
+                <p className="jersey-20-regular text-sm font-semibold text-white">
                   {userFlexibleBalance > 0n ? formatPOL(userFlexibleBalance, 2) : '0.00'}
                 </p>
               </div>
               <div className="text-white/40">/</div>
               <div className="text-center">
-                <p className="text-xs text-purple-400 mb-1">Locked</p>
-                <p className="text-sm font-semibold text-white">
+                <p className="jersey-15-regular text-xs text-purple-400 mb-1">Locked</p>
+                <p className="jersey-20-regular text-sm font-semibold text-white">
                   {userLockedBalance > 0n ? formatPOL(userLockedBalance, 2) : '0.00'}
                 </p>
               </div>
@@ -233,7 +233,7 @@ const PoolInfo: React.FC<PoolInfoProps> = memo(({ totalPoolBalance, uniqueUsersC
           href={`https://polygonscan.com/address/${STAKING_CONTRACT_ADDRESS}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 text-sm text-white/60 hover:text-white/90 transition-colors"
+          className="flex items-center justify-center gap-2 jersey-15-regular text-sm lg:text-base text-white/60 hover:text-white/90 transition-colors"
         >
           <span>View Contract</span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

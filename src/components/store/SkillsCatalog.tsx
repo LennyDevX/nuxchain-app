@@ -73,8 +73,8 @@ export const SkillsCatalog = memo<SkillsCatalogProps>(({
         className="text-center py-16"
       >
         <div className="text-6xl mb-4">🔍</div>
-        <h3 className="text-2xl font-bold text-white mb-2">No skills found</h3>
-        <p className="text-gray-400">
+        <h3 className="jersey-15-regular text-5xl md:text-6xl text-white mb-4">No skills found</h3>
+        <p className="jersey-20-regular text-xl md:text-2xl text-gray-400">
           Try adjusting your filters or search query
         </p>
       </motion.div>

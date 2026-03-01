@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import GlobalBackground from '../ui/gradientBackground';
+import { isMaintenanceMode } from '../config/maintenance';
+import DevHubMaintenance from './DevHubMaintenance';
 import Footer from '../components/layout/footer';
 import HeroSection from '../components/devHub/HeroSection';
 import ToolsGrid from '../components/devHub/ToolsGrid';
@@ -13,8 +14,10 @@ function CTAHub() {
     document.title = 'Nuxchain | CTA Hub - Web3 Infrastructure for Developers';
   }, []);
 
+  if (isMaintenanceMode('devhub')) return <DevHubMaintenance />;
+
   return (
-    <GlobalBackground>
+    <>
       <div className="min-h-screen text-white">
         <HeroSection />
         <ToolsGrid />
@@ -24,7 +27,7 @@ function CTAHub() {
         <UseCasesSection />
         <Footer />
       </div>
-    </GlobalBackground>
+    </>
   );
 }
 

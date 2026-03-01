@@ -7,12 +7,13 @@ import LoadingSpinner from '../ui/LoadingSpinner';
 import Home from '../pages/Home';
 
 // 🚀 Lazy-loaded pages with optimized code splitting
-const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/StakingMaintenance'));
+const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
 const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
 const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
 const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
+const PriceFeed = lazy(() => import(/* webpackChunkName: "price-feed" */ '../pages/PriceFeed'));
 const Profile = lazy(() => import(/* webpackChunkName: "profile" */ '../pages/Profile'));
 const Blog = lazy(() => import(/* webpackChunkName: "blog" */ '../pages/Blog'));
 const CTAHub = lazy(() => import(/* webpackChunkName: "devhub" */ '../pages/DevHub'));
@@ -21,14 +22,19 @@ const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skil
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
-const Tutorial = lazy(() => import(/* webpackChunkName: "tutorial" */ '../pages/Tutorial'));
+const About = lazy(() => import(/* webpackChunkName: "about" */ '../pages/About'));
 const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
 const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
 const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
+const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
+const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
+const Launchpad = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/Launchpad'));
+const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
+const BurnToken = lazy(() => import(/* webpackChunkName: "burn-token" */ '../pages/BurnToken'));
 
 function AppRoutes() {
-  // ⚡ Smart preloading: Only preload on fast connections and after idle
+  // Smart preloading: Only preload on fast connections and after idle
   useEffect(() => {
     // Check connection speed using Network Information API
     const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
@@ -66,20 +72,27 @@ function AppRoutes() {
         <Route path="/create-my-nfts" element={<Tokenization />} />
         <Route path="/tokenization" element={<Tokenization />} />
         <Route path="/labs" element={<Labs />} />
+        <Route path="/labs/price-feed" element={<PriceFeed />} />
         <Route path="/skills" element={<Skills />} />
         <Route path="/store" element={<Store />} />
         <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/blog" element={<Blog />} />
-        <Route path="/dev-hub" element={<CTAHub />} />
+        <Route path="/devhub" element={<CTAHub />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
-        <Route path="/tutorial" element={<Tutorial />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/tutorial" element={<About />} />
         <Route path="/tokenomics" element={<Tokenomics />} />
         <Route path="/colab" element={<ColabPortal />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<Admin />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
+        <Route path="/nux" element={<Nux />} />
+        <Route path="/rewards" element={<Rewards />} />
+        <Route path="/launchpad" element={<Launchpad />} />
+        <Route path="/whitepaper" element={<Whitepaper />} />
+        <Route path="/burntoken" element={<BurnToken />} />
       </Routes>
     </Suspense>
   );

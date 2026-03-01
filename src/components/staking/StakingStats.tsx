@@ -44,21 +44,21 @@ const StakingStats: React.FC<StakingStatsProps> = memo(({
 
   // Simplified minimalist design matching mockup
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
       {statsData.map((stat, index) => (
         <motion.div
           key={index}
-          className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-5"
+          className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-3 lg:p-5"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">{stat.emoji}</span>
-            <p className="text-white/60 text-sm font-medium">{stat.title}</p>
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-lg lg:text-2xl">{stat.emoji}</span>
+            <p className="jersey-15-regular text-white/60 text-xs lg:text-base font-medium leading-tight">{stat.title}</p>
           </div>
-          <p className="text-white text-2xl font-bold mb-1">{stat.value}</p>
-          <p className="text-white/40 text-xs">{stat.subtitle}</p>
+          <p className="jersey-20-regular text-white text-xl lg:text-3xl font-bold mb-0.5">{stat.value}</p>
+          <p className="jersey-20-regular text-white/40 text-xs lg:text-sm">{stat.subtitle}</p>
         </motion.div>
       ))}
     </div>

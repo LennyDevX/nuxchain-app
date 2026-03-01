@@ -115,7 +115,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
         >
           {/* Header */}
           <div className="flex justify-between items-center p-3 sm:p-4 border-b border-white/10">
-            <h3 id="buy-modal-title" className="text-base sm:text-lg font-bold text-white">Buy NFT</h3>
+            <h3 id="buy-modal-title" className="jersey-15-regular text-base sm:text-lg md:text-xl font-bold text-white">Buy NFT</h3>
             <button
               onClick={onClose}
               aria-label="Close purchase modal"
@@ -150,10 +150,10 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
 
               {/* NFT Information */}
               <div className="space-y-2">
-                <h4 className="text-sm sm:text-base font-semibold text-white line-clamp-1">{nft.name || `NFT #${nft.tokenId || 'Unknown'}`}</h4>
+                <h4 className="jersey-15-regular text-sm sm:text-base md:text-lg font-semibold text-white line-clamp-1">{nft.name || `NFT #${nft.tokenId || 'Unknown'}`}</h4>
                 <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-md p-2.5 sm:p-3">
-                  <p className="text-xs text-white/60 mb-0.5">Price</p>
-                  <p className="text-lg sm:text-xl font-bold text-purple-400">
+                  <p className="jersey-20-regular text-xs text-white/60 mb-0.5">Price</p>
+                  <p className="jersey-15-regular text-lg sm:text-xl md:text-2xl font-bold text-purple-400">
                     {nft.priceInEth ? (nft.priceInEth < 0.01 ? nft.priceInEth.toFixed(6) : nft.priceInEth.toFixed(2)) : '0.10'} POL
                   </p>
                 </div>
@@ -162,14 +162,14 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
               {/* Alerts */}
               {!isConnected ? (
                 <div className="bg-red-500/20 border border-red-500/30 rounded-md p-2" role="alert" aria-live="assertive">
-                  <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2 text-red-400 jersey-20-regular text-xs sm:text-sm">
                     <AlertTriangleIcon />
                     <span>Connect wallet to purchase</span>
                   </div>
                 </div>
               ) : isOwner ? (
                 <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-md p-2" role="alert" aria-live="polite">
-                  <div className="flex items-center gap-2 text-yellow-400 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2 text-yellow-400 jersey-20-regular text-xs sm:text-sm">
                     <AlertTriangleIcon />
                     <span>Cannot buy your own NFT</span>
                   </div>
@@ -178,7 +178,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
 
               {displayError && (
                 <div className="bg-red-500/20 border border-red-500/30 rounded-md p-2" role="alert" aria-live="assertive">
-                  <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2 text-red-400 jersey-20-regular text-xs sm:text-sm">
                     <AlertTriangleIcon />
                     <span>{displayError}</span>
                   </div>
@@ -195,7 +195,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
                 onClose();
               }}
               aria-label="Cancel purchase"
-              className="w-full px-3 py-1.5 sm:py-2 btn-secondary"
+              className="w-full px-3 py-1.5 sm:py-2 btn-secondary jersey-20-regular text-sm md:text-base"
             >
               Cancel
             </button>
@@ -206,7 +206,7 @@ const BuyModal: React.FC<BuyModalProps> = ({ isOpen, onClose, nft, onBuy, onSucc
               aria-disabled={!isConnected || Boolean(isOwner) || isLoading}
               whileHover={!isConnected || isOwner || isLoading ? {} : { scale: 1.05 }}
               whileTap={!isConnected || isOwner || isLoading ? {} : { scale: 0.95 }}
-              className="w-full px-3 py-1.5 sm:py-2 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-3 py-1.5 sm:py-2 btn-primary disabled:opacity-50 disabled:cursor-not-allowed jersey-20-regular text-sm md:text-base"
             >
               {isLoading ? 'Buying...' : 'Buy'}
             </motion.button>

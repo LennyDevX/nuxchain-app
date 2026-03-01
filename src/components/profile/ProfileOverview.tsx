@@ -70,10 +70,10 @@ const ProfileOverview: React.FC = () => {
   return (
     <div className={`space-y-${isMobile ? '4' : '6'}`}>
       <header>
-        <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent`}>
+        <h1 className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-5xl'} font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent`}>
           Profile Overview
         </h1>
-        <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-400 mt-2`}>Complete overview of your account activity on Nuxchain</p>
+        <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} text-gray-400 mt-2`}>Complete overview of your account activity on Nuxchain</p>
       </header>
 
       {/* Stats Cards */}
@@ -87,14 +87,14 @@ const ProfileOverview: React.FC = () => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400 truncate`}>Wallet</h3>
-              <p className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold ${isConnected ? 'text-green-400' : 'text-gray-400'} truncate`}>
+              <h3 className={`jersey-15-regular ${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-gray-400 truncate`}>Wallet</h3>
+              <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} font-bold ${isConnected ? 'text-green-400' : 'text-gray-400'} truncate`}>
                 {isConnected ? 'Connected' : 'Disconnected'}
               </p>
             </div>
           </div>
           {isConnected && (
-            <div className="flex items-center gap-1 text-xs text-green-400 mt-2">
+            <div className="flex items-center gap-1 jersey-20-regular text-sm text-green-400 mt-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               <span>Active</span>
             </div>
@@ -110,8 +110,8 @@ const ProfileOverview: React.FC = () => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400 truncate`}>Balance</h3>
-              <p className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white truncate`}>
+              <h3 className={`jersey-15-regular ${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-gray-400 truncate`}>Balance</h3>
+              <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white truncate`}>
                 {balance ? `${parseFloat(formatUnits(balance.value, balance.decimals)).toFixed(isMobile ? 2 : 4)} ${balance.symbol}` : '0.0000 POL'}
               </p>
             </div>
@@ -127,11 +127,11 @@ const ProfileOverview: React.FC = () => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400 truncate`}>NFTs</h3>
-              <p className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white`}>{nfts.length}</p>
+              <h3 className={`jersey-15-regular ${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-gray-400 truncate`}>NFTs</h3>
+              <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white`}>{nfts.length}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">in your collection</p>
+          <p className="jersey-20-regular text-sm text-gray-500 mt-2">in your collection</p>
         </div>
 
         {/* Activity Status Card */}
@@ -143,11 +143,11 @@ const ProfileOverview: React.FC = () => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-400 truncate`}>Activity</h3>
-              <p className={`${isMobile ? 'text-sm' : 'text-lg'} font-bold text-white`}>{activities.length}</p>
+              <h3 className={`jersey-15-regular ${isMobile ? 'text-sm' : 'text-lg'} font-semibold text-gray-400 truncate`}>Activity</h3>
+              <p className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white`}>{activities.length}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">recent actions</p>
+          <p className="jersey-20-regular text-sm text-gray-500 mt-2">recent actions</p>
         </div>
       </section>
 
@@ -160,9 +160,9 @@ const ProfileOverview: React.FC = () => {
                 <span className="text-xl">📊</span>
               </div>
               <div>
-                <h2 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-white`}>Recent Activity</h2>
+                <h2 className={`jersey-15-regular ${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-white`}>Recent Activity</h2>
                 {activitiesLoading && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded text-xs text-blue-400">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 border border-blue-500/30 rounded jersey-20-regular text-sm text-blue-400">
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></span>
                     Syncing
                   </span>
@@ -179,7 +179,7 @@ const ProfileOverview: React.FC = () => {
               }}
               disabled={isClearing || activitiesLoading}
               aria-label={isClearing ? 'Clearing cache...' : 'Clear Apollo cache and refresh data'}
-              className={`${isMobile ? 'flex-1 px-3 py-2 text-xs' : 'px-4 py-2 text-sm'} bg-gradient-to-r from-orange-500/10 to-red-500/10 hover:from-orange-500/20 hover:to-red-500/20 border border-orange-500/30 hover:border-orange-500/50 rounded-xl text-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 hover:scale-105`}
+              className={`${isMobile ? 'flex-1 px-3 py-2 text-sm' : 'px-4 py-2 text-lg'} jersey-20-regular bg-gradient-to-r from-orange-500/10 to-red-500/10 hover:from-orange-500/20 hover:to-red-500/20 border border-orange-500/30 hover:border-orange-500/50 rounded-xl text-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95 hover:scale-105`}
             >
               <svg 
                 className={`w-4 h-4 ${isClearing ? 'animate-spin' : ''}`} 

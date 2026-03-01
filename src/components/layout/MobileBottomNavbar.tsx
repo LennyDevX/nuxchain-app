@@ -8,9 +8,10 @@ import WalletConnect from '../web3/WalletConnect.tsx';
 import { isMaintenanceMode } from '../../config/maintenance';
 
 // Iconos SVG
-const HomeIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-blue-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+const RocketIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.584 15.584a2 2 0 11-2.828-2.828 2 2 0 012.828 2.828z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2.25l-2.024 4.047-4.047 2.024L12 21.75l6.071-13.429-4.047-2.024L12 2.25z" />
   </svg>
 );
 
@@ -62,12 +63,11 @@ const MobileBottomNavbar: React.FC = () => {
   // ✅ Haptic feedback
   const triggerHaptic = useTapFeedback();
 
-  // Usar el hook apropiado según la página
   const { isVisible, isMobile } = isInChat ? chatNavbar : bottomNavbar;
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
 
   const navItems: NavItem[] = [
-    { path: '/', label: 'Home', icon: HomeIcon },
+    { path: '/launchpad', label: 'LP', icon: RocketIcon },
     { path: '/staking', label: 'Staking', icon: StakingIcon },
     { path: '/nfts', label: 'NFTs', icon: NFTIcon },
     { path: '/marketplace', label: 'Market', icon: MarketplaceIcon },
@@ -154,11 +154,16 @@ const MobileBottomNavbar: React.FC = () => {
                   </motion.div>
 
                   <motion.span
-                    className={`text-xs mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
+                    className={`jersey-20-regular text-lg mt-2 font-medium truncate max-w-full transition-colors duration-200 relative z-10 ${active ? 'text-pink-400' : 'text-gray-400'
                       }`}
                     animate={{
                       scale: active ? 1.05 : 1,
                       opacity: active ? 1 : 0.7
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25
                     }}
                   >
                     {item.label}
@@ -194,7 +199,7 @@ const MobileBottomNavbar: React.FC = () => {
               >
                 <MenuIcon isActive={false} />
               </motion.div>
-              <span className="text-xs mt-2 font-medium truncate max-w-full text-gray-400 transition-colors duration-200">
+              <span className="jersey-20-regular text-base mt-2  truncate max-w-full text-gray-400 transition-colors duration-200">
                 Menú
               </span>
               {/* Indicador de notificación dinámico */}
@@ -233,12 +238,14 @@ const MobileBottomNavbar: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsMenuOpen(false)}
           >
             {/* Backdrop with blur */}
             <motion.div
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                const walletOpen = document.querySelector('.wallet-dropdown');
+                if (!walletOpen) setIsMenuOpen(false);
+              }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -247,6 +254,7 @@ const MobileBottomNavbar: React.FC = () => {
             {/* Menu Panel */}
             <motion.div
               className="relative w-full bg-black/90 backdrop-blur-md border-t border-white/20 rounded-t-3xl"
+              onClick={(e) => e.stopPropagation()}
               initial={{ y: 500, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 500, opacity: 0 }}
@@ -265,18 +273,8 @@ const MobileBottomNavbar: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="relative w-8 h-8 group">
-                      <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-md group-hover:bg-blue-500/30 transition-colors"></div>
-                      <img
-                        src="/favicon1.png"
-                        alt="Nuxchain Logo"
-                        className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                      />
-                    </div>
-                    <span className="text-lg font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent antialiased">
-                      Nuxchain
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <span className="jersey-20-regular text-white text-2xl">Menu</span>
                   </div>
                   <motion.button
                     onClick={() => setIsMenuOpen(false)}
@@ -299,19 +297,14 @@ const MobileBottomNavbar: React.FC = () => {
                 >
                   {/* Connect Wallet */}
                   <motion.div
-                    className="p-4 rounded-xl bg-white/5 border border-white/10"
+                    className="p-4 rounded-xl bg-white/5 border border-white/10 w-full"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                     whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-                    onClick={(e) => {
-                      // Permitir que el WalletConnect capture eventos de click
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <WalletConnect />
-                    </div>
+                    <WalletConnect className="w-full" />
                   </motion.div>
 
                   {/* Profile Link */}
@@ -328,7 +321,8 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                      <span className="text-white font-medium">Perfil</span>
+                      <span className="jersey-20-regular text-white text-2xl">Profile</span>
+                      <span className="ml-auto jersey-20-regular text-xl text-gradient">All My Data</span>
                     </Link>
                   </motion.div>
 
@@ -341,12 +335,22 @@ const MobileBottomNavbar: React.FC = () => {
                     <Link
                       to="/airdrop"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative"
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative w-full"
                     >
                       <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                       </svg>
-                      <span className="text-white font-medium">Airdrops</span>
+                      <span className="jersey-20-regular text-white text-xl">Airdrops</span>
+                      {!isMaintenanceMode('airdrop') && (
+                        <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40">
+                          <motion.span
+                            className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                            animate={{ scale: [1, 1.5, 1], opacity: [1, 0.6, 1] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                          />
+                          <span className="jersey-20-regular text-emerald-400 text-xl">LIVE</span>
+                        </span>
+                      )}
                       {isMaintenanceMode('airdrop') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50 ml-auto"
@@ -371,7 +375,79 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
-                      <span className="text-white font-medium">AI Chat</span>
+                      <span className="jersey-20-regular text-white text-xl">AI Chat</span>
+                      <motion.span
+                        className="ml-auto jersey-20-regular text-xl text-gradient"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        Try Now!
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+
+                  {/* Launchpad */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.38 }}
+                  >
+                    <Link
+                      to="/launchpad"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors relative"
+                    >
+                      <span className="text-xl">🚀</span>
+                      <span className="jersey-20-regular text-purple-400 text-xl">Launchpad</span>
+                      <motion.span
+                        className="ml-auto jersey-20-regular text-xl px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-bold"
+                        animate={{ opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        NEW
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+
+                  {/* NUX Token */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <Link
+                      to="/nux"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors relative"
+                    >
+                      <span className="text-xl">🪙</span>
+                      <span className="jersey-20-regular text-amber-400 text-xl">NUX Token</span>
+                      <motion.div
+                        className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.6)] ml-auto"
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </Link>
+                  </motion.div>
+
+                  {/* Burn Tokens Link */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.42 }}
+                  >
+                    <Link
+                      to="/burntoken"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors relative"
+                    >
+                      <span className="text-xl">🔥</span>
+                      <span className="jersey-20-regular text-red-400 text-xl">Burn Tokens</span>
+                      <motion.div
+                        className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)] ml-auto"
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
                     </Link>
                   </motion.div>
 
@@ -379,7 +455,7 @@ const MobileBottomNavbar: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.45 }}
                   >
                     <Link
                       to="/tokenomics"
@@ -389,7 +465,14 @@ const MobileBottomNavbar: React.FC = () => {
                       <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span className="text-white font-medium">Tokenomics</span>
+                      <span className="jersey-20-regular text-white text-xl">Tokenomics</span>
+                      {!isMaintenanceMode('tokenomics') && (
+                        <motion.div
+                          className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)] ml-auto"
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.8, 1, 0.8] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
                       {isMaintenanceMode('tokenomics') && (
                         <motion.div
                           className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)] ml-auto"

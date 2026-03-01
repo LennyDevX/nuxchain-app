@@ -9,15 +9,18 @@ function Navbar() {
   const isMobile = useIsMobile()
 
   const navLinks = [
-    { path: '/', label: 'Home' },
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
     { path: '/airdrop', label: 'Airdrop' },
+    { path: '/launchpad', label: 'LP' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
+    { path: '/nux', label: 'NUX' },
+    { path: '/burntoken', label: 'Burn' },
     { path: '/tokenomics', label: 'Tokenomics' },
     { path: '/chat', label: 'Chat' }
   ]
+
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -30,7 +33,7 @@ function Navbar() {
 
   return (
     <motion.nav
-      className="backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50"
+      className="backdrop-blur-md shadow-lg border-b border-white/20 fixed top-0 left-0 right-0 z-50"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
@@ -54,12 +57,12 @@ function Navbar() {
                 <div className="relative w-10 h-10 mr-2 group">
                   <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg group-hover:bg-blue-500/40 transition-colors"></div>
                   <img
-                    src="/favicon1.png"
+                    src="/assets/unused/favicon1.png"
                     alt="Nuxchain Logo"
                     className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]"
                   />
                 </div>
-                <span className="text-xl font-black tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-pink-400 transition-all duration-300 antialiased">
+                <span className="text-4xl jersey-15-regular tracking-tighter uppercase italic bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-pink-400 transition-all duration-300 antialiased">
                   Nuxchain
                 </span>
               </motion.div>
@@ -73,7 +76,7 @@ function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15, staggerChildren: 0.05 }}
           >
-            <div className="ml-10 flex items-center space-x-2">
+            <div className="ml-10 flex items-center space-x-0.5">
               {navLinks.map((link, index) => (
                 <motion.div
                   key={link.path}
@@ -91,12 +94,26 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 relative ${isActive(link.path)
+                      className={`jersey-20-regular inline-flex items-center gap-2 px-2 py-2 rounded-xl text-xl transition-all duration-200 relative ${isActive(link.path)
                         ? 'bg-blue-100 text-blue-700 shadow-sm'
                         : 'text-white/80 hover:text-white hover:bg-white/10'
                         }`}
                     >
                       {link.label}
+                      {link.path === '/launchpad' && (
+                        <motion.div
+                          className="w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                      )}
+                      {link.path === '/nux' && (
+                        <motion.div
+                          className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.7)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      )}
                       {link.path === '/airdrop' && isMaintenanceMode('airdrop') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"
@@ -104,14 +121,18 @@ function Navbar() {
                           transition={{ duration: 1, repeat: Infinity }}
                         />
                       )}
-                      {link.path === '/tokenomics' && isMaintenanceMode('tokenomics') && (
+                      {link.path === '/tokenomics' && (
                         <motion.div
-                          className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)]"
-                          animate={{
-                            scale: [1, 1.4, 1],
-                            opacity: [0.8, 1, 0.8]
-                          }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      )}
+                      {link.path === '/burntoken' && (
+                        <motion.div
+                          className="w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.9)]"
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.2, repeat: Infinity }}
                         />
                       )}
                     </Link>

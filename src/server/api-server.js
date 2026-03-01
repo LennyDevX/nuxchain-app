@@ -8,6 +8,34 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
+// Firebase Admin (lazy init)
+let _db = null;
+async function getFirestoreDb() {
+  if (_db) return _db;
+  try {
+    const { initializeApp, getApps, cert } = await import('firebase-admin/app');
+    const { getFirestore } = await import('firebase-admin/firestore');
+    if (getApps().length === 0) {
+      const svcAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+      if (svcAccount) {
+        initializeApp({ credential: cert(JSON.parse(svcAccount)) });
+      } else {
+        // Fallback: load serviceAccountKey.json from project root
+        const { readFileSync } = await import('fs');
+        const { resolve } = await import('path');
+        const keyPath = resolve(__dirname, '../../serviceAccountKey.json');
+        const key = JSON.parse(readFileSync(keyPath, 'utf8'));
+        initializeApp({ credential: cert(key) });
+      }
+    }
+    _db = getFirestore();
+    console.log('✅ Firebase Admin initialized (launchpad)');
+  } catch (err) {
+    console.error('❌ Firebase Admin init failed:', err.message);
+  }
+  return _db;
+}
+
 // Obtener directorio actual en ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -459,6 +487,166 @@ app.get('/api/gridbot/data', async (req, res) => {
   }
 });
 
+// ============================================================================
+// UNISWAP PRICE FEED ENDPOINT - COINGECKO PROXY (dev fallback)
+// ============================================================================
+
+const TRACKED_TOKENS_DEV = [
+  { id: 'eth',   symbol: 'ETH',  name: 'Ethereum',        coingeckoId: 'ethereum',                color: '#627EEA' },
+  { id: 'pol',   symbol: 'POL',  name: 'Polygon',          coingeckoId: 'polygon-ecosystem-token', color: '#8247E5' },
+  { id: 'usdc',  symbol: 'USDC', name: 'USD Coin',         coingeckoId: 'usd-coin',                color: '#2775CA' },
+  { id: 'wbtc',  symbol: 'WBTC', name: 'Wrapped Bitcoin',  coingeckoId: 'wrapped-bitcoin',         color: '#F7931A' },
+  { id: 'uni',   symbol: 'UNI',  name: 'Uniswap',          coingeckoId: 'uniswap',                 color: '#FF007A' },
+];
+
+app.get('/api/uniswap/prices', async (req, res) => {
+  try {
+    const cacheKey = 'uniswap_prices_dev';
+    const cached = getCached(cacheKey);
+    if (cached) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached);
+    }
+
+    const ids = TRACKED_TOKENS_DEV.map(t => t.coingeckoId).join(',');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`,
+      {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'NuxChain-Dev/1.0'
+        }
+      }
+    );
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko error: ${response.status}`);
+    }
+
+    const cgData = await response.json();
+
+    const prices = TRACKED_TOKENS_DEV.map(token => {
+      const cg = cgData[token.coingeckoId] || {};
+      return {
+        id: token.id,
+        symbol: token.symbol,
+        name: token.name,
+        price: cg.usd ?? 0,
+        change24h: cg.usd_24h_change ?? 0,
+        volume24h: cg.usd_24h_vol ?? 0,
+        color: token.color,
+        source: 'coingecko',
+      };
+    });
+
+    const result = {
+      success: true,
+      data: prices,
+      timestamp: Date.now(),
+      cached: false,
+      source: 'coingecko',
+    };
+
+    setCached(cacheKey, result);
+    res.setHeader('X-Cache', 'MISS');
+    return res.json(result);
+
+  } catch (error) {
+    console.error('[Uniswap Prices Dev] Error:', error.message);
+    const fallback = TRACKED_TOKENS_DEV.map(t => ({
+      id: t.id, symbol: t.symbol, name: t.name,
+      price: 0, change24h: 0, volume24h: 0,
+      color: t.color, source: 'fallback',
+    }));
+    return res.json({ success: false, data: fallback, timestamp: Date.now() });
+  }
+});
+
+// ============================================================================
+// LAUNCHPAD ENDPOINTS
+// ============================================================================
+
+// GET /api/launchpad/verify-whitelist?wallet=<pubkey>
+app.get('/api/launchpad/verify-whitelist', async (req, res) => {
+  const { wallet } = req.query;
+  if (!wallet || typeof wallet !== 'string' || wallet.trim().length < 32) {
+    return res.status(400).json({ eligible: false, error: 'Invalid wallet address' });
+  }
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.status(500).json({ eligible: false, error: 'Database unavailable' });
+    const snap = await db
+      .collection('nuxchainAirdropRegistrations')
+      .where('wallet', '==', wallet.trim())
+      .limit(1)
+      .get();
+    if (snap.empty) {
+      return res.json({ eligible: false, reason: 'Wallet not registered in Airdrop' });
+    }
+    const doc = snap.docs[0].data();
+    console.log(`[verify-whitelist] ✅ ${wallet.trim().slice(0, 8)}... is eligible`);
+    return res.json({
+      eligible: true,
+      tier: 1,
+      name: doc.name || '',
+      registeredAt: doc.createdAt?.toDate?.()?.toISOString() || null,
+    });
+  } catch (err) {
+    console.error('[verify-whitelist] Error:', err.message);
+    return res.status(500).json({ eligible: false, error: 'Internal server error' });
+  }
+});
+
+// GET /api/launchpad/stats
+app.get('/api/launchpad/stats', async (req, res) => {
+  res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
+});
+
+// POST /api/launchpad/burn-record
+app.post('/api/launchpad/burn-record', async (req, res) => {
+  const { wallet, amount, txSignature } = req.body ?? {};
+  if (!wallet || !amount || !txSignature) return res.status(400).json({ error: 'Missing fields' });
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.status(500).json({ error: 'Database unavailable' });
+    const exists = await db.collection('nuxBurnRecords').where('txSignature', '==', txSignature).limit(1).get();
+    if (!exists.empty) return res.json({ success: true, duplicate: true });
+    await db.collection('nuxBurnRecords').add({ wallet, amount, txSignature, createdAt: new Date() });
+    console.log(`[burn-record] ✅ ${wallet.slice(0, 8)}... burned ${amount} NUX`);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[burn-record]', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/launchpad/burn-leaderboard
+app.get('/api/launchpad/burn-leaderboard', async (req, res) => {
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.json({ entries: [] });
+    const snap = await db.collection('nuxBurnRecords').get();
+    const map = new Map();
+    snap.forEach(doc => {
+      const d = doc.data();
+      const burnDate = d.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString();
+      const ex = map.get(d.wallet);
+      if (ex) { ex.totalBurned += Number(d.amount); ex.txCount += 1; if (burnDate > ex.lastBurnAt) ex.lastBurnAt = burnDate; }
+      else map.set(d.wallet, { totalBurned: Number(d.amount), txCount: 1, lastBurnAt: burnDate });
+    });
+    const entries = Array.from(map.entries()).map(([wallet, data]) => ({ wallet, ...data })).sort((a, b) => b.totalBurned - a.totalBurned).slice(0, 50);
+    return res.json({ entries, total: snap.size });
+  } catch (err) {
+    console.error('[burn-leaderboard]', err.message);
+    return res.json({ entries: [] });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -467,6 +655,8 @@ app.use((req, res) => {
     method: req.method,
     availableEndpoints: [
       'GET /api/health/status',
+      'GET /api/market/prices',
+      'GET /api/uniswap/prices',
       'GET /api/gridbot/data?type=current',
       'GET /api/gridbot/data?type=history',
       'GET /api/gridbot/data?type=all'

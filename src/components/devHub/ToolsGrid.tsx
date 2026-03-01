@@ -102,10 +102,10 @@ function ToolsGrid() {
   return (
     <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
       <div className="text-center mb-12">
-        <h2 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold mb-4`}>
-          Complete <span className="text-gradient">Developer Toolkit</span>
+        <h2 className={`font-bold jersey-15-regular text-gradient ${isMobile ? 'text-4xl mb-3' : 'text-5xl mb-4'}`}>
+          Complete Developer Toolkit
         </h2>
-        <p className="text-white/70 max-w-2xl mx-auto">
+        <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${isMobile ? 'text-xl' : 'text-2xl'}`}>
           Production-ready infrastructure for every Web3 use case. Click each card to learn more.
         </p>
       </div>

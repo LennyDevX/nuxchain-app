@@ -33,7 +33,7 @@ const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC_AL
 const AIRDROP_MAINTENANCE = process.env.VITE_AIRDROP_MAINTENANCE === 'true';
 
 // ⚡ INTELLIGENT CONFIGURATION
-const PARALLEL_BATCH_SIZE = 8; // 8 wallets max
+const PARALLEL_BATCH_SIZE = 9; // 9 wallets max
 const BATCH_DELAY_MS = 5000; // 5 seconds between batches
 const REQUEST_TIMEOUT = 15000;
 const MAX_RETRIES = 8; // More retries for 429s
@@ -48,6 +48,7 @@ let botCount = 0;
 let realCount = 0;
 let uncertainCount = 0;
 let suspiciousCount = 0;
+let certifiedHumanCount = 0;  // NEW: Track Certified Humans
 let totalWallets = 0;
 let startTime = Date.now();
 
@@ -63,17 +64,59 @@ const DISPOSABLE_EMAIL_DOMAINS = new Set([
   'mintemail.com', 'sharklasers.com', 'trashmail.com', 'tempmail.de',
   'nada.email', 'fakeinbox.com', 'spam4.me', 'mytrashmail.com',
   'email.it', '10minutesemail.com', 'grr.la', 'pokemail.net', 'mailnesia.com',
+  // Nuevos dominios descartables
+  'temp-mail.io', 'fake-mail.net', 'burnermail.io', 'tempail.com',
+  'throwawaymail.com', 'tempmailbox.com', 'mailtothis.com', 'mailforspam.com',
+  'tempinbox.com', 'sharklasers.com', 'spamgourmet.com', 'anonymbox.com',
+  'hmamail.com', 'mega.zik.dj', 'superrito.com', 'trashmail.at', 'trashmail.de',
+  'wegwerfmail.de', 'wegwerfmail.net', 'wegwerfmail.org', 'jetable.org',
+  'throwawayemail.com', 'tempmailaddress.com', 'burner.email', 'inboxkitten.com',
+  'tempm.com', 'tmpmail.org', 'disposablemail.com', 'tempmail.ninja',
+  'getnada.com', 'mailpoof.com', 'tempmailplus.com', 'mailboxly.com',
+]);
+
+const TRUSTED_EMAIL_DOMAINS = new Set([
+  'gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com',
+  'protonmail.com', 'proton.me', 'live.com', 'msn.com', 'aol.com',
+  'mail.ru', 'yandex.ru', 'qq.com', '163.com', '126.com', 'foxmail.com',
+  'naver.com', 'daum.net', 'hanmail.net', 'outlook.co.uk', 'outlook.fr',
 ]);
 
 const SUSPICIOUS_NAME_PATTERNS = [
-  /^user\d+/i,
-  /^test\d+/i,
-  /^admin/i,
-  /^bot/i,
-  /^fake/i,
-  /^\d{5,}$/,
-  /^[a-z]{1,3}$/i,
-  /^(spam|scam|hack|fake)/i,
+  /^user\d+/i, /^test\d+/i, /^admin/i, /^bot/i, /^fake/i,
+  /^temp\d+/i, /^demo\d+/i, /^sample\d+/i, /^trial\d+/i,
+  /^wallet\d+/i, /^account\d+/i, /^member\d+/i, /^player\d+/i,
+  /^customer\d+/i, /^client\d+/i, /^guest\d+/i, /^visitor\d+/i,
+  /^anonymous\d+/i, /^unknown\d+/i, /^person\d+/i, /^human\d+/i,
+  /^\d{5,}$/, /^[a-z]{1,3}$/i, /^(spam|scam|hack|fake|bot|temp)/i,
+  // Nuevos patrones
+  /^[a-z]+\d{3,}$/i,  // nombre seguido de 3+ números
+  /^[a-z]{2,4}\d{2,}$/i,  // 2-4 letras seguidas de 2+ números
+  /^\d+[a-z]+\d+$/i,  // número-letra-número
+  /^(abc|xyz|qwe|asd|zxc|123|000|111|999)/i,  // patrones de teclado
+];
+
+// Patrones de email sospechosos (farms profesionales)
+const SUSPICIOUS_EMAIL_PATTERNS = [
+  /^(test|temp|fake|bot|spam)\d*@/i,
+  /\d{4,}@/i,  // 4+ números antes del @
+  /^[a-z]{1,2}\d{3,}@/i,  // 1-2 letras seguidas de 3+ números
+  /(temp|fake|bot|spam|test)\d*\.com$/i,
+];
+
+// Palabras comunes en nombres de farms
+const FARM_NAME_INDICATORS = [
+  'prajwaligurav', 'kalifa', 'hassan', 'hafaa', 'haga', 'musa', 'shuaibu',
+  'yakubu', 'habibuhassanyakubu', 'mooneslu', 'bollard', 'musakireee',
+  'rawasaqasad', 'hungriaaolani', 'karanworldvip', 'kalifa12y', 'gadaf',
+  'ketjjh', 'muhd', 'tarputar', 'davidsundayadeyi', 'kirosw', 'attahirahmad',
+  'dilipkumar', 'witchwickyy', 'prakashmohanty', 'taylorharrison',
+  'prajwaligurav216', 'prajwaligurav218', 'prajwaligurav35', 'prajwaligurav26',
+  'prajwaligurav118', 'prajwaligurav168', 'prajwaligurav136', 'prajwaligurav114',
+  'sunilnevarekar', 'sachinnevarekar', 'manoj', 'yadav', 'anil', 'kulkarni',
+  'kuldeep', 'saha', 'ashish', 'pethe', 'altamish', 'johnclaaaide',
+  'claide', 'ilimihaske', 'hassanmaimunatu', 'daddykhalil', 'awwalice',
+  'bello', 'awwal', 'aliyudmshelia',
 ];
 
 // Known CEX Hot Wallets (Verified Base58 for Solana)
@@ -87,6 +130,26 @@ const CEX_HOT_WALLETS = new Set([
 
 // IP farm detection threshold
 const IP_FARM_THRESHOLD = 4; // More than 4 registrations from same IP = suspicious
+
+// Enhanced thresholds for better classification
+const RISK_THRESHOLDS = {
+  CERTIFIED_HUMAN: 15,    // 0-15: Almost certainly real
+  REAL_USER: 30,          // 0-30: Real user
+  UNCERTAIN: 50,          // 30-50: Uncertain, needs review
+  SUSPICIOUS: 75,         // 50-75: Suspicious, likely bot
+  LIKELY_BOT: 100,        // 75+: Bot
+};
+
+// Trust indicators for REAL users
+const TRUST_INDICATORS = {
+  MIN_WALLET_AGE_DAYS: 180,     // 6+ months old = very trustworthy
+  GOOD_WALLET_AGE_DAYS: 90,     // 3+ months old = trustworthy
+  MIN_TX_COUNT_VERY_ACTIVE: 100, // 100+ transactions = power user
+  MIN_TX_COUNT_ACTIVE: 50,      // 50+ transactions = active user
+  MIN_TX_COUNT_NORMAL: 10,      // 10+ transactions = normal user
+  GOOD_BALANCE: 0.05,           // 0.05+ SOL = has meaningful balance
+  WHALE_BALANCE: 1.0,           // 1+ SOL = whale
+};
 
 // ============================================================================
 // INITIALIZATION
@@ -231,141 +294,277 @@ async function checkWalletData(pubkeyStr) {
 // ============================================================================
 
 /**
- * Comprehensive risk scoring algorithm
- * Combines: Email patterns, Name patterns, On-chain metrics, Behavioral signals
+ * Enhanced risk scoring with improved real user detection
  */
 function assessRisk(registration, onChainData, ipCount, globalTimeClusters, emailDomainCount) {
   let riskScore = 0;
+  let trustScore = 0;  // NEW: Separate trust score for positive signals
   let indicators = [];
+  let trustIndicators = [];  // NEW: Track why we trust this user
 
-  // Weights (Total = 1.0)
   const weights = {
-    identity: 0.30,   // Name + Email patterns (Increase from 0.25)
-    onchain: 0.35,    // Wallet activity (Decrease from 0.40 to allow behavioral to count more)
-    behavioral: 0.35  // IP + Time clusters + Fingerprint
+    identity: 0.25,    // Reduced to allow on-chain to matter more
+    onchain: 0.40,     // Increased - on-chain data is harder to fake
+    behavioral: 0.35   // Same
   };
 
-  // 1. SEQUENCE DETECTION
   const name = (registration.name || '').toLowerCase();
   const email = (registration.email || '').toLowerCase();
+  const emailDomain = email.split('@')[1] || '';
 
-  // High confidence sequence detection
-  if (/\d{4,}$/.test(name) || /\d{4,}@/.test(email) || /^[a-z]{1,3}\d{2,}$/i.test(name)) {
-    riskScore += 50 * weights.identity;
+  // ============================================================================
+  // 1. IDENTITY ANALYSIS (Negative signals - bots)
+  // ============================================================================
+  
+  // Sequence detection (very strong bot signal)
+  const hasSequencePattern = /\d{4,}$/.test(name) || 
+                             /\d{4,}@/.test(email) || 
+                             /^[a-z]{1,3}\d{2,}$/i.test(name) ||
+                             /^[a-z]+\d{3,}$/i.test(name);
+  if (hasSequencePattern) {
+    riskScore += 40 * weights.identity;
     indicators.push('seq-pattern');
   }
 
-  // 1b. Generic Name Detection
+  // Suspicious name patterns
   if (SUSPICIOUS_NAME_PATTERNS.some(p => p.test(name))) {
-    riskScore += 30 * weights.identity;
+    riskScore += 25 * weights.identity;
     indicators.push('suspicious-name');
   }
 
-  // 2. IDENTITY ANALYSIS
-  if (registration.email) {
-    const domain = email.split('@')[1] || '';
-    if (DISPOSABLE_EMAIL_DOMAINS.has(domain)) {
-      riskScore += 100 * weights.identity; // Instant high risk for disposable
-      indicators.push('disposable-mail');
-    }
+  // Farm name indicators (known bot farms)
+  if (FARM_NAME_INDICATORS.some(farm => name.includes(farm.toLowerCase()))) {
+    riskScore += 60 * weights.identity;
+    indicators.push('known-farm-name');
   }
 
-  // 3. ON-CHAIN INTELLIGENCE (Upgraded - trust signals are conditional)
+  // Suspicious email patterns
+  if (SUSPICIOUS_EMAIL_PATTERNS.some(p => p.test(email))) {
+    riskScore += 30 * weights.identity;
+    indicators.push('suspicious-email');
+  }
+
+  // Disposable email (instant high risk)
+  if (DISPOSABLE_EMAIL_DOMAINS.has(emailDomain)) {
+    riskScore += 100 * weights.identity;
+    indicators.push('disposable-mail');
+  }
+
+  // Trusted email domain (small trust bonus)
+  if (TRUSTED_EMAIL_DOMAINS.has(emailDomain)) {
+    trustScore += 10;
+    trustIndicators.push('trusted-domain');
+  }
+
+  // Email domain reuse (many accounts from same domain)
+  if (emailDomainCount > 50) {
+    riskScore += 20 * weights.identity;
+    indicators.push(`domain-reuse[${emailDomainCount}]`);
+  }
+
+  // ============================================================================
+  // 2. ON-CHAIN INTELLIGENCE (The gold standard)
+  // ============================================================================
+  
   const fpCount = registration.fingerprintCount || 1;
   const inFarm = fpCount > 2 || ipCount > IP_FARM_THRESHOLD;
 
   if (onChainData.unreachable) {
-    riskScore += 10 * weights.onchain;
+    riskScore += 15 * weights.onchain;
     indicators.push('rpc-unreachable');
   } else {
-    // Trusted signals - ONLY applied if NOT in a farm
-    if (!inFarm) {
-      if (onChainData.isCEXFunded) {
-        riskScore -= 40 * weights.onchain; // Very strong trust signal
-        indicators.push('cex-funded');
-      }
-
-      if (onChainData.ageDays > 30) {
-        riskScore -= 20 * weights.onchain;
-        indicators.push(`old-wallet[${onChainData.ageDays}d]`);
-      }
-
-      if (onChainData.txCount > 50) {
-        riskScore -= 15 * weights.onchain;
-        indicators.push('high-activity');
-      }
-
-      if (onChainData.solBalance >= 0.05) {
-        riskScore -= 20 * weights.onchain;
-        indicators.push('whale-balance');
-      }
-    } else {
-      indicators.push('farm-restricted'); // Trust signals disabled
+    // Strong TRUST signals from on-chain data (hard to fake)
+    
+    // Wallet age is the hardest to fake
+    if (onChainData.ageDays >= TRUST_INDICATORS.MIN_WALLET_AGE_DAYS) {
+      trustScore += 35;  // Very strong trust
+      trustIndicators.push(`veteran-wallet[${onChainData.ageDays}d]`);
+    } else if (onChainData.ageDays >= TRUST_INDICATORS.GOOD_WALLET_AGE_DAYS) {
+      trustScore += 25;
+      trustIndicators.push(`established-wallet[${onChainData.ageDays}d]`);
+    } else if (onChainData.ageDays >= 30) {
+      trustScore += 15;
+      trustIndicators.push(`mature-wallet[${onChainData.ageDays}d]`);
     }
 
-    // Penalties for low trust (applied even in farm, but worse in farm)
+    // Transaction count shows real usage
+    if (onChainData.txCount >= TRUST_INDICATORS.MIN_TX_COUNT_VERY_ACTIVE) {
+      trustScore += 25;
+      trustIndicators.push('power-user');
+    } else if (onChainData.txCount >= TRUST_INDICATORS.MIN_TX_COUNT_ACTIVE) {
+      trustScore += 20;
+      trustIndicators.push('very-active');
+    } else if (onChainData.txCount >= TRUST_INDICATORS.MIN_TX_COUNT_NORMAL) {
+      trustScore += 10;
+      trustIndicators.push('active-user');
+    }
+
+    // Balance (some effort to fund)
+    if (onChainData.solBalance >= TRUST_INDICATORS.WHALE_BALANCE) {
+      trustScore += 20;
+      trustIndicators.push('whale');
+    } else if (onChainData.solBalance >= TRUST_INDICATORS.GOOD_BALANCE) {
+      trustScore += 15;
+      trustIndicators.push('funded-wallet');
+    } else if (onChainData.solBalance >= 0.01) {
+      trustScore += 5;
+      trustIndicators.push('has-balance');
+    }
+
+    // CEX funding (real KYC'd user)
+    if (onChainData.isCEXFunded) {
+      trustScore += 25;
+      trustIndicators.push('cex-funded');
+    }
+
+    // Apply trust score reduction to risk (but cap it)
+    // Trust signals are partially neutralized in farms
+    const trustMultiplier = inFarm ? 0.5 : 1.0;
+    riskScore -= trustScore * trustMultiplier * weights.onchain;
+
+    // RISK signals from on-chain data
+    
+    // Brand new wallet (strong bot signal unless CEX funded)
     if (onChainData.ageDays === 0 && !onChainData.isCEXFunded) {
-      riskScore += (inFarm ? 50 : 30) * weights.onchain;
-      indicators.push('new-wallet');
+      riskScore += (inFarm ? 60 : 40) * weights.onchain;
+      indicators.push('brand-new-wallet');
+    } else if (onChainData.ageDays < 7 && !onChainData.isCEXFunded) {
+      riskScore += (inFarm ? 40 : 25) * weights.onchain;
+      indicators.push('very-new-wallet');
     }
 
-    if (onChainData.txCount < 5 && !onChainData.isCEXFunded) {
-      riskScore += (inFarm ? 40 : 25) * weights.onchain;
+    // Very low activity
+    if (onChainData.txCount === 0) {
+      riskScore += (inFarm ? 50 : 30) * weights.onchain;
+      indicators.push('zero-activity');
+    } else if (onChainData.txCount < 3) {
+      riskScore += (inFarm ? 35 : 20) * weights.onchain;
+      indicators.push('minimal-activity');
+    } else if (onChainData.txCount < 5 && !onChainData.isCEXFunded) {
+      riskScore += (inFarm ? 25 : 15) * weights.onchain;
       indicators.push('low-activity');
     }
-  }
 
-  // 4. BEHAVIORAL & TELEMETRY
-  const currentIp = registration.ipAddress || registration.ip;
-  if (ipCount > IP_FARM_THRESHOLD) {
-    riskScore += 80 * weights.behavioral;
-    indicators.push(`ip-farm[${ipCount}]`);
-  }
-
-  // Fingerprint Analysis (HARDENED/LETHAL)
-  if (fpCount > 5) {
-    // LETHAL: Professional Sybil Farm
-    riskScore = 100;
-    indicators.push(`Lethal Sybil Farm[${fpCount}]`);
-  } else if (fpCount > 2) {
-    riskScore += 150 * weights.behavioral; // Guaranteed Likely Bot/Suspicious
-    indicators.push(`device-farm[${fpCount}]`);
-  } else if (fpCount > 1) {
-    riskScore += 50 * weights.behavioral;
-    indicators.push(`device-farm[${fpCount}]`);
-  }
-
-  // Time to Submit (TELEMETRY)
-  if (registration.timeToSubmit !== undefined) {
-    const ttsSeconds = registration.timeToSubmit / 1000;
-    if (ttsSeconds < 3 && ttsSeconds > 0) {
-      riskScore += 50 * weights.behavioral;
-      indicators.push(`fast-submit[${ttsSeconds.toFixed(1)}s]`);
-    } else if (ttsSeconds > 10 && !inFarm) {
-      riskScore -= 10 * weights.behavioral; // Only human-like delay for non-farms
+    // Empty wallet
+    if (onChainData.solBalance === 0) {
+      riskScore += 20 * weights.onchain;
+      indicators.push('empty-wallet');
     }
   }
 
-  // Time spike detection
+  // ============================================================================
+  // 3. BEHAVIORAL & TELEMETRY
+  // ============================================================================
+  
+  const currentIp = registration.ipAddress || registration.ip;
+
+  // IP Farm detection
+  if (ipCount > 20) {
+    riskScore = 100;  // Instant bot for large farms
+    indicators.push(`MASSIVE-IP-farm[${ipCount}]`);
+  } else if (ipCount > 10) {
+    riskScore += 100 * weights.behavioral;
+    indicators.push(`large-IP-farm[${ipCount}]`);
+  } else if (ipCount > IP_FARM_THRESHOLD) {
+    riskScore += 60 * weights.behavioral;
+    indicators.push(`IP-farm[${ipCount}]`);
+  }
+
+  // Fingerprint Analysis
+  if (fpCount > 10) {
+    riskScore = 100;  // Instant bot
+    indicators.push(`MEGA-farm[${fpCount}]`);
+  } else if (fpCount > 5) {
+    riskScore += 100 * weights.behavioral;
+    indicators.push(`Lethal-Sybil[${fpCount}]`);
+  } else if (fpCount > 3) {
+    riskScore += 80 * weights.behavioral;
+    indicators.push(`Sybil-farm[${fpCount}]`);
+  } else if (fpCount > 2) {
+    riskScore += 50 * weights.behavioral;
+    indicators.push(`device-farm[${fpCount}]`);
+  } else if (fpCount > 1) {
+    riskScore += 25 * weights.behavioral;
+    indicators.push(`shared-device[${fpCount}]`);
+  }
+
+  // Time to Submit (bot-like speed)
+  if (registration.timeToSubmit !== undefined) {
+    const ttsSeconds = registration.timeToSubmit / 1000;
+    if (ttsSeconds < 1) {
+      riskScore += 60 * weights.behavioral;
+      indicators.push(`instant-submit[${ttsSeconds.toFixed(1)}s]`);
+    } else if (ttsSeconds < 3) {
+      riskScore += 40 * weights.behavioral;
+      indicators.push(`fast-submit[${ttsSeconds.toFixed(1)}s]`);
+    } else if (ttsSeconds > 15 && !inFarm) {
+      trustScore += 10;  // Human-like delay
+      trustIndicators.push('careful-user');
+    }
+  }
+
+  // Time spike detection (coordinated attack)
   if (registration.createdAt) {
     const date = registration.createdAt.toDate ? registration.createdAt.toDate() : new Date(registration.createdAt);
     if (!isNaN(date.getTime())) {
       const timeKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()} ${date.getHours()}`;
       const spikeSize = globalTimeClusters.get(timeKey) || 0;
-      if (spikeSize > 50) {
+      if (spikeSize > 100) {
+        riskScore += 50 * weights.behavioral;
+        indicators.push(`MASSIVE-time-spike[${spikeSize}/h]`);
+      } else if (spikeSize > 50) {
         riskScore += 30 * weights.behavioral;
         indicators.push(`time-spike[${spikeSize}/h]`);
+      } else if (spikeSize > 20) {
+        riskScore += 15 * weights.behavioral;
+        indicators.push(`minor-spike[${spikeSize}/h]`);
       }
     }
   }
 
+  // ============================================================================
+  // 4. FINAL CLASSIFICATION
+  // ============================================================================
+  
   riskScore = Math.min(100, Math.max(0, riskScore));
+  
+  // Classification with new thresholds
   let status = 'Real User';
-  if (riskScore >= 75) status = 'Likely Bot';
-  else if (riskScore >= 50) status = 'Suspicious';
-  else if (riskScore >= 30) status = 'Uncertain';
+  let confidence = 'medium';
+  
+  if (riskScore >= 75) {
+    status = 'Likely Bot';
+    confidence = riskScore >= 90 ? 'very-high' : 'high';
+  } else if (riskScore >= 50) {
+    status = 'Suspicious';
+    confidence = 'high';
+  } else if (riskScore >= 30) {
+    status = 'Uncertain';
+    confidence = 'medium';
+  } else if (riskScore <= 15 && trustScore >= 40) {
+    status = 'Certified Human';
+    confidence = 'very-high';
+  } else if (trustScore >= 30) {
+    status = 'Real User';
+    confidence = 'high';
+  }
 
-  return { riskScore: Math.round(riskScore), classification: status, indicators: indicators.join('|') };
+  // Combine indicators
+  const allIndicators = [...indicators];
+  if (trustIndicators.length > 0 && status !== 'Likely Bot' && status !== 'Suspicious') {
+    allIndicators.push(...trustIndicators.map(t => `+${t}`));
+  }
+  if (inFarm && status !== 'Likely Bot') {
+    allIndicators.push('farm-flagged');
+  }
+
+  return { 
+    riskScore: Math.round(riskScore), 
+    classification: status, 
+    confidence,
+    trustScore: Math.round(trustScore),
+    indicators: allIndicators.join('|') 
+  };
 }
 
 // ============================================================================
@@ -539,6 +738,7 @@ async function main() {
           processedCount++;
           const classification = result.value.classification;
           if (classification === 'Likely Bot') botCount++;
+          else if (classification === 'Certified Human') certifiedHumanCount++;
           else if (classification === 'Real User') realCount++;
           else if (classification === 'Uncertain') uncertainCount++;
           else if (classification === 'Suspicious') suspiciousCount++;
@@ -598,6 +798,7 @@ async function main() {
     console.log('═'.repeat(70));
     console.log(`
 📊 Classification Results:
+  🏆 Certified Human: ${certifiedHumanCount} (${((certifiedHumanCount / totalWallets) * 100).toFixed(1)}%)
   ✅ Real Users:      ${realCount} (${((realCount / totalWallets) * 100).toFixed(1)}%)
   ⚠️  Uncertain:      ${uncertainCount} (${((uncertainCount / totalWallets) * 100).toFixed(1)}%)
   🔴 Suspicious:      ${suspiciousCount} (${((suspiciousCount / totalWallets) * 100).toFixed(1)}%)
@@ -605,6 +806,7 @@ async function main() {
 
 📈 Bot Analysis:
   Total Bots Detected:    ${botCount + suspiciousCount} (${(((botCount + suspiciousCount) / totalWallets) * 100).toFixed(1)}%)
+  Total Real Users:       ${certifiedHumanCount + realCount} (${(((certifiedHumanCount + realCount) / totalWallets) * 100).toFixed(1)}%)
   IP Farms Found:         ${ipFarms}
   
 ⏱️  Performance:

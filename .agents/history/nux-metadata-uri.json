@@ -1,0 +1,7 @@
+{
+  "mintAddress": "4EQbtdS6mV73CSWMWFonRrLF2FxaPTir8qHKtMgSFAGf",
+  "metadataUri": "https://gateway.pinata.cloud/ipfs/QmaCMtNjvpKk4JK3rNyXK4qFGdx5k4v1T9QzY8jk1ZBngD",
+  "timestamp": "2026-02-27T06:18:47.691Z",
+  "network": "mainnet-beta",
+  "note": "Store this metadataUri - it can be used by wallets and explorers to display token information"
+}

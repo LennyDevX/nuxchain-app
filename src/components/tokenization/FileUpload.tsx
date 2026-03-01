@@ -39,7 +39,7 @@ export default function FileUpload({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="text-2xl font-bold text-white mb-6"
+        className="jersey-15-regular text-3xl md:text-4xl font-bold text-white mb-6"
       >
         Upload Artwork
       </motion.h2>
@@ -94,7 +94,7 @@ export default function FileUpload({
               </svg>
             </motion.div>
             <motion.p 
-              className="text-white/80 mb-2 font-medium"
+              className="jersey-20-regular text-white/80 mb-2 font-medium text-base md:text-lg"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -102,7 +102,7 @@ export default function FileUpload({
               Click to upload or drag and drop
             </motion.p>
             <motion.p 
-              className="text-white/50 text-sm"
+              className="jersey-20-regular text-white/50 text-sm md:text-base"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
@@ -110,7 +110,7 @@ export default function FileUpload({
               PNG, JPG, GIF up to 10MB
             </motion.p>
             <motion.p 
-              className="text-purple-400 text-xs mt-2"
+              className="jersey-20-regular text-purple-400 text-xs md:text-sm mt-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -139,8 +139,8 @@ export default function FileUpload({
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white font-medium">{selectedFile.name}</p>
-              <p className="text-white/60 text-sm">
+              <p className="jersey-20-regular text-white font-medium">{selectedFile.name}</p>
+              <p className="jersey-20-regular text-white/60 text-sm">
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
@@ -155,7 +155,7 @@ export default function FileUpload({
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
-              <span className="text-green-400 text-sm">Ready</span>
+              <span className="jersey-20-regular text-green-400 text-sm">Ready</span>
             </motion.div>
           </div>
         </motion.div>
@@ -168,7 +168,7 @@ export default function FileUpload({
           animate={{ opacity: 1, y: 0 }}
           className="mt-4 bg-red-500/20 border border-red-500/50 rounded-lg p-4"
         >
-          <p className="text-red-300">{error}</p>
+          <p className="jersey-20-regular text-red-300">{error}</p>
         </motion.div>
       )}
     </motion.div>

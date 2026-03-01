@@ -25,12 +25,12 @@ const StatCard = memo(({
 }) => (
   <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-colors">
     <div className="flex items-start justify-between mb-2">
-      <span className="text-xs font-medium text-slate-400">{label}</span>
+      <span className="jersey-20-regular text-sm font-medium text-slate-400">{label}</span>
       <Icon className={`w-4 h-4 ${color}`} />
     </div>
     <div className="flex items-baseline gap-1">
-      <span className={`text-xl font-bold ${color}`}>{value}</span>
-      {unit && <span className="text-xs text-slate-500">{unit}</span>}
+      <span className={`jersey-20-regular text-xl font-bold ${color}`}>{value}</span>
+      {unit && <span className="jersey-20-regular text-sm text-slate-500">{unit}</span>}
     </div>
   </div>
 ));
@@ -46,7 +46,7 @@ const RiskIndicator = memo(({ level }: { level: 'Low' | 'Medium' | 'High' }) => 
   
   const cfg = config[level];
   return (
-    <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${cfg.color} ${cfg.bg} border ${cfg.border}`}>
+    <div className={`jersey-20-regular inline-block px-3 py-1 rounded-full text-sm font-medium ${cfg.color} ${cfg.bg} border ${cfg.border}`}>
       {level} Risk
     </div>
   );
@@ -73,8 +73,8 @@ const DistributionMini = memo(({ distribution }: {
         <div key={item.name} className="flex items-center gap-2">
           <div className="w-32">
             <div className="flex justify-between mb-0.5">
-              <span className="text-xs text-slate-400">{item.name}</span>
-              <span className="text-xs font-medium text-slate-300">{((item.value / total) * 100).toFixed(0)}%</span>
+              <span className="jersey-20-regular text-xs text-slate-400">{item.name}</span>
+              <span className="jersey-20-regular text-xs font-medium text-slate-300">{((item.value / total) * 100).toFixed(0)}%</span>
             </div>
             <div className="w-full bg-slate-700/30 rounded-full h-1.5 overflow-hidden">
               <div 
@@ -107,7 +107,7 @@ const RebalancingItem = memo(({ suggestion }: { suggestion: RebalancingSuggestio
       <div className="flex-shrink-0">{getIcon()}</div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-slate-300">{lockupLabel}</span>
+          <span className="jersey-20-regular text-sm font-medium text-slate-300">{lockupLabel}</span>
           <div className="flex items-center gap-2 text-xs">
             <span className="text-slate-500">{suggestion.currentPercentage.toFixed(0)}%</span>
             <span className="text-slate-600">→</span>
@@ -116,7 +116,7 @@ const RebalancingItem = memo(({ suggestion }: { suggestion: RebalancingSuggestio
             </span>
           </div>
         </div>
-        <p className="text-xs text-slate-400 mt-0.5">{suggestion.reason}</p>
+        <p className="jersey-20-regular text-xs text-slate-400 mt-0.5">{suggestion.reason}</p>
       </div>
     </div>
   );
@@ -176,7 +176,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
         >
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
             <div className="flex items-start justify-between mb-2">
-              <span className="text-xs font-medium text-slate-400">Risk Level</span>
+              <span className="jersey-20-regular text-sm font-medium text-slate-400">Risk Level</span>
             </div>
             <RiskIndicator level={riskLevel} />
           </div>
@@ -220,7 +220,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
       >
         <div className="flex items-center gap-2 mb-3">
           <BarChart3Icon className="w-4 h-4 text-blue-400" />
-          <h4 className="text-sm font-semibold text-slate-200">Position Distribution</h4>
+          <h4 className="jersey-15-regular text-lg font-semibold text-slate-200">Position Distribution</h4>
         </div>
         <DistributionMini distribution={positionDistribution} />
       </motion.div>
@@ -235,7 +235,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
         >
           <div className="flex items-center gap-2 mb-3">
             <BarChart3Icon className="w-4 h-4 text-emerald-400" />
-            <h4 className="text-sm font-semibold text-slate-200">Rebalancing Suggestions</h4>
+            <h4 className="jersey-15-regular text-lg font-semibold text-slate-200">Rebalancing Suggestions</h4>
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {rebalancingSuggestions.map((suggestion: RebalancingSuggestion, index: number) => (
@@ -252,12 +252,12 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
         transition={{ delay: 0.7 }}
         className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50"
       >
-        <h4 className="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+        <h4 className="jersey-15-regular text-lg font-semibold text-slate-200 mb-3 flex items-center gap-2">
           <span>📊</span> Risk Metrics
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-xs text-slate-400 mb-1">Concentration Risk</p>
+            <p className="jersey-20-regular text-sm text-slate-400 mb-1">Concentration Risk</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-700/30 rounded-full h-2 overflow-hidden">
                 <div 
@@ -265,11 +265,11 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
                   style={{ width: `${riskMetrics.concentrationRisk}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-slate-300 w-8">{riskMetrics.concentrationRisk}%</span>
+              <span className="jersey-20-regular text-sm font-medium text-slate-300 w-8">{riskMetrics.concentrationRisk}%</span>
             </div>
           </div>
           <div>
-            <p className="text-xs text-slate-400 mb-1">Lockup Risk</p>
+            <p className="jersey-20-regular text-sm text-slate-400 mb-1">Lockup Risk</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-slate-700/30 rounded-full h-2 overflow-hidden">
                 <div 
@@ -277,7 +277,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
                   style={{ width: `${riskMetrics.lockupRisk}%` }}
                 />
               </div>
-              <span className="text-xs font-medium text-slate-300 w-8">{riskMetrics.lockupRisk}%</span>
+              <span className="jersey-20-regular text-sm font-medium text-slate-300 w-8">{riskMetrics.lockupRisk}%</span>
             </div>
           </div>
         </div>
@@ -293,13 +293,13 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
         >
           <div className="flex items-center gap-2 mb-3">
             <CheckIcon className="w-4 h-4 text-blue-400" />
-            <h4 className="text-sm font-semibold text-slate-200">Optimization Tips</h4>
+            <h4 className="jersey-15-regular text-lg font-semibold text-slate-200">Optimization Tips</h4>
           </div>
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {recommendations.map((rec, index) => (
               <div key={index} className="text-xs p-2 rounded bg-slate-700/30 border border-slate-600/30">
-                <p className="text-slate-300 font-medium">{rec.title}</p>
-                <p className="text-slate-400 text-xs mt-0.5">{rec.description}</p>
+                <p className="jersey-20-regular text-slate-300 font-medium">{rec.title}</p>
+                <p className="jersey-20-regular text-slate-400 text-xs mt-0.5">{rec.description}</p>
               </div>
             ))}
           </div>
@@ -317,11 +317,11 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-lg">💰</span>
-              <h4 className="text-sm font-semibold text-slate-200">Investment Opportunities</h4>
+              <h4 className="jersey-15-regular text-lg font-semibold text-slate-200">Investment Opportunities</h4>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">Available:</span>
-              <span className="text-sm font-bold text-emerald-400">{walletBalance.availableForStaking.toFixed(2)} POL</span>
+              <span className="jersey-20-regular text-sm text-slate-400">Available:</span>
+              <span className="jersey-20-regular text-base font-bold text-emerald-400">{walletBalance.availableForStaking.toFixed(2)} POL</span>
             </div>
           </div>
 
@@ -337,7 +337,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
                 style={{ width: `${opportunityScore}%` }}
               />
             </div>
-            <span className="text-xs font-medium text-slate-300 w-16">Score: {opportunityScore}</span>
+            <span className="jersey-20-regular text-sm font-medium text-slate-300 w-16">Score: {opportunityScore}</span>
           </div>
 
           <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -356,7 +356,7 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
                       <span className="text-sm">
                         {rec.action === 'stake' ? '📈' : rec.action === 'add-funds' ? '💳' : '⏳'}
                       </span>
-                      <span className="text-sm font-medium text-slate-200">
+                      <span className="jersey-20-regular text-sm font-medium text-slate-200">
                         {rec.suggestedLockup === 0 ? 'Flexible' : `${rec.suggestedLockup}-day Lock`}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-xs ${
@@ -367,15 +367,15 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
                         {rec.priority}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400">{rec.reasoning}</p>
+                    <p className="jersey-20-regular text-xs text-slate-400">{rec.reasoning}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="text-sm font-bold text-emerald-400">{rec.suggestedAmount.toFixed(0)} POL</p>
+                    <p className="jersey-20-regular text-sm font-bold text-emerald-400">{rec.suggestedAmount.toFixed(0)} POL</p>
                     {rec.expectedAPY > 0 && (
-                      <p className="text-xs text-slate-500">{rec.expectedAPY.toFixed(1)}% APY</p>
+                      <p className="jersey-20-regular text-xs text-slate-500">{rec.expectedAPY.toFixed(1)}% APY</p>
                     )}
                     {rec.projectedMonthlyReward > 0 && (
-                      <p className="text-xs text-green-400">+{rec.projectedMonthlyReward.toFixed(2)}/mo</p>
+                      <p className="jersey-20-regular text-xs text-green-400">+{rec.projectedMonthlyReward.toFixed(2)}/mo</p>
                     )}
                   </div>
                 </div>
@@ -396,8 +396,8 @@ export const AIAnalysisPortfolio: React.FC = memo(() => {
           <div className="flex items-center gap-3">
             <span className="text-xl">⚠️</span>
             <div>
-              <h4 className="text-sm font-semibold text-orange-400">Insufficient Balance</h4>
-              <p className="text-xs text-slate-400 mt-1">
+              <h4 className="jersey-15-regular text-lg font-semibold text-orange-400">Insufficient Balance</h4>
+              <p className="jersey-20-regular text-sm text-slate-400 mt-1">
                 Current: {walletBalance.balanceFormatted.toFixed(4)} POL. 
                 Need {(5 - walletBalance.availableForStaking).toFixed(2)} more POL to stake.
               </p>

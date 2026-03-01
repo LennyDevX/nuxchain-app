@@ -22,9 +22,9 @@ const NFTMaintenance: React.FC = () => {
           >
             <div className="relative">
               <motion.img
-                src="/DragonixCardNFTs.png"
-                alt="Dragonix NFTs"
-                className="w-64 h-auto md:w-80 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
+                src="/assets/tokens/NuxLogo.png"
+                alt="NUX Token NFTs"
+                className="w-56 h-56 md:w-72 md:h-72 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                 animate={{
                   y: [0, -10, 0],
                   rotate: [0, 1, 0, -1, 0]

@@ -12,8 +12,8 @@ export const SkillsPricingGuide: React.FC = () => {
     >
       <div className="card-unified p-6 md:p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-white mb-2">💰 Pricing Guide</h3>
-          <p className="text-gray-400">
+          <h3 className="jersey-15-regular text-5xl md:text-6xl text-white mb-4">💰 Pricing Guide</h3>
+          <p className="jersey-20-regular text-xl md:text-2xl text-gray-400">
             Staking skills have multiplier-based pricing, Marketplace skills have fixed pricing per type
           </p>
         </div>
@@ -23,9 +23,9 @@ export const SkillsPricingGuide: React.FC = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-gray-700">
-                <th className="pb-4 pr-4 text-gray-300 font-semibold">Rarity</th>
-                <th className="pb-4 px-4 text-gray-300 font-semibold text-center">Staking Skills</th>
-                <th className="pb-4 px-4 text-gray-300 font-semibold text-center">Marketplace Skills</th>
+                <th className="pb-4 pr-4 jersey-15-regular text-xl md:text-2xl text-gray-300">Rarity</th>
+                <th className="pb-4 px-4 jersey-15-regular text-xl md:text-2xl text-gray-300 text-center">Staking Skills</th>
+                <th className="pb-4 px-4 jersey-15-regular text-xl md:text-2xl text-gray-300 text-center">Marketplace Skills</th>
               </tr>
             </thead>
             <tbody>
@@ -45,7 +45,7 @@ export const SkillsPricingGuide: React.FC = () => {
                         style={{ backgroundColor: tier.color }}
                       />
                       <span
-                        className="font-semibold"
+                        className="jersey-15-regular text-lg md:text-xl"
                         style={{ color: tier.color }}
                       >
                         {tier.rarityName}
@@ -55,7 +55,7 @@ export const SkillsPricingGuide: React.FC = () => {
 
                   {/* Staking Price */}
                   <td className="py-4 px-4 text-center">
-                    <span className="text-white font-bold text-lg">
+                    <span className="jersey-20-regular text-white text-xl md:text-2xl">
                       {tier.stakingPrice} POL
                     </span>
                   </td>
@@ -63,7 +63,7 @@ export const SkillsPricingGuide: React.FC = () => {
                   {/* Active Price */}
                   <td className="py-4 px-4 text-center">
                     <span
-                      className="font-bold text-lg"
+                      className="jersey-20-regular text-xl md:text-2xl"
                       style={{ color: tier.color }}
                     >
                       {tier.activePrice} POL
@@ -76,7 +76,7 @@ export const SkillsPricingGuide: React.FC = () => {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.3, delay: index * 0.1 + 0.2 }}
-                      className="inline-block px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 font-semibold text-sm"
+                      className="inline-block px-3 py-1 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 jersey-15-regular text-base md:text-lg"
                     >
                       +{tier.markup}%
                     </motion.span>
@@ -92,8 +92,8 @@ export const SkillsPricingGuide: React.FC = () => {
           <div className="flex items-start gap-3">
             <span className="text-2xl">⛓️</span>
             <div>
-              <h4 className="text-white font-semibold mb-1">Staking Skills (1-7)</h4>
-              <p className="text-sm text-gray-400">
+              <h4 className="jersey-15-regular text-lg md:text-xl text-white mb-1">Staking Skills (1-7)</h4>
+              <p className="jersey-20-regular text-base md:text-lg text-gray-400">
                 Boost staking rewards and reduce fees
               </p>
             </div>
@@ -102,8 +102,8 @@ export const SkillsPricingGuide: React.FC = () => {
           <div className="flex items-start gap-3">
             <span className="text-2xl">⚙️</span>
             <div>
-              <h4 className="text-white font-semibold mb-1">Marketplace Skills (8-16)</h4>
-              <p className="text-sm text-gray-400">
+              <h4 className="jersey-15-regular text-lg md:text-xl text-white mb-1">Marketplace Skills (8-16)</h4>
+              <p className="jersey-20-regular text-base md:text-lg text-gray-400">
                 Platform features with fixed pricing per rarity level
               </p>
             </div>
@@ -112,8 +112,8 @@ export const SkillsPricingGuide: React.FC = () => {
           <div className="flex items-start gap-3">
             <span className="text-2xl">♻️</span>
             <div>
-              <h4 className="text-white font-semibold mb-1">Renewal Discount</h4>
-              <p className="text-sm text-gray-400">
+              <h4 className="jersey-15-regular text-lg md:text-xl text-white mb-1">Renewal Discount</h4>
+              <p className="jersey-20-regular text-base md:text-lg text-gray-400">
                 Renew expired skills for 50% of original price
               </p>
             </div>

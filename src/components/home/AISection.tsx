@@ -3,90 +3,86 @@ import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import { Link } from 'react-router-dom'
 import AnimatedAILogo from '../../ui/AnimatedAILogo'
 
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true },
+  transition: { duration: 0.55, delay },
+})
+
+const aiFeatures = [
+  { icon: '🧠', title: 'Market Analysis', desc: 'Real-time insights on NFT prices, staking yields, and on-chain trends.' },
+  { icon: '💬', title: '24/7 Chat Assistant', desc: 'Ask anything about Nuxchain — Nuxbee AI answers instantly.' },
+  { icon: '📊', title: 'Smart Recommendations', desc: 'Personalized suggestions based on your activity and portfolio.' },
+  { icon: '⚡', title: 'Powered by Gemini', desc: 'Built on Google Gemini for state-of-the-art AI responses.' },
+]
+
 function AISection() {
   const isMobile = useIsMobile()
 
   return (
-    <div className={`relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'py-12' : 'py-20'}`}>
-      <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-1 lg:grid-cols-2 gap-12'} items-center`}>
-        {/* Información - Izquierda */}
-        <motion.div
-          className={`animate-slide-up ${isMobile ? 'text-center' : ''}`}
-          initial={{ opacity: 0, x: isMobile ? 0 : -30, y: isMobile ? 20 : 0 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          transition={{ duration: 0.7, delay: isMobile ? 0.1 : 0.2 }}
-        >
-          <motion.h2
-            className={`${isMobile ? 'text-2xl' : 'text-4xl md:text-5xl'} font-bold text-white mb-6 ${isMobile ? 'text-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            Nux - <span className="text-gradient">AI</span>
-          </motion.h2>
+    <section className={`relative z-10 border-t border-white/5 ${isMobile ? 'py-14' : 'py-24'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`grid ${isMobile ? 'grid-cols-1 gap-10' : 'lg:grid-cols-2 gap-16'} items-center`}>
 
-          <motion.p
-            className={`${isMobile ? 'text-base mb-6' : 'text-xl mb-8'} text-white/80 leading-relaxed ${isMobile ? 'text-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            {isMobile
-              ? 'AI platform with intelligent chat for queries, analysis and personalized assistance.'
-              : 'AI platform that includes an intelligent chat for queries, analysis and personalized assistance. Get real-time insights, market analysis, and smart recommendations for your crypto journey.'
-            }
-          </motion.p>
-
-          <motion.div
-            className={`space-y-${isMobile ? '3' : '4'} ${isMobile ? 'flex flex-col items-center' : ''}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-          >
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Intelligent market analysis</span>
+          {/* Left — AI Logo visual */}
+          <motion.div {...fadeUp()} className={`flex flex-col items-center gap-6 ${isMobile ? 'order-2' : 'order-1'}`}>
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-3xl scale-150" />
+              <AnimatedAILogo className="relative w-48 h-48 md:w-64 md:h-64" />
             </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>24/7 personalized assistance</span>
-            </div>
-            <div className={`flex items-center space-x-3 ${isMobile ? 'justify-center' : ''}`}>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span className={`text-white/80 ${isMobile ? 'text-sm' : ''}`}>Smart trading recommendations</span>
+            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+              {[
+                { label: 'Response Time', value: '< 1s' },
+                { label: 'Languages', value: '50+' },
+                { label: 'Uptime', value: '99.9%' },
+                { label: 'Model', value: 'Gemini' },
+              ].map((stat, i) => (
+                <div key={i} className="card-unified p-3 text-center">
+                  <div className={`jersey-15-regular text-cyan-300 ${isMobile ? 'text-xl' : 'text-2xl'}`}>{stat.value}</div>
+                  <div className="jersey-20-regular text-white/50 text-base">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </motion.div>
 
-          <motion.div
-            className={`${isMobile ? 'flex justify-center' : ''}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <Link
-              to="/chat"
-              className={`${isMobile ? 'mt-6 px-6 py-2 text-sm' : 'mt-8 px-8 py-3'} btn-primary inline-block text-center`}
-            >
-              Chat with Nuxbee
-            </Link>
-          </motion.div>
-        </motion.div>
+          {/* Right — Content */}
+          <div className={isMobile ? 'order-1' : 'order-2'}>
+            <motion.div {...fadeUp(0.05)}>
+              <span className="jersey-20-regular text-cyan-400 text-lg uppercase tracking-widest">AI-Powered</span>
+              <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
+                Nux <span className="text-gradient">AI</span>
+              </h2>
+              <p className={`jersey-20-regular text-white/60 mb-8 leading-relaxed ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                Nuxchain integrates AI to assist creators, analyze on-chain activity, and power the NUX Rewards Engine.
+                Your intelligent companion for every step of your Web3 journey.
+              </p>
+            </motion.div>
 
-        {/* Imagen AI - Derecha - Solo en desktop */}
-        {!isMobile && (
-          <motion.div
-            className="flex justify-center"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-          >
-            <div className="relative rounded-full overflow-hidden flex items-center justify-center">
-              <AnimatedAILogo className="w-64 h-64" />
+            <div className={`space-y-4 mb-8 ${isMobile ? 'grid grid-cols-2 gap-4 space-y-0' : ''}`}>
+              {aiFeatures.map((f, i) => (
+                <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="card-unified p-4 flex gap-3 items-start">
+                  <span className="text-2xl flex-shrink-0">{f.icon}</span>
+                  <div>
+                    <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>{f.title}</h3>
+                    <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-base' : 'text-lg'}`}>{f.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </motion.div>
-        )}
+
+            <motion.div {...fadeUp(0.4)} className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-4`}>
+              <Link to="/chat" className="btn-primary jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+                🤖 Chat with Nuxbee
+              </Link>
+              <Link to="/about" className="jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all text-cyan-300">
+                Learn More →
+              </Link>
+            </motion.div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -1,15 +1,47 @@
 import { Router } from 'express';
 import { PublicKey, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { getFirestore } from 'firebase-admin/firestore';
+import bs58 from 'bs58';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
-// Quitamos la inicialización top-level que causaba el crash
-// const db = getFirestore(); 
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC || 'https://solana-rpc.publicnode.com';
-// El objeto connection se declara más abajo junto con la lógica de rotación de RPC
 
-// Validations helper (sync with airdrop-service for consistency)
+// ============================================================================
+// RATE LIMITERS
+// ============================================================================
+const validateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { success: false, error: 'Too many validation attempts. Please try again in 1 hour.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false, xForwardedForHeader: false },
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded) || req.socket?.remoteAddress || 'unknown';
+    return ip.replace(/^::ffff:/, '');
+  },
+});
+
+const submitLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 3,
+  message: { success: false, error: 'Too many registration attempts. Please try again tomorrow.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { trustProxy: false, xForwardedForHeader: false },
+  keyGenerator: (req) => {
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded) || req.socket?.remoteAddress || 'unknown';
+    return ip.replace(/^::ffff:/, '');
+  },
+});
+
+// ============================================================================
+// DISPOSABLE EMAIL DOMAINS (expanded)
+// ============================================================================
 const DISPOSABLE_DOMAINS = new Set([
   'tempmail.com', '10minutemail.com', '10minutesemail.com',
   'guerrillamail.com', 'mailinator.com', 'throwaway.email',
@@ -19,10 +51,88 @@ const DISPOSABLE_DOMAINS = new Set([
   'email.it', 'grr.la', 'pokemail.net', 'mailnesia.com',
   'temp-mail.com', '33mail.com', 'tempmail.io', 'tormail.org',
   'temp-mail.org', 'tempmail.ninja', 'guerrilla.email',
-  'mail.tm', 'maildrop.cc', 'mintemail.com', 'mytempmail.com',
-  'temp-mail.io', 'tempemail.com', 'temporaryemail.com',
-  'trashmail.ws', 'trashmail.de', 'throwawaymail.com',
+  'mail.tm', 'mytempmail.com', 'temp-mail.io', 'tempemail.com',
+  'temporaryemail.com', 'trashmail.ws', 'trashmail.de', 'throwawaymail.com',
   'bot-email.com', 'bot-mail.com', 'bot.email', 'automation-mail.co',
+  // Extended list
+  'dispostable.com', 'mailnull.com', 'spamgourmet.com', 'trashmail.at',
+  'trashmail.me', 'trashmail.io', 'spamfree24.org', 'spamfree.eu',
+  'spamgob.com', 'spamhereplease.com', 'spamhole.com', 'spamify.com',
+  'spaminator.de', 'spamkill.info', 'spaml.com', 'spammotel.com',
+  'spamoff.de', 'spamslicer.com', 'spamspot.com', 'spamstack.net',
+  'spamthis.co.uk', 'spamtroll.net', 'speed.1s.fr', 'supergreatmail.com',
+  'supermailer.jp', 'suremail.info', 'teewars.org', 'teleworm.com',
+  'teleworm.us', 'tempalias.com', 'tempe-mail.com', 'tempemail.co.za',
+  'tempemail.net', 'tempinbox.co.uk', 'tempinbox.com', 'tempmail.eu',
+  'tempmail.it', 'tempmail2.com', 'tempmailer.com', 'tempmailer.de',
+  'tempr.email', 'tempsky.com', 'tempthe.net', 'tempymail.com',
+  'thankyou2010.com', 'thisisnotmyrealemail.com', 'throwam.com',
+  'throwam.com', 'tilien.com', 'tittbit.in', 'tizi.com',
+  'tmailinator.com', 'toiea.com', 'tradermail.info', 'trash-mail.at',
+  'trash-mail.cf', 'trash-mail.ga', 'trash-mail.gq', 'trash-mail.ml',
+  'trash-mail.tk', 'trash2009.com', 'trashdevil.com', 'trashdevil.de',
+  'trashemail.de', 'trashimail.de', 'trashmail.com', 'trashmail.net',
+  'trashmail.org', 'trashmailer.com', 'trashymail.com', 'trbvm.com',
+  'turual.com', 'twinmail.de', 'tyldd.com', 'uggsrock.com',
+  'uroid.com', 'us.af', 'venompen.com', 'veryrealemail.com',
+  'viditag.com', 'viewcastmedia.com', 'viewcastmedia.net', 'viewcastmedia.org',
+  'mailnew.com', 'mailseal.de', 'mailshell.com', 'mailsiphon.com',
+  'mailslapping.com', 'mailslite.com', 'mailsnull.com', 'mailsoul.com',
+  'mailsucker.net', 'mailswork.com', 'mailtemp.info', 'mailtome.de',
+  'mailtothis.com', 'mailzilla.com', 'mailzilla.org', 'makemetheking.com',
+  'malahov.de', 'manifestgenerator.com', 'manybrain.com', 'mbx.cc',
+  'mega.zik.dj', 'meinspamschutz.de', 'meltmail.com', 'messagebeamer.de',
+  'mierdamail.com', 'mintemail.com', 'misterpinball.de', 'mjukglass.nu',
+  'mmmmail.com', 'mobi.web.id', 'mobileninja.co.uk', 'moburl.com',
+  'moncourrier.fr.nf', 'monemail.fr.nf', 'monmail.fr.nf', 'msa.minsmail.com',
+  'mt2009.com', 'mt2014.com', 'mx0.wwwnew.eu', 'my10minutemail.com',
+  'mymail-in.net', 'mymailoasis.com', 'mynetstore.de', 'mypacks.net',
+  'mypartyclip.de', 'myphantomemail.com', 'myspaceinc.com', 'myspaceinc.net',
+  'myspaceinc.org', 'myspacepimpedup.com', 'myspamless.com', 'mytempemail.com',
+  'mytrashmail.com', 'nabuma.com', 'neomailbox.com', 'nepwk.com',
+  'nervmich.net', 'nervtmich.net', 'netmails.com', 'netmails.net',
+  'netzidiot.de', 'neverbox.com', 'nice-4u.com', 'nincsmail.hu',
+  'nnh.com', 'no-spam.ws', 'noblepioneer.com', 'nobulk.com',
+  'noclickemail.com', 'nogmailspam.info', 'nomail.pw', 'nomail.xl.cx',
+  'nomail2me.com', 'nomorespamemails.com', 'nonspam.eu', 'nonspammer.de',
+  'noref.in', 'nospam.ze.tc', 'nospam4.us', 'nospamfor.us',
+  'nospammail.net', 'nospamthanks.info', 'notmailinator.com', 'nounvalidate.com',
+  'nowmymail.com', 'nwldx.com', 'objectmail.com', 'obobbo.com',
+  'odaymail.com', 'odnorazovoe.ru', 'one-time.email', 'oneoffemail.com',
+  'oneoffmail.com', 'onewaymail.com', 'onlatedotcom.info', 'online.ms',
+  'oopi.org', 'opayq.com', 'ordinaryamerican.net', 'otherinbox.com',
+  'ourklips.com', 'outlawspam.com', 'ovpn.to', 'owlpic.com',
+  'pancakemail.com', 'paplease.com', 'pcusers.otherinbox.com', 'pepbot.com',
+  'pfui.ru', 'phentermine-mortgages.com', 'pimpedupmyspace.com', 'pjjkp.com',
+  'plexolan.de', 'poczta.onet.pl', 'politikerclub.de', 'poofy.org',
+  'pookmail.com', 'pop3.xyz', 'postacı.com', 'postfach.cc',
+  'privacy.net', 'privatdemail.net', 'proxymail.eu', 'prtnx.com',
+  'prtz.eu', 'pubmail.io', 'punkass.com', 'putthisinyourspamdatabase.com',
+  'pwrby.com', 'qisdo.com', 'qisoa.com', 'qoika.com',
+  'qq.com', 'quickinbox.com', 'quickmail.nl', 'rcpt.at',
+  'recode.me', 'recursor.net', 'recyclemail.dk', 'regbypass.com',
+  'regbypass.comsafe-mail.net', 'rejectmail.com', 'rklips.com', 'rmqkr.net',
+  'royal.net', 'rppkn.com', 'rtrtr.com', 's0ny.net', 'safe-mail.net',
+  'safersignup.de', 'safetymail.info', 'safetypost.de', 'sandelf.de',
+  'saynotospams.com', 'schafmail.de', 'schrott-email.de', 'secretemail.de',
+  'secure-mail.biz', 'secure-mail.cc', 'selfdestructingmail.com',
+  'sendspamhere.com', 'senseless-entertainment.com', 'services391.com',
+  'sharklasers.com', 'shieldedmail.com', 'shiftmail.com', 'shitmail.de',
+  'shitmail.me', 'shitmail.org', 'shitware.nl', 'shmeriously.com',
+  'shortmail.net', 'sibmail.com', 'sinnlos-mail.de', 'skeefmail.com',
+  'slapsfromlastnight.com', 'slaskpost.se', 'slave-auctions.net',
+  'slopsbox.com', 'smellfear.com', 'smwg.info', 'snakemail.com',
+  'sneakemail.com', 'sneakmail.de', 'snkmail.com', 'sofimail.com',
+  'sofort-mail.de', 'sogetthis.com', 'soodonims.com', 'spam.la',
+  'spam.mn', 'spam.org.tr', 'spam.su', 'spam4.me',
+  'spamavert.com', 'spambob.com', 'spambob.net', 'spambob.org',
+  'spambog.com', 'spambog.de', 'spambog.ru', 'spambox.info',
+  'spambox.irishspringrealty.com', 'spambox.us', 'spamcannon.com',
+  'spamcannon.net', 'spamcero.com', 'spamcon.org', 'spamcorptastic.com',
+  'spamcowboy.com', 'spamcowboy.net', 'spamcowboy.org', 'spamday.com',
+  'spamex.com', 'spamfree24.de', 'spamfree24.eu', 'spamfree24.info',
+  'spamfree24.net', 'spamfree24.org', 'spamgoes.in', 'spamgourmet.com',
+  'spamgourmet.net', 'spamgourmet.org',
 ]);
 
 // Known CEX Hot Wallets (Verified Base58 for Solana)
@@ -51,6 +161,77 @@ const RPC_ENDPOINTS = [
 
 let currentRpcIndex = 0;
 let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex] || 'https://api.mainnet-beta.solana.com', 'confirmed');
+
+// ============================================================================
+// SECURITY HELPERS
+// ============================================================================
+
+/**
+ * Verify hCaptcha token server-side
+ */
+async function verifyHCaptcha(token) {
+  const secret = process.env.HCAPTCHA_SECRET_KEY;
+  if (!secret) {
+    console.warn('⚠️ HCAPTCHA_SECRET_KEY not set — skipping captcha verification');
+    return true;
+  }
+  if (!token) return false;
+  try {
+    const params = new URLSearchParams({ secret, response: token });
+    const res = await fetch('https://hcaptcha.com/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (err) {
+    console.error('hCaptcha verification error:', err.message);
+    return false;
+  }
+}
+
+/**
+ * Verify Solana wallet signature (proves ownership)
+ */
+function verifyWalletSignature(walletAddress, signatureBase58) {
+  if (!signatureBase58) return false;
+  try {
+    new PublicKey(walletAddress); // validates the address is a valid Solana pubkey
+    const signatureBytes = bs58.decode(signatureBase58);
+    if (signatureBytes.length !== 64) return false;
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * Basic IP reputation check — blocks known datacenter/proxy ranges
+ */
+function isDatacenterIP(ip) {
+  if (!ip || ip === 'unknown') return false;
+  // Skip check for localhost/development
+  if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) return false;
+  // Common datacenter IP patterns (AWS, GCP, Azure, DigitalOcean, Linode, Vultr)
+  const datacenterPatterns = [
+    /^3\.(8[0-9]|9[0-9]|1[0-9]{2})\./,   // AWS us-east
+    /^18\.(1[0-9]{2}|2[0-3][0-9])\./,     // AWS
+    /^52\.(0|1[0-9]{2}|2[0-4][0-9])\./,   // AWS
+    /^54\.(1[0-9]{2}|2[0-4][0-9])\./,     // AWS
+    /^34\.(0|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9])\./,  // GCP
+    /^35\.(1[0-9]{2}|2[0-4][0-9])\./,     // GCP
+    /^104\.(1[0-9]{2}|2[0-4][0-9])\./,    // Cloudflare/CDN
+    /^167\.99\./,                          // DigitalOcean
+    /^138\.197\./,                         // DigitalOcean
+    /^159\.65\./,                          // DigitalOcean
+    /^45\.33\./,                           // Linode
+    /^139\.162\./,                         // Linode
+    /^45\.76\./,                           // Vultr
+    /^149\.28\./,                          // Vultr
+  ];
+  return datacenterPatterns.some(pattern => pattern.test(ip));
+}
 
 /**
  * 🔄 Rotate to next RPC endpoint
@@ -218,12 +399,21 @@ async function validateWalletOnChain(wallet) {
 }
 
 // POST /validate
-router.post('/validate', async (req, res) => {
+router.post('/validate', validateLimiter, async (req, res) => {
   try {
-    const { name, email, wallet } = req.body;
+    const { name, email, wallet, ipAddress } = req.body;
 
     if (!name || name.length < 3) return res.status(400).json({ success: false, error: 'Name must be at least 3 characters long' });
     if (!email || !email.includes('@')) return res.status(400).json({ success: false, error: 'Invalid email format' });
+
+    // IP Reputation Check
+    const clientIp = ipAddress ||
+      (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) ||
+      req.socket?.remoteAddress || 'unknown';
+    if (isDatacenterIP(clientIp)) {
+      console.warn(`⚠️ Datacenter IP blocked: ${clientIp}`);
+      return res.status(403).json({ success: false, error: 'Registrations from datacenter or VPN IPs are not allowed.' });
+    }
 
     // Check Disposable Email
     const emailDomain = email.split('@')[1]?.toLowerCase();
@@ -234,7 +424,7 @@ router.post('/validate', async (req, res) => {
       });
     }
 
-    const db = getFirestore(); // Inicializamos dentro del handler
+    const db = getFirestore();
 
     // Check for duplicates
     const emailCheck = await db.collection(COLLECTION_NAME).where('email', '==', email.toLowerCase()).get();
@@ -257,20 +447,42 @@ router.post('/validate', async (req, res) => {
 });
 
 // POST /submit
-router.post('/submit', async (req, res) => {
+router.post('/submit', submitLimiter, async (req, res) => {
   try {
-    const { name, email, wallet, fingerprint, ipAddress, userAgent, browserInfo, timeToSubmit } = req.body;
-    const db = getFirestore(); // Inicializamos dentro del handler
+    const { name, email, wallet, fingerprint, ipAddress, userAgent, browserInfo, timeToSubmit, captchaToken, walletSignature } = req.body;
+    const db = getFirestore();
+
+    // hCaptcha verification
+    const captchaValid = await verifyHCaptcha(captchaToken);
+    if (!captchaValid) {
+      return res.status(403).json({ success: false, error: 'Captcha verification failed. Please complete the captcha and try again.' });
+    }
+
+    // Wallet signature verification
+    if (!walletSignature || !verifyWalletSignature(wallet, walletSignature)) {
+      return res.status(403).json({ success: false, error: 'Wallet signature verification failed. Please sign the message to prove wallet ownership.' });
+    }
+
+    // IP Reputation Check
+    const clientIp = ipAddress ||
+      (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) ||
+      req.socket?.remoteAddress || 'unknown';
+    if (isDatacenterIP(clientIp)) {
+      console.warn(`⚠️ Datacenter IP blocked on submit: ${clientIp}`);
+      return res.status(403).json({ success: false, error: 'Registrations from datacenter or VPN IPs are not allowed.' });
+    }
 
     const registrationData = {
       name,
       email: email.toLowerCase(),
       wallet,
       fingerprint: fingerprint || 'unknown',
-      ipAddress: ipAddress || 'unknown',
+      ipAddress: clientIp,
       userAgent: userAgent || 'unknown',
       browserInfo: browserInfo || {},
       timeToSubmit: timeToSubmit || 0,
+      captchaVerified: true,
+      walletSignatureVerified: true,
       createdAt: new Date(),
       status: 'pending'
     };

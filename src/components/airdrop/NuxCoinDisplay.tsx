@@ -13,18 +13,29 @@ function NuxCoinDisplay({ size = 'lg', className = '' }: NuxCoinDisplayProps) {
 
   return (
     <div className={`relative ${className}`}>
-      {/* Coin image */}
+      {/* Coin image with floating animation */}
       <div className={`relative ${sizeClasses[size]} mx-auto`}>
         <img
-          src="/Dragonix.png"
+          src="/assets/tokens/NuxLogo.png"
           alt="NUX Token"
           className="w-full h-full object-contain animate-float"
           style={{
             transformOrigin: 'center center',
-            backfaceVisibility: 'hidden'
+            backfaceVisibility: 'hidden',
+            animation: 'floating 3s ease-in-out infinite'
           }}
         />
       </div>
+      <style>{`
+        @keyframes floating {
+          0%, 100% {
+            transform: translateY(0px) rotateZ(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotateZ(5deg);
+          }
+        }
+      `}</style>
     </div>
   );
 }

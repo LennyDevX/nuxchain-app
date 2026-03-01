@@ -125,7 +125,7 @@ export default memo(function NFTFilters({
               bg-white/5 backdrop-blur-md
               border border-white/10
               rounded-lg
-              text-sm text-white placeholder-white/40
+              jersey-20-regular text-xl lg:text-3xl text-white placeholder-white/40
               transition-all duration-300
               focus:outline-none focus:bg-white/10 focus:border-purple-500/50
               focus:ring-2 focus:ring-purple-500/20
@@ -152,7 +152,7 @@ export default memo(function NFTFilters({
             whileTap={{ scale: 0.95 }}
             className={`
               h-11 px-4 flex items-center gap-2
-              rounded-lg border font-medium text-sm
+              rounded-lg border jersey-20-regular font-medium text-xl lg:text-3xl
               transition-all duration-300
               ${hasActiveFilters || isFilterOpen
                 ? 'bg-purple-500/20 border-purple-500/50 text-white shadow-lg shadow-purple-500/10'
@@ -179,7 +179,7 @@ export default memo(function NFTFilters({
             h-11 px-4 flex items-center gap-2
             bg-gradient-to-r from-purple-500 to-purple-600
             hover:from-purple-600 hover:to-purple-700
-            text-white font-semibold text-sm
+            text-white jersey-20-regular font-semibold text-2xl lg:text-3xl
             rounded-lg
             shadow-lg shadow-purple-500/25
             transition-all duration-300
@@ -201,6 +201,7 @@ export default memo(function NFTFilters({
             onChange={onCategoryChange}
             options={CATEGORY_OPTIONS}
             placeholder="Category"
+            className="jersey-20-regular text-4xl"
           />
           
           <ModernSelect
@@ -208,6 +209,7 @@ export default memo(function NFTFilters({
             onChange={onFilterChange}
             options={STATUS_OPTIONS}
             placeholder="Status"
+            className="jersey-20-regular text-4xl"
           />
 
           <ModernSelect
@@ -215,6 +217,7 @@ export default memo(function NFTFilters({
             onChange={onNFTTypeChange}
             options={NFT_TYPE_OPTIONS}
             placeholder="NFT Type"
+            className="jersey-20-regular text-4xl"
           />
           
           {onSortChange && (
@@ -223,6 +226,7 @@ export default memo(function NFTFilters({
               onChange={onSortChange}
               options={SORT_OPTIONS}
               placeholder="Sort by"
+              className="jersey-20-regular text-4xl"
             />
           )}
         </div>
@@ -238,7 +242,7 @@ export default memo(function NFTFilters({
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-purple-500/15 border border-purple-500/30
-                rounded-full text-xs font-medium text-purple-300
+                rounded-full jersey-20-regular text-2xl lg:text-4xl font-medium text-purple-300
                 hover:bg-purple-500/25 transition-colors
               "
             >
@@ -256,7 +260,7 @@ export default memo(function NFTFilters({
               className="
                 inline-flex items-center gap-1.5 px-3 py-1.5
                 bg-blue-500/15 border border-blue-500/30
-                rounded-full text-xs font-medium text-blue-300
+                rounded-full jersey-20-regular text-xs lg:text-sm font-medium text-blue-300
                 hover:bg-blue-500/25 transition-colors
               "
             >
@@ -289,6 +293,7 @@ export default memo(function NFTFilters({
                 onChange={onCategoryChange}
                 options={CATEGORY_OPTIONS}
                 placeholder="Category"
+                className="jersey-20-regular text-sm lg:text-base"
               />
               
               <ModernSelect
@@ -296,6 +301,7 @@ export default memo(function NFTFilters({
                 onChange={onFilterChange}
                 options={STATUS_OPTIONS}
                 placeholder="Status"
+                className="jersey-20-regular text-sm lg:text-base"
               />
 
               <ModernSelect
@@ -303,6 +309,7 @@ export default memo(function NFTFilters({
                 onChange={onNFTTypeChange}
                 options={NFT_TYPE_OPTIONS}
                 placeholder="NFT Type"
+                className="jersey-20-regular text-sm lg:text-base"
               />
               
               {onSortChange && (
@@ -311,6 +318,7 @@ export default memo(function NFTFilters({
                   onChange={onSortChange}
                   options={SORT_OPTIONS}
                   placeholder="Sort by"
+                  className="jersey-20-regular text-sm lg:text-base"
                 />
               )}
 
@@ -325,7 +333,7 @@ export default memo(function NFTFilters({
                   aria-label="Clear all active filters"
                   className="
                     w-full h-9 px-4
-                    text-xs font-medium text-white/60
+                    jersey-20-regular text-xs lg:text-sm font-medium text-white/60
                     border border-white/10 rounded-lg
                     hover:bg-white/5 hover:text-white/80
                     transition-all duration-200

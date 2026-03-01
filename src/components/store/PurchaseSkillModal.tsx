@@ -145,7 +145,7 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
         >
           {/* Header */}
           <div className="flex justify-between items-center mb-4 sm:mb-6 flex-shrink-0">
-            <h3 id="purchase-modal-title" className="text-xl sm:text-2xl font-bold text-white">
+            <h3 id="purchase-modal-title" className="jersey-15-regular text-3xl md:text-4xl text-white">
               Purchase Skill
             </h3>
             <button
@@ -184,11 +184,11 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
                 </div>
 
                 {/* Name and Effect */}
-                <h4 className="text-lg sm:text-xl font-bold text-white mb-2">
+                <h4 className="jersey-15-regular text-xl md:text-2xl text-white mb-2">
                   {skill.name.split(' - ')[0]}
                 </h4>
                 <div
-                  className="inline-block px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold mb-2 sm:mb-3"
+                  className="inline-block px-2 sm:px-3 py-2 rounded-lg text-base md:text-lg jersey-15-regular mb-2 sm:mb-3"
                   style={{
                     backgroundColor: `${skill.color}33`,
                     border: `1px solid ${skill.color}`,
@@ -197,33 +197,33 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
                 >
                   {skill.effectFormatted}
                 </div>
-                <p className="text-xs sm:text-sm text-gray-400 line-clamp-3">{skill.description}</p>
+                <p className="jersey-20-regular text-base md:text-lg text-gray-400 line-clamp-3">{skill.description}</p>
               </div>
             </div>
 
             {/* Price Breakdown */}
             <div className="card-unified p-3 sm:p-4 space-y-3 sm:space-y-4 flex-shrink-0">
-              <div className="flex justify-between items-center text-sm sm:text-base">
-                <span className="text-gray-400">Purchase Price:</span>
-                <span className="text-white font-bold">
+              <div className="flex justify-between items-center text-lg md:text-xl">
+                <span className="jersey-20-regular text-gray-400">Purchase Price:</span>
+                <span className="jersey-20-regular text-white">
                   {price.toFixed(3)} POL
                 </span>
               </div>
 
               <div className="border-t border-gray-700/50 pt-2 sm:pt-3">
-                <div className="flex justify-between items-center mb-1 text-sm sm:text-base">
-                  <span className="text-gray-400 text-xs sm:text-sm">Renewal Cost (50% off):</span>
-                  <span className="text-yellow-400 font-bold">
+                <div className="flex justify-between items-center mb-1 text-lg md:text-xl">
+                  <span className="jersey-20-regular text-gray-400">Renewal Cost (50% off):</span>
+                  <span className="jersey-20-regular text-yellow-400">
                     {renewalPrice.toFixed(3)} POL
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">💡 Renew expired skills for half price after 30 days</p>
+                <p className="jersey-20-regular text-sm md:text-base text-gray-500 mt-1">💡 Renew expired skills for half price after 30 days</p>
               </div>
 
               {!hasInsufficientBalance && (
-                <div className="border-t border-gray-700/50 pt-2 sm:pt-3 flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-400">Your Balance:</span>
-                  <span className="text-green-400 font-semibold">
+                <div className="border-t border-gray-700/50 pt-2 sm:pt-3 flex justify-between items-center text-sm md:text-base">
+                  <span className="jersey-20-regular text-gray-400">Your Balance:</span>
+                  <span className="jersey-20-regular text-green-400">
                     {userBalance.toFixed(3)} POL
                   </span>
                 </div>
@@ -233,30 +233,30 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
             {/* Alerts */}
             {!isConnected && (
               <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 flex-shrink-0" role="alert">
-                <div className="flex items-center gap-2 text-red-400 text-sm">
+                <div className="flex items-center gap-2 text-red-400 text-base md:text-lg">
                   <AlertTriangleIcon />
-                  <span>Please connect your wallet</span>
+                  <span className="jersey-20-regular">Please connect your wallet</span>
                 </div>
               </div>
             )}
 
             {hasInsufficientBalance && (
               <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex-shrink-0" role="alert">
-                <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                <div className="flex items-center gap-2 text-yellow-400 text-base md:text-lg">
                   <AlertTriangleIcon />
-                  <span>Insufficient balance. You need {price.toFixed(3)} POL.</span>
+                  <span className="jersey-20-regular">Insufficient balance. You need {price.toFixed(3)} POL.</span>
                 </div>
               </div>
             )}
 
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 flex-shrink-0" role="alert">
-                <div className="flex items-start gap-2 text-red-400 text-xs sm:text-sm">
+                <div className="flex items-start gap-2 text-red-400 text-sm md:text-base">
                   <AlertTriangleIcon />
                   <div className="flex-1">
-                    <p className="font-semibold mb-1">Transaction Failed</p>
-                    <p className="text-xs">{error}</p>
-                    <p className="text-xs mt-2 text-red-300">
+                    <p className="jersey-15-regular text-base md:text-lg mb-1">Transaction Failed</p>
+                    <p className="jersey-20-regular text-sm md:text-base">{error}</p>
+                    <p className="jersey-20-regular text-sm md:text-base mt-2 text-red-300">
                       <strong>Common reasons:</strong>
                       <br />• 250 POL staked to activate skills
                       <br />• Max 3 active skills
@@ -270,12 +270,12 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
             {/* Important Notes */}
             <div className="space-y-2 sm:space-y-3 flex-shrink-0">
               <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
-                <p className="text-xs sm:text-sm text-blue-300">
+                <p className="jersey-20-regular text-sm md:text-base text-blue-300">
                   💡 <strong>Purchase now:</strong> Pay {price.toFixed(3)} POL.
                 </p>
               </div>
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
-                <p className="text-xs sm:text-sm text-amber-300">
+                <p className="jersey-20-regular text-sm md:text-base text-amber-300">
                   ⚡ <strong>To activate:</strong> Need 250 POL staked.
                 </p>
               </div>
@@ -291,7 +291,7 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
               }}
               disabled={isLoading}
               aria-label="Cancel purchase"
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed jersey-20-regular text-base md:text-lg"
             >
               Cancel
             </button>
@@ -301,7 +301,7 @@ export const PurchaseSkillModal: React.FC<PurchaseSkillModalProps> = ({
               aria-label={`Purchase ${skill.name} for ${formatPrice(price)}`}
               whileHover={!isConnected || hasInsufficientBalance || isLoading ? {} : { scale: 1.02 }}
               whileTap={!isConnected || hasInsufficientBalance || isLoading ? {} : { scale: 0.98 }}
-              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold text-sm sm:text-base"
+              className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 jersey-20-regular text-base md:text-lg"
             >
               {isLoading ? (
                 <>

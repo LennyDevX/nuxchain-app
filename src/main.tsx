@@ -11,6 +11,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { getMobileOptimizationConfig } from './utils/mobile/performanceOptimization'
 import { logEnvironmentDiagnostics } from './utils/env/validateEnvironment'
 import { SOLANA_NETWORKS, DEFAULT_SOLANA_NETWORK } from './constants/solana'
+import GlobalErrorBoundary from './components/error/GlobalErrorBoundary'
 
 // ✅ Log environment diagnostics at app startup (helps debug production issues)
 if (typeof window !== 'undefined') {
@@ -26,7 +27,22 @@ if (mobileOptConfig.reduceAnimations) {
   document.documentElement.style.setProperty('--animation-timing', 'linear');
 }
 
-// ✅ Disable Lit dev mode warnings (WalletConnect uses Lit internally)
+// ✅ Global error suppressor for wagmi transaction errors (prevents ugly red error UI)
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  const errorString = String(args[0] || '');
+  // Suppress specific wagmi/viem error messages that show the ugly red modal
+  if (
+    errorString.includes('User rejected the request') ||
+    errorString.includes('User denied request') ||
+    errorString.includes('Transaction failed') ||
+    errorString.includes('contract call') && errorString.includes('reverted')
+  ) {
+    // Silently ignore - we handle these with custom toasts
+    return;
+  }
+  originalConsoleError.apply(console, args);
+};
 // This prevents "Element scheduled an update after update completed" warnings
 if (typeof window !== 'undefined') {
   try {
@@ -104,25 +120,28 @@ const queryClient = new QueryClient({
     },
     mutations: {
       retry: 1, // Retry mutations only once
+      throwOnError: false, // Don't throw errors - we handle them with custom UI
     },
   },
 })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <WagmiProvider config={config}>
-      <ConnectionProvider endpoint={solanaRpcUrl}>
-        <WalletProvider wallets={solanaWallets} autoConnect>
-          <WalletModalProvider>
-            <QueryClientProvider client={queryClient}>
-              <App />
-              <Analytics />
-              <SpeedInsights />
-            </QueryClientProvider>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    </WagmiProvider>
+    <GlobalErrorBoundary>
+      <WagmiProvider config={config}>
+        <ConnectionProvider endpoint={solanaRpcUrl}>
+          <WalletProvider wallets={solanaWallets} autoConnect>
+            <WalletModalProvider>
+              <QueryClientProvider client={queryClient}>
+                <App />
+                <Analytics />
+                <SpeedInsights />
+              </QueryClientProvider>
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </WagmiProvider>
+    </GlobalErrorBoundary>
   </StrictMode>,
 )
 

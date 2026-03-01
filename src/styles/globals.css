@@ -1,16 +1,16 @@
 /* Custom CSS Variables for Brand Colors */
 :root {
-  --primary-black: #0a0a0a;
-  --secondary-black: #1a1a1a;
-  --accent-purple: #8b5cf6;
-  --deep-purple: #5b21b6;
-  --accent-red: #ef4444;
-  --deep-red: #dc2626;
+  --primary-black: #16132a;
+  --secondary-black: #221e38;
+  --accent-purple: #a78bfa;
+  --deep-purple: #7c3aed;
+  --accent-red: #f87171;
+  --deep-red: #ef4444;
   --pure-white: #ffffff;
   --off-white: #f8fafc;
-  --gradient-primary: linear-gradient(135deg, #0a0a0a 0%, #5b21b6 50%, #dc2626 100%);
-  --gradient-secondary: linear-gradient(45deg, #8b5cf6 0%, #ef4444 50%, #ffffff 100%);
-  --gradient-accent: linear-gradient(90deg, #1a1a1a 0%, #5b21b6 25%, #8b5cf6 50%, #ef4444 75%, #dc2626 100%);
+  --gradient-primary: linear-gradient(135deg, #16132a 0%, #7c3aed 50%, #ef4444 100%);
+  --gradient-secondary: linear-gradient(45deg, #a78bfa 0%, #f87171 50%, #ffffff 100%);
+  --gradient-accent: linear-gradient(90deg, #221e38 0%, #7c3aed 25%, #a78bfa 50%, #f87171 75%, #ef4444 100%);
 }
 
 /* Global Styles */
@@ -22,7 +22,39 @@ body {
   background: var(--primary-black);
   color: var(--pure-white);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ============================================================
+   MOBILE UTILITY CLASSES
+   ============================================================ */
+.mobile-p { padding: 0.75rem 1rem; }
+.mobile-gap { gap: 0.5rem; }
+@media (min-width: 1024px) {
+  .mobile-p { padding: 1.25rem; }
+  .mobile-gap { gap: 1rem; }
+}
+
+/* Jersey 10 font for titles */
+.font-jersey {
+  font-family: 'Jersey 10', cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Jersey 15 font for titles */
+.jersey-15-regular {
+  font-family: "Jersey 15", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Jersey 20 font for paragraphs and text */
+.jersey-20-regular {
+  font-family: "Jersey 20", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 * {

@@ -6,7 +6,31 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useReadContract } from 'wagmi';
 import ContractModal from './ContractModal';
+import ContractAdminPanel from './ContractAdminPanel';
+
+// Minimal paused() ABI — works for any OpenZeppelin Pausable contract
+const PAUSABLE_ABI = [{
+  name: 'paused',
+  type: 'function',
+  stateMutability: 'view',
+  inputs: [],
+  outputs: [{ name: '', type: 'bool' }],
+}] as const;
+
+// Contracts that support paused()
+const PAUSABLE_CONTRACTS = new Set([
+  'Enhanced SmartStaking',
+  'Staking Rewards',
+  'Staking Skills',
+  'Staking Gamification',
+  'Dynamic APY Calculator',
+  'Gameified Marketplace',
+  'Marketplace Quests',
+  'Marketplace Skills',
+  'Collaborator Badges',
+]);
 
 // Contract Types
 export type ContractType = 'staking' | 'marketplace' | 'treasury' | 'system' | 'unknown';
@@ -55,7 +79,6 @@ interface ContractInfo {
   name: string;
   category: string;
   isPaused?: boolean;
-  balance?: string;
   receivesFunds?: boolean;
 }
 
@@ -65,6 +88,16 @@ export default function ContractManager() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
+  const isPausable = detectedContract ? PAUSABLE_CONTRACTS.has(detectedContract.name) : false;
+
+  const { data: pausedData, isLoading: pausedLoading } = useReadContract({
+    address: (detectedContract?.address ?? '0x0000000000000000000000000000000000000000') as `0x${string}`,
+    abi: PAUSABLE_ABI,
+    functionName: 'paused',
+    chainId: 137,
+    query: { enabled: isPausable && !!detectedContract?.address },
+  });
 
   // Validate and detect contract type
   const detectContractType = async (addr: string) => {
@@ -111,36 +144,12 @@ export default function ContractManager() {
         }
       }
 
-      // Try to read contract balance
-      let balance: string | undefined;
-      try {
-        const response = await fetch(`https://polygon.llamarpc.com`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            method: 'eth_getBalance',
-            params: [addr, 'latest'],
-            id: 1,
-          }),
-        });
-        
-        const data = await response.json();
-        if (data.result) {
-          const balanceBigInt = BigInt(data.result);
-          balance = (Number(balanceBigInt) / 1e18).toFixed(4);
-        }
-      } catch (e) {
-        console.warn('Failed to fetch contract balance:', e);
-      }
-
       const contractInfo: ContractInfo = {
         address: addr,
         type,
         name,
         category,
         receivesFunds,
-        balance,
       };
       
       setDetectedContract(contractInfo);
@@ -161,44 +170,55 @@ export default function ContractManager() {
   };
 
   return (
-    <div className="card-unified rounded-xl p-6 border border-[rgba(139,92,246,0.2)]">
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <svg className="w-5 h-5 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-            d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span>Contract Manager</span>
-      </h3>
-
-      {/* Address Input */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-slate-300 mb-2">
-          Contract Address
-        </label>
+    <div className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden">
+      {/* Header - Mobile Optimized */}
+      <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-[rgba(255,255,255,0.05)]">
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={contractAddress}
-              onChange={(e) => {
-                setContractAddress(e.target.value);
-                setDetectedContract(null);
-                setError('');
-              }}
-              placeholder="0x..."
-              className="w-full px-4 py-2 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6]"
-            />
-          </div>
-          <button
-            onClick={() => setIsContractModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Contracts</span>
-          </button>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">Contract Manager</h3>
+            <p className="text-[10px] text-slate-500 hidden sm:block">Manage deployed contracts</p>
+          </div>
         </div>
+      </div>
+
+      <div className="p-4 sm:p-5 space-y-4">
+
+        {/* Address Input - Mobile Optimized */}
+        <div className="space-y-3">
+          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">
+            Contract Address
+          </label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={contractAddress}
+                onChange={(e) => {
+                  setContractAddress(e.target.value);
+                  setDetectedContract(null);
+                  setError('');
+                }}
+                placeholder="0x..."
+                className="w-full px-3 py-2.5 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6] min-h-[44px]"
+              />
+            </div>
+            <button
+              onClick={() => setIsContractModalOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all min-h-[44px] touch-manipulation"
+              title="Select a contract from list"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Contracts</span>
+            </button>
+          </div>
 
         <AnimatePresence>
           {success && (
@@ -235,63 +255,93 @@ export default function ContractManager() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="p-4 bg-[#0a0a0a]/30 border border-[rgba(139,92,246,0.2)] rounded-lg"
+            className="p-4 bg-[#0a0a0a]/40 border border-[rgba(139,92,246,0.25)] rounded-xl"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-                <span>{detectedContract.name}</span>
-                {detectedContract.receivesFunds && (
-                  <span className="px-2 py-1 bg-[rgba(16,185,129,0.2)] text-[#10b981] text-xs rounded-full border border-[rgba(16,185,129,0.3)]">
-                    Receives Funds
+            {/* ── Contract header ── */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h4 className="text-base font-bold text-white">{detectedContract.name}</h4>
+                  {detectedContract.receivesFunds && (
+                    <span className="px-2 py-0.5 bg-[rgba(16,185,129,0.15)] text-[#10b981] text-[10px] font-medium rounded-full border border-[rgba(16,185,129,0.3)]">
+                      Receives Funds
+                    </span>
+                  )}
+                </div>
+                {/* Full address with copy */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] sm:text-xs font-mono text-slate-400 truncate">
+                    {detectedContract.address}
                   </span>
-                )}
-              </h4>
-              <span className={`px-2 py-1 text-xs rounded-full border ${
-                detectedContract.type === 'staking' ? 'bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] border-[rgba(139,92,246,0.3)]' :
-                detectedContract.type === 'marketplace' ? 'bg-[rgba(59,130,246,0.2)] text-[#3b82f6] border-[rgba(59,130,246,0.3)]' :
-                detectedContract.type === 'treasury' ? 'bg-[rgba(16,185,129,0.2)] text-[#10b981] border-[rgba(16,185,129,0.3)]' :
-                detectedContract.type === 'system' ? 'bg-[rgba(239,68,68,0.2)] text-[#ef4444] border-[rgba(239,68,68,0.3)]' :
-                'bg-slate-500/20 text-slate-400 border-slate-500/30'
+                  <button
+                    onClick={() => navigator.clipboard.writeText(detectedContract.address)}
+                    title="Copy address"
+                    className="flex-shrink-0 text-slate-600 hover:text-slate-300 transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                  </button>
+                  <a
+                    href={`https://polygonscan.com/address/${detectedContract.address}`}
+                    target="_blank" rel="noopener noreferrer"
+                    title="View on Polygonscan"
+                    className="flex-shrink-0 text-slate-600 hover:text-[#8b5cf6] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              <span className={`flex-shrink-0 px-2 py-1 text-[10px] sm:text-xs rounded-full border font-medium ${
+                detectedContract.type === 'staking'     ? 'bg-[rgba(139,92,246,0.15)] text-[#8b5cf6] border-[rgba(139,92,246,0.3)]' :
+                detectedContract.type === 'marketplace' ? 'bg-[rgba(59,130,246,0.15)] text-[#3b82f6] border-[rgba(59,130,246,0.3)]' :
+                detectedContract.type === 'treasury'    ? 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]' :
+                detectedContract.type === 'system'      ? 'bg-[rgba(239,68,68,0.15)] text-[#ef4444] border-[rgba(239,68,68,0.3)]' :
+                'bg-slate-500/15 text-slate-400 border-slate-500/30'
               }`}>
                 {detectedContract.type.charAt(0).toUpperCase() + detectedContract.type.slice(1)}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-slate-400 mb-1">Address</p>
-                <p className="text-white font-mono">
-                  {detectedContract.address.slice(0, 10)}...{detectedContract.address.slice(-8)}
-                </p>
+            {/* ── Stats row - Mobile: 1 col, Tablet: 2 cols, Desktop: 3 cols ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 text-xs mb-4">
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)]">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Category</p>
+                <p className="text-white font-medium capitalize">{detectedContract.category}</p>
               </div>
-              
-              <div>
-                <p className="text-slate-400 mb-1">Category</p>
-                <p className="text-white capitalize">{detectedContract.category}</p>
-              </div>
-
-              {detectedContract.balance !== undefined && (
-                <div>
-                  <p className="text-slate-400 mb-1">Balance</p>
-                  <p className="text-white font-semibold">
-                    {parseFloat(detectedContract.balance).toFixed(4)} MATIC
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)]">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Status</p>
+                {!isPausable ? (
+                  <p className="text-slate-400 font-medium">N/A</p>
+                ) : pausedLoading ? (
+                  <p className="text-slate-400 animate-pulse">Checking...</p>
+                ) : pausedData === true ? (
+                  <p className="text-red-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block"/>
+                    Paused
                   </p>
-                </div>
-              )}
-
-              <div>
-                <p className="text-slate-400 mb-1">Status</p>
-                <p className="text-[#10b981] font-medium">Active</p>
+                ) : (
+                  <p className="text-[#10b981] font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] inline-block"/>
+                    Active
+                  </p>
+                )}
+              </div>
+              <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)] sm:col-span-2 lg:col-span-1">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Network</p>
+                <p className="text-white font-medium">Polygon</p>
               </div>
             </div>
 
-            {detectedContract.receivesFunds && detectedContract.balance && parseFloat(detectedContract.balance) > 0 && (
-              <div className="mt-4 p-3 bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] rounded-lg">
-                <p className="text-[#10b981] text-sm font-medium">
-                  💰 This contract holds {parseFloat(detectedContract.balance).toFixed(4)} MATIC
-                </p>
-              </div>
-            )}
+            {/* ── Admin functions panel ── */}
+            <ContractAdminPanel
+              contractName={detectedContract.name}
+              contractAddress={detectedContract.address}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -302,6 +352,7 @@ export default function ContractManager() {
         onClose={() => setIsContractModalOpen(false)}
         onContractSelect={handleContractSelect}
       />
+      </div>
     </div>
   );
 }

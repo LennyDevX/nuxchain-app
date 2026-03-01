@@ -54,12 +54,15 @@ export async function validateRegistrationOnServer(
     screenResolution: string;
     timezone: string;
     language: string;
-  }
+  },
+  walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean },
+  resolvedIP?: string,
+  captchaToken?: string
 ) {
   try {
     console.log('🔍 Validating registration on server...');
 
-    const ipAddress = await getClientIP();
+    const ipAddress = resolvedIP ?? await getClientIP();
 
     const response = await fetch('/api/airdrop/validate', {
       method: 'POST',
@@ -72,6 +75,8 @@ export async function validateRegistrationOnServer(
         ipAddress,
         userAgent: navigator.userAgent,
         browserInfo,
+        captchaToken: captchaToken || '',
+        ...(walletHint ? { walletHint } : {}),
       }),
     });
 
@@ -128,6 +133,9 @@ export async function submitAirdropRegistration(
     };
     submitTime: number;
     pageLoadTime: number;
+    captchaToken?: string;
+    walletSignature?: string;
+    walletHint?: { trustScore: number; transactionCount: number; isLegit: boolean };
   }
 ) {
   try {
@@ -181,6 +189,9 @@ export async function submitAirdropRegistration(
 
     console.log('✅ Client-side validations passed');
 
+    // Resolve IP once — reused for both validate and submit to guarantee consistency
+    const resolvedIP = await getClientIP();
+
     // ========================================
     // STEP 1: SERVER-SIDE VALIDATION
     // ========================================
@@ -191,7 +202,10 @@ export async function submitAirdropRegistration(
       normalizedEmail,
       normalizedWallet,
       deviceData?.fingerprint || 'unknown',
-      deviceData?.browserInfo
+      deviceData?.browserInfo,
+      deviceData?.walletHint,
+      resolvedIP,
+      deviceData?.captchaToken
     );
 
     console.log('✅ Server validation passed');
@@ -201,7 +215,7 @@ export async function submitAirdropRegistration(
     // ========================================
     console.log('📝 Submitting registration...');
 
-    const ipAddress = await getClientIP();
+    const ipAddress = resolvedIP;
 
     const response = await fetch('/api/airdrop/submit', {
       method: 'POST',
@@ -215,6 +229,13 @@ export async function submitAirdropRegistration(
         userAgent: navigator.userAgent,
         browserInfo: deviceData?.browserInfo,
         timeToSubmit: deviceData ? deviceData.submitTime - deviceData.pageLoadTime : 0,
+        captchaToken: deviceData?.captchaToken || '',
+        walletSignature: deviceData?.walletSignature || '',
+        walletMetrics: deviceData?.walletHint ? {
+          walletAgeDays: 0,            // will be enriched by validate response if cached
+          transactionCount: deviceData.walletHint.transactionCount,
+          balance: 0,
+        } : undefined,
       }),
     });
 

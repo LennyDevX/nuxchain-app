@@ -377,6 +377,40 @@
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "depositAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "lockupPeriodIndex",
+          "type": "uint8"
+        },
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "simulateAPY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "effectiveAPY",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "annualRewards",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "skillsModule",
       "outputs": [

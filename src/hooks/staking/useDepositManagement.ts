@@ -290,16 +290,6 @@ export function useDepositManagement(): DepositManagementReturn {
     await Promise.all([refetchDeposits(), refetchUserInfo()]);
   }, [refetchDeposits, refetchUserInfo]);
 
-  // Debug logging
-  if (import.meta.env.DEV && deposits.length > 0) {
-    console.log('[useDepositManagement] Processed deposits:', {
-      total: deposits.length,
-      withdrawable: withdrawableInfo.count,
-      locked: deposits.filter(d => d.isLocked).length,
-      totalRewards: formatPOL(totalRewards, 6),
-    });
-  }
-
   return {
     deposits,
     depositsByType,

@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { parseEther, type Abi } from 'viem';
 import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
 import { apolloClient } from '../../lib/apollo-client';
-import { toast } from 'react-hot-toast';
+import toast from 'react-hot-toast';
+import { nftToasts } from '../../utils/toasts';
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_PROXY;
 
@@ -41,19 +42,19 @@ export default function useBuyNFT(): UseBuyNFTReturn {
   const buyNFT = useCallback(async (params: BuyNFTParams) => {
     if (!isConnected || !address) {
       setError('Please connect your wallet first');
-      toast.error('Please connect your wallet first');
+      nftToasts.walletNotConnected();
       return;
     }
 
     if (!CONTRACT_ADDRESS) {
       setError('Marketplace contract address not configured');
-      toast.error('Marketplace contract address not configured');
+      nftToasts.error('Marketplace contract address not configured');
       return;
     }
 
     if (!publicClient) {
       setError('Public client not available');
-      toast.error('Network connection error');
+      nftToasts.error('Network connection error');
       return;
     }
 
@@ -61,6 +62,8 @@ export default function useBuyNFT(): UseBuyNFTReturn {
     setError(null);
     setIsSuccess(false);
     setTransactionHash(null);
+
+    let buyToastId: string | null = null;
 
     try {
       // Validate parameters
@@ -82,7 +85,7 @@ export default function useBuyNFT(): UseBuyNFTReturn {
         throw new Error('You cannot buy your own NFT');
       }
 
-      toast.loading('Preparing transaction...', { id: 'buy-nft' });
+      buyToastId = nftToasts.processingTransaction('Preparing purchase');
 
       // Execute the purchase transaction using buyToken function
       const hash = await writeContractAsync({
@@ -94,14 +97,15 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       });
 
       setTransactionHash(hash);
-      toast.loading('Transaction submitted. Waiting for confirmation...', { id: 'buy-nft' });
+      toast.loading('Transaction submitted. Waiting for confirmation...', { id: buyToastId });
 
       // Wait for transaction confirmation
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       
       if (receipt.status === 'success') {
         setIsSuccess(true);
-        toast.success('NFT purchased successfully!', { id: 'buy-nft' });
+        toast.dismiss(buyToastId);
+        nftToasts.purchaseSuccess(`NFT #${params.tokenId}`, params.price);
         
         console.log('✅ [useBuyNFT] Transaction confirmed on blockchain:', {
           tokenId: params.tokenId,
@@ -181,7 +185,10 @@ export default function useBuyNFT(): UseBuyNFTReturn {
       }
       
       setError(errorMessage);
-      toast.error(errorMessage, { id: 'buy-nft' });
+      if (buyToastId) {
+        toast.dismiss(buyToastId);
+      }
+      nftToasts.purchaseError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -49,11 +49,11 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, isOpe
 
               {/* Header */}
               <div className="flex items-start gap-4 mb-6">
-                <div className="text-5xl">{skill.icon}</div>
+                <div className="text-5xl md:text-6xl">{skill.icon}</div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">{skill.name}</h2>
+                  <h2 className="jersey-15-regular text-3xl md:text-4xl text-white">{skill.name}</h2>
                   <span
-                    className="text-sm font-bold px-3 py-1 rounded-full mt-2 inline-block"
+                    className="jersey-15-regular text-base md:text-lg px-3 py-1 rounded-full mt-2 inline-block"
                     style={{
                       backgroundColor: skill.color,
                       color: 'white',
@@ -67,25 +67,25 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, isOpe
               {/* Details Grid */}
               <div className="space-y-4 mb-6">
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="text-xs text-gray-400 mb-1">SKILL TYPE</p>
-                  <p className="text-lg font-semibold text-white">{SKILL_TYPE_NAMES[skill.skillType]}</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">SKILL TYPE</p>
+                  <p className="jersey-15-regular text-xl md:text-2xl text-white">{SKILL_TYPE_NAMES[skill.skillType]}</p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="text-xs text-gray-400 mb-1">EFFECT</p>
-                  <p className="text-lg font-bold" style={{ color: skill.color }}>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">EFFECT</p>
+                  <p className="jersey-15-regular text-xl md:text-2xl" style={{ color: skill.color }}>
                     {skill.effectFormatted}
                   </p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="text-xs text-gray-400 mb-1">DESCRIPTION</p>
-                  <p className="text-sm text-gray-300">{skill.description}</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">DESCRIPTION</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-300">{skill.description}</p>
                 </div>
 
                 <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                  <p className="text-xs text-gray-400 mb-1">EFFECT STRENGTH</p>
-                  <p className="text-lg font-semibold text-white">{skill.effectValue}%</p>
+                  <p className="jersey-20-regular text-base md:text-lg text-gray-400 mb-1">EFFECT STRENGTH</p>
+                  <p className="jersey-15-regular text-xl md:text-2xl text-white">{skill.effectValue}%</p>
                 </div>
               </div>
 
@@ -94,7 +94,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, isOpe
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex-1 px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white jersey-20-regular text-base md:text-lg rounded-lg transition-colors"
                   onClick={onClose}
                 >
                   Close
@@ -102,7 +102,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, isOpe
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex-1 px-4 py-3 text-white font-semibold rounded-lg transition-all"
+                  className="flex-1 px-4 py-3 text-white jersey-20-regular text-base md:text-lg rounded-lg transition-all"
                   style={{
                     backgroundColor: skill.color,
                     boxShadow: `0 0 20px ${skill.color}80`,

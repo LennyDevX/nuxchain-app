@@ -8,7 +8,8 @@ Write-Host ""
 
 # Leer .env
 Write-Host "Leyendo archivo .env..." -ForegroundColor Yellow
-$envLines = Get-Content ".env" | Where-Object { $_ -match "^VITE_" -and $_ -notmatch "^\s*#" }
+# Lee TODAS las variables (VITE_ y server-only) excluyendo comentarios y líneas vacías
+$envLines = Get-Content ".env" | Where-Object { $_ -match "^[A-Z_]" -and $_ -notmatch "^\s*#" -and $_ -match "=" }
 $envDict = @{}
 
 foreach ($line in $envLines) {
@@ -19,7 +20,9 @@ foreach ($line in $envLines) {
     }
 }
 
-Write-Host "OK: Se encontraron $($envDict.Count) variables VITE_" -ForegroundColor Green
+$viteCount = ($envDict.Keys | Where-Object { $_ -match "^VITE_" }).Count
+$serverCount = $envDict.Count - $viteCount
+Write-Host "OK: Se encontraron $($envDict.Count) variables ($viteCount VITE_ + $serverCount server-only)" -ForegroundColor Green
 Write-Host ""
 
 # Variables de contratos a sincronizar

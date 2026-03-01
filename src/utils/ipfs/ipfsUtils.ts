@@ -1,8 +1,15 @@
 import type { PublicClient } from 'viem';
 import type { NFTMetadata } from '../../types/nft';
 
-const PINATA_JWT = import.meta.env.VITE_PINATA_JWT;
+// PINATA_JWT intentionally NOT referenced here — uploads go through /api/ipfs/upload proxy
+// so the JWT never appears in the browser bundle.
 const PINATA_GATEWAY = import.meta.env.VITE_PINATA_GATEWAY || 'https://gateway.pinata.cloud';
+
+// Resolve API base: relative path works on Vercel, absolute for local dev
+const IPFS_UPLOAD_URL =
+  import.meta.env.PROD
+    ? '/api/ipfs/upload'
+    : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/ipfs/upload`;
 const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_ADDRESS;
 
 // ONLY verified working public IPFS gateways (tested and functional)
@@ -126,87 +133,54 @@ async function fetchWithGatewayFallback(
   throw lastError || new Error('All IPFS gateways failed');
 }
 
-// Upload file to IPFS using Pinata
+// Upload file to IPFS — routed through /api/ipfs/upload so PINATA_JWT stays server-side
 export const uploadFileToIPFS = async (file: File): Promise<string> => {
-  if (!PINATA_JWT || PINATA_JWT.trim() === '') {
-    throw new Error('Pinata JWT not configured. Please check PINATA_SETUP.md for setup instructions.');
-  }
-
   const uploadFormData = new FormData();
   uploadFormData.append('file', file);
-  
+
   const metadata = JSON.stringify({
     name: `${file.name}_image`,
-    keyvalues: {
-      type: 'nft_image'
-    }
+    keyvalues: { type: 'nft_image' },
   });
   uploadFormData.append('pinataMetadata', metadata);
 
-  const options = JSON.stringify({
-    cidVersion: 0,
-  });
+  const options = JSON.stringify({ cidVersion: 0 });
   uploadFormData.append('pinataOptions', options);
 
-  const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+  const response = await fetch(`${IPFS_UPLOAD_URL}?type=file`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${PINATA_JWT}`
-    },
-    body: uploadFormData
+    body: uploadFormData,
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Invalid Pinata credentials. Please check your VITE_PINATA_JWT in .env file.');
-    } else if (response.status === 403) {
-      throw new Error('Pinata API key lacks required permissions.');
-    } else if (response.status === 413) {
-      throw new Error('File too large. Maximum file size is 10MB.');
-    } else {
-      throw new Error(`Failed to upload image to IPFS (${response.status}): ${response.statusText}`);
-    }
+    const err = await response.json().catch(() => ({}));
+    if (response.status === 401) throw new Error('Invalid Pinata credentials (server-side).');
+    if (response.status === 403) throw new Error('Pinata API key lacks required permissions.');
+    if (response.status === 413) throw new Error('File too large. Maximum file size is 10MB.');
+    throw new Error(`Failed to upload image to IPFS (${response.status}): ${err.error || response.statusText}`);
   }
 
   const result = await response.json();
-  return `${PINATA_GATEWAY}/ipfs/${result.IpfsHash}`;
+  return result.url || `${PINATA_GATEWAY}/ipfs/${result.IpfsHash}`;
 };
 
-// Upload JSON metadata to IPFS using Pinata
+// Upload JSON metadata to IPFS — routed through /api/ipfs/upload so PINATA_JWT stays server-side
 export const uploadJsonToIPFS = async (metadata: NFTMetadata): Promise<string> => {
-  if (!PINATA_JWT || PINATA_JWT.trim() === '') {
-    throw new Error('Pinata JWT not configured. Please check PINATA_SETUP.md for setup instructions.');
-  }
-
-  const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+  const response = await fetch(`${IPFS_UPLOAD_URL}?type=json`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PINATA_JWT}`
-    },
-    body: JSON.stringify({
-      pinataContent: metadata,
-      pinataMetadata: {
-        name: `${metadata.name}_metadata`,
-        keyvalues: {
-          type: 'nft_metadata'
-        }
-      }
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(metadata),
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Invalid Pinata credentials. Please check your VITE_PINATA_JWT in .env file.');
-    } else if (response.status === 403) {
-      throw new Error('Pinata API key lacks required permissions.');
-    } else {
-      throw new Error(`Failed to upload metadata to IPFS (${response.status}): ${response.statusText}`);
-    }
+    const err = await response.json().catch(() => ({}));
+    if (response.status === 401) throw new Error('Invalid Pinata credentials (server-side).');
+    if (response.status === 403) throw new Error('Pinata API key lacks required permissions.');
+    throw new Error(`Failed to upload metadata to IPFS (${response.status}): ${err.error || response.statusText}`);
   }
 
   const result = await response.json();
-  return `${PINATA_GATEWAY}/ipfs/${result.IpfsHash}`;
+  return result.url || `${PINATA_GATEWAY}/ipfs/${result.IpfsHash}`;
 };
 
 // Fetch token metadata from IPFS with caching and multi-gateway fallback

@@ -41,6 +41,10 @@
     "api/launchpad/burn-record.ts": {
       "maxDuration": 10,
       "memory": 256
+    },
+    "api/ipfs/upload.ts": {
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [

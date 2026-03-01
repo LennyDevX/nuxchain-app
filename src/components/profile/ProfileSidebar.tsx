@@ -1,45 +1,79 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useSkillNFTs } from '../../hooks/staking/useSkillNFTs';
 import { useSolanaWallet } from '../../hooks/web3/useSolanaWallet';
 import { SKILL_TYPE_NAMES, type SkillType } from '../../types/contracts';
+import { db } from '../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const ProfileSidebar: React.FC = () => {
   const location = useLocation();
   const { address, isConnected } = useAccount();
-  const { isConnected: isSolanaConnected, address: solanaAddress, wallet: solanaWalletName } = useSolanaWallet();
+  const { isConnected: isSolanaConnected } = useSolanaWallet();
   const { activeSkills, isLoading: isLoadingSkills } = useSkillNFTs();
   const [username, setUsername] = useState('User');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const isMobile = useIsMobile();
-  
+
   // Carousel state
   const [activeTab, setActiveTab] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize username from localStorage only once
-  const [isLoaded, setIsLoaded] = React.useState(false);
+  // Initialize username from Firestore
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  React.useEffect(() => {
-    if (!isLoaded && address) {
-      const savedUsername = localStorage.getItem(`username_${address}`);
-      if (savedUsername) {
-        setUsername(savedUsername);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!isLoaded && address) {
+        try {
+          const userDocRef = doc(db, 'users', address.toLowerCase());
+          const userDocSnap = await getDoc(userDocRef);
+
+          if (userDocSnap.exists()) {
+            const data = userDocSnap.data();
+            if (data.profile?.username) {
+              setUsername(data.profile.username);
+            }
+          } else {
+            // Check localStorage as fallback
+            const savedUsername = localStorage.getItem(`username_${address}`);
+            if (savedUsername) {
+              setUsername(savedUsername);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching username from Firestore:", error);
+        } finally {
+          setIsLoaded(true);
+        }
       }
-      setIsLoaded(true);
-    }
+    };
+    fetchUserData();
   }, [address, isLoaded]);
 
-  const handleSaveUsername = () => {
+  const handleSaveUsername = async () => {
     if (tempUsername.trim() && address) {
       const newName = tempUsername.trim();
       setUsername(newName);
-      localStorage.setItem(`username_${address}`, newName);
       setIsEditingName(false);
       setTempUsername('');
+
+      try {
+        const userDocRef = doc(db, 'users', address.toLowerCase());
+        await setDoc(userDocRef, {
+          profile: {
+            username: newName
+          },
+          address: address.toLowerCase()
+        }, { merge: true });
+        localStorage.setItem(`username_${address}`, newName);
+      } catch (error) {
+        console.error("Error saving username to Firestore:", error);
+      }
     }
   };
 
@@ -76,7 +110,7 @@ const ProfileSidebar: React.FC = () => {
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const itemWidth = container.offsetWidth;
-    
+
     // Calculate which tab is in view
     const newActiveTab = Math.round(scrollLeft / itemWidth);
     setActiveTab(newActiveTab);
@@ -85,10 +119,10 @@ const ProfileSidebar: React.FC = () => {
   // Snap carousel to clicked indicator
   const scrollToTab = useCallback((index: number) => {
     if (!scrollContainerRef.current) return;
-    
+
     const container = scrollContainerRef.current;
     const itemWidth = container.offsetWidth;
-    
+
     container.scrollTo({
       left: index * itemWidth,
       behavior: 'smooth'
@@ -96,18 +130,56 @@ const ProfileSidebar: React.FC = () => {
     setActiveTab(index);
   }, []);
 
+  const renderAvatarModal = () => {
+    if (!isAvatarModalOpen) return null;
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="bg-slate-900 border border-purple-500/30 rounded-2xl w-full max-w-md p-6 shadow-2xl overflow-hidden relative">
+          <button
+            onClick={() => setIsAvatarModalOpen(false)}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            ✕
+          </button>
+
+          <h3 className="jersey-15-regular text-2xl font-bold text-white mb-2">Select NFT Avatar</h3>
+          <p className="jersey-20-regular text-gray-400 mb-6 text-lg">Choose an NFT from your wallet to use as your profile picture.</p>
+
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {/* Gallery Placeholder */}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center opacity-50 cursor-not-allowed">
+                <span className="text-2xl grayscale">🖼️</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+            <p className="jersey-20-regular text-amber-400 text-lg">
+              NFT Avatar selection is coming soon! You will be able to feature your Nuxchain NFTs here.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (isMobile) {
     return (
       <div className="card-unified p-4">
         {/* Mobile Header: Avatar + Username */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="relative w-12 h-12 flex-shrink-0">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-pulse opacity-75"></div>
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white jersey-15-regular font-bold text-xl shadow-xl">
+          <div
+            className="relative w-12 h-12 flex-shrink-0 cursor-pointer group"
+            onClick={() => setIsAvatarModalOpen(true)}
+          >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 animate-pulse opacity-75 group-hover:opacity-100 transition-opacity"></div>
+            <div className="absolute inset-0 rounded-full border border-transparent group-hover:border-purple-400/50 transition-colors scale-110"></div>
+            <div className="relative w-full h-full rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-white jersey-15-regular font-bold text-xl shadow-xl overflow-hidden group-hover:scale-95 transition-transform duration-300">
               {username.charAt(0).toUpperCase()}
             </div>
           </div>
-          
+
           <div className="flex-1 min-w-0">
             {isEditingName ? (
               <div className="space-y-2">
@@ -142,7 +214,16 @@ const ProfileSidebar: React.FC = () => {
             ) : (
               <div>
                 <div className="flex items-center gap-2">
-                  <h4 className="jersey-15-regular text-white font-bold text-xl truncate">{username}</h4>
+                  <h4 className="jersey-15-regular text-white font-bold text-xl truncate flex items-center gap-2">
+                    {username}
+                    {isConnected && isSolanaConnected && (
+                      <span className="flex-shrink-0 text-blue-400" title="Verified Wallets">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    )}
+                  </h4>
                   <button
                     onClick={handleStartEdit}
                     className="flex-shrink-0 opacity-60 hover:opacity-100 active:opacity-100 transition-opacity p-1"
@@ -163,11 +244,11 @@ const ProfileSidebar: React.FC = () => {
         {/* Mobile Navigation: Optimized Carousel */}
         <div className="space-y-4">
           {/* Scrollable Container */}
-          <div 
+          <div
             ref={scrollContainerRef}
             onScroll={handleCarouselScroll}
             className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide"
-            style={{ 
+            style={{
               scrollBehavior: 'smooth',
               WebkitOverflowScrolling: 'touch' // Enable momentum scrolling on iOS
             }}
@@ -193,11 +274,10 @@ const ProfileSidebar: React.FC = () => {
               <button
                 key={`indicator-${index}`}
                 onClick={() => scrollToTab(index)}
-                className={`rounded-full transition-all duration-300 cursor-pointer ${
-                  activeTab === index
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 w-6 h-2 shadow-lg shadow-purple-500/50'
-                    : 'bg-gray-600 hover:bg-gray-500 w-2 h-2'
-                }`}
+                className={`rounded-full transition-all duration-300 cursor-pointer ${activeTab === index
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 w-6 h-2 shadow-lg shadow-purple-500/50'
+                  : 'bg-gray-600 hover:bg-gray-500 w-2 h-2'
+                  }`}
                 aria-label={`Go to ${items[index].label}`}
                 aria-current={activeTab === index}
               />
@@ -211,6 +291,7 @@ const ProfileSidebar: React.FC = () => {
             </p>
           </div>
         </div>
+        {renderAvatarModal()}
       </div>
     );
   }
@@ -221,10 +302,17 @@ const ProfileSidebar: React.FC = () => {
       {/* Fixed Header */}
       <div className="flex-shrink-0 mb-6 text-center pt-4">
         {/* Avatar with gradient border */}
-        <div className="relative w-24 h-24 mx-auto mb-4">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 animate-pulse opacity-75"></div>
-          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600 flex items-center justify-center text-white jersey-15-regular font-bold text-4xl shadow-xl">
+        <div
+          className="relative w-24 h-24 mx-auto mb-4 cursor-pointer group"
+          onClick={() => setIsAvatarModalOpen(true)}
+        >
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-amber-500 animate-pulse opacity-75 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute inset-0 rounded-full border border-transparent group-hover:border-purple-400/50 transition-colors scale-[1.05]"></div>
+          <div className="relative w-full h-full rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-white jersey-15-regular font-bold text-4xl shadow-xl overflow-hidden group-hover:scale-95 transition-transform duration-300">
             {username.charAt(0).toUpperCase()}
+          </div>
+          <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-sm">
+            <span className="jersey-20-regular text-white text-base">Change NFT</span>
           </div>
         </div>
 
@@ -262,7 +350,16 @@ const ProfileSidebar: React.FC = () => {
         ) : (
           <div className="group">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <h4 className="jersey-15-regular text-white font-bold text-3xl">{username}</h4>
+              <h4 className="jersey-15-regular text-white font-bold text-3xl flex items-center gap-2">
+                {username}
+                {isConnected && isSolanaConnected && (
+                  <span className="flex-shrink-0 text-blue-400" title="Verified Wallets">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+              </h4>
               <button
                 onClick={handleStartEdit}
                 className="opacity-60 hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
@@ -286,11 +383,10 @@ const ProfileSidebar: React.FC = () => {
           <Link
             key={it.key}
             to={it.to}
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-              isActive(it.to)
-                ? 'bg-purple-600/20 text-white border border-purple-500/30'
-                : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive(it.to)
+              ? 'bg-purple-600/20 text-white border border-purple-500/30'
+              : 'text-gray-300 hover:bg-white/5 hover:text-white'
+              }`}
           >
             <span className="text-2xl">{it.icon}</span>
             <span className="jersey-15-regular font-medium text-xl">{it.label}</span>
@@ -316,13 +412,13 @@ const ProfileSidebar: React.FC = () => {
                   >
                     <span className="text-lg">
                       {skillType === 0n ? '⚡' :
-                       skillType === 1n ? '🔒' :
-                       skillType === 2n ? '🎯' :
-                       skillType === 3n ? '💰' :
-                       skillType === 4n ? '🛡️' :
-                       skillType === 5n ? '⏱️' :
-                       skillType === 6n ? '🎲' :
-                       '🌟'}
+                        skillType === 1n ? '🔒' :
+                          skillType === 2n ? '🎯' :
+                            skillType === 3n ? '💰' :
+                              skillType === 4n ? '🛡️' :
+                                skillType === 5n ? '⏱️' :
+                                  skillType === 6n ? '🎲' :
+                                    '🌟'}
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">
@@ -349,64 +445,8 @@ const ProfileSidebar: React.FC = () => {
           </div>
         )}
 
-        {/* Wallet Linked Section */}
-        {isConnected && (
-          <div className="mt-6 pt-4 border-t border-white/10">
-            <h5 className="jersey-15-regular text-white/60 text-base font-semibold uppercase mb-3 px-2 flex items-center gap-2">
-              🔗 Wallet Linked
-              {isSolanaConnected && <span className="text-emerald-400 text-xs">✓ Synced</span>}
-            </h5>
-            
-            {/* Polygon Wallet */}
-            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 mb-2">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <span className="text-purple-400">⬡</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white/60 text-xs">Polygon</p>
-                <p className="text-white text-sm font-mono truncate">{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}</p>
-              </div>
-              {isConnected && <span className="text-emerald-400 text-xs">✓</span>}
-            </div>
-
-            {/* Solana Wallet */}
-            <div className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${isSolanaConnected ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/10'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isSolanaConnected ? 'bg-emerald-500/20' : 'bg-white/10'}`}>
-                <span className={isSolanaConnected ? 'text-emerald-400' : 'text-white/40'}>◎</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-white/60 text-xs">Solana {solanaWalletName && `(${solanaWalletName})`}</p>
-                <p className="text-white text-sm font-mono truncate">
-                  {solanaAddress ? `${solanaAddress.slice(0, 6)}...${solanaAddress.slice(-4)}` : 'Not linked'}
-                </p>
-              </div>
-              {isSolanaConnected ? (
-                <span className="text-emerald-400 text-xs">✓</span>
-              ) : (
-                <Link to="/nux" className="text-amber-400 text-xs hover:text-amber-300">
-                  Link →
-                </Link>
-              )}
-            </div>
-
-            {/* Rewards Status */}
-            {isConnected && isSolanaConnected && (
-              <div className="mt-3 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-emerald-400 text-xs text-center">
-                  ✅ Ready to claim NUX rewards on Solana
-                </p>
-              </div>
-            )}
-            {isConnected && !isSolanaConnected && (
-              <div className="mt-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <p className="text-amber-400 text-xs text-center">
-                  ⚠️ Link Solana wallet to claim rewards
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </nav>
+      {renderAvatarModal()}
     </aside>
   );
 };

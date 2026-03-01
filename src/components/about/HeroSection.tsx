@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const AVATARS = [
-  '/AvatarsNFTs/Avatar1-remove-bg.png',
   '/AvatarsNFTs/Avatar2.png',
   '/AvatarsNFTs/Avatar3.png',
   '/AvatarsNFTs/Avatar4.png',
@@ -13,7 +12,6 @@ const AVATARS = [
   '/AvatarsNFTs/Avatar9.png',
   '/AvatarsNFTs/Avatar10.png',
   '/AvatarsNFTs/Avatar11.png',
-  '/AvatarsNFTs/Avatar12-remove-bg.png',
 ];
 
 export function HeroSection() {
@@ -65,16 +63,16 @@ export function HeroSection() {
         <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-purple-500/15 border border-purple-500/40 jersey-20-regular text-purple-300 text-lg mb-6">
           🌐 Cross-Chain · NFT-Powered · AI-Driven
         </span>
-        
+
         <h1 className={`jersey-15-regular text-gradient leading-tight mb-6 ${isMobile ? 'text-5xl' : 'text-7xl lg:text-8xl'}`}>
           About Nuxchain
         </h1>
-        
+
         <p className={`jersey-20-regular text-white/70 max-w-3xl mx-auto mb-10 leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>
           A next-generation cross-chain platform where NFTs power a real economy —
           enabling creators, traders and builders to earn, collaborate and grow.
         </p>
-        
+
         <div className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-center'} gap-4`}>
           <a href="/rewards" className="btn-primary jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
             🏆 NUX Rewards Hub
@@ -107,7 +105,7 @@ export function HeroSection() {
       {/* Floating side avatars */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.img
-          src="/AvatarsNFTs/Avatar1-remove-bg.png"
+          src="/AvatarsNFTs/Avatar2.png"
           alt=""
           className="absolute opacity-10 w-32 md:w-48"
           style={{ top: '20%', left: '2%' }}
@@ -115,7 +113,7 @@ export function HeroSection() {
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.img
-          src="/AvatarsNFTs/Avatar12-remove-bg.png"
+          src="/AvatarsNFTs/Avatar11.png"
           alt=""
           className="absolute opacity-10 w-32 md:w-48"
           style={{ top: '20%', right: '2%' }}

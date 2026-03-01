@@ -3,7 +3,6 @@ import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import { Link } from 'react-router-dom'
 
 const AVATARS = [
-  { src: '/AvatarsNFTs/Avatar1-remove-bg.png', name: 'Avatar #001' },
   { src: '/AvatarsNFTs/Avatar2.png', name: 'Avatar #002' },
   { src: '/AvatarsNFTs/Avatar3.png', name: 'Avatar #003' },
   { src: '/AvatarsNFTs/Avatar4.png', name: 'Avatar #004' },
@@ -14,7 +13,6 @@ const AVATARS = [
   { src: '/AvatarsNFTs/Avatar9.png', name: 'Avatar #009' },
   { src: '/AvatarsNFTs/Avatar10.png', name: 'Avatar #010' },
   { src: '/AvatarsNFTs/Avatar11.png', name: 'Avatar #011' },
-  { src: '/AvatarsNFTs/Avatar12-remove-bg.png', name: 'Avatar #012' },
 ];
 
 function NFTSection() {

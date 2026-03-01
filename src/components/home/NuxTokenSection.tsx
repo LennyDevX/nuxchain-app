@@ -11,7 +11,7 @@ const fadeUp = (delay = 0) => ({
 
 const tokenStats = [
   { label: 'Total Supply', value: '100M', sub: 'NUX Tokens' },
-  { label: 'Rewards Pool', value: '20%', sub: '20M NUX' },
+  { label: 'Rewards Pool', value: '15%', sub: '15M NUX' },
   { label: 'Presale', value: '15%', sub: '15M NUX' },
   { label: 'Liquidity', value: '15%', sub: '15M NUX' },
 ];

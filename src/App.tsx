@@ -20,7 +20,9 @@ function AppContent() {
     <GlobalBackground>
       <NetworkAlert />
       <Navbar />
-      <AppRoutes />
+      <div className="md:pt-20">
+        <AppRoutes />
+      </div>
       <MobileBottomNavbar />
       <Toaster
         position="top-center"

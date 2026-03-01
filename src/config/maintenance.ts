@@ -13,6 +13,7 @@ declare global {
       marketplace?: boolean;
       tokenomics?: boolean;
       colab?: boolean;
+      burntoken?: boolean;
     };
   }
 }
@@ -49,6 +50,7 @@ const STORE_START_TIME = new Date().toISOString();
 const LABS_START_TIME = new Date().toISOString();
 const DEVHUB_START_TIME = new Date().toISOString();
 const NUX_START_TIME = new Date().toISOString();
+const BURNTOKEN_START_TIME = new Date().toISOString();
 
 export const MAINTENANCE_CONFIG: {
   airdrop: MaintenanceRoute;
@@ -61,6 +63,7 @@ export const MAINTENANCE_CONFIG: {
   labs: MaintenanceRoute;
   devhub: MaintenanceRoute;
   nux: MaintenanceRoute;
+  burntoken: MaintenanceRoute;
 } = {
   airdrop: {
     // Airdrop - MAINTENANCE DISABLED
@@ -124,9 +127,15 @@ export const MAINTENANCE_CONFIG: {
     message: 'The NUX Token page is being updated with the latest tokenomics, presale details, and cross-chain bridge information. Back very soon!',
     startTime: getOrInitializeStartTime('nux', NUX_START_TIME),
   },
+  burntoken: {
+    enabled: false,
+    estimatedTime: 2880, // 48 hours
+    message: 'Burning Protocol Optimization: We are refining the token burn mechanism and enhancing the burn dashboard for a more transparent and impactful deflationary event. Stay tuned!',
+    startTime: getOrInitializeStartTime('burntoken', BURNTOKEN_START_TIME),
+  },
 };
 
-export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' = 'airdrop'): boolean => {
+export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' = 'airdrop'): boolean => {
   // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
   const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
   if (route === 'airdrop' && devOverride) return false;
@@ -135,7 +144,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marke
   if (!config.enabled) return false;
   
   // Auto-disable después del tiempo estimado (solo para airdrop, staking y colab)
-  if (route === 'airdrop' || route === 'staking' || route === 'colab' || route === 'labs' || route === 'devhub' || route === 'nux') {
+  if (route === 'airdrop' || route === 'staking' || route === 'colab' || route === 'labs' || route === 'devhub' || route === 'nux' || route === 'burntoken') {
     const startTime = new Date(config.startTime).getTime();
     const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
     const now = Date.now();
@@ -148,7 +157,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marke
   return config.enabled;
 };
 
-export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' = 'airdrop'): number => {
+export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' = 'airdrop'): number => {
   const config = MAINTENANCE_CONFIG[route];
   const startTime = new Date(config.startTime).getTime();
   const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
@@ -158,6 +167,6 @@ export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts
   return Math.ceil(remaining / 1000); // Return in seconds
 };
 
-export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux'): MaintenanceRoute => {
+export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken'): MaintenanceRoute => {
   return MAINTENANCE_CONFIG[route];
 };

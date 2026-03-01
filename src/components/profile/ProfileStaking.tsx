@@ -27,10 +27,10 @@ const ProfileStaking: React.FC = () => {
   const estimatedAPY = useMemo(() => {
     try {
       const staked = parseFloat(totalStaked) || 0;
-      
+
       // If no stake, return 0
       if (staked === 0) return '0.00';
-      
+
       // Check if there are deposits to determine the APY based on lockup period
       const deposits = (userDeposits as typeof userDeposits) || [];
       if (deposits && Array.isArray(deposits) && deposits.length > 0) {
@@ -38,21 +38,21 @@ const ProfileStaking: React.FC = () => {
         if (lastDeposit && 'lockupDuration' in lastDeposit) {
           const lockupSeconds = Number(lastDeposit.lockupDuration);
           const lockupDays = lockupSeconds / (24 * 60 * 60);
-          
+
           // APY rates based on actual contract rates (hourly → annual)
           // Formula: hourlyRate% * 24 * 365 = annual APY
           const apyMap: { [key: number]: number } = {
-            0: 43.80,       // Flexible: 0.005%/hour → 43.8% APY
-            30: 87.60,      // 30 days: 0.010%/hour → 87.6% APY
-            90: 122.64,     // 90 days: 0.014%/hour → 122.64% APY
-            180: 149.28,    // 180 days: 0.017%/hour → 149.28% APY
-            365: 219.00     // 365 days: 0.025%/hour → 219% APY
+            0: 9.60,        // Flexible
+            30: 17.20,      // 30 days
+            90: 22.70,      // 90 days
+            180: 30.30,     // 180 days
+            365: 31.90      // 365 days
           };
-          
+
           // Find the closest matching APY for the lockup period
-          let closestAPY = 43.80; // Default to flexible
+          let closestAPY = 9.60; // Default to flexible
           let closestDiff = Math.abs(lockupDays - 0);
-          
+
           for (const [days, apy] of Object.entries(apyMap)) {
             const diff = Math.abs(lockupDays - Number(days));
             if (diff < closestDiff) {
@@ -60,13 +60,13 @@ const ProfileStaking: React.FC = () => {
               closestAPY = apy;
             }
           }
-          
+
           return closestAPY.toFixed(2);
         }
       }
-      
-      // Default to flexible rate (0.005%/hour = 43.8% APY) if no lockup info
-      return '43.80';
+
+      // Default to flexible rate (9.60% APY) if no lockup info
+      return '9.60';
     } catch {
       return '0.00';
     }
@@ -114,14 +114,12 @@ const ProfileStaking: React.FC = () => {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className={`font-bold jersey-15-regular text-gradient ${
-          isMobile ? 'text-4xl' : 'text-5xl'
-        }`}>
+        <h1 className={`font-bold jersey-15-regular text-gradient ${isMobile ? 'text-4xl' : 'text-5xl'
+          }`}>
           My Staking
         </h1>
-        <p className={`text-gray-400 mt-2 jersey-20-regular font-medium ${
-          isMobile ? 'text-lg' : 'text-xl'
-        }`}>Manage your staking positions</p>
+        <p className={`text-gray-400 mt-2 jersey-20-regular font-medium ${isMobile ? 'text-lg' : 'text-xl'
+          }`}>Manage your staking positions</p>
       </header>
 
       {isConnected ? (
@@ -133,77 +131,61 @@ const ProfileStaking: React.FC = () => {
               <p className="text-gray-400 mt-4">Loading staking data...</p>
             </div>
           ) : (
-            <section className={`grid gap-4 ${
-              isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-            }`}>
+            <section className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+              }`}>
               {/* Total Staked */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>Total Staked</h3>
-                <p className={`jersey-15-regular font-bold text-white ${
-                  isMobile ? 'text-lg' : 'text-2xl'
-                }`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>Total Staked</h3>
+                <p className={`jersey-15-regular font-bold text-white ${isMobile ? 'text-lg' : 'text-2xl'
+                  }`}>
                   {parseFloat(totalStaked).toFixed(isMobile ? 2 : 4)} POL
                 </p>
-                <p className={`jersey-20-regular text-gray-500 mt-1 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>
                   {activePositions} position{activePositions !== 1 ? 's' : ''}
                 </p>
               </div>
 
               {/* Rewards Earned */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>Rewards</h3>
-                <p className={`jersey-15-regular font-bold text-green-400 ${
-                  isMobile ? 'text-lg' : 'text-2xl'
-                }`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>Rewards</h3>
+                <p className={`jersey-15-regular font-bold text-green-400 ${isMobile ? 'text-lg' : 'text-2xl'
+                  }`}>
                   {parseFloat(pendingRewards).toFixed(6)} POL
                 </p>
-                <p className={`jersey-20-regular text-gray-500 mt-1 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>Claimable</p>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>Claimable</p>
               </div>
 
               {/* APY */}
               <div className={`card-stats ${isMobile ? 'p-3' : ''}`}>
-                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>APY</h3>
-                <p className={`jersey-15-regular font-bold text-purple-400 ${
-                  isMobile ? 'text-lg' : 'text-2xl'
-                }`}>{estimatedAPY}%</p>
-                <p className={`jersey-20-regular text-gray-500 mt-1 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}>Annual Yield</p>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>APY</h3>
+                <p className={`jersey-15-regular font-bold text-purple-400 ${isMobile ? 'text-lg' : 'text-2xl'
+                  }`}>{estimatedAPY}%</p>
+                <p className={`jersey-20-regular text-gray-500 mt-1 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>Annual Yield</p>
               </div>
 
               {/* Available to Withdraw */}
-              <div className={`card-stats ${isMobile ? 'p-3' : ''} ${
-                withdrawalInfo.isLocked ? 'border-orange-500/30' : 'border-green-500/30'
-              }`}>
-                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${
-                  isMobile ? 'text-xs' : 'text-sm'
+              <div className={`card-stats ${isMobile ? 'p-3' : ''} ${withdrawalInfo.isLocked ? 'border-orange-500/30' : 'border-green-500/30'
                 }`}>
+                <h3 className={`jersey-20-regular font-semibold text-gray-400 mb-2 ${isMobile ? 'text-xs' : 'text-sm'
+                  }`}>
                   Available
                 </h3>
-                <p className={`jersey-15-regular font-bold ${
-                  isMobile ? 'text-lg' : 'text-2xl'
-                } ${
-                  withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-400'
-                }`}>
+                <p className={`jersey-15-regular font-bold ${isMobile ? 'text-lg' : 'text-2xl'
+                  } ${withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-400'
+                  }`}>
                   {withdrawalInfo.isLocked ? '🔒 Locked' : `${parseFloat(withdrawalInfo.amount).toFixed(isMobile ? 2 : 4)} POL`}
                 </p>
-                <p className={`jersey-20-regular mt-1 ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                } ${
-                  withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-500'
-                }`}>
-                  {withdrawalInfo.isLocked 
-                    ? `${withdrawalInfo.daysRemaining}d remaining` 
+                <p className={`jersey-20-regular mt-1 ${isMobile ? 'text-xs' : 'text-sm'
+                  } ${withdrawalInfo.isLocked ? 'text-orange-400' : 'text-green-500'
+                  }`}>
+                  {withdrawalInfo.isLocked
+                    ? `${withdrawalInfo.daysRemaining}d remaining`
                     : 'Ready now ✓'}
                 </p>
               </div>
@@ -215,10 +197,9 @@ const ProfileStaking: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="text-center mb-8">
                 <h2 className="jersey-15-regular text-2xl font-bold text-white mb-3">Manage Your Staking</h2>
-                <p className={`jersey-20-regular font-medium ${
-                  isMobile ? 'text-sm' : 'text-base'
-                } text-gray-400`}>
-                  {activePositions > 0 
+                <p className={`jersey-20-regular font-medium ${isMobile ? 'text-sm' : 'text-base'
+                  } text-gray-400`}>
+                  {activePositions > 0
                     ? `View and manage your ${activePositions} active position${activePositions !== 1 ? 's' : ''}`
                     : 'Ready to start earning? Visit the staking dashboard'}
                 </p>

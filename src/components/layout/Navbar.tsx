@@ -9,7 +9,6 @@ function Navbar() {
   const isMobile = useIsMobile()
 
   const navLinks = [
-    { path: '/', label: 'Home' },
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
     { path: '/airdrop', label: 'Airdrop' },
@@ -17,9 +16,11 @@ function Navbar() {
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
     { path: '/nux', label: 'NUX' },
+    { path: '/burntoken', label: 'Burn' },
     { path: '/tokenomics', label: 'Tokenomics' },
     { path: '/chat', label: 'Chat' }
   ]
+
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -32,7 +33,7 @@ function Navbar() {
 
   return (
     <motion.nav
-      className="backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50"
+      className="backdrop-blur-md shadow-lg border-b border-white/20 fixed top-0 left-0 right-0 z-50"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 25 }}
@@ -75,7 +76,7 @@ function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15, staggerChildren: 0.05 }}
           >
-            <div className="ml-10 flex items-center space-x-2">
+            <div className="ml-10 flex items-center space-x-0.5">
               {navLinks.map((link, index) => (
                 <motion.div
                   key={link.path}
@@ -93,7 +94,7 @@ function Navbar() {
                   >
                     <Link
                       to={link.path}
-                      className={`jersey-20-regular inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xl transition-all duration-200 relative ${isActive(link.path)
+                      className={`jersey-20-regular inline-flex items-center gap-2 px-2 py-2 rounded-xl text-xl transition-all duration-200 relative ${isActive(link.path)
                         ? 'bg-blue-100 text-blue-700 shadow-sm'
                         : 'text-white/80 hover:text-white hover:bg-white/10'
                         }`}
@@ -125,6 +126,13 @@ function Navbar() {
                           className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]"
                           animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
                           transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      )}
+                      {link.path === '/burntoken' && (
+                        <motion.div
+                          className="w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.9)]"
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.2, repeat: Infinity }}
                         />
                       )}
                     </Link>

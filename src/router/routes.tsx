@@ -31,6 +31,7 @@ const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
 const Launchpad = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/Launchpad'));
 const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
+const BurnToken = lazy(() => import(/* webpackChunkName: "burn-token" */ '../pages/BurnToken'));
 
 function AppRoutes() {
   // Smart preloading: Only preload on fast connections and after idle
@@ -91,6 +92,7 @@ function AppRoutes() {
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/launchpad" element={<Launchpad />} />
         <Route path="/whitepaper" element={<Whitepaper />} />
+        <Route path="/burntoken" element={<BurnToken />} />
       </Routes>
     </Suspense>
   );

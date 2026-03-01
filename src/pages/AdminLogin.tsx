@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import GlobalBackground from '../ui/gradientBackground';
 import { useAdminAuth } from '../hooks/admin/useAdminAuth';
 
-const OWNER = (import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as string;
+const OWNER = (import.meta.env.VITE_ADMIN_WALLET ?? import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as string;
 const maskedOwner = OWNER ? `${OWNER.slice(0, 4)}...${OWNER.slice(-4)}` : '—';
 
 export default function AdminLogin() {

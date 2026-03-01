@@ -14,7 +14,8 @@ import { verifyMessage } from 'viem';
 import { AdminAuthContext } from './AdminAuthContext.types';
 
 // Owner wallet address (read from .env — never hardcode)
-const ADMIN_OWNER_ADDRESS = (import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as `0x${string}`;
+// VITE_ADMIN_WALLET takes priority; fallback to VITE_DEPLOYER_ADDRESS
+const ADMIN_OWNER_ADDRESS = (import.meta.env.VITE_ADMIN_WALLET ?? import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as `0x${string}`;
 
 interface AdminAuthProviderProps {
   children: ReactNode;

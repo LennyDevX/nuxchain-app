@@ -8,22 +8,22 @@ const Icon = ({ d, size = 20, className = '' }: { d: string; size?: number; clas
   </svg>
 );
 
-const FileText    = ({ size = 20, className = '' }: { size?: number; className?: string }) => <Icon size={size} className={className} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />;
-const Download    = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
-const ExternalLink = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
-const Shield      = ({ size = 20 }) => <Icon size={size} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />;
-const Zap         = ({ size = 20 }) => <Icon size={size} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />;
-const Globe       = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
-const Coins       = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>;
-const BarChart3   = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>;
-const Cpu         = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M9 2v2M9 20v2M2 15h2M2 9h2M20 15h2M20 9h2"/></svg>;
-const Lock        = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
-const Users       = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-const ArrowRight  = ({ size = 20, className = '' }: { size?: number; className?: string }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
-const Star        = ({ size = 20 }) => <Icon size={size} d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />;
-const ChevronRight = ({ size = 20, className = '' }: { size?: number; className?: string }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+const FileText = ({ size = 20, className = '' }: { size?: number; className?: string }) => <Icon size={size} className={className} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />;
+const Download = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>;
+const ExternalLink = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>;
+const Shield = ({ size = 20 }) => <Icon size={size} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />;
+const Zap = ({ size = 20 }) => <Icon size={size} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />;
+const Globe = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>;
+const Coins = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6" /><path d="M18.09 10.37A6 6 0 1 1 10.34 18" /><path d="M7 6h1v4" /><path d="m16.71 13.88.7.71-2.82 2.82" /></svg>;
+const BarChart3 = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>;
+const Cpu = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" /><rect x="9" y="9" width="6" height="6" /><path d="M15 2v2M15 20v2M9 2v2M9 20v2M2 15h2M2 9h2M20 15h2M20 9h2" /></svg>;
+const Lock = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
+const Users = ({ size = 20 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
+const ArrowRight = ({ size = 20, className = '' }: { size?: number; className?: string }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>;
+const Star = ({ size = 20 }) => <Icon size={size} d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />;
+const ChevronRight = ({ size = 20, className = '' }: { size?: number; className?: string }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6" /></svg>;
 
-const WHITEPAPER_PDF_URL = '/nuxchain-whitepaper.pdf';
+const WHITEPAPER_PDF_URL = '/docs/Nuxchain_Whitepaper.pdf';
 const MINT_ADDRESS = 'Cmpy3SvMJRKSXcfaDsLWC4gidhTQNwxeHXBmAgM5Ydja';
 
 // ─── Section Components ────────────────────────────────────────────────────────
@@ -49,10 +49,10 @@ function HighlightCard({
 }) {
   const colors = {
     purple: 'from-purple-500/20 to-purple-500/5 border-purple-500/30 text-purple-300',
-    amber:  'from-amber-500/20  to-amber-500/5  border-amber-500/30  text-amber-300',
-    cyan:   'from-cyan-500/20   to-cyan-500/5   border-cyan-500/30   text-cyan-300',
-    green:  'from-green-500/20  to-green-500/5  border-green-500/30  text-green-300',
-    pink:   'from-pink-500/20   to-pink-500/5   border-pink-500/30   text-pink-300',
+    amber: 'from-amber-500/20  to-amber-500/5  border-amber-500/30  text-amber-300',
+    cyan: 'from-cyan-500/20   to-cyan-500/5   border-cyan-500/30   text-cyan-300',
+    green: 'from-green-500/20  to-green-500/5  border-green-500/30  text-green-300',
+    pink: 'from-pink-500/20   to-pink-500/5   border-pink-500/30   text-pink-300',
   };
   return (
     <div className={`rounded-2xl bg-gradient-to-br ${colors[accent]} border p-5 flex flex-col gap-3`}>
@@ -101,7 +101,7 @@ export default function Whitepaper() {
           <div className="flex flex-col items-center text-center gap-6">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-base text-white/60">
               <FileText size={14} className="text-purple-400" />
-              <span className="jersey-20-regular">Whitepaper v1.0 — February 2026</span>
+              <span className="jersey-20-regular">Whitepaper v3.0 — February 2026</span>
             </div>
 
             <h1 className="jersey-15-regular text-5xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight">
@@ -111,7 +111,7 @@ export default function Whitepaper() {
               </span>
             </h1>
             <p className="jersey-20-regular text-white/60 text-lg sm:text-xl max-w-2xl leading-relaxed">
-              A cross-chain DeFi ecosystem combining staking, gamified NFT marketplace, AI-powered analytics, 
+              A cross-chain DeFi ecosystem combining staking, gamified NFT marketplace, AI-powered analytics,
               and the NUX utility token — built for the emerging agentic era.
             </p>
 
@@ -187,24 +187,24 @@ export default function Whitepaper() {
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Executive Summary</h2>
           <div className="space-y-4 text-white/70 leading-relaxed">
             <p className="jersey-20-regular text-lg">
-              Nuxchain is a comprehensive decentralized finance (DeFi) ecosystem built on Polygon and Solana, combining 
-              high-yield staking infrastructure, a gamified NFT marketplace, AI-powered analytics, and the NUX utility token. 
-              The platform is designed for both retail and enterprise participants seeking verifiable, on-chain yield 
+              Nuxchain is a comprehensive decentralized finance (DeFi) ecosystem built on Polygon and Solana, combining
+              high-yield staking infrastructure, a gamified NFT marketplace, AI-powered analytics, and the NUX utility token.
+              The platform is designed for both retail and enterprise participants seeking verifiable, on-chain yield
               generation with transparent governance.
             </p>
             <p className="jersey-20-regular text-lg">
-              NUX is the native utility token of the NuxChain protocol — a fixed-supply, non-mintable SPL token deployed 
-              on Solana mainnet with full on-chain Metaplex metadata. It enables incentives, governance, rewards, 
+              NUX is the native utility token of the NuxChain protocol — a fixed-supply, non-mintable SPL token deployed
+              on Solana mainnet with full on-chain Metaplex metadata. It enables incentives, governance, rewards,
               and seamless interoperability across the platform's multi-chain architecture.
             </p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
             {[
-              { label: 'Total Supply',    value: '100M NUX' },
-              { label: 'Blockchain',      value: 'Solana + Polygon' },
-              { label: 'Token Standard',  value: 'SPL + ERC-20' },
-              { label: 'Launch Phase',    value: 'Phase 1 — 2026' },
+              { label: 'Total Supply', value: '100M NUX' },
+              { label: 'Blockchain', value: 'Solana + Polygon' },
+              { label: 'Token Standard', value: 'SPL + ERC-20' },
+              { label: 'Launch Phase', value: 'Phase 1 — 2026' },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
                 <div className="jersey-15-regular text-white font-bold text-2xl">{value}</div>
@@ -245,7 +245,7 @@ export default function Whitepaper() {
           <SectionTag label="03 — Platform Architecture" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Technical Architecture</h2>
           <p className="jersey-20-regular text-white/60 mb-8 text-lg leading-relaxed">
-            Nuxchain operates on a multi-layer architecture combining on-chain smart contracts (Polygon/Solana), 
+            Nuxchain operates on a multi-layer architecture combining on-chain smart contracts (Polygon/Solana),
             serverless API infrastructure (Vercel Edge), and a real-time React frontend with AI integration.
           </p>
           <div className="grid sm:grid-cols-2 gap-5">
@@ -261,7 +261,7 @@ export default function Whitepaper() {
           <SectionTag label="04 — EnhancedSmartStaking v6.2" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Staking Protocol</h2>
           <p className="jersey-20-regular text-white/60 text-lg leading-relaxed">
-            The EnhancedSmartStaking v6.2 system is the core yield-generation engine. Users deposit POL tokens 
+            The EnhancedSmartStaking v6.2 system is the core yield-generation engine. Users deposit POL tokens
             and earn continuous rewards calculated hourly, with lockup multipliers providing enhanced APY for committed capital.
           </p>
 
@@ -290,12 +290,12 @@ export default function Whitepaper() {
 
           <div className="grid sm:grid-cols-3 gap-4 text-lg">
             {[
-              { label: 'Min. Deposit',      value: '10 POL' },
-              { label: 'Max. per Deposit',  value: '100,000 POL' },
-              { label: 'Max. Deposits',     value: '400 / user' },
-              { label: 'Daily Withdrawal',  value: '2,000 POL limit' },
-              { label: 'Platform Fee',      value: '6% on rewards' },
-              { label: 'Compound',          value: 'Yes — any time' },
+              { label: 'Min. Deposit', value: '10 POL' },
+              { label: 'Max. per Deposit', value: '100,000 POL' },
+              { label: 'Max. Deposits', value: '400 / user' },
+              { label: 'Daily Withdrawal', value: '2,000 POL limit' },
+              { label: 'Platform Fee', value: '6% on rewards' },
+              { label: 'Compound', value: 'Yes — any time' },
             ].map(({ label, value }) => (
               <div key={label} className="flex justify-between rounded-xl bg-white/5 px-4 py-3 border border-white/10">
                 <span className="jersey-20-regular text-white/50">{label}</span>
@@ -310,7 +310,7 @@ export default function Whitepaper() {
           <SectionTag label="05 — GameifiedMarketplace v2.0" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">NFT Marketplace</h2>
           <p className="jersey-20-regular text-white/60 mb-8 text-lg leading-relaxed">
-            The GameifiedMarketplace v2.0 is a 10-module modular NFT platform with integrated Skills NFT system, 
+            The GameifiedMarketplace v2.0 is a 10-module modular NFT platform with integrated Skills NFT system,
             verifiable rarity tiers, referral mechanics, and cross-platform XP progression shared with the staking protocol.
           </p>
           <div className="grid sm:grid-cols-2 gap-5">
@@ -326,8 +326,8 @@ export default function Whitepaper() {
           <SectionTag label="06 — NUX Token" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">The NUX Utility Token</h2>
           <p className="jersey-20-regular text-white/60 mb-8 text-lg leading-relaxed">
-            NUX is the native utility token of the NuxChain ecosystem. Deployed as an SPL token on Solana mainnet 
-            with full on-chain Metaplex metadata, it is permanently non-mintable and non-freezable — ensuring 
+            NUX is the native utility token of the NuxChain ecosystem. Deployed as an SPL token on Solana mainnet
+            with full on-chain Metaplex metadata, it is permanently non-mintable and non-freezable — ensuring
             absolute supply certainty for token holders.
           </p>
 
@@ -404,8 +404,8 @@ export default function Whitepaper() {
           <SectionTag label="08 — AI Integration" />
           <h2 className="jersey-15-regular text-3xl font-bold mb-6">Nuxbee AI Platform</h2>
           <p className="jersey-20-regular text-white/60 mb-8 text-lg leading-relaxed">
-            Nuxbee AI 1.0 is an integrated AI assistant powered by Google Gemini, providing contextual 
-            platform guidance, staking strategy optimization, market analytics, and agentic automation — 
+            Nuxbee AI 1.0 is an integrated AI assistant powered by Google Gemini, providing contextual
+            platform guidance, staking strategy optimization, market analytics, and agentic automation —
             representing Nuxchain's commitment to the emerging AI-native DeFi era.
           </p>
           <div className="grid sm:grid-cols-3 gap-5">
@@ -484,26 +484,26 @@ export default function Whitepaper() {
           <div className="rounded-2xl border border-white/10 bg-white/3 p-6 space-y-3 jersey-20-regular text-lg text-white/60 leading-relaxed">
             <p>
               <span className="jersey-15-regular text-white font-medium">Smart Contract Risk:</span>{' '}
-              Despite security audits, smart contracts may contain undiscovered vulnerabilities. Users should only 
+              Despite security audits, smart contracts may contain undiscovered vulnerabilities. Users should only
               deposit amounts they can afford to lose.
             </p>
             <p>
               <span className="jersey-15-regular text-white font-medium">Market Risk:</span>{' '}
-              POL and NUX token prices are subject to high volatility. APY calculations are denominated in POL 
+              POL and NUX token prices are subject to high volatility. APY calculations are denominated in POL
               and do not guarantee USD-equivalent returns.
             </p>
             <p>
               <span className="jersey-15-regular text-white font-medium">Lockup Risk:</span>{' '}
-              Staked funds are locked for the chosen duration. Early withdrawal is not possible during an active 
+              Staked funds are locked for the chosen duration. Early withdrawal is not possible during an active
               lockup period. Select lockup periods appropriate for your liquidity needs.
             </p>
             <p>
               <span className="jersey-15-regular text-white font-medium">Regulatory Risk:</span>{' '}
-              The regulatory landscape for DeFi and digital assets is evolving. Users are responsible for 
+              The regulatory landscape for DeFi and digital assets is evolving. Users are responsible for
               compliance with applicable laws in their jurisdictions.
             </p>
             <p className="text-white/30 text-sm pt-2">
-              This document is for informational purposes only and does not constitute financial or investment advice. 
+              This document is for informational purposes only and does not constitute financial or investment advice.
               Always conduct your own due diligence before participating in DeFi protocols.
             </p>
           </div>
@@ -513,7 +513,7 @@ export default function Whitepaper() {
         <section className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-pink-500/5 p-10 text-center">
           <h2 className="jersey-15-regular text-2xl font-bold mb-3">Download the Full Whitepaper</h2>
           <p className="jersey-20-regular text-white/50 mb-6 max-w-md mx-auto text-lg leading-relaxed">
-            The complete PDF includes detailed smart contract specifications, full tokenomics models, 
+            The complete PDF includes detailed smart contract specifications, full tokenomics models,
             audit reports, and governance parameters.
           </p>
           <a

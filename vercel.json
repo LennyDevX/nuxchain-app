@@ -37,6 +37,10 @@
     "api/launchpad/stats.ts": {
       "maxDuration": 10,
       "memory": 256
+    },
+    "api/launchpad/burn-record.ts": {
+      "maxDuration": 10,
+      "memory": 256
     }
   },
   "rewrites": [

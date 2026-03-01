@@ -607,6 +607,46 @@ app.get('/api/launchpad/stats', async (req, res) => {
   res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
 });
 
+// POST /api/launchpad/burn-record
+app.post('/api/launchpad/burn-record', async (req, res) => {
+  const { wallet, amount, txSignature } = req.body ?? {};
+  if (!wallet || !amount || !txSignature) return res.status(400).json({ error: 'Missing fields' });
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.status(500).json({ error: 'Database unavailable' });
+    const exists = await db.collection('nuxBurnRecords').where('txSignature', '==', txSignature).limit(1).get();
+    if (!exists.empty) return res.json({ success: true, duplicate: true });
+    await db.collection('nuxBurnRecords').add({ wallet, amount, txSignature, createdAt: new Date() });
+    console.log(`[burn-record] ✅ ${wallet.slice(0, 8)}... burned ${amount} NUX`);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[burn-record]', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/launchpad/burn-leaderboard
+app.get('/api/launchpad/burn-leaderboard', async (req, res) => {
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.json({ entries: [] });
+    const snap = await db.collection('nuxBurnRecords').get();
+    const map = new Map();
+    snap.forEach(doc => {
+      const d = doc.data();
+      const burnDate = d.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString();
+      const ex = map.get(d.wallet);
+      if (ex) { ex.totalBurned += Number(d.amount); ex.txCount += 1; if (burnDate > ex.lastBurnAt) ex.lastBurnAt = burnDate; }
+      else map.set(d.wallet, { totalBurned: Number(d.amount), txCount: 1, lastBurnAt: burnDate });
+    });
+    const entries = Array.from(map.entries()).map(([wallet, data]) => ({ wallet, ...data })).sort((a, b) => b.totalBurned - a.totalBurned).slice(0, 50);
+    return res.json({ entries, total: snap.size });
+  } catch (err) {
+    console.error('[burn-leaderboard]', err.message);
+    return res.json({ entries: [] });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

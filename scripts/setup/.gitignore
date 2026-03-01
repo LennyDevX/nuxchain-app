@@ -1,0 +1,34 @@
+# ⚠️ SECURITY: Never commit sensitive files
+
+# Wallet private keys
+wallet.json
+*.keystore
+*.secret
+
+# Environment files (if present)
+.env
+.env.local
+.env.*.local
+
+# Output files
+nux-metadata-uri.txt
+deployment-output.json
+*.log
+
+# Node modules (if present in this folder)
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDE
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+dist/
+build/
+*.tmp

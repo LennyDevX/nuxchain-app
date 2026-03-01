@@ -1,0 +1,24 @@
+{
+  "mintAddress": "AV9fNPXeLhyqGangnEdBkL355mqDbAi3gWU4AfzDcPZK",
+  "tokenAccount": "EXUBgz1LGKUF8RaZvrJAkkkvXiYU2upq5C3K6bfzrY7w",
+  "deployerWallet": "GcfKd6DzFUANkRWkSwVp5YspaoRvS5j5GgRRvA8oBPXm",
+  "network": "mainnet-beta",
+  "name": "Nuxchain",
+  "symbol": "NUX",
+  "decimals": 6,
+  "supply": 100000000,
+  "imageUri": "https://gateway.pinata.cloud/ipfs/bafkreig44bcthsnpvrexv7wc4itbqncubcqoieoubhyiqxirzfqvraqpdq",
+  "metadataUri": "https://gateway.pinata.cloud/ipfs/QmeUPs3i9DPBoBZtLqdxcHqEUGdAF1ecyHMh3ynavZj7yi",
+  "mintAuthorityRevoked": true,
+  "freezeAuthorityRevoked": true,
+  "solSpent": "0.018646",
+  "timestamp": "2026-03-01T15:02:51.089Z",
+  "transactions": {
+    "createMint": "LEMGrSod8ZLxgT7MSJPBgkuKbUGYYK3DSBEHPVDE4CYibhLnAACYRDaPyCw8Mi8T2pRmsaZELaiNtYZmJunh1FK",
+    "createATA": "4h2SoK8ke6c8y3QMb4Qx2XBbJYesjZcQA4C28q4m9m3rE7CbecTMyyHUC4tsmDzbEL59zS1Jka9jfdmvdSWv66yk",
+    "setMetadata": "3yKqNxGBpxqjVqoHnp4y4C7UBpXYqv9K4EakNk9btLPfJLV2Z8CUpgESrcLPQs6X7Qaqrzdj979Jzk8Nw3ZxcLqE",
+    "mintTokens": "2uC9zQuWSKDZnJqJks5YYBB3sMu2Yq7vN5J392Sa8QZksJ9PDhmgQn7nocL3pZRZhbE2goZ1PZ3uFHCoRCb8wnpm",
+    "revokeMint": "4196ShuSWmXAkHWejm77zAM2mS3jXjMiicMyac4HY9XCBVG7vvQd5sykEKeAE9hHwnzejbDuYrNPWRx7yL3CVNux",
+    "revokeFreeze": "2vGT866TdyAx1XQQx2zo2eVUEQa3xqNXPXWitTZVzAfyZyKuq4dLEWnFL8J217WZjcJ8CpjxESQ4YBJda1rjFXbi"
+  }
+}

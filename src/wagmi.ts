@@ -1,4 +1,4 @@
-import { http, createConfig } from 'wagmi'
+import { http, fallback, createConfig } from 'wagmi'
 import { polygon, polygonAmoy } from 'wagmi/chains'
 import { injected, metaMask, walletConnect } from 'wagmi/connectors'
 import { DEFAULT_SOLANA_NETWORK } from './constants/solana'
@@ -56,12 +56,28 @@ export const config = createConfig({
       : []),
   ],
   transports: {
-    [polygon.id]: http(alchemyApiKey ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}` : 'https://polygon-rpc.com', {
-      batch: true, // Enable batching to reduce request count
-      retryCount: 3,
-      retryDelay: 1000,
-      timeout: 10000, // ⚡ Increased timeout for rate limited responses
-    }),
+    [polygon.id]: fallback([
+      // Primary: Alchemy (if key is set)
+      ...(alchemyApiKey ? [http(`https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`, {
+        batch: true,
+        retryCount: 2,
+        retryDelay: 1000,
+        timeout: 10000,
+      })] : []),
+      // Fallback: Public Polygon RPC (always available)
+      http('https://polygon-rpc.com', {
+        batch: true,
+        retryCount: 3,
+        retryDelay: 1000,
+        timeout: 10000,
+      }),
+      // Secondary fallback: Ankr public RPC
+      http('https://rpc.ankr.com/polygon', {
+        batch: true,
+        retryCount: 2,
+        timeout: 10000,
+      }),
+    ]),
     [polygonAmoy.id]: http(undefined, {
       batch: true,
       retryCount: 3,

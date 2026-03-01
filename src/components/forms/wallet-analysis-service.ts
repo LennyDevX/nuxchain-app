@@ -14,8 +14,12 @@ const getRpcEndpoints = (): string[] => {
   const quicknodeRpc = import.meta.env.VITE_SOLANA_RPC_QUICKNODE || 
                        import.meta.env.VITE_SOLANA_RPC_ALCHEMY;
   
-  // If custom RPC configured, use it as primary with fallbacks
-  if (quicknodeRpc) {
+  // Validate URL — if it doesn't start with http(s) it will crash Connection constructor
+  const isValidHttpUrl = (url: unknown): url is string =>
+    typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'));
+
+  // If custom RPC configured AND valid, use it as primary with fallbacks
+  if (isValidHttpUrl(quicknodeRpc)) {
     return [
       quicknodeRpc, // PRIMARY: Use same RPC as backend
       'https://solana-rpc.publicnode.com', // Fallback: PublicNode
@@ -24,7 +28,7 @@ const getRpcEndpoints = (): string[] => {
     ];
   }
   
-  // Default fallback chain if no custom RPC configured
+  // Default fallback chain if no custom RPC configured (or invalid value)
   return [
     'https://solana-rpc.publicnode.com', // PublicNode (most stable, CORS-friendly)
     'https://api.mainnet-beta.solana.com', // Official (sometimes rate-limited)
@@ -35,11 +39,26 @@ const getRpcEndpoints = (): string[] => {
 const RPC_ENDPOINTS = getRpcEndpoints();
 
 let currentRpcIndex = 0;
-let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], {
-  commitment: 'confirmed',
-  httpAgent: undefined, // Let browser use native fetch
-  wsEndpoint: undefined,
-});
+
+// Lazy initialization — never crash at module load time even if URL is invalid
+function createConnection(url: string): Connection {
+  try {
+    return new Connection(url, {
+      commitment: 'confirmed',
+      httpAgent: undefined, // Let browser use native fetch
+      wsEndpoint: undefined,
+    });
+  } catch {
+    // Fallback to publicnode if any endpoint is malformed
+    return new Connection('https://solana-rpc.publicnode.com', {
+      commitment: 'confirmed',
+      httpAgent: undefined,
+      wsEndpoint: undefined,
+    });
+  }
+}
+
+let connection = createConnection(RPC_ENDPOINTS[currentRpcIndex]);
 
 // Minimum thresholds for legitimate wallets
 // SYNCHRONIZED WITH BACKEND (Feb 2026) - Must match api/airdrop/validate-and-register.ts
@@ -106,11 +125,7 @@ async function retryWithFallback<T>(
   for (let attempt = 0; attempt < RPC_ENDPOINTS.length; attempt++) {
     try {
       currentRpcIndex = attempt % RPC_ENDPOINTS.length;
-      connection = new Connection(RPC_ENDPOINTS[currentRpcIndex], {
-        commitment: 'confirmed',
-        httpAgent: undefined,
-        wsEndpoint: undefined,
-      });
+      connection = createConnection(RPC_ENDPOINTS[currentRpcIndex]);
 
       // Only log first attempt to reduce console noise
       if (attempt === 0) {

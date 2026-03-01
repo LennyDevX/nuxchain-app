@@ -3,7 +3,8 @@ const { getFirestore } = require('firebase-admin/firestore');
 const fs = require('fs');
 const path = require('path');
 
-const SERVICE_ACCOUNT_PATH = path.join(__dirname, '../../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json');
+// serviceAccountKey.json está en la raíz del proyecto y está en .gitignore (nunca se sube a git)
+const SERVICE_ACCOUNT_PATH = path.resolve(__dirname, '../../serviceAccountKey.json');
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 
 require('dotenv').config();

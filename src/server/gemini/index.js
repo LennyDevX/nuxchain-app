@@ -31,11 +31,9 @@ app.use(cors(corsOptions));
 
 // Inicializar Firebase Admin SDK para entorno local
 try {
-  // Rutas conocidas del service account en este proyecto
+  // Ruta canónica del service account (nunca se sube a git — está en .gitignore)
   const serviceAccountPaths = [
-    path.resolve(process.cwd(), 'firebase-service-account.json'),
-    path.resolve(process.cwd(), 'nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json'),
-    path.resolve(process.cwd(), 'src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json')
+    path.resolve(process.cwd(), 'serviceAccountKey.json')
   ];
 
   let serviceAccount = null;

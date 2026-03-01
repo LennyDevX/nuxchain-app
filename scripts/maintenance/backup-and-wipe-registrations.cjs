@@ -16,11 +16,9 @@ const fs = require('fs');
 const { createWriteStream } = require('fs');
 const { stringify } = require('csv-stringify/sync');
 
-// Configuración de la ruta del Service Account
+// serviceAccountKey.json está en la raíz del proyecto y está en .gitignore (nunca se sube a git)
 const SERVICE_ACCOUNT_PATHS = [
-    path.join(__dirname, '../../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json'),
-    path.join(__dirname, './nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json'),
-    path.join(process.cwd(), 'src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json')
+    path.resolve(process.cwd(), 'serviceAccountKey.json')
 ];
 
 let serviceAccountPath = null;

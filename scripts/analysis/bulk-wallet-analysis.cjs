@@ -24,10 +24,8 @@ require('dotenv').config();
 // CONFIGURATION
 // ============================================================================
 
-const SERVICE_ACCOUNT_PATH = path.join(
-  __dirname,
-  '../../src/utils/scripts/nuxchain1-firebase-adminsdk-fbsvc-f1894d4a38.json'
-);
+// serviceAccountKey.json está en la raíz del proyecto y está en .gitignore (nunca se sube a git)
+const SERVICE_ACCOUNT_PATH = path.resolve(process.cwd(), 'serviceAccountKey.json');
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC_ALCHEMY || process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const AIRDROP_MAINTENANCE = process.env.VITE_AIRDROP_MAINTENANCE === 'true';

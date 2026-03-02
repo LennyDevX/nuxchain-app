@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../hooks/mobile';
 import { LAUNCHPAD_CONFIG, getActiveTier } from '../constants/launchpad';
@@ -16,24 +16,23 @@ interface RawStats {
 
 export default function Launchpad() {
   const isMobile = useIsMobile();
-  const [stats] = useState<RawStats | null>(null);
+  const [stats, setStats] = useState<RawStats | null>(null);
   const [buyTier, setBuyTier] = useState<TierId | null>(null);
   const activeTier = getActiveTier();
 
-  // Fetch stats every 30s - DISABLED for now
-  /*
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/launchpad/stats');
+      if (res.ok) setStats(await res.json());
+    } catch { }
+  }, []);
+
+  // Fetch stats on mount and every 30s
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch('/api/launchpad/stats');
-        if (res.ok) setStats(await res.json());
-      } catch { }
-    }
     fetchStats();
     const id = setInterval(fetchStats, 30_000);
     return () => clearInterval(id);
-  }, []);
-  */
+  }, [fetchStats]);
 
   // Date of next upcoming event
   const now = new Date();
@@ -177,7 +176,11 @@ export default function Launchpad() {
 
       {/* Buy Modal */}
       {buyTier && (
-        <BuyModal tierId={buyTier} onClose={() => setBuyTier(null)} />
+        <BuyModal
+          tierId={buyTier}
+          onClose={() => setBuyTier(null)}
+          onSuccess={() => fetchStats()}
+        />
       )}
     </>
   );

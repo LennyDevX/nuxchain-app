@@ -74,7 +74,7 @@ export const MAINTENANCE_CONFIG: {
   },
   staking: {
     // Staking - MAINTENANCE DISABLED
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days (5 * 24 * 60)
     message: 'We are upgrading the Staking system with enhanced features and improved rewards. The staking platform will be available in 5 days with better performance and new staking options.',
     startTime: getOrInitializeStartTime('staking', STAKING_START_TIME),

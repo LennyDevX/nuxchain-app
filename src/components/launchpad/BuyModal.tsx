@@ -8,13 +8,14 @@ import type { TierId } from '../../constants/launchpad';
 interface BuyModalProps {
   tierId: TierId;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 type Step = 'connect' | 'whitelist-check' | 'input' | 'confirm' | 'success' | 'error';
 
 const RPC = import.meta.env.VITE_SOLANA_RPC_QUICKNODE || 'https://solana-rpc.publicnode.com';
 
-export default function BuyModal({ tierId, onClose }: BuyModalProps) {
+export default function BuyModal({ tierId, onClose, onSuccess }: BuyModalProps) {
   const { publicKey, connected, sendTransaction } = useWallet();
   const tier = LAUNCHPAD_CONFIG.tiers[tierId];
 
@@ -117,6 +118,7 @@ export default function BuyModal({ tierId, onClose }: BuyModalProps) {
       setTxSignature(sig);
       setNuxPurchased(data.nuxAmount);
       setStep('success');
+      onSuccess?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
       setErrorMsg(msg.includes('rejected') ? 'Transaction cancelled by user.' : msg);

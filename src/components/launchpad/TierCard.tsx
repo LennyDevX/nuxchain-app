@@ -3,6 +3,14 @@ import { LAUNCHPAD_CONFIG, getTierStatus } from '../../constants/launchpad';
 import type { TierId } from '../../constants/launchpad';
 import CountdownTimer from './CountdownTimer';
 
+/** Format NUX: 5000 → "5,000" | 50000 → "50K" | 1500000 → "1.5M" */
+function fmtNux(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 10_000)    return `${(n / 1_000).toFixed(0)}K`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
 interface TierCardProps {
   tierId: TierId;
   stats?: { nuxSold: number; solRaised: number; participants: number };
@@ -109,13 +117,13 @@ export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCar
             <motion.div
               className={`h-full rounded-full ${colors.bar}`}
               initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
+              animate={{ width: `${stats && stats.nuxSold > 0 ? Math.max(progress, 0.8) : 0}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
             />
           </div>
           <div className="flex justify-between items-center">
             <span className="jersey-20-regular text-lg text-slate-600">
-              {stats ? (stats.nuxSold / 1_000_000).toFixed(2) + 'M' : '—'} NUX sold
+              {stats ? fmtNux(stats.nuxSold) : '—'} NUX sold
             </span>
             <span className="jersey-20-regular text-xl text-slate-500">
               {(tier.cap / 1_000_000).toFixed(0)}M cap

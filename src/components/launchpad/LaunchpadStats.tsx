@@ -6,6 +6,19 @@ interface Stats {
 
 const GOAL_SOL = 100;
 
+/** Format NUX amounts: 5000 → "5,000" | 50000 → "50K" | 1500000 → "1.5M" */
+function fmtNux(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 10_000)    return `${(n / 1_000).toFixed(0)}K`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
+/** Format SOL: always 4 decimals, e.g. 0.0750 */
+function fmtSol(n: number): string {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
+
 export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
   const solRaised = stats?.total.solRaised ?? 0;
   const goalProgress = Math.min((solRaised / GOAL_SOL) * 100, 100);
@@ -13,20 +26,20 @@ export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
   const items = [
     {
       label: 'NUX Sold',
-      value: stats ? `${(stats.total.nuxSold / 1_000_000).toFixed(2)}M` : '—',
+      value: stats ? fmtNux(stats.total.nuxSold) : null,
       icon: '🪙',
       color: 'text-purple-400',
     },
     {
       label: 'SOL Raised',
-      value: stats ? `${stats.total.solRaised.toFixed(2)}` : '—',
+      value: stats ? fmtSol(stats.total.solRaised) : null,
       suffix: 'SOL',
       icon: '◎',
       color: 'text-emerald-400',
     },
     {
       label: 'Participants',
-      value: stats ? stats.total.participants.toLocaleString() : '—',
+      value: stats ? stats.total.participants.toLocaleString() : null,
       icon: '👥',
       color: 'text-blue-400',
     },
@@ -45,10 +58,14 @@ export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
             className="card-unified border border-white/10 p-4 md:p-5 text-center"
           >
             <div className="text-2xl md:text-3xl mb-1">{item.icon}</div>
-            <div className={`jersey-15-regular text-3xl md:text-5xl ${item.color}`}>
-              {item.value}
-              {item.suffix && <span className="text-xl md:text-2xl ml-1 text-slate-400">{item.suffix}</span>}
-            </div>
+            {item.value === null ? (
+              <div className="h-8 md:h-10 bg-white/5 rounded-lg animate-pulse mx-auto w-20 mb-1" />
+            ) : (
+              <div className={`jersey-15-regular text-3xl md:text-5xl ${item.color}`}>
+                {item.value}
+                {item.suffix && <span className="text-xl md:text-2xl ml-1 text-slate-400">{item.suffix}</span>}
+              </div>
+            )}
             <div className="jersey-20-regular text-slate-500 text-xl md:text-2xl uppercase tracking-wide mt-1">
               {item.label}
             </div>
@@ -73,12 +90,16 @@ export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
             </div>
           </div>
           <div className="text-right">
-            <p className="jersey-15-regular text-3xl md:text-5xl text-emerald-400">
-              {solRaised.toFixed(2)}
-              <span className="text-lg md:text-2xl text-slate-400 ml-1">/ {GOAL_SOL} SOL</span>
-            </p>
+            {stats === null ? (
+              <div className="h-10 bg-white/5 rounded-lg animate-pulse w-32 mb-1" />
+            ) : (
+              <p className="jersey-15-regular text-3xl md:text-5xl text-emerald-400">
+                {fmtSol(solRaised)}
+                <span className="text-lg md:text-2xl text-slate-400 ml-1">/ {GOAL_SOL} SOL</span>
+              </p>
+            )}
             <p className="jersey-20-regular text-slate-500 text-xl md:text-2xl mt-0.5">
-              {goalProgress.toFixed(1)}% reached
+              {stats === null ? '...' : `${goalProgress.toFixed(2)}% reached`}
             </p>
           </div>
         </div>
@@ -88,7 +109,7 @@ export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-teal-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]"
             initial={{ width: 0 }}
-            animate={{ width: `${goalProgress}%` }}
+            animate={{ width: `${solRaised > 0 ? Math.max(goalProgress, 0.5) : 0}%` }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
           />
         </div>

@@ -3,6 +3,7 @@
  * Usa CoinGecko para datos de mercado públicos sin geo-restricciones
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
@@ -604,7 +605,49 @@ app.get('/api/launchpad/verify-whitelist', async (req, res) => {
 
 // GET /api/launchpad/stats
 app.get('/api/launchpad/stats', async (req, res) => {
-  res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
+
+    const snap = await db.collection('launchpadPurchases')
+      .where('status', 'in', ['confirmed', 'distributed'])
+      .get();
+
+    const stats = {
+      tier1: { nuxSold: 0, solRaised: 0, participants: 0 },
+      tier2: { nuxSold: 0, solRaised: 0, participants: 0 },
+      total: { nuxSold: 0, solRaised: 0, participants: 0 },
+    };
+    const walletsTier1 = new Set();
+    const walletsTier2 = new Set();
+
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      const nux = Number(d.nuxAmount) || 0;
+      const sol = Number(d.solAmount) || 0;
+      if (d.tier === 1) {
+        stats.tier1.nuxSold += nux;
+        stats.tier1.solRaised += sol;
+        walletsTier1.add(d.wallet);
+      } else if (d.tier === 2) {
+        stats.tier2.nuxSold += nux;
+        stats.tier2.solRaised += sol;
+        walletsTier2.add(d.wallet);
+      }
+    });
+
+    stats.tier1.participants = walletsTier1.size;
+    stats.tier2.participants = walletsTier2.size;
+    stats.total.nuxSold = stats.tier1.nuxSold + stats.tier2.nuxSold;
+    stats.total.solRaised = stats.tier1.solRaised + stats.tier2.solRaised;
+    stats.total.participants = new Set([...walletsTier1, ...walletsTier2]).size;
+
+    console.log(`[stats] tier1=${stats.tier1.nuxSold} NUX | tier2=${stats.tier2.nuxSold} NUX | participants=${stats.total.participants}`);
+    return res.json(stats);
+  } catch (err) {
+    console.error('[stats] Error:', err.message);
+    return res.json({ tier1: { nuxSold: 0, solRaised: 0, participants: 0 }, tier2: { nuxSold: 0, solRaised: 0, participants: 0 }, total: { nuxSold: 0, solRaised: 0, participants: 0 } });
+  }
 });
 
 // POST /api/launchpad/burn-record
@@ -621,6 +664,118 @@ app.post('/api/launchpad/burn-record', async (req, res) => {
     return res.json({ success: true });
   } catch (err) {
     console.error('[burn-record]', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/launchpad/purchase
+app.post('/api/launchpad/purchase', async (req, res) => {
+  const { wallet, txSignature, tier } = req.body ?? {};
+
+  if (!wallet || !txSignature || !tier) {
+    return res.status(400).json({ error: 'Missing required fields: wallet, txSignature, tier' });
+  }
+  if (![1, 2].includes(Number(tier))) {
+    return res.status(400).json({ error: 'Invalid tier. Must be 1 or 2.' });
+  }
+
+  const TIER_PRICES = { 1: 0.000015, 2: 0.000025 };
+  const TIER_CAPS   = { 1: 8_000_000, 2: 7_000_000 };
+  const MIN_BUY     = { 1: 5_000, 2: 1_000 };
+  const tierNum = Number(tier);
+
+  const treasuryWallet = process.env.VITE_DEPLOYER_NUX;
+  if (!treasuryWallet) {
+    console.error('[purchase] VITE_DEPLOYER_NUX not set');
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  try {
+    const db = await getFirestoreDb();
+    if (!db) return res.status(500).json({ error: 'Database unavailable' });
+
+    // 1. Check duplicate tx
+    const dupSnap = await db.collection('launchpadPurchases').where('txSignature', '==', txSignature).limit(1).get();
+    if (!dupSnap.empty) {
+      return res.status(409).json({ error: 'Transaction already registered' });
+    }
+
+    // 2. Verify on-chain
+    const { Connection, LAMPORTS_PER_SOL } = await import('@solana/web3.js');
+    const rpcUrl = process.env.SOLANA_RPC_QUICKNODE || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+
+    let txInfo;
+    try {
+      txInfo = await connection.getParsedTransaction(txSignature, {
+        maxSupportedTransactionVersion: 0,
+        commitment: 'confirmed',
+      });
+    } catch {
+      return res.status(400).json({ error: 'Could not fetch transaction. Please try again.' });
+    }
+
+    if (!txInfo || txInfo.meta?.err) {
+      return res.status(400).json({ error: 'Transaction failed or not found on-chain' });
+    }
+
+    // Find SOL transfer to treasury
+    const instructions = txInfo.transaction.message.instructions;
+    let solReceived = 0;
+    for (const ix of instructions) {
+      if (ix.parsed?.type === 'transfer') {
+        const info = ix.parsed.info;
+        if (info.destination === treasuryWallet && info.source === wallet) {
+          solReceived = Number(info.lamports) / LAMPORTS_PER_SOL;
+          break;
+        }
+      }
+    }
+
+    if (solReceived <= 0) {
+      return res.status(400).json({ error: 'No valid SOL transfer to treasury found in transaction' });
+    }
+
+    // 3. Calculate NUX amount
+    const price = TIER_PRICES[tierNum];
+    const nuxAmount = Math.floor(solReceived / price);
+    if (nuxAmount < MIN_BUY[tierNum]) {
+      return res.status(400).json({ error: `Minimum purchase is ${MIN_BUY[tierNum].toLocaleString()} NUX for Tier ${tierNum}` });
+    }
+
+    // 4. Check tier cap
+    const tierSnap = await db.collection('launchpadPurchases')
+      .where('tier', '==', tierNum)
+      .where('status', 'in', ['confirmed', 'distributed'])
+      .get();
+    let totalSold = 0;
+    tierSnap.docs.forEach(d => { totalSold += Number(d.data().nuxAmount) || 0; });
+    if (totalSold + nuxAmount > TIER_CAPS[tierNum]) {
+      return res.status(400).json({ error: `Tier ${tierNum} is sold out` });
+    }
+
+    // 5. Get user name from airdrop if exists
+    let userName = '';
+    const airdropSnap = await db.collection('nuxchainAirdropRegistrations').where('wallet', '==', wallet).limit(1).get();
+    if (!airdropSnap.empty) userName = airdropSnap.docs[0].data().name || '';
+
+    // 6. Register purchase
+    await db.collection('launchpadPurchases').add({
+      wallet,
+      txSignature,
+      tier: tierNum,
+      solAmount: solReceived,
+      nuxAmount,
+      price,
+      name: userName,
+      status: 'confirmed',
+      createdAt: new Date(),
+    });
+
+    console.log(`[purchase] ✅ ${wallet.slice(0, 8)}... bought ${nuxAmount} NUX (Tier ${tierNum})`);
+    return res.json({ success: true, nuxAmount, solAmount: solReceived, tier: tierNum });
+  } catch (err) {
+    console.error('[purchase] Error:', err.message);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

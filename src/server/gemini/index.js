@@ -47,11 +47,28 @@ try {
     }
   }
 
+  // Fallback: try FIREBASE_SERVICE_ACCOUNT env var (set by Vercel or .env.local)
+  if (!serviceAccount && process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      let raw = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+      // Strip outer quotes if present (common when stored via some tools)
+      if (raw.startsWith('"') && raw.endsWith('"')) {
+        raw = raw.slice(1, -1);
+      }
+      // Replace literal \n sequences with actual newlines (for private_key PEM)
+      raw = raw.replace(/\\n/g, '\n');
+      serviceAccount = JSON.parse(raw);
+      serviceAccountPath = 'FIREBASE_SERVICE_ACCOUNT (env)';
+    } catch (e) {
+      console.warn('⚠️ Failed to parse FIREBASE_SERVICE_ACCOUNT env var:', e.message);
+    }
+  }
+
   if (serviceAccount) {
     initializeApp({
       credential: cert(serviceAccount)
     });
-    console.log(`✅ Firebase Admin SDK inicializado correctamente (${path.basename(serviceAccountPath)})`);
+    console.log(`✅ Firebase Admin SDK inicializado correctamente (${path.basename ? path.basename(serviceAccountPath) : serviceAccountPath})`);
   } else {
     // Si no hay archivo, intentar inicialización por defecto (para entornos con GOOGLE_APPLICATION_CREDENTIALS)
     try {

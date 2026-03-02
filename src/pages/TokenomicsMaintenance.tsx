@@ -1,6 +1,6 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import Footer from '../components/layout/footer';
-import { getMaintenanceTimeRemaining, getMaintenanceConfig, isMaintenanceMode } from '../config/maintenance';
+import { getMaintenanceConfig, isMaintenanceMode } from '../config/maintenance';
 import '../styles/maintenance.css';
 
 // Lazy load the actual Tokenomics component
@@ -13,29 +13,9 @@ interface MaintenancePageProps {
 const TokenomicsMaintenance: React.FC<MaintenancePageProps> = ({
     message
 }) => {
-    const [isMaintenance, setIsMaintenance] = useState(isMaintenanceMode('tokenomics'));
+    const isMaintenance = isMaintenanceMode('tokenomics');
     const config = getMaintenanceConfig('tokenomics');
     const displayMessage = message || config.message;
-
-    useEffect(() => {
-        let wasInMaintenance = isMaintenance;
-
-        const interval = setInterval(() => {
-            const currentMaintenanceStatus = isMaintenanceMode('tokenomics');
-            const remaining = getMaintenanceTimeRemaining('tokenomics');
-
-            setIsMaintenance(currentMaintenanceStatus);
-
-            if (remaining <= 0 && !currentMaintenanceStatus && wasInMaintenance) {
-                clearInterval(interval);
-                window.location.reload();
-            }
-
-            wasInMaintenance = currentMaintenanceStatus;
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [isMaintenance]);
 
     if (!isMaintenance) {
         return (

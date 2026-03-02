@@ -91,7 +91,7 @@ export default function ContractManager() {
 
   const isPausable = detectedContract ? PAUSABLE_CONTRACTS.has(detectedContract.name) : false;
 
-  const { data: pausedData, isLoading: pausedLoading } = useReadContract({
+  const { data: pausedData, isLoading: pausedLoading, refetch: refetchPaused } = useReadContract({
     address: (detectedContract?.address ?? '0x0000000000000000000000000000000000000000') as `0x${string}`,
     abi: PAUSABLE_ABI,
     functionName: 'paused',
@@ -170,32 +170,42 @@ export default function ContractManager() {
   };
 
   return (
-    <div className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden">
+    <div className="bg-[#0a0a0a]/40 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-xl shadow-2xl">
       {/* Header - Mobile Optimized */}
-      <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-[rgba(255,255,255,0.05)]">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
-            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-5 py-4 sm:px-6 sm:py-5 border-b border-white/[0.05] bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                 d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Contract Manager</h3>
-            <p className="text-[10px] text-slate-500 hidden sm:block">Manage deployed contracts</p>
+            <h3 className="text-lg font-black text-white uppercase tracking-tight">Contract Manager</h3>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Protocol Administration</p>
           </div>
         </div>
+        
+        <button
+          onClick={() => refetchPaused()}
+          className="p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        </button>
       </div>
 
-      <div className="p-4 sm:p-5 space-y-4">
+      <div className="p-5 sm:p-6 space-y-6">
 
         {/* Address Input - Mobile Optimized */}
         <div className="space-y-3">
-          <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
             Contract Address
           </label>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 group">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-600 group-focus-within:text-violet-500 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
               <input
                 type="text"
                 value={contractAddress}
@@ -204,30 +214,32 @@ export default function ContractManager() {
                   setDetectedContract(null);
                   setError('');
                 }}
+                onBlur={() => contractAddress && detectContractType(contractAddress)}
                 placeholder="0x..."
-                className="w-full px-3 py-2.5 bg-[#0a0a0a]/50 border border-[rgba(139,92,246,0.3)] rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-[#8b5cf6] min-h-[44px]"
+                className="w-full pl-10 pr-3 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder-slate-600 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all min-h-[48px]"
               />
             </div>
             <button
               onClick={() => setIsContractModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[rgba(139,92,246,0.1)] hover:bg-[rgba(139,92,246,0.2)] text-[#8b5cf6] rounded-lg text-sm font-medium border border-[rgba(139,92,246,0.3)] transition-all min-h-[44px] touch-manipulation"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 rounded-xl text-xs font-black uppercase tracking-widest border border-violet-500/20 transition-all min-h-[48px] touch-manipulation whitespace-nowrap"
               title="Select a contract from list"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
-              <span>Contracts</span>
+              <span>Library</span>
             </button>
           </div>
 
         <AnimatePresence>
           {success && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-3 p-3 bg-[rgba(139,92,246,0.1)] border border-[rgba(139,92,246,0.3)] rounded-lg text-[#8b5cf6] text-sm"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-[11px] font-bold uppercase tracking-tight flex items-center gap-2"
             >
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {success}
             </motion.div>
           )}
@@ -237,11 +249,12 @@ export default function ContractManager() {
         <AnimatePresence>
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-2 p-3 bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-lg text-[#ef4444] text-sm"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[11px] font-bold uppercase tracking-tight flex items-center gap-2"
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {error}
             </motion.div>
           )}

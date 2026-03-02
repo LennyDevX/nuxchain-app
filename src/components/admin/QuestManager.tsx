@@ -550,38 +550,37 @@ export default function QuestManager() {
   const [activeTab, setActiveTab] = useState<TabId>('collaborator');
 
   return (
-    <div className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden">
+    <div className="bg-[#0a0a0a]/40 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-xl shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.05] bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Quest Manager</h3>
-            <p className="text-[10px] text-slate-500">Create & manage quests for Collaborator Portal and Marketplace</p>
+            <h3 className="text-lg font-black text-white uppercase tracking-tight">Quest Manager</h3>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Protocol Gamification Hub</p>
           </div>
         </div>
       </div>
 
-      <div className="p-4 sm:p-5 space-y-5">
+      <div className="p-5 sm:p-6 space-y-6">
 
       {/* Tab Bar - Mobile Optimized */}
-      <div className="flex gap-2 p-1 bg-[#0a0a0a] border border-white/5 rounded-xl">
+      <div className="flex gap-2 p-1.5 bg-black/40 border border-white/5 rounded-2xl">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-2 sm:px-4 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wide transition-all min-h-[44px] ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all min-h-[48px] ${
               activeTab === tab.id
-                ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
-                : 'text-gray-500 hover:text-gray-300'
+                ? `bg-gradient-to-r ${tab.color} text-white shadow-xl scale-[1.02] ring-1 ring-white/20`
+                : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
             }`}
           >
-            <span className="sm:hidden">{tab.icon}</span>
-            <span className={`w-1.5 h-1.5 rounded-full ${activeTab === tab.id ? 'bg-white' : tab.dot} transition-colors hidden sm:inline`} />
+            <span className="text-sm">{tab.icon}</span>
             <span className="hidden sm:inline">{tab.label}</span>
             <span className="sm:hidden">{tab.shortLabel}</span>
           </button>
@@ -589,8 +588,10 @@ export default function QuestManager() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'collaborator' && <CollaboratorQuestsTab />}
-      {activeTab === 'marketplace'  && <MarketplaceQuestsTab />}
+      <div className="bg-white/[0.01] rounded-2xl border border-white/[0.03] p-1 sm:p-2">
+        {activeTab === 'collaborator' && <CollaboratorQuestsTab />}
+        {activeTab === 'marketplace'  && <MarketplaceQuestsTab />}
+      </div>
       </div>
     </div>
   );

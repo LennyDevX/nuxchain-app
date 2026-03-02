@@ -14,11 +14,11 @@ import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCor
 import TreasuryManagerABI from '../abi/Treasury/TreasuryManager.json';
 import { useAdminAuth } from '../hooks/admin/useAdminAuth';
 import GlobalBackground from '../ui/gradientBackground';
-import AdminContractStats from '../components/admin/AdminContractStats';
 import ContractManager from '../components/admin/ContractManager';
 import EmergencyToolsModal from '../components/admin/EmergencyToolsModal';
 import DynamicAPYAdmin from '../components/admin/DynamicAPYAdmin';
 import QuestManager from '../components/admin/QuestManager';
+import TreasuryDashboardV2 from '../components/admin/TreasuryDashboardV2';
 
 const STAKING_ADDR = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 const TREASURY_ADDR = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
@@ -203,127 +203,125 @@ export default function Admin() {
               </div>
             </motion.div>
 
-          {/* 4 Overview Cards - Mobile Optimized */}
+          {/* Overview Stats Cards - High Performance Visuals */}
           <motion.div 
-            className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            {/* Staking Contract - Violet */}
-            <div className="card-unified rounded-xl p-3 sm:p-4 border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.4)] transition-all group relative">
-              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[rgba(139,92,246,0.2)] rounded-lg flex items-center justify-center border border-[rgba(139,92,246,0.3)]">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Staking Contract - Violet Glow */}
+            <div className="group relative bg-[#0a0a0a]/40 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/[0.05] hover:border-violet-500/20 transition-all duration-500 overflow-hidden shadow-2xl">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-violet-600/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex flex-col gap-3">
+                  <div className="w-10 h-10 bg-violet-500/10 rounded-2xl flex items-center justify-center border border-violet-500/20 text-violet-400 group-hover:scale-110 group-hover:bg-violet-500/20 transition-all">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-xs sm:text-sm">Staking</h3>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">Main Contract</span>
+                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Staking Engine</h3>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-lg sm:text-xl font-black text-white">{fmtPOL(poolBalance).split(' ')[0]}</span>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase">POL</span>
+                    </div>
                   </div>
                 </div>
-                <div className="w-1.5 h-1.5 bg-[#8b5cf6] rounded-full animate-pulse" />
-              </div>
-              <div className="mt-1 sm:mt-2">
-                <div className="text-[10px] sm:text-xs text-slate-400 font-mono truncate">
-                  {import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS?.slice(0, 6)}...{import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS?.slice(-4)}
+                <div className="flex flex-col items-end gap-1">
+                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
+                  <span className="text-[9px] font-mono text-slate-700">{import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS?.slice(-4)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Treasury Manager - Emerald */}
-            <div className="card-unified rounded-xl p-3 sm:p-4 border border-[rgba(16,185,129,0.2)] hover:border-[rgba(16,185,129,0.4)] transition-all group">
-              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[rgba(16,185,129,0.2)] rounded-lg flex items-center justify-center border border-[rgba(16,185,129,0.3)]">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#10b981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            {/* Treasury Manager - Emerald Glow */}
+            <div className="group relative bg-[#0a0a0a]/40 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/[0.05] hover:border-emerald-500/20 transition-all duration-500 overflow-hidden shadow-2xl">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-600/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex flex-col gap-3">
+                  <div className="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20 text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-xs sm:text-sm">Treasury</h3>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">Funds Controller</span>
+                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Treasury Ops</h3>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-lg sm:text-xl font-black text-white">{fmtPOL(treasuryBal).split(' ')[0]}</span>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase">POL</span>
+                    </div>
                   </div>
                 </div>
-                <div className="w-1.5 h-1.5 bg-[#10b981] rounded-full" />
-              </div>
-              <p className="text-[10px] sm:text-xs font-mono text-slate-400 truncate">
-                {import.meta.env.VITE_TREASURY_MANAGER_ADDRESS?.slice(0, 6)}...{import.meta.env.VITE_TREASURY_MANAGER_ADDRESS?.slice(-4)}
-              </p>
-              <div className="mt-1.5 flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#10b981]">{fmtPOL(treasuryBal)}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  distReady
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'bg-slate-700/50 text-slate-400'
-                }`}>
-                  ⏱ {fmtCountdown(timeUntilNext)}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-tighter ${
+                    distReady ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-500'
+                  }`}>
+                    ⏱ {fmtCountdown(timeUntilNext)}
+                  </div>
+                  <span className="text-[9px] font-mono text-slate-700">{import.meta.env.VITE_TREASURY_MANAGER_ADDRESS?.slice(-4)}</span>
+                </div>
               </div>
             </div>
 
-            {/* System Stats - Blue */}
-            <div className="card-unified rounded-xl p-3 sm:p-4 border border-[rgba(59,130,246,0.2)] hover:border-[rgba(59,130,246,0.4)] transition-all group">
-              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[rgba(59,130,246,0.2)] rounded-lg flex items-center justify-center border border-[rgba(59,130,246,0.3)]">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#3b82f6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* System Status - Blue Glow */}
+            <div className="group relative bg-[#0a0a0a]/40 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/[0.05] hover:border-blue-500/20 transition-all duration-500 overflow-hidden shadow-2xl">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-600/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex flex-col gap-3">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-xs sm:text-sm">System</h3>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">Real-time Data</span>
+                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Live Database</h3>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <span className="text-lg sm:text-xl font-black text-white">{usersCount?.toString() || '0'}</span>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase">Users</span>
+                    </div>
                   </div>
                 </div>
-                <div className="w-1.5 h-1.5 bg-[#3b82f6] rounded-full animate-pulse" />
-              </div>
-              <div className="flex gap-1 sm:gap-2">
-                <div className="flex-1 text-center">
-                  <p className="text-[10px] text-slate-400">Pool</p>
-                  <p className={`text-xs sm:text-sm font-semibold ${
-                    isPaused ? 'text-amber-400' : poolBalance === 0n ? 'text-slate-500' : 'text-white'
-                  }`}>{fmtPOL(poolBalance)}</p>
-                </div>
-                <div className="flex-1 text-center">
-                  <p className="text-[10px] text-slate-400">Users</p>
-                  <p className="text-xs sm:text-sm font-semibold text-white">
-                    {usersCount !== undefined ? `${usersCount.toString()} Active` : '…'}
-                  </p>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/10 rounded-full border border-blue-500/20 self-start">
+                   <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                   <span className="text-[8px] font-black text-blue-400 uppercase tracking-tighter">Syncing</span>
                 </div>
               </div>
-              {isPaused && (
-                <p className="text-[9px] text-amber-500/70 text-center mt-1">⚠ Deposits paused</p>
-              )}
             </div>
 
-            {/* Quick Actions - Red */}
-            <div className="card-unified rounded-xl p-3 sm:p-4 border border-[rgba(239,68,68,0.2)] hover:border-[rgba(239,68,68,0.4)] transition-all group">
-              <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[rgba(239,68,68,0.2)] rounded-lg flex items-center justify-center border border-[rgba(239,68,68,0.3)]">
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#ef4444]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Emergency Controls - Red Glow */}
+            <div 
+              onClick={() => setIsEmergencyModalOpen(true)}
+              className="group cursor-pointer relative bg-[#0a0a0a]/40 backdrop-blur-xl rounded-3xl p-4 sm:p-5 border border-white/[0.05] hover:border-red-500/40 hover:bg-red-500/5 transition-all duration-500 overflow-hidden shadow-2xl"
+            >
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-600/10 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700" />
+              <div className="flex items-start justify-between relative z-10">
+                <div className="flex flex-col gap-3">
+                  <div className="w-10 h-10 bg-red-500/10 rounded-2xl flex items-center justify-center border border-red-500/20 text-red-400 group-hover:scale-110 group-hover:bg-red-500/30 transition-all">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-xs sm:text-sm">Actions</h3>
-                    <span className="text-[10px] text-slate-400 hidden sm:inline">Emergency Tools</span>
+                    <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Security Tools</h3>
+                    <div className="mt-1">
+                      <span className="text-lg sm:text-xl font-black text-white group-hover:text-red-400 transition-colors">Emergency</span>
+                    </div>
                   </div>
                 </div>
-                <div className="w-1.5 h-1.5 bg-[#ef4444] rounded-full" />
+                <div className="mt-1">
+                   <div className={`w-3 h-3 rounded-full border-2 border-black ${isPaused ? 'bg-red-500 animate-ping' : 'bg-slate-800'}`} />
+                </div>
               </div>
-              <button
-                onClick={() => setIsEmergencyModalOpen(true)}
-                className="mt-1 sm:mt-2 flex items-center justify-center gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 bg-[rgba(239,68,68,0.1)] hover:bg-[rgba(239,68,68,0.2)] text-[#ef4444] rounded-lg text-xs font-medium border border-[rgba(239,68,68,0.3)] transition-all w-full"
-              >
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                <span className="whitespace-nowrap">Emergency</span>
-              </button>
+              <div className="mt-4 flex items-center gap-2 relative z-10">
+                <div className="h-[2px] flex-1 bg-white/5 overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-red-500"
+                    animate={{ x: isPaused ? ['-100%', '100%'] : '0%' }}
+                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                  />
+                </div>
+              </div>
             </div>
           </motion.div>
 
@@ -338,13 +336,31 @@ export default function Admin() {
               <ContractManager />
             </motion.div>
 
-            {/* Admin Contract Stats - Full Width */}
-            <motion.div 
+            {/* NEW Treasury Dashboard V2 - Advanced Health Monitoring */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.45 }}
+              className="bg-[#0a101f]/30 rounded-3xl p-1 border border-violet-500/10"
             >
-              <AdminContractStats />
+               <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight">Treasury Health System</h3>
+                      <p className="text-xs text-slate-500 font-medium italic">Advanced Distribution & Revenue Monitoring</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] uppercase font-bold text-slate-400">v6.0 Engine</span>
+                  </div>
+               </div>
+               <div className="p-4 sm:p-6">
+                 <TreasuryDashboardV2 />
+               </div>
             </motion.div>
 
             {/* Dynamic APY Admin - Full Width */}

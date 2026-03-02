@@ -28,6 +28,14 @@ Write-Host ""
 # Variables de contratos a sincronizar
 $contractVars = @(
     "FIREBASE_SERVICE_ACCOUNT",
+    "FIREBASE_PROJECT_ID",
+    "VITE_FIREBASE_API_KEY",
+    "VITE_FIREBASE_AUTH_DOMAIN",
+    "VITE_FIREBASE_PROJECT_ID",
+    "VITE_FIREBASE_STORAGE_BUCKET",
+    "VITE_FIREBASE_MESSAGING_SENDER_ID",
+    "VITE_FIREBASE_APP_ID",
+    "VITE_FIREBASE_MEASUREMENT_ID",
     "VITE_ENHANCED_SMARTSTAKING_ADDRESS",
     "VITE_STAKING_CORE_ADDRESS",
     "VITE_ENHANCED_SMARTSTAKING_REWARDS_ADDRESS",
@@ -64,7 +72,9 @@ $contractVars = @(
     "VITE_MARKETPLACE_STATISTICS_ADDRESS",
     "VITE_MARKETPLACE_SOCIAL",
     "VITE_MARKETPLACE_SOCIAL_ADDRESS",
-    "VITE_TREASURY_MANAGER_ADDRESS"
+    "VITE_TREASURY_MANAGER_ADDRESS",
+    "VITE_ALCHEMY",
+    "VITE_WALLETCONNECT_PROJECT_ID"
 )
 
 Write-Host "=====================================================" -ForegroundColor Cyan
@@ -81,15 +91,19 @@ foreach ($varName in $contractVars) {
         
         Write-Host "Agregando: $varName" -ForegroundColor Cyan
         
+        # Remove existing var first (to overwrite BOM-corrupted values)
+        & npx vercel env rm $varName production --yes 2>&1 | Out-Null
+        
+        # Write value as UTF-8 WITHOUT BOM (critical: Set-Content defaults to UTF-16 LE on PS5)
         $tempFile = [System.IO.Path]::GetTempFileName()
-        Set-Content -Path $tempFile -Value $value -NoNewline
+        [System.IO.File]::WriteAllText($tempFile, $value, [System.Text.UTF8Encoding]::new($false))
         
         $output = & cmd /c "type `"$tempFile`" | npx vercel env add $varName production --non-interactive 2>&1"
         
         Remove-Item -Path $tempFile -Force
         
-        if ($LASTEXITCODE -eq 0 -or $output -like "*already*" -or $output -like "*already been added*") {
-            Write-Host "  OK: Agregada o ya existe" -ForegroundColor Green
+        if ($LASTEXITCODE -eq 0 -or $output -like "*added*" -or $output -like "*already*") {
+            Write-Host "  OK: Sincronizada" -ForegroundColor Green
             $added++
         } else {
             Write-Host "  ERROR: $output" -ForegroundColor Red

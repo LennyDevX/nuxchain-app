@@ -86,59 +86,71 @@ export default function DynamicAPYAdmin() {
 
   return (
     <motion.div
-      className="card-unified rounded-xl border border-[rgba(139,92,246,0.2)] overflow-hidden"
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      className="bg-[#0a0a0a]/40 rounded-3xl border border-white/[0.05] overflow-hidden backdrop-blur-xl shadow-2xl"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.05)]">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.25)] flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#8b5cf6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.05] bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Dynamic APY Controller</h3>
-            <p className="text-[10px] text-slate-500">Manage APY calculation parameters</p>
+            <h3 className="text-lg font-black text-white uppercase tracking-tight">Dynamic APY Controller</h3>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Protocol Yield Management</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border ${
             isDynamicAPYEnabled
-              ? 'text-[#10b981] border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)]'
+              ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
               : 'text-red-400 border-red-500/30 bg-red-500/10'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isDynamicAPYEnabled ? 'bg-[#10b981] animate-pulse' : 'bg-red-400'}`} />
-            {isDynamicAPYEnabled ? 'Active' : 'Disabled'}
+            <span className={`w-1.5 h-1.5 rounded-full ${isDynamicAPYEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+            {isDynamicAPYEnabled ? 'Engine Active' : 'Offline'}
           </span>
           {contractPaused && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 border border-red-500/20 text-red-400">
+            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-red-500/20 border border-red-500/30 text-red-500 animate-pulse">
               PAUSED
             </span>
           )}
         </div>
       </div>
 
-      {/* Current Status */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-5 border-b border-[rgba(255,255,255,0.05)]">
-        <div className="card-stats rounded-xl p-3">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Target TVL</p>
-          <p className="text-sm font-bold text-white">{parseFloat(currentTargetTVL).toLocaleString()} POL</p>
+      {/* Current Status - KPI Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-6 border-b border-white/[0.05]">
+        <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 group hover:bg-white/[0.05] transition-all">
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1.5 group-hover:text-slate-400 transition-colors">Target TVL</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-xl font-black text-white">{parseFloat(currentTargetTVL).toLocaleString()}</p>
+            <span className="text-[10px] text-slate-600 font-bold">POL</span>
+          </div>
         </div>
-        <div className="card-stats rounded-xl p-3">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Min Multiplier</p>
-          <p className="text-sm font-bold text-white">{currentMinMultiplier.toFixed(1)}%</p>
+        <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 group hover:bg-white/[0.05] transition-all">
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1.5 group-hover:text-slate-400 transition-colors">Min Bounds</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-xl font-black text-violet-400">{currentMinMultiplier.toFixed(1)}</p>
+            <span className="text-[10px] text-slate-600 font-bold">%</span>
+          </div>
         </div>
-        <div className="card-stats rounded-xl p-3">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Max Multiplier</p>
-          <p className="text-sm font-bold text-white">{currentMaxMultiplier.toFixed(1)}%</p>
+        <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 group hover:bg-white/[0.05] transition-all">
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1.5 group-hover:text-slate-400 transition-colors">Max Bounds</p>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-xl font-black text-violet-400">{currentMaxMultiplier.toFixed(1)}</p>
+            <span className="text-[10px] text-slate-600 font-bold">%</span>
+          </div>
         </div>
-        <div className="card-stats rounded-xl p-3">
-          <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Status</p>
-          <p className="text-sm font-bold text-white">{contractPaused ? 'Paused' : isDynamicAPYEnabled ? 'Dynamic' : 'Static'}</p>
+        <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-4 group hover:bg-white/[0.05] transition-all">
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1.5 group-hover:text-slate-400 transition-colors">State</p>
+          <p className="text-sm font-black text-white uppercase tracking-tighter flex items-center gap-2">
+            <span className={`w-1.5 h-1.5 rounded-full ${contractPaused ? 'bg-red-500' : 'bg-emerald-500'}`} />
+            {contractPaused ? 'Locked' : isDynamicAPYEnabled ? 'Dynamic' : 'Constant'}
+          </p>
         </div>
       </div>
 

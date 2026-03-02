@@ -7,9 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '../../../../');
 
-// Load .env.local first (higher priority), then .env
-dotenv.config({ path: join(rootDir, '.env.local') });
+// Load .env FIRST as the single source of truth for all configuration.
+// dotenv.config does NOT override already-set variables (override: false by default),
+// so .env always wins for any variable defined there.
+// .env.local is loaded second to ADD secrets not present in .env (e.g. FIREBASE_SERVICE_ACCOUNT).
 dotenv.config({ path: join(rootDir, '.env') });
+dotenv.config({ path: join(rootDir, '.env.local') });
 
 console.log('[Environment] 🔧 Loading environment variables...');
 console.log('[Environment] 📁 Root directory:', rootDir);

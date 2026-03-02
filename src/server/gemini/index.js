@@ -55,9 +55,38 @@ try {
       if (raw.startsWith('"') && raw.endsWith('"')) {
         raw = raw.slice(1, -1);
       }
-      // Replace literal \n sequences with actual newlines (for private_key PEM)
-      raw = raw.replace(/\\n/g, '\n');
-      serviceAccount = JSON.parse(raw);
+      // Try parsing as-is first (compact JSON or already valid)
+      let parsed = null;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (_) {
+        // If direct parse fails, fix unescaped newlines inside JSON string values.
+        // This happens when vercel env pull writes multiline values to .env.local and
+        // dotenv preserves the actual newline characters (which are invalid inside JSON strings).
+        // Walk the string char-by-char tracking string context and escape bare newlines.
+        let inString = false, wasBackslash = false, fixed = '';
+        for (const ch of raw) {
+          if (wasBackslash) {
+            fixed += ch;
+            wasBackslash = false;
+          } else if (ch === '\\' && inString) {
+            fixed += ch;
+            wasBackslash = true;
+          } else if (ch === '"') {
+            inString = !inString;
+            fixed += ch;
+          } else if (inString && ch === '\n') {
+            fixed += '\\n'; // escape bare newline inside JSON string
+          } else if (inString && ch === '\r') {
+            // skip bare \r inside strings
+          } else {
+            fixed += ch;
+          }
+        }
+        // Also normalise literal \\n sequences in private_key if needed
+        parsed = JSON.parse(fixed);
+      }
+      serviceAccount = parsed;
       serviceAccountPath = 'FIREBASE_SERVICE_ACCOUNT (env)';
     } catch (e) {
       console.warn('⚠️ Failed to parse FIREBASE_SERVICE_ACCOUNT env var:', e.message);

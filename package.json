@@ -40,7 +40,7 @@
   "dependencies": {
     "@apollo/client": "^3.14.0",
     "@google/genai": "^1.41.0",
-    "@hcaptcha/react-hcaptcha": "^2.0.2",
+    "@marsidev/react-turnstile": "^1.4.2",
     "@metamask/sdk": "^0.34.0",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "^1.5.1",

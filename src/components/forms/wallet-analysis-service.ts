@@ -22,17 +22,17 @@ const getRpcEndpoints = (): string[] => {
   if (isValidHttpUrl(quicknodeRpc)) {
     return [
       quicknodeRpc, // PRIMARY: Use same RPC as backend
-      'https://solana-rpc.publicnode.com', // Fallback: PublicNode
       'https://api.mainnet-beta.solana.com', // Fallback: Official API
       'https://rpc.ankr.com/solana', // Fallback: Ankr
+      'https://solana-rpc.publicnode.com', // Last resort: PublicNode
     ];
   }
   
   // Default fallback chain if no custom RPC configured (or invalid value)
   return [
-    'https://solana-rpc.publicnode.com', // PublicNode (most stable, CORS-friendly)
-    'https://api.mainnet-beta.solana.com', // Official (sometimes rate-limited)
+    'https://api.mainnet-beta.solana.com', // Official (primary when no custom RPC)
     'https://rpc.ankr.com/solana', // Ankr (backup)
+    'https://solana-rpc.publicnode.com', // PublicNode (last resort)
   ];
 };
 
@@ -49,8 +49,8 @@ function createConnection(url: string): Connection {
       wsEndpoint: undefined,
     });
   } catch {
-    // Fallback to publicnode if any endpoint is malformed
-    return new Connection('https://solana-rpc.publicnode.com', {
+    // Fallback to Alchemy if any endpoint is malformed
+    return new Connection('https://solana-mainnet.g.alchemy.com/v2/SkJXCcWzsabifZ1ZiCzoe', {
       commitment: 'confirmed',
       httpAgent: undefined,
       wsEndpoint: undefined,

@@ -1,8 +1,8 @@
-import { useRef } from 'react';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
+import type React from 'react';
+import { Turnstile } from '@marsidev/react-turnstile';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import type { WalletMetrics } from '../forms/wallet-analysis-service';
 import AirdropRequirements from './AirdropRequirements';
-import type React from 'react';
 
 interface AirdropFormProps {
   formData: {
@@ -27,6 +27,7 @@ interface AirdropFormProps {
   walletSignature: string | null;
   isSigningWallet: boolean;
   onSignWallet: () => Promise<void>;
+  captchaRef: React.RefObject<TurnstileInstance | null>;
 }
 
 function AirdropForm({
@@ -44,8 +45,8 @@ function AirdropForm({
   walletSignature,
   isSigningWallet,
   onSignWallet,
+  captchaRef,
 }: AirdropFormProps) {
-  const captchaRef = useRef<HCaptcha>(null);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -317,16 +318,15 @@ function AirdropForm({
         </div>
       )}
 
-      {/* hCaptcha */}
+      {/* Cloudflare Turnstile */}
       {solanaConnected && (
         <div className="flex flex-col items-center gap-2">
-          <HCaptcha
+          <Turnstile
             ref={captchaRef}
-            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
-            onVerify={onCaptchaVerify}
+            siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+            onSuccess={onCaptchaVerify}
             onExpire={onCaptchaExpire}
-            theme="dark"
-            size="normal"
+            options={{ theme: 'dark' }}
           />
           {!captchaToken && (
             <p className="text-xs text-gray-500">Complete the captcha to continue</p>

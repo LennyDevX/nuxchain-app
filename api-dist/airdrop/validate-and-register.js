@@ -176,16 +176,16 @@ const DATA_CENTER_IP_RANGES = [
 // CEX wallets moved to centralized endpoint /api/airdrop/cex-wallets
 // This prevents desynchronization between frontend and backend
 // ============================================================================
-// HCAPTCHA SERVER-SIDE VERIFICATION
+// CLOUDFLARE TURNSTILE SERVER-SIDE VERIFICATION
 // ============================================================================
 /**
- * Verify hCaptcha token server-side.
+ * Verify Cloudflare Turnstile token server-side.
  * Returns true if valid or if secret key is not configured (development mode).
  */
 async function verifyHCaptcha(token) {
-    const secret = process.env.HCAPTCHA_SECRET_KEY;
+    const secret = process.env.TURNSTILE_SECRET_KEY;
     if (!secret) {
-        console.warn('⚠️ [HCAPTCHA] HCAPTCHA_SECRET_KEY not set — skipping captcha verification (dev mode)');
+        console.warn('⚠️ [TURNSTILE] TURNSTILE_SECRET_KEY not set — skipping captcha verification (dev mode)');
         return { valid: true };
     }
     if (!token || token.trim() === '') {
@@ -193,7 +193,7 @@ async function verifyHCaptcha(token) {
     }
     try {
         const params = new URLSearchParams({ secret, response: token });
-        const res = await fetch('https://hcaptcha.com/siteverify', {
+        const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString(),
@@ -201,14 +201,14 @@ async function verifyHCaptcha(token) {
         const data = (await res.json());
         if (!data.success) {
             const errorCodes = data['error-codes']?.join(', ') ?? 'unknown';
-            console.warn(`⚠️ [HCAPTCHA] Verification failed: ${errorCodes}`);
+            console.warn(`⚠️ [TURNSTILE] Verification failed: ${errorCodes}`);
             return { valid: false, reason: `Captcha verification failed (${errorCodes}). Please try the captcha again.` };
         }
         return { valid: true };
     }
     catch (err) {
-        // Network error: fail open (do not block real users due to hCaptcha outage)
-        console.error('❌ [HCAPTCHA] Verification request error (failing open):', err.message);
+        // Network error: fail open (do not block real users due to Turnstile outage)
+        console.error('❌ [TURNSTILE] Verification request error (failing open):', err.message);
         return { valid: true };
     }
 }

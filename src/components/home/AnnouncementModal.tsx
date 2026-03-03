@@ -111,7 +111,7 @@ const AnnouncementModal: React.FC = () => {
                                 </div>
                                 <div>
                                     <h2 className={`jersey-15-regular text-white ${isMobile ? 'text-3xl' : 'text-4xl'}`}>
-                                        Wave <span className="text-gradient">4.0</span>
+                                        Wave <span className="text-gradient">4.1</span>
                                     </h2>
                                     <p className={`jersey-20-regular text-white/50 ${isMobile ? 'text-base' : 'text-lg'}`}>Nuxchain Ecosystem</p>
                                 </div>

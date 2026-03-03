@@ -167,18 +167,18 @@ let connection = new Connection(RPC_ENDPOINTS[currentRpcIndex] || 'https://api.m
 // ============================================================================
 
 /**
- * Verify hCaptcha token server-side
+ * Verify Cloudflare Turnstile token server-side
  */
 async function verifyHCaptcha(token) {
-  const secret = process.env.HCAPTCHA_SECRET_KEY;
+  const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) {
-    console.warn('⚠️ HCAPTCHA_SECRET_KEY not set — skipping captcha verification');
+    console.warn('⚠️ TURNSTILE_SECRET_KEY not set — skipping captcha verification');
     return true;
   }
   if (!token) return false;
   try {
     const params = new URLSearchParams({ secret, response: token });
-    const res = await fetch('https://hcaptcha.com/siteverify', {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
@@ -186,7 +186,7 @@ async function verifyHCaptcha(token) {
     const data = await res.json();
     return data.success === true;
   } catch (err) {
-    console.error('hCaptcha verification error:', err.message);
+    console.error('Turnstile verification error:', err.message);
     return false;
   }
 }

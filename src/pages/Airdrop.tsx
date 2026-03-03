@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { useAccount } from 'wagmi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import bs58 from 'bs58';
@@ -109,6 +110,7 @@ function Airdrop() {
 
   // Security: hCaptcha + Web3 signature
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileInstance>(null);
   const [walletSignature, setWalletSignature] = useState<string | null>(null);
   const [isSigningWallet, setIsSigningWallet] = useState(false);
 
@@ -330,6 +332,10 @@ function Airdrop() {
 
       console.log('✅ Registration successful!');
       
+      // Reset captcha after successful use — token is one-time, cannot be reused
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+
       setSubmitStatus({
         type: 'success',
         message: `Successfully registered! You will receive ${TOKENS_PER_USER.toLocaleString()} NUX tokens.`,
@@ -358,6 +364,10 @@ function Airdrop() {
         : 'Failed to register. Please try again.';
       
       console.error('Showing error message to user:', errorMessage);
+      
+      // Reset captcha on error — consumed tokens cannot be reused (already-seen-response)
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
       
       setSubmitStatus({
         type: 'error',
@@ -468,6 +478,7 @@ function Airdrop() {
                         onCaptchaVerify={(token) => setCaptchaToken(token)}
                         onCaptchaExpire={() => setCaptchaToken(null)}
                         captchaToken={captchaToken}
+                        captchaRef={captchaRef}
                         walletSignature={walletSignature}
                         isSigningWallet={isSigningWallet}
                         onSignWallet={handleSignWallet}

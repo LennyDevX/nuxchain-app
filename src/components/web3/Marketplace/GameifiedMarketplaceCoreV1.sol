@@ -153,22 +153,24 @@ contract GameifiedMarketplaceCoreV1 is
         platformTreasury = _platformTreasury != address(0) ? _platformTreasury : msg.sender;
     }
     
-    function setStatisticsModule(address _statistics) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setStatisticsModule(address _statistics) external onlyRole(ADMIN_ROLE) {
         if (_statistics == address(0)) revert InvalidAddress();
         address oldModule = address(statisticsModule);
         statisticsModule = IMarketplaceStatistics(_statistics);
         emit ModuleUpdated("Statistics", oldModule, _statistics);
     }
     
-    function setViewModule(address _view) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setViewModule(address _view) external onlyRole(ADMIN_ROLE) {
         if (_view == address(0)) revert InvalidAddress();
+        require(_view.code.length > 0, "Address is not a contract");
         address oldModule = address(viewModule);
         viewModule = IMarketplaceView(_view);
         emit ModuleUpdated("View", oldModule, _view);
     }
     
-    function setSocialModule(address _social) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setSocialModule(address _social) external onlyRole(ADMIN_ROLE) {
         if (_social == address(0)) revert InvalidAddress();
+        require(_social.code.length > 0, "Address is not a contract");
         address oldModule = address(socialModule);
         socialModule = IMarketplaceSocial(_social);
         emit ModuleUpdated("Social", oldModule, _social);

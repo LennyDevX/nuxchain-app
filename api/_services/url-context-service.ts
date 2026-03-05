@@ -38,7 +38,7 @@ class UrlContextService {
    * // In your API endpoint, use Gemini's tools API:
    * const tools = [{ "url_context": {} }];
    * const response = await client.models.generate_content({
-   *   model: "gemini-2.5-flash-lite",
+    *   model: "gemini-3.1-flash-lite",
    *   contents: `Analyze this URL: ${url}`,
    *   config: { tools }
    * });

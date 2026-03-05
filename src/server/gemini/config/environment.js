@@ -14,10 +14,13 @@ const rootDir = join(__dirname, '../../../../');
 dotenv.config({ path: join(rootDir, '.env') });
 dotenv.config({ path: join(rootDir, '.env.local') });
 
+// Silenced verbose env logs for cleaner terminal
+/*
 console.log('[Environment] 🔧 Loading environment variables...');
 console.log('[Environment] 📁 Root directory:', rootDir);
 console.log('[Environment] ✅ ALCHEMY_API_KEY present:', !!process.env.ALCHEMY_API_KEY);
 console.log('[Environment] ✅ GEMINI_API_KEY present:', !!process.env.GEMINI_API_KEY);
+*/
 
 // Validar variables de entorno críticas
 function validateEnvironment() {

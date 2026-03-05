@@ -45,10 +45,10 @@ export const UNIFIED_CONTEXT_CONFIG = {
 
   // Configuración de modelos
   models: {
-    CONTEXT_MODEL: 'gemini-2.5-flash-lite',
-    SUMMARY_MODEL: 'gemini-2.5-flash-lite',
-  EMBEDDING_MODEL: 'gemini-embedding-001',
-  FALLBACK_MODEL: 'gemini-2.5-flash-lite',
+    CONTEXT_MODEL: 'gemini-3.1-flash-lite',
+    SUMMARY_MODEL: 'gemini-3.1-flash-lite',
+   EMBEDDING_MODEL: 'gemini-embedding-001',
+   FALLBACK_MODEL: 'gemini-3.1-flash-lite',
     MAX_RETRIES: 3,
     TIMEOUT: 30000,
     RETRY_DELAY: 1000              // Delay entre reintentos

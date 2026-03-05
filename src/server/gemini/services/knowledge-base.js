@@ -1,7 +1,7 @@
 const knowledgeBase = [
   // === GENERAL INFORMATION ===
   {
-    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes EnhancedSmartStaking v4.0 contracts with gamification features (XP, levels, quests, achievements), GameifiedMarketplace v2.0 with Skills NFT system, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), Developer Hub with Web3 infrastructure tools, and tokenization tools. Built with React 19, Vite 7.1, TypeScript 5.7, TailwindCSS 4.0, Wagmi v2 and Viem 2.38 for blockchain interactions.",
+    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking v6.2 contracts with gamification features (XP, levels, quests, achievements), GameifiedMarketplace v2.0 with Skills NFT system, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), Developer Hub with Web3 infrastructure tools, and tokenization tools. Built with React 19, Vite 7.1, TypeScript 5.7, TailwindCSS 4.0, Wagmi v2 and Viem 2.38 for blockchain interactions.",
     metadata: { type: "general", category: "platform", topic: "overview" },
     commands: ['Nuxchain', 'Nuxchain platform', 'Nuxchain general', 'what is Nuxchain']
   },
@@ -28,7 +28,7 @@ const knowledgeBase = [
     commands: ['Nuxchain limits', 'Nuxchain deposit minimum', 'Nuxchain errors']
   },
   {
-    content: "Nuxchain SmartStaking reward calculation: Uses base hourly ROI with lockup bonuses. Lockup periods offer different rates: Flexible (no lockup): 0.005% per hour (43.8% APY), 30 days: 0.010% per hour (87.6% APY), 90 days: 0.014% per hour (122.64% APY), 180 days: 0.017% per hour (149.28% APY), 365 days: 0.025% per hour (219% APY). Rewards are calculated in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 2000 POL for security. Commission rate is 6% on rewards.",
+    content: "Smart Staking v6.2 reward calculation: Uses base APY rates configured in the rewards contract. Lockup periods offer different rates: Flexible (no lockup): ~9.6% APY, 30 days: ~17.2% APY, 90 days: ~22.7% APY, 180 days: ~30.3% APY, 365 days: ~31.9% APY. Rates are dynamic and may vary based on TVL via the DynamicAPYCalculator contract. Rewards accumulate in real-time and can be claimed or compounded at any time. Daily withdrawal limit is 2000 POL for security. Commission rate is 6% on rewards.",
     metadata: { type: "smart-contract", category: "staking", topic: "rewards-calculation" },
     commands: ['Nuxchain rewards calculation', 'Nuxchain ROI', 'Nuxchain compound', 'Nuxchain lockup']
   },
@@ -50,17 +50,17 @@ const knowledgeBase = [
     commands: ['Nuxchain claim rewards']
   },
   {
-    content: "Nuxchain Lockup Periods Explained: When you stake POL tokens, you can choose a lockup period that determines your reward rate. Flexible (0 days): 0.005% per hour, withdraw anytime. 30 days lockup: 0.010% per hour, double the flexible rewards, funds locked for 30 days. 90 days lockup: 0.014% per hour, 2.8x the flexible rewards, funds locked for 90 days. 180 days lockup: 0.017% per hour, 3.4x the flexible rewards, funds locked for 180 days. 365 days lockup: 0.025% per hour, 5x the flexible rewards, funds locked for 365 days. The longer you lock your tokens, the higher your hourly rewards. All rewards are calculated and accumulated automatically every hour.",
+    content: "Smart Staking v6.2 Lockup Periods Explained: When you stake POL tokens, you can choose a lockup period that determines your APY rate. Flexible (0 days): ~9.6% APY, withdraw anytime. 30 days lockup: ~17.2% APY, funds locked for 30 days. 90 days lockup: ~22.7% APY, funds locked for 90 days. 180 days lockup: ~30.3% APY, funds locked for 180 days. 365 days lockup: ~31.9% APY, funds locked for 365 days. The longer you lock your tokens, the higher your APY. These are base rates — actual rates are dynamic based on TVL. All rewards accumulate automatically and can be claimed or compounded at any time.",
     metadata: { type: "staking", category: "rewards", topic: "lockup-periods" },
     commands: ['Nuxchain lockup periods', 'Nuxchain staking periods', 'Nuxchain lock duration', 'Nuxchain lockup options']
   },
   {
-    content: "Nuxchain APY base is 0.005% per hour with flexible (no lockup) option, which equals approximately 43.8% APY annually. This is the fundamental return a user can expect when depositing POL tokens in the SmartStaking contract without any lockup period. The base APY is calculated hourly and accumulates automatically, allowing users to see their rewards grow in real-time. This is the minimum return, and it can be significantly increased by choosing longer lockup periods.",
+    content: "Smart Staking v6.2 base APY is approximately 9.6% annually for flexible (no lockup) deposits. This is the base return when depositing POL without any lockup period. APY is calculated continuously and accumulates automatically. This is the minimum rate — choosing longer lockup periods significantly increases APY (up to ~31.9% at 365d). Rates are dynamic via DynamicAPYCalculator: as TVL grows, rates may decrease slightly to maintain sustainability. Always check real-time rates in the dApp or ask the AI.",
     metadata: { type: "staking", category: "rewards", topic: "apy-base" },
     commands: ['Nuxchain APY base', 'Nuxchain base return', 'Nuxchain base rate', 'APY no lockup']
   },
   {
-    content: "Nuxchain APY tiers based on lockup periods: Flexible: 0.005% per hour (43.8% APY), 30 days lockup: 0.010% per hour (87.6% APY), 90 days lockup: 0.014% per hour (122.64% APY), 180 days lockup: 0.017% per hour (149.28% APY), 365 days lockup: 0.025% per hour (219% APY). Commission rate is 6% on rewards. Daily withdrawal limit is 1000 POL.",
+    content: "Smart Staking v6.2 APY tiers: Flexible: ~9.6% APY, 30 days: ~17.2% APY, 90 days: ~22.7% APY, 180 days: ~30.3% APY, 365 days: ~31.9% APY. Rates are base values from the contract constructor (v6.2 sustainability reduction). Actual rates are dynamic via DynamicAPYCalculator based on TVL. Commission rate is 6% on rewards. Daily withdrawal limit is 2000 POL.",
     metadata: { type: "staking", category: "rewards", topic: "apy-tiers" },
     commands: ['Nuxchain APY', 'Nuxchain rates', 'Nuxchain lockup rates']
   },
@@ -75,9 +75,9 @@ const knowledgeBase = [
     commands: ['Nuxchain risks']
   },
 
-  // === ENHANCED SMART STAKING V4.0 - GAMIFICATION ===
+  // === SMART STAKING V6.2 - GAMIFICATION ===
   {
-    content: "EnhancedSmartStaking v4.0 includes advanced gamification features that reward user engagement and participation. The system includes: XP (Experience Points) system where users earn points for staking activities, deposits, and quest completion. Level System with 100 levels where users level up by accumulating XP (e.g., Level 1 requires 100 XP, Level 10 requires 10,000 XP). Quest System with different quest types (STAKE_POL, COMPOUND_REWARDS, ACTIVATE_SKILL, etc.) that reward users with XP and POL bonuses. Achievement System tracking milestones like 'First Deposit', 'Level 10 Reached', '1000 POL Staked'. Badge System displaying earned achievements. Auto-Compound feature allowing automatic reinvestment of rewards. Integration with GameifiedMarketplace for cross-platform progression.",
+    content: "Smart Staking v6.2 includes advanced gamification features that reward user engagement and participation. The system includes: XP (Experience Points) system where users earn points for staking activities, deposits, and quest completion. Level System with 100 levels where users level up by accumulating XP (e.g., Level 1 requires 100 XP, Level 10 requires 10,000 XP). Quest System with different quest types (STAKE_POL, COMPOUND_REWARDS, ACTIVATE_SKILL, etc.) that reward users with XP and POL bonuses. Achievement System tracking milestones like 'First Deposit', 'Level 10 Reached', '1000 POL Staked'. Badge System displaying earned achievements. Auto-Compound feature allowing automatic reinvestment of rewards. Integration with GameifiedMarketplace for cross-platform progression.",
     metadata: { type: "staking", category: "gamification", topic: "features" },
     commands: ['Nuxchain gamification', 'Nuxchain XP', 'Nuxchain levels', 'Nuxchain quests', 'Nuxchain achievements', 'staking gamification']
   },
@@ -97,7 +97,7 @@ const knowledgeBase = [
     commands: ['Nuxchain achievements', 'achievement system', 'badges', 'milestones', 'how to earn achievements']
   },
   {
-    content: "Nuxchain Auto-Compound Feature: Integrated in EnhancedSmartStaking v4.0, allows users to automate reward reinvestment. Users can enable auto-compound in their staking settings with configuration options: minimum amount threshold (e.g., only compound when rewards >= 10 POL), compound frequency (daily, weekly, or when threshold met), lockup period for compounded amount (flexible or match original deposit). Benefits include: maximize compound interest effect, reduce gas costs by batching, hands-free portfolio growth, optimal reinvestment timing. Auto-compound triggers when conditions are met and executes compound() function automatically. Users maintain full control and can disable anytime. Compounded amounts start earning immediately based on selected lockup period. This feature is especially powerful when combined with high APY tiers and long-term staking strategies.",
+    content: "Nuxchain Auto-Compound Feature: Integrated in Smart Staking v6.2, allows users to automate reward reinvestment. Users can enable auto-compound in their staking settings with configuration options: minimum amount threshold (e.g., only compound when rewards >= 10 POL), compound frequency (daily, weekly, or when threshold met), lockup period for compounded amount (flexible or match original deposit). Benefits include: maximize compound interest effect, reduce gas costs by batching, hands-free portfolio growth, optimal reinvestment timing. Auto-compound triggers when conditions are met and executes compound() function automatically. Users maintain full control and can disable anytime. Compounded amounts start earning immediately based on selected lockup period. This feature is especially powerful when combined with high APY tiers and long-term staking strategies.",
     metadata: { type: "staking", category: "advanced", topic: "auto-compound" },
     commands: ['Nuxchain auto compound', 'auto compounding', 'automated reinvestment', 'compound automation']
   },
@@ -204,16 +204,16 @@ const knowledgeBase = [
     commands: ['Nuxchain tokenization', 'Nuxchain create token', 'Nuxchain mint NFT', 'Nuxchain whitelist']
   },
 
-  // === SMART CONTRACTS V4.0  ===
+  // === SMART CONTRACTS V6.2  ===
   {
-    content: "Nuxchain Smart Contracts Architecture v4.0: The platform uses a modular architecture with multiple specialized contracts. EnhancedSmartStaking v4.0 consists of 4 modules: Core (deposits, withdrawals), Rewards (reward calculations, claims), Skills (NFT skill integration), and Gamification (XP, quests, achievements). GameifiedMarketplace v2.0 includes: Core (NFT minting, listing, buying), Quests (quest management), Skills V2 (skill NFT system), and Leveling (level progression). All contracts are deployed on Polygon network, verified on Polygonscan, and use OpenZeppelin libraries for security (AccessControl, ReentrancyGuard, Pausable). Contract addresses and ABIs are publicly available. Contracts interact through interfaces (IStakingIntegration, IGameifiedMarketplaceCore) enabling cross-contract communication and synchronized gamification features.",
+    content: "Nuxchain Smart Contracts Architecture v6.2: The platform uses a modular architecture with multiple specialized contracts. Smart Staking v6.2 consists of 8 modules: Core (deposits, withdrawals), Rewards (reward calculations, claims), Skills (NFT skill integration), and Gamification (XP, quests, achievements). GameifiedMarketplace v2.0 includes: Core (NFT minting, listing, buying), Quests (quest management), Skills V2 (skill NFT system), and Leveling (level progression). All contracts are deployed on Polygon network, verified on Polygonscan, and use OpenZeppelin libraries for security (AccessControl, ReentrancyGuard, Pausable). Contract addresses and ABIs are publicly available. Contracts interact through interfaces (IStakingIntegration, IGameifiedMarketplaceCore) enabling cross-contract communication and synchronized gamification features.",
     metadata: { type: "smart-contract", category: "architecture", topic: "contracts-v4" },
-    commands: ['Nuxchain contracts', 'smart contracts v4', 'contract architecture', 'modular contracts', 'contract modules']
+    commands: ['Nuxchain contracts', 'smart contracts v6.2', 'contract architecture', 'modular contracts', 'contract modules']
   },
   {
-    content: "EnhancedSmartStaking v2.0 Contract Details: Address on Polygon: [deployed address]. This is the main staking contract with 4 specialized modules. Core Module handles: deposit() for staking with lockup selection, withdraw() for partial withdrawals respecting lockup, withdrawAll() for complete withdrawal, emergencyWithdraw() for emergencies, and contract migration. Rewards Module handles: calculateRewards() for real-time calculation, claimRewards() for reward claims, compound() for reinvestment, getRewardsInfo() for user reward data. Skills Module handles: activateSkill() to activate owned skill NFTs, deactivateSkill() to deactivate skills, getActiveSkills() to query user's active skills, applySkillBoost() to calculate boosted APY. Gamification Module handles: updateXP() for XP awards, completeQuest() for quest completion, claimQuestReward() for claiming quest rewards, checkAutoCompound() for automation. Key Features: Multi-lockup support (flexible, 30, 90, 180, 365 days), skill-boosted APY, XP and level progression, quest integration, achievement tracking, auto-compound capability.",
+    content: "Smart Staking v6.2 Contract Details: Address on Polygon: [deployed address]. This is the main staking contract with 4 specialized modules. Core Module handles: deposit() for staking with lockup selection, withdraw() for partial withdrawals respecting lockup, withdrawAll() for complete withdrawal, emergencyWithdraw() for emergencies, and contract migration. Rewards Module handles: calculateRewards() for real-time calculation, claimRewards() for reward claims, compound() for reinvestment, getRewardsInfo() for user reward data. Skills Module handles: activateSkill() to activate owned skill NFTs, deactivateSkill() to deactivate skills, getActiveSkills() to query user's active skills, applySkillBoost() to calculate boosted APY. Gamification Module handles: updateXP() for XP awards, completeQuest() for quest completion, claimQuestReward() for claiming quest rewards, checkAutoCompound() for automation. Key Features: Multi-lockup support (flexible, 30, 90, 180, 365 days), skill-boosted APY, XP and level progression, quest integration, achievement tracking, auto-compound capability.",
     metadata: { type: "smart-contract", category: "staking", topic: "enhanced-staking-v4" },
-    commands: ['EnhancedSmartStaking', 'staking contract', 'staking v4', 'staking modules', 'contract functions']
+    commands: ['Smart Staking v6.2', 'staking contract', 'staking v6', 'staking modules', 'contract functions']
   },
   {
     content: "GameifiedMarketplace v2.0 Contract Details: Comprehensive marketplace system with gamification. Core Module (GameifiedMarketplaceCoreV1) handles: createNFT() for minting new NFTs, listNFT() for listing NFTs for sale, buyNFT() for purchasing listed NFTs, unlistNFT() for removing listings, createOffer() and acceptOffer() for offer system, updateUserXP() for awarding XP on marketplace activities. Quests Module (GameifiedMarketplaceQuests) handles: createQuest() for quest creation by admins, updateQuestProgress() tracking user progress, completeQuest() for quest completion, getQuestInfo() for quest details, getUserQuests() for user's quest history. Skills V2 Module (GameifiedMarketplaceSkillsV2) handles: purchaseSkill() to buy skill NFTs, renewSkill() to renew expired skills, activateSkill() to activate owned skills, transferSkill() to gift/transfer skills, getSkillInfo() for skill details, getUserSkills() for user's skill collection. All marketplace transactions are in POL. Marketplace fee: 2.5%. Creator royalties supported via ERC-2981.",
@@ -755,17 +755,69 @@ const knowledgeBase = [
     content: "Upcoming Nuxchain Airdrops (Q4 2025-Q1 2026): Q4 2025 - Milestone Airdrop: 100,000 tokens for users who complete specific milestones (staking, marketplace trades, AI chat usage). Q1 2026 - Platform Launch Bonus: 150,000 tokens for all active platform users. Features governance participation as eligibility criterion. Estimated allocation: 200-500 tokens per wallet depending on engagement level. All upcoming airdrops will be announced 2 weeks in advance with full eligibility criteria. Community governance will help decide airdrop mechanics and distribution methods. Historical data shows Nuxchain commits 500,000+ tokens annually to airdrops. Holders are encouraged to stake and participate in governance to maximize airdrop rewards.",
     metadata: { type: "airdrops", category: "airdrops", topic: "upcoming" },
     commands: ['upcoming airdrops', 'future airdrops', 'next airdrop', 'Q4 2025 airdrop']
+  },
+  {
+    content: "Nuxchain Marketplace Popular Collections: Nuxchain Genesis Collection - Original 10,000 NFTs with governance utility and staking bonuses. Prime Collection - 5,000 limited edition NFTs with exclusive benefits and marketplace features. Founder's Collection - 1,000 ultra-rare founder NFTs with lifetime benefits. Community Drops - Regular limited drops from community artists and projects. Marketplace also features integrated collections from partner projects. New collections can be created through governance proposals. Floor prices range from 10 POL to 5,000+ POL depending on collection and rarity.",
+    metadata: { type: "marketplace", category: "nft", topic: "collections" },
+    commands: ['Nuxchain collections', 'NFT collections', 'popular NFTs', 'genesis NFT']
+  },
+  {
+    content: "Smart Staking v6.2 Compound Logic (Technical): The compound() function works by taking your accumulated pending rewards and creating a NEW deposit with them inside the same staking contract. Here is the exact sequence: 1) Contract reads your pending rewards across all deposits. 2) Rewards must be >= 0.01 POL (MIN_COMPOUND_AMOUNT) to compound. 3) The reward amount is converted into a new deposit entry for the user. 4) The user earns 3 XP (COMPOUND_XP) for every compound action. 5) A 0.25% auto-compound fee (AUTOCOMPOUND_FEE_BPS = 25 basis points) is charged on the rewards being compounded. 6) The newly created deposit starts earning rewards immediately using the selected lockup type. Result: your total staked balance grows without any gas-heavy withdraw+deposit cycle. Auto-compound (when enabled) runs this process automatically every 24 hours (AUTO_COMPOUND_INTERVAL = 1 day) if conditions are met.",
+    metadata: { type: "smart-contract", category: "staking", topic: "compound-logic" },
+    commands: ['compound logic', 'how does compound work', 'Smart Staking compound', 'compound mechanism', 'compound v6', 'capitalización', 'lógica compound']
+  },
+  {
+    content: "Smart Staking v6.2 Auto-Compound Configuration: Users can enable Auto-Compound in their staking dashboard. Technical parameters from the contract: AUTO_COMPOUND_INTERVAL = 24 hours (the system checks every day if conditions are met). MIN_COMPOUND_AMOUNT = 0.01 POL (rewards below this threshold are not compounded). AUTOCOMPOUND_FEE_BPS = 25 (0.25% fee deducted from rewards before compounding). The auto-compound list is maintained on-chain: _autoCompoundUsers[] stores enrolled wallets, _autoCompoundConfigs maps each user's config. A batch operation (limited to 100 users per tx via BATCH_LIMIT) triggers all eligible auto-compounds. Users can configure: minimum threshold for triggering, preferred lockup period for compounded amounts. Users can disable auto-compound at any time from the dashboard.",
+    metadata: { type: "smart-contract", category: "staking", topic: "auto-compound-config" },
+    commands: ['auto compound configuration', 'auto compound settings', 'how to enable auto compound', 'auto compound interval', 'compound fee', 'activar auto compound']
+  },
+  {
+    content: "Smart Staking v6.2 Architecture (Modular Design): The contract system uses a modular UUPS upgradeable proxy architecture. There are 4 specialized contracts: 1) EnhancedSmartStakingCoreV2 — the main orchestration contract (UUPS upgradeable, ReentrancyGuard, Pausable). Handles deposits, withdrawals, and delegates to modules. 2) EnhancedSmartStakingRewards — calculates and distributes APY rewards per deposit type. 3) EnhancedSmartStakingSkills — manages Skill NFT activation, boost calculations, and fee discounts. 4) EnhancedSmartStakingGamification — handles XP, levels, quests, achievements, badges, and auto-compound. Additionally, EnhancedSmartStakingView / ViewCore / ViewStats / ViewSkills are read-only view contracts providing all the data the frontend and AI use. Contract version: 6.2.0. Deployed on Polygon Mainnet.",
+    metadata: { type: "smart-contract", category: "staking", topic: "architecture" },
+    commands: ['Smart Staking architecture', 'v6.2 architecture', 'staking contract design', 'modular staking', 'how is staking built', 'staking contracts', 'contract modules']
+  },
+  {
+    content: "Smart Staking v6.2 XP and Level System (Exact Formula): XP is earned from platform actions. Formula to level up: XP required for Level N = 50 × N² (XP_BASE = 50, exponential curve). Examples: Level 1 = 50 XP, Level 5 = 1,250 XP, Level 10 = 5,000 XP, Level 25 = 31,250 XP, Level 50 = 125,000 XP, Level 100 = 500,000 XP. Maximum level cap is 100. XP sources: Staking (1 XP per 2 POL deposited, STAKING_XP_DIVISOR = 2), Compounding (3 XP fixed per compound, COMPOUND_XP = 3), Quests (10–25 XP dynamic, MIN_QUEST_XP = 10 / MAX_QUEST_XP = 25), Achievements (100 XP fixed, ACHIEVEMENT_XP = 100). Level-up rewards: each level-up awards a POL bonus from the treasury. Reward expiration: 30 days (REWARD_EXPIRATION = 30 days) — unclaimed level-up rewards expire after 30 days.",
+    metadata: { type: "staking", category: "gamification", topic: "xp-formula" },
+    commands: ['XP formula', 'how much XP to level up', 'level calculation', 'XP per deposit', 'how to gain XP', 'cuánto XP necesito', 'level system formula']
+  },
+  {
+    content: "Smart Staking v6.2 Deposit Limits and Security: Core contract constants: MIN_DEPOSIT = 10 POL (minimum per deposit transaction). MAX_DEPOSIT = 100,000 POL (maximum per deposit transaction). MAX_DEPOSITS_PER_USER = 400 (each deposit is tracked as a separate entry). MAX_ACTIVE_SKILL_SLOTS = 5 (maximum Skill NFTs active simultaneously). COMMISSION_PERCENTAGE = 6% (deducted from rewards, not principal). DAILY_WITHDRAWAL_LIMIT = 2,000 POL per 24-hour rolling window. EARLY_EXIT_FEE_BPS = 50 (0.5% fee on principal if flexible deposit withdrawn within 7 days, EARLY_EXIT_WINDOW). Circuit Breaker: admin-configurable reserve ratio; if triggered, new deposits are paused until reserves normalize. Referral System: referral boosts stack for the referrer (default +1.5% APY per referral for 30 days, configurable).",
+    metadata: { type: "smart-contract", category: "staking", topic: "limits-security" },
+    commands: ['staking limits', 'deposit limits', 'minimum deposit', 'maximum deposit', 'withdrawal limit', 'early exit fee', 'staking security', 'circuit breaker']
+  },
+  {
+    content: "Nuxchain $NUX Tokenomics: Total Supply: 100,000,000 NUX (100 million). Token Utility: Governance (vote on protocol proposals), Staking Rewards (earn POL by staking), Fee Discounts (tiered based on holdings), Marketplace Trading (buy/sell NFTs), Launchpad Access (tiered allocations). Burn Mechanism: 50% of all platform fees (staking commissions, marketplace fees) are used to buy back and burn NUX tokens. Additionally, 10% of skill NFT sales are burned. Deflationary tokenomics ensure decreasing supply over time. Burn events are transparent and verifiable on-chain. Initial Distribution: 25% Ecosystem Rewards, 20% Team & Advisors (4-year vesting), 15% Treasury, 15% Public Sale (Launchpad), 15% Liquidity, 10% Community/Airdrops. Vesting schedules ensure long-term alignment.",
+    metadata: { type: "token", category: "economy", topic: "tokenomics" },
+    commands: ['NUX tokenomics', 'token economy', 'NUX burn', 'burn mechanism', 'token supply', 'NUX utility', 'token distribution']
+  },
+  {
+    content: "Nuxchain Staking Skills Store: Skills are NFT-based power-ups that boost your staking performance. Types: STAKE_BOOST_I (+5% APY), STAKE_BOOST_II (+10% APY), STAKE_BOOST_III (+20% APY), AUTO_COMPOUND (automatic reinvestment), LOCK_REDUCER (-25% lock time), FEE_REDUCER_I (-10% platform fees), FEE_REDUCER_II (-25% platform fees). Prices range from 50 POL (Common) to 484 POL (Legendary) depending on skill type and rarity. Higher rarity = stronger effects. Active Skills: 8-16 are marketplace/social skills (Priority Listing, Batch Minter, Verified Creator, Influencer, etc.). You can activate up to 5 skills simultaneously. Skills expire after 30 days and can be renewed at 50% cost. Buy skills in the Skills Store section of the marketplace.",
+    metadata: { type: "skills", category: "store", topic: "staking-skills" },
+    commands: ['staking skills', 'skill store', 'buy skills', 'skill prices', 'APY boost skills', 'staking power-ups', 'skill NFTs']
+  },
+  {
+    content: "Nuxchain Rewards Hub: The Rewards Hub is your central dashboard for all platform earnings. Features include: Staking Rewards (view and claim pending POL rewards), Level-Up Rewards (claim POL bonuses when leveling up), Quest Rewards (complete quests for XP and POL), Referral Rewards (track and claim referral bonuses), Achievement Badges (collectible milestones with rewards). Auto-Compound can be enabled to automatically reinvest staking rewards. The hub shows real-time balances, reward history, and estimated future earnings based on current APY. Access via the Rewards tab in the main navigation.",
+    metadata: { type: "features", category: "rewards", topic: "rewards-hub" },
+    commands: ['rewards hub', 'claim rewards', 'my rewards', 'staking rewards', 'level up rewards', 'quest rewards', 'referral rewards']
+  },
+  {
+    content: "Nuxchain Launchpad: The Launchpad enables token sales and new project launches. Current: NUX Token Sale with 3 tiers - Tier 1 (Whitelist): 40% off at 0.000015 SOL/NUX, min 5K max 200K NUX, 12M NUX cap. Tier 2 (Presale): Public at 0.000025 SOL/NUX, min 1K max 500K NUX, 13M NUX cap. Tier 3 (LP/TGE): Market price at 0.00004 SOL/NUX, unlimited. 50% of liquidity permanently locked at TGE to prevent rug pulls. Users can participate with SOL on Solana. Whitelist requires completing airdrop tasks. Launchpad features tiered access, countdown timers, and real-time stats tracking.",
+    metadata: { type: "launchpad", category: "token-sale", topic: "launchpad" },
+    commands: ['launchpad', 'NUX sale', 'token sale', 'whitelist', 'presale', 'buy NUX', 'launchpad tiers']
+  },
+  {
+    content: "Nuxchain Roadmap 2025-2027: Achieved: Developer Tooling Suite (Q2 2025), Smart Contracts v1.0 (Q1 2025), AI Integration (Q2 2025), Beta Platform (Q3 2025), Mobile UX 2.0 (Q4 2025), Performance System 2.0 (Q1 2026), Smart Contracts v6.2 Update (Q1 2026). In Progress: Labs & Dev Hub (Q2 2025), Nuxbee AI Platform 1.0 (Q1 2026), Marketing Campaigns (Q1 2026), Partnerships 1.0 (Q1-Q2 2026), DAO Governance (Q4 2026), Tokenomics (Q1 2026), NFTs Wave 4 (Q1 2026). Upcoming: Nuxbee AI 2.0 (Q2 2026), Physical Branding NFTs (Q2 2026), Re-branding (Q2 2026), Nuxchain Kit SDK (Q4 2026), Global Expansion & Web Launch (Q1 2027), Gaming Platform (Q2-Q3 2027), Mobile App (Q4 2027), Enterprise Solutions (Q4 2027).",
+    metadata: { type: "roadmap", category: "milestones", topic: "roadmap" },
+    commands: ['roadmap', 'milestones', 'future plans', 'Nuxchain timeline', 'upcoming features', 'Q1 2026', 'Q2 2027']
   }
 ];
-
 // Function to search the knowledge base - Optimized for intelligent searches
 function searchKnowledgeBase(query, limit = 5, docs = knowledgeBase) {
   console.log('Knowledge base loaded with', docs.length, 'items');
-  const queryLower = query.toLowerCase();
   
-  // Preprocess query to remove stop words
   const stopWords = ['this', 'that', 'these', 'those', 'the', 'a', 'an', 'and', 'or', 'is', 'are', 'in', 'on', 'at', 'for', 'with'];
-  const queryWords = queryLower.split(/\s+/) 
+  const queryWords = query.toLowerCase().split(/\s+/) 
     .filter(word => !stopWords.includes(word) && word.length > 2)
     .map(word => word.replace(/[^a-zA-Z0-9]/g, ''))
     .filter(Boolean);

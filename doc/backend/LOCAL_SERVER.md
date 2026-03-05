@@ -659,7 +659,7 @@ async function generateStream(message, context) {
   const systemPrompt = buildSystemInstruction(context);
 
   const response = await client.models.generateContentStream({
-    model: "gemini-2.5-flash-lite",
+     model: "gemini-3.1-flash-lite",
     contents: message,
     systemInstruction: systemPrompt,
   });

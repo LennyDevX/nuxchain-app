@@ -86,7 +86,7 @@ const configTools: any = hasUrls ? [{ url_context: {} }] : undefined;
 
 // Agregar a config de Gemini
 const streamResponse = await client.models.generateContentStream({
-  model: "gemini-2.5-flash-lite",
+  model: "gemini-3.1-flash-lite",
   contents: enrichedMessage,
   config: {
     systemInstruction,
@@ -188,7 +188,7 @@ GEMINI_API_KEY=your_api_key_here
 ```
 
 ### Modelos Soportados
-- ✅ gemini-2.5-flash-lite (actual)
+- ✅ gemini-3.1-flash-lite (actual)
 - ✅ gemini-2.5-flash
 - ✅ gemini-2.5-pro
 

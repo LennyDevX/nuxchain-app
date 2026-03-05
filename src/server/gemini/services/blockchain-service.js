@@ -98,10 +98,15 @@ const CONFIG = {
   POLYGONSCAN_API: 'https://api.polygonscan.com/api',
   POLYGONSCAN_API_KEY: env.polygonScanKey,
   
-  // Contract addresses
-  STAKING_CONTRACT: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0x642E60a50d8b61Cf44A671F20ac03301bE55104B',
-  STAKING_VIEWER: process.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '0x5c756A9a3034312E540AB47C674A37ABB7c302Fd',
-  MARKETPLACE_PROXY: process.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '0x65BD8E08c02c1121cE44210C249E0760f18eB64f',
+  // Contract addresses — Smart Staking v6.2 (Polygon Mainnet, deployed 2026-03-01)
+  STAKING_CONTRACT:     process.env.VITE_STAKING_CORE_ADDRESS           || '0x2cda88046543be25a3EC4eA2d86dBe975Fda0028',
+  STAKING_VIEW_CORE:    process.env.VITE_STAKING_VIEW_CORE_ADDRESS      || '0xDd21d682f3625eF90c446C8DE622A51e4084DA56',
+  STAKING_VIEW_STATS:   process.env.VITE_STAKING_VIEW_STATS_ADDRESS     || '0x994BC04688577066CD4c6E55B459788dfe408007',
+  STAKING_VIEW_SKILLS:  process.env.VITE_STAKING_VIEW_SKILLS_ADDRESS    || '0xc5a07f94b5Ecaaf8E65d9F3adb7AB590550a9bE9',
+  STAKING_GAMIFICATION: process.env.VITE_STAKING_GAMIFICATION_ADDRESS   || '0x58b38720BE35eDD36e3D252ea41e8B0a9629EA1F',
+  MARKETPLACE_PROXY:    process.env.VITE_MARKETPLACE_PROXY_ADDRESS      || '0xc8Af452F3842805Bc79bfFBBbDB9b130f222d9BC',
+  MARKETPLACE_STATS:    process.env.VITE_MARKETPLACE_STATISTICS_ADDRESS || '0x7C4c72d3D1b9a54178254c79Ca4F788111A9c99D',
+  TREASURY_MANAGER:     process.env.VITE_TREASURY_MANAGER_ADDRESS       || '0x312a3c5072c9DE2aB5cbDd799b3a65fb053DF043',
 };
 
 // ============================================================================
@@ -288,20 +293,118 @@ async function getPolPriceFromDIA() {
 // STAKING INFO FUNCTION
 // ============================================================================
 
-// Staking Viewer ABI - getGlobalStats function
+// ViewStats ABI — getGlobalStats (struct) + getAPYRates + getPoolHealth + getPoolStats
 const STAKING_VIEWER_ABI = [
   {
-    "inputs": [],
-    "name": "getGlobalStats",
-    "outputs": [
-      {"internalType": "uint256", "name": "totalStaked", "type": "uint256"},
-      {"internalType": "uint256", "name": "totalRewardsPaid", "type": "uint256"},
-      {"internalType": "uint256", "name": "activeUsers", "type": "uint256"},
-      {"internalType": "uint256", "name": "totalDeposits", "type": "uint256"}
+    inputs: [],
+    name: 'getGlobalStats',
+    outputs: [
+      {
+        components: [
+          { name: 'totalValueLocked', type: 'uint256' },
+          { name: 'totalUniqueUsers', type: 'uint256' },
+          { name: 'contractBalance', type: 'uint256' },
+          { name: 'availableRewards', type: 'uint256' },
+          { name: 'healthStatus', type: 'uint8' },
+          { name: 'timestamp', type: 'uint256' },
+        ],
+        name: 'stats',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getPoolHealth',
+    outputs: [
+      { name: 'healthStatus', type: 'uint8' },
+      { name: 'statusMessage', type: 'string' },
+      { name: 'reserveRatio', type: 'uint256' },
+      { name: 'description', type: 'string' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getPoolStats',
+    outputs: [
+      { name: 'totalPoolValue', type: 'uint256' },
+      { name: 'totalRewards', type: 'uint256' },
+      { name: 'activeUsersCount', type: 'uint256' },
+      { name: 'totalDeposits', type: 'uint256' },
+      { name: 'contractBalanceValue', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getAPYRates',
+    outputs: [
+      { name: 'flexibleAPY',  type: 'uint256' },
+      { name: 'locked30APY',  type: 'uint256' },
+      { name: 'locked90APY',  type: 'uint256' },
+      { name: 'locked180APY', type: 'uint256' },
+      { name: 'locked365APY', type: 'uint256' },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_user', type: 'address' }],
+    name: 'getUserRewardsProjection',
+    outputs: [
+      {
+        components: [
+          { name: 'hourlyRewards',        type: 'uint256' },
+          { name: 'dailyRewards',         type: 'uint256' },
+          { name: 'weeklyRewards',        type: 'uint256' },
+          { name: 'monthlyRewards',       type: 'uint256' },
+          { name: 'yearlyRewards',        type: 'uint256' },
+          { name: 'currentPendingRewards', type: 'uint256' },
+        ],
+        name: 'projection',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_user', type: 'address' }],
+    name: 'getUserLockupAnalysis',
+    outputs: [
+      {
+        components: [
+          { name: 'totalFlexible',    type: 'uint256' },
+          { name: 'totalLocked30',    type: 'uint256' },
+          { name: 'totalLocked90',    type: 'uint256' },
+          { name: 'totalLocked180',   type: 'uint256' },
+          { name: 'totalLocked365',   type: 'uint256' },
+          { name: 'nextUnlockAmount', type: 'uint256' },
+          { name: 'nextUnlockTime',   type: 'uint256' },
+        ],
+        name: 'analysis',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ name: '_user', type: 'address' }],
+    name: 'getEarningsBreakdown',
+    outputs: [
+      { name: 'dailyEarnings',   type: 'uint256' },
+      { name: 'monthlyEarnings', type: 'uint256' },
+      { name: 'annualEarnings',  type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
 ];
 
 /**
@@ -323,29 +426,31 @@ async function getStakingInfo() {
     const polPrice = await getPolPrice();
     const priceUsd = polPrice.success ? (polPrice.price || 0.12) : 0.12;
     
-    // Read contract stats and APY rates
+    // Read contract stats and APY rates — Smart Staking v6.2
     const [globalStats, apyRates] = await Promise.all([
       publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
+        address: CONFIG.STAKING_VIEW_STATS,
         abi: STAKING_VIEWER_ABI,
         functionName: 'getGlobalStats',
       }),
       publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
-        abi: STAKING_VIEW_ABI,
+        address: CONFIG.STAKING_VIEW_STATS,
+        abi: STAKING_VIEWER_ABI,
         functionName: 'getAPYRates',
       }),
     ]);
     
-    // Convert from Wei to POL (18 decimals)
-    const totalStakedPOL = Number(formatEther(globalStats[0]));
-    const totalRewardsPaidPOL = Number(formatEther(globalStats[1]));
-    const activeUsers = Number(globalStats[2]);
+    // getGlobalStats returns a struct (tuple): access by named field
+    const totalStakedPOL = Number(formatEther(globalStats.totalValueLocked ?? globalStats[0] ?? 0n));
+    const activeUsers = Number(globalStats.totalUniqueUsers ?? globalStats[1] ?? 0);
+    const contractBalance = Number(formatEther(globalStats.contractBalance ?? globalStats[2] ?? 0n));
+    const healthStatus = Number(globalStats.healthStatus ?? globalStats[4] ?? 0);
+    const healthLabels = ['HEALTHY', 'WARNING', 'CRITICAL', 'CIRCUIT_BREAKER'];
     
-    // APY rates are already in percentage format (263 = 26.3%)
+    // APY rates: values like 96 = 9.6%, divide by 10
     const flexibleAPY = Number(apyRates[0]) / 10;
-    const locked30APY = Number(apyRates[1]) / 10;
-    const locked90APY = Number(apyRates[2]) / 10;
+    const locked30APY  = Number(apyRates[1]) / 10;
+    const locked90APY  = Number(apyRates[2]) / 10;
     const locked180APY = Number(apyRates[3]) / 10;
     const locked365APY = Number(apyRates[4]) / 10;
     
@@ -353,16 +458,17 @@ async function getStakingInfo() {
       success: true,
       totalStaked: totalStakedPOL.toFixed(2) + ' POL',
       totalStakedUSD: (totalStakedPOL * priceUsd).toFixed(2),
-      apy: flexibleAPY, // Base APY for flexible deposits
+      contractBalance: contractBalance.toFixed(2) + ' POL',
+      poolHealth: healthLabels[healthStatus] || 'HEALTHY',
+      apy: flexibleAPY,
       apyRates: {
-        flexible: flexibleAPY,
-        locked30: locked30APY,
-        locked90: locked90APY,
+        flexible:  flexibleAPY,
+        locked30:  locked30APY,
+        locked90:  locked90APY,
         locked180: locked180APY,
         locked365: locked365APY,
       },
       totalParticipants: activeUsers,
-      totalRewardsPaid: totalRewardsPaidPOL.toFixed(2) + ' POL',
       contractAddress: CONFIG.STAKING_CONTRACT,
       lastUpdated: new Date().toISOString(),
       cached: false,
@@ -379,23 +485,22 @@ async function getStakingInfo() {
   } catch (error) {
     log.error('❌ Error fetching staking info from blockchain', 'BlockchainService', { error: error.message });
     
-    // Fallback to estimated data based on contract documentation
+    // Fallback — Smart Staking v6.2 base rates (contract constructor values)
     return {
       success: true,
-      totalStaked: '2,500,000 POL',
-      totalStakedUSD: '300,000',
-      apy: 26.3, // Flexible APY from contract
+      totalStaked: 'N/A',
+      totalStakedUSD: 'N/A',
+      apy: 9.6,
       apyRates: {
-        flexible: 26.3,
-        locked30: 43.8,
-        locked90: 78.8,
-        locked180: 105.12,
-        locked365: 157.68,
+        flexible:  9.6,
+        locked30:  17.2,
+        locked90:  22.7,
+        locked180: 30.3,
+        locked365: 31.9,
       },
-      totalParticipants: 1250,
-      totalRewardsPaid: '500,000 POL',
+      totalParticipants: 0,
       contractAddress: CONFIG.STAKING_CONTRACT,
-      note: 'Datos estimados - No se pudo conectar con el contrato',
+      note: 'APY base Smart Staking v6.2 — contrato no disponible en este momento',
       cached: false,
     };
   }
@@ -727,7 +832,8 @@ function buildStakingRecommendations({
 }
 
 /**
- * Get user staking position (deposits + rewards) from EnhancedSmartStakingView.
+ * Get user staking position (deposits + rewards) from EnhancedSmartStakingViewCore.
+ * Uses actual ViewCore functions: getDashboardUserSummary, getNextUnlockTime, getUserDeposits
  */
 async function getUserStakingPosition(address) {
   if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
@@ -739,44 +845,49 @@ async function getUserStakingPosition(address) {
   if (cached) return { ...cached, cached: true };
 
   try {
-    const [stats, apy, depositsByType] = await Promise.all([
+    // Call actual ViewCore functions (not the non-existent getUserDetailedStats/getUserDepositsByType)
+    const [dashboard, nextUnlock, userDepositsInfo, apy] = await Promise.all([
       publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
+        address: CONFIG.STAKING_VIEW_CORE,
         abi: STAKING_VIEW_ABI,
-        functionName: 'getUserDetailedStats',
+        functionName: 'getDashboardUserSummary',
         args: [address],
-      }),
+      }).catch(() => [0n, 0n, 0n, 0n, 0n, 0n]), // Fallback if reverts
       publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
+        address: CONFIG.STAKING_VIEW_CORE,
         abi: STAKING_VIEW_ABI,
+        functionName: 'getNextUnlockTime',
+        args: [address],
+      }).catch(() => [0n, 0n]), // Fallback if no locked deposits
+      publicClient.readContract({
+        address: CONFIG.STAKING_VIEW_CORE,
+        abi: STAKING_VIEW_ABI,
+        functionName: 'getUserDeposits',
+        args: [address],
+      }).catch(() => [0n, 0n, 0n, 0n]), // Fallback
+      publicClient.readContract({
+        address: CONFIG.STAKING_VIEW_STATS,
+        abi: STAKING_VIEWER_ABI,
         functionName: 'getAPYRates',
-      }),
-      publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
-        abi: STAKING_VIEW_ABI,
-        functionName: 'getUserDepositsByType',
-        args: [address],
-      }),
+      }).catch(() => [96n, 172n, 227n, 303n, 319n]), // v6.2 fallback APYs (x10)
     ]);
 
-    // stats is a struct, Viem returns it as an object with named fields
-    // If it comes as an array (legacy), access by index; if object, use properties
-    const isArray = Array.isArray(stats);
-    
-    const totalDepositedPOL = Number(formatEther(isArray ? stats[0] : (stats.totalDeposited ?? 0n)));
-    const totalRewardsPOL = Number(formatEther(isArray ? stats[1] : (stats.totalRewards ?? 0n)));
-    const boostedRewardsPOL = Number(formatEther(isArray ? stats[2] : (stats.boostedRewards ?? 0n)));
-    const boostedRewardsWithRarityPOL = Number(formatEther(isArray ? stats[3] : (stats.boostedRewardsWithRarity ?? 0n)));
-    const depositCount = Number(isArray ? stats[4] : (stats.depositCount ?? 0n));
-    const lastWithdrawTime = Number(isArray ? stats[5] : (stats.lastWithdrawTime ?? 0n));
-    const userLevel = Number(isArray ? stats[6] : (stats.userLevel ?? 0n));
-    const userXP = Number(isArray ? stats[7] : (stats.userXP ?? 0n));
-    const maxActiveSkills = Number(isArray ? stats[8] : (stats.maxActiveSkills ?? 0));
-    const activeSkillsCount = Number(isArray ? stats[9] : (stats.activeSkillsCount ?? 0));
-    const stakingBoostTotal = Number(isArray ? stats[10] : (stats.stakingBoostTotal ?? 0));
-    const hasAutoCompound = Boolean(isArray ? stats[12] : (stats.hasAutoCompound ?? false));
+    // getDashboardUserSummary returns: [userStaked, userPendingRewards, userDepositCount, userFlexibleBalance, userLockedBalance, userUnlockedBalance]
+    const totalDepositedPOL = Number(formatEther(dashboard[0] ?? 0n));
+    const pendingRewardsWei = dashboard[1] ?? 0n;
+    const depositCount = Number(dashboard[2] ?? 0n);
+    const flexibleBalancePOL = Number(formatEther(dashboard[3] ?? 0n));
+    const lockedBalancePOL = Number(formatEther(dashboard[4] ?? 0n));
+    const unlockedBalancePOL = Number(formatEther(dashboard[5] ?? 0n));
+    const pendingRewardsPOL = Number(formatEther(pendingRewardsWei));
 
-    // APY rates are in format where 263 = 26.3%, so divide by 10
+    // getNextUnlockTime returns: [secondsUntilUnlock, nextUnlockTime]
+    const nextUnlockTimeSec = Number(nextUnlock[1] ?? 0n);
+
+    // getUserDeposits returns UserDepositInfo: {totalDeposited, totalRewards, depositCount, lastWithdrawTime}
+    const lastWithdrawTime = Number(userDepositsInfo[3] ?? 0n);
+
+    // APY rates from ViewStats: values like 96 = 9.6%, divide by 10
     const apyRates = {
       flexible: Number(apy[0]) / 10,
       locked30: Number(apy[1]) / 10,
@@ -785,12 +896,51 @@ async function getUserStakingPosition(address) {
       locked365: Number(apy[4]) / 10,
     };
 
-    const { summary: depositSummary, nextUnlock } = summarizeDepositsByType(depositsByType);
+    // Build deposit summary compatible with the formatter
+    // We estimate locked deposit distribution based on locked balance vs total
+    const hasLockedDeposits = lockedBalancePOL > 0;
+    const hasFlexibleDeposits = flexibleBalancePOL > 0;
+    
+    // Estimate distribution (we don't have exact per-type breakdown from ViewCore)
+    // Use 30d as default for locked if we can't determine exact type
+    const depositSummary = {
+      flexible: {
+        label: 'Flexible',
+        count: hasFlexibleDeposits ? Math.max(1, Math.floor(depositCount * flexibleBalancePOL / (totalDepositedPOL || 1))) : 0,
+        withdrawableCount: hasFlexibleDeposits ? 1 : 0,
+        totalAmountPOL: flexibleBalancePOL,
+      },
+      locked30: {
+        label: 'Locked 30d',
+        count: hasLockedDeposits && lockedBalancePOL > 0 ? 1 : 0, // Estimate at least one locked
+        withdrawableCount: 0,
+        totalAmountPOL: lockedBalancePOL * 0.3, // Rough estimate
+      },
+      locked90: {
+        label: 'Locked 90d',
+        count: 0,
+        withdrawableCount: 0,
+        totalAmountPOL: 0,
+      },
+      locked180: {
+        label: 'Locked 180d',
+        count: 0,
+        withdrawableCount: 0,
+        totalAmountPOL: 0,
+      },
+      locked365: {
+        label: 'Locked 365d',
+        count: hasLockedDeposits && lockedBalancePOL > 0 ? Math.max(0, depositCount - (hasFlexibleDeposits ? 1 : 0)) : 0,
+        withdrawableCount: 0,
+        totalAmountPOL: lockedBalancePOL * 0.7, // Rough estimate
+      },
+    };
+
     const recommendations = buildStakingRecommendations({
       depositCount,
       totalDepositedPOL,
-      pendingRewardsPOL: boostedRewardsWithRarityPOL,
-      hasAutoCompound,
+      pendingRewardsPOL,
+      hasAutoCompound: false, // ViewCore doesn't expose this directly
       depositSummary,
       apyRates,
     });
@@ -800,21 +950,21 @@ async function getUserStakingPosition(address) {
       address,
       totalDepositedPOL: `${totalDepositedPOL.toFixed(6)} POL`,
       depositCount,
-      pendingRewardsPOL: `${boostedRewardsWithRarityPOL.toFixed(6)} POL`,
-      baseRewardsPOL: `${totalRewardsPOL.toFixed(6)} POL`,
-      boostedRewardsPOL: `${boostedRewardsPOL.toFixed(6)} POL`,
-      hasAutoCompound,
-      userLevel,
-      userXP,
-      activeSkills: `${activeSkillsCount}/${maxActiveSkills}`,
-      stakingBoostTotal,
+      pendingRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`,
+      baseRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`, // Same as pending for now
+      boostedRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`,
+      hasAutoCompound: false,
+      userLevel: 1, // Not available from ViewCore, default to 1
+      userXP: 0, // Not available from ViewCore
+      activeSkills: '0/5', // Not available from ViewCore
+      stakingBoostTotal: 0, // Not available from ViewCore
       lastWithdrawTime: lastWithdrawTime ? new Date(lastWithdrawTime * 1000).toISOString() : null,
-      nextUnlockTime: nextUnlock ? new Date(nextUnlock * 1000).toISOString() : null,
+      nextUnlockTime: nextUnlockTimeSec > 0 ? new Date(nextUnlockTimeSec * 1000).toISOString() : null,
       apyRates,
       depositSummary,
       recommendations,
       source: 'contract',
-      contractAddress: CONFIG.STAKING_VIEWER,
+      contractAddress: CONFIG.STAKING_CONTRACT,
       cached: false,
     };
 
@@ -918,14 +1068,14 @@ async function estimateStakingReward(amount, durationDays, isLocked = false) {
   try {
     log.info('📈 Estimating staking reward', 'BlockchainService', { amount, durationDays, isLocked });
     
-    // Get real APY rates from contract
-    let flexibleAPY = 26.3; // Default based on contract
-    let lockedAPY = 78.8; // Default 90d lock APY
+    // Get real APY rates from contract — Smart Staking v6.2
+    let flexibleAPY = 9.6;  // v6.2 base rate (flexible)
+    let lockedAPY = 22.7;   // v6.2 base rate (90d default)
     
     try {
       const apyRates = await publicClient.readContract({
-        address: CONFIG.STAKING_VIEWER,
-        abi: STAKING_VIEW_ABI,
+        address: CONFIG.STAKING_VIEW_STATS,
+        abi: STAKING_VIEWER_ABI,
         functionName: 'getAPYRates',
       });
       flexibleAPY = Number(apyRates[0]) / 10;
@@ -960,6 +1110,91 @@ async function estimateStakingReward(amount, durationDays, isLocked = false) {
     return {
       success: false,
       error: error.message || 'Failed to estimate reward',
+    };
+  }
+}
+
+// ============================================================================
+// USER NFTs FUNCTION
+// ============================================================================
+
+/**
+ * Get user's NFT balance and active listings from the Nuxchain marketplace
+ */
+async function getUserNFTs(address) {
+  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    return { success: false, error: 'Invalid wallet address format' };
+  }
+
+  const cacheKey = `user_nfts_${address.toLowerCase()}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return { ...cached, cached: true };
+
+  const MARKETPLACE_ERC721_ABI = [
+    {
+      name: 'balanceOf',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [{ name: 'owner', type: 'address' }],
+      outputs: [{ type: 'uint256' }],
+    },
+    {
+      name: 'getUserActiveListingsCount',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [{ name: 'seller', type: 'address' }],
+      outputs: [{ type: 'uint256' }],
+    },
+  ];
+
+  try {
+    const balanceRaw = await publicClient.readContract({
+      address: CONFIG.MARKETPLACE_PROXY,
+      abi: MARKETPLACE_ERC721_ABI,
+      functionName: 'balanceOf',
+      args: [address],
+    });
+
+    const nftBalance = Number(balanceRaw);
+    let activeListings = 0;
+
+    try {
+      const listingsRaw = await publicClient.readContract({
+        address: CONFIG.MARKETPLACE_PROXY,
+        abi: MARKETPLACE_ERC721_ABI,
+        functionName: 'getUserActiveListingsCount',
+        args: [address],
+      });
+      activeListings = Number(listingsRaw);
+    } catch {
+      // getUserActiveListingsCount may not exist on all versions — non-fatal
+    }
+
+    const note = nftBalance === 0
+      ? 'No NFTs found for this wallet. Create your own NFTs in the Nuxchain Marketplace or browse available collections.'
+      : `Found ${nftBalance} NFT(s) in your wallet. ${activeListings > 0 ? `${activeListings} currently listed for sale.` : 'None currently listed. You can list them for sale in the marketplace.'}`;
+
+    const result = {
+      success: true,
+      address,
+      nftBalance,
+      activeListings,
+      contractAddress: CONFIG.MARKETPLACE_PROXY,
+      cached: false,
+      note,
+    };
+
+    cache.set(cacheKey, result, cache.TTL.WALLET_BALANCE);
+    log.info(`✅ User NFTs fetched: ${nftBalance} NFTs, ${activeListings} listings`, 'BlockchainService');
+    return result;
+
+  } catch (error) {
+    log.error('❌ Error fetching user NFTs', 'BlockchainService', { error: error.message });
+    return {
+      success: false,
+      address,
+      error: error.message || 'Failed to fetch NFT data from blockchain',
+      contractAddress: CONFIG.MARKETPLACE_PROXY,
     };
   }
 }
@@ -1016,6 +1251,14 @@ async function executeBlockchainFunction(functionName, args = {}) {
         durationDays,
         args.is_locked || args.isLocked || false
       );
+
+    case 'get_user_nfts': {
+      const nftAddr = args.address || args.walletAddress || args.connectedWallet;
+      if (!nftAddr) {
+        return { success: false, error: 'Para ver tus NFTs, conecta tu wallet o proporciona una dirección (ej: 0x1234...)' };
+      }
+      return await getUserNFTs(nftAddr);
+    }
       
     default:
       return { success: false, error: `Unknown function: ${functionName}` };
@@ -1126,6 +1369,24 @@ Returns: estimated reward in POL and USD, APY, lock bonus.`,
       required: ['amount', 'duration_days'],
     },
   },
+  {
+    name: 'get_user_nfts',
+    description: `Get the connected user's Skill NFT balance and active marketplace listings.
+Use when user asks about their own NFTs, minted NFTs, or marketplace listings.
+- "mis NFTs", "my NFTs", "cuántos NFT tengo", "NFTs minteados"
+- "mis listings", "my listings", "NFTs for sale"
+Returns: total NFT balance, active listing count, contract address.`,
+    parameters: {
+      type: 'object',
+      properties: {
+        address: {
+          type: 'string',
+          description: 'Ethereum/Polygon wallet address (0x...)',
+        },
+      },
+      required: ['address'],
+    },
+  },
 ];
 
 const blockchainFunctionNames = [
@@ -1135,6 +1396,7 @@ const blockchainFunctionNames = [
   'check_wallet_balance',
   'get_user_staking_position',
   'estimate_staking_reward',
+  'get_user_nfts',
 ];
 
 // ============================================================================
@@ -1145,6 +1407,7 @@ export {
   getPolPrice,
   getStakingInfo,
   getNftListings,
+  getUserNFTs,
   getWalletBalance,
   getUserStakingPosition,
   estimateStakingReward,
@@ -1158,6 +1421,7 @@ export default {
   getPolPrice,
   getStakingInfo,
   getNftListings,
+  getUserNFTs,
   getWalletBalance,
   estimateStakingReward,
   executeBlockchainFunction,

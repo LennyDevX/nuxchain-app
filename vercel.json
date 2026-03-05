@@ -45,6 +45,50 @@
     "api/ipfs/upload.ts": {
       "maxDuration": 30,
       "memory": 1024
+    },
+    "api/subscriptions/purchase.ts": {
+      "maxDuration": 20,
+      "memory": 512
+    },
+    "api/subscriptions/status.ts": {
+      "maxDuration": 10,
+      "memory": 256
+    },
+    "api/skills/nft-listing.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/risk-analysis.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/market-alpha.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/content-moderation.ts": {
+      "maxDuration": 15,
+      "memory": 512
+    },
+    "api/skills/contract-auditor.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/whale-tracker.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/portfolio-analyzer.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/token-research.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/skills/liquidity-advisor.ts": {
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [

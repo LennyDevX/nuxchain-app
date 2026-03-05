@@ -3,6 +3,21 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ================================================================
+    // USER PROFILES - User data (username, bio, avatar, etc.)
+    // ================================================================
+    // Users can only read/write their own profile data
+    match /users/{userId} {
+      // Allow user to read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow user to create/update their own profile
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow deletion of own profile
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ================================================================
     // AIRDROP REGISTRATIONS - CRITICAL SECURITY
     // ================================================================
     // Allow PUBLIC reads (count, list) but NO writes from clients
@@ -80,5 +95,32 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
-  }
+
+    // ================================================================
+    // SUBSCRIPTIONS - NuxBee AI subscription records
+    // ================================================================
+    // Users can read their own subscription (by Solana wallet address)
+    // ALL writes MUST go through server-side API (purchase endpoint)
+    // ================================================================
+    match /subscriptions/{walletAddress} {
+      // Allow user to read their own subscription status
+      // Wallet address in document ID must match request param
+      allow read: if true; // public read needed for frontend status checks
+      
+      // DENY ALL direct client writes
+      // All subscription changes go through /api/subscriptions/purchase
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ================================================================
+    // CHAT USAGE - Daily usage tracking per wallet / IP
+    // ================================================================
+    // Server-only access (tracked via KV in Vercel, Firestore as backup)
+    // ================================================================
+    match /chatUsage/{document=**} {
+      allow read: if false;
+      allow write: if false;
+    }  }
 }

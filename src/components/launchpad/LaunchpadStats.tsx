@@ -38,8 +38,8 @@ export default function LaunchpadStats({ stats }: { stats: Stats | null }) {
       color: 'text-emerald-400',
     },
     {
-      label: 'Participants',
-      value: stats ? stats.total.participants.toLocaleString() : null,
+      label: 'Buyers',
+      value: stats ? fmtNux(stats.total.participants) : null,
       icon: '👥',
       color: 'text-blue-400',
     },

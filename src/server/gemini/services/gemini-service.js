@@ -1,4 +1,3 @@
-
 import ai, { DEFAULT_MODEL, blockchainFunctionDeclarations, blockchainFunctionNames, allFunctionDeclarations } from '../config/ai-config.js';
 import { executeBlockchainFunction } from './blockchain-service.js';
 import { incrementTokenCount, logError, logInfo } from '../middlewares/logger.js';

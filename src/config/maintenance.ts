@@ -14,6 +14,7 @@ declare global {
       tokenomics?: boolean;
       colab?: boolean;
       burntoken?: boolean;
+      chat?: boolean;
     };
   }
 }
@@ -64,6 +65,7 @@ export const MAINTENANCE_CONFIG: {
   devhub: MaintenanceRoute;
   nux: MaintenanceRoute;
   burntoken: MaintenanceRoute;
+  chat: MaintenanceRoute;
 } = {
   airdrop: {
     // Airdrop - MAINTENANCE DISABLED
@@ -98,7 +100,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('tokenomics', TOKENOMICS_START_TIME),
   },
   colab: {
-    enabled: false,
+    enabled: true,
     estimatedTime: 4320, // 3 days
     message: 'The Colab Portal is being upgraded with new collaboration tools and enhanced builder rewards. We will be back shortly with exciting improvements.',
     startTime: getOrInitializeStartTime('colab', COLAB_START_TIME),
@@ -122,7 +124,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('devhub', DEVHUB_START_TIME),
   },
   nux: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days
     message: 'The NUX Token page is being updated with the latest tokenomics, presale details, and cross-chain bridge information. Back very soon!',
     startTime: getOrInitializeStartTime('nux', NUX_START_TIME),
@@ -133,9 +135,15 @@ export const MAINTENANCE_CONFIG: {
     message: 'Burning Protocol Optimization: We are refining the token burn mechanism and enhancing the burn dashboard for a more transparent and impactful deflationary event. Stay tuned!',
     startTime: getOrInitializeStartTime('burntoken', BURNTOKEN_START_TIME),
   },
+  chat: {
+    enabled: true,
+    estimatedTime: 1440, // 24 hours
+    message: 'We are upgrading Nuxbee AI with enhanced features, better performance, and improved conversation history management. This upgrade will enable cloud-based conversation persistence and faster AI responses.',
+    startTime: getOrInitializeStartTime('chat', new Date().toISOString()),
+  },
 };
 
-export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' = 'airdrop'): boolean => {
+export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' = 'airdrop'): boolean => {
   // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
   const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
   if (route === 'airdrop' && devOverride) return false;
@@ -144,7 +152,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marke
   return config.enabled;
 };
 
-export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' = 'airdrop'): number => {
+export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' = 'airdrop'): number => {
   const config = MAINTENANCE_CONFIG[route];
   const startTime = new Date(config.startTime).getTime();
   const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
@@ -154,6 +162,6 @@ export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts
   return Math.ceil(remaining / 1000); // Return in seconds
 };
 
-export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken'): MaintenanceRoute => {
+export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat'): MaintenanceRoute => {
   return MAINTENANCE_CONFIG[route];
 };

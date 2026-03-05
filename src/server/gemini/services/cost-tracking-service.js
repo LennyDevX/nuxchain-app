@@ -7,7 +7,7 @@
  * - Monitor cache hit rates and savings
  * - Generate usage reports
  * 
- * Pricing (as of Dec 2024 - gemini-2.5-flash-lite):
+  * Pricing (as of Dec 2024 - gemini-3.1-flash-lite):
  * - Input: $0.075 per 1M tokens
  * - Output: $0.30 per 1M tokens
  * - Cached: 25% of input price ($0.01875 per 1M tokens)
@@ -37,9 +37,9 @@ class CostTrackingService {
       lastRequestTime: null
     };
 
-    // Pricing per 1M tokens (gemini-2.5-flash-lite)
+    // Pricing per 1M tokens (gemini-3.1-flash-lite)
     this.pricing = {
-      'gemini-2.5-flash-lite': {
+      'gemini-3.1-flash-lite': {
         input: 0.075,
         output: 0.30,
         cached: 0.01875  // 25% of input
@@ -65,7 +65,7 @@ class CostTrackingService {
    * @param {string} model - Model name
    * @param {boolean} usedCache - Whether cache was used
    */
-  recordUsage(usage, model = 'gemini-2.5-flash-lite', usedCache = false) {
+  recordUsage(usage, model = 'gemini-3.1-flash-lite', usedCache = false) {
     const { inputTokens = 0, outputTokens = 0, cachedTokens = 0 } = usage;
     
     this.stats.totalInputTokens += inputTokens;
@@ -81,7 +81,7 @@ class CostTrackingService {
     }
 
     // Calculate costs
-    const prices = this.pricing[model] || this.pricing['gemini-2.5-flash-lite'];
+    const prices = this.pricing[model] || this.pricing['gemini-3.1-flash-lite'];
     
     const inputCost = (inputTokens / 1000000) * prices.input;
     const outputCost = (outputTokens / 1000000) * prices.output;
@@ -106,7 +106,7 @@ class CostTrackingService {
    * @param {Object} usageMetadata - From response.usageMetadata
    * @param {string} model - Model name
    */
-  recordFromResponse(usageMetadata, model = 'gemini-2.5-flash-lite') {
+  recordFromResponse(usageMetadata, model = 'gemini-3.1-flash-lite') {
     if (!usageMetadata) return;
 
     const usage = {
@@ -226,8 +226,8 @@ class CostTrackingService {
    * @param {string} model - Model name
    * @returns {Object} Cost estimate
    */
-  estimateCost(inputTokens, outputTokens = 500, model = 'gemini-2.5-flash-lite') {
-    const prices = this.pricing[model] || this.pricing['gemini-2.5-flash-lite'];
+  estimateCost(inputTokens, outputTokens = 500, model = 'gemini-3.1-flash-lite') {
+    const prices = this.pricing[model] || this.pricing['gemini-3.1-flash-lite'];
     
     const inputCost = (inputTokens / 1000000) * prices.input;
     const outputCost = (outputTokens / 1000000) * prices.output;

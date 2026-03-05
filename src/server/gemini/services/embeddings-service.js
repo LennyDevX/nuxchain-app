@@ -672,11 +672,12 @@ async function precomputeWithSmartBatching(knowledgeBase) {
     }).filter(Boolean);
     
     if (batchTexts.length === 0) {
-      // All docs in batch were cached
+      /* Progress logs silenced for cleaner terminal 
       if (batchNum % 5 === 0 || batchNum === totalBatches) {
         const percentage = ((batchNum / totalBatches) * 100).toFixed(0);
         console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed}`);
       }
+      */
       continue;
     }
     
@@ -705,19 +706,16 @@ async function precomputeWithSmartBatching(knowledgeBase) {
       embeddingCallCount++; // Count as one API call
       
       // Adaptive delay: if rate limit approaching, increase delay
-      let delayMs = BATCH_DELAY_BASE;
-      if (embeddingCallCount > 40) {
-        delayMs = 4000; // Increase delay if approaching rate limit
-      }
-      if (embeddingCallCount > 45) {
-        delayMs = 5000; // Even more conservative
-      }
+      let delayMs = 3000;
+      if (embeddingCallCount > 40) delayMs = 4000;
+      if (embeddingCallCount > 45) delayMs = 5000;
       
-      // Log progress less frequently  
+      /* Log progress silenced for cleaner terminal
       if (batchNum % 5 === 0 || batchNum === totalBatches) {
         const percentage = ((batchNum / totalBatches) * 100).toFixed(0);
-        console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed} | 📊 API calls: ${embeddingCallCount}/50`);
+        console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed} | 📊 API calls: ${embeddingCallCount}/45`);
       }
+      */
       
       // Wait before next batch
       await new Promise(resolve => setTimeout(resolve, delayMs));

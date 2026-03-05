@@ -74,7 +74,9 @@ $contractVars = @(
     "VITE_MARKETPLACE_SOCIAL_ADDRESS",
     "VITE_TREASURY_MANAGER_ADDRESS",
     "VITE_ALCHEMY",
-    "VITE_WALLETCONNECT_PROJECT_ID"
+    "VITE_WALLETCONNECT_PROJECT_ID",
+    "VITE_TURNSTILE_SITE_KEY",
+    "TURNSTILE_SECRET_KEY"
 )
 
 Write-Host "=====================================================" -ForegroundColor Cyan

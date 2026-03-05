@@ -642,7 +642,7 @@ app.get('/api/launchpad/stats', async (req, res) => {
     stats.total.solRaised = stats.tier1.solRaised + stats.tier2.solRaised;
     stats.total.participants = new Set([...walletsTier1, ...walletsTier2]).size;
 
-    console.log(`[stats] tier1=${stats.tier1.nuxSold} NUX | tier2=${stats.tier2.nuxSold} NUX | participants=${stats.total.participants}`);
+    // console.log(`[stats] tier1=${stats.tier1.nuxSold} NUX | tier2=${stats.tier2.nuxSold} NUX | participants=${stats.total.participants}`);
     return res.json(stats);
   } catch (err) {
     console.error('[stats] Error:', err.message);

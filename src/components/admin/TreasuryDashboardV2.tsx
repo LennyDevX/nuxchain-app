@@ -3,7 +3,7 @@
  * Features real-time status, health indicators, and professional data visualization.
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   useTreasuryHealthV2, 
   formatPOL, 
@@ -12,7 +12,7 @@ import {
   formatTimeLeft,
   ProtocolStatus
 } from '../../hooks/treasury/useTreasuryHealthV2';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 
 // ── Components ───────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ function StatusIndicator({ data }: { data: any }) {
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export default function TreasuryDashboardV2() {
-  const { data, isLoading, refetch } = useTreasuryHealthV2();
+  const { data, isLoading } = useTreasuryHealthV2();
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -132,28 +132,28 @@ export default function TreasuryDashboardV2() {
           value={`${formatPOL(data?.totalBalance)} POL`} 
           sub="Locked in manager" 
           color="#8b5cf6" 
-          icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24 opacity-80"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+          icon={<svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
         />
         <StatBox 
           label="Total Distributed" 
           value={`${formatPOL(data?.totalDistributed)} POL`} 
           sub="Sent to users/projects" 
           color="#3b82f6" 
-          icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24 opacity-80"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
+          icon={<svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
         />
         <StatBox 
           label="Reserve Fund" 
           value={`${formatPOL(data?.reserveBalance)} POL`} 
           sub="Emergency storage" 
           color="#f59e0b" 
-          icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24 opacity-80"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+          icon={<svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
         />
         <StatBox 
           label="Revenue Received" 
           value={`${formatPOL(data?.totalReceived)} POL`} 
           sub="Protocol lifetime" 
           color="#10b981" 
-          icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24 opacity-80"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>}
+          icon={<svg className="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>}
         />
       </div>
 
@@ -193,13 +193,13 @@ export default function TreasuryDashboardV2() {
 
         {/* ── Balance Trend & Integration ── */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0a0a0a]/40 p-5 sm:p-6 rounded-3xl border border-white/[0.05] shadow-xl relative overflow-hidden h-[240px]">
-             <div className="absolute top-6 left-6 z-10">
+          <div className="bg-[#0a0a0a]/40 p-5 sm:p-6 rounded-3xl border border-white/[0.05] shadow-xl relative overflow-hidden">
+             <div className="mb-4">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-1">On-Chain Balance Trend</h3>
                 <p className="text-2xl font-black text-white">{formatPOL(data?.totalBalance)} <span className="text-xs text-slate-500 font-medium">POL</span></p>
              </div>
-             <div className="absolute inset-x-0 bottom-0 top-12">
-               <ResponsiveContainer width="100%" height="100%">
+             <div className="w-full h-[200px]">
+               <ResponsiveContainer width="100%" height={200}>
                  <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <Area 
                       type="monotone" 

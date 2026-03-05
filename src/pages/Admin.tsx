@@ -90,7 +90,7 @@ export default function Admin() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated || !isOwner) {
-      navigate('/admin/login');
+      navigate('/nothing/login');
     }
   }, [isAuthenticated, isOwner, navigate]);
 

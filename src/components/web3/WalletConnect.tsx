@@ -285,8 +285,8 @@ function WalletConnect({ className }: WalletConnectProps) {
             onTouchEnd={handleTouchEnd}
             className={`wallet-dropdown ${isClosing ? 'wallet-dropdown-exit' : 'wallet-dropdown-enter'
               } absolute z-[999] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent ${isMobile
-                ? 'fixed bottom-0 left-0 right-0 bg-[#080808] rounded-t-[2.5rem] shadow-2xl max-h-[92vh] max-w-full pb-safe-bottom'
-                : 'right-0 mt-3 w-[440px] bg-[#050505] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5'
+                ? 'fixed bottom-0 left-0 right-0 bg-[#080808] rounded-t-[2.5rem] shadow-2xl max-h-[82vh] max-w-full pb-safe-bottom'
+                : 'right-0 mt-3 w-[360px] max-h-[80vh] bg-[#050505] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5'
               }`}
           >
             {isMobile && (
@@ -295,13 +295,13 @@ function WalletConnect({ className }: WalletConnectProps) {
               </div>
             )}
             {/* Header Section (Consolidated Switcher) */}
-            <div className={`bg-gradient-to-b from-gray-900/40 to-transparent backdrop-blur-3xl border-b border-white/5 ${isMobile ? 'px-6 pt-2 pb-0' : 'p-5 pb-0'}`}>
-              <div className={`flex flex-col gap-1 ${isMobile ? 'mb-4 mt-0 ml-0 text-center' : 'mb-6 mt-1 ml-1'}`}>
-                <p className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-3xl'} text-white tracking-tighter leading-none uppercase italic`}>Multichain Hub</p>
+            <div className={`bg-gradient-to-b from-gray-900/40 to-transparent backdrop-blur-3xl border-b border-white/5 ${isMobile ? 'px-6 pt-2 pb-0' : 'p-3 pb-0'}`}>
+              <div className={`flex flex-col gap-1 ${isMobile ? 'mb-4 mt-0 ml-0 text-center' : 'mb-3 mt-1 ml-1'}`}>
+                <p className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-2xl'} text-white tracking-tighter leading-none uppercase italic`}>Multichain Hub</p>
                 <p className="jersey-15-regular text-xl text-purple-400/60 uppercase tracking-[0.3em] mb-1">Select Network to Manage</p>
               </div>
 
-              <div className="flex gap-1.5 p-1 bg-black/60 rounded-2xl border border-white/5 mb-6 relative group/switcher">
+              <div className="flex gap-1.5 p-1 bg-black/60 rounded-2xl border border-white/5 mb-3 relative group/switcher">
                 <div
                   className={`absolute top-1 bottom-1 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-white/10 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-white/5 ${activeTab === 'evm' ? 'left-1 w-[calc(50%-4px)]' : 'left-[calc(50%+1px)] w-[calc(50%-4px)]'
                     }`}
@@ -425,14 +425,14 @@ function WalletConnect({ className }: WalletConnectProps) {
                         disconnectEVM()
                         closeDropdownWithAnimation()
                       }}
-                      className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.3em] text-2xl border-t border-white/5 py-6 mt-2"
+                      className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.2em] text-sm border-t border-white/5 py-3 mt-1"
                     >
                       Disconnect EVM Wallet
                     </button>
                   </div>
                 </>
               ) : (
-                <div className="p-5 pb-10">
+                <div className="p-4 pb-6">
                   {/* Render EVM Wallet List (Reuse connection logic) */}
                   <div className="flex items-center gap-4 mb-4 px-1">
                     <p className="jersey-15-regular text-xl text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Connect EVM Wallet</p>
@@ -564,7 +564,7 @@ function WalletConnect({ className }: WalletConnectProps) {
                         disconnectSolana()
                         closeDropdownWithAnimation()
                       }}
-                      className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.3em] text-2xl border-t border-white/5 py-6 mt-4"
+                      className="jersey-20-regular w-full text-center text-red-400/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 uppercase tracking-[0.2em] text-sm border-t border-white/5 py-3 mt-1"
                     >
                       Disconnect Solana Wallet
                     </button>

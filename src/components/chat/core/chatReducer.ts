@@ -37,7 +37,8 @@ export type ChatAction =
   | { type: 'START_URL_PROCESSING'; payload: string[] }
   | { type: 'URL_PROCESSING_COMPLETE'; payload: string[] }
   | { type: 'URL_PROCESSING_ERROR'; payload: string }
-  | { type: 'RESET_URL_PROCESSING' };
+  | { type: 'RESET_URL_PROCESSING' }
+  | { type: 'LOAD_CONVERSATION'; payload: { messages: ChatMessage[]; conversationId: string } };
 
 export const initialChatState: ChatState = {
   messages: [],
@@ -125,6 +126,15 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...initialChatState,
         isOnline: state.isOnline
+      };
+
+    case 'LOAD_CONVERSATION':
+      return {
+        ...state,
+        messages: action.payload.messages,
+        conversationId: action.payload.conversationId,
+        status: 'idle',
+        error: null
       };
 
     case 'REMOVE_LAST_MESSAGE':

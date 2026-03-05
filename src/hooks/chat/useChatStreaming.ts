@@ -3,6 +3,8 @@ import { useAccount } from 'wagmi';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
+import { conversationManager } from '../../components/chat/core/conversationManager';
+
 // Define API endpoints directly since the import is not available
 const API_ENDPOINTS = {
   gemini: {
@@ -136,11 +138,13 @@ interface UseChatStreamingReturn {
   error: string | null;
   sendMessage: (message: string) => Promise<void>;
   clearMessages: () => void;
+  loadHistory?: (conversationId: string) => boolean;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
   blockchainAction: string | null;
   isSearchingKB: boolean;
   pauseStream: () => void;
+  currentConversationId?: string | null;
 }
 
 // NUEVO: Definir interfaces para tipos específicos
@@ -184,13 +188,24 @@ export function useChatStreaming(): UseChatStreamingReturn {
   // Initialize streaming service
   useEffect(() => {
     streamingServiceRef.current = new StreamingService();
-    
+
     return () => {
       if (streamingServiceRef.current) {
         streamingServiceRef.current.destroy();
       }
     };
   }, []);
+
+  // Save conversation automatically when messages change
+  useEffect(() => {
+    if (state.messages.length > 0 && state.conversationId) {
+      // Only save if we are not currently streaming (to avoid saving incomplete responses repeatedly) 
+      // or if it's the user's first message
+      if (state.status !== 'streaming' || state.messages.length === 1) {
+        conversationManager.saveConversation(state.messages, state.conversationId);
+      }
+    }
+  }, [state.messages, state.status, state.conversationId]);
 
   const sendMessage = useCallback(async (messageText: string) => {
     if (!messageText.trim() || state.status === 'streaming') return;
@@ -263,10 +278,15 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Use main stream endpoint (URLs already detected above)
       const endpoint = API_ENDPOINTS.gemini.stream;
       
+      // Get selected model from localStorage (if user has Pro/Premium subscription)
+      const selectedModel = typeof window !== 'undefined' 
+        ? localStorage.getItem('selectedGeminiModel') || 'gemini-3.1-flash-lite-preview'
+        : 'gemini-3.1-flash-lite-preview';
+      
       //Tipo específico en lugar de any
       const requestBody: RequestBody = {
         messages: conversationHistory,
-        model: 'gemini-2.5-flash-lite',
+        model: selectedModel,
         temperature: 0.3,
         maxTokens: 1024,
         stream: true
@@ -466,6 +486,29 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, []);
 
+  const loadHistory = useCallback((historyId: string) => {
+    const conversations = conversationManager.loadConversationsFromStorage();
+    const found = conversations.find(c => c.id === historyId);
+    if (found) {
+      const convertedMessages: ChatMessage[] = found.messages.map((m: any) => ({
+        id: m.id,
+        text: m.text || m.content,
+        sender: m.sender || m.role,
+        timestamp: typeof m.timestamp === 'string' ? m.timestamp : (m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp).toISOString()),
+        conversationId: found.id
+      }));
+      dispatch({ 
+        type: 'LOAD_CONVERSATION', 
+        payload: { 
+          messages: convertedMessages, 
+          conversationId: found.id 
+        } 
+      });
+      return true;
+    }
+    return false;
+  }, []);
+
   // Convert internal state to external format
   const messages: Message[] = state.messages.map((msg: ChatMessage) => ({
     id: msg.id,
@@ -483,11 +526,13 @@ export function useChatStreaming(): UseChatStreamingReturn {
     error: state.error,
     sendMessage,
     clearMessages,
+    loadHistory,
     retryLastMessage,
     isUsingUrlContext,
     blockchainAction,
     isSearchingKB,
-    pauseStream
+    pauseStream,
+    currentConversationId: state.conversationId
   };
 }
 

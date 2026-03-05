@@ -122,7 +122,7 @@ class WebScraperService {
         console.warn(`⚠️  [WebScraper] Timeout on ${url}, trying fast OpenGraph extraction`);
         try {
           return await this.extractOpenGraphFast(url);
-        } catch (ogError) {
+        } catch (_ogError) {
           console.error(`❌ [WebScraper] OpenGraph fallback also failed for ${url}`);
         }
       }
@@ -196,21 +196,13 @@ class WebScraperService {
    * Parses HTML and extracts relevant content
    */
   parseHtml(html: string): ExtractedHtmlData {
-    // Extract title
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    let title = titleMatch ? titleMatch[1].trim() : '';
-    
-    // Clean title
+    let title = titleMatch ? titleMatch[1].trim() : 'No title';
     title = title.replace(/\s+/g, ' ').trim();
 
-    // Extract meta description
     const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
     const description = descMatch ? descMatch[1].trim() : '';
 
-    // Extract content from body
-    let content = '';
-    
-    // Remove scripts, styles and other unwanted elements
     const cleanHtml = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -219,46 +211,48 @@ class WebScraperService {
       .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
       .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, '');
 
-    // Extract text from main content elements
+    let content = '';
+    // Enhanced selectors: added article and specific content IDs
     const contentSelectors = [
-      /<main[^>]*>([\s\S]*?)<\/main>/gi,
       /<article[^>]*>([\s\S]*?)<\/article>/gi,
-      /<div[^>]*class=["'][^"']*content[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
-      /<div[^>]*class=["'][^"']*post[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
-      /<section[^>]*>([\s\S]*?)<\/section>/gi
+      /<main[^>]*>([\s\S]*?)<\/main>/gi,
+      /<div[^>]*id=["'](?:content|main|article|post-content|main-content)["'][^>]*>([\s\S]*?)<\/div>/gi,
+      /<div[^>]*class=["'][^"']*(?:content|article|post-text|entry-content)[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
+      /<section[^>]*class=["'][^"']*main[^"']*["'][^>]*>([\s\S]*?)<\/section>/gi
     ];
 
     for (const selector of contentSelectors) {
-      const matches = cleanHtml.match(selector);
-      if (matches) {
-        content += matches.map(match => this.extractTextFromHtml(match)).join(' ');
+      const match = selector.exec(cleanHtml);
+      if (match && match[1]) {
+        content = this.extractTextFromHtml(match[1]);
+        if (content.length > 500) break; // If we found significant text, stop searching
       }
     }
 
-    // If no specific content found, extract from full body
     if (!content.trim()) {
       const bodyMatch = cleanHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyMatch) {
-        content = this.extractTextFromHtml(bodyMatch[1]);
-      }
+      if (bodyMatch) content = this.extractTextFromHtml(bodyMatch[1]);
     }
 
-    // Clean and format content
     content = this.cleanText(content);
-    
-    // Combine description if available
     if (description && !content.includes(description)) {
       content = description + '\n\n' + content;
     }
 
+    // Increased truncation to 5000 characters
+    const maxLength = 5000;
+    if (content.length > maxLength) {
+        content = content.substring(0, maxLength) + '... [Content Truncated]';
+    }
+
     return {
-      title: title || 'No title',
+      title,
       content: content || 'Content not available',
       metadata: {
-        description: description,
-        hasContent: !!content.trim(),
-        wordCount: content.split(/\s+/).length
-      }
+        description,
+        hasContent: content.length > 0,
+        wordCount: content.split(/\s+/).filter(w => w.length > 0).length,
+      },
     };
   }
 

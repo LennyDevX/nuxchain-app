@@ -318,8 +318,7 @@ async function processEnhancedChatRequest(query) {
   // 6. Track costs
   costTrackingService.recordFromResponse(
     response.usageMetadata,
-    'gemini-2.5-flash-lite'
-  );
+    'gemini-3.1-flash-lite'
 
   // 7. Log final metrics
   const duration = Date.now() - startTime;

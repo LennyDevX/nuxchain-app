@@ -7,7 +7,7 @@ import { createContext } from 'react';
 export interface AdminAuthContextType {
   isAuthenticated: boolean;
   isOwner: boolean;
-  login: () => Promise<void>;
+  login: (password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;

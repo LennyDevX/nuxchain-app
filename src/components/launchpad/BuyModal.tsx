@@ -46,6 +46,7 @@ export default function BuyModal({ tierId, onClose, onSuccess }: BuyModalProps) 
     if (step === 'whitelist-check' && connected && publicKey) {
       checkWhitelist();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, connected, publicKey]);
 
   async function checkWhitelist() {

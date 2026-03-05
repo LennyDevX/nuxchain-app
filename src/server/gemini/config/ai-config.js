@@ -4,19 +4,19 @@ import env from './environment.js';
 // Configuración para la API de Gemini
 const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
 
-// Fix: Use gemini-2.5-flash-lite as confirmed by user
-export const DEFAULT_MODEL = 'gemini-2.5-flash-lite'; // Use working model as default
+// Fix: Use gemini-3.1-flash-lite-preview as confirmed by user
+export const DEFAULT_MODEL = 'gemini-3.1-flash-lite-preview'; // Use working model as default
 
 // Available models with compatibility info - Valid Gemini models
 export const AVAILABLE_MODELS = {
-  'gemini-2.5-flash-lite': {
-    name: 'gemini-2.5-flash-lite',
+  'gemini-3.1-flash-lite-preview': {
+    name: 'gemini-3.1-flash-lite-preview',
     isStable: true,
     supportsStreaming: true,
     maxTokens: 8192,
-    isPreview: false,
+    isPreview: true,
     isDefault: true,
-  },
+  }
 };
 
 // Function to validate and get model info
@@ -27,7 +27,7 @@ export function getModelInfo(modelName) {
 // Function to get safe model name (fallback to working model)
 export function getSafeModel(requestedModel) {
   const modelInfo = getModelInfo(requestedModel);
-  
+
   let modelName;
   // If model exists and is stable, use it
   if (modelInfo && modelInfo.isStable) {
@@ -43,7 +43,7 @@ export function getSafeModel(requestedModel) {
     console.warn(`Model ${requestedModel} not found or unstable. Falling back to ${DEFAULT_MODEL}`);
     modelName = DEFAULT_MODEL;
   }
-  
+
   // Return the model name for use with ai.models.generateContent()
   return modelName;
 }

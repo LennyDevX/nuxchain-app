@@ -46,7 +46,15 @@ const ProfileSidebar: React.FC = () => {
             }
           }
         } catch (error) {
-          console.error("Error fetching username from Firestore:", error);
+          // Silently fail for read permissions (unauthenticated users)
+          // Use localStorage fallback instead
+          const savedUsername = localStorage.getItem(`username_${address}`);
+          if (savedUsername) {
+            setUsername(savedUsername);
+          }
+          if (import.meta.env.DEV) {
+            console.debug("[ProfileSidebar] Firestore read skipped, using localStorage", error);
+          }
         } finally {
           setIsLoaded(true);
         }

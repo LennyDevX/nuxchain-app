@@ -64,17 +64,11 @@ export const config = createConfig({
         retryDelay: 1000,
         timeout: 10000,
       })] : []),
-      // Fallback: Public Polygon RPC (always available)
-      http('https://polygon-rpc.com', {
+      // Fallback: Ankr public RPC (more reliable than polygon-rpc.com)
+      http('https://rpc.ankr.com/polygon', {
         batch: true,
         retryCount: 3,
         retryDelay: 1000,
-        timeout: 10000,
-      }),
-      // Secondary fallback: Ankr public RPC
-      http('https://rpc.ankr.com/polygon', {
-        batch: true,
-        retryCount: 2,
         timeout: 10000,
       }),
     ]),

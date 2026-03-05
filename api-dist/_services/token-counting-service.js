@@ -12,7 +12,7 @@
  */
 import { GoogleGenAI } from '@google/genai';
 // Default model for Vercel
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
 class TokenCountingService {
     tokenStats;
     modelLimits;
@@ -26,9 +26,9 @@ class TokenCountingService {
             averageInputTokens: 0,
             estimatedCostSavings: 0
         };
-        // Model limits (gemini-2.5-flash-lite)
+        // Model limits (gemini-3.1-flash-lite)
         this.modelLimits = {
-            'gemini-2.5-flash-lite': {
+            'gemini-3.1-flash-lite': {
                 inputTokenLimit: 1000000, // 1M tokens
                 outputTokenLimit: 8192,
                 minCacheTokens: 1024, // Minimum for caching
@@ -156,7 +156,7 @@ class TokenCountingService {
     quickEstimate(text, model = DEFAULT_MODEL) {
         if (!text)
             return 0;
-        const limits = this.modelLimits[model] || this.modelLimits['gemini-2.5-flash-lite'];
+        const limits = this.modelLimits[model] || this.modelLimits['gemini-3.1-flash-lite'];
         return Math.ceil(text.length * limits.tokensPerChar);
     }
     /**
@@ -165,7 +165,7 @@ class TokenCountingService {
     estimateTokens(content, model = DEFAULT_MODEL) {
         if (!content)
             return { totalTokens: 0, estimatedCost: 0 };
-        const limits = this.modelLimits[model] || this.modelLimits['gemini-2.5-flash-lite'];
+        const limits = this.modelLimits[model] || this.modelLimits['gemini-3.1-flash-lite'];
         const totalTokens = Math.ceil(content.length * limits.tokensPerChar);
         return {
             totalTokens,
@@ -180,7 +180,7 @@ class TokenCountingService {
      */
     estimateMultiPartTokens(parts, model = DEFAULT_MODEL) {
         const { systemInstruction = '', context = '', message = '', history = [] } = parts;
-        const limits = this.modelLimits[model] || this.modelLimits['gemini-2.5-flash-lite'];
+        const limits = this.modelLimits[model] || this.modelLimits['gemini-3.1-flash-lite'];
         const systemTokens = Math.ceil((systemInstruction?.length || 0) * limits.tokensPerChar);
         const contextTokens = Math.ceil((context?.length || 0) * limits.tokensPerChar);
         const messageTokens = Math.ceil((message?.length || 0) * limits.tokensPerChar);
@@ -240,7 +240,7 @@ class TokenCountingService {
             const errMsg = error instanceof Error ? error.message : String(error);
             console.warn('⚠️ Context optimization failed:', errMsg);
             // Fallback: simple character-based truncation
-            const limits = this.modelLimits[model] || this.modelLimits['gemini-2.5-flash-lite'];
+            const limits = this.modelLimits[model] || this.modelLimits['gemini-3.1-flash-lite'];
             const maxChars = Math.floor(maxTokens / limits.tokensPerChar);
             return {
                 optimizedContext: context.substring(0, maxChars) + '...',
@@ -253,16 +253,16 @@ class TokenCountingService {
     /**
      * 💰 Estimate cost based on tokens
      * Pricing (as of Dec 2024):
-     * - gemini-2.5-flash-lite: $0.075/1M input, $0.30/1M output
+     * - gemini-3.1-flash-lite: $0.075/1M input, $0.30/1M output
      * - Cached tokens: 25% of regular price
      */
     estimateCost(inputTokens, outputTokens, model = DEFAULT_MODEL, cachedTokens = 0) {
         const pricing = {
-            'gemini-2.5-flash-lite': { input: 0.075, output: 0.30, cached: 0.01875 },
+            'gemini-3.1-flash-lite': { input: 0.075, output: 0.30, cached: 0.01875 },
             'gemini-2.5-flash': { input: 0.15, output: 0.60, cached: 0.0375 },
             'gemini-2.5-pro': { input: 1.25, output: 5.00, cached: 0.3125 }
         };
-        const prices = pricing[model] || pricing['gemini-2.5-flash-lite'];
+        const prices = pricing[model] || pricing['gemini-3.1-flash-lite'];
         const inputCost = (inputTokens / 1000000) * prices.input;
         const outputCost = (outputTokens / 1000000) * prices.output;
         const cachedCost = (cachedTokens / 1000000) * prices.cached;
@@ -278,7 +278,7 @@ class TokenCountingService {
      * 📊 Check if content is suitable for caching
      */
     isCacheWorthy(content, model = DEFAULT_MODEL) {
-        const limits = this.modelLimits[model] || this.modelLimits['gemini-2.5-flash-lite'];
+        const limits = this.modelLimits[model] || this.modelLimits['gemini-3.1-flash-lite'];
         const estimatedTokens = Math.ceil(content.length * limits.tokensPerChar);
         return {
             isWorthy: estimatedTokens >= limits.minCacheTokens,

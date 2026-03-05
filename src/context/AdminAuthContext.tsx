@@ -16,6 +16,9 @@ import { AdminAuthContext } from './AdminAuthContext.types';
 // Owner wallet address (read from .env — never hardcode)
 // VITE_ADMIN_WALLET takes priority; fallback to VITE_DEPLOYER_ADDRESS
 const ADMIN_OWNER_ADDRESS = (import.meta.env.VITE_ADMIN_WALLET ?? import.meta.env.VITE_DEPLOYER_ADDRESS ?? '') as `0x${string}`;
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD as string;
+// Obfuscated session key — do not use obvious names like "admin_session"
+const SESSION_KEY = 'x_token_data';
 
 interface AdminAuthProviderProps {
   children: ReactNode;
@@ -64,11 +67,11 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
   useEffect(() => {
     if (!isConnected || !isOwner) {
       setIsAuthenticated(false);
-      localStorage.removeItem('admin_session');
+      localStorage.removeItem(SESSION_KEY);
     }
   }, [isConnected, isOwner]);
 
-  const login = async () => {
+  const login = async (password: string) => {
     if (!isConnected) {
       setError('Please connect your wallet first');
       return;
@@ -76,6 +79,12 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
 
     if (!isOwner) {
       setError('Access denied: Only owner wallet can access admin panel');
+      return;
+    }
+
+    // Validate access password before requesting wallet signature
+    if (!ADMIN_PASSWORD || password !== ADMIN_PASSWORD) {
+      setError('Invalid access password');
       return;
     }
 
@@ -105,7 +114,7 @@ This signature proves you own this wallet without exposing your private key.`;
 
       if (isValid && address?.toLowerCase() === ADMIN_OWNER_ADDRESS.toLowerCase()) {
         // Save session
-        localStorage.setItem('admin_session', JSON.stringify({
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
           address: address,
           timestamp: timestamp,
           signature: signature.slice(0, 20) + '...', // Store partial signature for reference
@@ -135,7 +144,7 @@ This signature proves you own this wallet without exposing your private key.`;
   };
 
   const logout = () => {
-    localStorage.removeItem('admin_session');
+    localStorage.removeItem(SESSION_KEY);
     setIsAuthenticated(false);
     setError(null);
   };

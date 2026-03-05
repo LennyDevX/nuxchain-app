@@ -3,6 +3,8 @@ import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "@google/genai";
 
 import { withSecurity } from '../_middlewares/serverless-security.js';
 import WebScraperService from '../_services/web-scraper.js';
+import { kv } from '@vercel/kv';
+import { FREE_DAILY_LIMIT, SUBSCRIPTION_COLLECTION } from '../../src/constants/subscription.js';
 import type { 
   ChatMessage, 
   KnowledgeBaseContext 
@@ -13,7 +15,7 @@ let blockchainService: typeof import('../_services/blockchain-service.js') | nul
 let blockchainTools: typeof import('../_services/blockchain-tools.js') | null = null;
 
 // Import type for function names
-type BlockchainFunctionName = 'get_pol_price' | 'get_staking_info' | 'get_nft_listings' | 'check_wallet_balance' | 'get_user_staking_position' | 'estimate_staking_reward';
+type BlockchainFunctionName = 'get_pol_price' | 'get_staking_info' | 'get_nft_listings' | 'check_wallet_balance' | 'get_user_staking_position' | 'estimate_staking_reward' | 'get_user_nfts';
 
 // ============================================================================
 // TIPOS
@@ -98,10 +100,19 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
     }
   }
   
-  // Detectar queries de NFT listings
+  // Detectar queries de NFT listings (marketplace global)
   if ((text.includes('nft') || text.includes('marketplace')) && 
       (text.includes('lista') || text.includes('venta') || text.includes('disponible') || text.includes('comprar'))) {
     functions.push('get_nft_listings');
+  }
+  
+  // Detectar queries de NFTs del usuario (mis NFTs, cuántos tengo, etc)
+  const isUserNFTQuery = (
+    /\b(mis?|my|cuántos?|cuantos?|tengo|have|minteado|minted|listado|listed)\b/.test(text) &&
+    text.includes('nft')
+  ) || /\b(mis listings|my listings|nfts listados|nfts for sale|mis nfts?|my nfts?)\b/.test(text);
+  if (isUserNFTQuery) {
+    functions.push('get_user_nfts');
   }
   
   // Detectar queries de wallet/balance - MEJORADO: detectar "mi balance", "my wallet", etc
@@ -130,8 +141,8 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
 
 // Tipo para el body que puede venir en diferentes formatos
 type ChatRequestBody = 
-  | { messages: ChatMessage[]; message?: never; walletAddress?: string }
-  | { message: string; messages?: never; walletAddress?: string }
+  | { messages: ChatMessage[]; message?: never; walletAddress?: string; selectedModel?: string }
+  | { message: string; messages?: never; walletAddress?: string; selectedModel?: string }
   | ChatMessage[]
   | string;
 
@@ -245,7 +256,90 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     const clientIp = getClientIp(req);
     
     console.log(`🚀 Chat stream request from ${clientIp}`);
+
+    // ──  Subscription check & daily free limit ────────────────────────────────
+    const walletAddress = (headers['x-wallet-address'] as string || '').trim();
+    let subscriptionTier: 'free' | 'pro' | 'premium' = 'free';
+    let chatModel = 'gemini-3.1-flash-lite-preview'; // Default model for free tier
     
+    // Extract selected model from request body
+    const requestBody = req.body as ChatRequestBody;
+    const selectedModel = (typeof requestBody === 'object' && requestBody !== null && 'selectedModel' in requestBody) 
+      ? (requestBody as any).selectedModel 
+      : null;
+
+    if (walletAddress && walletAddress.length >= 32) {
+      try {
+        // Check KV cache first
+        const cacheKey = `sub:${walletAddress}`;
+        let subData: Record<string, unknown> | null = null;
+        try { subData = await kv.get<Record<string, unknown>>(cacheKey); } catch { /* fail open */ }
+
+        if (!subData) {
+          // Fallback to Firestore
+          const { getDb } = await import('../_services/firebase-admin.js');
+          const db = getDb();
+          const doc = await db.collection(SUBSCRIPTION_COLLECTION).doc(walletAddress).get();
+          if (doc.exists) {
+            subData = doc.data() as Record<string, unknown>;
+            try { await kv.set(cacheKey, subData, { ex: 300 }); } catch { /* ok */ }
+          }
+        }
+
+        if (subData && subData.status === 'active') {
+          const expiryRaw = subData.expiryDate as { _seconds?: number } | string | undefined;
+          let expiry: Date;
+          if (typeof expiryRaw === 'string') { expiry = new Date(expiryRaw); }
+          else if (expiryRaw && '_seconds' in expiryRaw) { expiry = new Date((expiryRaw._seconds as number) * 1000); }
+          else { expiry = new Date(0); }
+
+          if (expiry > new Date()) {
+            subscriptionTier = subData.tier as 'pro' | 'premium';
+            
+            // Use selected model if user is Pro/Premium
+            if (selectedModel && ['gemini-pro', 'gemini-flash'].includes(selectedModel)) {
+              chatModel = selectedModel;
+              console.log(`🎯 Using selected model: ${selectedModel}`);
+            } else {
+              // Default to gemini-3.1-flash-lite-preview for Pro/Premium if no selection
+              chatModel = 'gemini-3.1-flash-lite-preview';
+            }
+          }
+        }
+      } catch (subErr) {
+        console.warn('[chat/stream] Subscription check failed, defaulting to free', subErr);
+      }
+    }
+
+    // Daily limit for free tier: 10 requests/day per wallet (or IP)
+    if (subscriptionTier === 'free') {
+      const identifier = walletAddress.length >= 32 ? walletAddress : clientIp;
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const dailyKey = `chatdaily:${identifier}:${today}`;
+      try {
+        const count = await kv.incr(dailyKey);
+        if (count === 1) await kv.expire(dailyKey, 86400); // 24h TTL
+        if (count > FREE_DAILY_LIMIT) {
+          metrics.errors++;
+          res.status(429).json({
+            error: 'DAILY_LIMIT_REACHED',
+            message: `Free tier: ${FREE_DAILY_LIMIT} messages/day. Upgrade to Pro or Premium for unlimited access.`,
+            dailyLimit: FREE_DAILY_LIMIT,
+            used: count,
+            upgradeUrl: '/upgrade',
+            resetAt: `${today}T23:59:59Z`,
+          });
+          return;
+        }
+        console.log(`📊 Free daily usage: ${count}/${FREE_DAILY_LIMIT} for ${identifier}`);
+      } catch (rlErr) {
+        console.warn('[chat/stream] Daily limit KV error, failing open', rlErr);
+      }
+    }
+
+    console.log(`🤖 Model: ${chatModel} | Tier: ${subscriptionTier} | Wallet: ${walletAddress.substring(0, 8) || 'none'}...`);
+    // ── End subscription check ────────────────────────────────────────────────
+
     // Validación de mensaje
     const validationErrors = validateRequest(req.body);
     
@@ -357,7 +451,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         const optimizedContext = await tokenCountingService.optimizeContextLength(
           relevantContext.context,
           MAX_CONTEXT_TOKENS,
-          'gemini-2.5-flash-lite'
+          'gemini-3.1-flash-lite'
         );
         
         if (optimizedContext.wasTruncated) {
@@ -458,6 +552,20 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
               } else if (connectedWallet) {
                 args = { address: connectedWallet };
                 console.log(`🔗 Using connected wallet for staking: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+              } else {
+                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                continue;
+              }
+            }
+
+            // Para get_user_nfts: dirección explícita o wallet conectada
+            if (funcName === 'get_user_nfts') {
+              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+              if (addressMatch) {
+                args = { address: addressMatch[0] };
+              } else if (connectedWallet) {
+                args = { address: connectedWallet };
+                console.log(`🔗 Using connected wallet for NFTs: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
               } else {
                 console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
                 continue;
@@ -593,6 +701,10 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
               if (fr.name === 'estimate_staking_reward') {
                 return `- Estimación Staking: ${data.amount} por ${data.duration}\n  Recompensa: ${data.estimatedReward || 'N/A'} (~$${data.estimatedRewardUSD?.toFixed(2) || 'N/A'} USD)\n  APY: ${data.apy || 'N/A'}%${data.lockBonus ? ` (+${data.lockBonus}% bonus lock)` : ''}`;
               }
+              if (fr.name === 'get_user_nfts') {
+                const nftData = data as unknown as { nftBalance?: number; activeListings?: number; note?: string };
+                return `- NFTs del Usuario: ${nftData.nftBalance ?? 0} Skill NFT(s) en wallet${nftData.activeListings ? ` | ${nftData.activeListings} listado(s) actualmente en venta` : ' | Ninguno listado actualmente'}${nftData.note ? `\n  Info: ${nftData.note}` : ''}`;
+              }
               return `- ${fr.name}: ${JSON.stringify(data)}`;
             }
             return `- ${fr.name}: Error o sin datos`;
@@ -670,7 +782,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
     const streamResponse = await client.models.generateContentStream({
-      model: "gemini-2.5-flash-lite",
+      model: chatModel,
       contents: enrichedMessage,
       config: {
         systemInstruction,

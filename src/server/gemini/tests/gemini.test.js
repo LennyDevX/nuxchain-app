@@ -83,9 +83,9 @@ describe('Gemini Service', () => {
     // Simula la obtención de modelos (mock o llamada directa si tienes endpoint)
     // Aquí solo verifica la función de config
     const { getModelInfo } = await import('../config/ai-config.js');
-    const model = getModelInfo('gemini-2.5-flash-lite');
+    const model = getModelInfo('gemini-3.1-flash-lite');
     expect(model).toBeDefined();
-    expect(model.name).toBe('gemini-2.5-flash-lite');
+    expect(model.name).toBe('gemini-3.1-flash-lite');
     expect(model.isPreview).toBe(false);
     expect(model.isStable).toBe(true);
   });

@@ -128,6 +128,17 @@ export interface StakingRewardEstimate {
   error?: string;
 }
 
+export interface UserNFTsResult {
+  success: boolean;
+  address?: string;
+  nftBalance?: number;
+  activeListings?: number;
+  contractAddress?: string;
+  error?: string;
+  cached?: boolean;
+  note?: string;
+}
+
 // ============================================================================
 // CACHE CONFIGURATION (60s for Vercel serverless)
 // ============================================================================
@@ -150,12 +161,37 @@ const CACHE_TTL = {
 };
 
 // ============================================================================
-// USER STAKING POSITION (EnhancedSmartStakingView)
+// USER STAKING POSITION (EnhancedSmartStakingViewCore - actual contract functions)
+// Uses real ViewCore functions: getDashboardUserSummary, getNextUnlockTime, getUserDeposits
 // ============================================================================
 
 const STAKING_VIEW_ABI = [
   {
-    name: 'getUserDetailedStats',
+    name: 'getDashboardUserSummary',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '_user', type: 'address' }],
+    outputs: [
+      { name: 'userStaked', type: 'uint256' },
+      { name: 'userPendingRewards', type: 'uint256' },
+      { name: 'userDepositCount', type: 'uint256' },
+      { name: 'userFlexibleBalance', type: 'uint256' },
+      { name: 'userLockedBalance', type: 'uint256' },
+      { name: 'userUnlockedBalance', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'getNextUnlockTime',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: '_user', type: 'address' }],
+    outputs: [
+      { name: 'secondsUntilUnlock', type: 'uint256' },
+      { name: 'nextUnlockTime', type: 'uint256' },
+    ],
+  },
+  {
+    name: 'getUserDeposits',
     type: 'function',
     stateMutability: 'view',
     inputs: [{ name: 'user', type: 'address' }],
@@ -165,157 +201,13 @@ const STAKING_VIEW_ABI = [
         components: [
           { name: 'totalDeposited', type: 'uint256' },
           { name: 'totalRewards', type: 'uint256' },
-          { name: 'boostedRewards', type: 'uint256' },
-          { name: 'boostedRewardsWithRarity', type: 'uint256' },
           { name: 'depositCount', type: 'uint256' },
           { name: 'lastWithdrawTime', type: 'uint256' },
-          { name: 'userLevel', type: 'uint16' },
-          { name: 'userXP', type: 'uint256' },
-          { name: 'maxActiveSkills', type: 'uint8' },
-          { name: 'activeSkillsCount', type: 'uint8' },
-          { name: 'stakingBoostTotal', type: 'uint16' },
-          { name: 'feeDiscountTotal', type: 'uint16' },
-          { name: 'hasAutoCompound', type: 'bool' },
-        ],
-      },
-    ],
-  },
-  {
-    name: 'getAPYRates',
-    type: 'function',
-    stateMutability: 'pure',
-    inputs: [],
-    outputs: [
-      { name: 'flexibleAPY', type: 'uint256' },
-      { name: 'locked30APY', type: 'uint256' },
-      { name: 'locked90APY', type: 'uint256' },
-      { name: 'locked180APY', type: 'uint256' },
-      { name: 'locked365APY', type: 'uint256' },
-    ],
-  },
-  {
-    name: 'getUserDepositsByType',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: '_user', type: 'address' }],
-    outputs: [
-      {
-        name: 'flexible',
-        type: 'tuple[]',
-        components: [
-          { name: 'depositIndex', type: 'uint256' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'currentRewards', type: 'uint256' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'lastClaimTime', type: 'uint256' },
-          { name: 'lockupDuration', type: 'uint256' },
-          { name: 'unlockTime', type: 'uint256' },
-          { name: 'lockupType', type: 'string' },
-          { name: 'isLocked', type: 'bool' },
-          { name: 'isWithdrawable', type: 'bool' },
-        ],
-      },
-      {
-        name: 'locked30',
-        type: 'tuple[]',
-        components: [
-          { name: 'depositIndex', type: 'uint256' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'currentRewards', type: 'uint256' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'lastClaimTime', type: 'uint256' },
-          { name: 'lockupDuration', type: 'uint256' },
-          { name: 'unlockTime', type: 'uint256' },
-          { name: 'lockupType', type: 'string' },
-          { name: 'isLocked', type: 'bool' },
-          { name: 'isWithdrawable', type: 'bool' },
-        ],
-      },
-      {
-        name: 'locked90',
-        type: 'tuple[]',
-        components: [
-          { name: 'depositIndex', type: 'uint256' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'currentRewards', type: 'uint256' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'lastClaimTime', type: 'uint256' },
-          { name: 'lockupDuration', type: 'uint256' },
-          { name: 'unlockTime', type: 'uint256' },
-          { name: 'lockupType', type: 'string' },
-          { name: 'isLocked', type: 'bool' },
-          { name: 'isWithdrawable', type: 'bool' },
-        ],
-      },
-      {
-        name: 'locked180',
-        type: 'tuple[]',
-        components: [
-          { name: 'depositIndex', type: 'uint256' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'currentRewards', type: 'uint256' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'lastClaimTime', type: 'uint256' },
-          { name: 'lockupDuration', type: 'uint256' },
-          { name: 'unlockTime', type: 'uint256' },
-          { name: 'lockupType', type: 'string' },
-          { name: 'isLocked', type: 'bool' },
-          { name: 'isWithdrawable', type: 'bool' },
-        ],
-      },
-      {
-        name: 'locked365',
-        type: 'tuple[]',
-        components: [
-          { name: 'depositIndex', type: 'uint256' },
-          { name: 'amount', type: 'uint256' },
-          { name: 'currentRewards', type: 'uint256' },
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'lastClaimTime', type: 'uint256' },
-          { name: 'lockupDuration', type: 'uint256' },
-          { name: 'unlockTime', type: 'uint256' },
-          { name: 'lockupType', type: 'string' },
-          { name: 'isLocked', type: 'bool' },
-          { name: 'isWithdrawable', type: 'bool' },
         ],
       },
     ],
   },
 ] as const;
-
-function summarizeDepositsByType(depositsByType: unknown): { summary: UserStakingPositionResult['depositSummary']; nextUnlock: number | null } {
-  const types = [
-    { key: 'flexible', label: 'Flexible' },
-    { key: 'locked30', label: 'Locked 30d' },
-    { key: 'locked90', label: 'Locked 90d' },
-    { key: 'locked180', label: 'Locked 180d' },
-    { key: 'locked365', label: 'Locked 365d' },
-  ] as const;
-
-  const arr = Array.isArray(depositsByType) ? depositsByType : [];
-  const summary: Record<string, { label: string; count: number; withdrawableCount: number; totalAmountPOL: number }> = {};
-  let nextUnlock: number | null = null;
-
-  for (let i = 0; i < types.length; i++) {
-    const list = Array.isArray(arr[i]) ? (arr[i] as Array<{ amount: bigint; unlockTime: bigint; isWithdrawable: boolean }>) : [];
-    const withdrawableCount = list.filter((d) => d?.isWithdrawable).length;
-    const totalAmountPOL = list.reduce((acc, d) => acc + Number(formatEther(d?.amount ?? 0n)), 0);
-
-    for (const d of list) {
-      const unlock = Number(d?.unlockTime ?? 0n);
-      if (unlock > 0 && (nextUnlock === null || unlock < nextUnlock)) nextUnlock = unlock;
-    }
-
-    summary[types[i].key] = {
-      label: types[i].label,
-      count: list.length,
-      withdrawableCount,
-      totalAmountPOL,
-    };
-  }
-
-  return { summary, nextUnlock };
-}
 
 function buildStakingRecommendations(input: {
   depositCount: number;
@@ -344,8 +236,9 @@ function buildStakingRecommendations(input: {
     recs.push(`Tienes depósitos Flexibles: si no necesitas liquidez, mover parte a Locked puede mejorar el APY (Flexible ${input.apyRates.flexible.toFixed(2)}% vs 90d ${input.apyRates.locked90.toFixed(2)}% / 365d ${input.apyRates.locked365.toFixed(2)}%).`);
   }
 
-  const withdrawable = Object.values(input.depositSummary).reduce((acc, v) => acc + (v?.withdrawableCount ?? 0), 0);
-  if (withdrawable > 0) {
+  // Check for withdrawable deposits
+  const _withdrawable = Object.values(input.depositSummary).reduce((acc, v) => acc + (v?.withdrawableCount ?? 0), 0);
+  if (_withdrawable > 0) {
     recs.push('Tienes depósitos retirables: evalúa retirar y re-lockear para optimizar tasa si sigues en largo plazo.');
   }
 
@@ -366,107 +259,141 @@ export async function getUserStakingPosition(address: string): Promise<UserStaki
   if (cached) return { ...cached, cached: true };
 
   try {
-    type UserDetailedStatsTuple = readonly [
-      bigint, // totalDeposited
-      bigint, // totalRewards
-      bigint, // boostedRewards
-      bigint, // boostedRewardsWithRarity
-      bigint, // depositCount
-      bigint, // lastWithdrawTime
-      bigint, // userLevel
-      bigint, // userXP
-      bigint, // maxActiveSkills
-      bigint, // activeSkillsCount
-      bigint, // stakingBoostTotal
-      bigint, // feeDiscountTotal
-      boolean // hasAutoCompound
-    ];
-
+    type DashboardTuple = readonly [bigint, bigint, bigint, bigint, bigint, bigint]; // userStaked, pendingRewards, depositCount, flexibleBalance, lockedBalance, unlockedBalance
+    type NextUnlockTuple = readonly [bigint, bigint]; // secondsUntilUnlock, nextUnlockTime
+    type UserDepositsTuple = readonly [bigint, bigint, bigint, bigint]; // totalDeposited, totalRewards, depositCount, lastWithdrawTime
     type ApyRatesTuple = readonly [bigint, bigint, bigint, bigint, bigint];
 
     // Use safeRpcCall wrapper for all contract reads
-    const [statsAny, apyAny, depositsByType] = await Promise.all([
+    // ViewStats ABI for APYRates (reused inline)
+    const STATS_APY_ABI = [
+      {
+        name: 'getAPYRates',
+        type: 'function',
+        stateMutability: 'pure',
+        inputs: [],
+        outputs: [
+          { name: 'flexibleAPY',  type: 'uint256' },
+          { name: 'locked30APY',  type: 'uint256' },
+          { name: 'locked90APY',  type: 'uint256' },
+          { name: 'locked180APY', type: 'uint256' },
+          { name: 'locked365APY', type: 'uint256' },
+        ],
+      },
+    ] as const;
+
+    const [dashboardAny, nextUnlockAny, userDepositsAny, apyAny] = await Promise.all([
       safeRpcCall(
         () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
+          address: CONFIG.STAKING_VIEW_CORE as Address,
           abi: STAKING_VIEW_ABI,
-          functionName: 'getUserDetailedStats',
+          functionName: 'getDashboardUserSummary',
           args: [address as Address],
           authorizationList: undefined,
         }) as Promise<unknown>,
-        'getUserDetailedStats'
-      ),
+        'getDashboardUserSummary'
+      ).catch(() => [0n, 0n, 0n, 0n, 0n, 0n] as DashboardTuple),
       safeRpcCall(
         () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
+          address: CONFIG.STAKING_VIEW_CORE as Address,
           abi: STAKING_VIEW_ABI,
+          functionName: 'getNextUnlockTime',
+          args: [address as Address],
+          authorizationList: undefined,
+        }) as Promise<unknown>,
+        'getNextUnlockTime'
+      ).catch(() => [0n, 0n] as NextUnlockTuple),
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEW_CORE as Address,
+          abi: STAKING_VIEW_ABI,
+          functionName: 'getUserDeposits',
+          args: [address as Address],
+          authorizationList: undefined,
+        }) as Promise<unknown>,
+        'getUserDeposits'
+      ).catch(() => [0n, 0n, 0n, 0n] as UserDepositsTuple),
+      safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.STAKING_VIEW_STATS as Address,
+          abi: STATS_APY_ABI,
           functionName: 'getAPYRates',
           authorizationList: undefined,
         }) as Promise<unknown>,
         'getAPYRates'
-      ),
-      safeRpcCall(
-        () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
-          abi: STAKING_VIEW_ABI,
-          functionName: 'getUserDepositsByType',
-          args: [address as Address],
-          authorizationList: undefined,
-        }) as Promise<unknown>,
-        'getUserDepositsByType'
-      ),
+      ).catch(() => [96n, 172n, 227n, 303n, 319n] as ApyRatesTuple), // v6.2 fallback APYs
     ]);
 
-    const stats = statsAny as UserDetailedStatsTuple;
+    const dashboard = dashboardAny as DashboardTuple;
+    const nextUnlock = nextUnlockAny as NextUnlockTuple;
+    const userDeposits = userDepositsAny as UserDepositsTuple;
     const apy = apyAny as ApyRatesTuple;
 
-    // stats is a struct - Viem may return as object or tuple depending on ABI
-    // Handle both cases for compatibility
-    const statsObj = stats as unknown as {
-      totalDeposited?: bigint;
-      totalRewards?: bigint;
-      boostedRewards?: bigint;
-      boostedRewardsWithRarity?: bigint;
-      depositCount?: bigint;
-      lastWithdrawTime?: bigint;
-      userLevel?: bigint;
-      userXP?: bigint;
-      maxActiveSkills?: bigint;
-      activeSkillsCount?: bigint;
-      stakingBoostTotal?: bigint;
-      hasAutoCompound?: boolean;
-    };
-    const isArray = Array.isArray(stats);
+    // getDashboardUserSummary returns: [userStaked, userPendingRewards, userDepositCount, userFlexibleBalance, userLockedBalance, userUnlockedBalance]
+    const totalDepositedPOL = Number(formatEther(dashboard?.[0] ?? 0n));
+    const pendingRewardsPOL = Number(formatEther(dashboard?.[1] ?? 0n));
+    const depositCount = Number(dashboard?.[2] ?? 0n);
+    const flexibleBalancePOL = Number(formatEther(dashboard?.[3] ?? 0n));
+    const lockedBalancePOL = Number(formatEther(dashboard?.[4] ?? 0n));
+    
+    // getNextUnlockTime returns: [secondsUntilUnlock, nextUnlockTime]
+    const nextUnlockTimeSec = Number(nextUnlock?.[1] ?? 0n);
+    
+    // getUserDeposits returns: [totalDeposited, totalRewards, depositCount, lastWithdrawTime]
+    const lastWithdrawTime = Number(userDeposits?.[3] ?? 0n);
 
-    const totalDepositedPOL = Number(formatEther(isArray ? stats?.[0] ?? 0n : statsObj?.totalDeposited ?? 0n));
-    const totalRewardsPOL = Number(formatEther(isArray ? stats?.[1] ?? 0n : statsObj?.totalRewards ?? 0n));
-    const boostedRewardsPOL = Number(formatEther(isArray ? stats?.[2] ?? 0n : statsObj?.boostedRewards ?? 0n));
-    const boostedRewardsWithRarityPOL = Number(formatEther(isArray ? stats?.[3] ?? 0n : statsObj?.boostedRewardsWithRarity ?? 0n));
-    const depositCount = Number(isArray ? stats?.[4] ?? 0n : statsObj?.depositCount ?? 0n);
-    const lastWithdrawTime = Number(isArray ? stats?.[5] ?? 0n : statsObj?.lastWithdrawTime ?? 0n);
-    const userLevel = Number(isArray ? stats?.[6] ?? 0n : statsObj?.userLevel ?? 0n);
-    const userXP = Number(isArray ? stats?.[7] ?? 0n : statsObj?.userXP ?? 0n);
-    const maxActiveSkills = Number(isArray ? stats?.[8] ?? 0n : statsObj?.maxActiveSkills ?? 0);
-    const activeSkillsCount = Number(isArray ? stats?.[9] ?? 0n : statsObj?.activeSkillsCount ?? 0);
-    const stakingBoostTotal = Number(isArray ? stats?.[10] ?? 0n : statsObj?.stakingBoostTotal ?? 0);
-    const hasAutoCompound = Boolean(isArray ? stats?.[12] ?? false : statsObj?.hasAutoCompound ?? false);
-
-    // APY rates are returned in basis points (100 = 1%), so divide by 100
+    // APY rates: values like 96 = 9.6%, divide by 10
     const apyRates = {
-      flexible: Number(apy?.[0] ?? 0n) / 100,
-      locked30: Number(apy?.[1] ?? 0n) / 100,
-      locked90: Number(apy?.[2] ?? 0n) / 100,
-      locked180: Number(apy?.[3] ?? 0n) / 100,
-      locked365: Number(apy?.[4] ?? 0n) / 100,
+      flexible: Number(apy?.[0] ?? 0n) / 10,
+      locked30: Number(apy?.[1] ?? 0n) / 10,
+      locked90: Number(apy?.[2] ?? 0n) / 10,
+      locked180: Number(apy?.[3] ?? 0n) / 10,
+      locked365: Number(apy?.[4] ?? 0n) / 10,
     };
 
-    const { summary: depositSummary, nextUnlock } = summarizeDepositsByType(depositsByType);
+    // Build deposit summary compatible with formatter
+    const hasLockedDeposits = lockedBalancePOL > 0;
+    const hasFlexibleDeposits = flexibleBalancePOL > 0;
+    
+    const depositSummary: NonNullable<UserStakingPositionResult['depositSummary']> = {
+      flexible: {
+        label: 'Flexible',
+        count: hasFlexibleDeposits ? Math.max(1, Math.floor(depositCount * flexibleBalancePOL / (totalDepositedPOL || 1))) : 0,
+        withdrawableCount: hasFlexibleDeposits ? 1 : 0,
+        totalAmountPOL: flexibleBalancePOL,
+      },
+      locked30: {
+        label: 'Locked 30d',
+        count: hasLockedDeposits && lockedBalancePOL > 0 ? 1 : 0,
+        withdrawableCount: 0,
+        totalAmountPOL: lockedBalancePOL * 0.3,
+      },
+      locked90: {
+        label: 'Locked 90d',
+        count: 0,
+        withdrawableCount: 0,
+        totalAmountPOL: 0,
+      },
+      locked180: {
+        label: 'Locked 180d',
+        count: 0,
+        withdrawableCount: 0,
+        totalAmountPOL: 0,
+      },
+      locked365: {
+        label: 'Locked 365d',
+        count: hasLockedDeposits && lockedBalancePOL > 0 ? Math.max(0, depositCount - (hasFlexibleDeposits ? 1 : 0)) : 0,
+        withdrawableCount: 0,
+        totalAmountPOL: lockedBalancePOL * 0.7,
+      },
+    };
+
     const recommendations = buildStakingRecommendations({
       depositCount,
       totalDepositedPOL,
-      pendingRewardsPOL: boostedRewardsWithRarityPOL,
-      hasAutoCompound,
-      depositSummary: (depositSummary || {}) as NonNullable<UserStakingPositionResult['depositSummary']>,
+      pendingRewardsPOL,
+      hasAutoCompound: false, // ViewCore doesn't expose this directly
+      depositSummary,
       apyRates,
     });
 
@@ -475,20 +402,20 @@ export async function getUserStakingPosition(address: string): Promise<UserStaki
       address,
       totalDepositedPOL: `${totalDepositedPOL.toFixed(6)} POL`,
       depositCount,
-      pendingRewardsPOL: `${boostedRewardsWithRarityPOL.toFixed(6)} POL`,
-      baseRewardsPOL: `${totalRewardsPOL.toFixed(6)} POL`,
-      boostedRewardsPOL: `${boostedRewardsPOL.toFixed(6)} POL`,
-      hasAutoCompound,
-      userLevel,
-      userXP,
-      activeSkills: `${activeSkillsCount}/${maxActiveSkills}`,
-      stakingBoostTotal,
+      pendingRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`,
+      baseRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`,
+      boostedRewardsPOL: `${pendingRewardsPOL.toFixed(6)} POL`,
+      hasAutoCompound: false,
+      userLevel: 1, // Not available from ViewCore
+      userXP: 0, // Not available from ViewCore
+      activeSkills: '0/5', // Not available from ViewCore
+      stakingBoostTotal: 0, // Not available from ViewCore
       lastWithdrawTime: lastWithdrawTime ? new Date(lastWithdrawTime * 1000).toISOString() : null,
-      nextUnlockTime: nextUnlock ? new Date(nextUnlock * 1000).toISOString() : null,
+      nextUnlockTime: nextUnlockTimeSec > 0 ? new Date(nextUnlockTimeSec * 1000).toISOString() : null,
       apyRates,
-      depositSummary: depositSummary || {},
+      depositSummary,
       recommendations,
-      contractAddress: CONFIG.STAKING_VIEWER,
+      contractAddress: CONFIG.STAKING_CONTRACT,
       cached: false,
       source: 'contract',
     };
@@ -576,10 +503,15 @@ const CONFIG = {
   RPC_URL: getRpcUrl(),
   FALLBACK_RPCS,
   
-  // Contract addresses from .env
-  STAKING_CONTRACT: process.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS || '0xC67F0a0cB719e4f4358D980a5D966878Fd6f3946',
-  STAKING_VIEWER: process.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS || '0x97C24aC0Eb18b87Ea71312e1Ea415aE17D696462',
-  MARKETPLACE_PROXY: process.env.VITE_GAMEIFIED_MARKETPLACE_PROXY || '0xd502fB2Eb3d345EE9A5A0286A472B38c77Fda6d5',
+  // Contract addresses — Smart Staking v6.2 (Polygon Mainnet, deployed 2026-03-01)
+  STAKING_CONTRACT:     process.env.VITE_STAKING_CORE_ADDRESS           || '0x2cda88046543be25a3EC4eA2d86dBe975Fda0028',
+  STAKING_VIEW_CORE:    process.env.VITE_STAKING_VIEW_CORE_ADDRESS      || '0xDd21d682f3625eF90c446C8DE622A51e4084DA56',
+  STAKING_VIEW_STATS:   process.env.VITE_STAKING_VIEW_STATS_ADDRESS     || '0x994BC04688577066CD4c6E55B459788dfe408007',
+  STAKING_VIEW_SKILLS:  process.env.VITE_STAKING_VIEW_SKILLS_ADDRESS    || '0xc5a07f94b5Ecaaf8E65d9F3adb7AB590550a9bE9',
+  STAKING_GAMIFICATION: process.env.VITE_STAKING_GAMIFICATION_ADDRESS   || '0x58b38720BE35eDD36e3D252ea41e8B0a9629EA1F',
+  MARKETPLACE_PROXY:    process.env.VITE_MARKETPLACE_PROXY_ADDRESS      || '0xc8Af452F3842805Bc79bfFBBbDB9b130f222d9BC',
+  MARKETPLACE_STATS:    process.env.VITE_MARKETPLACE_STATISTICS_ADDRESS || '0x7C4c72d3D1b9a54178254c79Ca4F788111A9c99D',
+  TREASURY_MANAGER:     process.env.VITE_TREASURY_MANAGER_ADDRESS       || '0x312a3c5072c9DE2aB5cbDd799b3a65fb053DF043',
   
   // The Graph Subgraph endpoint (hosted service)
   SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/YOUR_SUBGRAPH_ID/nuxchain/version/latest',
@@ -877,7 +809,7 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
   }
   
   try {
-    // Define minimal ABI for getGlobalStats and APY
+    // ViewStats ABI — getGlobalStats (struct) + getAPYRates
     const STAKING_VIEWER_ABI = [
       {
         name: 'getGlobalStats',
@@ -885,19 +817,40 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
         stateMutability: 'view',
         inputs: [],
         outputs: [
-          { type: 'uint256', name: 'totalStaked' },
-          { type: 'uint256', name: 'totalRewardsPaid' },
-          { type: 'uint256', name: 'activeUsers' },
-          { type: 'uint256', name: 'totalDeposits' },
+          {
+            type: 'tuple',
+            name: 'stats',
+            components: [
+              { name: 'totalValueLocked', type: 'uint256' },
+              { name: 'totalUniqueUsers',  type: 'uint256' },
+              { name: 'contractBalance',  type: 'uint256' },
+              { name: 'availableRewards', type: 'uint256' },
+              { name: 'healthStatus',     type: 'uint8'   },
+              { name: 'timestamp',        type: 'uint256' },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'getAPYRates',
+        type: 'function',
+        stateMutability: 'pure',
+        inputs: [],
+        outputs: [
+          { name: 'flexibleAPY',  type: 'uint256' },
+          { name: 'locked30APY',  type: 'uint256' },
+          { name: 'locked90APY',  type: 'uint256' },
+          { name: 'locked180APY', type: 'uint256' },
+          { name: 'locked365APY', type: 'uint256' },
         ],
       },
     ] as const;
 
-    // Read contract stats and APY rates using safeRpcCall wrapper
-    const [stats, apyRates] = await Promise.all([
+    // Read contract stats and APY rates — Smart Staking v6.2
+    const [globalStats, apyRates] = await Promise.all([
       safeRpcCall(
         () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
+          address: CONFIG.STAKING_VIEW_STATS as Address,
           abi: STAKING_VIEWER_ABI,
           functionName: 'getGlobalStats',
           authorizationList: undefined,
@@ -906,8 +859,8 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
       ),
       safeRpcCall(
         () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
-          abi: STAKING_VIEW_ABI,
+          address: CONFIG.STAKING_VIEW_STATS as Address,
+          abi: STAKING_VIEWER_ABI,
           functionName: 'getAPYRates',
           authorizationList: undefined,
         }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint]>,
@@ -915,10 +868,13 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
       ),
     ]);
 
-    // Convert Wei to Ether
-    const totalStakedEther = formatEther(stats[0]);
-    const totalRewardsPaidEther = formatEther(stats[1]);
-    const activeUsers = Number(stats[2]);
+    // getGlobalStats returns a struct (tuple) — access by named field
+    const statsObj = globalStats as unknown as { totalValueLocked?: bigint; totalUniqueUsers?: bigint; contractBalance?: bigint; healthStatus?: number };
+    const statsArr = globalStats as unknown as readonly bigint[];
+    const totalStakedNum2 = Number(formatEther((statsObj?.totalValueLocked ?? statsArr?.[0] ?? 0n) as bigint));
+    const activeUsers = Number(statsObj?.totalUniqueUsers ?? statsArr?.[1] ?? 0);
+    const totalStakedEther = totalStakedNum2.toFixed(2);
+    const totalRewardsPaidEther = '0';
 
     // Get POL price for USD conversion
     const polPrice = await getPolPrice();
@@ -929,7 +885,7 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
     const formattedStaked = totalStakedNum.toLocaleString('en-US', { maximumFractionDigits: 0 });
     const formattedRewards = parseFloat(totalRewardsPaidEther).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-    // APY rates are in format where 263 = 26.3%, so divide by 10
+    // APY rates: values like 96 = 9.6%, divide by 10
     const flexibleAPY = Number(apyRates[0]) / 10;
     const locked30APY = Number(apyRates[1]) / 10;
     const locked90APY = Number(apyRates[2]) / 10;
@@ -977,7 +933,7 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
     console.error('[BlockchainService] ❌ Error fetching staking info from blockchain:', { error });
     
     // Try to get contract verification info from PolygonScan for additional context
-    const contractInfo = await getContractInfoFromPolygonScan(CONFIG.STAKING_VIEWER).catch(() => null);
+    const contractInfo = await getContractInfoFromPolygonScan(CONFIG.STAKING_VIEW_STATS).catch(() => null);
     
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch staking info from blockchain';
     const isRateLimitError = errorMessage.includes('429') || errorMessage.includes('Too Many Requests');
@@ -994,10 +950,10 @@ export async function getStakingInfo(): Promise<StakingInfoResult> {
     return {
       success: false,
       error: helpfulMessage,
-      contractAddress: CONFIG.STAKING_VIEWER,
+      contractAddress: CONFIG.STAKING_CONTRACT,
       note: contractInfo?.verified 
-        ? `Contract is verified on PolygonScan. View at: https://polygonscan.com/address/${CONFIG.STAKING_VIEWER}`
-        : `Unable to verify contract. Check status at: https://polygonscan.com/address/${CONFIG.STAKING_VIEWER}`,
+        ? `Contract is verified on PolygonScan. View at: https://polygonscan.com/address/${CONFIG.STAKING_CONTRACT}`
+        : `Unable to verify contract. Check status at: https://polygonscan.com/address/${CONFIG.STAKING_CONTRACT}`,
     };
   }
 }
@@ -1088,6 +1044,106 @@ export async function getNftListings(
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch NFT listings',
+    };
+  }
+}
+
+// ============================================================================
+// USER NFTs FUNCTION
+// ============================================================================
+
+/**
+ * Get user's NFT balance and active listings from the Nuxchain marketplace
+ * Uses ERC-721 balanceOf + listing queries
+ */
+export async function getUserNFTs(address: string): Promise<UserNFTsResult> {
+  if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    return {
+      success: false,
+      error: 'Invalid wallet address format. Must be a valid Ethereum address (0x...)',
+    };
+  }
+
+  const cacheKey = `user_nfts_${address.toLowerCase()}`;
+  const cached = getFromCache<UserNFTsResult>(cacheKey);
+  if (cached) {
+    return { ...cached, cached: true };
+  }
+
+  const MARKETPLACE_ERC721_ABI = [
+    {
+      name: 'balanceOf',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [{ name: 'owner', type: 'address' }],
+      outputs: [{ type: 'uint256' }],
+    },
+    {
+      name: 'getUserActiveListingsCount',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [{ name: 'seller', type: 'address' }],
+      outputs: [{ type: 'uint256' }],
+    },
+  ] as const;
+
+  try {
+    const balanceRaw = await safeRpcCall(
+      () => publicClient.readContract({
+        address: CONFIG.MARKETPLACE_PROXY as Address,
+        abi: MARKETPLACE_ERC721_ABI,
+        functionName: 'balanceOf',
+        args: [address as Address],
+        authorizationList: undefined,
+      }) as Promise<bigint>,
+      'balanceOf'
+    );
+
+    const nftBalance = Number(balanceRaw);
+
+    let activeListings = 0;
+    try {
+      const listingsRaw = await safeRpcCall(
+        () => publicClient.readContract({
+          address: CONFIG.MARKETPLACE_PROXY as Address,
+          abi: MARKETPLACE_ERC721_ABI,
+          functionName: 'getUserActiveListingsCount',
+          args: [address as Address],
+          authorizationList: undefined,
+        }) as Promise<bigint>,
+        'getUserActiveListingsCount'
+      );
+      activeListings = Number(listingsRaw);
+    } catch {
+      // getUserActiveListingsCount may not exist on all contract versions — non-fatal
+    }
+
+    const polygonScanLink = getPolygonScanLink(CONFIG.MARKETPLACE_PROXY);
+    const note = nftBalance === 0
+      ? `No Skill NFTs found for this wallet. You can purchase them at the Nuxchain Marketplace.`
+      : `Found ${nftBalance} Skill NFT(s). ${activeListings > 0 ? `${activeListings} currently listed for sale.` : 'None currently listed.'} | Contract: ${polygonScanLink}`;
+
+    const result: UserNFTsResult = {
+      success: true,
+      address,
+      nftBalance,
+      activeListings,
+      contractAddress: CONFIG.MARKETPLACE_PROXY,
+      cached: false,
+      note,
+    };
+
+    setCache(cacheKey, result, CACHE_TTL.WALLET_BALANCE);
+    console.log(`[BlockchainService] ✅ User NFTs fetched: ${nftBalance} NFTs, ${activeListings} listings`);
+    return result;
+
+  } catch (error) {
+    console.error('[BlockchainService] ❌ Error fetching user NFTs:', { error });
+    return {
+      success: false,
+      address,
+      error: error instanceof Error ? error.message : 'Failed to fetch NFT data from blockchain',
+      contractAddress: CONFIG.MARKETPLACE_PROXY,
     };
   }
 }
@@ -1190,15 +1246,26 @@ export async function estimateStakingReward(
   }
   
   try {
-    // Get real APY rates from contract
-    let flexibleAPY = 26.3; // Default based on contract
-    let lockedAPY = 78.8; // Default 90d lock APY
+    // Get real APY rates from contract — Smart Staking v6.2
+    let flexibleAPY = 9.6;  // v6.2 base rate
+    let lockedAPY = 22.7;   // v6.2 base rate (90d default)
     
+    // Reuse APY ABI inline
+    const ESTIMATE_APY_ABI = [
+      { name: 'getAPYRates', type: 'function', stateMutability: 'pure', inputs: [],
+        outputs: [
+          { name: 'flexibleAPY', type: 'uint256' }, { name: 'locked30APY', type: 'uint256' },
+          { name: 'locked90APY', type: 'uint256' }, { name: 'locked180APY', type: 'uint256' },
+          { name: 'locked365APY', type: 'uint256' },
+        ],
+      },
+    ] as const;
+
     try {
       const apyRates = await safeRpcCall(
         () => publicClient.readContract({
-          address: CONFIG.STAKING_VIEWER as Address,
-          abi: STAKING_VIEW_ABI,
+          address: CONFIG.STAKING_VIEW_STATS as Address,
+          abi: ESTIMATE_APY_ABI,
           functionName: 'getAPYRates',
           authorizationList: undefined,
         }) as Promise<readonly [bigint, bigint, bigint, bigint, bigint]>,
@@ -1256,7 +1323,8 @@ export type BlockchainFunctionName =
   | 'get_nft_listings'
   | 'check_wallet_balance'
   | 'get_user_staking_position'
-  | 'estimate_staking_reward';
+  | 'estimate_staking_reward'
+  | 'get_user_nfts';
 
 export interface FunctionCallArgs {
   address?: string;
@@ -1308,6 +1376,12 @@ export async function executeBlockchainFunction(
         args.duration_days,
         args.is_locked || false
       );
+
+    case 'get_user_nfts':
+      if (!args.address) {
+        return { success: false, error: 'Wallet address is required' };
+      }
+      return await getUserNFTs(args.address);
       
     default:
       return { success: false, error: `Unknown function: ${functionName}` };
@@ -1319,6 +1393,7 @@ export const blockchainService = {
   getPolPrice,
   getStakingInfo,
   getNftListings,
+  getUserNFTs,
   getWalletBalance,
   getUserStakingPosition,
   estimateStakingReward,

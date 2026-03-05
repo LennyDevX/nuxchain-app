@@ -10,7 +10,7 @@ import Home from '../pages/Home';
 const Staking = lazy(() => import(/* webpackChunkName: "staking" */ '../pages/Staking'));
 const NFTs = lazy(() => import(/* webpackChunkName: "nfts" */ '../pages/NFTs'));
 const Marketplace = lazy(() => import(/* webpackChunkName: "marketplace" */ '../pages/Marketplace'));
-const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/Chat'));
+const Chat = lazy(() => import(/* webpackChunkName: "chat" */ '../pages/ChatMaintenance'));
 const Tokenization = lazy(() => import(/* webpackChunkName: "tokenization" */ '../pages/Tokenization'));
 const Labs = lazy(() => import(/* webpackChunkName: "labs" */ '../pages/Labs'));
 const PriceFeed = lazy(() => import(/* webpackChunkName: "price-feed" */ '../pages/PriceFeed'));
@@ -25,8 +25,8 @@ const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/Ai
 const About = lazy(() => import(/* webpackChunkName: "about" */ '../pages/About'));
 const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
-const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../pages/Admin'));
-const AdminLogin = lazy(() => import(/* webpackChunkName: "admin-login" */ '../pages/AdminLogin'));
+const Admin = lazy(() => import(/* webpackChunkName: "workspace" */ '../pages/Admin'));
+const AdminLogin = lazy(() => import(/* webpackChunkName: "workspace-access" */ '../pages/AdminLogin'));
 const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
 const Launchpad = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/Launchpad'));
@@ -84,9 +84,9 @@ function AppRoutes() {
         <Route path="/tutorial" element={<About />} />
         <Route path="/tokenomics" element={<Tokenomics />} />
         <Route path="/colab" element={<ColabPortal />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/dashboard" element={<Admin />} />
-        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/nothing/login" element={<AdminLogin />} />
+        <Route path="/nothing/dashboard" element={<Admin />} />
+        <Route path="/nothing" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/nux" element={<Nux />} />
         <Route path="/rewards" element={<Rewards />} />

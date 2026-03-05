@@ -389,7 +389,7 @@ Responde en formato JSON con: {"topics": [...], "keyPoints": [...], "userInfo": 
     try {
       await contextCacheService.createContextCache(
         context.messages || [],
-        'gemini-2.5-flash-lite',
+        'gemini-3.1-flash-lite',
         86400 // 24 horas
       );
     } catch (error) {

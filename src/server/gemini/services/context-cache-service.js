@@ -62,11 +62,11 @@ class ContextCacheService {
    * 
    * @param {string} systemInstruction - System instruction text
    * @param {string} knowledgeContext - Knowledge base context
-   * @param {string} model - Model name (must use explicit version like gemini-2.5-flash-lite)
+   * @param {string} model - Model name (must use explicit version like gemini-3.1-flash-lite)
    * @param {number} ttlSeconds - Cache TTL in seconds (default 5 minutes)
    * @returns {Promise<Object|null>} Cache info or null if failed
    */
-  async createSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite', ttlSeconds = 300) {
+  async createSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-3.1-flash-lite', ttlSeconds = 300) {
     try {
       if (!env.geminiApiKey) {
         throw new Error('API key no configurada');
@@ -88,7 +88,7 @@ class ContextCacheService {
       console.log(`🔄 Creating system cache: ${cacheCheck.estimatedTokens} estimated tokens`);
 
       // Create explicit cache using Gemini API
-      // Note: Must use explicit version suffix like "gemini-2.5-flash-lite"
+      // Note: Must use explicit version suffix like "gemini-3.1-flash-lite"
       const cacheResponse = await ai.caches.create({
         model: `models/${model}`,
         config: {
@@ -137,7 +137,7 @@ class ContextCacheService {
    * 🆕 Get or create system instruction cache
    * Returns existing cache if valid, creates new one otherwise
    */
-  async getOrCreateSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite') {
+  async getOrCreateSystemCache(systemInstruction, knowledgeContext = '', model = 'gemini-3.1-flash-lite') {
     // Check if existing cache is still valid
     if (this.systemInstructionCache) {
       if (Date.now() < this.systemInstructionCache.expiresAt) {
@@ -172,7 +172,7 @@ class ContextCacheService {
   /**
    * Crea un context cache en Gemini API (for conversation history)
    */
-  async createContextCache(messages, model = 'gemini-2.5-flash-lite', ttlSeconds = 3600) {
+  async createContextCache(messages, model = 'gemini-3.1-flash-lite', ttlSeconds = 3600) {
     try {
       if (!env.geminiApiKey) {
         throw new Error('API key no configurada');
@@ -324,7 +324,7 @@ class ContextCacheService {
    * 🆕 Generate content with system cache (RECOMMENDED)
    * Uses cached system instruction for cost savings
    */
-  async generateWithSystemCache(message, systemInstruction, knowledgeContext = '', model = 'gemini-2.5-flash-lite', params = {}) {
+  async generateWithSystemCache(message, systemInstruction, knowledgeContext = '', model = 'gemini-3.1-flash-lite', params = {}) {
     try {
       // Get or create system cache
       const systemCache = await this.getOrCreateSystemCache(systemInstruction, knowledgeContext, model);

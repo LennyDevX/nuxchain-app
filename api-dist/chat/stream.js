@@ -255,7 +255,7 @@ async function streamHandler(req, res) {
         const MAX_CONTEXT_TOKENS = 4000;
         if (relevantContext.context && relevantContext.context.length > 0) {
             try {
-                const optimizedContext = await tokenCountingService.optimizeContextLength(relevantContext.context, MAX_CONTEXT_TOKENS, 'gemini-2.5-flash-lite');
+                const optimizedContext = await tokenCountingService.optimizeContextLength(relevantContext.context, MAX_CONTEXT_TOKENS, 'gemini-3.1-flash-lite');
                 if (optimizedContext.wasTruncated) {
                     console.log(`✂️ Context optimized: ${optimizedContext.originalTokens} → ${optimizedContext.tokenCount} tokens (${optimizedContext.reduction})`);
                     relevantContext = {
@@ -501,7 +501,7 @@ async function streamHandler(req, res) {
         }
         // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
         const streamResponse = await client.models.generateContentStream({
-            model: "gemini-2.5-flash-lite",
+            model: "gemini-3.1-flash-lite",
             contents: enrichedMessage,
             config: {
                 systemInstruction,

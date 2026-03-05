@@ -301,20 +301,14 @@ html {
 /* Overflow handling for mobile */
 .truncate-2-lines {
   display: -webkit-box;
-  display: box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
-  box-orient: vertical;
   overflow: hidden;
 }
 
 .truncate-1-line {
   display: -webkit-box;
-  display: box;
   -webkit-line-clamp: 1;
-  line-clamp: 1;
   -webkit-box-orient: vertical;
-  box-orient: vertical;
   overflow: hidden;
 }

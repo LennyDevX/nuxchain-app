@@ -24,14 +24,19 @@ export default function Launchpad() {
     try {
       const res = await fetch('/api/launchpad/stats');
       if (res.ok) setStats(await res.json());
-    } catch { }
+    } catch {
+      // Silent fail - stats will remain null
+    }
   }, []);
 
   // Fetch stats on mount and every 30s
   useEffect(() => {
-    fetchStats();
-    const id = setInterval(fetchStats, 30_000);
-    return () => clearInterval(id);
+    const timeoutId = setTimeout(fetchStats, 0);
+    const intervalId = setInterval(fetchStats, 30_000);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(intervalId);
+    };
   }, [fetchStats]);
 
   // Date of next upcoming event

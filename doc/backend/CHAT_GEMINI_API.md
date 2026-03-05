@@ -140,8 +140,7 @@ api/
 
 7. LLAMADA A GEMINI
    └─ generateContentStream()
-   └─ Model: gemini-2.5-flash-lite
-   └─ Config de seguridad (bloqueo de contenido)
+    └─ Model: gemini-3.1-flash-lite
 
 8. STREAMING DE RESPUESTA
    ├─ SSE (Server-Sent Events) u HTTP Streaming
@@ -652,7 +651,7 @@ const safetySettings = [
 
 // Pasar a Gemini
 const response = await client.models.generateContentStream({
-  model: "gemini-2.5-flash-lite",
+  model: "gemini-3.1-flash-lite",
   contents: message,
   config: {
     safetySettings,

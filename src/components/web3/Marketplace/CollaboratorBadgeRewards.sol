@@ -11,8 +11,7 @@ import "../interfaces/IBadgeManager.sol";
 /**
  * @title CollaboratorBadgeRewards
  * @notice Manages quest rewards and commission pool for Collaborator Badge holders.
- * @dev Receives 16% of ALL protocol revenue (after 20% reserve) via TreasuryManager distribution.
- *      Also receives direct commissions from NFT sales via receive() function.
+ * @dev Receives 25% of ALL protocol revenue (staking + marketplace + quest fees) via TreasuryManager.
  *      Badge holders earn passive income from entire ecosystem activity through automatic distributions.
  *      Quest rewards are funded by this integrated revenue stream for sustainable growth.
  * @custom:security-contact security@nuvo.com

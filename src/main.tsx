@@ -65,6 +65,7 @@ import './styles/responsive-grid.css'
 import './styles/walletconnect.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
+import { SubscriptionProvider } from './context/SubscriptionContext'
 
 // ✅ Solana wallet adapters configuration
 // Modern wallets (Phantom, OKX, Solflare) are now "Standard Wallets"
@@ -133,9 +134,11 @@ createRoot(document.getElementById('root')!).render(
           <WalletProvider wallets={solanaWallets} autoConnect>
             <WalletModalProvider>
               <QueryClientProvider client={queryClient}>
-                <App />
-                <Analytics />
-                <SpeedInsights />
+                <SubscriptionProvider>
+                  <App />
+                  <Analytics />
+                  <SpeedInsights />
+                </SubscriptionProvider>
               </QueryClientProvider>
             </WalletModalProvider>
           </WalletProvider>

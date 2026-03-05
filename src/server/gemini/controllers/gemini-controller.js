@@ -86,6 +86,15 @@ function detectBlockchainQuery(message) {
     functions.push('check_wallet_balance');
   }
   
+  // Detectar queries de NFTs del usuario (mis NFTs, cuántos tengo, listings propios)
+  const isUserNFTQuery = (
+    /\b(mis?|my|cu[aá]ntos?|tengo|have|minteado|minted|listado|listed)\b/.test(text) &&
+    text.includes('nft')
+  ) || /\b(mis listings|my listings|nfts listados|nfts for sale|mis nfts?|my nfts?)\b/.test(text);
+  if (isUserNFTQuery) {
+    functions.push('get_user_nfts');
+  }
+
   // Detectar queries de reward estimation
   if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
       (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
@@ -177,6 +186,23 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
         }
       }
       
+      if (funcName === 'get_user_nfts') {
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { walletAddress: addressMatch[0] };
+        } else if (connectedWallet) {
+          args = { connectedWallet: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet (NFTs): ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found`);
+          results.push({
+            name: funcName,
+            result: { success: false, error: 'Para ver tus NFTs, conecta tu wallet o proporciona una dirección (ej: 0x1234...)' }
+          });
+          continue;
+        }
+      }
+
       if (funcName === 'estimate_staking_reward') {
         const amountMatch = messageText.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
         args = { amount: amountMatch ? parseFloat(amountMatch[1]) : 100 };
@@ -296,6 +322,11 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
           : '';
 
         return `\n**📊 Tu Posición de Staking:**\n  • Total depositado: ${totalDepositedPOL || 'N/A'}\n  • Número de depósitos: ${depositCount ?? 'N/A'}\n  • Rewards acumulados: ${pendingRewardsPOL || 'N/A'}\n  • Auto-Compound: ${hasAutoCompound ? '✅ Activado' : '❌ Desactivado'}${unlockText}${depositSummaryText}${recText}\n`;
+      }
+      if (r.name === 'get_user_nfts') {
+        const { address, nftBalance, activeListings, note } = r.result;
+        const shortAddr = address ? `${address.slice(0,6)}...${address.slice(-4)}` : 'tu wallet';
+        return `\n**🎨 NFTs de ${shortAddr}:**\n  • Skill NFTs en wallet: **${nftBalance ?? 0}**${activeListings > 0 ? `\n  • Listados en venta: ${activeListings}` : '\n  • Ninguno listado actualmente'}${note ? `\n  ℹ️ ${note}` : ''}\n`;
       }
       return `- ${r.name}: ${JSON.stringify(r.result)}`;
     }
@@ -975,16 +1006,16 @@ export function getAvailableModels(req, res) {
   res.json({
     models: [
       {
-        name: 'gemini-2.5-flash-lite',
-        displayName: 'Gemini 2.5 Flash Lite',
+        name: 'gemini-3.1-flash-lite',
+        displayName: 'Gemini 3.1 Flash Lite',
         isDefault: true,
         isStable: true,
         isPreview: false,
         description: 'Optimized stable model for speed and quality - recommended for all use cases'
       }
     ],
-    default: 'gemini-2.5-flash-lite',
-    note: 'Using the latest stable Gemini 2.5 Flash Lite model for optimal performance and reliability.'
+    default: 'gemini-3.1-flash-lite',
+    note: 'Using the latest stable Gemini 3.1 Flash Lite model for optimal performance and reliability.'
   });
 }
 
@@ -1335,7 +1366,7 @@ export async function processBatchGeneration(req, res, next) {
         error: 'Se requiere un array de requests no vacío',
         example: {
           requests: [
-            { prompt: "¿Qué es la IA?", model: "gemini-2.5-flash-lite" },
+            { prompt: "¿Qué es la IA?", model: "gemini-3.1-flash-lite" },
             { prompt: "Explica blockchain", temperature: 0.7 }
           ],
           options: { concurrency: 3, failFast: false }
@@ -1997,7 +2028,7 @@ export async function processChatWithTools(req, res, next) {
 
     // Configurar herramientas habilitadas
     const enabledTools = options.enabledTools || [];
-    const model = options.model || 'gemini-2.5-flash-lite';
+    const model = options.model || 'gemini-3.1-flash-lite';
 
     console.log('🔧 [CONTROLLER] Herramientas habilitadas:', enabledTools);
     console.log('🔧 [CONTROLLER] Modelo a usar:', model);
@@ -2095,7 +2126,7 @@ export async function streamChatWithTools(req, res, next) {
       // Usar el servicio de streaming con herramientas
       const geminiStream = await processGeminiStreamRequestWithTools(
         formattedMessages, 
-        'gemini-2.5-flash-lite', 
+        'gemini-3.1-flash-lite', 
         { temperature: 0.7, maxOutputTokens: 2048 }, 
         finalEnabledTools
       );

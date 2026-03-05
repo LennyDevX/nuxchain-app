@@ -182,6 +182,34 @@ Returns: estimated reward in POL and USD, effective APY, lock bonus.`,
   },
 };
 
+/**
+ * Get user's NFT balance and active listings
+ * Use when user asks about their own NFTs, minted NFTs, or marketplace listings
+ */
+export const getUserNFTsDeclaration = {
+  name: 'get_user_nfts',
+  description: `Get the connected user's Skill NFT balance and active marketplace listings.
+Use this function when the user asks about:
+- How many NFTs they have minted / own
+- Their Skill NFTs in their wallet
+- NFTs they have listed for sale
+- Their active marketplace listings
+- "mis NFTs", "my NFTs", "cuántos NFT tengo", "NFTs minteados"
+
+IMPORTANT: Only call this if a wallet address is available (connected wallet).
+Returns: total NFT balance, active listing count, contract address.`,
+  parameters: {
+    type: 'object',
+    properties: {
+      address: {
+        type: 'string',
+        description: 'The Ethereum/Polygon wallet address (must start with 0x and be 42 characters)',
+      },
+    },
+    required: ['address'],
+  },
+};
+
 // ============================================================================
 // COMBINED DECLARATIONS
 // ============================================================================
@@ -196,6 +224,7 @@ export const blockchainFunctionDeclarations = [
   checkWalletBalanceDeclaration,
   getUserStakingPositionDeclaration,
   estimateStakingRewardDeclaration,
+  getUserNFTsDeclaration,
 ];
 
 /**
@@ -208,6 +237,7 @@ export const blockchainFunctionNames = [
   'check_wallet_balance',
   'get_user_staking_position',
   'estimate_staking_reward',
+  'get_user_nfts',
 ] as const;
 
 export type BlockchainFunctionName = typeof blockchainFunctionNames[number];
@@ -234,6 +264,7 @@ export function getFunctionDeclaration(name: BlockchainFunctionName) {
     check_wallet_balance: checkWalletBalanceDeclaration,
     get_user_staking_position: getUserStakingPositionDeclaration,
     estimate_staking_reward: estimateStakingRewardDeclaration,
+    get_user_nfts: getUserNFTsDeclaration,
   };
   return declarations[name];
 }

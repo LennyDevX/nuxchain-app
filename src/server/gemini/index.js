@@ -168,47 +168,38 @@ if (environmentConfig.isProduction) {
   websocketHandler.initialize(server);
 }
 
-// Verificar el entorno de ejecución
-if (env.isVercel) {
-  console.log('Running on Vercel - Initializing knowledge base...');
-  startServer().then(() => {
-    console.log('✅ Knowledge base ready');
-  }).catch(error => {
-    console.error('❌ Initialization error:', error.message);
+// This file is always run as a standalone Express server for local development.
+// VERCEL=1 in .env (from vercel env pull) must not suppress server.listen().
+startServer().then(() => {
+  server.listen(port, () => {
+    console.log(`\n🚀 Server running on http://localhost:${port}`);
+    console.log(`📡 WebSocket available at ws://localhost:${port}/ws/streaming\n`);
+    console.log('✓ Semantic chunking');
+    console.log('✓ Contextual pauses');
+    console.log('✓ Variable speed streaming');
+    console.log('✓ WebSocket support\n');
   });
-} else {
-  // En desarrollo, inicializar primero y luego arrancar el servidor
-  startServer().then(() => {
-    server.listen(port, () => {
-      console.log(`\n🚀 Server running on http://localhost:${port}`);
-      console.log(`📡 WebSocket available at ws://localhost:${port}/ws/streaming\n`);
-      console.log('✓ Semantic chunking');
-      console.log('✓ Contextual pauses');
-      console.log('✓ Variable speed streaming');
-      console.log('✓ WebSocket support\n');
-    });
-  }).catch(error => {
-    console.error('❌ Startup error:', error.message);
-    process.exit(1);
-  });
+}).catch(error => {
+  console.error('❌ Startup error:', error.message);
+  process.exit(1);
+});
 
-  // Manejo de cierre graceful
-  process.on('SIGTERM', () => {
-    console.log('\n🛑 SIGTERM received, shutting down...');
-    websocketHandler.cleanup();
-    server.close(() => {
-      process.exit(0);
-    });
+// Manejo de cierre graceful
+process.on('SIGTERM', () => {
+  console.log('\n🛑 SIGTERM received, shutting down...');
+  websocketHandler.cleanup();
+  server.close(() => {
+    process.exit(0);
   });
+});
 
-  process.on('SIGINT', () => {
-    console.log('\n🛑 SIGINT received, shutting down...');
-    websocketHandler.cleanup();
-    server.close(() => {
-      process.exit(0);
-    });
+process.on('SIGINT', () => {
+  console.log('\n🛑 SIGINT received, shutting down...');
+  websocketHandler.cleanup();
+  server.close(() => {
+    process.exit(0);
   });
-}
+});
 
 // Export the app for serverless environments
 export default app;

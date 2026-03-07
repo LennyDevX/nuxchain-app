@@ -58,6 +58,13 @@ const NUXCHAIN_KEYWORDS = [
     'funciones', 'functions', 'funcionalidades', 'functionalities',
     'capacidades', 'capabilities', 'servicios', 'services',
     'ventajas', 'benefits', 'beneficios', 'advantages',
+    // ✅ NUEVOS: Skills y Gamificación
+    'skill', 'skills', 'active skill', 'staking skill', 'skill nft', 'nft skill',
+    'gamificacion', 'gamificación', 'gamification', 'gamified',
+    'influencer', 'curator', 'curadora', 'ambassador', 'embajador',
+    'vip access', 'early access', 'priority listing', 'verified creator', 'batch minter',
+    'nivel', 'level', 'xp', 'experiencia', 'experience points', 'puntos',
+    'rango', 'rang', 'insignia', 'badge', 'achievement', 'logro',
     // Características técnicas
     'fractional nft', 'nft fraccionado', 'fraccional',
     'metadata', 'ipfs', 'smart staking', 'liquidity',

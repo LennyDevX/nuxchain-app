@@ -808,8 +808,14 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
     console.log(`⏭️ Skipping KB (stream) - Reason: Blockchain query with pre-loaded data`);
   }
   
-  // Construir systemInstruction con contexto (vacío si se saltó KB)
-  const systemInstruction = skipKnowledgeBase ? null : buildSystemInstructionWithContext(knowledgeContext, contextScore);
+  // Construir systemInstruction con contexto — SIEMPRE incluir persona/idioma aunque se salte KB
+  // Cuando skipKnowledgeBase=true, se pasa contexto vacío pero el AI mantiene personalidad Nuxbee + idioma
+  const languageDetection = userQuery ? detectLanguage(userQuery) : null;
+  const systemInstruction = buildSystemInstructionWithContext(
+    skipKnowledgeBase ? '' : knowledgeContext,
+    skipKnowledgeBase ? 0 : contextScore,
+    languageDetection
+  );
   
   // 🆕 TOKEN COUNTING: Count total tokens before sending
   const tokenBreakdown = tokenCountingService.estimateMultiPartTokens({
@@ -873,10 +879,8 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
       responseMimeType: 'text/plain',
     };
     
-    // Solo añadir systemInstruction si no es null (para blockchain queries se salta)
-    if (systemInstruction) {
-      streamConfig.systemInstruction = systemInstruction;
-    }
+    // Siempre incluir systemInstruction (persona Nuxbee + idioma, siempre presente)
+    streamConfig.systemInstruction = systemInstruction;
     
     // Agregar tools si fueron pasadas en options
     if (options.tools) {

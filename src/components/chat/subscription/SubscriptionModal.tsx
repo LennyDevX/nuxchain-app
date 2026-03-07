@@ -21,14 +21,14 @@ import {
   PublicKey,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
-import { useSubscription } from '../../context/SubscriptionContext';
+import { useSubscription } from '../../../context/SubscriptionContext';
 import {
   SUBSCRIPTION_PRICES,
   TIER_SKILLS,
   GEMINI_MODELS,
   type PaymentToken,
   type GeminiModel,
-} from '../../constants/subscription';
+} from '../../../constants/subscription';
 
 // Treasury wallet (manual QR payment recipient)
 const TREASURY_DIRECT = 'GcfKd6DzFUANkRWkSwVp5YspaoRvS5j5GgRRvA8oBPXm';

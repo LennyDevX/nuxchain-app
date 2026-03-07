@@ -25,7 +25,7 @@ export const SKILLS = {
     'nft-listing': {
         id: 'nft-listing',
         label: 'NFT Listing Service',
-        description: 'Genera descripción SEO, traits y copywriting para NFTs desde IPFS o wallet',
+        description: 'Generates SEO descriptions, traits, and copywriting for NFTs from IPFS or wallet',
         icon: '🖼️',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -34,7 +34,7 @@ export const SKILLS = {
     'risk-analysis': {
         id: 'risk-analysis',
         label: 'Risk Analysis Reports',
-        description: 'Score de riesgo on-chain semanal para pools y tokens con análisis multi-factor',
+        description: 'Weekly on-chain risk scores for pools and tokens with multi-factor analysis',
         icon: '🔍',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -43,7 +43,7 @@ export const SKILLS = {
     'market-alpha': {
         id: 'market-alpha',
         label: 'Market Alpha',
-        description: 'Insights narrativos de mercado, pools y liquidez con contexto de subgraph',
+        description: 'Narrative market insights for pools and liquidity using subgraph context',
         icon: '📈',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -52,7 +52,7 @@ export const SKILLS = {
     'content-moderation': {
         id: 'content-moderation',
         label: 'Content Moderation API',
-        description: 'Clasifica contenido como spam/scam/ok con reasoning detallado — API para proyectos externos',
+        description: 'Classifies content as spam/scam/ok with detailed reasoning — API for external projects',
         icon: '🛡️',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -61,7 +61,7 @@ export const SKILLS = {
     'contract-auditor': {
         id: 'contract-auditor',
         label: 'Smart Contract Auditor',
-        description: 'Detecta vulnerabilidades comunes en ABIs y bytecode de contratos EVM',
+        description: 'Detects common vulnerabilities in EVM contract ABIs and bytecode',
         icon: '🔐',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -70,7 +70,7 @@ export const SKILLS = {
     'whale-tracker': {
         id: 'whale-tracker',
         label: 'Whale Tracker Insights',
-        description: 'Interpreta movimientos de wallets grandes en lenguaje natural con alertas',
+        description: 'Interprets large wallet movements in natural language with alerts',
         icon: '🐋',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -79,7 +79,7 @@ export const SKILLS = {
     'portfolio-analyzer': {
         id: 'portfolio-analyzer',
         label: 'Portfolio Analyzer',
-        description: 'Analiza el portfolio del usuario (tokens, NFTs, posiciones LP) y sugiere acciones',
+        description: 'Analyzes user portfolio (tokens, NFTs, LP positions) and suggests actions',
         icon: '💼',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -88,7 +88,7 @@ export const SKILLS = {
     'token-research': {
         id: 'token-research',
         label: 'Token Deep Research',
-        description: 'Research profundo de cualquier token: tokenomics, team, on-chain risks, y comparativas',
+        description: 'Deep research on any token: tokenomics, team, on-chain risks, and comparisons',
         icon: '🔬',
         addonPriceUSD: 0,
         addonPriceNUX: 0,
@@ -97,7 +97,7 @@ export const SKILLS = {
     'liquidity-advisor': {
         id: 'liquidity-advisor',
         label: 'Liquidity Advisor',
-        description: 'Sugiere rangos óptimos de LP en Uniswap v3/v4 basado en volatilidad histórica',
+        description: 'Suggests optimal LP ranges on Uniswap v3/v4 based on historical volatility',
         icon: '💧',
         addonPriceUSD: 0,
         addonPriceNUX: 0,

@@ -21,6 +21,7 @@ const CACHE_TTL = {
     WALLET_BALANCE: 30 * 1000, // 30s - user-specific
     REWARD_ESTIMATE: 60 * 1000, // 60s - calculation
     USER_STAKING: 30 * 1000, // 30s - user-specific
+    USER_HISTORY: 60 * 1000, // 60s - subgraph indexed data
 };
 // ============================================================================
 // USER STAKING POSITION (EnhancedSmartStakingViewCore - actual contract functions)
@@ -318,7 +319,7 @@ const CONFIG = {
     MARKETPLACE_STATS: process.env.VITE_MARKETPLACE_STATISTICS_ADDRESS || '0x7C4c72d3D1b9a54178254c79Ca4F788111A9c99D',
     TREASURY_MANAGER: process.env.VITE_TREASURY_MANAGER_ADDRESS || '0x312a3c5072c9DE2aB5cbDd799b3a65fb053DF043',
     // The Graph Subgraph endpoint (hosted service)
-    SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/YOUR_SUBGRAPH_ID/nuxchain/version/latest',
+    SUBGRAPH_URL: 'https://api.studio.thegraph.com/query/122195/nuxchain/v0.40',
 };
 // Log RPC configuration on startup with detailed info
 if (PRIMARY_RPC) {
@@ -441,8 +442,8 @@ function getPolygonScanLink(address) {
 // POL PRICE FUNCTION
 // ============================================================================
 /**
- * Get current POL (Polygon) token price from CoinGecko
- * Rate limited: uses internal cache to minimize API calls
+ * Get current POL (Polygon) token price
+ * Uses DIA Data API directly — CoinGecko geo-blocks and is unreliable
  */
 export async function getPolPrice() {
     const cacheKey = 'pol_price';
@@ -450,41 +451,8 @@ export async function getPolPrice() {
     if (cached) {
         return { ...cached, cached: true };
     }
-    try {
-        // Intentar CoinGecko primero
-        const response = await fetch(`${CONFIG.COINGECKO_API}/simple/price?ids=matic-network&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`, {
-            headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'NuxchainApp/1.0'
-            },
-            signal: AbortSignal.timeout(5000),
-        });
-        if (!response.ok) {
-            throw new Error(`CoinGecko API error: ${response.status}`);
-        }
-        const data = await response.json();
-        const matic = data['matic-network'];
-        // Verificar que matic existe Y tiene datos
-        if (!matic || typeof matic.usd !== 'number') {
-            console.log('[BlockchainService] CoinGecko empty, trying DIA Data...');
-            return await getPolPriceFromDIA();
-        }
-        const result = {
-            success: true,
-            price: matic.usd,
-            change24h: matic.usd_24h_change,
-            marketCap: matic.usd_market_cap,
-            volume24h: matic.usd_24h_vol,
-            lastUpdated: new Date().toISOString(),
-            cached: false,
-        };
-        setCache(cacheKey, result, CACHE_TTL.POL_PRICE);
-        return result;
-    }
-    catch (error) {
-        console.error('[BlockchainService] CoinGecko error:', error);
-        return await getPolPriceFromDIA();
-    }
+    // DIA Data API - reliable source, no rate limiting or geo-blocking
+    return await getPolPriceFromDIA();
 }
 /**
  * Fallback: Get POL price from DIA Data API
@@ -975,6 +943,118 @@ export async function estimateStakingReward(amount, durationDays, isLocked = fal
         };
     }
 }
+// ============================================================================
+// USER HISTORY via THE GRAPH SUBGRAPH
+// ============================================================================
+/**
+ * Get user activity history from The Graph subgraph
+ * Returns cumulative deposit/withdrawal stats and recent activity
+ */
+export async function getUserHistory(address) {
+    if (!address || !/^0x[a-fA-F0-9]{40}$/i.test(address)) {
+        return { success: false, error: 'Invalid wallet address format' };
+    }
+    const cacheKey = `user_history_${address.toLowerCase()}`;
+    const cached = getFromCache(cacheKey);
+    if (cached)
+        return { ...cached, cached: true };
+    const query = `
+    query GetUserHistory($address: ID!) {
+      user(id: $address) {
+        id
+        depositCount
+        withdrawalCount
+        nftMintedCount
+        nftSoldCount
+        nftBoughtCount
+        totalDeposited
+        totalWithdrawn
+        level
+        totalXP
+      }
+      deposits(where: { user: $address }, orderBy: timestamp, orderDirection: desc, first: 5) {
+        amount
+        lockupDuration
+        timestamp
+      }
+      withdrawals(where: { user: $address }, orderBy: timestamp, orderDirection: desc, first: 5) {
+        amount
+        timestamp
+      }
+    }
+  `;
+    try {
+        const response = await fetch(CONFIG.SUBGRAPH_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, variables: { address: address.toLowerCase() } }),
+        });
+        if (!response.ok) {
+            throw new Error(`Subgraph request failed: ${response.status}`);
+        }
+        const json = await response.json();
+        if (json.errors?.length) {
+            throw new Error(json.errors[0].message);
+        }
+        const user = json.data?.user;
+        if (!user) {
+            return {
+                success: true,
+                address,
+                depositCount: 0,
+                withdrawalCount: 0,
+                nftMintedCount: 0,
+                nftSoldCount: 0,
+                nftBoughtCount: 0,
+                totalDeposited: '0 POL',
+                totalWithdrawn: '0 POL',
+                level: 0,
+                totalXP: 0,
+                recentDeposits: [],
+                recentWithdrawals: [],
+                cached: false,
+            };
+        }
+        const toPolString = (bigIntStr) => {
+            const val = parseFloat(formatEther(BigInt(bigIntStr || '0')));
+            return `${val.toFixed(4)} POL`;
+        };
+        const result = {
+            success: true,
+            address,
+            totalDeposited: toPolString(user.totalDeposited),
+            totalWithdrawn: toPolString(user.totalWithdrawn),
+            depositCount: parseInt(user.depositCount, 10),
+            withdrawalCount: parseInt(user.withdrawalCount, 10),
+            nftMintedCount: parseInt(user.nftMintedCount, 10),
+            nftSoldCount: parseInt(user.nftSoldCount, 10),
+            nftBoughtCount: parseInt(user.nftBoughtCount, 10),
+            level: parseInt(user.level, 10),
+            totalXP: parseInt(user.totalXP, 10),
+            recentDeposits: (json.data?.deposits || []).map(d => ({
+                amount: toPolString(d.amount),
+                lockupDuration: parseInt(d.lockupDuration, 10),
+                timestamp: parseInt(d.timestamp, 10),
+            })),
+            recentWithdrawals: (json.data?.withdrawals || []).map(w => ({
+                amount: toPolString(w.amount),
+                timestamp: parseInt(w.timestamp, 10),
+            })),
+            cached: false,
+        };
+        setCache(cacheKey, result, CACHE_TTL.USER_HISTORY);
+        console.log(`[BlockchainService] ✅ User history fetched for ${address.slice(0, 6)}...`);
+        return result;
+    }
+    catch (error) {
+        console.error('[BlockchainService] ❌ Error fetching user history from subgraph:', error);
+        return {
+            success: false,
+            address,
+            error: error instanceof Error ? error.message : 'Failed to fetch user history from subgraph',
+        };
+    }
+}
 /**
  * Execute a blockchain function by name
  * Used by Gemini function calling handler
@@ -1008,6 +1088,11 @@ export async function executeBlockchainFunction(functionName, args) {
                 return { success: false, error: 'Wallet address is required' };
             }
             return await getUserNFTs(args.address);
+        case 'get_user_history':
+            if (!args.address) {
+                return { success: false, error: 'Wallet address is required' };
+            }
+            return await getUserHistory(args.address);
         default:
             return { success: false, error: `Unknown function: ${functionName}` };
     }
@@ -1021,6 +1106,7 @@ export const blockchainService = {
     getWalletBalance,
     getUserStakingPosition,
     estimateStakingReward,
+    getUserHistory,
     executeBlockchainFunction,
 };
 export default blockchainService;

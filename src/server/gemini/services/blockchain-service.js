@@ -114,7 +114,8 @@ const CONFIG = {
 // ============================================================================
 
 /**
- * Get current POL (Polygon) token price from CoinGecko
+ * Get current POL (Polygon) token price
+ * Uses DIA Data API directly — CoinGecko geo-blocks and Binance returns 451
  */
 async function getPolPrice() {
   const cacheKey = 'pol_price';
@@ -125,57 +126,8 @@ async function getPolPrice() {
     return { ...cached, cached: true };
   }
   
-  try {
-    log.info('💰 Fetching POL price from CoinGecko', 'BlockchainService');
-    
-    // Intentar CoinGecko primero
-    const response = await fetch(
-      `${CONFIG.COINGECKO_API}/simple/price?ids=matic-network&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true`,
-      {
-        headers: { 
-          'Accept': 'application/json',
-          'User-Agent': 'NuxchainApp/1.0'
-        },
-        signal: AbortSignal.timeout(5000),
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`CoinGecko API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const matic = data['matic-network'];
-    
-    // Verificar que matic existe Y tiene datos (no sea objeto vacío)
-    if (!matic || typeof matic.usd !== 'number') {
-      console.log('⚠️ [BlockchainService] CoinGecko returned empty data, trying Binance...');
-      // Intentar con Binance como backup
-      return await getPolPriceFromBinance();
-    }
-    
-    const result = {
-      success: true,
-      price: matic.usd,
-      change24h: matic.usd_24h_change,
-      marketCap: matic.usd_market_cap,
-      volume24h: matic.usd_24h_vol,
-      lastUpdated: new Date().toISOString(),
-      cached: false,
-      source: 'coingecko'
-    };
-    
-    cache.set(cacheKey, result, cache.TTL.POL_PRICE);
-    log.info('💰 POL price fetched', 'BlockchainService', { price: result.price });
-    
-    return result;
-    
-  } catch (error) {
-    log.error('❌ Error fetching POL price from CoinGecko', 'BlockchainService', { error: error.message });
-    
-    // Intentar Binance como fallback
-    return await getPolPriceFromBinance();
-  }
+  // DIA Data API is the only reliable source
+  return await getPolPriceFromDIA();
 }
 
 /**
@@ -616,47 +568,49 @@ async function getNftListings(limit = 10, sortBy = 'recent') {
 // WALLET BALANCE FUNCTION
 // ============================================================================
 
-// EnhancedSmartStakingView ABI - user staking functions
+// EnhancedSmartStakingViewCore ABI - functions actually called by getUserStakingPosition
 const STAKING_VIEW_ABI = [
   {
-    inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
-    name: 'getUserDetailedStats',
+    inputs: [{ internalType: 'address', name: '_user', type: 'address' }],
+    name: 'getDashboardUserSummary',
     outputs: [
-      {
-        components: [
-          { internalType: 'uint256', name: 'totalDeposited', type: 'uint256' },
-          { internalType: 'uint256', name: 'totalRewards', type: 'uint256' },
-          { internalType: 'uint256', name: 'boostedRewards', type: 'uint256' },
-          { internalType: 'uint256', name: 'boostedRewardsWithRarity', type: 'uint256' },
-          { internalType: 'uint256', name: 'depositCount', type: 'uint256' },
-          { internalType: 'uint256', name: 'lastWithdrawTime', type: 'uint256' },
-          { internalType: 'uint16', name: 'userLevel', type: 'uint16' },
-          { internalType: 'uint256', name: 'userXP', type: 'uint256' },
-          { internalType: 'uint8', name: 'maxActiveSkills', type: 'uint8' },
-          { internalType: 'uint8', name: 'activeSkillsCount', type: 'uint8' },
-          { internalType: 'uint16', name: 'stakingBoostTotal', type: 'uint16' },
-          { internalType: 'uint16', name: 'feeDiscountTotal', type: 'uint16' },
-          { internalType: 'bool', name: 'hasAutoCompound', type: 'bool' },
-        ],
-        internalType: 'struct EnhancedSmartStakingView.UserStats',
-        name: '',
-        type: 'tuple',
-      },
+      { internalType: 'uint256', name: 'userStaked', type: 'uint256' },
+      { internalType: 'uint256', name: 'userPendingRewards', type: 'uint256' },
+      { internalType: 'uint256', name: 'userDepositCount', type: 'uint256' },
+      { internalType: 'uint256', name: 'userFlexibleBalance', type: 'uint256' },
+      { internalType: 'uint256', name: 'userLockedBalance', type: 'uint256' },
+      { internalType: 'uint256', name: 'userUnlockedBalance', type: 'uint256' },
     ],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'getAPYRates',
+    inputs: [{ internalType: 'address', name: '_user', type: 'address' }],
+    name: 'getNextUnlockTime',
     outputs: [
-      { internalType: 'uint256', name: 'flexibleAPY', type: 'uint256' },
-      { internalType: 'uint256', name: 'locked30APY', type: 'uint256' },
-      { internalType: 'uint256', name: 'locked90APY', type: 'uint256' },
-      { internalType: 'uint256', name: 'locked180APY', type: 'uint256' },
-      { internalType: 'uint256', name: 'locked365APY', type: 'uint256' },
+      { internalType: 'uint256', name: 'secondsUntilUnlock', type: 'uint256' },
+      { internalType: 'uint256', name: 'nextUnlockTime', type: 'uint256' },
     ],
-    stateMutability: 'pure',
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'user', type: 'address' }],
+    name: 'getUserDeposits',
+    outputs: [
+      {
+        components: [
+          { internalType: 'uint256', name: 'totalDeposited', type: 'uint256' },
+          { internalType: 'uint256', name: 'totalRewards', type: 'uint256' },
+          { internalType: 'uint256', name: 'depositCount', type: 'uint256' },
+          { internalType: 'uint256', name: 'lastWithdrawTime', type: 'uint256' },
+        ],
+        internalType: 'struct EnhancedSmartStakingViewCore.UserDepositInfo',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {

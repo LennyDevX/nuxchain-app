@@ -9,6 +9,8 @@ import {
   clearCache as clearGeminiCache 
 } from '../services/gemini-service.js';
 import { executeBlockchainFunction } from '../services/blockchain-service.js';
+import { fetchUserBlockchainData, formatUserContextForAI } from '../services/graph-user-service.js';
+import { verifyMessage } from 'ethers';
 import urlContextService from '../services/url-context-service.js';
 
 import { streamText } from '../utils/stream-utils.js';
@@ -28,7 +30,35 @@ const webScraperService = new WebScraperService();
 // === Configuración ===
 const IMAGE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB, cambiar aquí para ajustar el límite
 
-// === 🔗 BLOCKCHAIN DETECTION ===
+// === � SKILLS SYSTEM — Phase 1: Capability instruction blocks ===
+// Each skill appends a focused instruction block to tell Gemini what analyses it can perform.
+// Skills are gated by subscription tier — the frontend sends only the user's unlocked skills.
+const SKILL_CONTEXTS = {
+  'nft-listing': `[SKILL: NFT Listing Service] When asked about NFT descriptions, listings, or metadata, generate a structured response with: SEO description, traits list, tags, and a short marketing pitch. You can analyze token IDs or IPFS URIs from the user's wallet context.`,
+  'risk-analysis': `[SKILL: Risk Analysis Reports] You can produce on-chain risk scores for liquidity pools and tokens. For each requested asset, evaluate: smart contract age & audit status, liquidity concentration, volatility index (7d), holder distribution, and rug-pull indicators. Output a score 0-100 with breakdown.`,
+  'market-alpha': `[SKILL: Market Alpha] You have access to the user's subgraph context (deposits, pool activity, recent events). Provide narrative market insights: which pools are gaining yields, LP concentration risks, and upcoming unlock events. Be specific and data-driven.`,
+  'content-moderation': `[SKILL: Content Moderation API] When presented with text content, classify it as: SPAM, SCAM, SUSPICIOUS, or OK. Provide: classification label, confidence score (0-1), affected rules triggered, and a 1-sentence reasoning. Format as JSON.`,
+  'contract-auditor': `[SKILL: Smart Contract Auditor] When given a contract address or ABI, analyze for: reentrancy vulnerabilities, unchecked external calls, integer overflow risks, access control flaws, and centralization risks (owner powers). Rate severity: CRITICAL / HIGH / MEDIUM / LOW. Format findings as a structured audit report.`,
+  'whale-tracker': `[SKILL: Whale Tracker Insights] When analyzing wallet activity, identify large movements (>50K USD equivalent), correlate timing with market events, and narrate the potential intent (accumulation, distribution, wash trading). Use the user's on-chain activity context when available.`,
+  'portfolio-analyzer': `[SKILL: Portfolio Analyzer] Using the user's verified on-chain data (staking deposits, NFT holdings, LP positions from graph context), analyze: total value distribution, yield efficiency by position, impermanent loss risk for LP, and suggest 1-3 concrete rebalancing actions.`,
+  'token-research': `[SKILL: Token Deep Research] For any requested token, provide: tokenomics summary, team/VC backing indicators, on-chain activity trend (30d), top holder concentration, comparable tokens for benchmarking, and a risk/reward conclusion. Cite on-chain signals where possible.`,
+  'liquidity-advisor': `[SKILL: Liquidity Advisor] When asked about LP positions on Uniswap v3/v4, recommend: optimal price range based on 30d historical volatility, fee tier selection, capital efficiency ratio, and estimated APY range. Explain the tradeoffs of wider vs tighter ranges for the specific pair.`,
+};
+
+/**
+ * Builds a combined skills context block for the active skill IDs.
+ * Returns an empty string if no skills are active.
+ */
+function buildSkillsContext(skillIds) {
+  if (!skillIds || skillIds.length === 0) return '';
+  const blocks = skillIds
+    .filter(id => SKILL_CONTEXTS[id])
+    .map(id => SKILL_CONTEXTS[id]);
+  if (blocks.length === 0) return '';
+  return `[ACTIVE SKILLS — You have the following specialized capabilities unlocked for this user]\n${blocks.join('\n')}`;
+}
+
+
 /**
  * Detecta si el mensaje requiere llamadas a funciones blockchain
  */
@@ -100,7 +130,28 @@ function detectBlockchainQuery(message) {
       (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
     functions.push('estimate_staking_reward');
   }
-  
+
+  // Auto-chain: cuando hay wallet balance query, también traer posición de staking
+  if (functions.includes('check_wallet_balance') && !functions.includes('get_user_staking_position')) {
+    functions.push('get_user_staking_position');
+  }
+
+  // Detectar queries personales de contrato (sin keyword 'staking' explícito)
+  const isPersonalContractQuery =
+    /\b(mis?|my|tengo|cu[aá]nto|revisa|dame|muestra|ver)\b/i.test(text) &&
+    /(dep[oó]sit|contrat[oa]|interacci[oó]n|fondos?|tokens? bloqueados?|locked|unlock|bloquead|invert|position|portfolio|retir)/i.test(text);
+  if (isPersonalContractQuery && !functions.includes('get_user_staking_position')) {
+    if (!functions.includes('get_staking_info')) functions.push('get_staking_info');
+    functions.push('get_user_staking_position');
+  }
+
+  // Detectar queries de historial de actividad (subgraph)
+  const isHistoryQuery =
+    /\b(historial|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?))\b/i.test(text);
+  if (isHistoryQuery && !functions.includes('get_user_history')) {
+    functions.push('get_user_history');
+  }
+
   if (functions.length > 0) {
     console.log(`🔗 [LOCAL] Blockchain detection: "${text.substring(0, 50)}..." → [${functions.join(', ')}]`);
   }
@@ -135,12 +186,21 @@ function detectUrls(text) {
  * @param {string[]} functions - Funciones blockchain a ejecutar
  * @param {string|undefined} connectedWallet - Wallet conectada del usuario (opcional)
  */
-async function executeBlockchainFunctions(messageText, functions, connectedWallet = null) {
+async function executeBlockchainFunctions(messageText, functions, connectedWallet = null, hasGraphContext = false) {
   const results = [];
   
   for (const funcName of functions) {
     try {
       let args = {};
+
+      // ── Skip staking RPC when Graph already has the data ─────────────────
+      // If walletAuth was verified and Graph returned data, skip the redundant RPC call.
+      // The graph context is injected into enrichedContents and Gemini will use it directly.
+      if (funcName === 'get_user_staking_position' && hasGraphContext) {
+        console.log(`[LOCAL] ⏭️ Skipping ${funcName} — Graph context already available`);
+        continue;
+      }
+      // ─────────────────────────────────────────────────────────────────────
       
       // Extraer argumentos si es necesario
       if (funcName === 'check_wallet_balance') {
@@ -198,6 +258,23 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
           results.push({
             name: funcName,
             result: { success: false, error: 'Para ver tus NFTs, conecta tu wallet o proporciona una dirección (ej: 0x1234...)' }
+          });
+          continue;
+        }
+      }
+
+      if (funcName === 'get_user_history') {
+        const addressMatch = messageText.match(/0x[a-fA-F0-9]{40}/);
+        if (addressMatch) {
+          args = { address: addressMatch[0] };
+        } else if (connectedWallet) {
+          args = { address: connectedWallet };
+          console.log(`[LOCAL] Using connected wallet (history): ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+        } else {
+          console.log(`[LOCAL] Skipping ${funcName}: No wallet address found`);
+          results.push({
+            name: funcName,
+            result: { success: false, error: 'Para ver tu historial, conecta tu wallet o proporciona una dirección (ej: 0x1234...)' }
           });
           continue;
         }
@@ -328,6 +405,23 @@ async function executeBlockchainFunctions(messageText, functions, connectedWalle
         const shortAddr = address ? `${address.slice(0,6)}...${address.slice(-4)}` : 'tu wallet';
         return `\n**🎨 NFTs de ${shortAddr}:**\n  • Skill NFTs en wallet: **${nftBalance ?? 0}**${activeListings > 0 ? `\n  • Listados en venta: ${activeListings}` : '\n  • Ninguno listado actualmente'}${note ? `\n  ℹ️ ${note}` : ''}\n`;
       }
+      if (r.name === 'get_user_history') {
+        const { totalDeposited, totalWithdrawn, depositCount, withdrawalCount, nftMintedCount,
+          nftSoldCount, nftBoughtCount, level, totalXP, recentDeposits, recentWithdrawals } = r.result;
+        const recentDepText = Array.isArray(recentDeposits) && recentDeposits.length > 0
+          ? `\n  **Últimos depósitos:**\n${recentDeposits.slice(0, 3).map(d => {
+              const date = new Date(d.timestamp * 1000).toLocaleDateString('es-ES');
+              return `    • ${d.amount} (${d.lockupDuration > 0 ? `${d.lockupDuration}d locked` : 'flexible'}) - ${date}`;
+            }).join('\n')}`
+          : '';
+        const recentWithText = Array.isArray(recentWithdrawals) && recentWithdrawals.length > 0
+          ? `\n  **Últimos retiros:**\n${recentWithdrawals.slice(0, 3).map(w => {
+              const date = new Date(w.timestamp * 1000).toLocaleDateString('es-ES');
+              return `    • ${w.amount} - ${date}`;
+            }).join('\n')}`
+          : '';
+        return `\n**📈 Tu Historial de Actividad:**\n  • Total depositado: **${totalDeposited || '0 POL'}** (${depositCount ?? 0} depósito${depositCount !== 1 ? 's' : ''})\n  • Total retirado: ${totalWithdrawn || '0 POL'} (${withdrawalCount ?? 0} retiro${withdrawalCount !== 1 ? 's' : ''})\n  • NFTs minteados: ${nftMintedCount ?? 0} | Vendidos: ${nftSoldCount ?? 0} | Comprados: ${nftBoughtCount ?? 0}\n  • Nivel: ${level ?? 0} | XP total: ${totalXP ?? 0}${recentDepText}${recentWithText}\n`;
+      }
       return `- ${r.name}: ${JSON.stringify(r.result)}`;
     }
     return `- ${r.name}: Error o sin datos`;
@@ -423,7 +517,40 @@ export async function generateContent(req, res, next = null) {
   chatLogger.reset();
   
   try {
-    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress } = req.body;
+    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress, walletAuth, activeSkills } = req.body;
+    
+    // ── WALLET AUTH + GRAPH CONTEXT ──────────────────────────────────────────
+    // Verify EIP-191 signature and fetch on-chain data from The Graph
+    let graphUserContext = '';
+    if (walletAuth?.walletAddress && walletAuth?.message && walletAuth?.signature) {
+      try {
+        const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+        const tsMatch = walletAuth.message.match(/Timestamp:\s*(\d+)/);
+        const msgTimestamp = tsMatch ? parseInt(tsMatch[1], 10) : null;
+        const now = Date.now();
+        const isTimestampValid = msgTimestamp &&
+          msgTimestamp <= now + 5 * 60 * 1000 &&
+          now - msgTimestamp <= SESSION_TTL_MS;
+
+        if (isTimestampValid) {
+          const recovered = verifyMessage(walletAuth.message, walletAuth.signature);
+          if (recovered.toLowerCase() === walletAuth.walletAddress.toLowerCase()) {
+            const userData = await fetchUserBlockchainData(walletAuth.walletAddress);
+            if (userData) {
+              graphUserContext = formatUserContextForAI(userData);
+              console.log(`[LOCAL] ✅ Graph context fetched for ${walletAuth.walletAddress.slice(0,6)}...${walletAuth.walletAddress.slice(-4)} (${graphUserContext.length} chars)`);
+            }
+          } else {
+            console.warn('[LOCAL] ⚠️ walletAuth signature mismatch — ignoring');
+          }
+        } else {
+          console.warn('[LOCAL] ⚠️ walletAuth timestamp expired or invalid — ignoring');
+        }
+      } catch (authErr) {
+        console.warn('[LOCAL] ⚠️ walletAuth verification error:', authErr.message);
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
     
     // Get the actual query for logging - MEJORADO para capturar el texto correctamente
     let queryText = prompt || '';
@@ -519,10 +646,22 @@ export async function generateContent(req, res, next = null) {
           msg.parts?.[0]?.text?.length > 200 || 
           msg.parts?.[0]?.text?.includes('explain')
         );
-    
+
+    // ── DYNAMIC maxOutputTokens (cost optimization) ────────────────────────
+    // Blockchain-only queries never need long prose — cap at 512.
+    // Skill-heavy queries (auditor, research) need room — use 2048.
+    // Everything else keeps the smart default.
+    const blockchainDetectionEarly = detectBlockchainQuery(queryText);
+    const isBlockchainOnlyQuery = blockchainDetectionEarly.isBlockchain && !isComplexQuery;
+    const isSkillHeavyQuery = activeSkills?.some(s => ['contract-auditor', 'token-research', 'risk-analysis'].includes(s));
+    const computedMaxTokens = maxTokens ||
+      (isSkillHeavyQuery ? 2048 :
+        isBlockchainOnlyQuery ? 512 :
+          isComplexQuery ? 1500 : 1024);
+
     const params = {
       temperature: temperature || (isComplexQuery ? 0.7 : 0.8),
-      maxOutputTokens: maxTokens || (isComplexQuery ? 3000 : 2048),
+      maxOutputTokens: computedMaxTokens,
       topP: isComplexQuery ? 0.9 : 0.95 // Más conservador para consultas complejas
     };
 
@@ -606,7 +745,7 @@ export async function generateContent(req, res, next = null) {
         if (blockchainDetection.isBlockchain) {
           isBlockchainQuery = true;
           console.log(`[LOCAL] Blockchain query detected: ${blockchainDetection.functions.join(', ')}`);
-          const blockchainContext = await executeBlockchainFunctions(queryText, blockchainDetection.functions, walletAddress);
+          const blockchainContext = await executeBlockchainFunctions(queryText, blockchainDetection.functions, walletAddress, Boolean(graphUserContext));
           
           console.log(`🔗 [LOCAL] Blockchain context result: "${blockchainContext}"`);
           
@@ -686,9 +825,48 @@ Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
           console.log('✅ URL context: explicit content + tool enabled as fallback');
         }
         
-        // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain
+        // Hybrid query: blockchain data + conceptual question → keep KB enabled
+        const isHybridQuery = blockchainDetection.isBlockchain &&
+          /\b(skill|qu[ée] es|c[oó]mo funciona|explica|beneficio|informaci[oó]n|ventaj|para qu[ée]|tipos?|qu[ée] tipo|cu[aá]les)\b/i.test(queryText);
+
+        // ── INJECT GRAPH USER CONTEXT ──────────────────────────────────────
+        // Prepend verified on-chain Graph data as a context exchange before the user's query
+        if (graphUserContext) {
+          const graphBlock = `[DATOS ON-CHAIN VERIFICADOS DEL USUARIO — USA ESTOS DATOS PARA RESPONDER PREGUNTAS SOBRE SU POSICIÓN]:\n${graphUserContext}`;
+          if (Array.isArray(enrichedContents)) {
+            enrichedContents = [
+              { role: 'user', parts: [{ text: graphBlock }] },
+              { role: 'model', parts: [{ text: 'Datos on-chain del usuario cargados correctamente. Los usaré para responder preguntas sobre su posición.' }] },
+              ...enrichedContents,
+            ];
+          } else {
+            enrichedContents = [
+              { role: 'user', parts: [{ text: graphBlock }] },
+              { role: 'model', parts: [{ text: 'Datos on-chain del usuario cargados correctamente. Los usaré para responder preguntas sobre su posición.' }] },
+              { role: 'user', parts: [{ text: typeof enrichedContents === 'string' ? enrichedContents : queryText }] },
+            ];
+          }
+          console.log(`[LOCAL] 📊 Graph context injected: ${graphUserContext.length} chars`);
+        }
+
+        // ── INJECT ACTIVE SKILLS CONTEXT ───────────────────────────────────
+        // Append skill capability blocks so Gemini knows what specialized analyses it can do
+        const skillsContextBlock = buildSkillsContext(activeSkills);
+        if (skillsContextBlock) {
+          if (Array.isArray(enrichedContents)) {
+            enrichedContents = [
+              { role: 'user', parts: [{ text: skillsContextBlock }] },
+              { role: 'model', parts: [{ text: `Skills loaded: ${activeSkills.join(', ')}. I will apply these specialized capabilities when relevant to the user's questions.` }] },
+              ...enrichedContents,
+            ];
+          }
+          console.log(`[LOCAL] 🔮 Skills context injected: [${activeSkills.join(', ')}]`);
+        }
+        // ──────────────────────────────────────────────────────────────────
+
+        // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain (pero no para hybrid)
         const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { 
-          skipKnowledgeBase: isBlockchainQuery,
+          skipKnowledgeBase: isBlockchainQuery && !isHybridQuery,
           tools: configTools 
         });
         

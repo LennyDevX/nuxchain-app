@@ -19,13 +19,42 @@ async function getFirestoreDb() {
     if (getApps().length === 0) {
       const svcAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
       if (svcAccount) {
-        initializeApp({ credential: cert(JSON.parse(svcAccount)) });
+        // Robust parser: handles newlines inside private_key when dotenv writes multiline values
+        let parsed = null;
+        let raw = svcAccount.trim();
+        // Strip outer quotes if any (some tools add them)
+        if ((raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))) {
+          raw = raw.slice(1, -1);
+        }
+        try {
+          parsed = JSON.parse(raw);
+        } catch (_) {
+          // Fix bare newlines inside JSON string values (dotenv preserves actual \n in private_key)
+          let inString = false, wasBackslash = false, fixed = '';
+          for (const ch of raw) {
+            if (wasBackslash) { fixed += ch; wasBackslash = false; }
+            else if (ch === '\\' && inString) { fixed += ch; wasBackslash = true; }
+            else if (ch === '"') { inString = !inString; fixed += ch; }
+            else if (inString && ch === '\n') { fixed += '\\n'; }
+            else if (inString && ch === '\r') { /* skip */ }
+            else { fixed += ch; }
+          }
+          parsed = JSON.parse(fixed);
+        }
+        initializeApp({ credential: cert(parsed) });
       } else {
-        // Fallback: load serviceAccountKey.json from project root
-        const { readFileSync } = await import('fs');
+        // Fallback: try known service account filenames in project root
+        const { readFileSync, existsSync } = await import('fs');
         const { resolve } = await import('path');
-        const keyPath = resolve(__dirname, '../../serviceAccountKey.json');
-        const key = JSON.parse(readFileSync(keyPath, 'utf8'));
+        const candidatePaths = [
+          resolve(process.cwd(), 'serviceAccountKey.json'),
+          resolve(process.cwd(), 'nuxchain1-firebase-adminsdk-fbsvc-23b890c5e2.json'),
+        ];
+        let key = null;
+        for (const p of candidatePaths) {
+          if (existsSync(p)) { key = JSON.parse(readFileSync(p, 'utf8')); break; }
+        }
+        if (!key) throw new Error('No Firebase service account found. Set FIREBASE_SERVICE_ACCOUNT env var.');
         initializeApp({ credential: cert(key) });
       }
     }

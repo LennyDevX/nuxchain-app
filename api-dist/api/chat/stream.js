@@ -65,10 +65,29 @@ function detectBlockchainQuery(message) {
             text.includes('mi ') || text.includes('my ') || text.includes('tengo') || text.includes('revisa'))) {
         functions.push('check_wallet_balance');
     }
+    // Si la query de wallet es personal, traer también la posición de staking para contexto completo
+    // (la cache de 30s garantiza que no se hacen RPC duplicados — getWalletBalance llama getUserStakingPosition internamente)
+    if (functions.includes('check_wallet_balance') && !functions.includes('get_user_staking_position')) {
+        functions.push('get_user_staking_position');
+    }
+    // Detectar queries personales sobre depósitos/contratos que NO usan la palabra 'staking'
+    // Ej: "mis depósitos", "mis interacciones con los contratos", "mis fondos bloqueados"
+    const isPersonalContractQuery = /\b(mis?|my|tengo|cu[aá]nto|revisa|dame|muestra|ver)\b/i.test(text) &&
+        /(dep[oó]sit|contrat[oa]|interacci[oó]n|fondos?|tokens? bloqueados?|locked|unlock|bloquead|invest|position|portfolio|retir)/i.test(text);
+    if (isPersonalContractQuery && !functions.includes('get_user_staking_position')) {
+        if (!functions.includes('get_staking_info'))
+            functions.push('get_staking_info');
+        functions.push('get_user_staking_position');
+    }
     // Detectar queries de reward estimation
     if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
         (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
         functions.push('estimate_staking_reward');
+    }
+    // Detectar queries de historial de actividad (subgraph)
+    const isHistoryQuery = /\b(historial|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?))\b/i.test(text);
+    if (isHistoryQuery && !functions.includes('get_user_history')) {
+        functions.push('get_user_history');
     }
     // Log para debug
     if (functions.length > 0) {
@@ -382,7 +401,39 @@ async function streamHandler(req, res) {
             console.log('⚠️ No KB context found');
         }
         // Construir system instruction con contexto Y detección de idioma
-        const systemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0, languageDetection);
+        const baseSystemInstruction = buildSystemInstructionWithContext(relevantContext.context || '', relevantContext.score || 0, languageDetection);
+        // ── WALLET AUTH: Verify signature & fetch on-chain user context ────────
+        let graphUserContext = '';
+        const walletAuthPayload = req.body.walletAuth;
+        if (walletAuthPayload?.walletAddress && walletAuthPayload?.message && walletAuthPayload?.signature) {
+            try {
+                const { verifyWalletSignature } = await import('../_middlewares/wallet-auth.js');
+                const authResult = verifyWalletSignature(walletAuthPayload);
+                if (authResult.valid && authResult.wallet) {
+                    console.log(`🔐 Wallet auth valid: ${authResult.wallet.slice(0, 8)}...`);
+                    const { fetchUserBlockchainData, formatUserContextForAI } = await import('../_services/graph-user-service.js');
+                    const userData = await fetchUserBlockchainData(authResult.wallet);
+                    if (userData) {
+                        graphUserContext = formatUserContextForAI(userData);
+                        console.log(`📊 Graph context loaded: ${graphUserContext.length} chars`);
+                    }
+                    else {
+                        console.warn('⚠️ Graph returned no data for wallet (may be new user or subgraph delay)');
+                    }
+                }
+                else {
+                    console.warn(`⚠️ Wallet auth invalid: ${authResult.error}`);
+                }
+            }
+            catch (authErr) {
+                console.error('❌ Wallet auth error (non-blocking):', authErr);
+            }
+        }
+        // Merge user Graph context into system instruction if available
+        const systemInstruction = graphUserContext
+            ? `${baseSystemInstruction}\n\n[DATOS ON-CHAIN VERIFICADOS DEL USUARIO - USA SIEMPRE ESTOS DATOS CUANDO EL USUARIO PREGUNTE SOBRE SU ACTIVIDAD]:\n${graphUserContext}`
+            : baseSystemInstruction;
+        // ── END WALLET AUTH ───────────────────────────────────────────────────
         // Inicializar Gemini
         const client = new GoogleGenAI({ apiKey });
         // 🔗 URL CONTEXT: Detectar URLs en el mensaje
@@ -455,6 +506,21 @@ async function streamHandler(req, res) {
                             else if (connectedWallet) {
                                 args = { address: connectedWallet };
                                 console.log(`🔗 Using connected wallet for NFTs: ${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}`);
+                            }
+                            else {
+                                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
+                                continue;
+                            }
+                        }
+                        // Para get_user_history: dirección explícita o wallet conectada
+                        if (funcName === 'get_user_history') {
+                            const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+                            if (addressMatch) {
+                                args = { address: addressMatch[0] };
+                            }
+                            else if (connectedWallet) {
+                                args = { address: connectedWallet };
+                                console.log(`🔗 Using connected wallet for history: ${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}`);
                             }
                             else {
                                 console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
@@ -549,6 +615,18 @@ async function streamHandler(req, res) {
                                 const nftData = data;
                                 return `- NFTs del Usuario: ${nftData.nftBalance ?? 0} Skill NFT(s) en wallet${nftData.activeListings ? ` | ${nftData.activeListings} listado(s) actualmente en venta` : ' | Ninguno listado actualmente'}${nftData.note ? `\n  Info: ${nftData.note}` : ''}`;
                             }
+                            if (fr.name === 'get_user_history') {
+                                const h = data;
+                                const recentDep = (h.recentDeposits || []).slice(0, 3).map(d => {
+                                    const date = new Date(d.timestamp * 1000).toLocaleDateString('es-ES');
+                                    return `    • ${d.amount} (${d.lockupDuration > 0 ? `${d.lockupDuration}d locked` : 'flexible'}) - ${date}`;
+                                }).join('\n');
+                                const recentWith = (h.recentWithdrawals || []).slice(0, 3).map(w => {
+                                    const date = new Date(w.timestamp * 1000).toLocaleDateString('es-ES');
+                                    return `    • ${w.amount} - ${date}`;
+                                }).join('\n');
+                                return `- Historial de Actividad:\n  Total depositado: ${h.totalDeposited || '0 POL'} (${h.depositCount ?? 0} depósitos)\n  Total retirado: ${h.totalWithdrawn || '0 POL'} (${h.withdrawalCount ?? 0} retiros)\n  NFTs minteados: ${h.nftMintedCount ?? 0} | Vendidos: ${h.nftSoldCount ?? 0} | Comprados: ${h.nftBoughtCount ?? 0}\n  Nivel: ${h.level ?? 0} | XP total: ${h.totalXP ?? 0}${recentDep ? `\n  Últimos depósitos:\n${recentDep}` : ''}${recentWith ? `\n  Últimos retiros:\n${recentWith}` : ''}`;
+                            }
                             return `- ${fr.name}: ${JSON.stringify(data)}`;
                         }
                         return `- ${fr.name}: Error o sin datos`;
@@ -616,10 +694,26 @@ async function streamHandler(req, res) {
             console.log('\u2705 URL context: explicit content + tool enabled as fallback');
             console.log('\ud83d\udd17 URLs processed:', detectedUrls.length);
         }
+        // Build full conversation contents for multi-turn context
+        // Frontend sends: { messages: [{role:'user'|'model', parts:[{text}]}] }
+        // Replace the last user turn with the enriched message (includes blockchain/URL context)
+        let geminiContents;
+        const bodyMessages = req.body.messages;
+        if (bodyMessages && Array.isArray(bodyMessages) && bodyMessages.length > 1) {
+            // Multi-turn: keep history, replace last user message with enriched version
+            geminiContents = [
+                ...bodyMessages.slice(0, -1),
+                { role: 'user', parts: [{ text: enrichedMessage }] }
+            ];
+        }
+        else {
+            // Single turn or no history: send as plain string
+            geminiContents = [{ role: 'user', parts: [{ text: enrichedMessage }] }];
+        }
         // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
         const streamResponse = await client.models.generateContentStream({
             model: chatModel,
-            contents: enrichedMessage,
+            contents: geminiContents.length === 1 ? enrichedMessage : geminiContents,
             config: {
                 systemInstruction,
                 ...(configTools && { tools: configTools }), // Solo incluir tools si hay URLs

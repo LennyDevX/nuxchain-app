@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { useSubscription } from '../../context/SubscriptionContext';
 import { SKILLS, type SkillId } from '../../constants/subscription';
-import { SubscriptionModal } from '../subscription/SubscriptionModal';
+import { SubscriptionModal } from '../chat/subscription/SubscriptionModal';
 
 type SkillCallHandler = (skillId: SkillId) => void;
 

@@ -1,5 +1,7 @@
 import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useSubscription } from '../../context/SubscriptionContext';
+import type { SkillId } from '../../constants/subscription';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
@@ -145,6 +147,16 @@ interface UseChatStreamingReturn {
   isSearchingKB: boolean;
   pauseStream: () => void;
   currentConversationId?: string | null;
+  // Wallet auth state
+  walletAuth: WalletAuthData | null;
+  setWalletAuth: (auth: WalletAuthData | null) => void;
+}
+
+// Wallet auth data stored in the hook
+interface WalletAuthData {
+  walletAddress: string;
+  message: string;
+  signature: string;
 }
 
 // NUEVO: Definir interfaces para tipos específicos
@@ -172,6 +184,12 @@ interface RequestBody {
   stream: boolean;
   urls?: string[];
   walletAddress?: string;
+  walletAuth?: {
+    walletAddress: string;
+    message: string;
+    signature: string;
+  };
+  activeSkills?: SkillId[];
 }
 
 export function useChatStreaming(): UseChatStreamingReturn {
@@ -181,9 +199,35 @@ export function useChatStreaming(): UseChatStreamingReturn {
   const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
   const [blockchainAction, setBlockchainAction] = useState<string | null>(null);
   const [isSearchingKB, setIsSearchingKB] = useState(false);
+  const [walletAuth, setWalletAuth] = useState<WalletAuthData | null>(() => {
+    // Restore from sessionStorage so wallet stays signed across re-renders
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('nuxbee_wallet_auth');
+        return stored ? JSON.parse(stored) as WalletAuthData : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
   
   // Get connected wallet address
   const { address: connectedWallet } = useAccount();
+
+  // Get active skills from subscription — sent to server to enable gated capabilities
+  const { activeSkills } = useSubscription();
+
+  // Persist walletAuth to sessionStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (walletAuth) {
+        sessionStorage.setItem('nuxbee_wallet_auth', JSON.stringify(walletAuth));
+      } else {
+        sessionStorage.removeItem('nuxbee_wallet_auth');
+      }
+    }
+  }, [walletAuth]);
 
   // Initialize streaming service
   useEffect(() => {
@@ -295,6 +339,20 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Include connected wallet address for blockchain queries
       if (connectedWallet) {
         requestBody.walletAddress = connectedWallet;
+      }
+      
+      // Attach wallet auth payload if user has signed — enables personalized on-chain context
+      if (walletAuth) {
+        requestBody.walletAuth = {
+          walletAddress: walletAuth.walletAddress,
+          message: walletAuth.message,
+          signature: walletAuth.signature,
+        };
+      }
+
+      // Send active skills so the server can enable gated capabilities per subscription tier
+      if (activeSkills && activeSkills.length > 0) {
+        requestBody.activeSkills = activeSkills;
       }
       
       // Log request details in development (URL context already set above)
@@ -466,7 +524,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Resetear estado de herramientas
       setIsUsingUrlContext(false);
     }
-  }, [state.messages, state.status, state.conversationId, connectedWallet]);
+  }, [state.messages, state.status, state.conversationId, connectedWallet, walletAuth]);
 
   const clearMessages = useCallback(() => {
     dispatch({ type: 'RESET_CONVERSATION' });
@@ -532,7 +590,9 @@ export function useChatStreaming(): UseChatStreamingReturn {
     blockchainAction,
     isSearchingKB,
     pauseStream,
-    currentConversationId: state.conversationId
+    currentConversationId: state.conversationId,
+    walletAuth,
+    setWalletAuth,
   };
 }
 

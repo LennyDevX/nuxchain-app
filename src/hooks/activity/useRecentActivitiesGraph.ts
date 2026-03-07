@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther } from 'viem';
 import { apolloClient } from '../../lib/apollo-client';
-import { GET_USER_ACTIVITIES, GET_USER_PURCHASE_ACTIVITIES, GET_USER_INDIVIDUAL_SKILLS } from '../../lib/graphql/queries';
+import { GET_USER_ACTIVITIES, GET_USER_PURCHASE_ACTIVITIES, GET_USER_INDIVIDUAL_SKILLS, GET_USER_DEPOSITS, GET_USER_WITHDRAWALS } from '../../lib/graphql/queries';
 import type { GetUserActivitiesResponse, ActivityType as GraphQLActivityType, GraphQLActivity, GraphQLIndividualSkill } from '../../lib/graphql/types';
 
 // Tipos de actividad (exportados para uso externo)
@@ -204,11 +204,13 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
       const startTime = performance.now();
 
       try {
-        // Query all three sources in parallel:
+        // Query all five sources in parallel:
         // 1. Regular activities (user as actor - creator, lister, seller, etc.)
         // 2. Purchase activities (TOKEN_SALE where user is BUYER)
         // 3. Individual skills (purchased skills)
-        const [activitiesResult, purchasesResult, skillsResult] = await Promise.all([
+        // 4. Staking deposits (direct entity query — fallback if Activity entity is empty)
+        // 5. Staking withdrawals (direct entity query)
+        const [activitiesResult, purchasesResult, skillsResult, depositsResult, withdrawalsResult] = await Promise.all([
           apolloClient.query<GetUserActivitiesResponse>({
             query: GET_USER_ACTIVITIES,
             variables: {
@@ -235,6 +237,22 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
             },
             fetchPolicy: 'no-cache',
           }),
+          apolloClient.query({
+            query: GET_USER_DEPOSITS,
+            variables: {
+              userAddress: address.toLowerCase(),
+              first: maxActivities,
+            },
+            fetchPolicy: 'no-cache',
+          }),
+          apolloClient.query({
+            query: GET_USER_WITHDRAWALS,
+            variables: {
+              userAddress: address.toLowerCase(),
+              first: maxActivities,
+            },
+            fetchPolicy: 'no-cache',
+          }),
         ]);
 
         const endTime = performance.now();
@@ -250,16 +268,26 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
         if (skillsResult.errors && skillsResult.errors.length > 0) {
           console.error('❌ [The Graph] Skills GraphQL errors:', skillsResult.errors);
         }
+        if (depositsResult.errors && depositsResult.errors.length > 0) {
+          console.error('❌ [The Graph] Deposits GraphQL errors:', depositsResult.errors);
+        }
+        if (withdrawalsResult.errors && withdrawalsResult.errors.length > 0) {
+          console.error('❌ [The Graph] Withdrawals GraphQL errors:', withdrawalsResult.errors);
+        }
 
         const { data: activitiesData } = activitiesResult;
         const { data: purchasesData } = purchasesResult;
         const { data: skillsData } = skillsResult;
+        const { data: depositsData } = depositsResult;
+        const { data: withdrawalsData } = withdrawalsResult;
 
         console.log(
           `%c✅ useRecentActivitiesGraph Query%c\n` +
           `├─ Fetched: ${activitiesData?.activities?.length || 0} activities (as actor)\n` +
           `├─ Fetched: ${purchasesData?.activities?.length || 0} purchases (as buyer)\n` +
           `├─ Fetched: ${skillsData?.individualSkills?.length || 0} skills\n` +
+          `├─ Fetched: ${depositsData?.deposits?.length || 0} staking deposits\n` +
+          `├─ Fetched: ${withdrawalsData?.withdrawals?.length || 0} staking withdrawals\n` +
           `└─ Time: ${duration}ms`,
           'color: #20b2aa; font-weight: bold;',
           'color: #ffffff;'
@@ -381,8 +409,43 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           };
         });
 
-        // Combine all activities (actor activities + purchases + skills)
-        const allTransformedActivities = [...transformedActivities, ...transformedPurchases, ...skillActivities];
+        // Transform staking deposits → STAKING_DEPOSIT Activity objects
+        const depositActivities: Activity[] = (depositsData?.deposits || []).map((dep: { id: string; amount: string; lockupDuration: string; timestamp: string; transactionHash: string }) => {
+          const details: Activity['details'] = {
+            amount: formatEther(BigInt(dep.amount)),
+            lockupDuration: Number(dep.lockupDuration),
+          };
+          return {
+            id: `deposit-${dep.id}`,
+            type: 'STAKING_DEPOSIT' as ActivityType,
+            timestamp: Number(dep.timestamp),
+            txHash: dep.transactionHash,
+            details,
+            description: generateDescription('STAKING_DEPOSIT', details),
+            icon: getActivityIcon('STAKING_DEPOSIT'),
+            color: getActivityColor('STAKING_DEPOSIT'),
+          };
+        });
+
+        // Transform staking withdrawals → STAKING_WITHDRAW Activity objects
+        const withdrawalActivities: Activity[] = (withdrawalsData?.withdrawals || []).map((w: { id: string; amount: string; timestamp: string; transactionHash: string }) => {
+          const details: Activity['details'] = {
+            amount: formatEther(BigInt(w.amount)),
+          };
+          return {
+            id: `withdrawal-${w.id}`,
+            type: 'STAKING_WITHDRAW' as ActivityType,
+            timestamp: Number(w.timestamp),
+            txHash: w.transactionHash,
+            details,
+            description: generateDescription('STAKING_WITHDRAW', details),
+            icon: getActivityIcon('STAKING_WITHDRAW'),
+            color: getActivityColor('STAKING_WITHDRAW'),
+          };
+        });
+
+        // Combine all activities (actor activities + purchases + skills + deposits + withdrawals)
+        const allTransformedActivities = [...transformedActivities, ...transformedPurchases, ...skillActivities, ...depositActivities, ...withdrawalActivities];
 
         // ✅ CRITICAL FIX: Deduplicate by transaction hash + type
         // This prevents showing the same transaction twice if it appears in multiple queries
@@ -436,6 +499,8 @@ export function useRecentActivities(maxActivities: number = 20): UseRecentActivi
           `├─ Raw Activities (actor): ${activitiesData?.activities?.length || 0}\n` +
           `├─ Raw Purchases (buyer): ${purchasesData?.activities?.length || 0}\n` +
           `├─ Raw Skills: ${skillsData?.individualSkills?.length || 0}\n` +
+          `├─ Raw Deposits: ${depositsData?.deposits?.length || 0}\n` +
+          `├─ Raw Withdrawals: ${withdrawalsData?.withdrawals?.length || 0}\n` +
           `├─ Combined Total: ${allTransformedActivities.length}\n` +
           `├─ Deduplicated: ${deduplicatedActivities.length} (txHash + type)\n` +
           `├─ NFT Deduped: ${finalActivities.length} (by tokenId)\n` +

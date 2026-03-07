@@ -1,15 +1,15 @@
-﻿import React, { useState, useRef, useEffect } from 'react'
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { useAccount } from 'wagmi'
+import { useAccount, useSignMessage } from 'wagmi'
 import ChatMessageComponent from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
 import PauseButton from '../components/chat/PauseButton'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 import SkillsPanel from '../components/ai/SkillsPanel'
-import { SubscriptionModal } from '../components/subscription/SubscriptionModal'
-import { SkillsShowcaseModal } from '../components/subscription/SkillsShowcaseModal'
+import { SubscriptionModal } from '../components/chat/subscription/SubscriptionModal.tsx'
+import { SkillsShowcaseModal } from '../components/chat/subscription/SkillsShowcaseModal.tsx'
 
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useFirebaseConversations } from '../hooks/chat/useFirebaseConversations'
@@ -24,12 +24,18 @@ import type { GeminiModel } from '../constants/subscription'
 
 const PANEL_WIDTH = 320 // px — matches w-80
 
+/** Builds the canonical sign message (must match api/_middlewares/wallet-auth.ts) */
+function buildSignMessage(walletAddress: string, timestamp: number): string {
+  return `NuxChain AI Authentication\n\nWallet: ${walletAddress.toLowerCase()}\nTimestamp: ${timestamp}\nDomain: nuxchain.app\n\nBy signing you grant NuxBee AI access to your on-chain activity to personalize responses. No transaction is executed.`
+}
+
 function Chat() {
   const [message, setMessage] = useState('')
   const [showWelcome, setShowWelcome] = useState(true)
   const [showPanel, setShowPanel] = useState(false)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [showSkillsModal, setShowSkillsModal] = useState(false)
+  const [isSigning, setIsSigning] = useState(false)
   const [selectedModel, setSelectedModel] = useState<GeminiModel>(() => {
     // Load from localStorage or use default
     if (typeof window !== 'undefined') {
@@ -38,14 +44,50 @@ function Chat() {
     return 'gemini-flash'
   })
 
-  const { address: evmAddress } = useAccount()
-  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, clearMessages, loadHistory, currentConversationId } = useChatStreaming()
+  const { address: evmAddress, isConnected } = useAccount()
+  const { signMessageAsync } = useSignMessage()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, clearMessages, loadHistory, currentConversationId, walletAuth, setWalletAuth } = useChatStreaming()
   const { history, saveConversation, deleteConversation } = useFirebaseConversations(evmAddress)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
   const { tier, isPaid, isExpiringSoon } = useSubscription()
+
+  // Clear walletAuth when wallet disconnects or changes
+  useEffect(() => {
+    if (!isConnected) {
+      setWalletAuth(null)
+    } else if (evmAddress && walletAuth && walletAuth.walletAddress.toLowerCase() !== evmAddress.toLowerCase()) {
+      // Different wallet connected — clear old auth
+      setWalletAuth(null)
+    }
+  }, [isConnected, evmAddress, walletAuth, setWalletAuth])
+
+  const isWalletSigned = Boolean(walletAuth && evmAddress && walletAuth.walletAddress.toLowerCase() === evmAddress?.toLowerCase())
+
+  const handleSignWallet = useCallback(async () => {
+    if (!evmAddress) {
+      toast.error('Connect your wallet first.')
+      return
+    }
+    setIsSigning(true)
+    try {
+      const timestamp = Date.now()
+      const msg = buildSignMessage(evmAddress, timestamp)
+      const sig = await signMessageAsync({ message: msg })
+      setWalletAuth({ walletAddress: evmAddress, message: msg, signature: sig })
+      toast.success('✅ Wallet verified! NuxBee AI now has your full on-chain context.')
+    } catch (err) {
+      if ((err as Error)?.message?.includes('User rejected') || (err as Error)?.message?.includes('rejected')) {
+        toast.error('Signature cancelled.')
+      } else {
+        toast.error('Failed to sign. Try again.')
+      }
+    } finally {
+      setIsSigning(false)
+    }
+  }, [evmAddress, signMessageAsync, setWalletAuth])
 
   // Session lifecycle
   useEffect(() => {
@@ -309,13 +351,62 @@ function Chat() {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="w-full"
                 >
-                  <motion.form
+                <motion.form
                     onSubmit={handleSendMessage}
                     className="relative w-full"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.25 }}
                   >
+                    {/* ── Wallet Sign Banner ── */}
+                    {isConnected && !isWalletSigned && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
+                      >
+                        <div className="flex items-center gap-2 text-sm text-white/80">
+                          <span>🔐</span>
+                          <span>Sign your wallet to unlock personalized AI context — your staking, NFTs & activity.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleSignWallet}
+                          disabled={isSigning}
+                          className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
+                        >
+                          {isSigning ? '⏳ Signing...' : '✍️ Sign Wallet'}
+                        </button>
+                      </motion.div>
+                    )}
+                    {!isConnected && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white/50 text-center"
+                      >
+                        🔌 Connect your wallet to unlock personalized AI context
+                      </motion.div>
+                    )}
+                    {isWalletSigned && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-3 flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-900/20 border border-green-500/30 text-sm text-green-400"
+                      >
+                        <span>✅</span>
+                        <span>Wallet verified — NuxBee AI has your full on-chain context</span>
+                        <button
+                          type="button"
+                          onClick={() => setWalletAuth(null)}
+                          className="ml-auto text-white/30 hover:text-white/60 text-xs transition-colors"
+                          title="Disconnect AI context"
+                        >
+                          ✕
+                        </button>
+                      </motion.div>
+                    )}
+
                     {/* Indicators (URL, Blockchain, KB) */}
                     {(isUsingUrlContext || blockchainAction || isSearchingKB) && (
                       <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -338,11 +429,17 @@ function Chat() {
 
                     <motion.div className="relative bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-2 px-3 flex items-end shadow-[0_4px_10px_rgba(0,0,0,0.5)] focus-within:shadow-[0_0_20px_rgba(168,85,247,0.25)] focus-within:border-purple-500/50 transition-all duration-500 gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
                       <div className="flex-1 min-w-0 py-1.5 pl-2">
-                        <InputTextArea value={message} onChange={setMessage} onKeyPress={handleKeyPress} disabled={isLoading || isStreaming} placeholder="Ask Nuxbee..." />
+                        <InputTextArea
+                          value={message}
+                          onChange={setMessage}
+                          onKeyPress={handleKeyPress}
+                          disabled={isLoading || isStreaming || !isWalletSigned}
+                          placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to start chatting..." : "Connect your wallet to start..."}
+                        />
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2 pb-1.5">
                         {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
                       </div>
                     </motion.div>
                   </motion.form>
@@ -377,6 +474,45 @@ function Chat() {
                     onSubmit={handleSendMessage}
                     className="relative"
                   >
+                    {/* ── Wallet Sign Banner (bottom input) ── */}
+                    {isConnected && !isWalletSigned && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
+                      >
+                        <div className="flex items-center gap-2 text-sm text-white/80">
+                          <span>🔐</span>
+                          <span>Sign your wallet to unlock personalized AI context</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleSignWallet}
+                          disabled={isSigning}
+                          className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
+                        >
+                          {isSigning ? '⏳ Signing...' : '✍️ Sign Wallet'}
+                        </button>
+                      </motion.div>
+                    )}
+                    {isWalletSigned && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-900/20 border border-green-500/30 text-xs text-green-400"
+                      >
+                        <span>✅ Wallet verified — personalized context active</span>
+                        <button
+                          type="button"
+                          onClick={() => setWalletAuth(null)}
+                          className="ml-auto text-white/30 hover:text-white/60 transition-colors"
+                          title="Disconnect AI context"
+                        >
+                          ✕
+                        </button>
+                      </motion.div>
+                    )}
+
                     {/* Indicators (URL, Blockchain, KB) */}
                     {(isUsingUrlContext || blockchainAction || isSearchingKB) && (
                       <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -404,11 +540,17 @@ function Chat() {
                       transition={{ duration: 0.5, delay: 0.1 }}
                     >
                       <div className="flex-1 min-w-0">
-                        <InputTextArea value={message} onChange={setMessage} onKeyPress={handleKeyPress} disabled={isLoading || isStreaming} placeholder="Ask Nuxbee..." />
+                        <InputTextArea
+                          value={message}
+                          onChange={setMessage}
+                          onKeyPress={handleKeyPress}
+                          disabled={isLoading || isStreaming || !isWalletSigned}
+                          placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to continue..." : "Connect wallet to start..."}
+                        />
                       </div>
                       <div className="flex-shrink-0 flex items-center gap-2 ml-2">
                         {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
                       </div>
                     </motion.div>
                   </motion.form>

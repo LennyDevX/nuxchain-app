@@ -5,6 +5,65 @@
  */
 
 // ============================================
+// Wallet Authentication Types
+// ============================================
+
+export interface WalletAuth {
+  walletAddress: string;
+  message: string;
+  signature: string;
+}
+
+export interface UserBlockchainData {
+  wallet: string;
+  // Staking
+  totalDepositedPOL: string;
+  totalWithdrawnPOL: string;
+  activeStakedPOL: string;
+  depositCount: number;
+  pendingRewardsPOL: string;
+  rewardsLast7Days: string;
+  hasAutoCompound: boolean;
+  stakingLevel: number;
+  stakingXP: string;
+  recentDeposits: Array<{
+    amount: string;
+    lockupDuration: number;
+    timestamp: number;
+  }>;
+  // NFTs
+  nftsMintedCount: number;
+  nftsSoldCount: number;
+  nftsBoughtCount: number;
+  activeListings: Array<{
+    tokenId: string;
+    price: string;
+    category: string;
+    timestamp: number;
+  }>;
+  totalRoyaltiesEarned: string;
+  recentNFTs: Array<{
+    tokenId: string;
+    tokenURI: string;
+    category: string;
+    royaltyPercentage: string;
+    timestamp: number;
+  }>;
+  // Marketplace profile
+  marketplaceLevel: number;
+  marketplaceXP: string;
+  referralCount: number;
+  // Activity
+  recentActivities: Array<{
+    type: string;
+    amount: string | null;
+    tokenId: string | null;
+    timestamp: number;
+  }>;
+  fetchedAt: number;
+}
+
+// ============================================
 // Chat Service Types
 // ============================================
 

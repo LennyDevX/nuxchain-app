@@ -1,15 +1,15 @@
 {
   "name": "nuxchain-subgraph",
-  "version": "0.44",
+  "version": "0.1",
   "description": "Nuxchain Subgraph - The Graph indexer for Nuxchain smart contracts on Polygon",
   "private": true,
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy nuxchain --node https://api.studio.thegraph.com/deploy/ --deploy-key 56b88202bf028e2ce119454633850425 --version-label v0.44",
-    "create-local": "graph create --node http://localhost:8020/ nuxchain",
-    "remove-local": "graph remove --node http://localhost:8020/ nuxchain",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 nuxchain"
+    "deploy": "graph deploy nux --node https://api.studio.thegraph.com/deploy/ --deploy-key 56b88202bf028e2ce119454633850425 --version-label v0.1",
+    "create-local": "graph create --node http://localhost:8020/ nux",
+    "remove-local": "graph remove --node http://localhost:8020/ nux",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 nux"
   },
   "dependencies": {},
   "devDependencies": {

@@ -1,14 +1,11 @@
 import React from 'react';
 import Footer from '../components/layout/footer';
-import { getMaintenanceConfig } from '../config/maintenance';
 import { motion } from 'framer-motion';
 import '../styles/maintenance.css';
 
 const MarketplaceMaintenance: React.FC = () => {
-  const config = getMaintenanceConfig('marketplace');
-
   return (
-    <div className="maintenance-wrapper marketplace-theme">
+    <div className="maintenance-wrapper">
       {/* Background blobs for visual interest */}
       <div className="blob blob-1"></div>
       <div className="blob blob-2"></div>
@@ -16,88 +13,77 @@ const MarketplaceMaintenance: React.FC = () => {
 
       <div className="maintenance-container">
         <div className="maintenance-content">
-          {/* Warrior Warrior Image with fire animation */}
+          {/* Dragon Image with light animation */}
           <motion.div
             className="mb-8 relative z-10 flex justify-center"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <div className="relative">
               <motion.img
-                src="/assets/nfts/dragonix/DragonixRed_Warrior.png"
-                alt="Dragonix Warrior"
-                className="w-64 h-auto md:w-80 drop-shadow-[0_0_35px_rgba(239,68,68,0.4)]"
+                src="/assets/tokens/NuxLogo.png"
+                alt="NUX Token Marketplace"
+                className="w-56 h-56 md:w-72 md:h-72 drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]"
                 animate={{
-                  y: [0, -8, 0],
-                  filter: [
-                    'drop-shadow(0 0 25px rgba(239,68,68,0.4))',
-                    'drop-shadow(0 0 45px rgba(249,115,22,0.6))',
-                    'drop-shadow(0 0 25px rgba(239,68,68,0.4))'
-                  ]
+                  y: [0, -10, 0],
+                  rotate: [0, 1, 0, -1, 0]
                 }}
                 transition={{
-                  duration: 4,
+                  duration: 5,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
               />
-              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-40 h-6 bg-red-600/20 blur-2xl rounded-full animate-pulse"></div>
+              <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-32 h-4 bg-purple-500/20 blur-xl rounded-full animate-pulse"></div>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
           >
-            {/* Header */}
-            <div className="maintenance-header">
-              <h1>Marketplace Evolution</h1>
-              <p className="maintenance-subtitle text-red-400/80 font-bold uppercase tracking-widest text-[10px]">Strategic Upgrade in progress</p>
+            <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-4 italic tracking-tight">
+              MARKETPLACE UPGRADE
+            </h1>
+
+            <div className="maintenance-message mb-8">
+              <p className="text-gray-300 text-lg leading-relaxed">
+                We are currently <span className="text-purple-400 font-bold">enhancing marketplace infrastructure</span> and preparing advanced trading features for better performance.
+              </p>
             </div>
 
-            {/* Message */}
-            <div className="maintenance-message">
-              <p>{config.message}</p>
-            </div>
-
-            {/* Status Section */}
-            <div className="maintenance-status-badge">
-              <span className="pulse-dot"></span>
-              Status: Reforging Marketplace
-            </div>
-
-            {/* Details */}
-            <div className="maintenance-details">
-              <h2 className="text-red-500/60">Expansion Protocol</h2>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 backdrop-blur-md">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center justify-center gap-2">
+                🚀 What's Coming Soon
+              </h2>
               <div className="maintenance-grid">
                 <div className="grid-item">
                   <span className="icon">🔥</span>
-                  <p>Next-gen trading engine</p>
+                  <p className="text-sm">Next-gen trading engine</p>
                 </div>
                 <div className="grid-item">
                   <span className="icon">⚔️</span>
-                  <p>Enhanced security layer</p>
+                  <p className="text-sm">Enhanced security layer</p>
                 </div>
                 <div className="grid-item">
                   <span className="icon">🛡️</span>
-                  <p>Guild management tools</p>
+                  <p className="text-sm">Advanced filtering tools</p>
                 </div>
                 <div className="grid-item">
-                  <span className="icon">🚀</span>
-                  <p>Flash-fast transactions</p>
+                  <span className="icon">⚡</span>
+                  <p className="text-sm">Flash-fast transactions</p>
                 </div>
               </div>
             </div>
 
-            {/* Action */}
             <div className="maintenance-action">
               <button
                 className="refresh-button w-full mb-3"
                 onClick={() => window.location.reload()}
               >
-                <span>Check Battlefield</span>
+                <span>Check Status</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <path d="M20.49 15a9 9 0 1 1-2-8.83"></path>
@@ -107,18 +93,11 @@ const MarketplaceMaintenance: React.FC = () => {
                 className="staking-button w-full"
                 onClick={() => window.location.href = '/staking'}
               >
-                <span>Go to Staking Hub</span>
+                <span>Go to Staking</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                 </svg>
               </button>
-            </div>
-
-            {/* Importance Info */}
-            <div className="maintenance-importance">
-              <p>
-                We are reforging the marketplace to support <strong>massive trading volume and advanced features</strong>. The wait will be worth it.
-              </p>
             </div>
           </motion.div>
         </div>

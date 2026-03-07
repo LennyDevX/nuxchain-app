@@ -201,6 +201,22 @@ Returns: total NFT balance, active listing count, contract address.`,
         required: ['address'],
     },
 };
+export const getUserHistoryDeclaration = {
+    name: 'get_user_history',
+    description: `Get the full activity history for a user from The Graph subgraph.
+Returns cumulative deposit/withdrawal stats, NFT activity counts, XP/level, and recent transactions.
+Use for questions like "how much have I deposited total", "my withdrawal history", "how many NFTs have I minted".`,
+    parameters: {
+        type: 'object',
+        properties: {
+            address: {
+                type: 'string',
+                description: 'The Ethereum/Polygon wallet address (must start with 0x and be 42 characters)',
+            },
+        },
+        required: ['address'],
+    },
+};
 // ============================================================================
 // COMBINED DECLARATIONS
 // ============================================================================
@@ -215,6 +231,7 @@ export const blockchainFunctionDeclarations = [
     getUserStakingPositionDeclaration,
     estimateStakingRewardDeclaration,
     getUserNFTsDeclaration,
+    getUserHistoryDeclaration,
 ];
 /**
  * Function names for allowed function calling config
@@ -227,6 +244,7 @@ export const blockchainFunctionNames = [
     'get_user_staking_position',
     'estimate_staking_reward',
     'get_user_nfts',
+    'get_user_history',
 ];
 // ============================================================================
 // HELPER FUNCTIONS
@@ -249,6 +267,7 @@ export function getFunctionDeclaration(name) {
         get_user_staking_position: getUserStakingPositionDeclaration,
         estimate_staking_reward: estimateStakingRewardDeclaration,
         get_user_nfts: getUserNFTsDeclaration,
+        get_user_history: getUserHistoryDeclaration,
     };
     return declarations[name];
 }

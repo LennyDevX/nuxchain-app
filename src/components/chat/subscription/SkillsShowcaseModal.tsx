@@ -4,13 +4,13 @@
  */
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useIsMobile } from '../../hooks/mobile/useIsMobile';
-import { useSubscription } from '../../context/SubscriptionContext';
+import { useIsMobile } from '../../../hooks/mobile/useIsMobile';
+import { useSubscription } from '../../../context/SubscriptionContext';
 import {
   SKILLS,
   SUBSCRIPTION_PRICES,
   type SkillId,
-} from '../../constants/subscription';
+} from '../../../constants/subscription';
 
 interface SkillsShowcaseModalProps {
   isOpen: boolean;

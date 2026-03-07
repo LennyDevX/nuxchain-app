@@ -90,6 +90,27 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // LAUNCHPAD PURCHASES - Written and read exclusively by Admin SDK
+    // Client reads are denied; all writes come from the purchase API.
+    // ================================================================
+    match /launchpadPurchases/{document=**} {
+      allow read: if false;  // Admin SDK only (bypasses rules)
+      allow write: if false; // API endpoint only
+    }
+
+    // ================================================================
+    // CHAT CONVERSATIONS - Per-wallet conversation history
+    // ================================================================
+    // No Firebase Auth — app uses EVM wallets as user identifiers.
+    // Allow read/write only when the path wallet address is a valid
+    // Ethereum address (0x + 40 hex chars, 42 total).
+    // ================================================================
+    match /users/{userId}/conversations/{conversationId} {
+      allow read, write: if userId.size() == 42 &&
+        userId.matches('0x[a-fA-F0-9]{40}');
+    }
+
+    // ================================================================
     // DEFAULT - Deny all other access
     // ================================================================
     match /{document=**} {

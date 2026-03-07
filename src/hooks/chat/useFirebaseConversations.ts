@@ -84,7 +84,9 @@ export function useFirebaseConversations(walletAddress?: string) {
       if (walletAddress) {
         try {
           const ref = doc(db, 'users', walletAddress, 'conversations', conversationId);
-          await setDoc(ref, conv, { merge: true });
+          // Strip undefined fields — Firestore rejects them (isStreaming, error, etc.)
+          const cleanConv = JSON.parse(JSON.stringify(conv));
+          await setDoc(ref, cleanConv, { merge: true });
         } catch (err) {
           console.warn('[useFirebaseConversations] Firestore save failed', err);
         }

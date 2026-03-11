@@ -6,6 +6,8 @@ import auth from '../middlewares/auth.js';
 import requestLogger from '../middlewares/logger.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
 import errorHandler from '../middlewares/error-handler.js';
+import subscriptionCheck from '../middlewares/subscription-check.js';
+import requestDeduplicator from '../middlewares/request-deduplicator.js';
 
 const router = express.Router();
 
@@ -39,6 +41,7 @@ const validateGenerateContent = [
 
 // Aplicar middleware en todas las rutas de Gemini
 router.use(requestLogger);
+router.use(requestDeduplicator);
 router.use(rateLimiter);
 router.use(auth);
 
@@ -48,9 +51,9 @@ router.get('/hello', geminiController.helloCheck);
 router.get('/check-api', geminiController.checkApiConnection);
 
 // Endpoints principales
-router.post('/', validateGenerateContent, geminiController.generateContent);
+router.post('/', subscriptionCheck, validateGenerateContent, geminiController.generateContent);
 router.get('/', validateGenerateContent, geminiController.generateContentGet);
-router.post('/stream', validateGenerateContent, geminiController.generateContent); // Endpoint de streaming
+router.post('/stream', subscriptionCheck, validateGenerateContent, geminiController.generateContent); // Endpoint de streaming
 router.post('/function-calling', geminiController.functionCalling);
 
 // Endpoints de análisis expandidos

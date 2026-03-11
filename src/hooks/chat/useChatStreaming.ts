@@ -4,8 +4,10 @@ import { useSubscription } from '../../context/SubscriptionContext';
 import type { SkillId } from '../../constants/subscription';
 import { StreamingService } from '../../components/chat/core/streamingService';
 import { chatReducer, initialChatState } from '../../components/chat/core/chatReducer';
+import type { ChatState, ChatMessage } from '../../components/chat/core/chatReducer';
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
 import { conversationManager } from '../../components/chat/core/conversationManager';
+import type { StoredConversation } from '../../components/chat/core/conversationManager';
 
 // Define API endpoints directly since the import is not available
 const API_ENDPOINTS = {
@@ -107,15 +109,7 @@ const detectBlockchainQuery = (text: string, hasConnectedWallet = false): Blockc
 // Google Search functionality removed - only URL context remains
 
 // Tipos para los módulos JS
-interface ChatMessage {
-  id: string;
-  text: string;
-  sender: 'user' | 'assistant';
-  timestamp: string;
-  conversationId?: string;
-  isStreaming?: boolean;
-  error?: string;
-}
+// ChatMessage and ChatState are imported from chatReducer
 
 // Generador de IDs únicos para evitar duplicados
 let messageIdCounter = 0;
@@ -131,6 +125,12 @@ interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   error?: string;
+  skillResult?: {
+    skillId: string;
+    status: 'loading' | 'success' | 'error';
+    data?: unknown;
+    errorMessage?: string;
+  };
 }
 
 interface UseChatStreamingReturn {
@@ -138,9 +138,9 @@ interface UseChatStreamingReturn {
   isLoading: boolean;
   isStreaming: boolean;
   error: string | null;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, attachments?: Array<{ id: string; url: string; name: string; size: number; type: string; uploadedAt: string }>) => Promise<void>;
   clearMessages: () => void;
-  loadHistory?: (conversationId: string) => boolean;
+  loadHistory?: (conversationId: string, conversation?: StoredConversation) => boolean;
   retryLastMessage: () => void;
   isUsingUrlContext: boolean;
   blockchainAction: string | null;
@@ -150,6 +150,9 @@ interface UseChatStreamingReturn {
   // Wallet auth state
   walletAuth: WalletAuthData | null;
   setWalletAuth: (auth: WalletAuthData | null) => void;
+  // Skill injection methods
+  injectSkillLoading: (skillId: string) => string;
+  updateSkillMessage: (id: string, result: unknown | null, errorMsg?: string) => void;
 }
 
 // Wallet auth data stored in the hook
@@ -190,10 +193,34 @@ interface RequestBody {
     signature: string;
   };
   activeSkills?: SkillId[];
+  attachments?: Array<{
+    id: string;
+    url: string;
+    name: string;
+    size: number;
+    type: string;
+    uploadedAt: string;
+  }>;
+}
+
+// Restore active session from sessionStorage (survives route changes, cleared on New Chat)
+function getInitialChatState(): ChatState {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = sessionStorage.getItem('nuxbee_active_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+          return { ...initialChatState, messages: parsed.messages, conversationId: parsed.conversationId ?? null, status: 'idle' };
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  return initialChatState;
 }
 
 export function useChatStreaming(): UseChatStreamingReturn {
-  const [state, dispatch] = useReducer(chatReducer, initialChatState);
+  const [state, dispatch] = useReducer(chatReducer, undefined, getInitialChatState);
   const streamingServiceRef = useRef<StreamingService | null>(null);
   const lastUserMessageRef = useRef<string>('');
   const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
@@ -251,7 +278,20 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, [state.messages, state.status, state.conversationId]);
 
-  const sendMessage = useCallback(async (messageText: string) => {
+  // Persist active session to sessionStorage so it survives route changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (state.messages.length > 0 && state.status !== 'streaming') {
+      try {
+        sessionStorage.setItem('nuxbee_active_session', JSON.stringify({
+          messages: state.messages,
+          conversationId: state.conversationId,
+        }));
+      } catch { /* ignore */ }
+    }
+  }, [state.messages, state.conversationId, state.status]);
+
+  const sendMessage = useCallback(async (messageText: string, attachments?: Array<{ id: string; url: string; name: string; size: number; type: string; uploadedAt: string }>) => {
     if (!messageText.trim() || state.status === 'streaming') return;
 
     lastUserMessageRef.current = messageText;
@@ -353,6 +393,11 @@ export function useChatStreaming(): UseChatStreamingReturn {
       // Send active skills so the server can enable gated capabilities per subscription tier
       if (activeSkills && activeSkills.length > 0) {
         requestBody.activeSkills = activeSkills;
+      }
+
+      // Attach image attachments for multimodal requests
+      if (attachments && attachments.length > 0) {
+        requestBody.attachments = attachments.slice(0, 3);
       }
       
       // Log request details in development (URL context already set above)
@@ -528,6 +573,9 @@ export function useChatStreaming(): UseChatStreamingReturn {
 
   const clearMessages = useCallback(() => {
     dispatch({ type: 'RESET_CONVERSATION' });
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('nuxbee_active_session');
+    }
   }, []);
 
   const retryLastMessage = useCallback(() => {
@@ -544,27 +592,67 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, []);
 
-  const loadHistory = useCallback((historyId: string) => {
-    const conversations = conversationManager.loadConversationsFromStorage();
-    const found = conversations.find(c => c.id === historyId);
+  const loadHistory = useCallback((historyId: string, conversation?: StoredConversation) => {
+    // Use the passed conversation directly (from Firestore) or fall back to localStorage
+    let found: StoredConversation | undefined = conversation;
+    if (!found) {
+      const conversations = conversationManager.loadConversationsFromStorage();
+      found = conversations.find(c => c.id === historyId);
+    }
     if (found) {
-      const convertedMessages: ChatMessage[] = found.messages.map((m: any) => ({
+      const foundConv = found;
+      const convertedMessages: ChatMessage[] = foundConv.messages.map((m: any) => ({
         id: m.id,
         text: m.text || m.content,
         sender: m.sender || m.role,
-        timestamp: typeof m.timestamp === 'string' ? m.timestamp : (m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp).toISOString()),
-        conversationId: found.id
+        timestamp: typeof m.timestamp === 'string' ? m.timestamp : (m.timestamp instanceof Date ? m.timestamp.toISOString() : new Date(m.timestamp || Date.now()).toISOString()),
+        conversationId: foundConv.id
       }));
+      // Persist to sessionStorage immediately so it survives route changes
+      try {
+        sessionStorage.setItem('nuxbee_active_session', JSON.stringify({
+          messages: convertedMessages,
+          conversationId: foundConv.id,
+        }));
+      } catch { /* ignore */ }
       dispatch({ 
         type: 'LOAD_CONVERSATION', 
         payload: { 
           messages: convertedMessages, 
-          conversationId: found.id 
+          conversationId: foundConv.id 
         } 
       });
       return true;
     }
     return false;
+  }, []);
+
+  const injectSkillLoading = useCallback((skillId: string): string => {
+    const msgId = generateUniqueId('skill');
+    const msg: ChatMessage = {
+      id: msgId,
+      text: '',
+      sender: 'assistant',
+      timestamp: new Date().toISOString(),
+      conversationId: state.conversationId || undefined,
+      skillResult: { skillId, status: 'loading' },
+    };
+    dispatch({ type: 'ADD_SKILL_MESSAGE', payload: msg });
+    return msgId;
+  }, [state.conversationId]);
+
+  const updateSkillMessage = useCallback((id: string, result: unknown | null, errorMsg?: string) => {
+    if (result !== null) {
+      dispatch({
+        type: 'UPDATE_SKILL_MESSAGE',
+        payload: { id, skillResult: { skillId: '', status: 'success', data: result } },
+      });
+    } else {
+      dispatch({
+        type: 'UPDATE_SKILL_MESSAGE',
+        payload: { id, skillResult: { skillId: '', status: 'error', errorMessage: errorMsg ?? 'Unknown error' } },
+      });
+    }
   }, []);
 
   // Convert internal state to external format
@@ -574,7 +662,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     content: msg.text,
     timestamp: new Date(msg.timestamp),
     isStreaming: msg.isStreaming,
-    error: msg.error
+    error: msg.error,
+    skillResult: msg.skillResult,
   }));
 
   return {
@@ -593,6 +682,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     currentConversationId: state.conversationId,
     walletAuth,
     setWalletAuth,
+    injectSkillLoading,
+    updateSkillMessage,
   };
 }
 

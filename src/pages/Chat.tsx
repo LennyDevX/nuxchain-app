@@ -6,13 +6,18 @@ import ChatMessageComponent from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
 import SendMessageButton from '../components/chat/SendMessageButton'
 import PauseButton from '../components/chat/PauseButton'
+import FileUploadButton from '../components/chat/FileUploadButton'
+import ImagePreviewStrip from '../components/chat/ImagePreviewStrip'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 import SkillsPanel from '../components/ai/SkillsPanel'
 import { SubscriptionModal } from '../components/chat/subscription/SubscriptionModal.tsx'
 import { SkillsShowcaseModal } from '../components/chat/subscription/SkillsShowcaseModal.tsx'
+import { SkillInputModal } from '../components/chat/skills/SkillInputModal'
 
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useFirebaseConversations } from '../hooks/chat/useFirebaseConversations'
+import { useSkillInvocation } from '../hooks/chat/useSkillInvocation'
+import { SKILL_INPUT_CONFIG } from '../components/chat/skills/skillInputConfig'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { useChatNavbar } from '../hooks/mobile/useChatNavbar'
 import { getMobileOptimizationConfig } from '../utils/mobile/performanceOptimization'
@@ -20,7 +25,9 @@ import { chatLogger } from '../utils/log/chatLogger'
 import { useSubscription } from '../context/SubscriptionContext'
 import type { StoredConversation } from '../components/chat/core/conversationManager'
 import { GEMINI_MODELS } from '../constants/subscription'
-import type { GeminiModel } from '../constants/subscription'
+import type { GeminiModel, SkillId } from '../constants/subscription'
+import type { ImageAttachment } from '../../api/types/index.js'
+import type { PendingImage } from '../utils/image/compressImage'
 
 const PANEL_WIDTH = 320 // px — matches w-80
 
@@ -31,11 +38,25 @@ function buildSignMessage(walletAddress: string, timestamp: number): string {
 
 function Chat() {
   const [message, setMessage] = useState('')
-  const [showWelcome, setShowWelcome] = useState(true)
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([])
+  const [showWelcome, setShowWelcome] = useState(() => {
+    // Restore from sessionStorage: if an active session exists, skip the welcome screen
+    if (typeof window !== 'undefined') {
+      try {
+        const session = sessionStorage.getItem('nuxbee_active_session')
+        if (session) {
+          const parsed = JSON.parse(session)
+          if (Array.isArray(parsed.messages) && parsed.messages.length > 0) return false
+        }
+      } catch { /* ignore */ }
+    }
+    return true
+  })
   const [showPanel, setShowPanel] = useState(false)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [showSkillsModal, setShowSkillsModal] = useState(false)
   const [isSigning, setIsSigning] = useState(false)
+  const [selectedSkillId, setSelectedSkillId] = useState<SkillId | null>(null)
   const [selectedModel, setSelectedModel] = useState<GeminiModel>(() => {
     // Load from localStorage or use default
     if (typeof window !== 'undefined') {
@@ -46,8 +67,9 @@ function Chat() {
 
   const { address: evmAddress, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
-  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, clearMessages, loadHistory, currentConversationId, walletAuth, setWalletAuth } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, clearMessages, loadHistory, currentConversationId, walletAuth, setWalletAuth, injectSkillLoading, updateSkillMessage } = useChatStreaming()
   const { history, saveConversation, deleteConversation } = useFirebaseConversations(evmAddress)
+  const skillInvocation = useSkillInvocation(evmAddress)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
@@ -89,6 +111,26 @@ function Chat() {
     }
   }, [evmAddress, signMessageAsync, setWalletAuth])
 
+  const handleSkillSelect = useCallback((skillId: SkillId) => {
+    setSelectedSkillId(skillId)
+  }, [])
+
+  const handleSkillSubmit = useCallback(async (skillId: SkillId, params: Record<string, unknown>) => {
+    const msgId = injectSkillLoading(skillId)
+    setShowWelcome(false)
+    setSelectedSkillId(null)
+    try {
+      const result = await skillInvocation.invokeSkill(skillId, params)
+      updateSkillMessage(msgId, result)
+      const config = SKILL_INPUT_CONFIG[skillId]
+      if (config?.analysisPrompt) {
+        setTimeout(() => { sendMessage(config.analysisPrompt(params, result)) }, 700)
+      }
+    } catch (err) {
+      updateSkillMessage(msgId, null, err instanceof Error ? err.message : 'Skill execution failed')
+    }
+  }, [injectSkillLoading, updateSkillMessage, skillInvocation, sendMessage])
+
   // Session lifecycle
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -126,11 +168,9 @@ function Chat() {
   }, [isStreaming, messages, saveConversation, currentConversationId])
 
   const handleLoadHistory = (conv: StoredConversation) => {
-    if (confirm('Load this conversation? Current messages will be replaced.')) {
-      if (loadHistory) {
-        loadHistory(conv.id);
-        setShowWelcome(false);
-      }
+    if (loadHistory) {
+      loadHistory(conv.id, conv);
+      setShowWelcome(false);
     }
   }
 
@@ -154,10 +194,62 @@ function Chat() {
     if (e) e.preventDefault()
     if (!message.trim() || isLoading || isStreaming) return
     if (showWelcome) setShowWelcome(false)
+    const imagesToUpload = pendingImages.slice()
+    setPendingImages([])
+    setMessage('')
     try {
       chatLogger.logMessageEvent({ type: 'SEND', messageId: `user_${Date.now()}`, sender: 'user', contentPreview: message.trim(), timestamp: new Date().toISOString() }, 'Chat')
-      await sendMessage(message.trim())
-      setMessage('')
+
+      // Upload pending images as JSON/base64 before sending (avoids octet-stream 415 issues)
+      const attachments: ImageAttachment[] = []
+      if (imagesToUpload.length > 0) {
+        for (const pending of imagesToUpload) {
+          try {
+            // Convert blob to base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onload  = (ev) => resolve((ev.target?.result as string).split(',')[1] ?? '')
+              reader.onerror = () => reject(new Error('FileReader error'))
+              reader.readAsDataURL(pending.blob)
+            })
+
+            const res = await fetch('/api/chat/upload-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(evmAddress ? { 'X-Wallet-Address': evmAddress } : {}),
+              },
+              body: JSON.stringify({
+                image:    base64,
+                mimeType: 'image/webp',
+                name:     pending.name,
+              }),
+            })
+
+            if (res.ok) {
+              const data = await res.json() as { id: string; url: string; name: string; size: number; type: string; uploadedAt: string }
+              attachments.push({
+                id:         data.id,
+                url:        data.url,
+                name:       data.name || pending.name,
+                size:       data.size,
+                type:       data.type as ImageAttachment['type'],
+                uploadedAt: data.uploadedAt,
+                metadata:   { width: pending.width, height: pending.height },
+              })
+            } else {
+              const err = await res.json().catch(() => ({}))
+              console.error('[Chat] Image upload failed:', res.status, err)
+              toast.error(`Image upload failed (${res.status})`)
+            }
+          } catch (uploadErr) {
+            console.error('[Chat] Image upload error:', uploadErr)
+            toast.error('Could not upload one of the images')
+          }
+        }
+      }
+
+      await sendMessage(message.trim(), attachments.length > 0 ? attachments : undefined)
     } catch (error) {
       chatLogger.logError('Error sending message', 'Chat', { message: message.trim().substring(0, 50) }, error as Error)
       toast.error('Error sending message. Cannot connect to NuxBee AI.')
@@ -215,6 +307,7 @@ function Chat() {
                   <div className="mt-8 flex-1 overflow-y-auto pr-1">
                     <p className="text-xs text-white/50 uppercase tracking-widest font-semibold ml-2 mb-3">AI Skills</p>
                     <SkillsPanel
+                      onSkillSelect={handleSkillSelect}
                       onUpgrade={() => setShowSubscriptionModal(true)}
                       onShowAll={() => setShowSkillsModal(true)}
                     />
@@ -254,8 +347,8 @@ function Chat() {
                         {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
                       </div>
                       <div className="flex-1 flex flex-col">
-                        <span className="text-sm font-semibold capitalize">{tier} Plan</span>
-                        {!isPaid && <span className="text-xs text-white/50">Free tier</span>}
+                        <span className="text-lg font-semibold capitalize">{tier} Plan</span>
+                        {!isPaid && <span className="text-lg text-white/50">Free tier</span>}
                       </div>
                     </div>
                     {isExpiringSoon && (
@@ -383,7 +476,7 @@ function Chat() {
                       <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white/50 text-center"
+                        className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-2xl text-white/50 text-center"
                       >
                         🔌 Connect your wallet to unlock personalized AI context
                       </motion.div>
@@ -419,7 +512,7 @@ function Chat() {
                                animate={{ opacity: [1, 0.6, 1] }}
                                transition={{ repeat: Infinity, duration: 1.5 }}
                              >
-                               <span className="inline-block animate-spin text-lg">⚡</span>
+                               <span className="text-lg">⚡</span>
                                Searching Knowledge Base...
                              </motion.span>
                            )}
@@ -427,19 +520,30 @@ function Chat() {
                       </motion.div>
                     )}
 
-                    <motion.div className="relative bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-2 px-3 flex items-end shadow-[0_4px_10px_rgba(0,0,0,0.5)] focus-within:shadow-[0_0_20px_rgba(168,85,247,0.25)] focus-within:border-purple-500/50 transition-all duration-500 gap-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
-                      <div className="flex-1 min-w-0 py-1.5 pl-2">
-                        <InputTextArea
-                          value={message}
-                          onChange={setMessage}
-                          onKeyPress={handleKeyPress}
-                          disabled={isLoading || isStreaming || !isWalletSigned}
-                          placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to start chatting..." : "Connect your wallet to start..."}
-                        />
-                      </div>
-                      <div className="flex-shrink-0 flex items-center gap-2 pb-1.5">
-                        {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                    <motion.div className="relative bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-2 px-3 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.5)] focus-within:shadow-[0_0_20px_rgba(168,85,247,0.25)] focus-within:border-purple-500/50 transition-all duration-500 gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
+                      <ImagePreviewStrip
+                        images={pendingImages}
+                        onRemove={(id) => setPendingImages(prev => prev.filter(a => a.id !== id))}
+                      />
+                      <div className="flex items-end gap-3 py-1.5 px-2">
+                        <div className="flex-1 min-w-0">
+                          <InputTextArea
+                            value={message}
+                            onChange={setMessage}
+                            onKeyPress={handleKeyPress}
+                            disabled={isLoading || isStreaming || !isWalletSigned}
+                            placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to start chatting..." : "Connect your wallet to start..."}
+                          />
+                        </div>
+                        <div className="flex-shrink-0 flex items-center gap-2 pb-0.5">
+                          <FileUploadButton
+                            onImageSelected={(img) => setPendingImages(prev => [...prev, img].slice(0, 3))}
+                            currentCount={pendingImages.length}
+                            isDisabled={isLoading || isStreaming || !isWalletSigned}
+                          />
+                          {isStreaming && <PauseButton onClick={() => pauseStream()} />}
+                          <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                        </div>
                       </div>
                     </motion.div>
                   </motion.form>
@@ -451,7 +555,7 @@ function Chat() {
               </div>
             ) : (
               <div className="flex-1 max-w-4xl mx-auto w-full pb-6">
-                <ChatMessageComponent messages={messages} isLoading={isLoading || isStreaming} />
+                <ChatMessageComponent messages={messages} isLoading={isLoading || isStreaming} onSkillAnalyze={sendMessage} />
                 {/* Scroll anchor */}
                 <div ref={messagesEndRef} className="h-1" />
               </div>
@@ -525,7 +629,7 @@ function Chat() {
                                animate={{ opacity: [1, 0.6, 1] }}
                                transition={{ repeat: Infinity, duration: 1.5 }}
                              >
-                               <span className="inline-block animate-spin text-lg">⚡</span>
+                               <span className="text-lg">⚡</span>
                                Searching Knowledge Base...
                              </motion.span>
                            )}
@@ -534,23 +638,34 @@ function Chat() {
                     )}
 
                     <motion.div 
-                      className="bg-[#1e1e24]/20 backdrop-blur-xl border border-white/10 rounded-[32px] p-2 flex items-center shadow-2xl focus-within:shadow-[0_0_30px_rgba(168,85,247,0.15)] focus-within:border-purple-500/40 transition-all duration-500 pl-4 pr-2" 
+                      className="bg-[#1e1e24]/20 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl focus-within:shadow-[0_0_30px_rgba(168,85,247,0.15)] focus-within:border-purple-500/40 transition-all duration-500" 
                       initial={{ opacity: 0, y: 10 }} 
                       animate={{ opacity: 1, y: 0 }} 
                       transition={{ duration: 0.5, delay: 0.1 }}
                     >
-                      <div className="flex-1 min-w-0">
-                        <InputTextArea
-                          value={message}
-                          onChange={setMessage}
-                          onKeyPress={handleKeyPress}
-                          disabled={isLoading || isStreaming || !isWalletSigned}
-                          placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to continue..." : "Connect wallet to start..."}
-                        />
-                      </div>
-                      <div className="flex-shrink-0 flex items-center gap-2 ml-2">
-                        {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                        <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                      <ImagePreviewStrip
+                        images={pendingImages}
+                        onRemove={(id) => setPendingImages(prev => prev.filter(a => a.id !== id))}
+                      />
+                      <div className="flex items-center pl-4 pr-2 py-2">
+                        <div className="flex-1 min-w-0">
+                          <InputTextArea
+                            value={message}
+                            onChange={setMessage}
+                            onKeyPress={handleKeyPress}
+                            disabled={isLoading || isStreaming || !isWalletSigned}
+                            placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to continue..." : "Connect wallet to start..."}
+                          />
+                        </div>
+                        <div className="flex-shrink-0 flex items-center gap-2 ml-2">
+                          <FileUploadButton
+                            onImageSelected={(img) => setPendingImages(prev => [...prev, img].slice(0, 3))}
+                            currentCount={pendingImages.length}
+                            isDisabled={isLoading || isStreaming || !isWalletSigned}
+                          />
+                          {isStreaming && <PauseButton onClick={() => pauseStream()} />}
+                          <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                        </div>
                       </div>
                     </motion.div>
                   </motion.form>
@@ -605,6 +720,7 @@ function Chat() {
                   <div className="mt-8 flex-1 overflow-y-auto pr-1">
                     <p className="text-xs text-white/50 uppercase tracking-widest font-semibold ml-2 mb-3">AI Skills</p>
                     <SkillsPanel
+                      onSkillSelect={handleSkillSelect}
                       onUpgrade={() => { setShowPanel(false); setShowSubscriptionModal(true); }}
                       onShowAll={() => { setShowPanel(false); setShowSkillsModal(true); }}
                     />
@@ -640,7 +756,7 @@ function Chat() {
                       </div>
                       <div className="flex-1 flex flex-col">
                         <span className="text-sm font-semibold capitalize">{tier} Plan</span>
-                        {!isPaid && <span className="text-xs text-white/50">Free tier</span>}
+                        {!isPaid && <span className="text-lg text-white/50">Free tier</span>}
                       </div>
                     </div>
                     {isExpiringSoon && (
@@ -680,6 +796,12 @@ function Chat() {
         isOpen={showSkillsModal}
         onClose={() => setShowSkillsModal(false)}
         onSubscribe={() => { setShowSkillsModal(false); setShowSubscriptionModal(true); }}
+      />
+      <SkillInputModal
+        skillId={selectedSkillId}
+        onClose={() => setSelectedSkillId(null)}
+        onSubmit={handleSkillSubmit}
+        isLoading={skillInvocation.state.isLoading}
       />
     </div>
   )

@@ -2,9 +2,18 @@
  * Embeddings Cache Service
  * Precomputes and caches frequently used knowledge base embeddings
  * Reduces Gemini API calls by ~60% for common queries
+ *
+ * ✅ Migrated to gemini-embedding-2-preview (3072D, multimodal, Matryoshka)
+ * Cache namespace versioned to 'embeddings_v2' — incompatible with
+ * old 256D vectors from text-embedding-004.
+ * @see https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-embedding-2-preview/
  */
 
 import { kvCache } from './kv-cache-service.js';
+
+// ✅ Configurable via env — default: gemini-embedding-2-preview (3072D)
+const EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-2-preview';
+const EMBEDDING_DIMENSIONS = parseInt(process.env.GEMINI_EMBEDDING_DIMENSIONS || '3072', 10);
 
 interface EmbeddingData {
   text: string;
@@ -49,7 +58,9 @@ const KNOWLEDGE_BASE = [
 ];
 
 class EmbeddingsCacheService {
-  private readonly CACHE_NAMESPACE = 'embeddings';
+  // ✅ Versioned namespace: 'embeddings_v2' prevents 3072D vectors from
+  // clashing with old 256D vectors stored under 'embeddings'
+  private readonly CACHE_NAMESPACE = 'embeddings_v2';
   private readonly CACHE_TTL = 86400; // 24 hours - embeddings are static
   private readonly API_KEY = process.env.GEMINI_API_KEY;
 
@@ -62,14 +73,14 @@ class EmbeddingsCacheService {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${this.API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${EMBEDDING_MODEL}:embedContent?key=${this.API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: { parts: [{ text }] },
           taskType: 'RETRIEVAL_QUERY',
-          outputDimensionality: 256 // Reduced from 768 for efficiency
+          outputDimensionality: EMBEDDING_DIMENSIONS
         })
       }
     );

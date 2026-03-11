@@ -1,12 +1,23 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import MessageItem from './MessageItem'
 import TypingIndicator from './TypingIndicator'
+import ImageLightbox from './ImageLightbox'
+import type { ImageAttachment } from '../../../api/types/index.js'
+
+interface SkillResult {
+  skillId: string
+  status: 'loading' | 'success' | 'error'
+  data?: unknown
+  errorMessage?: string
+}
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  skillResult?: SkillResult
+  attachments?: ImageAttachment[]
 }
 
 // Message interface from ChatReducer
@@ -18,15 +29,20 @@ interface ChatMessageFromReducer {
   conversationId?: string
   isStreaming?: boolean
   error?: string
+  skillResult?: SkillResult
+  attachments?: ImageAttachment[]
 }
 
 interface ChatMessageProps {
   messages: (Message | ChatMessageFromReducer)[]
   isLoading: boolean
   shouldAutoScroll?: boolean
+  onSkillAnalyze?: (prompt: string) => void
 }
 
-export default function ChatMessage({ messages, isLoading, shouldAutoScroll = true }: ChatMessageProps) {
+export default function ChatMessage({ messages, isLoading, shouldAutoScroll = true, onSkillAnalyze }: ChatMessageProps) {
+  const [lightbox, setLightbox] = useState<{ images: ImageAttachment[]; index: number } | null>(null)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
@@ -126,7 +142,9 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
               content: message.text || '',
               timestamp: typeof message.timestamp === 'string' 
                 ? new Date(message.timestamp) 
-                : new Date()
+                : new Date(),
+              skillResult: message.skillResult,
+              attachments: message.attachments,
             };
           } else {
             // It's already a Message
@@ -136,11 +154,46 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
               content: message.content || '',
               timestamp: typeof message.timestamp === 'string' 
                 ? new Date(message.timestamp) 
-                : message.timestamp
+                : message.timestamp,
+              skillResult: message.skillResult,
+              attachments: message.attachments,
             };
           }
           
-          return <MessageItem key={message.id} message={mappedMessage} />
+          const msgAttachments = mappedMessage.attachments || []
+
+          return (
+            <div key={message.id}>
+              {/* Image grid (above text bubble for user, below for assistant) */}
+              {mappedMessage.role === 'user' && msgAttachments.length > 0 && (
+                <div className={`flex justify-end mb-2`}>
+                  <div className={`grid gap-1.5 max-w-[240px] ${
+                    msgAttachments.length === 1 ? 'grid-cols-1' :
+                    msgAttachments.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
+                  }`}>
+                    {msgAttachments.map((att, idx) => (
+                      <button
+                        key={att.id}
+                        type="button"
+                        onClick={() => setLightbox({ images: msgAttachments, index: idx })}
+                        className="rounded-xl overflow-hidden border border-white/10 hover:border-purple-400/50 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                        aria-label={`View image: ${att.name}`}
+                      >
+                        <img
+                          src={att.url}
+                          alt={att.name}
+                          className="w-full h-20 object-cover"
+                          loading="lazy"
+                          draggable={false}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <MessageItem message={mappedMessage} onSkillAnalyze={onSkillAnalyze} />
+            </div>
+          )
         })}
         
         {/* Loading indicator with TypingIndicator component */}
@@ -173,6 +226,15 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </button>
+      )}
+
+      {/* Image lightbox */}
+      {lightbox && (
+        <ImageLightbox
+          images={lightbox.images}
+          initialIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </div>
   )

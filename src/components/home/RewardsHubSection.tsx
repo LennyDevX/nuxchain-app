@@ -90,10 +90,10 @@ function RewardsHubSection() {
 
         {/* CTA */}
         <motion.div {...fadeUp(0.4)} className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-center'} gap-4`}>
-          <Link to="/rewards" className="btn-primary jersey-20-regular text-xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+          <Link to="/rewards" className="btn-primary jersey-20-regular text-2xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
             🏆 Open Rewards Hub
           </Link>
-          <Link to="/airdrop" className="jersey-20-regular text-xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all text-amber-300">
+          <Link to="/airdrop" className="jersey-20-regular text-2xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all text-amber-300">
             🎁 Claim Airdrop →
           </Link>
         </motion.div>

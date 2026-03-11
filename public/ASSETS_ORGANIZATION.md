@@ -16,9 +16,9 @@ public/
 │   │   └── WalletConnect.png
 │   │
 │   ├── nfts/                # Colecciones de NFTs
-│   │   └── dragonix/        # Colección Dragonix
-│   │       ├── Dragonix.png
-│   │       └── DragonixRed_Warrior.png
+│   │   └── nuxpass/         # Colección Nux-Pass
+│   │       ├── NuxPass.png
+│   │       └── NuxPassRed_Warrior.png
 │   │
 │   └── unused/              # Imágenes no utilizadas (seguras de borrar)
 │       ├── Airdrops.webp

@@ -1,3 +1,10 @@
+export interface SkillResult {
+  skillId: string;
+  status: 'loading' | 'success' | 'error';
+  data?: unknown;
+  errorMessage?: string;
+}
+
 export interface ChatMessage {
   id: string;
   text: string;
@@ -6,6 +13,7 @@ export interface ChatMessage {
   conversationId?: string;
   isStreaming?: boolean;
   error?: string;
+  skillResult?: SkillResult;
 }
 
 export interface UrlProcessing {
@@ -38,7 +46,9 @@ export type ChatAction =
   | { type: 'URL_PROCESSING_COMPLETE'; payload: string[] }
   | { type: 'URL_PROCESSING_ERROR'; payload: string }
   | { type: 'RESET_URL_PROCESSING' }
-  | { type: 'LOAD_CONVERSATION'; payload: { messages: ChatMessage[]; conversationId: string } };
+  | { type: 'LOAD_CONVERSATION'; payload: { messages: ChatMessage[]; conversationId: string } }
+  | { type: 'ADD_SKILL_MESSAGE'; payload: ChatMessage }
+  | { type: 'UPDATE_SKILL_MESSAGE'; payload: { id: string; skillResult: SkillResult } };
 
 export const initialChatState: ChatState = {
   messages: [],
@@ -190,6 +200,22 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
           content: [],
           error: null
         }
+      };
+
+    case 'ADD_SKILL_MESSAGE':
+      return {
+        ...state,
+        messages: [...state.messages, action.payload],
+      };
+
+    case 'UPDATE_SKILL_MESSAGE':
+      return {
+        ...state,
+        messages: state.messages.map(msg =>
+          msg.id === action.payload.id
+            ? { ...msg, skillResult: action.payload.skillResult }
+            : msg
+        ),
       };
 
     default:

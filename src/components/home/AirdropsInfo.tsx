@@ -27,11 +27,11 @@ const AirdropsInfo = () => {
           {/* Left — Content */}
           <div>
             <motion.div {...fadeUp()}>
-              <span className="jersey-20-regular text-amber-400 text-lg uppercase tracking-widest">Airdrops</span>
-              <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
+              <span className="jersey-20-regular text-amber-400 text-2xl uppercase tracking-widest">Airdrops</span>
+              <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-5xl' : 'text-6xl lg:text-7xl'}`}>
                 Exclusive <span className="text-gradient">NFT Airdrops</span>
               </h2>
-              <p className={`jersey-20-regular text-white/60 mb-8 leading-relaxed ${isMobile ? 'text-lg' : 'text-xl'}`}>
+              <p className={`jersey-20-regular text-white/60 mb-8 leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>
                 Nuxchain rewards active community members with exclusive NFT airdrops.
                 Each drop unlocks real utility — staking bonuses, marketplace access, and special privileges inside the ecosystem.
               </p>
@@ -40,20 +40,20 @@ const AirdropsInfo = () => {
             <div className={`space-y-4 mb-8 ${isMobile ? 'grid grid-cols-2 gap-3 space-y-0' : ''}`}>
               {airdropPerks.map((perk, i) => (
                 <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="card-unified p-4 flex gap-3 items-start">
-                  <span className="text-2xl flex-shrink-0">{perk.icon}</span>
+                  <span className="text-3xl flex-shrink-0">{perk.icon}</span>
                   <div>
-                    <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>{perk.title}</h3>
-                    <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-base' : 'text-lg'}`}>{perk.desc}</p>
+                    <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>{perk.title}</h3>
+                    <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-lg' : 'text-xl'}`}>{perk.desc}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
 
             <motion.div {...fadeUp(0.4)} className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-4`}>
-              <Link to="/airdrop" className="btn-primary jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+              <Link to="/airdrop" className="btn-primary jersey-20-regular text-2xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
                 🎁 Claim Airdrop
               </Link>
-              <Link to="/nfts" className="jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all text-amber-300">
+              <Link to="/nfts" className="jersey-20-regular text-2xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all text-amber-300">
                 Explore NFTs →
               </Link>
             </motion.div>
@@ -74,8 +74,8 @@ const AirdropsInfo = () => {
                 </div>
                 {/* Floating badge */}
                 <div className="absolute -bottom-4 -right-4 bg-black/80 backdrop-blur-sm border border-amber-500/40 rounded-2xl p-4 shadow-xl">
-                  <p className="jersey-20-regular text-amber-300 text-lg">🎁 Next Drop</p>
-                  <p className="jersey-15-regular text-white text-xl">Coming Soon</p>
+                  <p className="jersey-20-regular text-amber-300 text-2xl">🎁 Next Drop</p>
+                  <p className="jersey-15-regular text-white text-2xl">Coming Soon</p>
                 </div>
               </div>
             </motion.div>

@@ -8,7 +8,7 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.55, delay },
 });
 
-const PASSPORT_IMG = '/assets/unused/DragonixPassportCard.jpg';
+const PASSPORT_IMG = '/assets/nfts/nuxpass/NuxPass.png';
 
 const utilityList = [
   '🎫 Access passes to exclusive features',
@@ -29,13 +29,13 @@ export function NFTEconomySection() {
             <div className="relative rounded-2xl overflow-hidden border border-purple-500/30 shadow-[0_0_60px_rgba(168,85,247,0.15)]">
               <img 
                 src={PASSPORT_IMG} 
-                alt="Dragonix Passport NFT" 
+                alt="Nux-Pass NFT" 
                 className="w-full object-cover rounded-2xl"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent rounded-2xl" />
               <div className="absolute bottom-4 left-4 right-4">
-                <span className="jersey-20-regular text-purple-300 text-lg">🐉 Dragonix Passport NFT</span>
+                <span className="jersey-20-regular text-purple-300 text-lg">🎟️ Nux-Pass NFT</span>
                 <p className="jersey-20-regular text-white/60 text-base mt-1">Premium NFT with real utility inside & outside Nuxchain</p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 ---
 name: nft-minting-flow
-description: Implement NFT minting, tokenization, or NFT-related features in NuxChain. Use when user says "mint NFT", "create NFT", "tokenization", "NFT collection", "IPFS upload", "NFT metadata", "NFT marketplace", "DragonixCard", "Avatar NFT", or any NFT creation/display work. Covers the full flow from upload to on-chain mint.
+description: Implement NFT minting, tokenization, or NFT-related features in NuxChain. Use when user says "mint NFT", "create NFT", "tokenization", "NFT collection", "IPFS upload", "NFT metadata", "NFT marketplace", "NuxPass", "Avatar NFT", or any NFT creation/display work. Covers the full flow from upload to on-chain mint.
 allowed-tools: Read, Write, Edit, Glob, Grep
 model: claude-sonnet-4-5
 license: MIT
@@ -17,8 +17,8 @@ Implement NFT minting and tokenization features following NuxChain's patterns.
 
 ```
 public/AvatarsNFTs/          ← Avatar NFT images (Avatar1.png ... Avatar14.png)
-public/DragonixCardNFTs.png  ← Dragonix Card collection preview
-public/DragonixCardMinting.jpg
+public/NuxPassNFTs.png       ← Nux-Pass collection preview
+public/NuxPassMinting.jpg
 
 src/components/
   tokenization/              ← NFT creation UI components

@@ -67,11 +67,29 @@ export interface UserBlockchainData {
 // Chat Service Types
 // ============================================
 
+// ============================================
+// Image Attachment Types (Multimodal Chat)
+// ============================================
+
+export interface ImageAttachment {
+  id: string;          // UUID
+  url: string;         // Vercel Blob URL
+  name: string;        // Original filename
+  size: number;        // Bytes
+  type: 'image/jpeg' | 'image/jpg' | 'image/png' | 'image/webp' | 'image/heic' | 'image/heif';
+  uploadedAt: string;  // ISO timestamp
+  metadata?: {
+    width:   number;
+    height:  number;
+  };
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp?: number;
   parts?: Array<{ text: string }>;
+  attachments?: ImageAttachment[];  // Multimodal images
 }
 
 export interface ChatRequest {

@@ -45,10 +45,10 @@ export function ArchitectureSection() {
                 <div className={`w-14 h-14 rounded-xl bg-${chain.color}-500/20 border border-${chain.color}-500/40 flex items-center justify-center overflow-hidden`}><img src={chain.icon} alt={chain.name} className="w-full h-full object-contain" /></div>
                 <div>
                   <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>{chain.name}</h3>
-                  <p className={`jersey-20-regular text-${chain.color}-300 text-lg`}>{chain.subtitle}</p>
+                  <p className={`jersey-20-regular text-${chain.color}-300 text-xl`}>{chain.subtitle}</p>
                 </div>
               </div>
-              <p className={`jersey-20-regular text-white/60 leading-relaxed ${isMobile ? 'text-lg' : 'text-xl'}`}>{chain.desc}</p>
+              <p className={`jersey-20-regular text-white/60 leading-relaxed ${isMobile ? 'text-xl' : 'text-xl'}`}>{chain.desc}</p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {chain.tags.map(tag => (
                   <span key={tag} className={`jersey-20-regular text-base px-3 py-1 rounded-full bg-${chain.color}-500/15 border border-${chain.color}-500/30 text-${chain.color}-300`}>{tag}</span>

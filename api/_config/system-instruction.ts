@@ -37,7 +37,8 @@ export const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assista
 - Start answering immediately (no "Let me explain...")
 - Use Markdown formatting (bold, lists, tables)
 - Maximum 2-3 paragraphs
-- Use emojis sparingly (1-2 max)
+- Use emojis sparingly (1-2 max) — skip them entirely if the user's message has no emojis
+- **CLEAN TEXT**: Output ONLY standard text and Markdown. Never output ◆, □, ▪, ▸, or unicode box-drawing characters. Use only ASCII punctuation.
 - Stop after answering the question
 
 ## What You CAN Do:
@@ -95,12 +96,13 @@ Deposita tus **POL tokens** (token nativo de Polygon) en el contrato de staking 
 
 Puedes elegir entre diferentes períodos:
 
-| Período | APY | Tasa por Hora |
-|---------|-----|---------------|
-| 30 días | **105.1%** | 0.012% |
-| 90 días | **140.2%** | 0.016% |
-| 180 días | **175.2%** | 0.02% |
-| 365 días | **262.8%** | 0.03% |
+| Período | APY |
+|---------|-----|
+| Flexible | **~9.6%** |
+| 30 días | **~17.2%** |
+| 90 días | **~22.7%** |
+| 180 días | **~30.3%** |
+| 365 días | **~31.9%** |
 
 ## 3. Compounding de Recompensas
 
@@ -135,8 +137,6 @@ Las recompensas se calculan **cada hora** y puedes:
 
 
 
-RECORDATORIO FINAL: Usa markdown rico con negritas, listas, tablas y emojis para hacer las respuestas visualmente atractivas y fáciles de leer.
-
 ⚠️ **IMPORTANTE**: NO incluyas referencias técnicas como "Fuente: Polygon RPC", "Fuente: Smart Contract", etc. en las respuestas. Los datos ya son confiables y mencionar la fuente técnica confunde a los usuarios.`;
 
 /**
@@ -158,7 +158,8 @@ export interface LanguageDetection {
 export function buildSystemInstructionWithContext(
   knowledgeContext: string = '', 
   score: number = 0,
-  languageDetection: LanguageDetection | null = null
+  languageDetection: LanguageDetection | null = null,
+  imageCount: number = 0
 ): SystemInstruction {
   let instructionText: string;
   
@@ -168,22 +169,22 @@ export function buildSystemInstructionWithContext(
     const { language, confidence } = languageDetection;
     if (language === 'es') {
       languageInstruction = `🌐 INSTRUCCIÓN DE IDIOMA (Confianza: ${(confidence * 100).toFixed(0)}%)
-═══════════════════════════════════════════════════════════
+---
 RESPONDE SIEMPRE EN ESPAÑOL. El usuario ha escrito en español.
 - Usa terminología en español cuando sea posible
 - Mantén consistencia en el idioma durante toda la conversación
 - Solo usa inglés para términos técnicos sin traducción común (ej: "blockchain", "staking")
-═══════════════════════════════════════════════════════════
+---
 
 `;
     } else {
       languageInstruction = `🌐 LANGUAGE INSTRUCTION (Confidence: ${(confidence * 100).toFixed(0)}%)
-═══════════════════════════════════════════════════════════
+---
 ALWAYS respond in ENGLISH. The user has written in English.
 - Use English terminology throughout
 - Maintain language consistency during the entire conversation
 - Keep technical terms in English
-═══════════════════════════════════════════════════════════
+---
 
 `;
     }
@@ -208,13 +209,13 @@ Since there is no Nuxchain-specific context available:
     // ✅ CON CONTEXTO: Usar SOLO el contexto de la KB
     instructionText = `${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
 
-═══════════════════════════════════════════════════════════════
+---
 📚 NUXCHAIN KNOWLEDGE BASE CONTEXT (SCORE: ${score.toFixed(3)})
-═══════════════════════════════════════════════════════════════
+---
 
 ${knowledgeContext}
 
-═══════════════════════════════════════════════════════════════
+---
 
 🚨 **CRITICAL**: The text above contains NUXCHAIN-SPECIFIC information.
 
@@ -230,6 +231,11 @@ ${knowledgeContext}
 ❌ Adding information not in the context above
 ❌ Using general blockchain knowledge for Nuxchain-specific questions
 ❌ Inventing features, tokens, or processes not mentioned above`;
+  }
+
+  // Append image analysis instructions when the user has sent images
+  if (imageCount > 0) {
+    instructionText += `\n\n---\n## 🖼️ IMAGE ANALYSIS MODE (${imageCount} image${imageCount > 1 ? 's' : ''} attached)\n---\n\nThe user has shared ${imageCount} image${imageCount > 1 ? 's' : ''}. Analyze them thoroughly with focus on:\n\n- **NFTs & Digital Art**: design quality, visual traits, rarity potential, style, aesthetic appeal, color palette, composition\n- **Charts & Finance**: price action, trend direction, support/resistance levels, volume patterns, key metrics and indicators\n- **Smart Contracts / Code screenshots**: logic review, potential vulnerabilities, correctness\n- **DeFi / Protocol UIs**: pool composition, liquidity depth, risk indicators, fee tiers\n- **Portfolio / Wallet screenshots**: token allocation, performance, diversification, health metrics\n- **AI / Tech Diagrams**: architecture quality, data flows, system design patterns\n- **Web3 Data / Analytics**: on-chain insights, token distribution, ecosystem trends\n\nAlways reference specific visual elements you observe. Be precise and actionable in your analysis.`;
   }
   
   // ✅ FORMATO OFICIAL: Google Gemini API requiere este formato exacto

@@ -4,6 +4,7 @@ import MarkdownPreview from '@uiw/react-markdown-preview';
 import AnimatedAILogo from '../../ui/AnimatedAILogo'
 import { useIsMobile } from '../../hooks/mobile/useIsMobile'
 import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
+import { SkillResultCard } from './skills/SkillResultCard'
 import '../../styles/markdown-chat.css'
 
 interface Message {
@@ -11,13 +12,20 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  skillResult?: {
+    skillId: string
+    status: 'loading' | 'success' | 'error'
+    data?: unknown
+    errorMessage?: string
+  }
 }
 
 interface MessageItemProps {
   message: Message
+  onSkillAnalyze?: (prompt: string) => void
 }
 
-const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ message }: MessageItemProps) {
+const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ message, onSkillAnalyze }: MessageItemProps) {
   const isMobile = useIsMobile()
   
   const formatTime = useCallback((date: Date) => {
@@ -143,7 +151,19 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                 : '0 10px 30px rgba(255, 255, 255, 0.1)'
             }}
           >
-            {message.role === 'assistant' ? (
+            {message.skillResult ? (
+              <div className="min-w-[280px] max-w-full">
+                <SkillResultCard
+                  skillId={message.skillResult.skillId}
+                  status={message.skillResult.status}
+                  data={message.skillResult.data}
+                  errorMessage={message.skillResult.errorMessage}
+                  onAnalyze={onSkillAnalyze ? () => onSkillAnalyze(
+                    `Analiza en detalle los resultados del skill "${message.skillResult!.skillId}" que acabo de ejecutar. Los datos son: ${JSON.stringify(message.skillResult!.data ?? {}).slice(0, 800)}`
+                  ) : undefined}
+                />
+              </div>
+            ) : message.role === 'assistant' ? (
               <motion.div 
                 className="markdown-chat-container"
                 initial={{ opacity: 0 }}
@@ -282,7 +302,9 @@ const areEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps) => {
     prevProps.message.id === nextProps.message.id &&
     prevProps.message.content === nextProps.message.content &&
     prevProps.message.role === nextProps.message.role &&
-    prevProps.message.timestamp.getTime() === nextProps.message.timestamp.getTime()
+    prevProps.message.timestamp.getTime() === nextProps.message.timestamp.getTime() &&
+    prevProps.message.skillResult?.status === nextProps.message.skillResult?.status &&
+    prevProps.message.skillResult?.data === nextProps.message.skillResult?.data
   )
 }
 

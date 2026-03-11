@@ -80,11 +80,11 @@ export interface ContractConstants {
 
 // Valores por defecto (fallback si el contrato no responde)
 const DEFAULT_APY_RATES: APYRates = {
-  flexible: 2630,    // 26.3% APY
-  locked30: 4380,    // 43.8% APY
-  locked90: 7880,    // 78.8% APY
-  locked180: 10510,  // 105.1% APY
-  locked365: 15770,  // 157.7% APY
+  flexible: 960,     // 9.6% APY  (v6.2)
+  locked30: 1720,    // 17.2% APY (v6.2)
+  locked90: 2270,    // 22.7% APY (v6.2)
+  locked180: 3030,   // 30.3% APY (v6.2)
+  locked365: 3190,   // 31.9% APY (v6.2)
 };
 
 const DEFAULT_RARITY_MULTIPLIERS: RarityMultipliers = {

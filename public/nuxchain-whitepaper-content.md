@@ -106,13 +106,13 @@ The EnhancedSmartStaking v4.0 system is the core yield-generation engine. Users 
 
 ### 4.2 Lockup Tiers & APY
 
-| Lockup Period | Hourly Rate | Annual APY | Multiplier |
-|--------------|-------------|-----------|-----------|
-| Flexible (0 days) | 0.005% / hr | 43.8% | 1x |
-| 30 Days | 0.010% / hr | 87.6% | 2x |
-| 90 Days | 0.014% / hr | 122.6% | 2.8x |
-| 180 Days | 0.017% / hr | 149.3% | 3.4x |
-| 365 Days | 0.025% / hr | 219% | 5x |
+| Lockup Period | Annual APY | Multiplier |
+|--------------|-----------|-----------|
+| Flexible (0 days) | ~9.6% | 1x |
+| 30 Days | ~17.2% | 1.8x |
+| 90 Days | ~22.7% | 2.4x |
+| 180 Days | ~30.3% | 3.2x |
+| 365 Days | ~31.9% | 3.3x |
 
 *Commission: 6% on rewards | Max Deposit: 100,000 POL | Min Deposit: 10 POL*
 

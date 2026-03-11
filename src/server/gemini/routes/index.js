@@ -2,6 +2,7 @@ import express from 'express';
 import geminiRoutes from './gemini-routes.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
 import airdropRoutes from './airdrop-routes.js';
+import skillsRoutes from './skills-routes.js';
 import errorHandler from '../middlewares/error-handler.js';
 import costTrackingService from '../services/cost-tracking-service.js';
 import tokenCountingService from '../services/token-counting-service.js';
@@ -82,6 +83,9 @@ router.use('/streaming', enhancedStreamingRoutes);
 
 // Rutas de Airdrop
 router.use('/airdrop', airdropRoutes);
+
+// 🧠 AI Skills routes (all 9 skill endpoints, no tier gating in local dev)
+router.use('/skills', skillsRoutes);
 
 // Remove inline error handler and use shared one
 router.use(errorHandler);

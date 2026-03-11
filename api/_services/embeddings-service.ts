@@ -4,8 +4,13 @@ import type { KnowledgeBaseItem } from '../types/index.js';
 /**
  * ✅ TypeScript Migration - Phase 1 (embeddings complete)
  * Servicio de Embeddings para Vercel con Gemini API
- * Usa gemini-embedding-001 para búsqueda semántica de alta calidad
+ * Usa gemini-embedding-2-preview (multimodal, 3072D) para búsqueda semántica de alta calidad
+ * @see https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-embedding-2-preview/
  */
+
+// ✅ Modelo de embedding configurable via env (default: gemini-embedding-2-preview)
+const EMBEDDING_MODEL = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-2-preview';
+const EMBEDDING_DIMENSIONS = parseInt(process.env.GEMINI_EMBEDDING_DIMENSIONS || '3072', 10);
 
 // ============================================================================
 // TYPES
@@ -400,7 +405,7 @@ async function generateEmbedding(text: string): Promise<number[] | null> {
     const truncatedText = text.length > 8000 ? text.substring(0, 8000) : text;
     
     const response = await ai.models.embedContent({
-      model: 'gemini-embedding-001',
+      model: EMBEDDING_MODEL,
       contents: truncatedText
     });
     
@@ -483,7 +488,7 @@ export async function searchSimilar(
       return [];
     }
     
-    console.log(`🔍 Searching with gemini-embedding-001 for: "${query.substring(0, 50)}..."`);
+    console.log(`🔍 Searching with ${EMBEDDING_MODEL} for: "${query.substring(0, 50)}..."`);
     
     const queryEmbedding = await generateEmbedding(query);
     
@@ -641,7 +646,7 @@ async function batchEmbedMultipleTexts(texts: string[]): Promise<number[][] | nu
     );
 
     const response = await ai.models.embedContent({
-      model: 'gemini-embedding-001',
+      model: EMBEDDING_MODEL,
       contents: truncatedTexts
     });
 
@@ -821,7 +826,7 @@ export async function initializeKnowledgeBaseForVercel(precompute = false): Prom
     
     console.log(`✅ Knowledge base loaded: ${knowledgeBase.length} documents`);
     console.log(`🔑 Gemini API Key: ${hasApiKey ? 'Available' : 'Missing'}`);
-    console.log(`🤖 Embedding model: gemini-embedding-001`);
+    console.log(`🤖 Embedding model: ${EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS}D)`);
     
     if (!hasApiKey) {
       console.warn('⚠️ Running in fallback mode (BM25) - Configure GEMINI_API_KEY for better results');
@@ -836,10 +841,10 @@ export async function initializeKnowledgeBaseForVercel(precompute = false): Prom
     return {
       fallbackMode: !hasApiKey,
       fallbackReason: hasApiKey 
-        ? 'Using gemini-embedding-001 for semantic search' 
+        ? `Using ${EMBEDDING_MODEL} (${EMBEDDING_DIMENSIONS}D) for semantic search` 
         : 'GEMINI_API_KEY not configured - using BM25 fallback',
       documentsCount: knowledgeBase.length,
-      embeddingModel: 'gemini-embedding-001',
+      embeddingModel: EMBEDDING_MODEL,
       hasApiKey,
       precomputeStarted: precompute && hasApiKey
     };
@@ -850,7 +855,7 @@ export async function initializeKnowledgeBaseForVercel(precompute = false): Prom
       fallbackMode: true,
       fallbackReason: 'Error loading KB',
       documentsCount: 0,
-      embeddingModel: 'gemini-embedding-001',
+      embeddingModel: EMBEDDING_MODEL,
       hasApiKey: false
     };
   }

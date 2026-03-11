@@ -1,7 +1,19 @@
 name: Lighthouse CI
 
 on:
-  workflow_dispatch: # Solo ejecución manual
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'vite.config.ts'
+      - 'package.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+  workflow_dispatch: # Manual trigger
 
 jobs:
   lighthouse:
@@ -24,6 +36,13 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+
+      - name: Report bundle sizes
+        run: |
+          echo "### Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          find dist/assets -name '*.js' -exec du -sh {} + | sort -rh | head -20 >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       
       - name: Run Lighthouse CI
         run: |

@@ -169,10 +169,19 @@ interface WalletAuthPayload {
   signature: string;
 }
 
+interface ImageAttachmentPayload {
+  id:         string;
+  url:        string;
+  name:       string;
+  size:       number;
+  type:       string;
+  uploadedAt: string;
+}
+
 // Tipo para el body que puede venir en diferentes formatos
 type ChatRequestBody = 
-  | { messages: ChatMessage[]; message?: never; walletAddress?: string; selectedModel?: string; walletAuth?: WalletAuthPayload }
-  | { message: string; messages?: never; walletAddress?: string; selectedModel?: string; walletAuth?: WalletAuthPayload }
+  | { messages: ChatMessage[]; message?: never; walletAddress?: string; selectedModel?: string; walletAuth?: WalletAuthPayload; attachments?: ImageAttachmentPayload[] }
+  | { message: string; messages?: never; walletAddress?: string; selectedModel?: string; walletAuth?: WalletAuthPayload; attachments?: ImageAttachmentPayload[] }
   | ChatMessage[]
   | string;
 
@@ -512,10 +521,12 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     }
     
     // Construir system instruction con contexto Y detección de idioma
+    const attachmentsForInstruction = (req.body as { attachments?: ImageAttachmentPayload[] }).attachments || [];
     const baseSystemInstruction = buildSystemInstructionWithContext(
       relevantContext.context || '',
       relevantContext.score || 0,
-      languageDetection
+      languageDetection,
+      attachmentsForInstruction.length
     );
 
     // ── WALLET AUTH: Verify signature & fetch on-chain user context ────────
@@ -878,23 +889,52 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     // Build full conversation contents for multi-turn context
     // Frontend sends: { messages: [{role:'user'|'model', parts:[{text}]}] }
     // Replace the last user turn with the enriched message (includes blockchain/URL context)
-    let geminiContents: Array<{role: string; parts: Array<{text: string}>}>;
-    const bodyMessages = (req.body as {messages?: Array<{role: string; parts: Array<{text: string}>}>}).messages;
+
+    // Image attachments — fetch from Vercel Blob URL and encode as inline base64
+    const attachments = (req.body as { attachments?: ImageAttachmentPayload[] }).attachments || [];
+    const imageParts: Array<{ inlineData: { mimeType: string; data: string } }> = [];
+    if (attachments.length > 0) {
+      console.log(`🖼️ Processing ${attachments.length} image attachment(s)...`);
+      for (const att of attachments.slice(0, 3)) {
+        try {
+          const imgRes = await fetch(att.url);
+          if (!imgRes.ok) { console.warn(`⚠️ Could not fetch image ${att.url}: ${imgRes.status}`); continue; }
+          const imgBuf = await imgRes.arrayBuffer();
+          const base64 = Buffer.from(imgBuf).toString('base64');
+          imageParts.push({ inlineData: { mimeType: att.type || 'image/webp', data: base64 } });
+          console.log(`✅ Image loaded: ${att.name} (${Math.round(imgBuf.byteLength / 1024)} KB)`);
+        } catch (imgErr) {
+          console.warn(`⚠️ Failed to load image ${att.name}:`, imgErr);
+        }
+      }
+      if (imageParts.length > 0) {
+        console.log(`🖼️ ${imageParts.length} image(s) added to Gemini request`);
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+    const lastUserParts: GeminiPart[] = [{ text: enrichedMessage }, ...imageParts];
+
+    let geminiContents: Array<{ role: string; parts: GeminiPart[] }>;
+    const bodyMessages = (req.body as { messages?: Array<{ role: string; parts: Array<{ text: string }> }> }).messages;
     if (bodyMessages && Array.isArray(bodyMessages) && bodyMessages.length > 1) {
-      // Multi-turn: keep history, replace last user message with enriched version
+      // Multi-turn: keep history, replace last user message with enriched version (+ images)
       geminiContents = [
         ...bodyMessages.slice(0, -1),
-        { role: 'user', parts: [{ text: enrichedMessage }] }
+        { role: 'user', parts: lastUserParts }
       ];
     } else {
-      // Single turn or no history: send as plain string
-      geminiContents = [{ role: 'user', parts: [{ text: enrichedMessage }] }];
+      geminiContents = [{ role: 'user', parts: lastUserParts }];
     }
 
     // Generar stream con mensaje enriquecido (incluye contexto blockchain si existe)
     const streamResponse = await client.models.generateContentStream({
       model: chatModel,
-      contents: geminiContents.length === 1 ? enrichedMessage : (geminiContents as Parameters<typeof client.models.generateContentStream>[0]['contents']),
+      // Always use array format when images are present; use plain string for single-turn text-only (slightly faster)
+      contents: (geminiContents.length === 1 && imageParts.length === 0)
+        ? enrichedMessage
+        : (geminiContents as Parameters<typeof client.models.generateContentStream>[0]['contents']),
       config: {
         systemInstruction,
         ...(configTools && { tools: configTools }), // Solo incluir tools si hay URLs
@@ -911,7 +951,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         temperature: 0.3,
         topK: 20,
         topP: 0.85,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
       }
     });
     

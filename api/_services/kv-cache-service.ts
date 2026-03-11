@@ -18,7 +18,7 @@ interface CachedData<T> {
 }
 
 class KVCacheService {
-  private defaultTTL: number = 60; // 60 seconds default
+  private defaultTTL: number = 120; // 120 seconds default (increased from 60s)
   private enableLogging: boolean = process.env.NODE_ENV !== 'production';
 
   /**
@@ -225,6 +225,46 @@ class KVCacheService {
       console.error('[KVCache] Increment error:', error);
       return 0;
     }
+  }
+
+  /**
+   * Stale-While-Revalidate: returns stale cached data immediately,
+   * then refreshes in background. Eliminates latency on cache hits.
+   * @param key Cache key
+   * @param fetcher Function to fetch fresh data
+   * @param options Cache options (staleTTL = how long stale data is served)
+   */
+  async staleWhileRevalidate<T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    options: CacheOptions & { staleTTL?: number } = {}
+  ): Promise<T> {
+    const cacheKey = this.getCacheKey(key, options.namespace);
+    try {
+      const cached = await kv.get<CachedData<T>>(cacheKey);
+      if (cached) {
+        const age = Date.now() - cached.timestamp;
+        const ttlMs = (options.ttl || this.defaultTTL) * 1000;
+        const staleTTLMs = (options.staleTTL ?? (options.ttl || this.defaultTTL) * 2) * 1000;
+        // Serve stale data if within staleTTL window, refresh in background
+        if (age < staleTTLMs) {
+          if (age > ttlMs) {
+            // Data is stale but within tolerance — refresh in background
+            fetcher()
+              .then(fresh => this.set(key, fresh, options))
+              .catch(err => console.warn('[KVCache] Background refresh failed:', err));
+          }
+          this.log(`STALE-HIT - ${cacheKey}`, { ageMs: age });
+          return cached.data;
+        }
+      }
+    } catch (error) {
+      console.warn('[KVCache] staleWhileRevalidate read error:', error);
+    }
+    // Full miss — fetch, store, and return
+    const fresh = await fetcher();
+    await this.set(key, fresh, options);
+    return fresh;
   }
 }
 

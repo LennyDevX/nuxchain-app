@@ -438,7 +438,7 @@ export function StakingProvider({ children }: { children: ReactNode }) {
         }>;
       } | undefined;
       
-      let weightedAPY = 1970n; // Default base APY: 19.7%
+      let weightedAPY = 960n; // Default base APY: 9.6% (v6.2 flexible)
       
       // Calculate weighted APY considering lockup bonuses
       if (depositsData?.deposits && depositsData.deposits.length > 0) {
@@ -449,17 +449,17 @@ export function StakingProvider({ children }: { children: ReactNode }) {
           const amount = dep.amount || 0n;
           const lockupDuration = dep.lockupDuration || 0n;
           
-          // Determine APY based on lockup duration
-          let apy = 1970n; // Base 19.7%
+          // Determine APY based on lockup duration (v6.2 rates)
+          let apy = 960n; // Base 9.6% flexible
           
           if (lockupDuration >= 31536000n) { // 365 days
-            apy = 2970n; // 29.7% (19.7% + 10%)
+            apy = 3190n; // 31.9%
           } else if (lockupDuration >= 15552000n) { // 180 days
-            apy = 2660n; // 26.6% (19.7% + 6.9%)
+            apy = 3030n; // 30.3%
           } else if (lockupDuration >= 7776000n) { // 90 days
-            apy = 2370n; // 23.7% (19.7% + 4%)
+            apy = 2270n; // 22.7%
           } else if (lockupDuration >= 2592000n) { // 30 days
-            apy = 2170n; // 21.7% (19.7% + 2%)
+            apy = 1720n; // 17.2%
           }
           
           totalWeightedAPY += amount * apy;

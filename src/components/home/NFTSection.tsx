@@ -29,12 +29,12 @@ function NFTSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.55 }}
       >
-        <span className="jersey-20-regular text-purple-400 text-lg uppercase tracking-widest">NFT Collections</span>
-        <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
+        <span className="jersey-20-regular text-purple-400 text-lg md:text-xl uppercase tracking-widest">NFT Collections</span>
+        <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-7xl'}`}>
           Unique <span className="text-gradient">NFTs</span>
         </h2>
-        <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-xl'}`}>
-          Collect exclusive Dragonix NFTs — each with real utility, staking bonuses, and marketplace integration.
+        <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+          Collect exclusive Nux-Pass NFTs — each with real utility, staking bonuses, and marketplace integration.
           Premium NFTs that empower you inside and outside the ecosystem.
         </p>
       </motion.div>
@@ -84,14 +84,14 @@ function NFTSection() {
       >
         <div className={`flex flex-wrap justify-center gap-2 mb-6 ${isMobile ? 'gap-2 mb-4' : 'gap-3 mb-8'}`}>
           {['🎫 Access Passes', '📈 Staking Boosts', '🗳️ Governance', '⚡ On-chain Utility', '🌐 Cross-platform'].map(tag => (
-            <span key={tag} className="jersey-20-regular text-base px-4 py-2 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">{tag}</span>
+            <span key={tag} className="jersey-20-regular text-lg  px-4 py-2 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300">{tag}</span>
           ))}
         </div>
         <div className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-center'} gap-4`}>
-          <Link to="/nfts" className="btn-primary jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+          <Link to="/nfts" className="btn-primary jersey-20-regular text-2xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
             🎨 Explore NFTs
           </Link>
-          <Link to="/create-my-nfts" className="jersey-20-regular text-xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/10 transition-all">
+          <Link to="/create-my-nfts" className="jersey-20-regular text-2xl px-8 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-purple-500/50 hover:border-purple-400 hover:bg-purple-500/10 transition-all">
             ✨ Create Your NFT
           </Link>
         </div>

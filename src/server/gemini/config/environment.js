@@ -66,5 +66,7 @@ export default {
   isVercel: Boolean(detectedVercel),
   nodeEnv: process.env.NODE_ENV || 'development',
   isEnvironmentValid: isValid,
-  embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
+  embeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-2-preview',
+  embeddingDimensions: parseInt(process.env.GEMINI_EMBEDDING_DIMENSIONS || '3072', 10),
+  useEmbeddingV2: process.env.USE_EMBEDDING_V2 !== 'false',
 };

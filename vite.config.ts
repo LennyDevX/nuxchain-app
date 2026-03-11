@@ -21,7 +21,7 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024, // 15MB (increased for better SW coverage)
       },
     })
   ],
@@ -60,21 +60,72 @@ export default defineConfig({
     target: 'esnext',
     minify: 'esbuild',
     sourcemap: process.env.NODE_ENV !== 'production',
-    // Disable modulePreload to prevent parallel loading that causes race conditions
-    modulePreload: false,
+    // modulePreload: enabled (Vite default) — required for parallel vendor chunk fetching.
+    // React 19 + Suspense boundaries handle initialization order correctly with static imports.
+    // ES module spec guarantees: if A imports B, B executes before A — no race conditions.
     rollupOptions: {
       output: {
         preserveModules: false,
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
-        // NO CODE SPLITTING AT ALL - bundle everything together
-        // This guarantees execution order and prevents React initialization issues
-        manualChunks: undefined
+        // Vendor chunk splitting: separates stable third-party code into independently cacheable units.
+        // Browser fetches all chunks in parallel (HTTP/2 + modulePreload hints).
+        // Rollup guarantees correct init order via static import graph — no Wagmi/React race conditions.
+        manualChunks: (id: string) => {
+          // Normalize path separators (Windows uses backslashes, Vite may or may not normalize)
+          const mod = id.replace(/\\/g, '/');
+          if (!mod.includes('node_modules/')) return undefined;
+
+          // React core: keep react + react-dom + scheduler together (single React instance)
+          if (
+            mod.includes('/node_modules/react/') ||
+            mod.includes('/node_modules/react-dom/') ||
+            mod.includes('/node_modules/scheduler/')
+          ) return 'react-core';
+          // Wagmi + Viem (Web3 core) — statically depends on react-core
+          if (
+            mod.includes('/node_modules/wagmi/') ||
+            mod.includes('/node_modules/viem/') ||
+            mod.includes('/node_modules/@wagmi/')
+          ) return 'web3-core';
+          // WalletConnect + MetaMask connectors (~300KB combined)
+          if (
+            mod.includes('/node_modules/@walletconnect/') ||
+            mod.includes('/node_modules/@metamask/')
+          ) return 'wallet-connectors';
+          // Solana ecosystem (NFT + tokenization pages only, ~200-300KB)
+          if (
+            mod.includes('/node_modules/@solana/') ||
+            mod.includes('/node_modules/@metaplex/')
+          ) return 'solana-stack';
+          // Chart libraries (Market/Labs pages only)
+          if (
+            mod.includes('/node_modules/chart.js/') ||
+            mod.includes('/node_modules/recharts/') ||
+            mod.includes('/node_modules/react-chartjs-2/')
+          ) return 'charts';
+          // Gemini AI SDK (Chat page only, ~100-200KB)
+          if (mod.includes('/node_modules/@google/genai/')) return 'ai-sdk';
+          // Framer Motion (animations, ~60KB)
+          if (mod.includes('/node_modules/framer-motion/')) return 'animation';
+          // Apollo / GraphQL (~50KB)
+          if (
+            mod.includes('/node_modules/@apollo/') ||
+            mod.includes('/node_modules/graphql/')
+          ) return 'graphql';
+          // Firebase + Firestore (~150KB)
+          if (
+            mod.includes('/node_modules/firebase/') ||
+            mod.includes('/node_modules/@firebase/')
+          ) return 'firebase';
+          // All other node_modules → stable vendor chunk (rarely changes between deploys)
+          return 'vendor';
+        },
       }
     },
-    chunkSizeWarningLimit: 3000,
-    reportCompressedSize: false, // Skip gzip size report (saves time)
+    chunkSizeWarningLimit: 1500, // Surface oversized chunks earlier (was 3000)
+    reportCompressedSize: true,  // Show gzip sizes to track real payload impact
   },
   esbuild: {
     jsx: 'automatic',

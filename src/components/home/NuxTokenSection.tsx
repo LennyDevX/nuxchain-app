@@ -18,8 +18,8 @@ const tokenStats = [
 
 const tokenFeatures = [
   { icon: '🏆', title: 'Monthly Rewards', desc: 'Distributed to active users via the NUX Rewards Hub every 30 days.' },
-  { icon: '/assets/tokens/PolLogo.webp', title: 'Polygon Native', desc: 'Activity tracked on Polygon — ultra-fast, ultra-cheap transactions.', isImage: true },
-  { icon: '/assets/tokens/SolanaLogo.png', title: 'Solana Distribution', desc: 'Rewards sent as SPL tokens to your Solana wallet. Zero gas for recipients.', isImage: true },
+  { icon: '/assets/tokens/PolLogo.webp', title: 'Polygon Native', desc: 'Activity tracked on Polygon — ultra-fast, ultra-cheap transactions.', isImage: true, w: 'w-14', h: 'h-14' },
+  { icon: '/assets/tokens/SolanaLogo.png', title: 'Solana Distribution', desc: 'Rewards sent as SPL tokens to your Solana wallet. Zero gas for recipients.', isImage: true, w: 'w-24', h: 'h-24' },
   { icon: '📈', title: 'Staking Utility', desc: 'Stake NUX for governance rights and ecosystem fee discounts.' },
 ];
 
@@ -37,11 +37,11 @@ function NuxTokenSection() {
 
         {/* Header */}
         <motion.div {...fadeUp()} className="text-center mb-14">
-          <span className="jersey-20-regular text-amber-400 text-lg uppercase tracking-widest">Token</span>
-          <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
+          <span className="jersey-20-regular text-amber-400 text-2xl uppercase tracking-widest">Token</span>
+          <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-5xl' : 'text-6xl lg:text-7xl'}`}>
             The <span className="text-gradient">NUX Token</span>
           </h2>
-          <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-xl' : 'text-2xl'}`}>
             NUX is the native utility token powering the entire Nuxchain ecosystem —
             rewards, governance, staking, and cross-chain distribution.
           </p>
@@ -85,7 +85,7 @@ function NuxTokenSection() {
             {tokenFeatures.map((f, i) => (
               <motion.div key={i} {...fadeUp(0.1 + i * 0.09)} className="card-unified p-5 flex gap-4 items-start">
                 {f.isImage ? (
-                  <img src={f.icon} alt={f.title} className="w-8 h-8 flex-shrink-0 object-contain" />
+                  <img src={f.icon} alt={f.title} className={`${f.w} ${f.h} flex-shrink-0 object-contain`} />
                 ) : (
                   <span className="text-3xl flex-shrink-0">{f.icon}</span>
                 )}

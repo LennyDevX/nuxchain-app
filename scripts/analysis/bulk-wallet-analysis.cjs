@@ -24,8 +24,14 @@ require('dotenv').config();
 // CONFIGURATION
 // ============================================================================
 
-// serviceAccountKey.json está en la raíz del proyecto y está en .gitignore (nunca se sube a git)
-const SERVICE_ACCOUNT_PATH = path.resolve(process.cwd(), 'serviceAccountKey.json');
+// serviceAccountKey.json is the canonical name (gitignored). Fall back to any *adminsdk*.json in the project root.
+const _canonicalSA = path.resolve(process.cwd(), 'serviceAccountKey.json');
+const SERVICE_ACCOUNT_PATH = fs.existsSync(_canonicalSA)
+  ? _canonicalSA
+  : (() => {
+      const alt = fs.readdirSync(process.cwd()).find(f => /adminsdk.*\.json$/i.test(f));
+      return alt ? path.resolve(process.cwd(), alt) : _canonicalSA; // keep canonical so error is clear
+    })();
 const COLLECTION_NAME = 'nuxchainAirdropRegistrations';
 const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC_ALCHEMY || process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const AIRDROP_MAINTENANCE = process.env.VITE_AIRDROP_MAINTENANCE === 'true';

@@ -41,6 +41,7 @@ const httpLink = new HttpLink({
 // Create Apollo Client instance
 export const apolloClient = new ApolloClient({
   link: from([errorLink, retryLink, httpLink]), // ⚡ Chain links: error → retry → http
+  connectToDevTools: process.env.NODE_ENV !== 'production', // Disable DevTools overhead in production
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
@@ -67,6 +68,11 @@ export const apolloClient = new ApolloClient({
     },
   },
 });
+
+// Periodic cache GC to prevent memory growth in long browser sessions
+if (typeof window !== 'undefined') {
+  setInterval(() => apolloClient.cache.gc(), 5 * 60 * 1000); // Every 5 minutes
+}
 
 /**
  * ✅ NEW: Function to clear Apollo Client cache after transactions

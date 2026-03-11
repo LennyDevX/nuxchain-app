@@ -83,6 +83,13 @@ const NUXCHAIN_KEYWORDS: string[] = [
   'nivel', 'level', 'xp', 'experiencia', 'experience points', 'puntos',
   'rango', 'rang', 'insignia', 'badge', 'achievement', 'logro',
 
+  // ✅ NUEVOS: Nuxbee AI Skills (módulos de análisis)
+  'ai skill', 'ai skills', 'nuxbee skill', 'risk analysis', 'nft listing',
+  'market alpha', 'content moderation', 'contract auditor', 'whale tracker',
+  'portfolio analyzer', 'token research', 'liquidity advisor',
+  'analisis de riesgo', 'auditoria contrato', 'analizador cartera',
+  'investigacion token', 'asesor liquidez',
+
   // Características técnicas
   'fractional nft', 'nft fraccionado', 'fraccional',
   'metadata', 'ipfs', 'smart staking', 'liquidity',

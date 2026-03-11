@@ -117,13 +117,7 @@ const Footer: React.FC = () => {
               <a href="#terms" className="hover:text-purple-400 transition-colors">Terms of Service</a>
             </div>
 
-            <div className="jersey-20-regular flex items-center space-x-2 text-sm text-gray-500">
-              <span>Powered by</span>
-              <div className="flex items-center space-x-1">
-                <div className="w-4 h-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-                <span>Blockchain Technology</span>
-              </div>
-            </div>
+           
           </div>
         </div>
       </div>

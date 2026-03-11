@@ -35,7 +35,9 @@
     "test:production": "node api/test/simple-test-runner.js",
     "test:comprehensive": "node api/test/comprehensive-chat-test.js",
     "test:readiness": "node api/test/production-ready.test.js",
-    "test": "npm run test:production"
+    "test": "npm run test:production",
+    "build:verbose": "vite build --logLevel verbose",
+    "build:size": "vite build 2>&1"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
@@ -59,6 +61,7 @@
     "@tanstack/react-query": "^5.90.21",
     "@types/react-window": "^1.8.8",
     "@uiw/react-markdown-preview": "^5.1.5",
+    "@vercel/blob": "^2.3.1",
     "@vercel/kv": "^3.0.0",
     "@walletconnect/ethereum-provider": "~2.23.7",
     "axios": "^1.13.6",

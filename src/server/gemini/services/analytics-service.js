@@ -509,7 +509,8 @@ class AnalyticsService {
     // Costos aproximados por token (en USD) - Solo modelos Gemini 3.1+
     const costs = {
       'gemini-3.1-flash-lite': 0.0000005, // Optimized cost for lite version
-      'gemini-embedding-001': 0.0000001
+      'gemini-embedding-001': 0.0000001,
+      'gemini-embedding-2': 0.0000001     // Gemini Embedding 2 (3072D, multimodal)
     };
     
     return costs[model] || 0.0000005; // Default cost for gemini-3.1-flash-lite

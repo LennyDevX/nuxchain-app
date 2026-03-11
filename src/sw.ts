@@ -9,7 +9,7 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Extend Service Worker types
@@ -71,6 +71,25 @@ registerRoute(
       }),
     ],
     networkTimeoutSeconds: 10,
+  })
+);
+
+// Cache Strategy 4: Vercel API price/market endpoints (stale-while-revalidate for instant reads)
+registerRoute(
+  ({ url }) =>
+    url.pathname.startsWith('/api/price') ||
+    url.pathname.startsWith('/api/market') ||
+    url.pathname.startsWith('/api/uniswap/prices') ||
+    url.pathname.startsWith('/api/health'),
+  new StaleWhileRevalidate({
+    cacheName: 'nuxchain-api-cache',
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+      new ExpirationPlugin({
+        maxEntries: 30,
+        maxAgeSeconds: 2 * 60, // 2 minutes stale-ok
+      }),
+    ],
   })
 );
 

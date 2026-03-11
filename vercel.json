@@ -46,6 +46,10 @@
       "maxDuration": 30,
       "memory": 1024
     },
+    "api/chat/upload-image.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
     "api/subscriptions/purchase.ts": {
       "maxDuration": 20,
       "memory": 512
@@ -125,6 +129,15 @@
       ]
     },
     {
+      "source": "/api/uniswap/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, s-maxage=60, stale-while-revalidate=120"
+        }
+      ]
+    },
+    {
       "source": "/api/market/(.*)",
       "headers": [
         {
@@ -166,6 +179,35 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/((?!api).*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
         }
       ]
     }

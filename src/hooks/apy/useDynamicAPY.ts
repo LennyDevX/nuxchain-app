@@ -64,10 +64,9 @@ export interface APYPreviewPoint {
   apy: number;
 }
 
-// Base APY rates from contract (in basis points * 100 = percentage * 100)
-// Updated Feb 2025: ALL rates reduced 25% on-chain
-// Flex=19.7%, 30d=32.9%, 90d=59.1%, 180d=78.8%, 365d=118.3%
-const BASE_APY_RATES = [1973n, 3285n, 5910n, 7883n, 11828n];
+// Base APY rates from contract v6.2 (in basis points, e.g. 960 = 9.6%)
+// Updated Mar 2026: Flex=9.6%, 30d=17.2%, 90d=22.7%, 180d=30.3%, 365d=31.9%
+const BASE_APY_RATES = [960n, 1720n, 2270n, 3030n, 3190n];
 const PERIOD_NAMES = ['Flexible', '30 Days', '90 Days', '180 Days', '365 Days'];
 const PERIOD_DAYS = [0, 30, 90, 180, 365];
 

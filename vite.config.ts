@@ -89,10 +89,17 @@ export default defineConfig({
             mod.includes('/node_modules/viem/') ||
             mod.includes('/node_modules/@wagmi/')
           ) return 'web3-core';
-          // WalletConnect + MetaMask connectors (~300KB combined)
+          // WalletConnect + MetaMask + Reown AppKit connectors
+          // Keep all WalletConnect-ecosystem code together to prevent circular
+          // dependencies between vendor and wallet-connectors chunks.
+          // @reown/appkit imports from @walletconnect/* — if @reown stays in
+          // vendor while @walletconnect/* is in wallet-connectors, Rollup creates
+          // a vendor→wallet-connectors→vendor circular that causes
+          // "Cannot read properties of undefined (reading 'exports')" at runtime.
           if (
             mod.includes('/node_modules/@walletconnect/') ||
-            mod.includes('/node_modules/@metamask/')
+            mod.includes('/node_modules/@metamask/') ||
+            mod.includes('/node_modules/@reown/')
           ) return 'wallet-connectors';
           // Solana ecosystem (NFT + tokenization pages only, ~200-300KB)
           if (

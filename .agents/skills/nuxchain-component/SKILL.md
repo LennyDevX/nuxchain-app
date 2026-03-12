@@ -1,17 +1,196 @@
 ---
 name: nuxchain-component
-description: Create or modify React components for the NuxChain app. Use when user says "create a component", "add a section", "build a card", "new page", "update UI", or any frontend work in src/components/ or src/pages/. Enforces NuxChain design system — fonts, colors, mobile-first layout, and class conventions.
-allowed-tools: Read, Write, Edit, Glob, Grep
-model: claude-sonnet-4-5
+description: Create or modify React components for the NuxChain app. Use when user says "create a component", "add a section", "build a card", "new page", "update UI", or any frontend work in src/components/ or src/pages/. Enforces NuxChain design system — fonts, colors, mobile-first layout, framer-motion, maintenance page pair, and router registration.
+
 license: MIT
 metadata:
   author: nuxchain
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
 # NuxChain Component Skill
 
-Create React components that match the NuxChain design system exactly.
+Create React components that match the NuxChain design system. **Every new page requires a pair and router registration.**
+
+## Typography — ALWAYS use jersey font classes
+
+| Class | Use for |
+|-------|----------|
+| `jersey-15-regular` | Headings h1–h3, section titles |
+| `jersey-20-regular` | Body, labels, buttons, descriptions |
+
+| Element | Mobile | Desktop |
+|---------|--------|----------|
+| Page H1 | `text-4xl` | `text-6xl` |
+| Section H2 | `text-3xl` | `text-5xl` |
+| Card H3 | `text-2xl` | `text-3xl` |
+| Body | `text-base` | `text-lg` |
+| Label | `text-sm` | `text-base` |
+| Input | `text-[18px]` | `text-xl` |
+
+## Colors
+
+- Backgrounds: `bg-black/20`, `bg-black/30`, `bg-white/5`, `bg-[#1e1e24]/20`
+- Borders: `border-white/10`, `border-purple-500/20`, `border-pink-500/20`
+- Text: `text-white`, `text-white/80`, `text-white/50`, `text-slate-300`
+- Gradient text: `text-gradient` (class from global CSS)
+- Gradients: `bg-gradient-to-r from-purple-600 to-blue-600`
+
+## Mobile-First Pattern
+
+```tsx
+import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization'
+
+const isMobile = useIsMobile()
+
+// Use ternaries for layout differences:
+<div className={`flex ${isMobile ? 'flex-col gap-3 px-4' : 'flex-row gap-6 px-8'}`}>
+  <h1 className={`jersey-15-regular text-gradient ${isMobile ? 'text-4xl' : 'text-6xl'}`}>
+    Title
+  </h1>
+  <textarea style={{ fontSize: getOptimizedFontSize(18, isMobile) + 'px' }} />
+</div>
+```
+
+## Framer Motion — Standard Patterns
+
+```tsx
+import { motion, AnimatePresence } from 'framer-motion'
+
+// Page entrance
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 25 }}
+>
+
+// List items (staggered)
+<motion.div
+  initial={{ opacity: 0, x: -20 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.3, delay: index * 0.05 }}
+>
+
+// Conditional visibility
+<AnimatePresence>
+  {visible && (
+    <motion.div
+      key="element"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+    />
+  )}
+</AnimatePresence>
+```
+
+## Available Contexts
+
+```tsx
+import { useSubscription } from '../../context/SubscriptionContext'
+import { usePOLPrice } from '../../context/POLPriceContext'
+import { useStakingContext } from '../../context/useStakingContext'
+import { useAccount } from 'wagmi'  // EVM wallet: address, isConnected
+
+const { tier, isPaid, dailyUsed, dailyLimit, trackUsage } = useSubscription()
+const { price: polPrice } = usePOLPrice()
+const { isConnected, address: evmAddress } = useAccount()
+```
+
+## ⚠️ MANDATORY: New Page = 4 Files
+
+Every new page **MUST** have all 4:
+
+### 1. `src/pages/NewPage.tsx`
+```tsx
+import { MAINTENANCE_CONFIG } from '../config/maintenance'
+import NewPageMaintenance from './NewPageMaintenance'
+
+export default function NewPage() {
+  if (MAINTENANCE_CONFIG.newpage.enabled) return <NewPageMaintenance />
+  return <div>/* real content */</div>
+}
+```
+
+### 2. `src/pages/NewPageMaintenance.tsx`
+```tsx
+import MaintenancePage from './MaintenancePage'
+import { MAINTENANCE_CONFIG } from '../config/maintenance'
+
+export default function NewPageMaintenance() {
+  const cfg = MAINTENANCE_CONFIG.newpage
+  return (
+    <MaintenancePage
+      title="Feature Name"
+      message={cfg.message}
+      estimatedTime={cfg.estimatedTime}
+      startTime={cfg.startTime}
+    />
+  )
+}
+```
+
+### 3. Add to `src/config/maintenance.ts`
+
+```typescript
+// Add to __NUX_DEV_OVERRIDES__ interface:
+newpage?: boolean;
+
+// Add to MAINTENANCE_CONFIG type:
+newpage: MaintenanceRoute;
+
+// Add to MAINTENANCE_CONFIG object:
+newpage: {
+  enabled: false,  // true to activate maintenance mode
+  estimatedTime: 4320, // minutes (4320 = 3 days)
+  message: 'Feature is being upgraded. Back soon!',
+  startTime: getOrInitializeStartTime('newpage', new Date().toISOString()),
+},
+```
+
+### 4. Add to `src/router/routes.tsx`
+
+```tsx
+// Add lazy import at the top:
+const NewPage = lazy(() => import(/* webpackChunkName: "newpage" */ '../pages/NewPage'));
+
+// Add route in AppRoutes():
+<Route path="/new-feature" element={<NewPage />} />
+```
+
+## Card Component Template
+
+```tsx
+import { motion } from 'framer-motion'
+import { useIsMobile } from '../../hooks/mobile/useIsMobile'
+
+interface MyCardProps {
+  title: string
+  value: string | number
+  icon?: string
+}
+
+export default function MyCard({ title, value, icon }: MyCardProps) {
+  const isMobile = useIsMobile()
+  return (
+    <motion.div
+      className="bg-black/30 border border-white/10 rounded-2xl p-4 backdrop-blur-sm"
+      whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(139, 92, 246, 0.2)' }}
+      transition={{ duration: 0.2 }}
+    >
+      {icon && <span className="text-2xl mb-2 block">{icon}</span>}
+      <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+        {title}
+      </h3>
+      <p className={`jersey-20-regular text-purple-400 ${isMobile ? 'text-2xl' : 'text-3xl'} mt-1`}>
+        {value}
+      </p>
+    </motion.div>
+  )
+}
+```
+
 
 ## Typography — ALWAYS use these font classes
 

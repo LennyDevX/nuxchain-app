@@ -81,11 +81,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   registerSW({
     immediate: true,
     onNeedRefresh() {
-      console.log('🔄 New content available, please refresh.');
-      // Optional: Show toast notification to user
-      if (confirm('New version available! Reload to update?')) {
-        window.location.reload();
-      }
+      console.log('🔄 New content available, reloading...');
+      window.location.reload();
     },
     onOfflineReady() {
       console.log('✅ App ready to work offline');

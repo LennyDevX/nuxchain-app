@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import MessageItem from './MessageItem'
-import TypingIndicator from './TypingIndicator'
 import ImageLightbox from './ImageLightbox'
 import type { ImageAttachment } from '../../../api/types/index.js'
 
@@ -129,8 +129,8 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
 
   return (
     <div className="relative">
-      <div ref={containerRef} className="px-6 py-4 space-y-6">
-        {messages.map((message) => {
+        <div ref={containerRef} className="px-2 py-4 md:px-6 md:py-6 space-y-6 md:space-y-8 pb-10">
+        {messages.map((message, index) => {
           // Map from ChatMessageFromReducer interface to Message interface
           let mappedMessage: Message;
           
@@ -161,13 +161,15 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
           }
           
           const msgAttachments = mappedMessage.attachments || []
+          // Pass isLoading only to the last assistant message when loading
+          const isLastAssistantLoading = isLoading && index === messages.length - 1 && mappedMessage.role === 'assistant'
 
           return (
             <div key={message.id}>
               {/* Image grid (above text bubble for user, below for assistant) */}
               {mappedMessage.role === 'user' && msgAttachments.length > 0 && (
                 <div className={`flex justify-end mb-2`}>
-                  <div className={`grid gap-1.5 max-w-[240px] ${
+                  <div className={`grid gap-2 max-w-[300px] sm:max-w-[340px] ${
                     msgAttachments.length === 1 ? 'grid-cols-1' :
                     msgAttachments.length === 2 ? 'grid-cols-2' : 'grid-cols-3'
                   }`}>
@@ -182,7 +184,9 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
                         <img
                           src={att.url}
                           alt={att.name}
-                          className="w-full h-20 object-cover"
+                          className={`w-full object-cover ${
+                            msgAttachments.length === 1 ? 'h-48 sm:h-56' : 'h-28'
+                          }`}
                           loading="lazy"
                           draggable={false}
                         />
@@ -191,26 +195,14 @@ export default function ChatMessage({ messages, isLoading, shouldAutoScroll = tr
                   </div>
                 </div>
               )}
-              <MessageItem message={mappedMessage} onSkillAnalyze={onSkillAnalyze} />
+              <MessageItem 
+                message={mappedMessage} 
+                onSkillAnalyze={onSkillAnalyze} 
+                isLoading={isLastAssistantLoading}
+              />
             </div>
           )
         })}
-        
-        {/* Loading indicator with TypingIndicator component */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%]">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center flex-shrink-0">
-                  {/* AI Agent icon */}
-                </div>
-                <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
-                  <TypingIndicator isVisible={isLoading} size="medium" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
         
         <div ref={messagesEndRef} />
       </div>

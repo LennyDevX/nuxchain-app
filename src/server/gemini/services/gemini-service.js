@@ -811,10 +811,12 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   // Construir systemInstruction con contexto — SIEMPRE incluir persona/idioma aunque se salte KB
   // Cuando skipKnowledgeBase=true, se pasa contexto vacío pero el AI mantiene personalidad Nuxbee + idioma
   const languageDetection = userQuery ? detectLanguage(userQuery) : null;
+  const imageCount = options.imageCount || 0;
   const systemInstruction = buildSystemInstructionWithContext(
     skipKnowledgeBase ? '' : knowledgeContext,
     skipKnowledgeBase ? 0 : contextScore,
-    languageDetection
+    languageDetection,
+    imageCount
   );
   
   // 🆕 TOKEN COUNTING: Count total tokens before sending

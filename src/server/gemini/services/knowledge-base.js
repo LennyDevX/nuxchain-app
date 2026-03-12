@@ -61,9 +61,9 @@ const knowledgeBase = [
     commands: ['Nuxchain vision', 'Nuxchain mission', 'Nuxchain philosophy']
   },
   {
-    content: "Nuxchain differentiates itself by not having a traditional token or cryptocurrency. Instead, we focus on NFTs 2.0 - digital art representations with unique and powerful benefits that gamify the user experience both within and outside the Nuxchain ecosystem. This approach creates sustainable value through utility rather than speculation, driving a powerful economy guided by user sentiment and dedication. The platform uses POL (Polygon's native token) for all transactions and gas fees.",
-    metadata: { type: "general", category: "strategy", topic: "differentiation" },
-    commands: ['Nuxchain differentiation', 'Nuxchain no token', 'Nuxchain NFTs focus', 'Nuxchain user economy', 'Nuxchain POL']
+    content: "Nuxchain is a cross-chain platform operating on two primary blockchains: Solana and Polygon. The NUX token is an SPL token on Solana Mainnet (the primary chain for NUX), with an ERC-20 bridge enabling full DeFi composability on Polygon. The platform's smart contracts (Smart Staking v6.2, GameifiedMarketplace v2.0) are deployed on Polygon, while NUX token distribution, launchpad, and liquidity (Raydium pools) operate on Solana. This dual-chain architecture combines Solana's speed and low fees for token operations with Polygon's EVM ecosystem for DeFi smart contracts. Users can hold and interact with NUX on whichever chain they prefer while accessing all platform features.",
+    metadata: { type: "general", category: "strategy", topic: "cross-chain-architecture" },
+    commands: ['Nuxchain cross-chain', 'Nuxchain Solana', 'Nuxchain Polygon', 'Solana vs Polygon', 'which chain', 'networks', 'multi-chain', 'NUX chain', 'Nuxchain blockchain']
   },
 
   // === SMART STAKING CONTRACT ===

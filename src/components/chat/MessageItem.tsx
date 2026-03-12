@@ -23,9 +23,10 @@ interface Message {
 interface MessageItemProps {
   message: Message
   onSkillAnalyze?: (prompt: string) => void
+  isLoading?: boolean
 }
 
-const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ message, onSkillAnalyze }: MessageItemProps) {
+const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ message, onSkillAnalyze, isLoading }: MessageItemProps) {
   const isMobile = useIsMobile()
   
   const formatTime = useCallback((date: Date) => {
@@ -34,10 +35,10 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
 
   const markdownStyle = useMemo(() => ({
     backgroundColor: 'transparent',
-    color: '#f3f4f6',
-    fontSize: getOptimizedFontSize(isMobile ? 16 : 18, isMobile) + 'px',
-    lineHeight: isMobile ? '1.5' : '1.6',
-    fontFamily: 'jersey-20-regular, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    color: '#e2e8f0',
+    fontSize: getOptimizedFontSize(isMobile ? 17 : 18, isMobile) + 'px',
+    lineHeight: isMobile ? '1.8' : '1.75',
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   }), [isMobile])
 
 
@@ -45,28 +46,32 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
   return (
     <motion.div 
       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} ${
-        isMobile ? 'px-3 py-2' : 'px-6 py-3'
+        isMobile ? 'px-2 md:px-4 py-2 mt-2 mb-4' : 'px-6 py-4 mt-3 mb-6'
       }`}
       initial={{ 
         opacity: 0, 
-        x: message.role === 'user' ? 50 : -50,
-        y: 10
+        x: message.role === 'user' ? 40 : -40,
+        y: 8,
+        scale: 0.96,
       }}
       animate={{ 
         opacity: 1, 
         x: 0,
-        y: 0
+        y: 0,
+        scale: 1,
       }}
       transition={{ 
-        duration: 0.4,
+        duration: 0.35,
         type: 'spring',
-        stiffness: 300,
-        damping: 25
+        stiffness: 380,
+        damping: 28
       }}
     >
       <motion.div 
         className={`${
-          isMobile ? 'max-w-[90%]' : 'max-w-[80%]'
+          message.role === 'user' 
+            ? (isMobile ? 'max-w-[85%]' : 'max-w-[80%]') 
+            : 'max-w-full flex-1'
         } ${message.role === 'user' ? 'order-2' : 'order-1'}`}
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
@@ -77,36 +82,14 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
       >
         <motion.div 
           className={`flex items-start ${
-            isMobile ? 'space-x-2' : 'space-x-3'
+            isMobile ? 'space-x-3' : 'space-x-4'
           } ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.15 }}
         >
           {/* Avatar */}
-          {message.role === 'user' ? (
-            <motion.div 
-              className={`rounded-full bg-gradient-secondary flex items-center justify-center flex-shrink-0 ${
-                isMobile ? 'w-6 h-6' : 'w-8 h-8'
-              }`}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                duration: 0.4,
-                delay: 0.05,
-                type: 'spring',
-                stiffness: 400,
-                damping: 30
-              }}
-              whileHover={{ scale: 1.1 }}
-            >
-              <svg className={`text-white ${
-                isMobile ? 'w-3 h-3' : 'w-5 h-5'
-              }`} fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </motion.div>
-          ) : (
+          {message.role === 'user' ? null : (
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -118,37 +101,49 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                 damping: 30
               }}
               whileHover={{ scale: 1.1 }}
+              className="mt-1"
             >
-              <AnimatedAILogo 
-                size={isMobile ? "small" : "small"} 
-                className="flex-shrink-0" 
-              />
+              {isLoading ? (
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      '0 0 0px rgba(168, 85, 247, 0)',
+                      '0 0 32px rgba(168, 85, 247, 0.6)',
+                      '0 0 56px rgba(99, 102, 241, 0.45)',
+                      '0 0 32px rgba(168, 85, 247, 0.6)',
+                      '0 0 0px rgba(168, 85, 247, 0)',
+                    ],
+                  }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="rounded-full"
+                >
+                  <AnimatedAILogo 
+                    size={isMobile ? "small" : "small"} 
+                    className="flex-shrink-0" 
+                  />
+                </motion.div>
+              ) : (
+                <AnimatedAILogo 
+                  size={isMobile ? "small" : "small"} 
+                  className="flex-shrink-0" 
+                />
+              )}
             </motion.div>
           )}
           
           {/* Message Content */}
           <motion.div 
-            className={`rounded-2xl ${
-              isMobile ? 'px-3 py-2' : 'px-4 py-3'
-            } ${
+            className={`w-full ${
               message.role === 'user'
-                ? 'bg-gradient-to-r from-brand-purple-600 to-brand-purple-700 text-white shadow-lg border border-brand-purple-500/30'
-                : 'bg-white/10 text-white border border-white/20 shadow-lg backdrop-blur-md'
+                ? `rounded-3xl ${isMobile ? 'px-4 py-3' : 'px-5 py-4'} bg-[#22222a] text-white border border-white/5`
+                : 'bg-transparent text-white pt-1'
             }`}
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ 
-              duration: 0.4,
-              delay: 0.2,
-              type: 'spring',
-              stiffness: 280,
-              damping: 20
-            }}
-            whileHover={{ 
-              y: -2,
-              boxShadow: message.role === 'user' 
-                ? '0 10px 30px rgba(139, 92, 246, 0.3)'
-                : '0 10px 30px rgba(255, 255, 255, 0.1)'
+              duration: 0.35,
+              delay: 0.1,
+              ease: "easeOut"
             }}
           >
             {message.skillResult ? (
@@ -178,38 +173,34 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                   }}
                   components={{
                     h1: (props) => <h1 {...props} style={{ 
-                      fontSize: isMobile ? '1.75rem' : '2rem',
-                      fontWeight: '700',
-                      color: '#ffffff',
-                      margin: '1.5rem 0 1rem 0',
-                      paddingBottom: '0.5rem',
-                      borderBottom: '2px solid rgba(139, 92, 246, 0.3)',
-                      lineHeight: '1.3',
-                      fontFamily: 'jersey-15-regular, sans-serif'
-                    }} />,
-                    h2: (props) => <h2 {...props} style={{ 
                       fontSize: isMobile ? '1.5rem' : '1.75rem',
                       fontWeight: '600',
-                      color: '#e5e7eb',
-                      margin: '1.25rem 0 0.75rem 0',
-                      paddingLeft: '0.5rem',
-                      borderLeft: '4px solid rgba(139, 92, 246, 0.6)',
+                      color: '#ffffff',
+                      margin: '1.5rem 0 1rem 0',
                       lineHeight: '1.3',
-                      fontFamily: 'jersey-15-regular, sans-serif'
+                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+                    }} />,
+                    h2: (props) => <h2 {...props} style={{ 
+                      fontSize: isMobile ? '1.35rem' : '1.5rem',
+                      fontWeight: '600',
+                      color: '#ffffff',
+                      margin: '1.25rem 0 0.75rem 0',
+                      lineHeight: '1.3',
+                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
                     }} />,
                     h3: (props) => <h3 {...props} style={{ 
-                      fontSize: isMobile ? '1.25rem' : '1.5rem',
+                      fontSize: isMobile ? '1.15rem' : '1.25rem',
                       fontWeight: '600',
-                      color: '#d1d5db',
+                      color: '#e2e8f0',
                       margin: '1rem 0 0.5rem 0',
                       lineHeight: '1.4',
-                      fontFamily: 'jersey-15-regular, sans-serif'
+                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
                     }} />,
-                    p: (props) => <p {...props} style={{ 
-                      margin: '0.75rem 0',
-                      lineHeight: '1.7',
-                      color: '#f3f4f6',
-                      fontSize: isMobile ? '1rem' : '1.125rem'
+                    p: (props) => <p {...props} className="break-words" style={{ 
+                      margin: isMobile ? '0.65rem 0' : '0.85rem 0',
+                      lineHeight: isMobile ? '1.7' : '1.8',
+                      color: '#e2e8f0',
+                      fontSize: isMobile ? '1.05rem' : '1.125rem'
                     }} />,
                     strong: (props) => <strong {...props} style={{ 
                       fontWeight: '700',
@@ -267,9 +258,9 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
               </motion.div>
             ) : (
               <motion.p 
-                className={`jersey-20-regular leading-relaxed whitespace-pre-wrap ${
-                  isMobile ? 'text-base' : 'text-lg'
-                }`}
+                className={`font-sans leading-relaxed whitespace-pre-wrap ${
+                  isMobile ? 'text-[1.05rem] leading-[1.6]' : 'text-lg'
+                } text-[#e2e8f0] font-medium tracking-wide`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
@@ -278,10 +269,10 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
               </motion.p>
             )}
             <motion.p 
-              className={`mt-2 jersey-20-regular ${
-                message.role === 'user' ? 'text-white/70' : 'text-white/50'
+              className={`mt-2 font-sans ${
+                message.role === 'user' ? 'text-white/40' : 'text-white/30'
               } ${
-                isMobile ? 'text-sm' : 'text-base'
+                isMobile ? 'text-xs' : 'text-sm'
               }`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -304,7 +295,8 @@ const areEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps) => {
     prevProps.message.role === nextProps.message.role &&
     prevProps.message.timestamp.getTime() === nextProps.message.timestamp.getTime() &&
     prevProps.message.skillResult?.status === nextProps.message.skillResult?.status &&
-    prevProps.message.skillResult?.data === nextProps.message.skillResult?.data
+    prevProps.message.skillResult?.data === nextProps.message.skillResult?.data &&
+    prevProps.isLoading === nextProps.isLoading
   )
 }
 

@@ -41,7 +41,7 @@ const httpLink = new HttpLink({
 // Create Apollo Client instance
 export const apolloClient = new ApolloClient({
   link: from([errorLink, retryLink, httpLink]), // ⚡ Chain links: error → retry → http
-  connectToDevTools: process.env.NODE_ENV !== 'production', // Disable DevTools overhead in production
+  devtools: { enabled: import.meta.env.DEV }, // Use new API; only enable in dev
   cache: new InMemoryCache({
     typePolicies: {
       Query: {

@@ -1,8 +1,6 @@
 ---
 name: nft-minting-flow
 description: Implement NFT minting, tokenization, or NFT-related features in NuxChain. Use when user says "mint NFT", "create NFT", "tokenization", "NFT collection", "IPFS upload", "NFT metadata", "NFT marketplace", "NuxPass", "Avatar NFT", or any NFT creation/display work. Covers the full flow from upload to on-chain mint.
-allowed-tools: Read, Write, Edit, Glob, Grep
-model: claude-sonnet-4-5
 license: MIT
 metadata:
   author: nuxchain

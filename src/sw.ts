@@ -7,8 +7,8 @@
 
 import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
@@ -22,6 +22,14 @@ clientsClaim();
 
 // Precache all build assets
 precacheAndRoute(self.__WB_MANIFEST);
+
+// SPA Navigation fallback — serve index.html for all non-API navigations
+// This ensures /chat, /staking, etc. work correctly when served from SW cache
+const handler = createHandlerBoundToURL('/index.html');
+const navigationRoute = new NavigationRoute(handler, {
+  denylist: [/^\/api\//],
+});
+registerRoute(navigationRoute);
 
 // Cache Strategy 1: Static Assets
 registerRoute(

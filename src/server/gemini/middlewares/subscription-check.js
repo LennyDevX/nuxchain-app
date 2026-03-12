@@ -5,23 +5,28 @@
  * Mirrors production logic from api/_middlewares/subscription-auth.ts
  * but uses in-memory counters instead of Vercel KV.
  *
- * Tiers:
- *   free    — 10 messages/day  (default when no wallet or no Firestore doc)
+ * Tiers (PRODUCTION):
+ *   free    — 20 messages/day  (matches FREE_DAILY_LIMIT in api/chat/stream.ts)
  *   pro     — 100 messages/day
  *   premium — unlimited
  *
+ * In LOCAL DEV (NODE_ENV=development or unset), ALL limits are disabled
+ * so iterative testing is never blocked by rate limits.
+ *
  * @module subscription-check
  */
+
+const IS_DEV = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
 
 // ── In-memory daily counter ───────────────────────────────────────────────────
 // Key: `${wallet}:${YYYY-MM-DD}`, Value: number
 const dailyCounters = new Map();
 
-const DAILY_LIMITS = {
-  free: 10,
-  pro: 100,
-  premium: Infinity,
-};
+// Dev: effectively unlimited so testing never gets blocked
+// Prod: mirrors FREE_DAILY_LIMIT from src/constants/subscription.ts
+const DAILY_LIMITS = IS_DEV
+  ? { free: Infinity, pro: Infinity, premium: Infinity }
+  : { free: 20, pro: 100, premium: Infinity };
 
 // Cleanup old counter entries every hour to avoid memory leaks
 setInterval(() => {
@@ -151,8 +156,8 @@ export default async function subscriptionCheck(req, res, next) {
   req.walletAddress = wallet;
   req.subscriptionTier = tier;
 
-  // Unlimited — no counter needed
-  if (tier === 'premium') return next();
+  // Unlimited — no counter needed (premium always, and ALL tiers in dev)
+  if (tier === 'premium' || IS_DEV) return next();
 
   // For wallets that haven't authenticated, still apply free limit (per IP as fallback)
   const counterKey = wallet

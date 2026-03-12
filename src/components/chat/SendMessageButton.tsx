@@ -25,8 +25,11 @@ export default function SendMessageButton({ disabled, isLoading, onClick, hasTex
         stiffness: 300,
         damping: 25
       }}
-      whileHover={{ scale: hasText && !disabled ? 1.05 : 1 }}
-      whileTap={{ scale: hasText && !disabled ? 0.95 : 1 }}
+      whileHover={{ scale: hasText && !disabled ? 1.08 : 1 }}
+      whileTap={{ 
+        scale: hasText && !disabled ? 0.86 : 1,
+        boxShadow: hasText && !disabled ? '0 0 24px rgba(168, 85, 247, 0.7)' : 'none'
+      }}
       className={`
         relative flex items-center justify-center
         ${isMobile ? 'w-12 h-12' : 'w-14 h-14'}
@@ -53,15 +56,17 @@ export default function SendMessageButton({ disabled, isLoading, onClick, hasTex
           </svg>
         </div>
       ) : (
-        <svg 
-          className={`${isMobile ? 'w-6 h-6' : 'w-7 h-7'} text-white transition-transform duration-300 ${hasText ? 'group-hover:translate-x-1' : ''}`}
+        <motion.svg 
+          className={`${isMobile ? 'w-6 h-6' : 'w-7 h-7'} text-white`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
           strokeWidth={2.5}
+          animate={hasText && !disabled ? { x: [0, 1, 0], y: [0, -1, 0] } : {}}
+          transition={{ repeat: Infinity, repeatDelay: 3, duration: 0.4, ease: 'easeInOut' }}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-        </svg>
+        </motion.svg>
       )}
     </motion.button>
   )

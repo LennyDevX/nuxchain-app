@@ -378,8 +378,9 @@ function Airdrop() {
     }
   }, [formData, validateForm, mountTime, userAgent, deviceFingerprint, browserInfo, captchaToken, walletSignature]);
 
-  // Countdown target date - March 15, 2026 23:59:59
-  const airdropEndDate = new Date(2026, 2, 15, 23, 59, 59);
+  // Registration deadline: March 15, 2026
+  const registrationDeadline = new Date(2026, 2, 15, 23, 59, 59);
+  const isRegistrationClosed = new Date() > registrationDeadline;
 
   // Calculate remaining users and statistics
   const isPoolFull = registeredUsers >= MAX_USERS;
@@ -390,11 +391,8 @@ function Airdrop() {
     <>
       <div className="min-h-screen text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-          {/* Header Section - Modular Component */}
-          <AirdropHeader 
-            tokensPerUser={TOKENS_PER_USER} 
-            airdropEndDate={airdropEndDate} 
-          />
+          {/* Header Section */}
+          <AirdropHeader tokensPerUser={TOKENS_PER_USER} />
 
           {/* Form Section - Improved Desktop Layout */}
           <div className="max-w-6xl mx-auto">
@@ -416,6 +414,15 @@ function Airdrop() {
                       email={formData.email}
                       walletAddress={formData.wallet}
                     />
+                  ) : isRegistrationClosed ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center gap-6">
+                      <div className="text-6xl">🔒</div>
+                      <div>
+                        <h2 className="jersey-15-regular text-3xl text-white font-bold mb-2">Airdrop Closed</h2>
+                        <p className="jersey-20-regular text-white/60 text-lg">Registrations ended on March 15, 2026.</p>
+                        <p className="jersey-20-regular text-purple-400 text-lg mt-2">We'll be back soon. Airdrop distribution begins March 21.</p>
+                      </div>
+                    </div>
                   ) : isPoolFull ? (
                     <div className="relative overflow-hidden group">
                       <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-colors duration-500"></div>

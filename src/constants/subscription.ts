@@ -2,7 +2,7 @@
  * NuxBee AI Subscription Configuration
  * Central source of truth for tiers, skills, pricing, and limits.
  *
- * Free    → 10 requests/day, Gemini 3.1 Flash Lite
+ * Free    → 20 requests/day, Gemini 3.1 Flash Lite
  * Pro     → Unlimited chat, 3 core skills, Model selection (Gemini 3 Pro or Gemini 3 Flash) → $10/mo (SOL or NUX)
  * Premium → Unlimited chat, ALL skills, Model selection (Gemini 3 Pro or Gemini 3 Flash) → $25/mo (SOL or NUX)
  */
@@ -11,7 +11,7 @@
 export type SubscriptionTier = 'free' | 'pro' | 'premium';
 export type PaymentToken = 'SOL' | 'NUX';
 
-export const FREE_DAILY_LIMIT = 10; // requests per day for free users
+export const FREE_DAILY_LIMIT = 20; // requests per day for free users
 
 export const SUBSCRIPTION_PRICES: Record<
   Exclude<SubscriptionTier, 'free'>,

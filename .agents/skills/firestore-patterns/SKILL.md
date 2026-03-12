@@ -1,8 +1,6 @@
 ---
 name: firestore-patterns
 description: Work with Firestore in NuxChain. Use when user says "Firestore", "database", "save user data", "read from DB", "collection", "document", "Firebase", "airdrop data", "user profile", "analytics", or any data persistence task. Provides collection structure, security rules patterns, and query examples.
-allowed-tools: Read, Write, Edit, Glob, Grep
-model: claude-sonnet-4-5
 license: MIT
 metadata:
   author: nuxchain

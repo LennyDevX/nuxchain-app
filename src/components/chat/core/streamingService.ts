@@ -243,6 +243,9 @@ export class StreamingService {
     let chunkCounter = 0;
     let totalBytesRead = 0;
     const streamStartTime = Date.now();
+    // Persistent decoder so multi-byte UTF-8 sequences (emoji) that span chunk
+    // boundaries are buffered correctly instead of becoming ◆ replacement chars.
+    const streamDecoder = new TextDecoder('utf-8', { fatal: false });
     
     try {
       while (true) {
@@ -270,7 +273,7 @@ export class StreamingService {
         // chunkIndex++; // Removed unused increment
         
         // Process chunk directly in main thread (web worker removed for simplicity)
-        const result = await this.processChunkMainThread(value!, isLowPerformance);
+        const result = await this.processChunkMainThread(value!, isLowPerformance, streamDecoder);
         fullResponse += result.processedContent;
         
         const now = Date.now();
@@ -285,6 +288,9 @@ export class StreamingService {
       
       debouncedUpdate.cancel();
       if (frameId) cancelAnimationFrame(frameId);
+      // Flush any bytes buffered by the streaming TextDecoder (e.g. trailing emoji)
+      const flushed = streamDecoder.decode();
+      if (flushed) fullResponse += flushed;
       chatLogger.logInfo('Finalizando stream con contenido', 'StreamingService', {
         contentLength: fullResponse.length
       });
@@ -339,10 +345,14 @@ export class StreamingService {
 
   private async processChunkMainThread(
     value: Uint8Array,
-    isLowPerformance: boolean
+    isLowPerformance: boolean,
+    decoder?: TextDecoder
   ): Promise<ProcessChunkResult> {
-    const decoder = new TextDecoder('utf-8');
-    const chunk = decoder.decode(value);
+    // Use the caller-supplied persistent decoder (stream:true) to handle multi-byte
+    // sequences split across chunks. Fall back to a one-shot decoder if called standalone.
+    const chunk = decoder
+      ? decoder.decode(value, { stream: true })
+      : new TextDecoder('utf-8').decode(value);
     
     const processedContent = chunk;
     

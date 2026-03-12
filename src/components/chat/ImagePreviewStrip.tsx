@@ -42,7 +42,7 @@ export default function ImagePreviewStrip({
             className="relative group flex-shrink-0"
           >
             {/* Thumbnail — uses local data URL for instant display */}
-            <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 bg-white/5">
               <img
                 src={img.dataUrl}
                 alt={img.name}

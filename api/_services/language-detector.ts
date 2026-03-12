@@ -24,7 +24,9 @@ export interface LanguageDetection {
  */
 const SPANISH_PATTERNS = {
   diacritics: /[áéíóúñü¿¡]/i,
-  commonWords: /\b(qué|cuál|cómo|dónde|cuándo|cuánto|por qué|el|la|los|las|de|del|un|una|es|está|son|están|para|con|sin|sobre|entre|según|desde|hasta|también|muy|más|menos|así|sí|no|yo|tú|él|ella|nosotros|ustedes|ellos|si|pero|aunque|porque|cuando|donde|mientras|después|antes|siempre|nunca|ahora|aquí|allí)\b/gi,
+  unaccentedWords: /\b(que|cual|como|donde|cuando|cuanto|quien)\b/gi,
+  interjections: /\b(hola|bueno|vale|pues|claro|oye|mira|anda)\b/gi,
+  commonWords: /\b(qué|cuál|cómo|dónde|cuándo|cuánto|por qué|el|la|los|las|de|del|un|una|es|está|son|están|para|con|sin|sobre|entre|según|desde|hasta|también|muy|más|menos|así|sí|no|yo|tú|él|ella|nosotros|ustedes|ellos|si|pero|aunque|porque|cuando|donde|mientras|después|antes|siempre|nunca|ahora|aquí|allí|q|pq|xq)\b/gi,
   verbs: /\b(tengo|tienes|tiene|hacen|hace|puedo|puede|quiero|quiere|voy|va|soy|eres|somos|están|estoy|estás|digo|dice|veo|ves|vemos|entiendo|entiendes|necesito|necesitas)\b/gi,
   questionWords: /\b(qué|cuál|cuáles|cómo|dónde|cuándo|cuánto|cuántos|cuánta|cuántas|quién|quiénes|por qué)\b/gi,
   prepositions: /\b(desde|hasta|hacia|mediante|según|durante|contra|entre)\b/gi
@@ -52,6 +54,8 @@ function analyzePatterns(text: string, patterns: Record<string, RegExp>): number
   
   const weights: Record<string, number> = {
     diacritics: 3,
+    interjections: 2.5,
+    unaccentedWords: 2.0,
     commonWords: 2,
     verbs: 1.5,
     questionWords: 1.5,
@@ -85,7 +89,14 @@ function countKeywords(text: string, pattern: RegExp): number {
  * Probabilistic language detection using character frequency analysis
  */
 function probabilisticDetection(text: string): { spanish: number; english: number } {
-  if (!text || typeof text !== 'string' || text.length < 10) {
+  if (!text || typeof text !== 'string') {
+    return { spanish: 0.5, english: 0.5 };
+  }
+  
+  // Si el texto es muy corto pero tiene palabras clave obvias en español, dale un empujón
+  if (text.length < 10) {
+    if (/\b(hola|que|q|tal|bien)\b/i.test(text)) return { spanish: 0.8, english: 0.2 };
+    if (/\b(hi|hey|how|what)\b/i.test(text)) return { spanish: 0.2, english: 0.8 };
     return { spanish: 0.5, english: 0.5 };
   }
   
@@ -183,10 +194,11 @@ export function detectLanguage(text: string): LanguageDetection {
   const isSpanish = normalizedSpanish > normalizedEnglish;
   const confidence = Math.abs(normalizedSpanish - normalizedEnglish);
   
-  // Require at least 15% difference
-  const threshold = 0.15;
-  const detectedLanguage = confidence < threshold ? 'en' : (isSpanish ? 'es' : 'en');
+  // If Spanish has a higher score, we default to Spanish regardless of confidence difference
+  const detectedLanguage = isSpanish ? 'es' : 'en';
   
+  const threshold = 0.05; // Fallback threshold used for reporting confidence
+
   return {
     language: detectedLanguage,
     confidence: confidence < threshold ? 0.5 : (isSpanish ? normalizedSpanish : normalizedEnglish),

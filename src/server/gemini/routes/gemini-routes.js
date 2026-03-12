@@ -112,6 +112,29 @@ router.get('/stats', geminiController.getUsageStats);
 // Usar el router de streaming mejorado
 router.use('/streaming', enhancedStreamingRoutes);
 
+// Local-dev image upload mock — returns base64 as a data URL (no Vercel Blob needed)
+router.post('/upload-image', (req, res) => {
+  try {
+    const { image, mimeType = 'image/webp', name = 'image' } = req.body || {};
+    if (!image || typeof image !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid "image" field (base64 string required)' });
+    }
+    const id = crypto.randomUUID();
+    const sizeBytes = Math.ceil(image.length * 3 / 4);
+    return res.status(200).json({
+      id,
+      url: `data:${mimeType};base64,${image}`,
+      name,
+      size: sizeBytes,
+      type: mimeType,
+      uploadedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('[upload-image dev] Error:', err);
+    return res.status(500).json({ error: 'Dev upload failed' });
+  }
+});
+
 // Remove inline error handler and use shared one
 router.use(errorHandler);
 

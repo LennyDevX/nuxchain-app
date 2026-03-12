@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 
 const AnnouncementModal: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
-    const isMobile = useIsMobile();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -72,7 +70,7 @@ const AnnouncementModal: React.FC = () => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-3">
                     {/* Backdrop */}
                     <motion.div
                         className="absolute inset-0 bg-black/70 backdrop-blur-xl"
@@ -82,189 +80,147 @@ const AnnouncementModal: React.FC = () => {
                         onClick={handleClose}
                     />
 
-                    {/* Modal Content - Mejorado */}
+                    {/* Modal Content */}
                     <motion.div
-                        className="relative w-full max-w-lg bg-gradient-to-b from-slate-900/95 to-black/95 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl mt-8"
+                        className="relative w-full max-w-sm bg-gradient-to-b from-slate-900/95 to-black/95 backdrop-blur-3xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     >
-                        {/* Premium Glow Effects */}
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animation: 'pulse 4s ease-in-out infinite' }} />
-                        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animation: 'pulse 6s ease-in-out infinite 1s' }} />
-                        <div className="absolute top-1/2 right-1/4 w-60 h-60 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" style={{ animation: 'pulse 5s ease-in-out infinite 0.5s' }} />
+                        {/* Glow Effects */}
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/15 rounded-full blur-[80px] pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-                        <div className={`relative ${isMobile ? 'px-4 py-5' : 'px-6 py-4'}`}>
+                        <div className="relative px-4 py-4 overflow-y-auto max-h-[90vh]">
                             {/* Close Button */}
                             <motion.button
                                 whileHover={{ scale: 1.1, rotate: 90 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={handleClose}
-                                className="absolute top-4 right-4 p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all z-10"
+                                className="absolute top-3 right-3 p-1.5 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all z-10"
                             >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </motion.button>
 
-                            {/* Header - Wave 4.5 */}
-                            <motion.div 
+                            {/* Header */}
+                            <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 }}
-                                className={`flex items-center gap-2.5 ${isMobile ? 'mb-4' : 'mb-3'}`}
+                                className="flex items-center gap-2 mb-3"
                             >
-                                <div className={`${isMobile ? 'p-2.5 rounded-xl' : 'p-2.5 rounded-2xl'} bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 shadow-lg`}>
-                                    <span className={`${isMobile ? 'text-3xl' : 'text-3xl'}`}>🚀</span>
+                                <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10">
+                                    <span className="text-xl">🚀</span>
                                 </div>
-                                <div className="min-w-0">
-                                    <h2 className={`jersey-15-regular text-white font-bold ${isMobile ? 'text-3xl' : 'text-5xl'} leading-tight`}>
+                                <div>
+                                    <h2 className="jersey-15-regular text-white font-bold text-3xl leading-tight">
                                         Wave <span className="text-gradient">4.5</span>
                                     </h2>
-                                    <p className={`jersey-20-regular text-white/60 leading-tight font-semibold ${isMobile ? 'text-sm' : 'text-xs'}`}>Nuxchain Ecosystem Update</p>
+                                    <p className="jersey-20-regular text-white/60 text-sm font-semibold leading-tight">Nuxchain Ecosystem Update</p>
                                 </div>
                             </motion.div>
 
-                            {/* AI BANNER - Debajo del título */}
+                            {/* AI Banner */}
                             <motion.div
-                                initial={{ opacity: 0, y: -15 }}
+                                initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.15 }}
-                                className={`relative rounded-2xl p-3 overflow-hidden border border-cyan-500/30 ${isMobile ? 'mb-4' : 'mb-3'}`}
+                                className="relative rounded-xl p-2.5 overflow-hidden border border-cyan-500/30 mb-3"
                                 style={{
                                     background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
-                                    boxShadow: '0 0 30px rgba(34, 211, 238, 0.15), inset 0 0 30px rgba(34, 211, 238, 0.05)'
+                                    boxShadow: '0 0 20px rgba(34, 211, 238, 0.12)'
                                 }}
                             >
-                                {/* Animated border shimmer */}
-                                <div 
-                                    className="absolute inset-0 rounded-2xl"
-                                    style={{
-                                        background: 'linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent)',
-                                        animation: 'shimmer 3s infinite',
-                                        pointerEvents: 'none'
-                                    }}
-                                />
-
-                                <div className="relative flex items-center gap-2.5">
-                                    {/* AI Icon with pulsing glow */}
+                                <div className="flex items-center gap-2.5">
                                     <motion.div
-                                        animate={{ 
-                                            scale: [1, 1.05, 1],
-                                            rotate: [0, 2, -2, 0]
-                                        }}
+                                        animate={{ scale: [1, 1.05, 1] }}
                                         transition={{ duration: 3, repeat: Infinity }}
-                                        className={`flex-shrink-0 rounded-lg bg-gradient-to-br from-cyan-500/30 to-blue-500/20 border border-cyan-500/50 shadow-lg ${isMobile ? 'p-2.5' : 'p-2.5'}`}
-                                        style={{
-                                            boxShadow: '0 0 20px rgba(34, 211, 238, 0.4)'
-                                        }}
+                                        className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-br from-cyan-500/30 to-blue-500/20 border border-cyan-500/50"
+                                        style={{ boxShadow: '0 0 15px rgba(34, 211, 238, 0.3)' }}
                                     >
-                                        <span className={`${isMobile ? 'text-3xl' : 'text-3xl'} block`}>🤖</span>
+                                        <span className="text-2xl block">🤖</span>
                                     </motion.div>
-
                                     <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-1.5">
-                                            <h3 className={`jersey-15-regular text-cyan-300 font-bold leading-tight ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                                                Nuxbee AI 2.0
-                                            </h3>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <h3 className="jersey-15-regular text-cyan-300 font-bold text-xl leading-tight">Nuxbee AI 2.0</h3>
                                             <motion.span
-                                                animate={{ scale: [1, 1.1, 1] }}
+                                                animate={{ scale: [1, 1.08, 1] }}
                                                 transition={{ duration: 2, repeat: Infinity }}
-                                                className={`px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 font-bold whitespace-nowrap ${isMobile ? 'text-xs' : 'text-xs'}`}
+                                                className="px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 font-bold text-[10px] whitespace-nowrap"
                                             >
                                                 ★ FEATURED
                                             </motion.span>
                                         </div>
-                                        <p className={`jersey-20-regular text-white/70 leading-tight font-semibold ${isMobile ? 'text-sm' : 'text-sm'}`}>
+                                        <p className="jersey-20-regular text-white/70 text-sm leading-tight font-semibold">
                                             Advanced AI • Multi-chain insights
                                         </p>
                                     </div>
                                 </div>
                             </motion.div>
 
-                            {/* Features Grid - 2x3 Compacto */}
-                            <div className={`grid grid-cols-2 ${isMobile ? 'gap-2.5 mb-4' : 'gap-2 mb-3'}`}>
+                            {/* Features Grid */}
+                            <div className="grid grid-cols-2 gap-2 mb-3">
                                 {features.map((feature, idx) => (
                                     <motion.div
                                         key={idx}
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.15 + idx * 0.05 }}
-                                        whileHover={{ scale: 1.02, translateY: -2 }}
-                                        className={`group relative ${isMobile ? 'p-2.5 rounded-lg' : 'p-2.5 rounded-lg'} bg-white/[0.03] border ${feature.color} hover:bg-white/[0.08] transition-all duration-300 cursor-default overflow-hidden`}
+                                        whileHover={{ scale: 1.02, translateY: -1 }}
+                                        className={`group relative p-2 rounded-lg bg-white/[0.03] border ${feature.color} hover:bg-white/[0.07] transition-all duration-200 cursor-default`}
                                     >
-                                        {/* Hover gradient overlay */}
-                                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                                            style={{
-                                                background: 'radial-gradient(circle at center, rgba(255,255,255,0.05), transparent)'
-                                            }}
-                                        />
-
-                                        <div className="relative flex items-start gap-1.5">
-                                            <motion.span 
-                                                className={`flex-shrink-0 group-hover:scale-125 transition-transform ${isMobile ? 'text-2xl' : 'text-2xl'}`}
-                                                animate={{ 
-                                                    y: [0, -2, 0],
-                                                }}
-                                                transition={{ duration: 2, repeat: Infinity, delay: idx * 0.1 }}
-                                            >
-                                                {feature.icon}
-                                            </motion.span>
+                                        <div className="flex items-start gap-1.5">
+                                            <span className="flex-shrink-0 text-lg group-hover:scale-110 transition-transform">{feature.icon}</span>
                                             <div className="min-w-0">
                                                 {feature.badge && (
-                                                    <div className="text-xs font-bold text-cyan-400 mb-0.5">{feature.badge}</div>
+                                                    <div className="text-[10px] font-bold text-cyan-400 mb-0.5">{feature.badge}</div>
                                                 )}
-                                                <h3 className={`jersey-15-regular text-white leading-tight font-bold ${isMobile ? 'text-base mb-0.5' : 'text-base mb-0.5'}`}>{feature.title}</h3>
-                                                <p className={`jersey-20-regular text-white/50 leading-tight font-medium ${isMobile ? 'text-sm' : 'text-xs'}`}>{feature.desc}</p>
+                                                <h3 className="jersey-15-regular text-white text-sm font-bold leading-tight mb-0.5">{feature.title}</h3>
+                                                <p className="jersey-20-regular text-white/50 text-xs leading-tight font-medium">{feature.desc}</p>
                                             </div>
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
 
-                            {/* Stats Row - Compacta */}
-                            <motion.div 
+                            {/* Stats Row */}
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.45 }}
-                                className={`grid grid-cols-3 ${isMobile ? 'gap-2.5 mb-4' : 'gap-2 mb-3'}`}
+                                className="grid grid-cols-3 gap-2 mb-3"
                             >
-                                <motion.div 
-                                    whileHover={{ scale: 1.05 }}
-                                    className={`text-center ${isMobile ? 'p-2.5 rounded-lg' : 'p-2 rounded-lg'} bg-white/5 border border-white/5 hover:bg-white/10 transition-all`}
-                                >
-                                    <div className={`jersey-15-regular text-cyan-400 leading-tight font-bold ${isMobile ? 'text-xl' : 'text-lg'}`}>Next-Gen</div>
-                                    <div className={`jersey-20-regular text-white/40 leading-tight font-semibold ${isMobile ? 'text-sm' : 'text-xs'}`}>AI Tech</div>
-                                </motion.div>
-                                <motion.div 
-                                    whileHover={{ scale: 1.05 }}
-                                    className={`text-center ${isMobile ? 'p-2.5 rounded-lg' : 'p-2 rounded-lg'} bg-white/5 border border-white/5 hover:bg-white/10 transition-all`}
-                                >
-                                    <div className={`jersey-15-regular text-purple-400 leading-tight font-bold ${isMobile ? 'text-xl' : 'text-lg'}`}>50%+</div>
-                                    <div className={`jersey-20-regular text-white/40 leading-tight font-semibold ${isMobile ? 'text-sm' : 'text-xs'}`}>Faster</div>
-                                </motion.div>
-                                <motion.div 
-                                    whileHover={{ scale: 1.05 }}
-                                    className={`text-center ${isMobile ? 'p-2.5 rounded-lg' : 'p-2 rounded-lg'} bg-white/5 border border-white/5 hover:bg-white/10 transition-all`}
-                                >
-                                    <div className={`jersey-15-regular text-emerald-400 leading-tight font-bold ${isMobile ? 'text-xl' : 'text-lg'}`}>Refined</div>
-                                    <div className={`jersey-20-regular text-white/40 leading-tight font-semibold ${isMobile ? 'text-sm' : 'text-xs'}`}>Quality</div>
-                                </motion.div>
+                                {[
+                                    { val: 'Next-Gen', label: 'AI Tech', color: 'text-cyan-400' },
+                                    { val: '50%+', label: 'Faster', color: 'text-purple-400' },
+                                    { val: 'Refined', label: 'Quality', color: 'text-emerald-400' }
+                                ].map((stat, i) => (
+                                    <motion.div
+                                        key={i}
+                                        whileHover={{ scale: 1.04 }}
+                                        className="text-center p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
+                                    >
+                                        <div className={`jersey-15-regular ${stat.color} text-sm font-bold leading-tight`}>{stat.val}</div>
+                                        <div className="jersey-20-regular text-white/40 text-xs font-semibold leading-tight">{stat.label}</div>
+                                    </motion.div>
+                                ))}
                             </motion.div>
 
-                            {/* Actions - Compactas */}
-                            <motion.div 
+                            {/* Actions */}
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.55 }}
-                                className={`flex flex-col ${isMobile ? 'gap-2.5' : 'gap-2'}`}
+                                className="flex flex-col gap-2"
                             >
                                 <motion.button
-                                    whileHover={{ scale: 1.03, boxShadow: '0 0 30px rgba(34, 211, 238, 0.5)' }}
+                                    whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(34, 211, 238, 0.4)' }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={handleAIAction}
-                                    className={`w-full relative overflow-hidden bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white jersey-20-regular rounded-xl transition-all shadow-lg shadow-cyan-500/30 ${isMobile ? 'py-3.5 text-lg' : 'py-3 text-base'} font-bold`}
+                                    className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white jersey-20-regular rounded-xl transition-all shadow-lg shadow-cyan-500/30 py-2.5 text-sm font-bold"
                                 >
                                     <span className="relative z-10 flex items-center justify-center gap-2">
                                         🤖 Try Nuxbee AI 2.0
@@ -272,19 +228,19 @@ const AnnouncementModal: React.FC = () => {
                                 </motion.button>
 
                                 <motion.button
-                                    whileHover={{ scale: 1.02 }}
+                                    whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={handleRewardsAction}
-                                    className={`w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white jersey-20-regular rounded-xl transition-all ${isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'} font-bold`}
+                                    className="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white jersey-20-regular rounded-xl transition-all py-2 text-sm font-bold"
                                 >
                                     🏆 Explore Ecosystem
                                 </motion.button>
 
                                 <motion.button
-                                    whileHover={{ scale: 1.02 }}
+                                    whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={handleClose}
-                                    className={`text-white/40 jersey-20-regular hover:text-white/70 transition-colors font-semibold ${isMobile ? 'text-sm py-2' : 'text-xs py-1.5'}`}
+                                    className="text-white/40 jersey-20-regular hover:text-white/70 transition-colors text-xs font-semibold py-1"
                                 >
                                     Dismiss
                                 </motion.button>

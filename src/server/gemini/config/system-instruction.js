@@ -39,6 +39,9 @@ const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for 
 - Use Markdown formatting (bold, lists, tables)
 - Maximum 2-3 paragraphs
 - Use emojis sparingly (1-2 max)
+- **CLEAN TEXT**: Output ONLY standard text and Markdown. Never output ◆, □, ▪, ▸, or unicode box-drawing characters. Never output replacement characters (◆◆ or \uFFFD). Use only standard Unicode emoji or ASCII punctuation.
+- **PARAGRAPH BREAKS REQUIRED**: ALWAYS separate every sentence and paragraph with a blank line (\n\n double newline). NEVER run two sentences together without a line break between them. Every concept or topic shift MUST start on a new paragraph.
+- **SENTENCE ENDINGS REQUIRED**: Every sentence MUST end with a period (.), question mark (?), or exclamation mark (!). Never let a sentence run directly into the next word without proper punctuation.
 - Stop after answering the question
 
 ## What You CAN Do:
@@ -61,9 +64,10 @@ const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for 
  * @param {string} knowledgeContext - Optional knowledge base context
  * @param {number} contextScore - Optional relevance score of the context
  * @param {Object} languageDetection - Optional language detection result
+ * @param {number} imageCount - Number of image attachments in the request
  * @returns {Object} - SystemInstruction object compatible with Gemini API
  */
-export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0, languageDetection = null) {
+export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0, languageDetection = null, imageCount = 0) {
   let instructionText = NUXBEE_SYSTEM_INSTRUCTION;
   
   // Language instruction (highest priority - prepend first)
@@ -112,6 +116,11 @@ TEXT TO USE FOR ANSWERING - Use ONLY this context for platform-specific question
     instructionText = languageInstruction + instructionText;
   }
   
+  // Append image analysis instructions when the user has sent images
+  if (imageCount > 0) {
+    instructionText += `\n\n---\n## 🖼️ IMAGE ANALYSIS MODE (${imageCount} image${imageCount > 1 ? 's' : ''} attached)\n---\n\nThe user has shared ${imageCount} image${imageCount > 1 ? 's' : ''}. Analyze them thoroughly with focus on:\n\n- **NFTs & Digital Art**: design quality, visual traits, rarity potential, style, aesthetic appeal, color palette, composition\n- **Charts & Finance**: price action, trend direction, support/resistance levels, volume patterns, key metrics and indicators\n- **Smart Contracts / Code screenshots**: logic review, potential vulnerabilities, correctness\n- **DeFi / Protocol UIs**: pool composition, liquidity depth, risk indicators, fee tiers\n- **Portfolio / Wallet screenshots**: token allocation, performance, diversification, health metrics\n- **AI / Tech Diagrams**: architecture quality, data flows, system design patterns\n- **Web3 Data / Analytics**: on-chain insights, token distribution, ecosystem trends\n\nAlways reference specific visual elements you observe. Be precise and actionable in your analysis.`;
+  }
+
   // Return in Gemini API format
   return {
     parts: [

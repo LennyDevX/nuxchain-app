@@ -111,7 +111,7 @@ async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
 
   try {
     const blob = await put(blobPath, imageBuffer, {
-      access: 'public',        // public so Gemini can fetch via URL directly
+      access: 'private',       // private store — fetched server-side with auth token
       contentType: mimeType,
       addRandomSuffix: false,  // we already generate a UUID
     });

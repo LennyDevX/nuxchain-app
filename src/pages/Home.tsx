@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import HeroSection from '../components/home/HeroSection'
 import Footer from '../components/layout/footer'
 import AnnouncementModal from '../components/home/AnnouncementModal'
+import NetworkBackground from '../components/home/NetworkBackground'
 import { useLazyRender } from '../hooks/performance/useLazyRender'
 import { useIsMobile } from '../hooks/mobile/useIsMobile'
 import { HeroSkeletonLoader } from '../components/ui/SkeletonLoader'
@@ -33,7 +34,8 @@ const LazySection = ({ children }: { children: React.ReactNode }) => {
 
 function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <NetworkBackground />
       <AnnouncementModal />
       <HeroSection />
 

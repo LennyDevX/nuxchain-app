@@ -216,6 +216,13 @@ class SemanticStreamingService {
           break;
         }
 
+        // Add a trailing space if this is not the last chunk to avoid glued words
+        if (nextChunk) {
+          if (!chunk.content.endsWith(' ') && !chunk.content.endsWith('\n')) {
+             chunk.content += ' ';
+          }
+        }
+
         // Stream chunk content with variable speed
         await this.streamChunkContent(res, chunk, enableVariableSpeed);
 

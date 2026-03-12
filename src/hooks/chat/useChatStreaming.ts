@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useReducer, useState } from 'react';
+import { useCallback, useRef, useEffect, useReducer, useState, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 import { useSubscription } from '../../context/SubscriptionContext';
 import type { SkillId } from '../../constants/subscription';
@@ -8,6 +8,7 @@ import type { ChatState, ChatMessage } from '../../components/chat/core/chatRedu
 import { showApiOverloadToast } from '../../components/ui/ApiOverloadNotificationUtils';
 import { conversationManager } from '../../components/chat/core/conversationManager';
 import type { StoredConversation } from '../../components/chat/core/conversationManager';
+import type { ImageAttachment } from '../../../api/types/index.js';
 
 // Define API endpoints directly since the import is not available
 const API_ENDPOINTS = {
@@ -131,6 +132,7 @@ interface Message {
     data?: unknown;
     errorMessage?: string;
   };
+  attachments?: ImageAttachment[];
 }
 
 interface UseChatStreamingReturn {
@@ -145,6 +147,7 @@ interface UseChatStreamingReturn {
   isUsingUrlContext: boolean;
   blockchainAction: string | null;
   isSearchingKB: boolean;
+  isAnalyzingImage: boolean;
   pauseStream: () => void;
   currentConversationId?: string | null;
   // Wallet auth state
@@ -226,6 +229,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
   const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
   const [blockchainAction, setBlockchainAction] = useState<string | null>(null);
   const [isSearchingKB, setIsSearchingKB] = useState(false);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [walletAuth, setWalletAuth] = useState<WalletAuthData | null>(() => {
     // Restore from sessionStorage so wallet stays signed across re-renders
     if (typeof window !== 'undefined') {
@@ -302,7 +306,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
       text: messageText.trim(),
       sender: 'user' as const,
       timestamp: new Date().toISOString(),
-      conversationId: state.conversationId || generateUniqueId('conv')
+      conversationId: state.conversationId || generateUniqueId('conv'),
+      ...(attachments && attachments.length > 0 ? { attachments } : {}),
     };
 
     dispatch({ type: 'ADD_USER_MESSAGE', payload: userMessage });
@@ -322,18 +327,30 @@ export function useChatStreaming(): UseChatStreamingReturn {
       setIsUsingUrlContext(true);
       setBlockchainAction(null);
       setIsSearchingKB(false);
+      setIsAnalyzingImage(false);
       if (import.meta.env.DEV) {
         console.log('🔗 [FRONTEND] URLs detected:', detectedUrls.length);
       }
     } else if (blockchainDetection.isBlockchain) {
       setBlockchainAction(blockchainDetection.action);
       setIsSearchingKB(false);
+      setIsAnalyzingImage(false);
       setIsUsingUrlContext(false);
       if (import.meta.env.DEV) {
         console.log('🔗 [FRONTEND] Blockchain query detected:', blockchainDetection.action);
       }
+    } else if (attachments && attachments.length > 0) {
+      // 📸 For image queries, show image analyzing indicator
+      setIsAnalyzingImage(true);
+      setIsSearchingKB(false);
+      setBlockchainAction(null);
+      setIsUsingUrlContext(false);
+      if (import.meta.env.DEV) {
+        console.log('📸 [FRONTEND] Analyzing image...');
+      }
     } else {
       // 📚 For non-blockchain queries, show KB search indicator
+      setIsAnalyzingImage(false);
       setIsSearchingKB(true);
       setBlockchainAction(null);
       setIsUsingUrlContext(false);
@@ -471,6 +488,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
             setBlockchainAction(null);
             setIsUsingUrlContext(false);
             setIsSearchingKB(false);
+            setIsAnalyzingImage(false);
           },
           onError: (error: Error, _onRetry: () => void, messageId: string) => {
             // FIXED: Type assertion correcta
@@ -656,7 +674,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
   }, []);
 
   // Convert internal state to external format
-  const messages: Message[] = state.messages.map((msg: ChatMessage) => ({
+  const messages = useMemo(() => state.messages.map((msg: ChatMessage) => ({
     id: msg.id,
     role: msg.sender === 'user' ? 'user' : 'assistant',
     content: msg.text,
@@ -664,7 +682,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
     isStreaming: msg.isStreaming,
     error: msg.error,
     skillResult: msg.skillResult,
-  }));
+    attachments: msg.attachments,
+  })), [state.messages]);
 
   return {
     messages,
@@ -678,6 +697,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
     isUsingUrlContext,
     blockchainAction,
     isSearchingKB,
+    isAnalyzingImage,
     pauseStream,
     currentConversationId: state.conversationId,
     walletAuth,

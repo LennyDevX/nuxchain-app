@@ -1,8 +1,6 @@
 ---
 name: subgraph-query
 description: Query NuxChain subgraphs using GraphQL and Apollo Client. Use when user says "subgraph", "GraphQL", "on-chain data", "The Graph", "query events", "staking events", "marketplace data", "indexed data", or needs to fetch blockchain event data. Provides schema, query patterns, and Apollo Client setup.
-allowed-tools: Read, Write, Edit, Glob, Grep
-model: claude-sonnet-4-5
 license: MIT
 metadata:
   author: nuxchain

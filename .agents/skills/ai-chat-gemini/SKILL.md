@@ -1,17 +1,175 @@
 ---
 name: ai-chat-gemini
-description: Extend or modify the Nuxbee AI chat system powered by Gemini. Use when user says "Nuxbee AI", "chat AI", "Gemini", "AI assistant", "system prompt", "chat endpoint", "streaming response", "AI 2.0", "knowledge base", or any AI chat feature work. Covers server architecture, system instructions, rate limiting, and audit logging.
-allowed-tools: Read, Write, Edit, Glob, Grep
-model: claude-sonnet-4-5
+description: Extend or modify the Nuxbee AI chat system powered by Gemini. Use when user says "Nuxbee AI", "chat AI", "Gemini", "AI assistant", "system prompt", "chat endpoint", "streaming response", "AI 2.0", "knowledge base", "KB entry", "image analysis", or any AI chat feature work. Covers server architecture, system instructions, rate limiting, subscription tiers, image uploads, and KB editing.
 license: MIT
 metadata:
   author: nuxchain
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
 # NuxChain Nuxbee AI / Gemini Chat Skill
 
-Extend the Nuxbee AI chat system built on Google Gemini.
+Extend the Nuxbee AI chat system built on Google Gemini (`@google/genai`).
+
+## Architecture Map
+
+```
+PRODUCTION (Vercel)
+  api/chat/stream.ts               ← Main streaming endpoint (POST)
+  api/chat/upload-image.ts         ← Image upload → Vercel Blob (POST)
+  api/_config/system-instruction.ts  ← NUXBEE_SYSTEM_INSTRUCTION export
+  api/_services/
+    knowledge-base.ts              ← 150+ KB entries, searchKnowledgeBase()
+    embeddings-service.ts          ← RAG / semantic search
+    blockchain-service.ts          ← on-chain data (POL price, staking, NFTs)
+    blockchain-tools.ts            ← Gemini function-calling tool definitions
+    web-scraper.ts                 ← URL context extraction
+    markdown-formatter.ts          ← Post-process streaming output
+    audit-logger.ts                ← Request logging to Firestore
+  api/_middlewares/
+    serverless-security.ts         ← withSecurity() wrapper — ALWAYS use
+    wallet-auth.ts                 ← verifyWalletSignature()
+    subscription-auth.ts           ← checkSkillAccess(), skillsRateLimit()
+
+LOCAL DEV (Express :3002)
+  src/server/gemini/
+    index.js                       ← Express entry (npm run dev:gemini)
+    config/
+      system-instruction.js        ← MUST stay in sync with api/_config/
+      environment.js
+    controllers/gemini-controller.js
+    services/gemini-service.js
+    services/embeddings-service.js
+
+FRONTEND
+  src/pages/Chat.tsx               ← Main UI (~950 lines)
+  src/hooks/chat/useChatStreaming.ts ← Streaming state machine
+  src/components/chat/core/
+    streamingService.ts            ← TextDecoder stream handler
+    chatReducer.ts                 ← Message state
+  src/context/SubscriptionContext.tsx ← dailyUsed, dailyLimit, trackUsage
+```
+
+## ⚠️ TWO-FILE SYNC RULE
+
+Every change to `api/_config/system-instruction.ts` MUST also be applied to
+`src/server/gemini/config/system-instruction.js`. They must stay identical in behavior.
+
+## System Instruction Export
+
+```typescript
+// api/_config/system-instruction.ts
+export const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee...`;
+
+// src/server/gemini/config/system-instruction.js  
+module.exports = { NUXBEE_SYSTEM_INSTRUCTION: `You are Nuxbee...` };
+```
+
+## Response Format Rules (CRITICAL)
+
+Always enforce in system instruction:
+```
+- CLEAN TEXT: Never output ◆, □, ▪, ▸, ◆◆ or \uFFFD replacement chars
+- PARAGRAPH BREAKS REQUIRED: Always double newline (\n\n) between sentences
+- SENTENCE ENDINGS REQUIRED: Every sentence ends with . ? or !
+- Use emojis sparingly (1-2 max) — skip if user's message has none
+- Max 2-3 paragraphs per response
+```
+
+## Streaming Endpoint Pattern (`api/chat/stream.ts`)
+
+```typescript
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { GoogleGenAI } from '@google/genai';  // NOT @google/generative-ai
+import { withSecurity } from '../_middlewares/serverless-security.js';
+import { FREE_DAILY_LIMIT, SUBSCRIPTION_COLLECTION } from '../../src/constants/subscription.js';
+import { NUXBEE_SYSTEM_INSTRUCTION } from '../_config/system-instruction.js';
+import { kv } from '@vercel/kv';
+
+const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+
+async function handler(req: VercelRequest, res: VercelResponse) {
+  // 1. CORS+Security via withSecurity wrapper
+  // 2. Rate limiting — check Firestore subscription for tier
+  //    Free: FREE_DAILY_LIMIT (10/day) via KV counter key `daily:${wallet}:${date}`
+  //    Pro/Premium: dailyLimit = -1 (unlimited)
+  // 3. Extract: message, history, walletAuth, imageCount
+  // 4. If walletAuth → get blockchain context via blockchainService
+  // 5. KB search via searchKnowledgeBase(message)
+  // 6. Build model input with system instruction + KB context + history
+  // 7. Stream response using generateContentStream()
+  // 8. Pipe chunks to res with res.write(chunk)
+  // 9. res.end() when done
+}
+
+export default withSecurity(handler);
+```
+
+## Knowledge Base Entry Format
+
+```typescript
+// api/_services/knowledge-base.ts
+interface KnowledgeBaseItem {
+  content: string;        // The actual text (1-4 sentences)
+  metadata: {
+    type: 'general' | 'smart-contract' | 'ai';
+    category: 'staking' | 'token' | 'nft' | 'marketplace' | 'launchpad' |
+              'airdrop' | 'community' | 'labs' | 'platform' | 'company' | 'strategy';
+    topic: string;        // Specific topic slug
+  };
+  commands: string[];     // Keywords/phrases that trigger this KB entry
+}
+
+// Example new entry:
+{
+  content: 'Smart Staking v6.2 supports Boost Slots for Skills NFT V2 holders, giving +15% APY boost.',
+  metadata: { type: 'smart-contract', category: 'staking', topic: 'boost-slots' },
+  commands: ['boost slot', 'skills nft boost', 'APY boost', 'staking boost']
+}
+```
+
+After editing KB: run `node scripts/test-embedding-v2.mjs` to verify embeddings.
+
+## Subscription Tiers & Rate Limits
+
+```typescript
+// src/constants/subscription.ts
+export const FREE_DAILY_LIMIT = 10;           // requests/day
+// Pro:     dailyLimit = -1  (unlimited)
+// Premium: dailyLimit = -1  (unlimited)
+
+// Tiers
+type SubscriptionTier = 'free' | 'pro' | 'premium';
+// Pro:     $10/mo — 3 core skills, model selection
+// Premium: $25/mo — ALL skills, model selection
+```
+
+## Image Analysis Flow
+
+```
+1. User attaches image in Chat.tsx → setPendingImages([...pendingImages, img])
+2. On send: POST api/chat/upload-image.ts with FormData
+3. upload-image.ts → Vercel Blob (put()) → returns { url, pathname }
+4. stream.ts receives { imageCount: number, imageUrls: string[] }
+5. Gemini receives images as inlineData parts alongside text prompt
+```
+
+## Models in Use
+
+| Use case | Model |
+|---|---|
+| Free tier / default | `gemini-3.1-flash-lite-preview` |
+| Pro/Premium option | `gemini-3-pro` or `gemini-3-flash` |
+| Skills endpoints | `gemini-3.1-flash-lite-preview` |
+
+## Adding a New AI Feature — Checklist
+
+- [ ] Update `api/_config/system-instruction.ts` → sync to `src/server/gemini/config/system-instruction.js`
+- [ ] If new KB data needed → add entries to `knowledge-base.ts` → run embedding test
+- [ ] If new API endpoint → register in `vercel.json` → wrap with `withSecurity`
+- [ ] If subscription-gated → add to `SKILLS` in `subscription.ts` + `subscription-auth.ts`
+- [ ] If changes to streaming → test with `npm run dev:gemini` locally first
+
 
 ## Architecture Overview
 

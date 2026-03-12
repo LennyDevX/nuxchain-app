@@ -83,49 +83,28 @@ export default defineConfig({
             mod.includes('/node_modules/react-dom/') ||
             mod.includes('/node_modules/scheduler/')
           ) return 'react-core';
-          // Wagmi + Viem (Web3 core) — statically depends on react-core
-          if (
-            mod.includes('/node_modules/wagmi/') ||
-            mod.includes('/node_modules/viem/') ||
-            mod.includes('/node_modules/@wagmi/')
-          ) return 'web3-core';
-          // WalletConnect + MetaMask + Reown AppKit connectors
-          // Keep all WalletConnect-ecosystem code together to prevent circular
-          // dependencies between vendor and wallet-connectors chunks.
-          // @reown/appkit imports from @walletconnect/* — if @reown stays in
-          // vendor while @walletconnect/* is in wallet-connectors, Rollup creates
-          // a vendor→wallet-connectors→vendor circular that causes
-          // "Cannot read properties of undefined (reading 'exports')" at runtime.
-          if (
-            mod.includes('/node_modules/@walletconnect/') ||
-            mod.includes('/node_modules/@metamask/') ||
-            mod.includes('/node_modules/@reown/')
-          ) return 'wallet-connectors';
-          // Solana ecosystem (NFT + tokenization pages only, ~200-300KB)
-          if (
-            mod.includes('/node_modules/@solana/') ||
-            mod.includes('/node_modules/@metaplex/')
-          ) return 'solana-stack';
-          // Chart libraries (Market/Labs pages only)
+          // Chart libraries (Market/Labs pages only) — standalone, no circular deps
           if (
             mod.includes('/node_modules/chart.js/') ||
             mod.includes('/node_modules/recharts/') ||
             mod.includes('/node_modules/react-chartjs-2/')
           ) return 'charts';
-          // Gemini AI SDK (Chat page only, ~100-200KB)
+          // Gemini AI SDK (Chat page only) — standalone
           if (mod.includes('/node_modules/@google/genai/')) return 'ai-sdk';
-          // Framer Motion (animations, ~60KB)
+          // Framer Motion (animations) — standalone
           if (mod.includes('/node_modules/framer-motion/')) return 'animation';
-          // Apollo / GraphQL (~50KB)
-          if (
-            mod.includes('/node_modules/@apollo/') ||
-            mod.includes('/node_modules/graphql/')
-          ) return 'graphql';
-          // Firebase + Firestore (~150KB)
+          // Firebase + Firestore — standalone
           if (
             mod.includes('/node_modules/firebase/') ||
             mod.includes('/node_modules/@firebase/')
           ) return 'firebase';
+          // NOTE: wagmi, viem, @wagmi, @walletconnect, @metamask, @reown, @apollo,
+          // graphql, @solana, @metaplex intentionally fall through to 'vendor'.
+          // Splitting these out creates vendor→chunk→vendor circular chunk dependencies
+          // (the Rollup "Circular chunk" warning) that cause a runtime TypeError:
+          // "Cannot read properties of undefined (reading 'exports')" because their
+          // shared sub-dependencies (ethers, @noble, ox, abitype, @tanstack, bs58, etc.)
+          // end up split across chunks with no guaranteed init order.
           // All other node_modules → stable vendor chunk (rarely changes between deploys)
           return 'vendor';
         },

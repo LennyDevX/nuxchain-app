@@ -150,29 +150,15 @@ export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCar
             </div>
           </>
         )}
-        <div className="bg-black/20 rounded-lg p-2 border border-white/5">
-          <p className="jersey-20-regular text-slate-500 text-xl">Start</p>
-          <p className="jersey-15-regular text-white text-xl">
-            {tier.start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        <div className="bg-black/20 rounded-lg p-2 border border-white/5 col-span-2">
+          <p className="jersey-20-regular text-slate-500 text-xl">Unlocks when</p>
+          <p className="jersey-15-regular text-white text-lg leading-snug">
+            {tierId === 1 ? '🎯 Whitelist quota filled' : tierId === 2 ? '🎯 Whitelist complete + presale open' : '🎯 SOL raised to seed LP pool'}
           </p>
         </div>
-        {tier.end && (
-          <div className="bg-black/20 rounded-lg p-2 border border-white/5">
-          <p className="jersey-20-regular text-slate-500 text-xl">End</p>
-          <p className="jersey-15-regular text-white text-xl">
-              {tier.end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Countdown for upcoming */}
-      {status === 'upcoming' && (
-        <div className="flex justify-center pt-1 border-t border-white/5">
-          <CountdownTimer targetDate={tier.start} label="Starts in" />
-        </div>
-      )}
-
       {/* CTA Button */}
       {!isLP ? (
         <button
@@ -197,7 +183,7 @@ export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCar
               : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/10'
             }`}
         >
-          {status === 'upcoming' ? 'Coming Mar 24 on NuxChain' : 'Trade on NuxChain →'}
+          {status === 'upcoming' ? 'Opens after presale completes' : 'Trade on NuxChain →'}
         </a>
       )}
     </motion.div>

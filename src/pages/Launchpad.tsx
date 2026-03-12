@@ -6,7 +6,6 @@ import type { TierId } from '../constants/launchpad';
 import TierCard from '../components/launchpad/TierCard';
 import BuyModal from '../components/launchpad/BuyModal';
 import LaunchpadStats from '../components/launchpad/LaunchpadStats';
-import CountdownTimer from '../components/launchpad/CountdownTimer';
 
 interface RawStats {
   tier1: { nuxSold: number; solRaised: number; participants: number };
@@ -39,10 +38,7 @@ export default function Launchpad() {
     };
   }, [fetchStats]);
 
-  // Date of next upcoming event
-  const now = new Date();
-  const tier1Start = LAUNCHPAD_CONFIG.tiers[1].start;
-  const nextEventDate = now < tier1Start ? tier1Start : null;
+  // No date-based countdown — launch is objective-driven
 
   return (
     <>
@@ -81,14 +77,14 @@ export default function Launchpad() {
             Whitelist participants get the best price.
           </p>
 
-          {/* Countdown to Whitelist */}
-          {nextEventDate && (
-            <div className="flex justify-center pt-2">
-              <div className="bg-black/30 border border-white/10 text-2xl md:text-4xl rounded-2xl px-6 py-3">
-                <CountdownTimer targetDate={nextEventDate} label="Whitelist Opens in" />
-              </div>
+          {/* Objective notice */}
+          <div className="flex justify-center pt-2">
+            <div className="bg-black/30 border border-purple-500/20 rounded-2xl px-6 py-3">
+              <p className="jersey-20-regular text-purple-300/80 text-lg md:text-2xl">
+                🎯 NUX launches once whitelist & presale objectives are met
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Timeline progress */}
           <div className="flex items-center justify-center gap-2 pt-2">

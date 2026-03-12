@@ -40,7 +40,7 @@ const Nux = memo(() => {
         <div className="mt-12 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center">
           <p className="jersey-20-regular text-emerald-300 text-sm">
             🟢 <span className="text-emerald-200 font-semibold">NUX token is live on Solana Mainnet.</span>{' '}
-            Mint: <a href="https://solscan.io/token/Cmpy3SvMJRKSXcfaDsLWC4gidhTQNwxeHXBmAgM5Ydja" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-mono">Cmpy3SvM...M5Ydja</a>
+            Mint: <a href="https://solscan.io/token/AV9fNPXeLhyqGangnEdBkL355mqDbAi3gWU4AfzDcPZK" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors font-mono">AV9fN...DcPZK</a>
             {' '}· Whitelist opens <span className="text-amber-300 font-semibold">Mar 2</span>.
             Follow{' '}
             <a href="https://x.com/nuxchain" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors">

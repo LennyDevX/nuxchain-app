@@ -1,6 +1,7 @@
 ﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { makeToastStyle } from '../utils/toasts/toastStyles'
 import { useAccount, useSignMessage } from 'wagmi'
 import ChatMessageComponent from '../components/chat/ChatMessage.tsx'
 import InputTextArea from '../components/chat/InputTextArea'
@@ -9,10 +10,13 @@ import PauseButton from '../components/chat/PauseButton'
 import FileUploadButton from '../components/chat/FileUploadButton'
 import ImagePreviewStrip from '../components/chat/ImagePreviewStrip'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
+import NetworkBackground from '../components/home/NetworkBackground'
 import SkillsPanel from '../components/ai/SkillsPanel'
 import { SubscriptionModal } from '../components/chat/subscription/SubscriptionModal.tsx'
 import { SkillsShowcaseModal } from '../components/chat/subscription/SkillsShowcaseModal.tsx'
 import { SkillInputModal } from '../components/chat/skills/SkillInputModal'
+import { ChatTutorialModal } from '../components/chat/ChatTutorialModal'
+import { ChatUserModal, PROFILE_PHOTO_KEY } from '../components/chat/ChatUserModal'
 
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useFirebaseConversations } from '../hooks/chat/useFirebaseConversations'
@@ -55,6 +59,16 @@ function Chat() {
   const [showPanel, setShowPanel] = useState(false)
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
   const [showSkillsModal, setShowSkillsModal] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !localStorage.getItem('nuxbee_chat_tutorial_seen')
+    }
+    return false
+  })
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [userPhoto, setUserPhoto] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem(PROFILE_PHOTO_KEY) : null
+  )
   const [isSigning, setIsSigning] = useState(false)
   const [selectedSkillId, setSelectedSkillId] = useState<SkillId | null>(null)
   const [selectedModel, setSelectedModel] = useState<GeminiModel>(() => {
@@ -67,14 +81,14 @@ function Chat() {
 
   const { address: evmAddress, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
-  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, clearMessages, loadHistory, currentConversationId, walletAuth, setWalletAuth, injectSkillLoading, updateSkillMessage } = useChatStreaming()
+  const { messages, isLoading, isStreaming, sendMessage, pauseStream, isUsingUrlContext, blockchainAction, isSearchingKB, isAnalyzingImage, clearMessages, loadHistory, currentConversationId, walletAuth, setWalletAuth, injectSkillLoading, updateSkillMessage } = useChatStreaming()
   const { history, saveConversation, deleteConversation } = useFirebaseConversations(evmAddress)
   const skillInvocation = useSkillInvocation(evmAddress)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
   const { isDragging, dragY } = useChatNavbar()
   const optimizationConfig = getMobileOptimizationConfig()
-  const { tier, isPaid, isExpiringSoon } = useSubscription()
+  const { tier, isPaid, isExpiringSoon, dailyUsed, dailyLimit, trackUsage } = useSubscription()
 
   // Clear walletAuth when wallet disconnects or changes
   useEffect(() => {
@@ -99,12 +113,12 @@ function Chat() {
       const msg = buildSignMessage(evmAddress, timestamp)
       const sig = await signMessageAsync({ message: msg })
       setWalletAuth({ walletAddress: evmAddress, message: msg, signature: sig })
-      toast.success('✅ Wallet verified! NuxBee AI now has your full on-chain context.')
+      toast.success('✅ Wallet verified! NuxBee AI now has your full on-chain context.', { style: makeToastStyle('success') })
     } catch (err) {
       if ((err as Error)?.message?.includes('User rejected') || (err as Error)?.message?.includes('rejected')) {
-        toast.error('Signature cancelled.')
+        toast.error('Signature cancelled.', { style: makeToastStyle('error') })
       } else {
-        toast.error('Failed to sign. Try again.')
+        toast.error('Failed to sign. Try again.', { style: makeToastStyle('error') })
       }
     } finally {
       setIsSigning(false)
@@ -250,6 +264,7 @@ function Chat() {
       }
 
       await sendMessage(message.trim(), attachments.length > 0 ? attachments : undefined)
+      trackUsage()
     } catch (error) {
       chatLogger.logError('Error sending message', 'Chat', { message: message.trim().substring(0, 50) }, error as Error)
       toast.error('Error sending message. Cannot connect to NuxBee AI.')
@@ -261,6 +276,7 @@ function Chat() {
     try {
       chatLogger.logMessageEvent({ type: 'SEND', messageId: `user_${Date.now()}`, sender: 'user', contentPreview: question, timestamp: new Date().toISOString() }, 'WelcomeScreen')
       await sendMessage(question)
+      trackUsage()
       setMessage('')
     } catch (error) {
       chatLogger.logError('Error sending selected question', 'WelcomeScreen', { question: question.substring(0, 50) }, error as Error)
@@ -277,6 +293,21 @@ function Chat() {
 
   return (
     <div className="fixed inset-0 md:top-20 flex flex-col overflow-hidden text-white font-sans z-40 pb-[70px] md:pb-0 jersey-20-regular" style={{ background: 'transparent' }}>
+      {/* Animated network background — only visible on welcome screen */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            key="chat-network-bg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0 pointer-events-none z-0"
+          >
+            <NetworkBackground />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Main layout: optional desktop sidebar + chat area ──── */}
         <div className="flex flex-1 min-h-0 relative overflow-hidden">
@@ -343,12 +374,42 @@ function Chat() {
                   {/* Sidebar Bottom: Plan Details */}
                   <div className="mt-4 pt-4 border-t border-[#2A2A2A] px-2 flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
-                        {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
-                      </div>
-                      <div className="flex-1 flex flex-col">
+                      {/* Left: circular ring in prod free tier, tier icon otherwise */}
+                      {(!(import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local') && dailyLimit > 0) ? (
+                        <div className="relative w-9 h-9 flex-shrink-0">
+                          <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
+                            <circle
+                              cx="18" cy="18" r="15"
+                              fill="none"
+                              stroke={Math.min(100, (dailyUsed / dailyLimit) * 100) > 80 ? '#ef4444' : Math.min(100, (dailyUsed / dailyLimit) * 100) > 50 ? '#eab308' : '#a855f7'}
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              strokeDasharray={`${2 * Math.PI * 15}`}
+                              strokeDashoffset={`${2 * Math.PI * 15 * (1 - Math.min(1, dailyUsed / dailyLimit))}`}
+                              style={{ transition: 'stroke-dashoffset 0.7s ease' }}
+                            />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
+                          {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
+                        </div>
+                      )}
+                      <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-lg font-semibold capitalize">{tier} Plan</span>
-                        {!isPaid && <span className="text-lg text-white/50">Free tier</span>}
+                        {import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local' ? (
+                          <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
+                        ) : dailyLimit === -1 ? (
+                          <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-bold text-white/90 tabular-nums">{dailyUsed}</span>
+                            <span className="text-xs text-white/30">/</span>
+                            <span className="text-sm font-bold text-white/40 tabular-nums">{dailyLimit}</span>
+                            <span className="text-[10px] text-white/30 ml-0.5">daily</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {isExpiringSoon && (
@@ -411,15 +472,15 @@ function Chat() {
         {/* Chat column */}
         <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
 
-          {/* ── Action bar (panel toggle mostly) ── */}
+          {/* ── Action bar ── */}
           <motion.div
-            className="flex-shrink-0 flex items-center justify-between px-4 md:px-6 py-4 z-20"
+            className="flex-shrink-0 flex items-center justify-between px-3 md:px-6 py-3 z-20"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <div className="flex items-center gap-3">
-              {/* Panel toggle button */}
+            <div className="flex items-center gap-2">
+              {/* Panel toggle */}
               <button
                 onClick={() => setShowPanel(p => !p)}
                 className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 text-white/70 transition-colors"
@@ -427,134 +488,42 @@ function Chat() {
               >
                 <span className="text-4xl">≡</span>
               </button>
-              {/* App brand or model name next to toggle */}
             </div>
+
+            {/* Center brand on mobile */}
+            {isMobile && (
+              <span className="absolute left-1/2 -translate-x-1/2 text-xl font-medium text-white/50 tracking-wide pointer-events-none">
+                Nuxbee AI
+              </span>
+            )}
+
+            {/* User avatar button (top-right) */}
+            <button
+              onClick={() => setShowUserModal(v => !v)}
+              className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-white/15 flex items-center justify-center flex-shrink-0 hover:ring-2 hover:ring-purple-500/50 hover:border-purple-500/40 transition-all active:scale-95 shadow-lg"
+              aria-label="Open user menu"
+            >
+              {userPhoto ? (
+                <img src={userPhoto} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-600/80 to-blue-600/80 flex items-center justify-center">
+                  <svg className="w-6 h-6 md:w-7 md:h-7 text-white/90" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </div>
+              )}
+            </button>
           </motion.div>
 
           {/* ── Messages / Welcome area ──────────────────────────── */}
-          <div className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent hover:scrollbar-thumb-white/20 min-h-0 flex flex-col px-4 md:px-6 ${showWelcome ? 'justify-center items-center' : ''}`}>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent hover:scrollbar-thumb-white/20 min-h-0 flex flex-col">
             {showWelcome ? (
-              <div className="w-full max-w-3xl flex flex-col gap-6 w-full">
+              /* Gemini-style: vertically centered welcome */
+              <div className="flex-1 flex flex-col justify-center items-center py-8 px-2">
                 <WelcomeScreen onQuestionSelect={handleQuestionSelect} />
-                
-                {/* ── Input inside flow when welcome ── */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="w-full"
-                >
-                <motion.form
-                    onSubmit={handleSendMessage}
-                    className="relative w-full"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.25 }}
-                  >
-                    {/* ── Wallet Sign Banner ── */}
-                    {isConnected && !isWalletSigned && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
-                      >
-                        <div className="flex items-center gap-2 text-sm text-white/80">
-                          <span>🔐</span>
-                          <span>Sign your wallet to unlock personalized AI context — your staking, NFTs & activity.</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleSignWallet}
-                          disabled={isSigning}
-                          className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
-                        >
-                          {isSigning ? '⏳ Signing...' : '✍️ Sign Wallet'}
-                        </button>
-                      </motion.div>
-                    )}
-                    {!isConnected && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-2xl text-white/50 text-center"
-                      >
-                        🔌 Connect your wallet to unlock personalized AI context
-                      </motion.div>
-                    )}
-                    {isWalletSigned && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="mb-3 flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-900/20 border border-green-500/30 text-sm text-green-400"
-                      >
-                        <span>✅</span>
-                        <span>Wallet verified — NuxBee AI has your full on-chain context</span>
-                        <button
-                          type="button"
-                          onClick={() => setWalletAuth(null)}
-                          className="ml-auto text-white/30 hover:text-white/60 text-xs transition-colors"
-                          title="Disconnect AI context"
-                        >
-                          ✕
-                        </button>
-                      </motion.div>
-                    )}
-
-                    {/* Indicators (URL, Blockchain, KB) */}
-                    {(isUsingUrlContext || blockchainAction || isSearchingKB) && (
-                      <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="px-4 py-2 border border-purple-500/30 rounded-full bg-gradient-to-r from-purple-900/20 to-blue-900/20 flex items-center space-x-2 text-base text-white/80 jersey-20-regular shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                           {isUsingUrlContext && <span className="font-medium">🔍 Analyzing URL...</span>}
-                           {blockchainAction && <span className="font-medium">{blockchainAction}</span>}
-                           {isSearchingKB && !blockchainAction && (
-                             <motion.span 
-                               className="font-medium flex items-center gap-2"
-                               animate={{ opacity: [1, 0.6, 1] }}
-                               transition={{ repeat: Infinity, duration: 1.5 }}
-                             >
-                               <span className="text-lg">⚡</span>
-                               Searching Knowledge Base...
-                             </motion.span>
-                           )}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <motion.div className="relative bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-2 px-3 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.5)] focus-within:shadow-[0_0_20px_rgba(168,85,247,0.25)] focus-within:border-purple-500/50 transition-all duration-500 gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
-                      <ImagePreviewStrip
-                        images={pendingImages}
-                        onRemove={(id) => setPendingImages(prev => prev.filter(a => a.id !== id))}
-                      />
-                      <div className="flex items-end gap-3 py-1.5 px-2">
-                        <div className="flex-1 min-w-0">
-                          <InputTextArea
-                            value={message}
-                            onChange={setMessage}
-                            onKeyPress={handleKeyPress}
-                            disabled={isLoading || isStreaming || !isWalletSigned}
-                            placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to start chatting..." : "Connect your wallet to start..."}
-                          />
-                        </div>
-                        <div className="flex-shrink-0 flex items-center gap-2 pb-0.5">
-                          <FileUploadButton
-                            onImageSelected={(img) => setPendingImages(prev => [...prev, img].slice(0, 3))}
-                            currentCount={pendingImages.length}
-                            isDisabled={isLoading || isStreaming || !isWalletSigned}
-                          />
-                          {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                          <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
-                        </div>
-                      </div>
-                    </motion.div>
-                  </motion.form>
-
-                  <motion.p className="text-[13px] text-white/40 mt-4 text-center font-medium jersey-20-regular" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.35 }}>
-                    Nuxbee AI can make mistakes. Please double-check critical information.
-                  </motion.p>
-                </motion.div>
               </div>
             ) : (
-              <div className="flex-1 max-w-4xl mx-auto w-full pb-6">
+              <div className="flex-1 max-w-4xl mx-auto w-full pb-6 px-0 md:px-4">
                 <ChatMessageComponent messages={messages} isLoading={isLoading || isStreaming} onSkillAnalyze={sendMessage} />
                 {/* Scroll anchor */}
                 <div ref={messagesEndRef} className="h-1" />
@@ -562,120 +531,118 @@ function Chat() {
             )}
           </div>
 
-          {/* ── Fixed bottom input area (only when chat active) ──────────────────────────────────── */}
-          {!showWelcome && (
-            <motion.div
-              className={`flex-shrink-0 z-10 bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-6 md:pt-10 ${optimizationConfig.reduceAnimations ? '' : 'transition-transform duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
-              style={{
-                transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none',
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="max-w-4xl mx-auto w-full px-4 md:px-8 pb-4 pt-2">
-                  <motion.form
-                    onSubmit={handleSendMessage}
-                    className="relative"
+          {/* ── Fixed bottom input — always visible (welcome + active) ──── */}
+          <motion.div
+            className={`flex-shrink-0 z-10 bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-4 md:pt-8 ${optimizationConfig.reduceAnimations ? '' : 'transition-transform duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
+            style={{
+              transform: isDragging ? `translateY(${Math.max(0, -dragY)}px)` : 'none',
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="max-w-3xl mx-auto w-full px-3 md:px-8 pb-4 pt-2">
+              <motion.form
+                onSubmit={handleSendMessage}
+                className="relative"
+              >
+                
+                {/* ── Wallet Sign Banner ── */}
+                {isConnected && !isWalletSigned && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
                   >
-                    {/* ── Wallet Sign Banner (bottom input) ── */}
-                    {isConnected && !isWalletSigned && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
-                      >
-                        <div className="flex items-center gap-2 text-sm text-white/80">
-                          <span>🔐</span>
-                          <span>Sign your wallet to unlock personalized AI context</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleSignWallet}
-                          disabled={isSigning}
-                          className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
-                        >
-                          {isSigning ? '⏳ Signing...' : '✍️ Sign Wallet'}
-                        </button>
-                      </motion.div>
-                    )}
-                    {isWalletSigned && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="mb-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-green-900/20 border border-green-500/30 text-xs text-green-400"
-                      >
-                        <span>✅ Wallet verified — personalized context active</span>
-                        <button
-                          type="button"
-                          onClick={() => setWalletAuth(null)}
-                          className="ml-auto text-white/30 hover:text-white/60 transition-colors"
-                          title="Disconnect AI context"
-                        >
-                          ✕
-                        </button>
-                      </motion.div>
-                    )}
-
-                    {/* Indicators (URL, Blockchain, KB) */}
-                    {(isUsingUrlContext || blockchainAction || isSearchingKB) && (
-                      <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="px-4 py-2 border border-purple-500/30 rounded-full bg-gradient-to-r from-purple-900/20 to-blue-900/20 flex items-center space-x-2 text-base text-white/80 jersey-20-regular shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                           {isUsingUrlContext && <span className="font-medium">🔍 Analyzing URL...</span>}
-                           {blockchainAction && <span className="font-medium">{blockchainAction}</span>}
-                           {isSearchingKB && !blockchainAction && (
-                             <motion.span 
-                               className="font-medium flex items-center gap-2"
-                               animate={{ opacity: [1, 0.6, 1] }}
-                               transition={{ repeat: Infinity, duration: 1.5 }}
-                             >
-                               <span className="text-lg">⚡</span>
-                               Searching Knowledge Base...
-                             </motion.span>
-                           )}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <motion.div 
-                      className="bg-[#1e1e24]/20 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl focus-within:shadow-[0_0_30px_rgba(168,85,247,0.15)] focus-within:border-purple-500/40 transition-all duration-500" 
-                      initial={{ opacity: 0, y: 10 }} 
-                      animate={{ opacity: 1, y: 0 }} 
-                      transition={{ duration: 0.5, delay: 0.1 }}
+                    <div className="flex items-center gap-2 text-sm text-white/80">
+                      <span>🔐</span>
+                      <span className="hidden sm:inline">Sign your wallet to unlock personalized AI context</span>
+                      <span className="sm:hidden">Sign wallet for AI context</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSignWallet}
+                      disabled={isSigning}
+                      className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
                     >
-                      <ImagePreviewStrip
-                        images={pendingImages}
-                        onRemove={(id) => setPendingImages(prev => prev.filter(a => a.id !== id))}
-                      />
-                      <div className="flex items-center pl-4 pr-2 py-2">
-                        <div className="flex-1 min-w-0">
-                          <InputTextArea
-                            value={message}
-                            onChange={setMessage}
-                            onKeyPress={handleKeyPress}
-                            disabled={isLoading || isStreaming || !isWalletSigned}
-                            placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign your wallet above to continue..." : "Connect wallet to start..."}
-                          />
-                        </div>
-                        <div className="flex-shrink-0 flex items-center gap-2 ml-2">
-                          <FileUploadButton
-                            onImageSelected={(img) => setPendingImages(prev => [...prev, img].slice(0, 3))}
-                            currentCount={pendingImages.length}
-                            isDisabled={isLoading || isStreaming || !isWalletSigned}
-                          />
-                          {isStreaming && <PauseButton onClick={() => pauseStream()} />}
-                          <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
-                        </div>
-                      </div>
-                    </motion.div>
-                  </motion.form>
+                      {isSigning ? '⏳ Signing...' : '✍️ Sign'}
+                    </button>
+                  </motion.div>
+                )}
+                {!isConnected && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white/50 text-center"
+                  >
+                    🔌 Connect your wallet to unlock personalized AI context
+                  </motion.div>
+                )}
 
-                  <motion.p className="text-[13px] text-white/40 mt-3 mb-2 text-center font-medium jersey-20-regular" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
-                    Nuxbee AI can make mistakes. Please double-check critical information.
-                  </motion.p>
-              </div>
-            </motion.div>
-          )}
+                {/* Indicators (URL, Blockchain, KB, Image) */}
+                {(isUsingUrlContext || blockchainAction || isSearchingKB || isAnalyzingImage) && (
+                  <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="px-4 py-2 border border-purple-500/30 rounded-full bg-gradient-to-r from-purple-900/20 to-blue-900/20 flex items-center space-x-2 text-sm text-white/80 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                      {isUsingUrlContext && <span className="font-medium">🔍 Analyzing URL...</span>}
+                      {blockchainAction && <span className="font-medium">{blockchainAction}</span>}
+                      {isAnalyzingImage && !blockchainAction && (
+                        <motion.span className="font-medium flex items-center gap-2" animate={{ opacity: [1, 0.6, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                          <span>📸</span> Analyzing image...
+                        </motion.span>
+                      )}
+                      {isSearchingKB && !blockchainAction && !isAnalyzingImage && (
+                        <motion.span className="font-medium flex items-center gap-2" animate={{ opacity: [1, 0.6, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                          <span>⚡</span> Searching Knowledge Base...
+                        </motion.span>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Input box */}
+                <motion.div
+                  className="bg-[#1e1e24]/30 backdrop-blur-xl border border-white/10 rounded-[28px] overflow-hidden shadow-2xl focus-within:shadow-[0_0_30px_rgba(168,85,247,0.15)] focus-within:border-purple-500/40 transition-all duration-500"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  <ImagePreviewStrip
+                    images={pendingImages}
+                    onRemove={(id) => setPendingImages(prev => prev.filter(a => a.id !== id))}
+                  />
+                  <div className="flex items-center pl-4 pr-2 py-2">
+                    <div className="flex-1 min-w-0">
+                      <InputTextArea
+                        value={message}
+                        onChange={setMessage}
+                        onKeyPress={handleKeyPress}
+                        disabled={isLoading || isStreaming || !isWalletSigned}
+                        placeholder={isWalletSigned ? "Ask Nuxbee..." : isConnected ? "Sign wallet to start..." : "Connect wallet to start..."}
+                      />
+                    </div>
+                    <div className="flex-shrink-0 flex items-center gap-2 ml-2">
+                      <FileUploadButton
+                        onImageSelected={(img) => setPendingImages(prev => [...prev, img].slice(0, 3))}
+                        currentCount={pendingImages.length}
+                        isDisabled={isLoading || isStreaming || !isWalletSigned}
+                      />
+                      {isStreaming && <PauseButton onClick={() => pauseStream()} />}
+                      <SendMessageButton disabled={!message.trim() || isLoading || isStreaming || !isWalletSigned} isLoading={isLoading || isStreaming} onClick={() => handleSendMessage()} hasText={message.trim().length > 0} />
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.form>
+
+              <motion.p
+                className="text-[12px] text-white/30 mt-2.5 mb-1 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                Nuxbee AI can make mistakes. Please double-check critical information.
+              </motion.p>
+            </div>
+          </motion.div>
         </div>
       </div>
 
@@ -705,7 +672,6 @@ function Chat() {
               >
                 <div className="flex-1 flex flex-col  w-full h-full overflow-hidden px-3">
                   <div className="flex justify-between  items-center mb-6 pl-1 pr-1">
-                     <span className="text-[17px] font-medium text-white/90">Nuxbee Gemini</span>
                      <button onClick={() => setShowPanel(false)} className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 text-white/70">✕</button>
                   </div>
                   {/* New Chat Button */}
@@ -751,12 +717,42 @@ function Chat() {
                   {/* Sidebar Bottom: Plan Details */}
                   <div className="mt-4 pt-4 border-t border-[#2A2A2A] px-2 flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
-                        {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
-                      </div>
-                      <div className="flex-1 flex flex-col">
+                      {/* Left: circular ring in prod free tier, tier icon otherwise */}
+                      {(!(import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local') && dailyLimit > 0) ? (
+                        <div className="relative w-9 h-9 flex-shrink-0">
+                          <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
+                            <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
+                            <circle
+                              cx="18" cy="18" r="15"
+                              fill="none"
+                              stroke={Math.min(100, (dailyUsed / dailyLimit) * 100) > 80 ? '#ef4444' : Math.min(100, (dailyUsed / dailyLimit) * 100) > 50 ? '#eab308' : '#a855f7'}
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              strokeDasharray={`${2 * Math.PI * 15}`}
+                              strokeDashoffset={`${2 * Math.PI * 15 * (1 - Math.min(1, dailyUsed / dailyLimit))}`}
+                              style={{ transition: 'stroke-dashoffset 0.7s ease' }}
+                            />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
+                          {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
+                        </div>
+                      )}
+                      <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-sm font-semibold capitalize">{tier} Plan</span>
-                        {!isPaid && <span className="text-lg text-white/50">Free tier</span>}
+                        {import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local' ? (
+                          <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
+                        ) : dailyLimit === -1 ? (
+                          <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-bold text-white/90 tabular-nums">{dailyUsed}</span>
+                            <span className="text-xs text-white/30">/</span>
+                            <span className="text-sm font-bold text-white/40 tabular-nums">{dailyLimit}</span>
+                            <span className="text-[10px] text-white/30 ml-0.5">daily</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     {isExpiringSoon && (
@@ -802,6 +798,23 @@ function Chat() {
         onClose={() => setSelectedSkillId(null)}
         onSubmit={handleSkillSubmit}
         isLoading={skillInvocation.state.isLoading}
+      />
+
+      <ChatTutorialModal
+        isOpen={showTutorialModal}
+        onClose={() => {
+          setShowTutorialModal(false)
+          localStorage.setItem('nuxbee_chat_tutorial_seen', 'true')
+        }}
+      />
+
+      <ChatUserModal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        currentPhoto={userPhoto}
+        onPhotoChange={(url) => setUserPhoto(url)}
+        isWalletSigned={isWalletSigned}
+        onDisconnectContext={() => setWalletAuth(null)}
       />
     </div>
   )

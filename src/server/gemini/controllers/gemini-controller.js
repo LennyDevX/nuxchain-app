@@ -517,7 +517,7 @@ export async function generateContent(req, res, next = null) {
   chatLogger.reset();
   
   try {
-    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress, walletAuth, activeSkills } = req.body;
+    const { prompt, model, messages, temperature, maxTokens, stream, image, walletAddress, walletAuth, activeSkills, attachments } = req.body;
     
     // ── WALLET AUTH + GRAPH CONTEXT ──────────────────────────────────────────
     // Verify EIP-191 signature and fetch on-chain data from The Graph
@@ -637,6 +637,34 @@ export async function generateContent(req, res, next = null) {
     } else {
       // ✅ Para prompts simples, enviar sin modificar
       contents = prompt;
+    }
+
+    // Handle attachments with data URLs (local dev image upload mock)
+    // attachments = [{ id, url: "data:image/webp;base64,...", name, size, type, uploadedAt }]
+    const imageParts = [];
+    if (Array.isArray(attachments) && attachments.length > 0) {
+      for (const att of attachments.slice(0, 3)) {
+        if (att.url && att.url.startsWith('data:')) {
+          const match = att.url.match(/^data:(image\/[\w+]+);base64,(.+)$/);
+          if (match) {
+            imageParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+            console.log(`[LOCAL] 🖼️ Image attachment loaded: ${att.name} (data URL, ~${Math.round((match[2].length * 3) / 4 / 1024)} KB)`);
+          }
+        }
+      }
+    }
+
+    // Merge image parts into the last user message when present
+    if (imageParts.length > 0) {
+      if (typeof contents === 'string') {
+        contents = [{ role: 'user', parts: [{ text: contents }, ...imageParts] }];
+      } else if (Array.isArray(contents) && contents.length > 0) {
+        const last = contents[contents.length - 1];
+        if (last && last.parts) {
+          last.parts = [...(last.parts || []), ...imageParts];
+        }
+      }
+      console.log(`[LOCAL] 🖼️ ${imageParts.length} image(s) injected into Gemini request`);
     }
 
     // Parámetros adaptativos basados en el tipo de contenido
@@ -867,7 +895,8 @@ Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
         // Obtener stream nativo de Gemini - pasar flag para saltar KB si es blockchain (pero no para hybrid)
         const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { 
           skipKnowledgeBase: isBlockchainQuery && !isHybridQuery,
-          tools: configTools 
+          tools: configTools,
+          imageCount: imageParts.length
         });
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini

@@ -30,6 +30,8 @@ export interface SubscriptionState {
   daysRemaining: number;
   isExpiringSoon: boolean; // < 3 days
   dailyLimit: number;      // -1 = unlimited
+  dailyUsed: number;
+  trackUsage: () => void;
   loading: boolean;
   error: string | null;
   /** Whether wallet has Pro or Premium */
@@ -47,6 +49,8 @@ const defaultState: SubscriptionState = {
   daysRemaining: 0,
   isExpiringSoon: false,
   dailyLimit: FREE_DAILY_LIMIT,
+  dailyUsed: 0,
+  trackUsage: () => {},
   loading: false,
   error: null,
   isPaid: false,
@@ -134,8 +138,26 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     if (wallet) await fetchStatus(wallet);
   }, [publicKey, fetchStatus]);
 
+  const [dailyUsed, setDailyUsed] = useState(() => {
+    if (import.meta.env.DEV) return 0;
+    try {
+      const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
+      return parseInt(localStorage.getItem(key) || '0', 10);
+    } catch { return 0; }
+  });
+
+  const trackUsage = useCallback(() => {
+    if (import.meta.env.DEV) return;
+    try {
+      const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
+      const next = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+      localStorage.setItem(key, String(next));
+      setDailyUsed(next);
+    } catch { /* non-critical */ }
+  }, []);
+
   return (
-    <SubscriptionContext.Provider value={{ ...state, refresh }}>
+    <SubscriptionContext.Provider value={{ ...state, refresh, dailyUsed, trackUsage }}>
       {children}
     </SubscriptionContext.Provider>
   );

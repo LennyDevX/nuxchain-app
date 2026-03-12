@@ -76,7 +76,7 @@ export const MAINTENANCE_CONFIG: {
   },
   staking: {
     // Staking - MAINTENANCE DISABLED
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days (5 * 24 * 60)
     message: 'We are upgrading the Staking system with enhanced features and improved rewards. The staking platform will be available in 5 days with better performance and new staking options.',
     startTime: getOrInitializeStartTime('staking', STAKING_START_TIME),
@@ -136,7 +136,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('burntoken', BURNTOKEN_START_TIME),
   },
   chat: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 1440, // 24 hours
     message: 'We are upgrading Nuxbee AI with enhanced features, better performance, and improved conversation history management. This upgrade will enable cloud-based conversation persistence and faster AI responses.',
     startTime: getOrInitializeStartTime('chat', new Date().toISOString()),

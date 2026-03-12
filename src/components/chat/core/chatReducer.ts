@@ -14,6 +14,7 @@ export interface ChatMessage {
   isStreaming?: boolean;
   error?: string;
   skillResult?: SkillResult;
+  attachments?: Array<{ id: string; url: string; name: string; size: number; type: string; uploadedAt: string; metadata?: { width?: number; height?: number } }>;
 }
 
 export interface UrlProcessing {

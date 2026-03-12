@@ -86,18 +86,27 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
     functions.push('get_pol_price');
   }
   
-  // Detectar queries de staking
-  if (text.includes('staking') || text.includes('stake') || text.includes('stakear') || 
-      text.includes('stakeado') || text.includes('apr') || text.includes('apy')) {
-    functions.push('get_staking_info');
+  // ─── Staking queries ─────────────────────────────────────────────────────
+  const mentionsStakingKeyword = text.includes('staking') || text.includes('stake') ||
+    text.includes('stakear') || text.includes('stakeado') ||
+    text.includes('apr') || text.includes('apy');
 
-    // Si el usuario pide optimizar o pide datos propios (mis depósitos/rewards), traer posición on-chain
-    const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera)\b/i.test(text);
-    const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar)\b/i.test(text);
-    const mentionsRewardsOrDeposits = /(reward|recompens|ganancia|pendiente|acumulad|deposit|dep[oó]sit|bloquead|locked|unlock|retirable|withdraw)\b/i.test(text);
+  const mentionsRewardsOrDeposits = /(reward|recompens|ganancia|pendiente|acumulad|deposit|dep[oó]sit|bloquead|locked|unlock|retirable|withdraw)\b/i.test(text);
+  const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera|he|cuántas?|cuantas?)\b/i.test(text);
+  const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar)\b/i.test(text);
+
+  if (mentionsStakingKeyword) {
+    functions.push('get_staking_info');
     if (isUserIntent || isOptimizationIntent || mentionsRewardsOrDeposits) {
       functions.push('get_user_staking_position');
     }
+  }
+
+  // ─── Personal rewards queries (WITHOUT "staking" keyword) ────────────────
+  // e.g. "y mis recompensas?", "cuántas recompensas he acumulado?", "mis ganancias pendientes"
+  if (!mentionsStakingKeyword && mentionsRewardsOrDeposits && isUserIntent) {
+    if (!functions.includes('get_staking_info')) functions.push('get_staking_info');
+    if (!functions.includes('get_user_staking_position')) functions.push('get_user_staking_position');
   }
   
   // Detectar queries de NFT listings (marketplace global)
@@ -138,8 +147,12 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
     functions.push('get_user_staking_position');
   }
 
-  // Detectar queries de reward estimation
-  if ((text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
+  // Detectar queries de reward estimation (potential future earnings)
+  // Note: only trigger if the message is clearly about estimating/calculating,
+  // not when asking about already-accrued personal rewards (handled above)
+  const isEstimationQuery = /(cuánto ganaría|cuanto ganaría|cuanto ganaría|potencial|estimat|calcul|si stake|si deposito|si pongo)/i.test(text);
+  if (isEstimationQuery &&
+      (text.includes('reward') || text.includes('recompensa') || text.includes('ganancia') || text.includes('ganar')) &&
       (text.includes('staking') || text.includes('stake') || text.includes('pol') || text.includes('matic'))) {
     functions.push('estimate_staking_reward');
   }
@@ -350,26 +363,31 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       }
     }
 
-    // Daily limit for free tier: 10 requests/day per wallet (or IP)
+    // Daily limit for free tier: 20 requests/day per wallet (or IP)
+    // Read-first pattern: check current count before incrementing so failed/invalid
+    // requests don't burn a slot against the user's quota.
     if (subscriptionTier === 'free') {
       const identifier = walletAddress.length >= 32 ? walletAddress : clientIp;
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const dailyKey = `chatdaily:${identifier}:${today}`;
       try {
-        const count = await kv.incr(dailyKey);
-        if (count === 1) await kv.expire(dailyKey, 86400); // 24h TTL
-        if (count > FREE_DAILY_LIMIT) {
+        // Peek current usage without charging yet
+        const current = (await kv.get<number>(dailyKey)) ?? 0;
+        if (current >= FREE_DAILY_LIMIT) {
           metrics.errors++;
           res.status(429).json({
             error: 'DAILY_LIMIT_REACHED',
             message: `Free tier: ${FREE_DAILY_LIMIT} messages/day. Upgrade to Pro or Premium for unlimited access.`,
             dailyLimit: FREE_DAILY_LIMIT,
-            used: count,
+            used: current,
             upgradeUrl: '/upgrade',
             resetAt: `${today}T23:59:59Z`,
           });
           return;
         }
+        // Charge slot only now that we know the request will be served
+        const count = await kv.incr(dailyKey);
+        if (count === 1) await kv.expire(dailyKey, 86400); // 24h TTL
         console.log(`📊 Free daily usage: ${count}/${FREE_DAILY_LIMIT} for ${identifier}`);
       } catch (rlErr) {
         console.warn('[chat/stream] Daily limit KV error, failing open', rlErr);
@@ -897,7 +915,9 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       console.log(`🖼️ Processing ${attachments.length} image attachment(s)...`);
       for (const att of attachments.slice(0, 3)) {
         try {
-          const imgRes = await fetch(att.url);
+          const imgRes = await fetch(att.url, {
+            headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+          });
           if (!imgRes.ok) { console.warn(`⚠️ Could not fetch image ${att.url}: ${imgRes.status}`); continue; }
           const imgBuf = await imgRes.arrayBuffer();
           const base64 = Buffer.from(imgBuf).toString('base64');

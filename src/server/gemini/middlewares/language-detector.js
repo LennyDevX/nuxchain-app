@@ -10,8 +10,12 @@ const SPANISH_PATTERNS = {
   // Diacritics and special characters
   diacritics: /[áéíóúñü¿¡]/i,
   
+  // Interjections and unaccented terms
+  unaccentedWords: /\b(que|cual|como|donde|cuando|cuanto|quien)\b/gi,
+  interjections: /\b(hola|bueno|vale|pues|claro|oye|mira|anda)\b/gi,
+
   // Common Spanish words (high frequency)
-  commonWords: /\b(qué|cuál|cómo|dónde|cuándo|cuánto|por qué|el|la|los|las|de|del|un|una|es|está|son|están|para|con|sin|sobre|entre|según|desde|hasta|también|muy|más|menos|así|sí|no|yo|tú|él|ella|nosotros|ustedes|ellos|si|pero|aunque|porque|cuando|donde|mientras|después|antes|siempre|nunca|ahora|aquí|allí)\b/gi,
+  commonWords: /\b(qué|cuál|cómo|dónde|cuándo|cuánto|por qué|el|la|los|las|de|del|un|una|es|está|son|están|para|con|sin|sobre|entre|según|desde|hasta|también|muy|más|menos|así|sí|no|yo|tú|él|ella|nosotros|ustedes|ellos|si|pero|aunque|porque|cuando|donde|mientras|después|antes|siempre|nunca|ahora|aquí|allí|q|pq|xq)\b/gi,
   
   // Spanish verbs (present tense)
   verbs: /\b(tengo|tienes|tiene|hacen|hace|puedo|puede|quiero|quiere|voy|va|soy|eres|somos|están|estoy|estás|digo|dice|veo|ves|vemos|entiendo|entiendes|necesito|necesitas)\b/gi,
@@ -65,6 +69,8 @@ function analyzePatterns(text, patterns) {
   
   const weights = {
     diacritics: 3,      // Very strong indicator for Spanish
+    interjections: 2.5,
+    unaccentedWords: 2.0,
     commonWords: 2,     // Strong indicator
     verbs: 1.5,         // Moderate indicator
     questionWords: 1.5, // Moderate indicator
@@ -104,8 +110,15 @@ function countKeywords(text, pattern) {
  * @returns {Object} - { spanish: score, english: score }
  */
 function probabilisticDetection(text) {
-  if (!text || typeof text !== 'string' || text.length < 10) {
+  if (!text || typeof text !== 'string') {
     return { spanish: 0.5, english: 0.5 }; // Neutral for very short text
+  }
+
+  // Handle very short texts by injecting language hints
+  if (text.length < 10) {
+    if (/\b(hola|que|q|tal|bien)\b/i.test(text)) return { spanish: 0.8, english: 0.2 };
+    if (/\b(hi|hey|how|what)\b/i.test(text)) return { spanish: 0.2, english: 0.8 };
+    return { spanish: 0.5, english: 0.5 };
   }
   
   // Character frequency analysis
@@ -204,10 +217,11 @@ function detectLanguage(text) {
   const isSpanish = normalizedSpanish > normalizedEnglish;
   const confidence = Math.abs(normalizedSpanish - normalizedEnglish);
   
-  // Require at least 15% difference for non-neutral detection
-  const threshold = 0.15;
-  const detectedLanguage = confidence < threshold ? 'en' : (isSpanish ? 'es' : 'en');
+  // If Spanish has a higher score, we default to Spanish regardless of confidence difference
+  const detectedLanguage = isSpanish ? 'es' : 'en';
   
+  const threshold = 0.05; // Fallback threshold used for reporting confidence
+
   return {
     language: detectedLanguage,
     confidence: confidence < threshold ? 0.5 : (isSpanish ? normalizedSpanish : normalizedEnglish),

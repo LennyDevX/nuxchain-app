@@ -64,13 +64,13 @@ export default function InputTextArea({
           maxLength={maxLength}
           className={`w-full bg-transparent border-none text-white placeholder-white/30 focus:outline-none focus:ring-0 resize-none py-3 jersey-20-regular transition-all ${
             isMobile 
-              ? 'min-h-[44px] max-h-[100px] text-base px-0' 
-              : 'min-h-[48px] max-h-[120px] text-lg px-0'
+              ? 'min-h-[48px] max-h-[120px] text-[18px] px-0' 
+              : 'min-h-[52px] max-h-[150px] text-xl px-0'
           } ${
             isMobile ? 'leading-snug' : 'leading-relaxed'
           } disabled:cursor-not-allowed`}
           style={{
-            fontSize: getOptimizedFontSize(isMobile ? 16 : 18, isMobile) + 'px',
+            fontSize: getOptimizedFontSize(isMobile ? 18 : 20, isMobile) + 'px',
           }}
           rows={1}
         />

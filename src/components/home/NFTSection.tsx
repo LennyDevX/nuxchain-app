@@ -33,7 +33,7 @@ function NFTSection() {
         <h2 className={`jersey-15-regular text-white mt-2 mb-4 ${isMobile ? 'text-4xl' : 'text-5xl lg:text-7xl'}`}>
           Unique <span className="text-gradient">NFTs</span>
         </h2>
-        <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+        <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-xl'}`}>
           Collect exclusive Nux-Pass NFTs — each with real utility, staking bonuses, and marketplace integration.
           Premium NFTs that empower you inside and outside the ecosystem.
         </p>

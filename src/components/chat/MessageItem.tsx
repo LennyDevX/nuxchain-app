@@ -150,13 +150,13 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                   className="rounded-full"
                 >
                   <AnimatedAILogo 
-                    size={isMobile ? "small" : "small"} 
+                    size={isMobile ? "tiny" : "small"} 
                     className="flex-shrink-0" 
                   />
                 </motion.div>
               ) : (
                 <AnimatedAILogo 
-                  size={isMobile ? "small" : "small"} 
+                  size={isMobile ? "tiny" : "small"} 
                   className="flex-shrink-0" 
                 />
               )}

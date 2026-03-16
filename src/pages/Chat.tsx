@@ -289,7 +289,7 @@ function Chat() {
   }, [handleSendMessage])
 
   return (
-    <div className="fixed inset-0 md:top-20 flex flex-col overflow-hidden text-white font-sans z-40 pb-[70px] md:pb-0 jersey-20-regular" style={{ background: 'transparent' }}>
+    <div className="fixed inset-0 md:top-20 flex flex-col overflow-hidden text-white font-sans z-40 md:pb-0 jersey-20-regular" style={{ background: 'transparent' }}>
       {/* Animated network background — only visible on welcome screen */}
       <AnimatePresence>
         {showWelcome && (

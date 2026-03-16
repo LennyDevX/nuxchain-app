@@ -440,7 +440,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     // Lazy import de servicios para evitar FUNCTION_INVOCATION_FAILED
     console.log('📦 Loading services...');
     let needsKnowledgeBase, updateConversationContext, getRelevantContext;
-    let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
+    let buildSystemInstructionWithContext, formatResponseForMarkdown;
     let detectLanguage;
     
     try {
@@ -449,7 +449,6 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         import('../_services/embeddings-service.js').catch(e => { console.error('Error loading embeddings-service:', e.message); throw e; }),
         import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
         import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
-        import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; }),
         import('../_services/language-detector.js').catch(e => { console.error('Error loading language-detector:', e.message); throw e; })
       ]);
       
@@ -458,8 +457,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       getRelevantContext = modules[1].getRelevantContext;
       buildSystemInstructionWithContext = modules[2].buildSystemInstructionWithContext;
       formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
-      semanticStreamingService = modules[4].default;
-      detectLanguage = modules[5].detectLanguage;
+      detectLanguage = modules[4].detectLanguage;
       
       console.log('✅ All services loaded successfully');
     } catch (importError) {
@@ -925,22 +923,28 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       }
     }, 25000); // 25s para serverless (Vercel límite: 30s)
     
+    // Set streaming headers so the client receives chunks as they arrive
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('X-Accel-Buffering', 'no'); // disable Vercel/nginx response buffering
     res.status(200);
     
     let chunks = 0;
     let totalChars = 0;
     let fullResponse = '';
     
-    // Recolectar respuesta completa del stream
-    console.log('📥 Collecting response from Gemini...');
+    // Stream Gemini chunks directly to the client as they arrive (true streaming)
+    console.log('📥 Streaming response from Gemini...');
     let urlContextMetadata = null;
     
     for await (const chunk of streamResponse) {
       const chunkText = chunk.text || chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (!chunkText) {
-        console.warn('\u26a0\ufe0f Empty chunk received, skipping...');
         continue;
       }
+      
+      // Write each chunk immediately — client sees words as Gemini generates them
+      res.write(chunkText);
       
       fullResponse += chunkText;
       totalChars += chunkText.length;
@@ -951,6 +955,9 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         urlContextMetadata = chunk.candidates[0].urlContextMetadata;
       }
     }
+    
+    res.end();
+    clearTimeout(timeoutId);
     
     console.log(`\u2705 Collected ${chunks} chunks (${totalChars} chars) from Gemini`);
     
@@ -976,30 +983,12 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     
     console.log(`📊 Token estimate: ~${estimatedInputTokens} input, ~${estimatedOutputTokens} output`);
     
-    // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
-    // This guarantees that both local dev and production responses have proper markdown structure
+    // ✅ APPLY MARKDOWN FORMATTING for logging metrics only (response already sent)
     const formattedResponse = formatResponseForMarkdown(fullResponse);
     
     if (formattedResponse !== fullResponse) {
-      console.log(`📝 Markdown formatting applied: ${fullResponse.length} → ${formattedResponse.length} chars`);
+      console.log(`📝 Markdown formatting applied (post-stream): ${fullResponse.length} → ${formattedResponse.length} chars`);
     }
-    
-    // Streaming semántico: procesar la respuesta completa
-    console.log('🎯 Starting semantic streaming...');
-    
-    const streamConfig: StreamConfig = {
-      enableSemanticChunking: true,
-      enableContextualPauses: true,
-      enableVariableSpeed: true,
-      clientInfo: {
-        ip: clientIp,
-        userAgent: headers['user-agent'] as string | undefined
-      }
-    };
-    
-    await semanticStreamingService.streamSemanticContent(res, formattedResponse, streamConfig);
-    
-    clearTimeout(timeoutId);
     
     const duration = Date.now() - startTime;
     metrics.success++;

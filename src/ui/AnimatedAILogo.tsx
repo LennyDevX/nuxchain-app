@@ -5,7 +5,7 @@ import { useIsMobile } from '../hooks/mobile/useIsMobile';
 import '../styles/AnimatedAILogo.css';
 
 interface AIAgentSphereProps {
-  size?: 'small' | 'medium' | 'large' | 'xlarge';
+  size?: 'tiny' | 'small' | 'medium' | 'large' | 'xlarge';
   className?: string;
   onClick?: () => void;
 }
@@ -69,6 +69,7 @@ const AIAgentSphere: React.FC<AIAgentSphereProps> = ({
   const particles = isMobile ? mobileParticles : desktopParticles;
 
   const sizeClasses = {
+    tiny: 'w-8 h-8',
     small: 'w-16 h-16',
     medium: 'w-32 h-32',
     large: 'w-48 h-48',

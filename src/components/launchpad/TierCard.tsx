@@ -14,6 +14,7 @@ function fmtNux(n: number): string {
 interface TierCardProps {
   tierId: TierId;
   stats?: { nuxSold: number; solRaised: number; participants: number };
+  allStats?: { tier1?: { nuxSold: number } | null; tier2?: { nuxSold: number } | null } | null;
   onBuy?: () => void;
   isActiveTier: boolean;
 }
@@ -48,9 +49,9 @@ const COLOR_MAP = {
   },
 };
 
-export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCardProps) {
+export default function TierCard({ tierId, stats, allStats, onBuy, isActiveTier }: TierCardProps) {
   const tier = LAUNCHPAD_CONFIG.tiers[tierId];
-  const status = getTierStatus(tierId);
+  const status = getTierStatus(tierId, allStats);
   const colors = COLOR_MAP[tier.color as keyof typeof COLOR_MAP];
   const isLP = tierId === 3;
   const progress = tier.cap && stats ? Math.min((stats.nuxSold / tier.cap) * 100, 100) : 0;
@@ -153,7 +154,7 @@ export default function TierCard({ tierId, stats, onBuy, isActiveTier }: TierCar
         <div className="bg-black/20 rounded-lg p-2 border border-white/5 col-span-2">
           <p className="jersey-20-regular text-slate-500 text-xl">Unlocks when</p>
           <p className="jersey-15-regular text-white text-lg leading-snug">
-            {tierId === 1 ? '🎯 Whitelist quota filled' : tierId === 2 ? '🎯 Whitelist complete + presale open' : '🎯 SOL raised to seed LP pool'}
+            {tierId === 1 ? '🎯 80% of whitelist allocation sold (9.6M NUX)' : tierId === 2 ? '🎯 Tier 1 complete · 80% of presale cap sold (10.4M NUX)' : '🎯 Both presale phases complete'}
           </p>
         </div>
       </div>

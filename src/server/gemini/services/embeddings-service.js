@@ -657,7 +657,7 @@ async function precomputeWithSmartBatching(knowledgeBase) {
   // ✅ STRATEGY: Batch 40-50 docs per API call (not individual requests)
   // This respects the batch quota much better than individual calls
   const BATCH_SIZE = 50; // Embed 50 docs per single API call
-  const BATCH_DELAY_BASE = 2000; // 2 seconds between batches (safe margin)
+  const BATCH_DELAY_BASE = 5000; // 5 seconds between batches (safe margin for rate limits)
   const totalBatches = Math.ceil(knowledgeBase.length / BATCH_SIZE);
   
   console.log(`📦 Pre-computing with batch strategy: ${totalBatches} batches of ${BATCH_SIZE} docs`);
@@ -686,9 +686,15 @@ async function precomputeWithSmartBatching(knowledgeBase) {
       continue;
     }
     
-    // Process entire batch with single API call
-    const embeddings = await batchEmbedMultipleTexts(batchTexts);
-    
+    // Process entire batch with single API call — retry once on failure
+    let embeddings = await batchEmbedMultipleTexts(batchTexts);
+
+    // Single retry with longer delay on first failure
+    if (!embeddings || embeddings.length !== batchTexts.length) {
+      await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_BASE * 2));
+      embeddings = await batchEmbedMultipleTexts(batchTexts);
+    }
+
     if (embeddings && embeddings.length === batchTexts.length) {
       // Success: cache all embeddings from this batch
       let batchPrecomputed = 0;
@@ -710,10 +716,10 @@ async function precomputeWithSmartBatching(knowledgeBase) {
       precomputed += batchPrecomputed;
       embeddingCallCount++; // Count as one API call
       
-      // Adaptive delay: if rate limit approaching, increase delay
-      let delayMs = 3000;
-      if (embeddingCallCount > 40) delayMs = 4000;
-      if (embeddingCallCount > 45) delayMs = 5000;
+      // Adaptive delay using BATCH_DELAY_BASE
+      let delayMs = BATCH_DELAY_BASE;
+      if (embeddingCallCount > 3) delayMs = BATCH_DELAY_BASE + 2000;
+      if (embeddingCallCount > 4) delayMs = BATCH_DELAY_BASE + 4000;
       
       /* Log progress silenced for cleaner terminal
       if (batchNum % 5 === 0 || batchNum === totalBatches) {
@@ -733,8 +739,8 @@ async function precomputeWithSmartBatching(knowledgeBase) {
         console.log(`  Progress: ${percentage}% | ✅ ${precomputed} | ⏭️ ${skipped} | ❌ ${failed} (batch failed)`);
       }
       
-      // Longer delay after failure
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Longer delay after failure (already retried above)
+      await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_BASE * 2));
     }
   }
   

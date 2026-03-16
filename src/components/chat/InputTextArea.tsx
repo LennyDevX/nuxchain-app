@@ -23,12 +23,21 @@ export default function InputTextArea({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
 
+  // Debounce ref to batch rapid resize measurements and avoid read-after-write layout thrash
+  const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = 'auto'
-      const maxHeight = isMobile ? 100 : 120
-      textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px'
+    if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current)
+    resizeTimerRef.current = setTimeout(() => {
+      const textarea = textareaRef.current
+      if (textarea) {
+        textarea.style.height = 'auto'
+        const maxHeight = isMobile ? 100 : 120
+        textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + 'px'
+      }
+    }, 0)
+    return () => {
+      if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current)
     }
   }, [value, isMobile])
 

@@ -6,6 +6,7 @@
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
 import airdropRoutes from './airdrop/_routes.js';
+import priceRoutes from './price/_routes.js';
 
 const app: Express = express();
 
@@ -38,6 +39,9 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Airdrop registration routes
 app.use('/api/airdrop', airdropRoutes);
+
+// Price routes
+app.use('/api/price', priceRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

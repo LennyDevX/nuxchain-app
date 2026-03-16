@@ -125,6 +125,76 @@ const ADDITIONAL_TOKENS: TokenPrice[] = [
     volume24h: 123000000,
     color: '#28A0F0',
     source: 'coingecko'
+  },
+  {
+    id: 'dogecoin',
+    symbol: 'DOGE',
+    name: 'Dogecoin',
+    price: 0.38,
+    change24h: 12.45,
+    volume24h: 2100000000,
+    color: '#C29D4C',
+    source: 'coingecko'
+  },
+  {
+    id: 'litecoin',
+    symbol: 'LTC',
+    name: 'Litecoin',
+    price: 185.50,
+    change24h: -2.15,
+    volume24h: 1200000000,
+    color: '#345D9D',
+    source: 'coingecko'
+  },
+  {
+    id: 'uniswap',
+    symbol: 'UNI',
+    name: 'Uniswap',
+    price: 8.92,
+    change24h: 6.78,
+    volume24h: 567000000,
+    color: '#FF007A',
+    source: 'uniswap'
+  },
+  {
+    id: 'aave',
+    symbol: 'AAVE',
+    name: 'Aave',
+    price: 432.10,
+    change24h: 3.45,
+    volume24h: 890000000,
+    color: '#D3AEE8',
+    source: 'coingecko'
+  },
+  {
+    id: 'tether',
+    symbol: 'USDT',
+    name: 'Tether',
+    price: 0.9998,
+    change24h: 0.02,
+    volume24h: 78900000000,
+    color: '#26A17B',
+    source: 'coingecko'
+  },
+  {
+    id: 'maker',
+    symbol: 'MKR',
+    name: 'Maker',
+    price: 2890.50,
+    change24h: 5.12,
+    volume24h: 234000000,
+    color: '#1AAB9B',
+    source: 'coingecko'
+  },
+  {
+    id: 'optimism',
+    symbol: 'OP',
+    name: 'Optimism',
+    price: 2.45,
+    change24h: 7.89,
+    volume24h: 345000000,
+    color: '#FF0420',
+    source: 'coingecko'
   }
 ];
 
@@ -292,7 +362,7 @@ const UniswapPriceFeed: React.FC = () => {
           <UniswapLogo className="w-8 h-8" />
           <div>
             <h3 className={`font-bold text-white jersey-15-regular ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
-              Live Price Feed
+              Real-Time Token Prices
             </h3>
             <p className="text-xs text-slate-500 jersey-20-regular">
               Powered by{' '}

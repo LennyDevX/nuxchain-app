@@ -23,7 +23,7 @@ export const LAUNCHPAD_CONFIG = {
       maxBuy: 200_000,          // NUX per wallet - limitado para evitar whales
       cap: 12_000_000,          // Total NUX available (12% of supply) - INCREASED
       start: new Date('2026-03-02T00:00:00Z'),
-      end: new Date('2026-03-14T23:59:59Z'),
+      end: null,                  // No date-based close — ends at 80% cap
       requiresWhitelist: true,
       color: 'emerald',
       description: 'Exclusive access for Airdrop participants',
@@ -38,7 +38,7 @@ export const LAUNCHPAD_CONFIG = {
       maxBuy: 500_000,          // NUX per wallet - más permisivo por pool más grande
       cap: 13_000_000,          // Total NUX available (13% of supply) - INCREASED
       start: new Date('2026-03-15T00:00:00Z'),
-      end: new Date('2026-03-22T23:59:59Z'),
+      end: null,                  // No date-based close — ends at 80% cap
       requiresWhitelist: false,
       color: 'blue',
       description: 'Open to all participants',
@@ -63,30 +63,48 @@ export const LAUNCHPAD_CONFIG = {
 
 export type TierId = 1 | 2 | 3;
 
-/**
- * Returns the currently active tier based on today's date.
- * Returns null if no tier is active (e.g. between phases or before launch).
- */
-export function getActiveTier(): TierId | null {
-  const now = new Date();
-  const { tiers } = LAUNCHPAD_CONFIG;
+/** Minimum fraction of cap sold for a phase to be considered successful and advance. */
+export const PHASE_SUCCESS_THRESHOLD = 0.80;
 
-  if (now >= tiers[1].start && now <= tiers[1].end) return 1;
-  if (now >= tiers[2].start && now <= tiers[2].end) return 2;
-  if (now >= tiers[3].start) return 3;
-  return null;
+type StatsArg =
+  | { tier1?: { nuxSold: number } | null; tier2?: { nuxSold: number } | null }
+  | null
+  | undefined;
+
+/** Returns true once a tier has sold ≥80% of its allocation. */
+export function isTierComplete(tierId: 1 | 2, stats?: StatsArg): boolean {
+  if (!stats) return false;
+  const tierStats = tierId === 1 ? stats.tier1 : stats.tier2;
+  const cap = LAUNCHPAD_CONFIG.tiers[tierId].cap;
+  if (!cap || !tierStats) return false;
+  return tierStats.nuxSold / cap >= PHASE_SUCCESS_THRESHOLD;
 }
 
 /**
- * Returns the phase status label for a tier card.
+ * Returns the currently active tier based on objective progress (80% threshold).
+ * Tier 1 is live first; each subsequent tier unlocks once the previous hits 80% of cap.
  */
-export function getTierStatus(tierId: TierId): 'upcoming' | 'live' | 'ended' {
-  const now = new Date();
-  const tier = LAUNCHPAD_CONFIG.tiers[tierId];
+export function getActiveTier(stats?: StatsArg): TierId | null {
+  if (!isTierComplete(1, stats)) return 1;
+  if (!isTierComplete(2, stats)) return 2;
+  return 3;
+}
 
-  if (now < tier.start) return 'upcoming';
-  if (tier.end && now > tier.end) return 'ended';
-  return 'live';
+/**
+ * Returns the phase status for a tier card based on objective progress.
+ * Phases never close on a date — only when 80% of their cap is sold.
+ */
+export function getTierStatus(tierId: TierId, stats?: StatsArg): 'upcoming' | 'live' | 'ended' {
+  const t1Done = isTierComplete(1, stats);
+  const t2Done = isTierComplete(2, stats);
+
+  if (tierId === 1) return t1Done ? 'ended' : 'live';
+  if (tierId === 2) {
+    if (!t1Done) return 'upcoming';
+    return t2Done ? 'ended' : 'live';
+  }
+  // Tier 3 (LP / TGE): opens once both presale phases are complete
+  return t1Done && t2Done ? 'live' : 'upcoming';
 }
 
 /**

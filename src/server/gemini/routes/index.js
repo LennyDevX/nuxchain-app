@@ -87,6 +87,25 @@ router.use('/airdrop', airdropRoutes);
 // 🧠 AI Skills routes (all 9 skill endpoints, no tier gating in local dev)
 router.use('/skills', skillsRoutes);
 
+// 🌐 PUBLIC: Price proxy - no auth required
+router.get('/price/solana', async (_, res) => {
+  try {
+    const response = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+      {
+        headers: { Accept: 'application/json', 'User-Agent': 'NuxChain-Backend/1.0' },
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+    if (!response.ok) throw new Error(`CoinGecko ${response.status}`);
+    const data = await response.json();
+    return res.json({ success: true, solana: { usd: data.solana.usd }, source: 'coingecko', timestamp: Date.now() });
+  } catch (err) {
+    // Fallback value so the UI still shows a reasonable price
+    return res.json({ success: true, solana: { usd: 90 }, source: 'fallback', timestamp: Date.now() });
+  }
+});
+
 // Remove inline error handler and use shared one
 router.use(errorHandler);
 

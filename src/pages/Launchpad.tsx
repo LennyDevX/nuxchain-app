@@ -17,7 +17,7 @@ export default function Launchpad() {
   const isMobile = useIsMobile();
   const [stats, setStats] = useState<RawStats | null>(null);
   const [buyTier, setBuyTier] = useState<TierId | null>(null);
-  const activeTier = getActiveTier();
+  const activeTier = getActiveTier(stats);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -126,6 +126,7 @@ export default function Launchpad() {
               <TierCard
                 tierId={id}
                 stats={id === 1 ? stats?.tier1 : id === 2 ? stats?.tier2 : undefined}
+                allStats={stats}
                 isActiveTier={activeTier === id}
                 onBuy={() => setBuyTier(id as TierId)}
               />

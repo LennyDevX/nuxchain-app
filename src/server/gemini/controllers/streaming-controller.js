@@ -48,29 +48,8 @@ class StreamingController {
         config: { streamingConfig, uxConfig }
       });
 
-      // Crear typing indicator inicial
-      if (uxConfig.showTypingIndicator !== false) {
-        const typingIndicator = uxEnhancementService.createTypingIndicator(sessionId, {
-          type: 'thinking',
-          animated: true,
-          showProgress: uxConfig.showProgress
-        });
-        
-        res.write(`data: ${JSON.stringify(typingIndicator)}\n\n`);
-      }
-
-      // Crear progress indicator si está habilitado
+      // Preamble indicators removed to reduce TTFB
       let progressTracker = null;
-      if (uxConfig.showProgress) {
-        progressTracker = uxEnhancementService.createProgressIndicator(sessionId, {
-          totalSteps: 100,
-          showPercentage: true,
-          showETA: true,
-          customLabels: uxConfig.progressLabels || {}
-        });
-        
-        res.write(`data: ${JSON.stringify(progressTracker)}\n\n`);
-      }
 
       // Configurar streaming semántico
       const semanticConfig = {
@@ -82,16 +61,6 @@ class StreamingController {
         speedMultiplier: streamingConfig.speedMultiplier || 1.0,
         ...streamingConfig
       };
-
-      // Actualizar typing indicator a "processing"
-      if (uxConfig.showTypingIndicator !== false) {
-        const updatedIndicator = uxEnhancementService.updateTypingIndicator(
-          sessionId, 
-          'processing',
-          { customMessage: 'Procesando solicitud...' }
-        );
-        res.write(`data: ${JSON.stringify(updatedIndicator)}\n\n`);
-      }
 
       // Obtener stream de Gemini
       let geminiStream;
@@ -144,16 +113,6 @@ class StreamingController {
         bufferSize: streamingConfig.bufferSize || 1024,
         flushInterval: streamingConfig.flushInterval || 50
       });
-
-      // Actualizar typing indicator a "streaming"
-      if (uxConfig.showTypingIndicator !== false) {
-        const streamingIndicator = uxEnhancementService.updateTypingIndicator(
-          sessionId,
-          'streaming',
-          { customMessage: 'Generando respuesta...' }
-        );
-        res.write(`data: ${JSON.stringify(streamingIndicator)}\n\n`);
-      }
 
       // Registrar stream activo
       this.activeStreams.set(sessionId, {

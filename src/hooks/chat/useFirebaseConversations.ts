@@ -5,30 +5,39 @@ import type { StoredConversation } from '../../components/chat/core/conversation
 import type { ChatMessage } from '../../components/chat/core/chatReducer';
 
 const MAX_CONVERSATIONS = 10;
+// Legacy unscoped key to clean up on load
+const LEGACY_LS_KEY = 'nuxbee_chat_conversations';
+
+/** Returns a wallet-scoped localStorage key. */
+function lsKey(wallet: string) {
+  return `nuxbee_chat_${wallet.toLowerCase()}`;
+}
 
 /**
- * Persists and retrieves chat conversation history in Firestore.
- * Documents are stored under: users/{walletAddress}/conversations/{conversationId}
+ * Persists and retrieves chat conversation history.
+ * Storage: Firestore under users/{walletAddress}/conversations/{id}
+ * Fallback: localStorage SCOPED to wallet address.
  *
- * Falls back to localStorage if no wallet is connected.
+ * SECURITY:
+ * - No wallet connected → returns empty history. Never reads/writes global keys.
+ * - Each wallet address has a fully isolated localStorage namespace.
+ * - Firestore writes are the source of truth; localStorage is offline fallback only.
  */
 export function useFirebaseConversations(walletAddress?: string) {
   const [history, setHistory] = useState<StoredConversation[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Load history (Firestore when wallet connected, else localStorage) ──
+  // ── Load history ──
   const loadHistory = useCallback(async () => {
+    // No wallet → clear history and stop. Never expose other users' data.
     if (!walletAddress) {
-      // Fallback: localStorage
-      try {
-        const stored = localStorage.getItem('nuxbee_chat_conversations');
-        setHistory(stored ? JSON.parse(stored) : []);
-      } catch {
-        setHistory([]);
-      }
+      setHistory([]);
       return;
     }
+
+    // Purge legacy unscoped key so it can't leak to disconnected sessions
+    try { localStorage.removeItem(LEGACY_LS_KEY); } catch { /* ignore */ }
 
     setIsLoadingHistory(true);
     try {
@@ -38,9 +47,9 @@ export function useFirebaseConversations(walletAddress?: string) {
       const convs: StoredConversation[] = snap.docs.map(d => d.data() as StoredConversation);
       setHistory(convs);
     } catch (err) {
-      console.warn('[useFirebaseConversations] Load failed, falling back to localStorage', err);
+      console.warn('[useFirebaseConversations] Firestore load failed, falling back to scoped localStorage', err);
       try {
-        const stored = localStorage.getItem('nuxbee_chat_conversations');
+        const stored = localStorage.getItem(lsKey(walletAddress));
         setHistory(stored ? JSON.parse(stored) : []);
       } catch {
         setHistory([]);
@@ -50,14 +59,15 @@ export function useFirebaseConversations(walletAddress?: string) {
     }
   }, [walletAddress]);
 
-  // Load on wallet change
+  // Clear history immediately when wallet disconnects, reload when it connects
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
 
   // ── Debounced save ──
   const saveConversation = useCallback((messages: ChatMessage[], conversationId: string) => {
-    if (messages.length === 0) return;
+    // Never persist without a wallet — prevents cross-session history leakage
+    if (messages.length === 0 || !walletAddress) return;
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
@@ -70,26 +80,24 @@ export function useFirebaseConversations(walletAddress?: string) {
         title: messages[0]?.text?.substring(0, 50) || 'New Chat',
       };
 
-      // Always write to localStorage as backup
+      // Write to wallet-scoped localStorage as offline backup
       try {
-        const stored = localStorage.getItem('nuxbee_chat_conversations');
+        const stored = localStorage.getItem(lsKey(walletAddress));
         let all: StoredConversation[] = stored ? JSON.parse(stored) : [];
         const idx = all.findIndex(c => c.id === conversationId);
         if (idx !== -1) all[idx] = conv;
         else all = [conv, ...all];
-        localStorage.setItem('nuxbee_chat_conversations', JSON.stringify(all.slice(0, MAX_CONVERSATIONS)));
+        localStorage.setItem(lsKey(walletAddress), JSON.stringify(all.slice(0, MAX_CONVERSATIONS)));
       } catch { /* ignore */ }
 
-      // If wallet connected, also write to Firestore
-      if (walletAddress) {
-        try {
-          const ref = doc(db, 'users', walletAddress, 'conversations', conversationId);
-          // Strip undefined fields — Firestore rejects them (isStreaming, error, etc.)
-          const cleanConv = JSON.parse(JSON.stringify(conv));
-          await setDoc(ref, cleanConv, { merge: true });
-        } catch (err) {
-          console.warn('[useFirebaseConversations] Firestore save failed', err);
-        }
+      // Write to Firestore (source of truth)
+      try {
+        const ref = doc(db, 'users', walletAddress, 'conversations', conversationId);
+        // Strip undefined fields — Firestore rejects them
+        const cleanConv = JSON.parse(JSON.stringify(conv));
+        await setDoc(ref, cleanConv, { merge: true });
+      } catch (err) {
+        console.warn('[useFirebaseConversations] Firestore save failed', err);
       }
 
       // Refresh local history state
@@ -102,25 +110,27 @@ export function useFirebaseConversations(walletAddress?: string) {
         }
         return [conv, ...prev].slice(0, MAX_CONVERSATIONS);
       });
-    }, 2000);
+    }, 1500);
   }, [walletAddress]);
 
   // ── Delete ──
   const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!walletAddress) return; // No wallet = no history to delete
+
     setHistory(prev => prev.filter(c => c.id !== conversationId));
 
+    // Remove from wallet-scoped localStorage
     try {
-      const stored = localStorage.getItem('nuxbee_chat_conversations');
+      const stored = localStorage.getItem(lsKey(walletAddress));
       const all: StoredConversation[] = stored ? JSON.parse(stored) : [];
-      localStorage.setItem('nuxbee_chat_conversations', JSON.stringify(all.filter(c => c.id !== conversationId)));
+      localStorage.setItem(lsKey(walletAddress), JSON.stringify(all.filter(c => c.id !== conversationId)));
     } catch { /* ignore */ }
 
-    if (walletAddress) {
-      try {
-        await deleteDoc(doc(db, 'users', walletAddress, 'conversations', conversationId));
-      } catch (err) {
-        console.warn('[useFirebaseConversations] Firestore delete failed', err);
-      }
+    // Remove from Firestore
+    try {
+      await deleteDoc(doc(db, 'users', walletAddress, 'conversations', conversationId));
+    } catch (err) {
+      console.warn('[useFirebaseConversations] Firestore delete failed', err);
     }
   }, [walletAddress]);
 

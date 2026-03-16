@@ -104,7 +104,9 @@ export const apiKeyAuth = (req, res, next) => {
     '/api/airdrop/validate',
     '/api/airdrop/submit',
     '/chat/upload-image',
-    '/api/chat/upload-image'
+    '/api/chat/upload-image',
+    '/api/price/solana',
+    '/price/solana'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público

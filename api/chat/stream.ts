@@ -10,6 +10,17 @@ import type {
   KnowledgeBaseContext 
 } from '../types/index.js';
 
+// Module-level Gemini client — initialized once, reused across warm invocations
+let _geminiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI {
+  if (!_geminiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+    _geminiClient = new GoogleGenAI({ apiKey });
+  }
+  return _geminiClient;
+}
+
 // Lazy imports for blockchain services
 let blockchainService: typeof import('../_services/blockchain-service.js') | null = null;
 let blockchainTools: typeof import('../_services/blockchain-tools.js') | null = null;
@@ -430,7 +441,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     console.log('📦 Loading services...');
     let needsKnowledgeBase, updateConversationContext, getRelevantContext;
     let buildSystemInstructionWithContext, formatResponseForMarkdown, semanticStreamingService;
-    let tokenCountingService, detectLanguage;
+    let detectLanguage;
     
     try {
       const modules = await Promise.all([
@@ -439,7 +450,6 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         import('../_config/system-instruction.js').catch(e => { console.error('Error loading system-instruction:', e.message); throw e; }),
         import('../_services/markdown-formatter.js').catch(e => { console.error('Error loading markdown-formatter:', e.message); throw e; }),
         import('../_services/semantic-streaming-service.js').catch(e => { console.error('Error loading semantic-streaming:', e.message); throw e; }),
-        import('../_services/token-counting-service.js').catch(e => { console.error('Error loading token-counting:', e.message); throw e; }),
         import('../_services/language-detector.js').catch(e => { console.error('Error loading language-detector:', e.message); throw e; })
       ]);
       
@@ -449,8 +459,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       buildSystemInstructionWithContext = modules[2].buildSystemInstructionWithContext;
       formatResponseForMarkdown = modules[3].formatResponseForMarkdown;
       semanticStreamingService = modules[4].default;
-      tokenCountingService = modules[5].default;
-      detectLanguage = modules[6].detectLanguage;
+      detectLanguage = modules[5].detectLanguage;
       
       console.log('✅ All services loaded successfully');
     } catch (importError) {
@@ -500,36 +509,15 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       console.log(`⏭️ Skipping KB - Reason: ${classificationResult.reason || 'unknown'}`);
     }
     
-    // Truncar contexto para evitar límites de tokens
-    // 🆕 Use Token Counting Service for smart truncation
+    // Truncate context to stay within token limits (~4 chars per token estimate)
     const MAX_CONTEXT_TOKENS = 4000;
-    if (relevantContext.context && relevantContext.context.length > 0) {
-      try {
-        const optimizedContext = await tokenCountingService.optimizeContextLength(
-          relevantContext.context,
-          MAX_CONTEXT_TOKENS,
-          'gemini-3.1-flash-lite'
-        );
-        
-        if (optimizedContext.wasTruncated) {
-          console.log(`✂️ Context optimized: ${optimizedContext.originalTokens} → ${optimizedContext.tokenCount} tokens (${optimizedContext.reduction})`);
-          relevantContext = {
-            ...relevantContext,
-            context: optimizedContext.optimizedContext
-          };
-        }
-      } catch {
-        // Fallback to simple character truncation
-        console.warn('⚠️ Token optimization failed, using character limit');
-        const MAX_CONTEXT_LENGTH = 8000;
-        if (relevantContext.context.length > MAX_CONTEXT_LENGTH) {
-          relevantContext = {
-            ...relevantContext,
-            context: relevantContext.context.substring(0, MAX_CONTEXT_LENGTH) + '...'
-          };
-          console.log(`⚠️ Context truncated to ${MAX_CONTEXT_LENGTH} chars (fallback)`);
-        }
-      }
+    const MAX_CONTEXT_CHARS = MAX_CONTEXT_TOKENS * 4;
+    if (relevantContext.context && relevantContext.context.length > MAX_CONTEXT_CHARS) {
+      relevantContext = {
+        ...relevantContext,
+        context: relevantContext.context.substring(0, MAX_CONTEXT_CHARS)
+      };
+      console.log(`✂️ Context truncated to ${MAX_CONTEXT_CHARS} chars`);
     }
     
     if (relevantContext.context) {
@@ -580,8 +568,8 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       : baseSystemInstruction;
     // ── END WALLET AUTH ───────────────────────────────────────────────────
     
-    // Inicializar Gemini
-    const client = new GoogleGenAI({ apiKey });
+    // Get module-level Gemini client (initialized once, reused across warm invocations)
+    const client = getGeminiClient();
     
     // 🔗 URL CONTEXT: Detectar URLs en el mensaje
     const detectedUrls = detectUrls(messageContent);
@@ -614,92 +602,45 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         const requestBody = req.body as { walletAddress?: string };
         const connectedWallet = requestBody.walletAddress;
         
-        // Ejecutar funciones blockchain detectadas
+        // Build argument map for each detected function (synchronously)
+        const walletFunctions = ['check_wallet_balance', 'get_user_staking_position', 'get_user_nfts', 'get_user_history'];
+        const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
+        
+        const functionCalls: Array<{ funcName: string; args: Record<string, unknown> }> = [];
+        
         for (const funcName of blockchainDetection.functions) {
-          try {
-            // Extraer argumentos básicos del mensaje si es necesario
-            let args: Record<string, unknown> = {};
-            
-            // Para check_wallet_balance, usar wallet conectada o extraer del mensaje
-            if (funcName === 'check_wallet_balance') {
-              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
-              if (addressMatch) {
-                // Si el usuario especifica una dirección explícita, usarla
-                args = { address: addressMatch[0] };
-              } else if (connectedWallet) {
-                // Si no, usar la wallet conectada del usuario
-                args = { address: connectedWallet };
-                console.log(`🔗 Using connected wallet: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
-              } else {
-                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
-                continue;
-              }
+          if (walletFunctions.includes(funcName)) {
+            if (addressMatch) {
+              functionCalls.push({ funcName, args: { address: addressMatch[0] } });
+            } else if (connectedWallet) {
+              console.log(`🔗 Using connected wallet for ${funcName}: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
+              functionCalls.push({ funcName, args: { address: connectedWallet } });
+            } else {
+              console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
             }
-
-            // Para get_user_staking_position, igual que wallet: dirección explícita o wallet conectada
-            if (funcName === 'get_user_staking_position') {
-              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
-              if (addressMatch) {
-                args = { address: addressMatch[0] };
-              } else if (connectedWallet) {
-                args = { address: connectedWallet };
-                console.log(`🔗 Using connected wallet for staking: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
-              } else {
-                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
-                continue;
-              }
-            }
-
-            // Para get_user_nfts: dirección explícita o wallet conectada
-            if (funcName === 'get_user_nfts') {
-              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
-              if (addressMatch) {
-                args = { address: addressMatch[0] };
-              } else if (connectedWallet) {
-                args = { address: connectedWallet };
-                console.log(`🔗 Using connected wallet for NFTs: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
-              } else {
-                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
-                continue;
-              }
-            }
-
-            // Para get_user_history: dirección explícita o wallet conectada
-            if (funcName === 'get_user_history') {
-              const addressMatch = messageContent.match(/0x[a-fA-F0-9]{40}/);
-              if (addressMatch) {
-                args = { address: addressMatch[0] };
-              } else if (connectedWallet) {
-                args = { address: connectedWallet };
-                console.log(`🔗 Using connected wallet for history: ${connectedWallet.slice(0,6)}...${connectedWallet.slice(-4)}`);
-              } else {
-                console.log(`⚠️ Skipping ${funcName}: No wallet address found`);
-                continue;
-              }
-            }
-            
-            // Para estimate_staking_reward, intentar extraer cantidad
-            if (funcName === 'estimate_staking_reward') {
-              const amountMatch = messageContent.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
-              if (amountMatch) {
-                args = { amount: parseFloat(amountMatch[1]) };
-              } else {
-                args = { amount: 100 }; // Default amount for estimation
-              }
-            }
-            
+          } else if (funcName === 'estimate_staking_reward') {
+            const amountMatch = messageContent.match(/(\d+(?:\.\d+)?)\s*(?:pol|matic)/i);
+            functionCalls.push({ funcName, args: amountMatch ? { amount: parseFloat(amountMatch[1]) } : { amount: 100 } });
+          } else {
+            functionCalls.push({ funcName, args: {} });
+          }
+        }
+        
+        // Execute all blockchain functions in parallel
+        const settled = await Promise.allSettled(
+          functionCalls.map(async ({ funcName, args }) => {
             console.log(`🔗 Executing ${funcName} with args:`, args);
-            const result = await blockchainService.executeBlockchainFunction(funcName as BlockchainFunctionName, args);
-            
-            functionResults.push({
-              name: funcName,
-              args,
-              result
-            });
-            
+            const result = await blockchainService!.executeBlockchainFunction(funcName as BlockchainFunctionName, args);
             console.log(`✅ ${funcName} completed successfully`);
-          } catch (funcError) {
-            console.error(`❌ Error executing ${funcName}:`, funcError);
+            return { name: funcName, args, result } as FunctionCallResult;
+          })
+        );
+        
+        for (const r of settled) {
+          if (r.status === 'fulfilled') {
+            functionResults.push(r.value);
+          } else {
+            console.error(`❌ Error executing blockchain function:`, r.reason);
           }
         }
         
@@ -1029,8 +970,8 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     }
     
     // 🆕 TOKEN TRACKING: Update token metrics
-    const estimatedInputTokens = tokenCountingService.quickEstimate(messageContent);
-    const estimatedOutputTokens = tokenCountingService.quickEstimate(fullResponse);
+    const estimatedInputTokens = Math.floor(messageContent.length / 4);
+    const estimatedOutputTokens = Math.floor(fullResponse.length / 4);
     metrics.totalTokensUsed += estimatedInputTokens + estimatedOutputTokens;
     
     console.log(`📊 Token estimate: ~${estimatedInputTokens} input, ~${estimatedOutputTokens} output`);

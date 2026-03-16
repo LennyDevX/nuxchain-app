@@ -37,6 +37,10 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => `/server${path}`
       },
+      '/api/price': {
+        target: 'http://localhost:3002',
+        changeOrigin: true
+      },
       '/api/market': {
         target: 'http://localhost:3003',
         changeOrigin: true

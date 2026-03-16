@@ -17,13 +17,13 @@ class SemanticStreamingService {
     };
     
     this.timings = {
-      // Timing configurations for different content types (optimized for speed)
-      simple: { chunkDelay: 5, sentenceDelay: 15 },
-      complex: { chunkDelay: 8, sentenceDelay: 30 },
-      code: { chunkDelay: 10, sentenceDelay: 25 },
-      formula: { chunkDelay: 12, sentenceDelay: 40 },
-      list: { chunkDelay: 6, sentenceDelay: 20 },
-      header: { chunkDelay: 4, sentenceDelay: 25 }
+      // All delays zeroed — stream at native network speed
+      simple: { chunkDelay: 0, sentenceDelay: 0 },
+      complex: { chunkDelay: 0, sentenceDelay: 0 },
+      code: { chunkDelay: 0, sentenceDelay: 0 },
+      formula: { chunkDelay: 0, sentenceDelay: 0 },
+      list: { chunkDelay: 0, sentenceDelay: 0 },
+      header: { chunkDelay: 0, sentenceDelay: 0 }
     };
   }
 
@@ -150,27 +150,8 @@ class SemanticStreamingService {
   /**
    * Calculates contextual pauses based on content
    */
-  calculateContextualPause(chunk, nextChunk) {
-    let basePause = chunk.timing.sentenceDelay;
-
-    // Additional pauses based on transitions (reduced for faster streaming)
-    if (chunk.type === 'complex' && nextChunk?.type !== 'complex') {
-      basePause += 20; // Pause after complex concepts
-    }
-    
-    if (chunk.type === 'code' && nextChunk?.type !== 'code') {
-      basePause += 15; // Pause after code
-    }
-
-    if (chunk.type === 'formula') {
-      basePause += 25; // Extra pause for formulas
-    }
-
-    if (chunk.content.includes('\n\n')) {
-      basePause += 30; // Pause for paragraphs
-    }
-
-    return Math.min(basePause, 100); // Maximum 100ms (was 500ms)
+  calculateContextualPause(_chunk, _nextChunk) {
+    return 0; // No artificial pauses — stream at native network speed
   }
 
   /**
@@ -203,8 +184,6 @@ class SemanticStreamingService {
 
       // Create semantic chunks
       const chunks = this.createSemanticChunks(text);
-      
-      await this.delay(20);
 
       // Process each chunk directly without visible metadata
       for (let i = 0; i < chunks.length; i++) {
@@ -248,48 +227,21 @@ class SemanticStreamingService {
   /**
    * Streams chunk content with variable speed
    */
-  async streamChunkContent(res, chunk, enableVariableSpeed) {
-    const content = chunk.content;
-    const timing = chunk.timing;
-    
-    if (!enableVariableSpeed) {
-      res.write(content);
-      return;
-    }
-
-    // Character-by-character streaming with adaptive timing
-    for (let i = 0; i < content.length; i++) {
-      if (res.destroyed || res.writableEnded) break;
-      
-      const char = content[i];
-      res.write(char);
-      
-      // Special pauses at punctuation
-      if (/[.!?]/.test(char)) {
-        await this.delay(timing.sentenceDelay * 0.3);
-      } else if (/[,;:]/.test(char)) {
-        await this.delay(timing.chunkDelay * 0.5);
-      } else {
-        await this.delay(timing.chunkDelay);
-      }
+  async streamChunkContent(res, chunk, _enableVariableSpeed) {
+    // Write entire chunk at once — no per-character delay
+    if (!res.destroyed && !res.writableEnded) {
+      res.write(chunk.content);
     }
   }
 
   /**
    * Traditional streaming as fallback
    */
-  async streamTraditional(res, text, options) {
-    const chunkSize = options.chunkSize || 15;
-    const delayMs = options.delayMs || 20;
-
-    for (let i = 0; i < text.length; i += chunkSize) {
-      if (res.destroyed || res.writableEnded) break;
-      
-      const chunk = text.slice(i, i + chunkSize);
-      res.write(chunk);
-      await this.delay(delayMs);
+  async streamTraditional(res, text, _options) {
+    // Write all content at once — no chunked delays
+    if (!res.destroyed && !res.writableEnded) {
+      res.write(text);
     }
-    
     res.end();
   }
 

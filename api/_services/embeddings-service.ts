@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { kv } from '@vercel/kv';
 import type { KnowledgeBaseItem } from '../types/index.js';
 
 /**
@@ -355,6 +356,45 @@ const embeddingsCache = new Map<string, EmbeddingCacheEntry>();
 const precomputedEmbeddings = new Map<string, number[]>();
 const CACHE_TTL = 3600000; // 1 hora
 
+// KV key for persisted KB embeddings — survives cold starts
+const KB_EMBEDDINGS_KV_KEY = 'kb:embeddings:v1';
+const KB_EMBEDDINGS_KV_TTL = 7 * 24 * 3600; // 7 days in seconds
+let kvLoadAttempted = false;
+
+async function loadKBEmbeddingsFromKV(): Promise<void> {
+  if (kvLoadAttempted || precomputedEmbeddings.size > 0) return;
+  kvLoadAttempted = true;
+  try {
+    const stored = await kv.get<Record<string, number[]>>(KB_EMBEDDINGS_KV_KEY);
+    if (stored && typeof stored === 'object') {
+      let loaded = 0;
+      for (const [key, vec] of Object.entries(stored)) {
+        if (Array.isArray(vec)) {
+          precomputedEmbeddings.set(key, vec);
+          loaded++;
+        }
+      }
+      if (loaded > 0) console.log(`✅ KB embeddings loaded from KV cache: ${loaded} vectors`);
+    }
+  } catch (e) {
+    console.warn('⚠️ Could not load KB embeddings from KV (non-blocking):', (e as Error).message);
+  }
+}
+
+async function saveKBEmbeddingsToKV(): Promise<void> {
+  if (precomputedEmbeddings.size === 0) return;
+  try {
+    const payload: Record<string, number[]> = {};
+    for (const [key, vec] of precomputedEmbeddings.entries()) {
+      payload[key] = vec;
+    }
+    await kv.set(KB_EMBEDDINGS_KV_KEY, payload, { ex: KB_EMBEDDINGS_KV_TTL });
+    console.log(`💾 Saved ${precomputedEmbeddings.size} KB embeddings to KV (TTL: 7d)`);
+  } catch (e) {
+    console.warn('⚠️ Could not save KB embeddings to KV (non-blocking):', (e as Error).message);
+  }
+}
+
 let embeddingCallCount = 0;
 let lastResetTime = Date.now();
 const EMBEDDING_RATE_LIMIT = {
@@ -490,6 +530,11 @@ export async function searchSimilar(
     
     console.log(`🔍 Searching with ${EMBEDDING_MODEL} for: "${query.substring(0, 50)}..."`);
     
+    // Try to warm up precomputedEmbeddings from KV on first call (cold start optimization)
+    if (precomputedEmbeddings.size === 0) {
+      await loadKBEmbeddingsFromKV();
+    }
+    
     const queryEmbedding = await generateEmbedding(query);
     
     if (queryEmbedding) {
@@ -557,6 +602,12 @@ export async function searchSimilar(
         console.log(`💾 Cache hit rate: ${(cacheHitRate * 100).toFixed(1)}%`);
         if (filtered.length > 0) {
           console.log(`🎯 Top scores: ${filtered.slice(0, 3).map(r => r.score.toFixed(3)).join(', ')}`);
+        }
+        
+        // Persist newly computed embeddings to KV (fire-and-forget) to warm future cold starts
+        const hadCacheMisses = results.some(r => !r.fromCache);
+        if (hadCacheMisses) {
+          saveKBEmbeddingsToKV().catch(() => { /* non-blocking */ });
         }
         
         return filtered;

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import RoadmapHero from '../components/Roadmap/RoadmapHero';
 import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
@@ -9,7 +8,6 @@ const RoadmapPage: React.FC = () => {
   return (
     <>
       {/* Hero Section */}
-      <RoadmapHero isMobile={isMobile} />
 
       {/* Main Content */}
       <div className={`max-w-7xl mx-auto ${
@@ -31,12 +29,12 @@ const RoadmapPage: React.FC = () => {
                 <h2 className={`jersey-15-regular mb-4 ${
                   isMobile ? 'text-3xl' : 'text-4xl md:text-5xl'
                 }`}>
-                  Join Us on This Journey
+                  Be Part of the Revolution
                 </h2>
                 <p className={`jersey-20-regular text-slate-400 max-w-2xl mx-auto ${
                   isMobile ? 'text-lg mb-6' : 'text-xl md:text-2xl mb-8'
                 }`}>
-                  Be part of the revolution in blockchain technology. Follow our progress and contribute to the future of decentralized finance.
+                  Join the community building the first cross-chain AI platform in Web3. Follow our progress, contribute ideas, and shape the future of Nuxchain.
                 </p>
                 <div className={`flex gap-4 justify-center ${
                   isMobile ? 'flex-col' : 'flex-row'

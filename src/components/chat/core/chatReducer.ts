@@ -26,6 +26,7 @@ export interface UrlProcessing {
 
 export interface ChatState {
   messages: ChatMessage[];
+  streamingText: string;  // O(1) streaming — avoids O(n) map per chunk
   status: 'idle' | 'loading_history' | 'waiting_for_response' | 'streaming' | 'error';
   error: string | null;
   conversationId: string | null;
@@ -53,6 +54,7 @@ export type ChatAction =
 
 export const initialChatState: ChatState = {
   messages: [],
+  streamingText: '',
   status: 'idle',
   error: null,
   conversationId: null,
@@ -94,25 +96,26 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
 
     case 'UPDATE_STREAM':
+      // O(1): only update streamingText, messages array untouched until FINISH_STREAM
       return {
         ...state,
-        messages: state.messages.map((msg, idx) =>
-          idx === state.messages.length - 1
-            ? { ...msg, text: action.payload, isStreaming: true }
-            : msg
-        )
+        streamingText: action.payload
       };
 
-    case 'FINISH_STREAM':
+    case 'FINISH_STREAM': {
+      const msgs = state.messages;
+      if (msgs.length === 0) return { ...state, status: 'idle', streamingText: '' };
+      const last = msgs[msgs.length - 1];
       return {
         ...state,
         status: 'idle',
-        messages: state.messages.map((msg, idx) =>
-          idx === state.messages.length - 1
-            ? { ...msg, isStreaming: false }
-            : msg
-        )
+        streamingText: '',
+        messages: [
+          ...msgs.slice(0, -1),
+          { ...last, text: state.streamingText || last.text, isStreaming: false }
+        ]
       };
+    }
 
     case 'SET_ERROR':
       return {

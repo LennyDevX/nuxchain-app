@@ -50,8 +50,8 @@ const LabsPage: React.FC = () => {
             isMobile ? 'text-xl mb-6' : 'text-xl mb-10'
           }`}>
             {isMobile 
-              ? 'Exploring blockchain limits with AI. Optimize your staking and NFTs.'
-              : 'Exploring the limits of blockchain with artificial intelligence. Discover how our technology helps optimize staking strategies, NFTs, and maximize your earnings.'
+              ? 'Cross-chain AI infrastructure. Intelligent agents, DeFi tools, and unified ecosystem.'
+              : 'We are building the leading cross-chain AI infrastructure. Autonomous agents, intelligent yield optimization, and a unified platform connecting blockchains with artificial intelligence at the core.'
             }
           </p>
           
@@ -154,8 +154,8 @@ const LabsPage: React.FC = () => {
                 isMobile ? 'text-xl px-4' : 'text-3xl'
               }`}>
                 {isMobile 
-                  ? 'Our goals for the next 12 months'
-                  : 'Our projected milestones and goals for the platform within the next 12 months of development.'
+                  ? 'Cross-chain AI platform goals for Q2 2026 — Q2 2027'
+                  : 'Building a cross-chain AI infrastructure. Our milestones and projections for the next 12 months driving towards autonomous platform expansion.'
                 }
               </p>
             </div>
@@ -176,12 +176,12 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    +27%
+                    +40%
                   </h3>
                   <p className={`text-slate-400 jersey-20-regular ${
                     isMobile ? 'text-xl' : 'text-lg'
                   }`}>
-                    {isMobile ? 'Avg Return' : 'Avg Return Potential'}
+                    {isMobile ? 'Yield Potential' : 'AI-Optimized Yield Potential'}
                   </p>
                 </div>
                 {!isMobile && (
@@ -189,7 +189,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-green-500" style={{ width: '25%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Integración de Swap, powered by Uniswap, con rutas eficiente y mejor precio</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">AI-Powered DeFi Suite + Cross-Chain Yield Optimization by Q1 2027</p>
                   </div>
                 )}
               </div>
@@ -206,12 +206,12 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    5k+
+                    100k+
                   </h3>
                   <p className={`text-slate-400 jersey-20-regular ${
                     isMobile ? 'text-2xl' : 'text-xl'
                   }`}>
-                    {isMobile ? 'Target Users' : 'Target Active Users'}
+                    {isMobile ? 'Active Users' : 'Platform Active Users'}
                   </p>
                 </div>
                 {!isMobile && (
@@ -219,7 +219,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-blue-500" style={{ width: '40%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Goal for the end of 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Post Global Expansion & Web Launch target (Q1 2027)</p>
                   </div>
                 )}
               </div>
@@ -236,12 +236,12 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    85%
+                    92%
                   </h3>
                   <p className={`text-slate-400 jersey-20-regular ${
                     isMobile ? 'text-2xl' : 'text-lg'
                   }`}>
-                    {isMobile ? 'AI Accuracy' : 'AI Recommendation Accuracy'}
+                    {isMobile ? 'AI Accuracy' : 'Nuxbee AI 3.0 Accuracy'}
                   </p>
                 </div>
                 {!isMobile && (
@@ -249,7 +249,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-purple-500" style={{ width: '85%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Nuxbee AI 2.0 Q3 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Multimodal intelligence & autonomous agents by Q4 2026</p>
                   </div>
                 )}
               </div>
@@ -266,12 +266,12 @@ const LabsPage: React.FC = () => {
                     }`}
                     aria-live="polite"
                   >
-                    5
+                    11
                   </h3>
                   <p className={`text-slate-400 jersey-20-regular ${
                     isMobile ? 'text-xl' : 'text-lg'
                   }`}>
-                    {isMobile ? 'New Features' : 'Planned Features'}
+                    {isMobile ? 'Major Releases' : 'Major Feature Releases'}
                   </p>
                 </div>
                 {!isMobile && (
@@ -279,7 +279,7 @@ const LabsPage: React.FC = () => {
                     <div className="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-amber-500" style={{ width: '60%' }}></div>
                     </div>
-                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Integración de Swap Q2 2026</p>
+                    <p className="jersey-15-regular text-lg text-slate-400 mt-2">Cross-Chain Bridge, AI Agents, Mobile App, DeFi Suite + more</p>
                   </div>
                 )}
               </div>

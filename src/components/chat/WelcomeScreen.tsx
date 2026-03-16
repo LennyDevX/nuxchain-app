@@ -4,64 +4,65 @@ interface WelcomeScreenProps {
   onQuestionSelect: (question: string) => void
 }
 
-export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) {
+// Module-level constant — avoids new array allocation on every render
+const quickQuestions = [
+  {
+    icon: "📈",
+    title: "Staking APY",
+    description: "Smart Staking",
+    question: "How does the Smart Staking compound logic work?"
+  },
+  {
+    icon: "🪙",
+    title: "NUX Token",
+    description: "Distribution",
+    question: "Explain the NUX token distribution and total supply"
+  },
+  {
+    icon: "🖼️",
+    title: "Skills NFTs",
+    description: "NFT Benefits",
+    question: "What are the benefits of Staking Skills vs Active Skills NFTs?"
+  },
+  {
+    icon: "🚀",
+    title: "Launchpad",
+    description: "Whitelist",
+    question: "How do I get on the whitelist for the NUX Token Launchpad?"
+  },
+  {
+    icon: "💼",
+    title: "Marketplace",
+    description: "NFT Trading",
+    question: "Show me active NFT listings and floor prices on the marketplace"
+  },
+  {
+    icon: "⚠️",
+    title: "Risk Analysis",
+    description: "Portfolio Risk",
+    question: "Analyze the risks in my portfolio and provide recommendations"
+  },
+  {
+    icon: "🔍",
+    title: "Market Alpha",
+    description: "Trading Trends",
+    question: "What are the latest market trends and trading opportunities?"
+  },
+  {
+    icon: "🪙",
+    title: "Token Research",
+    description: "Token Analysis",
+    question: "Research a specific token and tell me about its fundamentals"
+  },
+  {
+    icon: "💧",
+    title: "Liquidity",
+    description: "LP Strategies",
+    question: "How do I provide liquidity on Uniswap and optimize returns?"
+  }
+]
 
-  const quickQuestions = [
-    {
-      icon: "📈",
-      title: "Staking APY",
-      description: "Smart Staking",
-      question: "How does the Smart Staking compound logic work?"
-    },
-    {
-      icon: "🪙",
-      title: "NUX Token",
-      description: "Distribution",
-      question: "Explain the NUX token distribution and total supply"
-    },
-    {
-      icon: "🖼️",
-      title: "Skills NFTs",
-      description: "NFT Benefits",
-      question: "What are the benefits of Staking Skills vs Active Skills NFTs?"
-    },
-    {
-      icon: "🚀",
-      title: "Launchpad",
-      description: "Whitelist",
-      question: "How do I get on the whitelist for the NUX Token Launchpad?"
-    },
-    {
-      icon: "💼",
-      title: "Marketplace",
-      description: "NFT Trading",
-      question: "Show me active NFT listings and floor prices on the marketplace"
-    },
-    {
-      icon: "⚠️",
-      title: "Risk Analysis",
-      description: "Portfolio Risk",
-      question: "Analyze the risks in my portfolio and provide recommendations"
-    },
-    {
-      icon: "🔍",
-      title: "Market Alpha",
-      description: "Trading Trends",
-      question: "What are the latest market trends and trading opportunities?"
-    },
-    {
-      icon: "🪙",
-      title: "Token Research",
-      description: "Token Analysis",
-      question: "Research a specific token and tell me about its fundamentals"
-    },
-    {
-      icon: "💧",
-      title: "Liquidity",
-      description: "LP Strategies",
-      question: "How do I provide liquidity on Uniswap and optimize returns?"
-    }
-  ]
+export default function WelcomeScreen({ onQuestionSelect }: WelcomeScreenProps) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-4 gap-6 pb-4">

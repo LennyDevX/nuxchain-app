@@ -226,10 +226,13 @@ export function useChatStreaming(): UseChatStreamingReturn {
   const [state, dispatch] = useReducer(chatReducer, undefined, getInitialChatState);
   const streamingServiceRef = useRef<StreamingService | null>(null);
   const lastUserMessageRef = useRef<string>('');
-  const [isUsingUrlContext, setIsUsingUrlContext] = useState(false);
-  const [blockchainAction, setBlockchainAction] = useState<string | null>(null);
-  const [isSearchingKB, setIsSearchingKB] = useState(false);
-  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  // Single state object for all streaming indicators — avoids 4 cascading setState calls per message
+  const [indicators, setIndicators] = useState({
+    isUsingUrlContext: false,
+    blockchainAction: null as string | null,
+    isSearchingKB: false,
+    isAnalyzingImage: false,
+  });
   const [walletAuth, setWalletAuth] = useState<WalletAuthData | null>(() => {
     // Restore from sessionStorage so wallet stays signed across re-renders
     if (typeof window !== 'undefined') {
@@ -324,36 +327,24 @@ export function useChatStreaming(): UseChatStreamingReturn {
     
     if (hasUrls) {
       // Si hay URLs, mostrar indicador de URL context
-      setIsUsingUrlContext(true);
-      setBlockchainAction(null);
-      setIsSearchingKB(false);
-      setIsAnalyzingImage(false);
+      setIndicators({ isUsingUrlContext: true, blockchainAction: null, isSearchingKB: false, isAnalyzingImage: false });
       if (import.meta.env.DEV) {
         console.log('🔗 [FRONTEND] URLs detected:', detectedUrls.length);
       }
     } else if (blockchainDetection.isBlockchain) {
-      setBlockchainAction(blockchainDetection.action);
-      setIsSearchingKB(false);
-      setIsAnalyzingImage(false);
-      setIsUsingUrlContext(false);
+      setIndicators({ isUsingUrlContext: false, blockchainAction: blockchainDetection.action, isSearchingKB: false, isAnalyzingImage: false });
       if (import.meta.env.DEV) {
         console.log('🔗 [FRONTEND] Blockchain query detected:', blockchainDetection.action);
       }
     } else if (attachments && attachments.length > 0) {
       // 📸 For image queries, show image analyzing indicator
-      setIsAnalyzingImage(true);
-      setIsSearchingKB(false);
-      setBlockchainAction(null);
-      setIsUsingUrlContext(false);
+      setIndicators({ isUsingUrlContext: false, blockchainAction: null, isSearchingKB: false, isAnalyzingImage: true });
       if (import.meta.env.DEV) {
         console.log('📸 [FRONTEND] Analyzing image...');
       }
     } else {
       // 📚 For non-blockchain queries, show KB search indicator
-      setIsAnalyzingImage(false);
-      setIsSearchingKB(true);
-      setBlockchainAction(null);
-      setIsUsingUrlContext(false);
+      setIndicators({ isUsingUrlContext: false, blockchainAction: null, isSearchingKB: true, isAnalyzingImage: false });
       if (import.meta.env.DEV) {
         console.log('📚 [FRONTEND] Searching knowledge base...');
       }
@@ -484,11 +475,8 @@ export function useChatStreaming(): UseChatStreamingReturn {
           },
           onFinish: () => {
             dispatch({ type: 'FINISH_STREAM' });
-            // Reset all feedback indicators
-            setBlockchainAction(null);
-            setIsUsingUrlContext(false);
-            setIsSearchingKB(false);
-            setIsAnalyzingImage(false);
+            // Reset all feedback indicators in one setState call
+            setIndicators({ isUsingUrlContext: false, blockchainAction: null, isSearchingKB: false, isAnalyzingImage: false });
           },
           onError: (error: Error, _onRetry: () => void, messageId: string) => {
             // FIXED: Type assertion correcta
@@ -585,7 +573,7 @@ export function useChatStreaming(): UseChatStreamingReturn {
       }
     } finally {
       // Resetear estado de herramientas
-      setIsUsingUrlContext(false);
+      setIndicators(prev => ({ ...prev, isUsingUrlContext: false }));
     }
   }, [state.messages, state.status, state.conversationId, connectedWallet, walletAuth]);
 
@@ -673,17 +661,27 @@ export function useChatStreaming(): UseChatStreamingReturn {
     }
   }, []);
 
-  // Convert internal state to external format
-  const messages = useMemo(() => state.messages.map((msg: ChatMessage) => ({
-    id: msg.id,
-    role: msg.sender === 'user' ? 'user' : 'assistant',
-    content: msg.text,
-    timestamp: new Date(msg.timestamp),
-    isStreaming: msg.isStreaming,
-    error: msg.error,
-    skillResult: msg.skillResult,
-    attachments: msg.attachments,
-  })), [state.messages]);
+  // Convert internal state to external format, injecting streamingText for the active streaming message
+  const messages = useMemo(() => {
+    const rawMsgs = state.messages;
+    // Inject streamingText into the last streaming message to reflect O(1) reducer updates
+    const displayMsgs = (state.status === 'streaming' && state.streamingText && rawMsgs.length > 0)
+      ? [
+          ...rawMsgs.slice(0, -1),
+          { ...rawMsgs[rawMsgs.length - 1], text: state.streamingText }
+        ]
+      : rawMsgs;
+    return displayMsgs.map((msg: ChatMessage) => ({
+      id: msg.id,
+      role: msg.sender === 'user' ? 'user' : 'assistant',
+      content: msg.text,
+      timestamp: new Date(msg.timestamp),
+      isStreaming: msg.isStreaming,
+      error: msg.error,
+      skillResult: msg.skillResult,
+      attachments: msg.attachments,
+    }));
+  }, [state.messages, state.streamingText, state.status]);
 
   return {
     messages,
@@ -694,10 +692,10 @@ export function useChatStreaming(): UseChatStreamingReturn {
     clearMessages,
     loadHistory,
     retryLastMessage,
-    isUsingUrlContext,
-    blockchainAction,
-    isSearchingKB,
-    isAnalyzingImage,
+    isUsingUrlContext: indicators.isUsingUrlContext,
+    blockchainAction: indicators.blockchainAction,
+    isSearchingKB: indicators.isSearchingKB,
+    isAnalyzingImage: indicators.isAnalyzingImage,
     pauseStream,
     currentConversationId: state.conversationId,
     walletAuth,

@@ -73,6 +73,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const lastWallet = useRef<string | null>(null);
 
   const fetchStatus = useCallback(async (wallet: string) => {
+    // Skip API call in dev builds — prevents 401 noise in console
+    if (import.meta.env.DEV) {
+      setState(prev => ({ ...prev, loading: false, error: null }));
+      return;
+    }
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
       const res = await fetch(
@@ -80,7 +85,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       );
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          // API unavailable locally or wallet not authorized — silently use free tier
+          // API unavailable or wallet not authorized — silently use free tier
           setState(prev => ({ ...prev, loading: false, error: null }));
           return;
         }
@@ -139,6 +144,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   }, [publicKey, fetchStatus]);
 
   const [dailyUsed, setDailyUsed] = useState(() => {
+    // In dev builds, skip tracking entirely
     if (import.meta.env.DEV) return 0;
     try {
       const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
@@ -147,14 +153,21 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   });
 
   const trackUsage = useCallback(() => {
+    // In dev builds, skip tracking
     if (import.meta.env.DEV) return;
-    try {
-      const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
-      const next = parseInt(localStorage.getItem(key) || '0', 10) + 1;
-      localStorage.setItem(key, String(next));
-      setDailyUsed(next);
-    } catch { /* non-critical */ }
-  }, []);
+
+    const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
+    // Read current count (safe)
+    let current = 0;
+    try { current = parseInt(localStorage.getItem(key) || '0', 10) || 0; } catch { /* ignore */ }
+    const next = current + 1;
+    // Update UI immediately — must happen before localStorage to not be blocked by storage errors
+    setDailyUsed(next);
+    // Persist to localStorage (best-effort)
+    try { localStorage.setItem(key, String(next)); } catch { /* non-critical */ }
+    // Refresh subscription state from server (non-blocking)
+    refresh().catch(() => { /* silent */ });
+  }, [refresh]);
 
   return (
     <SubscriptionContext.Provider value={{ ...state, refresh, dailyUsed, trackUsage }}>

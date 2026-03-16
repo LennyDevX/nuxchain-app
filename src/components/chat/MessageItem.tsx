@@ -7,6 +7,34 @@ import { getOptimizedFontSize } from '../../utils/mobile/performanceOptimization
 import { SkillResultCard } from './skills/SkillResultCard'
 import '../../styles/markdown-chat.css'
 
+// Module-level markdown component maps — avoids creating new objects on every render/chunk
+// which was defeating MarkdownPreview memoization and causing full re-parse per streaming chunk.
+const MARKDOWN_COMPONENTS_MOBILE = {
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 {...props} style={{ fontSize: '1.5rem', fontWeight: '600', color: '#ffffff', margin: '1.5rem 0 1rem 0', lineHeight: '1.3', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 {...props} style={{ fontSize: '1.35rem', fontWeight: '600', color: '#ffffff', margin: '1.25rem 0 0.75rem 0', lineHeight: '1.3', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 {...props} style={{ fontSize: '1.15rem', fontWeight: '600', color: '#e2e8f0', margin: '1rem 0 0.5rem 0', lineHeight: '1.4', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p {...props} className="break-words" style={{ margin: '0.65rem 0', lineHeight: '1.7', color: '#e2e8f0', fontSize: '1.05rem' }} />,
+  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong {...props} style={{ fontWeight: '700', color: '#ffffff', textShadow: '0 0 1px rgba(255, 255, 255, 0.3)' }} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul {...props} style={{ margin: '1rem 0', paddingLeft: '1.25rem', listStyleType: 'none' }} />,
+  li: (props: React.HTMLAttributes<HTMLLIElement> & { children?: React.ReactNode }) => <li {...props} style={{ margin: '0.5rem 0', lineHeight: '1.5', color: '#f3f4f6', position: 'relative' }}><span style={{ content: '•', color: 'rgba(139, 92, 246, 0.8)', fontWeight: 'bold', position: 'absolute', left: '-1rem' }}>•</span>{props.children}</li>,
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote {...props} style={{ borderLeft: '4px solid rgba(139, 92, 246, 0.6)', backgroundColor: 'rgba(139, 92, 246, 0.1)', margin: '1rem 0', padding: '0.75rem 1rem', borderRadius: '0 0.375rem 0.375rem 0' }} />,
+  code: (props: React.HTMLAttributes<HTMLElement>) => <code {...props} style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)', color: '#fbbf24', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontFamily: '"Fira Code", "Monaco", "Consolas", monospace', fontSize: '0.875em', border: '1px solid rgba(139, 92, 246, 0.2)' }} />,
+  pre: (props: React.HTMLAttributes<HTMLPreElement>) => <pre {...props} style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '0.5rem', padding: '0.75rem', margin: '1rem 0', overflowX: 'auto', fontFamily: '"Fira Code", "Monaco", "Consolas", monospace', fontSize: '0.875rem' }} />,
+};
+
+const MARKDOWN_COMPONENTS_DESKTOP = {
+  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h1 {...props} style={{ fontSize: '1.75rem', fontWeight: '600', color: '#ffffff', margin: '1.5rem 0 1rem 0', lineHeight: '1.3', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h2 {...props} style={{ fontSize: '1.5rem', fontWeight: '600', color: '#ffffff', margin: '1.25rem 0 0.75rem 0', lineHeight: '1.3', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => <h3 {...props} style={{ fontSize: '1.25rem', fontWeight: '600', color: '#e2e8f0', margin: '1rem 0 0.5rem 0', lineHeight: '1.4', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }} />,
+  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => <p {...props} className="break-words" style={{ margin: '0.85rem 0', lineHeight: '1.8', color: '#e2e8f0', fontSize: '1.125rem' }} />,
+  strong: (props: React.HTMLAttributes<HTMLElement>) => <strong {...props} style={{ fontWeight: '700', color: '#ffffff', textShadow: '0 0 1px rgba(255, 255, 255, 0.3)' }} />,
+  ul: (props: React.HTMLAttributes<HTMLUListElement>) => <ul {...props} style={{ margin: '1rem 0', paddingLeft: '1.5rem', listStyleType: 'none' }} />,
+  li: (props: React.HTMLAttributes<HTMLLIElement> & { children?: React.ReactNode }) => <li {...props} style={{ margin: '0.5rem 0', lineHeight: '1.5', color: '#f3f4f6', position: 'relative' }}><span style={{ content: '•', color: 'rgba(139, 92, 246, 0.8)', fontWeight: 'bold', position: 'absolute', left: '-1rem' }}>•</span>{props.children}</li>,
+  blockquote: (props: React.HTMLAttributes<HTMLQuoteElement>) => <blockquote {...props} style={{ borderLeft: '4px solid rgba(139, 92, 246, 0.6)', backgroundColor: 'rgba(139, 92, 246, 0.1)', margin: '1rem 0', padding: '0.75rem 1rem', borderRadius: '0 0.375rem 0.375rem 0' }} />,
+  code: (props: React.HTMLAttributes<HTMLElement>) => <code {...props} style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)', color: '#fbbf24', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontFamily: '"Fira Code", "Monaco", "Consolas", monospace', fontSize: '0.875em', border: '1px solid rgba(139, 92, 246, 0.2)' }} />,
+  pre: (props: React.HTMLAttributes<HTMLPreElement>) => <pre {...props} style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '0.5rem', padding: '1rem', margin: '1rem 0', overflowX: 'auto', fontFamily: '"Fira Code", "Monaco", "Consolas", monospace', fontSize: '1rem' }} />,
+};
+
 interface Message {
   id: string
   role: 'user' | 'assistant'
@@ -41,7 +69,11 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   }), [isMobile])
 
-
+  // Stable reference — only changes when breakpoint switches, not on every render/chunk
+  const markdownComponents = useMemo(
+    () => isMobile ? MARKDOWN_COMPONENTS_MOBILE : MARKDOWN_COMPONENTS_DESKTOP,
+    [isMobile]
+  )
 
   return (
     <motion.div 
@@ -171,89 +203,7 @@ const MessageItem: React.FC<MessageItemProps> = memo(function MessageItem({ mess
                   wrapperElement={{
                     'data-color-mode': 'dark'
                   }}
-                  components={{
-                    h1: (props) => <h1 {...props} style={{ 
-                      fontSize: isMobile ? '1.5rem' : '1.75rem',
-                      fontWeight: '600',
-                      color: '#ffffff',
-                      margin: '1.5rem 0 1rem 0',
-                      lineHeight: '1.3',
-                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-                    }} />,
-                    h2: (props) => <h2 {...props} style={{ 
-                      fontSize: isMobile ? '1.35rem' : '1.5rem',
-                      fontWeight: '600',
-                      color: '#ffffff',
-                      margin: '1.25rem 0 0.75rem 0',
-                      lineHeight: '1.3',
-                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-                    }} />,
-                    h3: (props) => <h3 {...props} style={{ 
-                      fontSize: isMobile ? '1.15rem' : '1.25rem',
-                      fontWeight: '600',
-                      color: '#e2e8f0',
-                      margin: '1rem 0 0.5rem 0',
-                      lineHeight: '1.4',
-                      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-                    }} />,
-                    p: (props) => <p {...props} className="break-words" style={{ 
-                      margin: isMobile ? '0.65rem 0' : '0.85rem 0',
-                      lineHeight: isMobile ? '1.7' : '1.8',
-                      color: '#e2e8f0',
-                      fontSize: isMobile ? '1.05rem' : '1.125rem'
-                    }} />,
-                    strong: (props) => <strong {...props} style={{ 
-                      fontWeight: '700',
-                      color: '#ffffff',
-                      textShadow: '0 0 1px rgba(255, 255, 255, 0.3)'
-                    }} />,
-                    ul: (props) => <ul {...props} style={{ 
-                      margin: '1rem 0',
-                      paddingLeft: isMobile ? '1.25rem' : '1.5rem',
-                      listStyleType: 'none'
-                    }} />,
-                    li: (props) => <li {...props} style={{ 
-                      margin: '0.5rem 0',
-                      lineHeight: '1.5',
-                      color: '#f3f4f6',
-                      position: 'relative'
-                    }}>
-                      <span style={{
-                        content: '•',
-                        color: 'rgba(139, 92, 246, 0.8)',
-                        fontWeight: 'bold',
-                        position: 'absolute',
-                        left: '-1rem'
-                      }}>•</span>
-                      {props.children}
-                    </li>,
-                    blockquote: (props) => <blockquote {...props} style={{ 
-                      borderLeft: '4px solid rgba(139, 92, 246, 0.6)',
-                      backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                      margin: '1rem 0',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '0 0.375rem 0.375rem 0'
-                    }} />,
-                    code: (props) => <code {...props} style={{ 
-                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                      color: '#fbbf24',
-                      padding: '0.125rem 0.375rem',
-                      borderRadius: '0.25rem',
-                      fontFamily: '"Fira Code", "Monaco", "Consolas", monospace',
-                      fontSize: '0.875em',
-                      border: '1px solid rgba(139, 92, 246, 0.2)'
-                    }} />,
-                    pre: (props) => <pre {...props} style={{ 
-                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                      border: '1px solid rgba(139, 92, 246, 0.3)',
-                      borderRadius: '0.5rem',
-                      padding: isMobile ? '0.75rem' : '1rem',
-                      margin: '1rem 0',
-                      overflowX: 'auto',
-                      fontFamily: '"Fira Code", "Monaco", "Consolas", monospace',
-                      fontSize: isMobile ? '0.875rem' : '1rem'
-                    }} />
-                  }}
+                  components={markdownComponents}
                 />
               </motion.div>
             ) : (

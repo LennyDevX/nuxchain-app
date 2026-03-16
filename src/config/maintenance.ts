@@ -112,7 +112,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('store', STORE_START_TIME),
   },
   labs: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'NuxChain Labs is being upgraded with new experimental tools and DeFi features. We will be back shortly with exciting new capabilities.',
     startTime: getOrInitializeStartTime('labs', LABS_START_TIME),

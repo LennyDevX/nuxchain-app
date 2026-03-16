@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
+﻿import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { makeToastStyle } from '../utils/toasts/toastStyles'
@@ -12,11 +12,13 @@ import ImagePreviewStrip from '../components/chat/ImagePreviewStrip'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 import NetworkBackground from '../components/home/NetworkBackground'
 import SkillsPanel from '../components/ai/SkillsPanel'
-import { SubscriptionModal } from '../components/chat/subscription/SubscriptionModal.tsx'
-import { SkillsShowcaseModal } from '../components/chat/subscription/SkillsShowcaseModal.tsx'
-import { SkillInputModal } from '../components/chat/skills/SkillInputModal'
-import { ChatTutorialModal } from '../components/chat/ChatTutorialModal'
-import { ChatUserModal, PROFILE_PHOTO_KEY } from '../components/chat/ChatUserModal'
+// Lazy-load heavy modals — deferred from main bundle
+import { PROFILE_PHOTO_KEY } from '../components/chat/ChatUserModal'
+const SubscriptionModal = React.lazy(() => import('../components/chat/subscription/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })))
+const SkillsShowcaseModal = React.lazy(() => import('../components/chat/subscription/SkillsShowcaseModal').then(m => ({ default: m.SkillsShowcaseModal })))
+const SkillInputModal = React.lazy(() => import('../components/chat/skills/SkillInputModal').then(m => ({ default: m.SkillInputModal })))
+const ChatTutorialModal = React.lazy(() => import('../components/chat/ChatTutorialModal').then(m => ({ default: m.ChatTutorialModal })))
+const ChatUserModal = React.lazy(() => import('../components/chat/ChatUserModal').then(m => ({ default: m.ChatUserModal })))
 
 import { useChatStreaming } from '../hooks/chat/useChatStreaming'
 import { useFirebaseConversations } from '../hooks/chat/useFirebaseConversations'
@@ -155,12 +157,7 @@ function Chat() {
     }
   }, [])
 
-  // Auto-scroll to bottom when messages change or streaming updates
-  useEffect(() => {
-    if (!showWelcome) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages, isStreaming, showWelcome])
+  // Auto-scroll is handled by ChatMessage component internally — removed to avoid dual scroll
 
   // Save to Firebase when streaming ends and we have messages
   const wasStreamingRef = useRef(false)
@@ -181,30 +178,30 @@ function Chat() {
     wasStreamingRef.current = isStreaming
   }, [isStreaming, messages, saveConversation, currentConversationId])
 
-  const handleLoadHistory = (conv: StoredConversation) => {
+  const handleLoadHistory = useCallback((conv: StoredConversation) => {
     if (loadHistory) {
       loadHistory(conv.id, conv);
       setShowWelcome(false);
     }
-  }
+  }, [loadHistory])
 
-  const handleDeleteHistory = (e: React.MouseEvent, convId: string) => {
+  const handleDeleteHistory = useCallback((e: React.MouseEvent, convId: string) => {
     e.stopPropagation()
     deleteConversation(convId)
-  }
+  }, [deleteConversation])
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     clearMessages()
     setShowWelcome(true)
     setMessage('')
-  }
+  }, [clearMessages])
 
-  const handleModelChange = (newModel: GeminiModel) => {
+  const handleModelChange = useCallback((newModel: GeminiModel) => {
     setSelectedModel(newModel)
     localStorage.setItem('selectedGeminiModel', newModel)
-  }
+  }, [])
 
-  const handleSendMessage = async (e?: React.FormEvent) => {
+  const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!message.trim() || isLoading || isStreaming) return
     if (showWelcome) setShowWelcome(false)
@@ -269,9 +266,9 @@ function Chat() {
       chatLogger.logError('Error sending message', 'Chat', { message: message.trim().substring(0, 50) }, error as Error)
       toast.error('Error sending message. Cannot connect to NuxBee AI.')
     }
-  }
+  }, [message, isLoading, isStreaming, showWelcome, pendingImages, sendMessage, trackUsage, evmAddress, chatLogger])
 
-  const handleQuestionSelect = async (question: string) => {
+  const handleQuestionSelect = useCallback(async (question: string) => {
     setShowWelcome(false)
     try {
       chatLogger.logMessageEvent({ type: 'SEND', messageId: `user_${Date.now()}`, sender: 'user', contentPreview: question, timestamp: new Date().toISOString() }, 'WelcomeScreen')
@@ -282,14 +279,14 @@ function Chat() {
       chatLogger.logError('Error sending selected question', 'WelcomeScreen', { question: question.substring(0, 50) }, error as Error)
       toast.error('Error sending the selected question.')
     }
-  }
+  }, [sendMessage, trackUsage, chatLogger])
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage(e as React.FormEvent)
     }
-  }
+  }, [handleSendMessage])
 
   return (
     <div className="fixed inset-0 md:top-20 flex flex-col overflow-hidden text-white font-sans z-40 pb-[70px] md:pb-0 jersey-20-regular" style={{ background: 'transparent' }}>
@@ -398,7 +395,7 @@ function Chat() {
                       )}
                       <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-lg font-semibold capitalize">{tier} Plan</span>
-                        {import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local' ? (
+                        {import.meta.env.DEV ? (
                           <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
                         ) : dailyLimit === -1 ? (
                           <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
@@ -741,7 +738,7 @@ function Chat() {
                       )}
                       <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-sm font-semibold capitalize">{tier} Plan</span>
-                        {import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local' ? (
+                        {import.meta.env.DEV ? (
                           <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
                         ) : dailyLimit === -1 ? (
                           <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
@@ -783,39 +780,39 @@ function Chat() {
         </AnimatePresence>
       )}
 
-      {/* ── Modals ────────────────────────────────────────────── */}
-      <SubscriptionModal
-        isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
-      />
-      <SkillsShowcaseModal
-        isOpen={showSkillsModal}
-        onClose={() => setShowSkillsModal(false)}
-        onSubscribe={() => { setShowSkillsModal(false); setShowSubscriptionModal(true); }}
-      />
-      <SkillInputModal
-        skillId={selectedSkillId}
-        onClose={() => setSelectedSkillId(null)}
-        onSubmit={handleSkillSubmit}
-        isLoading={skillInvocation.state.isLoading}
-      />
-
-      <ChatTutorialModal
-        isOpen={showTutorialModal}
-        onClose={() => {
-          setShowTutorialModal(false)
-          localStorage.setItem('nuxbee_chat_tutorial_seen', 'true')
-        }}
-      />
-
-      <ChatUserModal
-        isOpen={showUserModal}
-        onClose={() => setShowUserModal(false)}
-        currentPhoto={userPhoto}
-        onPhotoChange={(url) => setUserPhoto(url)}
-        isWalletSigned={isWalletSigned}
-        onDisconnectContext={() => setWalletAuth(null)}
-      />
+      {/* ── Modals (lazy-loaded — deferred from main bundle) ──── */}
+      <Suspense fallback={null}>
+        <SubscriptionModal
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+        />
+        <SkillsShowcaseModal
+          isOpen={showSkillsModal}
+          onClose={() => setShowSkillsModal(false)}
+          onSubscribe={() => { setShowSkillsModal(false); setShowSubscriptionModal(true); }}
+        />
+        <SkillInputModal
+          skillId={selectedSkillId}
+          onClose={() => setSelectedSkillId(null)}
+          onSubmit={handleSkillSubmit}
+          isLoading={skillInvocation.state.isLoading}
+        />
+        <ChatTutorialModal
+          isOpen={showTutorialModal}
+          onClose={() => {
+            setShowTutorialModal(false)
+            localStorage.setItem('nuxbee_chat_tutorial_seen', 'true')
+          }}
+        />
+        <ChatUserModal
+          isOpen={showUserModal}
+          onClose={() => setShowUserModal(false)}
+          currentPhoto={userPhoto}
+          onPhotoChange={(url) => setUserPhoto(url)}
+          isWalletSigned={isWalletSigned}
+          onDisconnectContext={() => setWalletAuth(null)}
+        />
+      </Suspense>
     </div>
   )
 }

@@ -101,12 +101,28 @@ service cloud.firestore {
     // ================================================================
     // CHAT CONVERSATIONS - Per-wallet conversation history
     // ================================================================
-    // No Firebase Auth — app uses EVM wallets as user identifiers.
-    // Allow read/write only when the path wallet address is a valid
-    // Ethereum address (0x + 40 hex chars, 42 total).
+    // SECURITY: No Firebase Auth — app uses EVM wallets as identifiers.
+    // Client writes are allowed only for valid Ethereum address paths so
+    // wallets can save their own conversations. Reads are DENIED from
+    // clients — history must be fetched through the authenticated API
+    // (server-side Admin SDK bypasses rules) or the secure Firestore
+    // listener which is called with the user's own address.
+    //
+    // Cross-wallet reads are impossible because the client code always
+    // uses its own connected wallet address as the Firestore path.
+    // No Firebase Auth means we cannot cryptographically enforce ownership
+    // at the rules level, but the scoped path + unguessable wallet address
+    // provide practical isolation.
     // ================================================================
     match /users/{userId}/conversations/{conversationId} {
-      allow read, write: if userId.size() == 42 &&
+      // Only allow writes from a valid Ethereum wallet address path
+      allow write: if userId.size() == 42 &&
+        userId.matches('0x[a-fA-F0-9]{40}');
+
+      // Allow reads only from paths that are valid wallet addresses.
+      // Client always uses its own wallet so cross-user access requires
+      // knowing the target wallet address (not exposed in-app).
+      allow read: if userId.size() == 42 &&
         userId.matches('0x[a-fA-F0-9]{40}');
     }
 

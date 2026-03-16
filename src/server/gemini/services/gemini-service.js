@@ -388,16 +388,9 @@ export async function processGeminiRequest(contents, model = DEFAULT_MODEL, para
 
     const text = result.text;
 
-    // Contar tokens usando la nueva API
-    try {
-      const tokenResult = await ai.models.countTokens({
-        model: safeModelName,
-        contents: contents
-      });
-      incrementTokenCount(tokenResult.totalTokens || 0);
-    } catch (tokenError) {
-      console.warn('Error counting tokens:', tokenError);
-    }
+    // Estimate token count without a separate billable API call (~4 chars per token)
+    const estimatedTokens = Math.floor((text || '').length / 4);
+    incrementTokenCount(estimatedTokens);
 
     responseCache.set(cacheKey, text);
     return text;

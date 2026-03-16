@@ -50,7 +50,7 @@ const ContractInfo: React.FC<ContractInfoProps> = memo(({ contractAddress, isPau
             className="jersey-15-regular bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full text-xs lg:text-sm font-medium"
             whileHover={{ scale: 1.05 }}
           >
-            Smart Staking v2
+            Smart Staking v3
           </motion.span>
         </motion.div>
 

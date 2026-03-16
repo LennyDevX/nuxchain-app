@@ -14,11 +14,6 @@ export interface StreamingServiceOptions {
   setInput?: (input: string) => void;
 }
 
-interface WorkerCallback {
-  resolve: (value: unknown) => void;
-  reject: (reason?: unknown) => void;
-}
-
 interface ProcessChunkResult {
   processedContent: string;
   remainingChunk: string;
@@ -27,167 +22,9 @@ interface ProcessChunkResult {
 
 export class StreamingService {
   private activeStreams: Set<ReadableStreamDefaultReader<Uint8Array>>;
-  private webWorker: Worker | null;
-  private pendingWorkerCallbacks: Map<number, WorkerCallback>;
 
   constructor() {
     this.activeStreams = new Set();
-    this.webWorker = null;
-    this.pendingWorkerCallbacks = new Map();
-    this.initializeWebWorker();
-  }
-
-  private initializeWebWorker(): void {
-    try {
-      // Try to create worker from TypeScript file
-      this.webWorker = new Worker(
-        new URL('./streamingWebWorker.ts', import.meta.url),
-        { type: 'module' }
-      );
-      
-      this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
-      this.webWorker.onerror = this.handleWorkerError.bind(this);
-      
-      chatLogger.logDebug('Web Worker inicializado', 'StreamingService');
-      
-    } catch (error) {
-      console.warn('Failed to initialize Web Worker from file, trying fallback:', error);
-      this.tryFallbackWorker();
-    }
-  }
-
-  private tryFallbackWorker(): void {
-    try {
-      const workerScript = this.getWorkerScript();
-      const blob = new Blob([workerScript], { type: 'application/javascript' });
-      this.webWorker = new Worker(URL.createObjectURL(blob));
-      
-      this.webWorker.onmessage = this.handleWorkerMessage.bind(this);
-      this.webWorker.onerror = this.handleWorkerError.bind(this);
-      
-      chatLogger.logDebug('Fallback Web Worker inicializado', 'StreamingService');
-      
-    } catch (error) {
-      console.warn('Web Worker not available, using main thread processing:', error);
-      this.webWorker = null;
-    }
-  }
-
-  private getWorkerScript(): string {
-    return `
-      self.onmessage = function(e) {
-        const { type, data, id } = e.data;
-        
-        switch (type) {
-          case 'PROCESS_STREAM':
-            processStreamChunk(data, id);
-            break;
-          case 'DECODE_TEXT':
-            decodeTextChunk(data, id);
-            break;
-          case 'CLEANUP':
-            cleanup(id);
-            break;
-        }
-      };
-
-      function processStreamChunk(data, id) {
-        try {
-          const { chunk, accumulated, isLowPerformance, chunkIndex } = data;
-          
-          const decoder = new TextDecoder('utf-8', { stream: true });
-          const decodedChunk = decoder.decode(chunk, { stream: true });
-          
-          const fullResponse = decodedChunk;
-          
-          const hasNaturalBreak = decodedChunk.includes('.') || 
-                                 decodedChunk.includes('\\n') || 
-                                 decodedChunk.includes('!') || 
-                                 decodedChunk.includes('?');
-          
-          const shouldUpdate = !isLowPerformance || 
-                              hasNaturalBreak ||
-                              (chunkIndex % 3 === 0);
-          
-          self.postMessage({
-            type: 'CHUNK_PROCESSED',
-            id,
-            data: {
-              fullResponse,
-              remainingChunk: '',
-              shouldUpdate
-            }
-          });
-        } catch (error) {
-          self.postMessage({
-            type: 'ERROR',
-            id,
-            error: error.message
-          });
-        }
-      }
-
-      function decodeTextChunk(data, id) {
-        try {
-          const decoder = new TextDecoder('utf-8');
-          const text = decoder.decode(data.chunk);
-          self.postMessage({
-            type: 'TEXT_DECODED',
-            id,
-            data: { text }
-          });
-        } catch (error) {
-          self.postMessage({
-            type: 'ERROR',
-            id,
-            error: error.message
-          });
-        }
-      }
-
-      function cleanup(id) {
-        self.postMessage({ type: 'CLEANUP_COMPLETE', id });
-      }
-    `;
-  }
-
-  private handleWorkerMessage(e: MessageEvent): void {
-    const { type, data, error, id } = e.data;
-    const callback = this.pendingWorkerCallbacks.get(id);
-    
-    if (!callback) return;
-    
-    switch (type) {
-      case 'CHUNK_PROCESSED':
-        callback.resolve(data);
-        this.pendingWorkerCallbacks.delete(id);
-        break;
-        
-      case 'PROCESSING_ERROR':
-      case 'WORKER_ERROR':
-        console.error('Worker processing error:', error);
-        callback.reject(new Error(error.message || 'Worker processing failed'));
-        this.pendingWorkerCallbacks.delete(id);
-        break;
-        
-      case 'CLEANUP_COMPLETE':
-        callback.resolve(undefined);
-        this.pendingWorkerCallbacks.delete(id);
-        break;
-    }
-  }
-
-  private handleWorkerError(error: ErrorEvent): void {
-    chatLogger.logError('Error en Web Worker', 'StreamingService', {
-      message: error.message,
-      filename: error.filename,
-      lineno: error.lineno
-    });
-    for (const [, callback] of this.pendingWorkerCallbacks) {
-      callback.reject(new Error('Worker error: ' + error.message));
-    }
-    this.pendingWorkerCallbacks.clear();
-    this.webWorker = null;
   }
 
   async processStream({
@@ -428,25 +265,5 @@ export class StreamingService {
 
   destroy(): void {
     this.cancelAllStreams();
-    
-    for (const [, callback] of this.pendingWorkerCallbacks) {
-      callback.reject(new Error('Service destroyed'));
-    }
-    this.pendingWorkerCallbacks.clear();
-    
-    if (this.webWorker) {
-      try {
-        this.webWorker.postMessage({ type: 'CLEANUP', id: 'destroy' });
-      } catch {
-        // Worker might be terminated already
-      }
-      
-      setTimeout(() => {
-        if (this.webWorker) {
-          this.webWorker.terminate();
-          this.webWorker = null;
-        }
-      }, 100);
-    }
   }
 }

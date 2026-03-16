@@ -1,6 +1,6 @@
 import React from 'react';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import MilestonesGrid from '../components/Roadmap/MilestonesGrid';
+import MilestonesGrid from '../components/roadmap/MilestonesGrid';
 
 const RoadmapPage: React.FC = () => {
   const isMobile = useIsMobile();

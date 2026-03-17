@@ -181,12 +181,7 @@ export const ChatUserModal: React.FC<ChatUserModalProps> = ({
               )}
 
               {/* Rate limit bar */}
-              {import.meta.env.DEV ? (
-                <div className="flex items-center gap-2 text-sm text-purple-400/80">
-                  <span>🛠️</span>
-                  <span>Dev Mode - Unlimited</span>
-                </div>
-              ) : dailyLimit === -1 ? (
+              {dailyLimit === -1 ? (
                 <div className="flex items-center gap-2 text-sm text-green-400/80">
                   <span>∞</span>
                   <span>Unlimited requests</span>

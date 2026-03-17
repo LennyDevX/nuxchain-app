@@ -72,7 +72,14 @@ function detectBlockchainQuery(message) {
     text.includes('mio') ||
     text.includes('mía') ||
     text.includes('revisa') ||
-    text.includes('tengo');
+    text.includes('tengo') ||
+    text.includes('my ') ||
+    text.includes('mine') ||
+    text.includes('i have') ||
+    text.includes('my staking') ||
+    text.includes('my balance') ||
+    text.includes('my wallet') ||
+    text.includes('my deposit');
 
   const isOptimizationIntent =
     text.includes('optimiza') ||
@@ -81,7 +88,18 @@ function detectBlockchainQuery(message) {
     text.includes('mejora') ||
     text.includes('recomend') ||
     text.includes('consej') ||
-    text.includes('estrateg');
+    text.includes('estrateg') ||
+    text.includes('recommend') ||
+    text.includes('suggest') ||
+    text.includes('advice') ||
+    text.includes('improve') ||
+    text.includes('optimize') ||
+    text.includes('maximize') ||
+    text.includes('strategy') ||
+    text.includes('should i') ||
+    text.includes('what should') ||
+    text.includes('best option') ||
+    text.includes('better');
   
   // Detectar queries de precio POL
   if ((text.includes('pol') || text.includes('matic') || text.includes('polygon')) &&
@@ -779,22 +797,22 @@ export async function generateContent(req, res, next = null) {
           
           if (blockchainContext) {
             const isStakingAdviceQuery =
-              /(optimiza|optimizar|mejorar|recomend|consej|estrateg)/i.test(queryText) &&
+              /(optimiza|optimizar|mejorar|recomend|consej|estrateg|recommend|suggest|advice|improve|optimize|maximize|strategy|best|should|better)/i.test(queryText) &&
               /(stake|staking|recompens|rewards)/i.test(queryText);
 
             // Crear instrucción específica para respuestas de datos blockchain
             const blockchainSystemPrompt = isStakingAdviceQuery
-              ? `INSTRUCCIONES CRÍTICAS:
-1. Usa los datos on-chain proporcionados para este usuario
-2. Responde en español con 3-5 recomendaciones ACCIONABLES para optimizar rewards
-3. Menciona cifras clave (depositado, rewards pendientes, tipo de depósitos)
-4. NO busques en base de conocimiento; usa SOLO estos datos + buenas prácticas generales
-5. Sé claro y conciso
+              ? `CRITICAL INSTRUCTIONS:
+1. Use the on-chain data provided for this user
+2. Respond in the same language the user used (English or Spanish) with 3-5 ACTIONABLE recommendations to optimize rewards
+3. Mention key figures (deposited, pending rewards, deposit types)
+4. Do NOT search the knowledge base; use ONLY this data + general best practices
+5. Be clear and concise
 
-DATOS EN TIEMPO REAL (USUARIO):
+REAL-TIME USER DATA:
 ${blockchainContext}
 
-Formato sugerido: 1 frase con resumen + 3-5 bullets cortos.`
+Suggested format: 1 summary sentence + 3-5 short bullets.`
               : `INSTRUCCIONES CRÍTICAS:
 1. Responde DIRECTAMENTE con los datos proporcionados
 2. Sé BREVE y PRECISO - máximo 2-3 oraciones

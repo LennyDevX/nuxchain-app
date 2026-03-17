@@ -24,9 +24,9 @@ export const LAUNCHPAD_CONFIG = {
       cap: 12_000_000,          // Total NUX available (12% of supply) - INCREASED
       start: new Date('2026-03-02T00:00:00Z'),
       end: null,                  // No date-based close — ends at 80% cap
-      requiresWhitelist: true,
+      requiresWhitelist: false,
       color: 'emerald',
-      description: 'Exclusive access for Airdrop participants',
+      description: 'Early access with best price',
     },
     2: {
       id: 2,

@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react'
+import React, { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { makeToastStyle } from '../utils/toasts/toastStyles'
@@ -12,7 +12,7 @@ import ImagePreviewStrip from '../components/chat/ImagePreviewStrip'
 import WelcomeScreen from '../components/chat/WelcomeScreen'
 import NetworkBackground from '../components/home/NetworkBackground'
 import SkillsPanel from '../components/ai/SkillsPanel'
-// Lazy-load heavy modals — deferred from main bundle
+// Lazy-load heavy modals � deferred from main bundle
 import { PROFILE_PHOTO_KEY } from '../components/chat/ChatUserModal'
 const SubscriptionModal = React.lazy(() => import('../components/chat/subscription/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })))
 const SkillsShowcaseModal = React.lazy(() => import('../components/chat/subscription/SkillsShowcaseModal').then(m => ({ default: m.SkillsShowcaseModal })))
@@ -35,7 +35,7 @@ import type { GeminiModel, SkillId } from '../constants/subscription'
 import type { ImageAttachment } from '../../api/types/index.js'
 import type { PendingImage } from '../utils/image/compressImage'
 
-const PANEL_WIDTH = 320 // px — matches w-80
+const PANEL_WIDTH = 320 // px � matches w-80
 
 /** Builds the canonical sign message (must match api/_middlewares/wallet-auth.ts) */
 function buildSignMessage(walletAddress: string, timestamp: number): string {
@@ -97,7 +97,7 @@ function Chat() {
     if (!isConnected) {
       setWalletAuth(null)
     } else if (evmAddress && walletAuth && walletAuth.walletAddress.toLowerCase() !== evmAddress.toLowerCase()) {
-      // Different wallet connected — clear old auth
+      // Different wallet connected � clear old auth
       setWalletAuth(null)
     }
   }, [isConnected, evmAddress, walletAuth, setWalletAuth])
@@ -115,7 +115,7 @@ function Chat() {
       const msg = buildSignMessage(evmAddress, timestamp)
       const sig = await signMessageAsync({ message: msg })
       setWalletAuth({ walletAddress: evmAddress, message: msg, signature: sig })
-      toast.success('✅ Wallet verified! NuxBee AI now has your full on-chain context.', { style: makeToastStyle('success') })
+      toast.success('? Wallet verified! NuxBee AI now has your full on-chain context.', { style: makeToastStyle('success') })
     } catch (err) {
       if ((err as Error)?.message?.includes('User rejected') || (err as Error)?.message?.includes('rejected')) {
         toast.error('Signature cancelled.', { style: makeToastStyle('error') })
@@ -157,7 +157,7 @@ function Chat() {
     }
   }, [])
 
-  // Auto-scroll is handled by ChatMessage component internally — removed to avoid dual scroll
+  // Auto-scroll is handled by ChatMessage component internally � removed to avoid dual scroll
 
   // Save to Firebase when streaming ends and we have messages
   const wasStreamingRef = useRef(false)
@@ -290,7 +290,7 @@ function Chat() {
 
   return (
     <div className="fixed inset-0 md:top-20 flex flex-col overflow-hidden text-white font-sans z-40 md:pb-0 jersey-20-regular" style={{ background: 'transparent' }}>
-      {/* Animated network background — only visible on welcome screen */}
+      {/* Animated network background � only visible on welcome screen */}
       <AnimatePresence>
         {showWelcome && (
           <motion.div
@@ -306,10 +306,10 @@ function Chat() {
         )}
       </AnimatePresence>
 
-      {/* ── Main layout: optional desktop sidebar + chat area ──── */}
+      {/* -- Main layout: optional desktop sidebar + chat area ---- */}
         <div className="flex flex-1 min-h-0 relative overflow-hidden">
 
-        {/* ── Desktop sidebar (slides in from left) ───────────── */}
+        {/* -- Desktop sidebar (slides in from left) ------------- */}
         {!isMobile && (
           <AnimatePresence>
             {showPanel && (
@@ -328,8 +328,7 @@ function Chat() {
                     onClick={handleNewChat}
                     className="flex justify-between items-center w-full bg-[#212121] hover:bg-[#303030] border border-[#3A3A3A] px-4 py-3 rounded-2xl transition-colors duration-200"
                   >
-                    <span className="font-medium text-[15px]">New chat</span>
-                    <span className="text-xl">✍️</span>
+                    <span className="font-medium text-[15px] text-cente">New chat</span>
                   </button>
 
                   <div className="mt-8 flex-1 overflow-y-auto pr-1">
@@ -345,23 +344,28 @@ function Chat() {
                         <p className="text-xs text-white/50 uppercase tracking-widest font-semibold ml-2 mb-3">History</p>
                         <div className="flex flex-col gap-2 px-2">
                           {history.map(conv => (
-                            <button 
-                              key={conv.id}
-                              onClick={() => handleLoadHistory(conv)}
-                              className="relative text-left p-3 pr-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group"
-                            >
-                              <div className="text-sm font-medium truncate text-white/90 group-hover:text-purple-400">
-                                {conv.title || 'Untitled Chat'}
-                              </div>
-                              <div className="text-[11px] text-white/40 mt-1">
-                                {new Date(conv.timestamp).toLocaleDateString()}
-                              </div>
-                              <span
+                            <div key={conv.id} className="relative group">
+                              <button 
+                                onClick={() => handleLoadHistory(conv)}
+                                className="w-full text-left p-3 pr-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                              >
+                                <div className="text-sm font-medium truncate text-white/90 group-hover:text-purple-400">
+                                  {conv.title || 'Untitled Chat'}
+                                </div>
+                                <div className="text-[11px] text-white/40 mt-1">
+                                  {new Date(conv.timestamp).toLocaleDateString()}
+                                </div>
+                              </button>
+                              <button
                                 onClick={(e) => handleDeleteHistory(e, conv.id)}
-                                className="absolute top-2 right-2 text-white/20 hover:text-red-400 transition-colors text-xs p-1"
+                                className="absolute top-1/2 -translate-y-1/2 right-2 w-6 h-6 flex items-center justify-center rounded-md text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
                                 title="Delete"
-                              >✕</span>
-                            </button>
+                              >
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                </svg>
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -371,8 +375,8 @@ function Chat() {
                   {/* Sidebar Bottom: Plan Details */}
                   <div className="mt-4 pt-4 border-t border-[#2A2A2A] px-2 flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      {/* Left: circular ring in prod free tier, tier icon otherwise */}
-                      {(!(import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local') && dailyLimit > 0) ? (
+                      {/* Left: circular ring for free tier, tier icon for paid */}
+                      {(dailyLimit > 0) ? (
                         <div className="relative w-9 h-9 flex-shrink-0">
                           <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
                             <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
@@ -390,15 +394,13 @@ function Chat() {
                         </div>
                       ) : (
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
-                          {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
+                          {tier === 'premium' ? '??' : tier === 'pro' ? '?' : '??'}
                         </div>
                       )}
                       <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-lg font-semibold capitalize">{tier} Plan</span>
-                        {import.meta.env.DEV ? (
-                          <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
-                        ) : dailyLimit === -1 ? (
-                          <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
+                        {dailyLimit === -1 ? (
+                          <span className="text-xs text-green-400/80">8 Unlimited requests</span>
                         ) : (
                           <div className="flex items-center gap-1">
                             <span className="text-sm font-bold text-white/90 tabular-nums">{dailyUsed}</span>
@@ -411,7 +413,7 @@ function Chat() {
                     </div>
                     {isExpiringSoon && (
                       <div className="text-xs text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-lg border border-yellow-400/20">
-                        ⚠️ Plan expires soon
+                        ?? Plan expires soon
                       </div>
                     )}
                     
@@ -434,7 +436,7 @@ function Chat() {
                               >
                                 <div className="flex items-center justify-between">
                                   <span className="font-medium">{model.label}</span>
-                                  <span className="text-sm">{selectedModel === modelId ? '✓' : ''}</span>
+                                  <span className="text-sm">{selectedModel === modelId ? '?' : ''}</span>
                                 </div>
                                 <div className="text-[11px] text-white/40 mt-0.5">{model.description}</div>
                               </button>
@@ -449,7 +451,7 @@ function Chat() {
                         onClick={() => setShowSubscriptionModal(true)}
                         className="w-full text-center text-3xl font-medium py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                       >
-                        <span>✨</span> Upgrade Plan
+                        <span>?</span> Upgrade Plan
                       </button>
                     ) : (
                       <button
@@ -469,7 +471,7 @@ function Chat() {
         {/* Chat column */}
         <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
 
-          {/* ── Action bar ── */}
+          {/* -- Action bar -- */}
           <motion.div
             className="flex-shrink-0 flex items-center justify-between px-3 md:px-6 py-3 z-20"
             initial={{ opacity: 0, y: -8 }}
@@ -483,7 +485,12 @@ function Chat() {
                 className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 text-white/70 transition-colors"
                 aria-label="Toggle sidebar"
               >
-                <span className="text-4xl">≡</span>
+                <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="0" y="0" width="20" height="2" rx="1" fill="currentColor"/>
+                  <rect x="0" y="5.33" width="20" height="2" rx="1" fill="currentColor"/>
+                  <rect x="0" y="10.67" width="20" height="2" rx="1" fill="currentColor"/>
+                  <rect x="0" y="16" width="20" height="2" rx="1" fill="currentColor"/>
+                </svg>
               </button>
             </div>
 
@@ -512,7 +519,7 @@ function Chat() {
             </button>
           </motion.div>
 
-          {/* ── Messages / Welcome area ──────────────────────────── */}
+          {/* -- Messages / Welcome area ---------------------------- */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent hover:scrollbar-thumb-white/20 min-h-0 flex flex-col">
             {showWelcome ? (
               /* Gemini-style: vertically centered welcome */
@@ -528,7 +535,7 @@ function Chat() {
             )}
           </div>
 
-          {/* ── Fixed bottom input — always visible (welcome + active) ──── */}
+          {/* -- Fixed bottom input � always visible (welcome + active) ---- */}
           <motion.div
             className={`flex-shrink-0 z-10 bg-gradient-to-t from-black/80 via-black/50 to-transparent pt-4 md:pt-8 ${optimizationConfig.reduceAnimations ? '' : 'transition-transform duration-300'} ${isDragging ? 'pointer-events-none' : ''}`}
             style={{
@@ -544,7 +551,7 @@ function Chat() {
                 className="relative"
               >
                 
-                {/* ── Wallet Sign Banner ── */}
+                {/* -- Wallet Sign Banner -- */}
                 {isConnected && !isWalletSigned && (
                   <motion.div
                     initial={{ opacity: 0, y: -6 }}
@@ -552,7 +559,7 @@ function Chat() {
                     className="mb-3 flex items-center justify-between gap-3 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30"
                   >
                     <div className="flex items-center gap-2 text-sm text-white/80">
-                      <span>🔐</span>
+                      <span>🔒</span>
                       <span className="hidden sm:inline">Sign your wallet to unlock personalized AI context</span>
                       <span className="sm:hidden">Sign wallet for AI context</span>
                     </div>
@@ -562,7 +569,7 @@ function Chat() {
                       disabled={isSigning}
                       className="flex-shrink-0 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 disabled:opacity-50 text-white text-sm font-semibold transition-all"
                     >
-                      {isSigning ? '⏳ Signing...' : '✍️ Sign'}
+                      {isSigning ? '🔒 Signing...' : '🔒 Sign'}
                     </button>
                   </motion.div>
                 )}
@@ -572,7 +579,7 @@ function Chat() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-3 px-4 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-sm text-white/50 text-center"
                   >
-                    🔌 Connect your wallet to unlock personalized AI context
+                    Connect your wallet to unlock personalized AI context
                   </motion.div>
                 )}
 
@@ -580,16 +587,16 @@ function Chat() {
                 {(isUsingUrlContext || blockchainAction || isSearchingKB || isAnalyzingImage) && (
                   <motion.div className="mb-3 flex items-center" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="px-4 py-2 border border-purple-500/30 rounded-full bg-gradient-to-r from-purple-900/20 to-blue-900/20 flex items-center space-x-2 text-sm text-white/80 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                      {isUsingUrlContext && <span className="font-medium">🔍 Analyzing URL...</span>}
+                      {isUsingUrlContext && <span className="font-medium">🌐 Analyzing URL...</span>}
                       {blockchainAction && <span className="font-medium">{blockchainAction}</span>}
                       {isAnalyzingImage && !blockchainAction && (
                         <motion.span className="font-medium flex items-center gap-2" animate={{ opacity: [1, 0.6, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                          <span>📸</span> Analyzing image...
+                          <span>🖼️</span> Analyzing image...
                         </motion.span>
                       )}
                       {isSearchingKB && !blockchainAction && !isAnalyzingImage && (
                         <motion.span className="font-medium flex items-center gap-2" animate={{ opacity: [1, 0.6, 1] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                          <span>⚡</span> Searching Knowledge Base...
+                          <span>📚</span> Searching Knowledge Base...
                         </motion.span>
                       )}
                     </div>
@@ -643,7 +650,7 @@ function Chat() {
         </div>
       </div>
 
-      {/* ── Mobile Sidebar (slides in from left) ─── */}
+      {/* -- Mobile Sidebar (slides in from left) --- */}
       {isMobile && (
         <AnimatePresence>
           {showPanel && (
@@ -669,7 +676,7 @@ function Chat() {
               >
                 <div className="flex-1 flex flex-col  w-full h-full overflow-hidden px-3">
                   <div className="flex justify-between  items-center mb-6 pl-1 pr-1">
-                     <button onClick={() => setShowPanel(false)} className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 text-white/70">✕</button>
+                     <button onClick={() => setShowPanel(false)} className="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 text-white/70">?</button>
                   </div>
                   {/* New Chat Button */}
                   <button
@@ -677,7 +684,6 @@ function Chat() {
                     className="flex justify-between items-center w-full bg-[#212121] hover:bg-[#303030] border border-[#3A3A3A] px-4 py-3 rounded-2xl transition-colors duration-200"
                   >
                     <span className="font-medium text-[15px]">New chat</span>
-                    <span className="text-xl">✍️</span>
                   </button>
 
                   <div className="mt-8 flex-1 overflow-y-auto pr-1">
@@ -693,18 +699,28 @@ function Chat() {
                         <p className="text-xs text-white/50 uppercase tracking-widest font-semibold ml-2 mb-3">History</p>
                         <div className="flex flex-col gap-2 px-2">
                           {history.map(conv => (
-                            <button 
-                              key={conv.id}
-                              onClick={() => { handleLoadHistory(conv); setShowPanel(false); }}
-                              className="text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all group"
-                            >
-                              <div className="text-sm font-medium truncate text-white/90 group-hover:text-purple-400">
-                                {conv.title || 'Untitled Chat'}
-                              </div>
-                              <div className="text-[11px] text-white/40 mt-1">
-                                {new Date(conv.timestamp).toLocaleDateString()}
-                              </div>
-                            </button>
+                            <div key={conv.id} className="relative group">
+                              <button 
+                                onClick={() => { handleLoadHistory(conv); setShowPanel(false); }}
+                                className="w-full text-left p-3 pr-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all"
+                              >
+                                <div className="text-sm font-medium truncate text-white/90 group-hover:text-purple-400">
+                                  {conv.title || 'Untitled Chat'}
+                                </div>
+                                <div className="text-[11px] text-white/40 mt-1">
+                                  {new Date(conv.timestamp).toLocaleDateString()}
+                                </div>
+                              </button>
+                              <button
+                                onClick={(e) => handleDeleteHistory(e, conv.id)}
+                                className="absolute top-1/2 -translate-y-1/2 right-2 w-6 h-6 flex items-center justify-center rounded-md text-white/20 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
+                                title="Delete"
+                              >
+                                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                </svg>
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -714,8 +730,8 @@ function Chat() {
                   {/* Sidebar Bottom: Plan Details */}
                   <div className="mt-4 pt-4 border-t border-[#2A2A2A] px-2 flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      {/* Left: circular ring in prod free tier, tier icon otherwise */}
-                      {(!(import.meta.env.DEV || import.meta.env.VITE_APP_ENV === 'local') && dailyLimit > 0) ? (
+                      {/* Left: circular ring for free tier, tier icon for paid */}
+                      {(dailyLimit > 0) ? (
                         <div className="relative w-9 h-9 flex-shrink-0">
                           <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
                             <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="3.5" />
@@ -733,15 +749,13 @@ function Chat() {
                         </div>
                       ) : (
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${tier === 'premium' ? 'bg-purple-500/20 text-purple-400' : tier === 'pro' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-white/70'}`}>
-                          {tier === 'premium' ? '💎' : tier === 'pro' ? '⚡' : '🤖'}
+                          {tier === 'premium' ? '??' : tier === 'pro' ? '?' : '??'}
                         </div>
                       )}
                       <div className="flex-1 flex flex-col gap-0.5">
                         <span className="text-sm font-semibold capitalize">{tier} Plan</span>
-                        {import.meta.env.DEV ? (
-                          <span className="text-xs text-purple-400/80 font-medium">🛠️ Dev Mode</span>
-                        ) : dailyLimit === -1 ? (
-                          <span className="text-xs text-green-400/80">∞ Unlimited requests</span>
+                        {dailyLimit === -1 ? (
+                          <span className="text-xs text-green-400/80">8 Unlimited requests</span>
                         ) : (
                           <div className="flex items-center gap-1">
                             <span className="text-sm font-bold text-white/90 tabular-nums">{dailyUsed}</span>
@@ -754,7 +768,7 @@ function Chat() {
                     </div>
                     {isExpiringSoon && (
                       <div className="text-xs text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-lg border border-yellow-400/20">
-                        ⚠️ Plan expires soon
+                        ?? Plan expires soon
                       </div>
                     )}
                     {!isPaid ? (
@@ -762,7 +776,7 @@ function Chat() {
                         onClick={() => { setShowPanel(false); setShowSubscriptionModal(true); }}
                         className="w-full text-center text-2xl font-medium py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                       >
-                        <span>✨</span> Upgrade Plan
+                        <span>?</span> Upgrade Plan
                       </button>
                     ) : (
                       <button
@@ -780,7 +794,7 @@ function Chat() {
         </AnimatePresence>
       )}
 
-      {/* ── Modals (lazy-loaded — deferred from main bundle) ──── */}
+      {/* -- Modals (lazy-loaded � deferred from main bundle) ---- */}
       <Suspense fallback={null}>
         <SubscriptionModal
           isOpen={showSubscriptionModal}

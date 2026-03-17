@@ -73,11 +73,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const lastWallet = useRef<string | null>(null);
 
   const fetchStatus = useCallback(async (wallet: string) => {
-    // Skip API call in dev builds — prevents 401 noise in console
-    if (import.meta.env.DEV) {
-      setState(prev => ({ ...prev, loading: false, error: null }));
-      return;
-    }
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
       const res = await fetch(
@@ -144,8 +139,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   }, [publicKey, fetchStatus]);
 
   const [dailyUsed, setDailyUsed] = useState(() => {
-    // In dev builds, skip tracking entirely
-    if (import.meta.env.DEV) return 0;
     try {
       const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
       return parseInt(localStorage.getItem(key) || '0', 10);
@@ -153,9 +146,6 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   });
 
   const trackUsage = useCallback(() => {
-    // In dev builds, skip tracking
-    if (import.meta.env.DEV) return;
-
     const key = `nuxbee_daily_${new Date().toISOString().slice(0, 10)}`;
     // Read current count (safe)
     let current = 0;

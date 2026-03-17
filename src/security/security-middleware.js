@@ -106,7 +106,10 @@ export const apiKeyAuth = (req, res, next) => {
     '/chat/upload-image',
     '/api/chat/upload-image',
     '/api/price/solana',
-    '/price/solana'
+    '/price/solana',
+    '/subscriptions/status',
+    '/api/subscriptions/status',
+    '/server/subscriptions/status'
   ];
   
   // Verificar si la ruta coincide con algún endpoint público

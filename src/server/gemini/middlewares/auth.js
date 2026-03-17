@@ -6,12 +6,16 @@ function auth(req, res, next) {
     return next();
   }
   
+  // Public endpoints que no requieren autenticación
+  const publicEndpoints = ['/stream', '/subscriptions/'];
+  const isPublicEndpoint = publicEndpoints.some(endpoint => req.path.includes(endpoint));
+  
   // En producción (Vercel), verificar API key solo para endpoints sensibles
   const sensitiveEndpoints = ['/batch/', '/analytics/', '/admin/'];
   const isSensitiveEndpoint = sensitiveEndpoints.some(endpoint => req.path.includes(endpoint));
   
-  // Para endpoints públicos como /stream, permitir acceso sin API key
-  if (!isSensitiveEndpoint) {
+  // Para endpoints públicos como /stream y /subscriptions, permitir acceso sin API key
+  if (isPublicEndpoint || !isSensitiveEndpoint) {
     return next();
   }
   

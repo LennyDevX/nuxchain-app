@@ -103,8 +103,8 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
     text.includes('apr') || text.includes('apy');
 
   const mentionsRewardsOrDeposits = /(reward|recompens|ganancia|pendiente|acumulad|deposit|dep[oó]sit|bloquead|locked|unlock|retirable|withdraw)\b/i.test(text);
-  const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera|he|cuántas?|cuantas?)\b/i.test(text);
-  const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar)\b/i.test(text);
+  const isUserIntent = /\b(mi|mis|m[ií]o|m[ií]a|revisa|tengo|cu[aá]nto tengo|mi wallet|mi cartera|he|cuántas?|cuantas?|my|mine|i have|my wallet|my balance|my staking|my deposit)\b/i.test(text);
+  const isOptimizationIntent = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar|recommend|suggest|advice|improve|optimize|maximize|strategy|should i|what should|best option|better)\b/i.test(text);
 
   if (mentionsStakingKeyword) {
     functions.push('get_staking_info');
@@ -782,9 +782,10 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     }
     
     // Enriquecer mensaje con contexto blockchain si existe
-    const isStakingAdviceQuery = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar).*(staking|stake|rewards|recompens)/i.test(messageContent);
+    const isStakingAdviceQuery = /(optimizar|mejorar|recomend|consej|estrateg|maximiz|aumentar|recommend|suggest|advice|improve|optimize|maximize|strategy|best|should|better)/i.test(messageContent) &&
+      /(staking|stake|rewards|recompens)/i.test(messageContent);
     const stakingAdvicePreamble = isStakingAdviceQuery
-      ? 'INSTRUCCIONES: Usa los datos on-chain del usuario en el CONTEXTO BLOCKCHAIN. Da 3-5 recomendaciones accionables y concretas (qué hacer y por qué), y menciona si hay Auto-Compound, rewards pendientes y si conviene mover Flexible -> Locked segun APY y liquidez.\n\n'
+      ? 'INSTRUCTIONS: Use the user\'s on-chain data in the BLOCKCHAIN CONTEXT below. Provide 3-5 concrete, actionable recommendations (what to do and why), mentioning Auto-Compound status, pending rewards, and whether moving Flexible → Locked makes sense given APY and liquidity. Respond in the same language the user used.\n\n'
       : '';
 
     // \ud83d\udd17 Build enriched message with all contexts

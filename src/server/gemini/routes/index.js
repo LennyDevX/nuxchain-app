@@ -3,6 +3,7 @@ import geminiRoutes from './gemini-routes.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
 import airdropRoutes from './airdrop-routes.js';
 import skillsRoutes from './skills-routes.js';
+import subscriptionsRoutes from './subscriptions-routes.js';
 import errorHandler from '../middlewares/error-handler.js';
 import costTrackingService from '../services/cost-tracking-service.js';
 import tokenCountingService from '../services/token-counting-service.js';
@@ -86,6 +87,9 @@ router.use('/airdrop', airdropRoutes);
 
 // 🧠 AI Skills routes (all 9 skill endpoints, no tier gating in local dev)
 router.use('/skills', skillsRoutes);
+
+// 💳 Subscriptions routes
+router.use('/subscriptions', subscriptionsRoutes);
 
 // 🌐 PUBLIC: Price proxy - no auth required
 router.get('/price/solana', async (_, res) => {

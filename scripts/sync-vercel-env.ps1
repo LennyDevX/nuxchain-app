@@ -86,30 +86,47 @@ Write-Host ""
 
 $added = 0
 $skipped = 0
+$environments = @("production", "preview", "development")
 
 foreach ($varName in $contractVars) {
     if ($envDict.ContainsKey($varName)) {
         $value = $envDict[$varName]
         
-        Write-Host "Agregando: $varName" -ForegroundColor Cyan
+        Write-Host "Agregando: $varName → production + preview + development" -ForegroundColor Cyan
         
-        # Remove existing var first (to overwrite BOM-corrupted values)
-        & npx vercel env rm $varName production --yes 2>&1 | Out-Null
-        
-        # Write value as UTF-8 WITHOUT BOM (critical: Set-Content defaults to UTF-16 LE on PS5)
+        # Write value as UTF-8 WITHOUT BOM (critical for consistent encoding)
         $tempFile = [System.IO.Path]::GetTempFileName()
         [System.IO.File]::WriteAllText($tempFile, $value, [System.Text.UTF8Encoding]::new($false))
         
-        $output = & cmd /c "type `"$tempFile`" | npx vercel env add $varName production --non-interactive 2>&1"
+        # Temp file with value + empty newline to auto-answer "all branches" prompt for preview
+        $tempFilePreview = [System.IO.Path]::GetTempFileName()
+        [System.IO.File]::WriteAllText($tempFilePreview, "$value`n", [System.Text.UTF8Encoding]::new($false))
+        
+        $anyError = $false
+        foreach ($env in $environments) {
+            # Remove existing var first (to overwrite stale/BOM-corrupted values)
+            & npx vercel env rm $varName $env --yes 2>&1 | Out-Null
+            
+            if ($env -eq "preview") {
+                # Preview needs stdin: VALUE + empty newline to accept "all branches" without prompting
+                $output = & cmd /c "type `"$tempFilePreview`" | npx vercel env add $varName $env --non-interactive 2>&1"
+            } else {
+                $output = & cmd /c "type `"$tempFile`" | npx vercel env add $varName $env --non-interactive 2>&1"
+            }
+            $outputStr = if ($output -is [array]) { $output -join " " } else { "$output" }
+            
+            if ($LASTEXITCODE -eq 0 -or $outputStr -like "*added*" -or $outputStr -like "*already*" -or $outputStr -like "*Created*") {
+                Write-Host "  OK [$env]" -ForegroundColor Green
+            } else {
+                Write-Host "  ERROR [$env]: $output" -ForegroundColor Red
+                $anyError = $true
+            }
+        }
         
         Remove-Item -Path $tempFile -Force
+        Remove-Item -Path $tempFilePreview -Force
         
-        if ($LASTEXITCODE -eq 0 -or $output -like "*added*" -or $output -like "*already*") {
-            Write-Host "  OK: Sincronizada" -ForegroundColor Green
-            $added++
-        } else {
-            Write-Host "  ERROR: $output" -ForegroundColor Red
-        }
+        if (-not $anyError) { $added++ }
     } else {
         Write-Host "  OMITIDA: No encontrada en .env" -ForegroundColor Yellow
         $skipped++
@@ -135,7 +152,7 @@ $validated = 0
 $missing = @()
 
 foreach ($varName in $contractVars) {
-    $testOutput = npx vercel env list production 2>&1 | Select-String $varName
+    $testOutput = npx vercel env list 2>&1 | Select-String $varName
     
     if ($testOutput) {
         Write-Host "  OK: $varName" -ForegroundColor Green

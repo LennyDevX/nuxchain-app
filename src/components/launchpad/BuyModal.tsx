@@ -55,30 +55,21 @@ export default function BuyModal({ tierId, onClose, onSuccess }: BuyModalProps) 
     try {
       const res = await fetch(`/api/launchpad/verify-whitelist?wallet=${publicKey.toBase58()}`);
       if (!res.ok) {
-        // In dev mode, bypass whitelist check so the full flow can be tested
-        if (import.meta.env.DEV) {
-          console.warn('[verify-whitelist] API unavailable in dev — bypassing whitelist check');
-          setWhitelistStatus('eligible');
-          setTimeout(() => setStep('input'), 800);
-          return;
-        }
-        console.error('[verify-whitelist] API error:', res.status);
-        setWhitelistStatus('error');
-        return;
-      }
-      const data = await res.json();
-      setWhitelistStatus(data.eligible ? 'eligible' : 'ineligible');
-      if (data.eligible) setTimeout(() => setStep('input'), 1200);
-    } catch (err) {
-      // In dev mode, bypass whitelist check so the full flow can be tested
-      if (import.meta.env.DEV) {
-        console.warn('[verify-whitelist] Network error in dev — bypassing whitelist check');
+        // Si el endpoint falla, permitir acceso de todas formas (abierto para todos)
+        console.warn('[verify-whitelist] API unavailable — allowing access anyway');
         setWhitelistStatus('eligible');
         setTimeout(() => setStep('input'), 800);
         return;
       }
-      console.error('[verify-whitelist] Network error:', err);
-      setWhitelistStatus('error');
+      const data = await res.json();
+      // Siempre permitir acceso (todos los tiers abiertos para todos)
+      setWhitelistStatus('eligible');
+      setTimeout(() => setStep('input'), 800);
+    } catch (err) {
+      // Si hay error de red, permitir acceso de todas formas
+      console.warn('[verify-whitelist] Network error — allowing access anyway');
+      setWhitelistStatus('eligible');
+      setTimeout(() => setStep('input'), 800);
     }
   }
 

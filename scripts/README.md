@@ -86,13 +86,15 @@ node scripts/maintenance/wipe-bots.cjs
 
 | Archivo | Propósito |
 |---------|-----------|
-| `analysis/search-wallet-advanced.cjs` | Búsqueda individual interactiva |
-| `analysis/bulk-wallet-analysis.cjs` | Análisis masivo de todas las wallets |
-| `analysis/analyze-registrations.cjs` | Analizador de registraciones (original) |
-| `maintenance/wipe-bots.cjs` | Eliminador de bots (original) |
-| `analysis/search-wallet.cjs` | Búsqueda simple (deprecated) |
+| `analysis/bulk-wallet-analysis.cjs` | Análisis masivo de todas las wallets + CSV report |
+| `analysis/search-wallet-advanced.cjs` | Búsqueda individual interactiva con intel completa |
+| `analysis/wallet-debug.cjs` | Debug rápido de wallet individual (CLI) |
+| `analysis/test-api.cjs` | Tester de endpoints API en local |
+| `maintenance/wipe-bots.cjs` | Eliminador de bots post-análisis |
+| `maintenance/backup-and-wipe-registrations.cjs` | Backup + wipe de la colección completa |
+| `maintenance/delete-registration.cjs` | Eliminar registro individual |
+| `maintenance/maintenance-control.cjs` | Toggle de maintenance mode |
 | `maintenance/CleanCacheDist.js` | Limpieza de cache y dist |
-| `setup/check-env.js` | Verificación de entorno |
 
 ---
 

@@ -329,7 +329,14 @@ export default function ContractManager() {
               <div className="bg-[#0a0a0a]/40 rounded-lg p-3 border border-[rgba(255,255,255,0.05)]">
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Status</p>
                 {!isPausable ? (
-                  <p className="text-slate-400 font-medium">N/A</p>
+                  detectedContract.type !== 'unknown' ? (
+                    <p className="text-[#10b981] font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] inline-block"/>
+                      Active
+                    </p>
+                  ) : (
+                    <p className="text-slate-400 font-medium">N/A</p>
+                  )
                 ) : pausedLoading ? (
                   <p className="text-slate-400 animate-pulse">Checking...</p>
                 ) : pausedData === true ? (

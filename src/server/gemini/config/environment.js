@@ -62,7 +62,7 @@ export default {
   geminiApiKey: process.env.GEMINI_API_KEY,
   serverApiKey: process.env.SERVER_API_KEY,
   alchemyKey: process.env.ALCHEMY_API_KEY || process.env.VITE_ALCHEMY,
-  polygonScanKey: process.env.POLYGONSCAN_API_KEY,
+  polygonScanKey: process.env.VITE_ETHERSCAN_API_KEY,
   isVercel: Boolean(detectedVercel),
   nodeEnv: process.env.NODE_ENV || 'development',
   isEnvironmentValid: isValid,

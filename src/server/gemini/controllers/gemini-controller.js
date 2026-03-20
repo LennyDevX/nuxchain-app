@@ -127,10 +127,9 @@ function detectBlockchainQuery(message) {
     functions.push('get_nft_listings');
   }
   
-  // Detectar queries de wallet/balance - incluir "mi balance", "mi wallet", etc.
+  // Detectar queries de wallet/balance
   if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
-      (text.includes('0x') || text.includes('direccion') || text.includes('address') ||
-       text.includes('mi ') || text.includes('mio') || text.includes('tengo') || text.includes('revisa'))) {
+      (text.includes('0x') || text.includes('direccion') || text.includes('address') || isUserIntent)) {
     functions.push('check_wallet_balance');
   }
   
@@ -165,7 +164,8 @@ function detectBlockchainQuery(message) {
 
   // Detectar queries de historial de actividad (subgraph)
   const isHistoryQuery =
-    /\b(historial|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?))\b/i.test(text);
+    /\b(historial|history|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis? (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?)|my (withdrawals?|total deposits?|nfts? minted|total activity|transaction history|transactions))\b/i.test(text) ||
+    /\b(total deposited|total withdrawn|my activity|my transactions?|all my deposits?)\b/i.test(text);
   if (isHistoryQuery && !functions.includes('get_user_history')) {
     functions.push('get_user_history');
   }
@@ -813,23 +813,23 @@ REAL-TIME USER DATA:
 ${blockchainContext}
 
 Suggested format: 1 summary sentence + 3-5 short bullets.`
-              : `INSTRUCCIONES CRÍTICAS:
-1. Responde DIRECTAMENTE con los datos proporcionados
-2. Sé BREVE y PRECISO - máximo 2-3 oraciones
-3. Muestra el dato exacto con claridad
-4. NO busques en base de conocimiento - usa SOLO los datos proporcionados
-5. NO divagues ni añadas información extra
-6. NO menciones fuentes técnicas (RPC, API, etc) al usuario
+              : `CRITICAL INSTRUCTIONS:
+1. Answer DIRECTLY using the provided on-chain data
+2. Be BRIEF and PRECISE — maximum 2-3 sentences
+3. Display the exact figure clearly
+4. Do NOT search the knowledge base — use ONLY the provided data
+5. Do NOT add extra information or context
+6. Do NOT mention technical sources (RPC, API, smart contract, etc.) to the user
+7. Respond in the same language the user used
 
-DATOS EN TIEMPO REAL:
+REAL-TIME DATA:
 ${blockchainContext}
 
-Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
-
+Expected response format: "[Data] clearly and directly."`;
 
             // Enriquecer el contenido con datos blockchain
             if (typeof contents === 'string') {
-              enrichedContents = `${blockchainSystemPrompt}\n\nPregunta del usuario: ${contents}`;
+              enrichedContents = `${blockchainSystemPrompt}\n\nUser question: ${contents}`;
             } else if (Array.isArray(contents) && contents.length > 0) {
               // Para arrays de mensajes, agregar como mensaje de sistema al inicio
               enrichedContents = [
@@ -839,7 +839,7 @@ Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
                 },
                 {
                   role: 'model', 
-                  parts: [{ text: 'Entendido. Responderé usando únicamente los datos blockchain proporcionados de forma breve y precisa.' }]
+                  parts: [{ text: 'Understood. I will answer using only the provided blockchain data, briefly and accurately.' }]
                 },
                 ...contents
               ];
@@ -878,17 +878,17 @@ Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
         // ── INJECT GRAPH USER CONTEXT ──────────────────────────────────────
         // Prepend verified on-chain Graph data as a context exchange before the user's query
         if (graphUserContext) {
-          const graphBlock = `[DATOS ON-CHAIN VERIFICADOS DEL USUARIO — USA ESTOS DATOS PARA RESPONDER PREGUNTAS SOBRE SU POSICIÓN]:\n${graphUserContext}`;
+          const graphBlock = `[VERIFIED ON-CHAIN USER DATA — USE THIS TO ANSWER QUESTIONS ABOUT THE USER'S POSITION]:\n${graphUserContext}`;
           if (Array.isArray(enrichedContents)) {
             enrichedContents = [
               { role: 'user', parts: [{ text: graphBlock }] },
-              { role: 'model', parts: [{ text: 'Datos on-chain del usuario cargados correctamente. Los usaré para responder preguntas sobre su posición.' }] },
+              { role: 'model', parts: [{ text: "User's on-chain data loaded. I will use it to answer questions about their position." }] },
               ...enrichedContents,
             ];
           } else {
             enrichedContents = [
               { role: 'user', parts: [{ text: graphBlock }] },
-              { role: 'model', parts: [{ text: 'Datos on-chain del usuario cargados correctamente. Los usaré para responder preguntas sobre su posición.' }] },
+              { role: 'model', parts: [{ text: "User's on-chain data loaded. I will use it to answer questions about their position." }] },
               { role: 'user', parts: [{ text: typeof enrichedContents === 'string' ? enrichedContents : queryText }] },
             ];
           }
@@ -914,7 +914,8 @@ Formato de respuesta esperado: "[Dato] de forma clara y directa."`;
         const geminiStream = await processGeminiStreamRequest(enrichedContents, model, params, { 
           skipKnowledgeBase: isBlockchainQuery && !isHybridQuery,
           tools: configTools,
-          imageCount: imageParts.length
+          imageCount: imageParts.length,
+          walletAddress: walletAuth?.walletAddress || walletAddress || null
         });
         
         // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini

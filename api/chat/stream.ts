@@ -135,10 +135,9 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
     functions.push('get_user_nfts');
   }
   
-  // Detectar queries de wallet/balance - MEJORADO: detectar "mi balance", "my wallet", etc
+  // Detectar queries de wallet/balance
   if ((text.includes('wallet') || text.includes('balance') || text.includes('saldo') || text.includes('cartera')) &&
-      (text.includes('0x') || text.includes('direccion') || text.includes('address') || 
-       text.includes('mi ') || text.includes('my ') || text.includes('tengo') || text.includes('revisa'))) {
+      (text.includes('0x') || text.includes('direccion') || text.includes('address') || isUserIntent)) {
     functions.push('check_wallet_balance');
   }
   
@@ -170,7 +169,8 @@ function detectBlockchainQuery(message: string): { isBlockchain: boolean; functi
 
   // Detectar queries de historial de actividad (subgraph)
   const isHistoryQuery =
-    /\b(historial|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?))\b/i.test(text);
+    /\b(historial|history|cu[aá]nto.{0,20}(depositado|ganado|retirado|total)|mis? (retiros?|dep[oó]sitos? total|nfts? mint|ventas?|compras?)|my (withdrawals?|total deposits?|nfts? minted|total activity|transaction history|transactions))\b/i.test(text) ||
+    /\b(total deposited|total withdrawn|my activity|my transactions?|all my deposits?)\b/i.test(text);
   if (isHistoryQuery && !functions.includes('get_user_history')) {
     functions.push('get_user_history');
   }
@@ -524,17 +524,9 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       console.log('⚠️ No KB context found');
     }
     
-    // Construir system instruction con contexto Y detección de idioma
-    const attachmentsForInstruction = (req.body as { attachments?: ImageAttachmentPayload[] }).attachments || [];
-    const baseSystemInstruction = buildSystemInstructionWithContext(
-      relevantContext.context || '',
-      relevantContext.score || 0,
-      languageDetection,
-      attachmentsForInstruction.length
-    );
-
     // ── WALLET AUTH: Verify signature & fetch on-chain user context ────────
     let graphUserContext = '';
+    let verifiedWallet: string | null = null;
     const walletAuthPayload = (req.body as { walletAuth?: WalletAuthPayload }).walletAuth;
 
     if (walletAuthPayload?.walletAddress && walletAuthPayload?.message && walletAuthPayload?.signature) {
@@ -543,6 +535,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
         const authResult = verifyWalletSignature(walletAuthPayload);
 
         if (authResult.valid && authResult.wallet) {
+          verifiedWallet = authResult.wallet;
           console.log(`🔐 Wallet auth valid: ${authResult.wallet.slice(0, 8)}...`);
           const { fetchUserBlockchainData, formatUserContextForAI } = await import('../_services/graph-user-service.js');
           const userData = await fetchUserBlockchainData(authResult.wallet);
@@ -560,9 +553,23 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
       }
     }
 
+    // Construir system instruction con contexto, idioma e identidad del usuario
+    const attachmentsForInstruction = (req.body as { attachments?: ImageAttachmentPayload[] }).attachments || [];
+    const baseSystemInstruction = buildSystemInstructionWithContext(
+      relevantContext.context || '',
+      relevantContext.score || 0,
+      languageDetection,
+      attachmentsForInstruction.length,
+      verifiedWallet
+    );
+
     // Merge user Graph context into system instruction if available
     const systemInstruction = graphUserContext
-      ? `${baseSystemInstruction}\n\n[DATOS ON-CHAIN VERIFICADOS DEL USUARIO - USA SIEMPRE ESTOS DATOS CUANDO EL USUARIO PREGUNTE SOBRE SU ACTIVIDAD]:\n${graphUserContext}`
+      ? {
+          parts: [{
+            text: `${baseSystemInstruction.parts[0].text}\n\n[VERIFIED ON-CHAIN USER DATA — USE THIS WHEN THE USER ASKS ABOUT THEIR ACTIVITY]:\n${graphUserContext}`
+          }]
+        }
       : baseSystemInstruction;
     // ── END WALLET AUTH ───────────────────────────────────────────────────
     

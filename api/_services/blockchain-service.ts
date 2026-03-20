@@ -517,8 +517,8 @@ function getRpcUrl(): string {
 
 const CONFIG = {
   COINGECKO_API: 'https://api.coingecko.com/api/v3',
-  POLYGONSCAN_API: 'https://api.polygonscan.com/api',
-  POLYGONSCAN_API_KEY: process.env.POLYGONSCAN_API_KEY || 'YourApiKeyToken',
+  POLYGONSCAN_API: 'https://api.etherscan.io/v2/api',
+  POLYGONSCAN_API_KEY: process.env.VITE_ETHERSCAN_API_KEY || 'YourApiKeyToken',
   RPC_URL: getRpcUrl(),
   FALLBACK_RPCS,
   
@@ -628,7 +628,7 @@ async function getContractInfoFromPolygonScan(contractAddress: string): Promise<
   try {
     // Get contract source code (includes name, compiler version, etc.)
     const sourceResponse = await fetch(
-      `${CONFIG.POLYGONSCAN_API}?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
+      `${CONFIG.POLYGONSCAN_API}?chainid=137&module=contract&action=getsourcecode&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
       { signal: AbortSignal.timeout(5000) }
     );
     
@@ -658,7 +658,7 @@ async function getContractInfoFromPolygonScan(contractAddress: string): Promise<
     
     // Get contract balance
     const balanceResponse = await fetch(
-      `${CONFIG.POLYGONSCAN_API}?module=account&action=balance&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
+      `${CONFIG.POLYGONSCAN_API}?chainid=137&module=account&action=balance&address=${contractAddress}&apikey=${CONFIG.POLYGONSCAN_API_KEY}`,
       { signal: AbortSignal.timeout(5000) }
     );
     

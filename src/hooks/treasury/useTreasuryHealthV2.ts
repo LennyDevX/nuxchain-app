@@ -85,6 +85,12 @@ export function useTreasuryHealthV2() {
       { address: SMART_STAKING, abi: SmartStakingABI as any, functionName: 'treasuryManager' },
       { address: SMART_STAKING, abi: SmartStakingABI as any, functionName: 'paused' },
       { address: SMART_STAKING, abi: SmartStakingABI as any, functionName: 'owner' },
+      // Sub-treasury addresses (indices 13-17)
+      { address: TREASURY_MANAGER, abi: TreasuryManagerABI as any, functionName: 'getTreasuryConfig', args: [0] },
+      { address: TREASURY_MANAGER, abi: TreasuryManagerABI as any, functionName: 'getTreasuryConfig', args: [1] },
+      { address: TREASURY_MANAGER, abi: TreasuryManagerABI as any, functionName: 'getTreasuryConfig', args: [2] },
+      { address: TREASURY_MANAGER, abi: TreasuryManagerABI as any, functionName: 'getTreasuryConfig', args: [3] },
+      { address: TREASURY_MANAGER, abi: TreasuryManagerABI as any, functionName: 'getTreasuryConfig', args: [4] },
     ],
     query: {
       refetchInterval: 30_000,
@@ -111,6 +117,11 @@ export function useTreasuryHealthV2() {
     const isPaused = data[11].result as boolean;
     const owner = data[12].result as string;
 
+    // Sub-treasury addresses from getTreasuryConfig(i) — [address, allocation]
+    const cfgs = [data[13], data[14], data[15], data[16], data[17]].map(
+      (r) => (r?.result as [string, bigint] | undefined)
+    );
+
     const isStakingLinked = stakingLink?.toLowerCase() === TREASURY_MANAGER.toLowerCase();
 
     // Map allocations
@@ -119,7 +130,7 @@ export function useTreasuryHealthV2() {
       return {
         name,
         value: Number(allocs?.[i] ?? 0) / 100,
-        address: '', // Would need getTreasuryConfig(i) but we have limited calls
+        address: cfgs[i]?.[0] ?? '',
         status: Number(statusData?.[0] ?? 0) as ProtocolStatus,
         deficit: BigInt(statusData?.[1] ?? 0),
       };

@@ -805,11 +805,13 @@ export async function processGeminiStreamRequest(contents, model = DEFAULT_MODEL
   // Cuando skipKnowledgeBase=true, se pasa contexto vacío pero el AI mantiene personalidad Nuxbee + idioma
   const languageDetection = userQuery ? detectLanguage(userQuery) : null;
   const imageCount = options.imageCount || 0;
+  const walletAddress = options.walletAddress || null;
   const systemInstruction = buildSystemInstructionWithContext(
     skipKnowledgeBase ? '' : knowledgeContext,
     skipKnowledgeBase ? 0 : contextScore,
     languageDetection,
-    imageCount
+    imageCount,
+    walletAddress
   );
   
   // 🆕 TOKEN COUNTING: Count total tokens before sending

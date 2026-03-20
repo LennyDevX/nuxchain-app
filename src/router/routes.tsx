@@ -22,6 +22,7 @@ const Skills = lazy(() => import(/* webpackChunkName: "skills" */ '../pages/Skil
 const Store = lazy(() => import(/* webpackChunkName: "store" */ '../pages/store'));
 const Market = lazy(() => import(/* webpackChunkName: "market" */ '../pages/Market'));
 const Airdrop = lazy(() => import(/* webpackChunkName: "airdrop" */ '../pages/AirdropMaintenance'));
+const Giveaway = lazy(() => import(/* webpackChunkName: "giveaway" */ '../pages/Giveaway'));
 const About = lazy(() => import(/* webpackChunkName: "about" */ '../pages/About'));
 const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pages/TokenomicsMaintenance'));
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
@@ -80,6 +81,7 @@ function AppRoutes() {
         <Route path="/devhub" element={<CTAHub />} />
         <Route path="/market" element={<Market />} />
         <Route path="/airdrop" element={<Airdrop />} />
+        <Route path="/giveaway" element={<Giveaway />} />
         <Route path="/about" element={<About />} />
         <Route path="/tutorial" element={<About />} />
         <Route path="/tokenomics" element={<Tokenomics />} />

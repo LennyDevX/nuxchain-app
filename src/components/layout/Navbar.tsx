@@ -11,7 +11,7 @@ function Navbar() {
   const navLinks = [
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
-    { path: '/airdrop', label: 'Airdrop' },
+    { path: '/giveaway', label: 'Giveaway' },
     { path: '/launchpad', label: 'LP' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
@@ -114,11 +114,11 @@ function Navbar() {
                           transition={{ duration: 2, repeat: Infinity }}
                         />
                       )}
-                      {link.path === '/airdrop' && isMaintenanceMode('airdrop') && (
+                      {link.path === '/giveaway' && (
                         <motion.div
-                          className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"
-                          animate={{ scale: [1, 1.3, 1] }}
-                          transition={{ duration: 1, repeat: Infinity }}
+                          className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
                         />
                       )}
                       {link.path === '/tokenomics' && (

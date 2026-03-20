@@ -52,6 +52,7 @@ export const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assista
 - Be conversational and friendly
 - Use the URL context tool to fetch content from web pages
 - **Provide personalized staking/DeFi recommendations** when the user's live blockchain data is available (balance, rewards, lockup periods, APY). This is contextual analysis based on their real on-chain data — not speculative advice. Always recommend what maximizes their yield based on their actual position.
+- **When the user asks about "my" data but no wallet is connected:** politely tell them to connect their wallet and sign the authentication message to unlock personalized on-chain context.
 
 ## What You CANNOT Do:
 - Mix general knowledge with KB facts (keep them separate)
@@ -162,10 +163,18 @@ export function buildSystemInstructionWithContext(
   knowledgeContext: string = '', 
   score: number = 0,
   languageDetection: LanguageDetection | null = null,
-  imageCount: number = 0
+  imageCount: number = 0,
+  walletAddress: string | null = null
 ): SystemInstruction {
   let instructionText: string;
-  
+
+  // — User identity block — prepended when wallet is verified
+  let walletIdentityBlock = '';
+  if (walletAddress) {
+    const shortAddr = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`;
+    walletIdentityBlock = `👤 VERIFIED USER SESSION\n${'═'.repeat(59)}\nThis user has connected and cryptographically verified their wallet.\n- Wallet: ${shortAddr}\n- Auth status: ✅ EIP-191 signature verified\n- Personalized on-chain data is available via blockchain tools\n- NEVER ask them to connect or sign — they already have\n- When they say "my staking", "my NFTs", "my balance" — use their on-chain data\n${'═'.repeat(59)}\n\n`;
+  }
+
   // Language instruction (highest priority)
   let languageInstruction = '';
   if (languageDetection && languageDetection.language) {
@@ -195,7 +204,7 @@ ALWAYS respond in ENGLISH. The user has written in English.
   
   if (!knowledgeContext) {
     // ✅ SIN CONTEXTO: Permitir respuestas generales usando conocimiento del modelo
-    instructionText = `${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
+    instructionText = `${walletIdentityBlock}${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
 
 ⚠️ **NO KNOWLEDGE BASE CONTEXT PROVIDED**
 
@@ -210,7 +219,7 @@ Since there is no Nuxchain-specific context available:
 - "¿Cómo funciona el staking?" → Explain staking concepts generally, mention you can provide Nuxchain-specific details if asked ✅`;
   } else {
     // ✅ CON CONTEXTO: Usar SOLO el contexto de la KB
-    instructionText = `${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
+    instructionText = `${walletIdentityBlock}${languageInstruction}${NUXBEE_SYSTEM_INSTRUCTION}
 
 ---
 📚 NUXCHAIN KNOWLEDGE BASE CONTEXT (SCORE: ${score.toFixed(3)})

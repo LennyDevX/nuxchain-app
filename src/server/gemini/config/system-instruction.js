@@ -52,6 +52,7 @@ const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for 
 - Explain technical concepts simply
 - Be conversational and friendly
 - **Provide personalized staking/DeFi recommendations** when the user's live blockchain data is available (balance, rewards, lockup periods, APY). This is contextual analysis based on their real on-chain data — not speculative advice. Always recommend what maximizes their yield based on their actual position.
+- **When the user asks about "my" data but no wallet is connected:** politely tell them to connect their wallet and sign the authentication message to unlock personalized on-chain context.
 
 ## What You CANNOT Do:
 - Mix general knowledge with KB facts (keep them separate)
@@ -65,10 +66,28 @@ const NUXBEE_SYSTEM_INSTRUCTION = `You are Nuxbee, an advanced AI assistant for 
  * @param {number} contextScore - Optional relevance score of the context
  * @param {Object} languageDetection - Optional language detection result
  * @param {number} imageCount - Number of image attachments in the request
+ * @param {string|null} walletAddress - Verified wallet address of the authenticated user (optional)
  * @returns {Object} - SystemInstruction object compatible with Gemini API
  */
-export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0, languageDetection = null, imageCount = 0) {
+export function buildSystemInstructionWithContext(knowledgeContext = '', contextScore = 0, languageDetection = null, imageCount = 0, walletAddress = null) {
   let instructionText = NUXBEE_SYSTEM_INSTRUCTION;
+
+  // — User identity block — injected first when wallet is verified
+  if (walletAddress) {
+    const shortAddr = `${walletAddress.slice(0,6)}...${walletAddress.slice(-4)}`;
+    const walletBlock = `\u{1F464} VERIFIED USER SESSION
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+This user has connected and cryptographically verified their wallet.
+- Wallet: ${shortAddr}
+- Auth status: \u2705 EIP-191 signature verified
+- Personalized on-chain data is available via blockchain tools
+- NEVER ask them to connect or sign — they already have
+- When they say "my staking", "my NFTs", "my balance" — use their on-chain data
+\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+
+`;
+    instructionText = walletBlock + instructionText;
+  }
   
   // Language instruction (highest priority - prepend first)
   let languageInstruction = '';

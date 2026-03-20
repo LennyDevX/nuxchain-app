@@ -326,32 +326,32 @@ const MobileBottomNavbar: React.FC = () => {
                     </Link>
                   </motion.div>
 
-                  {/* Airdrop */}
+                  {/* Giveaway */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
                     <Link
-                      to="/airdrop"
+                      to="/giveaway"
                       onClick={() => setIsMenuOpen(false)}
                       className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative w-full"
                     >
-                      <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                      <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c0-1.1.9-2 2-2s2 .9 2 2v1h1a2 2 0 012 2v8a2 2 0 01-2 2H7a2 2 0 01-2-2v-8a2 2 0 012-2h1V8c0-1.1.9-2 2-2s2 .9 2 2m0 0V6" />
                       </svg>
-                      <span className="jersey-20-regular text-white text-xl">Airdrops</span>
-                      {!isMaintenanceMode('airdrop') && (
-                        <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40">
+                      <span className="jersey-20-regular text-white text-xl">Giveaway</span>
+                      {!isMaintenanceMode('giveaway') && (
+                        <span className="ml-auto flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40">
                           <motion.span
-                            className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"
+                            className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]"
                             animate={{ scale: [1, 1.5, 1], opacity: [1, 0.6, 1] }}
                             transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                           />
-                          <span className="jersey-20-regular text-emerald-400 text-xl">LIVE</span>
+                          <span className="jersey-20-regular text-amber-400 text-xl">LIVE</span>
                         </span>
                       )}
-                      {isMaintenanceMode('airdrop') && (
+                      {isMaintenanceMode('giveaway') && (
                         <motion.div
                           className="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50 ml-auto"
                           animate={{ scale: [1, 1.3, 1] }}

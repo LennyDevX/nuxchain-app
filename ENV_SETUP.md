@@ -52,7 +52,7 @@ cp .env.example .env.local
 | Turnstile | `VITE_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Same as above |
 | Solana | `SOLANA_RPC_*`, `VITE_NUX_MINT_ADDRESS` | NFT features disabled |
 | Redis | `REDIS_URL` | Caching slower |
-| PolygonScan | `POLYGONSCAN_API_KEY` | Contract verification disabled |
+| Etherscan/Polygonscan | `VITE_ETHERSCAN_API_KEY` | Contract verification disabled |
 
 ---
 
@@ -198,7 +198,7 @@ VITE_PROD_SERVER_URL=/server
 GEMINI_API_KEY=your_key              # Google AI
 UNISWAP_API_KEY=your_key             # Swap quotes
 GOOGLE_SEARCH_API_KEY=your_key       # Web search
-POLYGONSCAN_API_KEY=your_key         # Contract verification
+VITE_ETHERSCAN_API_KEY=your_key      # Contract verification (Etherscan V2, works for Polygon)
 ```
 
 ### Storage (IPFS via Pinata)

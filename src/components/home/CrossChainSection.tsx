@@ -45,7 +45,7 @@ function CrossChainSection() {
               <div className="w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center overflow-hidden"><img src="/assets/tokens/PolLogo.webp" alt="Polygon" className="w-full h-full object-contain" /></div>
               <div>
                 <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Polygon</h3>
-                <p className={`jersey-20-regular text-purple-300 ${isMobile ? 'text-lg' : 'text-lg'}`}>Activity Chain</p>
+                <p className={`jersey-20-regular text-purple-300 ${isMobile ? 'text-lg' : 'text-lg'}`}>Engagetment Chain</p>
               </div>
             </div>
             <p className={`jersey-20-regular text-white/60 mb-6 leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>

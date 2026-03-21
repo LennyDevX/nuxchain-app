@@ -12,7 +12,7 @@ function Navbar() {
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
     { path: '/giveaway', label: 'Giveaway' },
-    { path: '/launchpad', label: 'LP' },
+    { path: '/p2p-market', label: 'P2P' },
     { path: '/store', label: 'Store' },
     { path: '/profile/ai-analysis', label: 'A.I' },
     { path: '/nux', label: 'NUX' },
@@ -100,7 +100,7 @@ function Navbar() {
                         }`}
                     >
                       {link.label}
-                      {link.path === '/launchpad' && (
+                      {link.path === '/p2p-market' && (
                         <motion.div
                           className="w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"
                           animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}

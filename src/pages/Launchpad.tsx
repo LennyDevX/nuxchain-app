@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useIsMobile } from '../hooks/mobile';
 import { LAUNCHPAD_CONFIG, getActiveTier } from '../constants/launchpad';
@@ -15,9 +16,19 @@ interface RawStats {
 
 export default function Launchpad() {
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
   const [stats, setStats] = useState<RawStats | null>(null);
   const [buyTier, setBuyTier] = useState<TierId | null>(null);
   const activeTier = getActiveTier(stats);
+
+  // Auto-open buy modal when navigated from Giveaway (?buy=1)
+  useEffect(() => {
+    const buyParam = searchParams.get('buy');
+    if (buyParam) {
+      const parsed = parseInt(buyParam, 10) as TierId;
+      if ([1, 2, 3].includes(parsed)) setBuyTier(parsed);
+    }
+  }, [searchParams]);
 
   const fetchStats = useCallback(async () => {
     try {

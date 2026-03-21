@@ -11,7 +11,7 @@ const steps = [
     step: '01',
     icon: '🔗',
     title: 'Link Your Wallets',
-    desc: 'Connect your Polygon wallet (activity chain) and Solana wallet (rewards chain). Both wallets are linked off-chain — no transaction needed. Your Polygon wallet earns activity points; your Solana wallet receives NUX rewards.',
+    desc: 'Connect your Polygon wallet (Engagetment chain) and Solana wallet (rewards chain). Both wallets are linked off-chain — no transaction needed. Your Polygon wallet earns activity points; your Solana wallet receives NUX rewards.',
     color: 'text-purple-400',
     border: 'border-purple-400/30',
   },

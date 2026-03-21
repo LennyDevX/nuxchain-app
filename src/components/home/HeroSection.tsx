@@ -14,7 +14,7 @@ function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="space-y-6"
+          className="space-y-4 sm:space-y-6"
         >
           
 
@@ -26,19 +26,19 @@ function HeroSection() {
             </span>
           </h1>
 
-          <p className="jersey-20-regular text-xl md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
+          <p className="jersey-20-regular text-lg sm:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto px-2 sm:px-0">
             Empower creators and communities with an omni-chain DeFi ecosystem. Tokenize your work, monetize with NFTs, secure value with staking, all accelerated by Nuxbee AI.
           </p>
 
           {/* Minimalist Feature Tags */}
-          <div className="flex flex-wrap justify-center gap-4 mt-6 pt-2">
-            <span className="jersey-15-regular text-slate-400 text-lg sm:text-xl flex items-center gap-2">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-5 sm:mt-6 pt-1 sm:pt-2">
+            <span className="jersey-15-regular text-slate-400 text-base sm:text-xl flex items-center gap-2">
               <span className="text-purple-400">⚡</span> Omni-chain
             </span>
-            <span className="jersey-15-regular text-slate-400 text-lg sm:text-xl flex items-center gap-2">
+            <span className="jersey-15-regular text-slate-400 text-base sm:text-xl flex items-center gap-2">
               <span className="text-pink-400">🤖</span> AI-Optimized
             </span>
-            <span className="jersey-15-regular text-slate-400 text-lg sm:text-xl flex items-center gap-2">
+            <span className="jersey-15-regular text-slate-400 text-base sm:text-xl flex items-center gap-2">
               <span className="text-amber-400">✨</span> Full Ownership
             </span>
           </div>
@@ -46,7 +46,7 @@ function HeroSection() {
 
         {/* Buttons - Centered below content */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 mt-12"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-8 sm:mt-12 w-full sm:w-auto px-4 sm:px-0"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}

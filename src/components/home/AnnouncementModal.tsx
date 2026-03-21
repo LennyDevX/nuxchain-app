@@ -22,7 +22,7 @@ const AnnouncementModal: React.FC = () => {
         navigate('/chat');
     };
 
-    const handleRewardsAction = () => {
+    const handleGiveawayAction = () => {
         setIsOpen(false);
         navigate('/rewards');
     };
@@ -30,28 +30,29 @@ const AnnouncementModal: React.FC = () => {
     const features = [
         {
             title: "Nuxbee AI 2.0",
-            desc: "Advanced conversational AI • Real-time knowledge base • Multi-chain insights",
+            desc: "Advanced AI • Real-time knowledge base • Multi-chain insights",
             icon: "🤖",
             color: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
             badge: "★ NEW"
         },
         {
-            title: "Style Polish",
-            desc: "Refined animations • Improved visuals • Better UX components",
-            icon: "✨",
-            color: "bg-purple-500/15 text-purple-400 border-purple-500/30"
-        },
-        {
-            title: "Bug Fixes",
-            desc: "Enhanced stability • Critical fixes • Better error handling",
-            icon: "🔧",
-            color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+            title: "Deep Bug Fixes",
+            desc: "200+ edge cases resolved • Zero-crash stability • Hardened flow",
+            icon: "🐛",
+            color: "bg-red-500/15 text-red-400 border-red-500/30",
+            badge: "★ FIXED"
         },
         {
             title: "Performance+",
-            desc: "50% faster loads • Optimized rendering • Reduced memory footprint",
+            desc: "60% faster cold start • Bundle optimized • Lazy loading tuned",
             icon: "⚡",
             color: "bg-amber-500/15 text-amber-400 border-amber-500/30"
+        },
+        {
+            title: "UI Polish",
+            desc: "Pixel-perfect spacing • Smoother transitions • Better contrast",
+            icon: "✨",
+            color: "bg-purple-500/15 text-purple-400 border-purple-500/30"
         },
         {
             title: "Smart Staking 3.0",
@@ -60,10 +61,10 @@ const AnnouncementModal: React.FC = () => {
             color: "bg-blue-500/15 text-blue-400 border-blue-500/30"
         },
         {
-            title: "Ecosystem Growth",
-            desc: "Polygon integration • Solana rewards • Cross-chain synergy",
-            icon: "🌐",
-            color: "bg-pink-500/15 text-pink-400 border-pink-500/30"
+            title: "Mobile UX",
+            desc: "Better touch targets • Improved readability • Responsive fixes",
+            icon: "📱",
+            color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
         }
     ];
 
@@ -117,9 +118,9 @@ const AnnouncementModal: React.FC = () => {
                                 </div>
                                 <div>
                                     <h2 className="jersey-15-regular text-white font-bold text-3xl leading-tight">
-                                        Wave <span className="text-gradient">4.5</span>
+                                        Wave <span className="text-gradient">4.6</span>
                                     </h2>
-                                    <p className="jersey-20-regular text-white/60 text-sm font-semibold leading-tight">Nuxchain Ecosystem Update</p>
+                                    <p className="jersey-20-regular text-white/60 text-[13px] font-semibold leading-tight">Nuxchain Ecosystem Update</p>
                                 </div>
                             </motion.div>
 
@@ -128,7 +129,7 @@ const AnnouncementModal: React.FC = () => {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.15 }}
-                                className="relative rounded-xl p-2.5 overflow-hidden border border-cyan-500/30 mb-3"
+                                className="relative rounded-xl p-2.5 overflow-hidden border border-cyan-500/30 mb-2"
                                 style={{
                                     background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)',
                                     boxShadow: '0 0 20px rgba(34, 211, 238, 0.12)'
@@ -154,10 +155,61 @@ const AnnouncementModal: React.FC = () => {
                                                 ★ FEATURED
                                             </motion.span>
                                         </div>
-                                        <p className="jersey-20-regular text-white/70 text-sm leading-tight font-semibold">
+                                        <p className="jersey-20-regular text-white/70 text-[13px] leading-tight font-semibold">
                                             Advanced AI • Multi-chain insights
                                         </p>
                                     </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Giveaway Banner */}
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.22 }}
+                                className="relative rounded-xl p-2.5 overflow-hidden border border-[#9945FF]/40 mb-3 cursor-pointer"
+                                style={{
+                                    background: 'linear-gradient(135deg, rgba(153, 69, 255, 0.12) 0%, rgba(20, 241, 149, 0.06) 100%)',
+                                    boxShadow: '0 0 20px rgba(153, 69, 255, 0.15)'
+                                }}
+                                onClick={handleGiveawayAction}
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <motion.div
+                                        animate={{ rotate: [0, 5, -5, 0] }}
+                                        transition={{ duration: 4, repeat: Infinity }}
+                                        className="flex-shrink-0 p-1.5 rounded-lg bg-gradient-to-br from-[#9945FF]/30 to-[#14F195]/20 border border-[#9945FF]/50"
+                                        style={{ boxShadow: '0 0 15px rgba(153, 69, 255, 0.3)' }}
+                                    >
+                                        <img
+                                            src="/assets/tokens/SolanaLogo.png"
+                                            alt="SOL"
+                                            className="w-8 h-8 object-contain"
+                                        />
+                                    </motion.div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <h3 className="jersey-15-regular font-bold text-xl leading-tight" style={{ color: '#c084fc' }}>
+                                                2 SOL Giveaway
+                                            </h3>
+                                            <motion.span
+                                                animate={{ opacity: [1, 0.6, 1] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                className="px-1.5 py-0.5 rounded-full font-bold text-[10px] whitespace-nowrap"
+                                                style={{ background: 'rgba(20, 241, 149, 0.15)', color: '#14F195', border: '1px solid rgba(20, 241, 149, 0.4)' }}
+                                            >
+                                                🎉 LIVE
+                                            </motion.span>
+                                        </div>
+                                        <p className="jersey-20-regular text-white/70 text-[13px] leading-tight font-semibold">
+                                            Wave 4.6 community raffle — Join now
+                                        </p>
+                                    </div>
+                                    <svg className="w-4 h-4 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
                                 </div>
                             </motion.div>
 
@@ -178,8 +230,8 @@ const AnnouncementModal: React.FC = () => {
                                                 {feature.badge && (
                                                     <div className="text-[10px] font-bold text-cyan-400 mb-0.5">{feature.badge}</div>
                                                 )}
-                                                <h3 className="jersey-15-regular text-white text-sm font-bold leading-tight mb-0.5">{feature.title}</h3>
-                                                <p className="jersey-20-regular text-white/50 text-xs leading-tight font-medium">{feature.desc}</p>
+                                                <h3 className="jersey-15-regular text-white text-[14px] font-bold leading-tight mb-0.5">{feature.title}</h3>
+                                                <p className="jersey-20-regular text-white/50 text-[12px] leading-snug font-medium">{feature.desc}</p>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -194,9 +246,9 @@ const AnnouncementModal: React.FC = () => {
                                 className="grid grid-cols-3 gap-2 mb-3"
                             >
                                 {[
-                                    { val: 'Next-Gen', label: 'AI Tech', color: 'text-cyan-400' },
-                                    { val: '50%+', label: 'Faster', color: 'text-purple-400' },
-                                    { val: 'Refined', label: 'Quality', color: 'text-emerald-400' }
+                                    { val: '200+', label: 'Fixes', color: 'text-red-400' },
+                                    { val: '60%+', label: 'Faster', color: 'text-amber-400' },
+                                    { val: 'Polished', label: 'Quality', color: 'text-purple-400' }
                                 ].map((stat, i) => (
                                     <motion.div
                                         key={i}
@@ -204,7 +256,7 @@ const AnnouncementModal: React.FC = () => {
                                         className="text-center p-2 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-all"
                                     >
                                         <div className={`jersey-15-regular ${stat.color} text-sm font-bold leading-tight`}>{stat.val}</div>
-                                        <div className="jersey-20-regular text-white/40 text-xs font-semibold leading-tight">{stat.label}</div>
+                                        <div className="jersey-20-regular text-white/40 text-[12px] font-semibold leading-tight">{stat.label}</div>
                                     </motion.div>
                                 ))}
                             </motion.div>
@@ -220,7 +272,7 @@ const AnnouncementModal: React.FC = () => {
                                     whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(34, 211, 238, 0.4)' }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={handleAIAction}
-                                    className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white jersey-20-regular rounded-xl transition-all shadow-lg shadow-cyan-500/30 py-2.5 text-sm font-bold"
+                                    className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white jersey-20-regular rounded-xl transition-all shadow-lg shadow-cyan-500/30 py-2.5 text-[14px] font-bold"
                                 >
                                     <span className="relative z-10 flex items-center justify-center gap-2">
                                         🤖 Try Nuxbee AI 2.0
@@ -228,19 +280,33 @@ const AnnouncementModal: React.FC = () => {
                                 </motion.button>
 
                                 <motion.button
-                                    whileHover={{ scale: 1.01 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={handleRewardsAction}
-                                    className="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white jersey-20-regular rounded-xl transition-all py-2 text-sm font-bold"
+                                    whileHover={{ scale: 1.02, boxShadow: '0 0 25px rgba(153, 69, 255, 0.4)' }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={handleGiveawayAction}
+                                    className="w-full relative overflow-hidden rounded-xl transition-all py-2.5 text-[14px] font-bold jersey-20-regular text-white"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #9945FF, #14F195)',
+                                        boxShadow: '0 4px 15px rgba(153, 69, 255, 0.3)'
+                                    }}
                                 >
-                                    🏆 Explore Ecosystem
+                                    <span className="relative z-10 flex items-center justify-center gap-3">
+                                        <motion.img
+                                            src="/assets/tokens/SolanaLogo.png"
+                                            alt="SOL"
+                                            className="w-7 h-7 object-contain inline-block flex-shrink-0"
+                                            animate={{ scale: [1, 1.1, 1] }}
+                                            transition={{ duration: 2, repeat: Infinity }}
+                                            style={{ filter: 'drop-shadow(0 0 8px rgba(20, 241, 149, 0.6))' }}
+                                        />
+                                        <span>Enter 2 SOL Giveaway</span>
+                                    </span>
                                 </motion.button>
 
                                 <motion.button
                                     whileHover={{ scale: 1.01 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={handleClose}
-                                    className="text-white/40 jersey-20-regular hover:text-white/70 transition-colors text-xs font-semibold py-1"
+                                    className="text-white/40 jersey-20-regular hover:text-white/70 transition-colors text-[12px] font-semibold py-1"
                                 >
                                     Dismiss
                                 </motion.button>

@@ -16,6 +16,8 @@ declare global {
       burntoken?: boolean;
       chat?: boolean;
       giveaway?: boolean;
+      launchpad?: boolean;
+      p2pmarket?: boolean;
     };
   }
 }
@@ -68,6 +70,8 @@ export const MAINTENANCE_CONFIG: {
   burntoken: MaintenanceRoute;
   chat: MaintenanceRoute;
   giveaway: MaintenanceRoute;
+  launchpad: MaintenanceRoute;
+  p2pmarket: MaintenanceRoute;
 } = {
   airdrop: {
     // Airdrop - MAINTENANCE DISABLED
@@ -149,9 +153,23 @@ export const MAINTENANCE_CONFIG: {
     message: 'El sorteo de 2 SOL está a punto de comenzar. ¡Vuelve muy pronto para participar y ganar!',
     startTime: getOrInitializeStartTime('giveaway', new Date().toISOString()),
   },
+  launchpad: {
+    // Launchpad presale is closed — redirects users to P2P Market
+    enabled: true,
+    estimatedTime: 0,
+    message: 'The NUX Token Presale has concluded. Head to the P2P Market to trade NUX peer-to-peer!',
+    startTime: getOrInitializeStartTime('launchpad', new Date().toISOString()),
+  },
+  p2pmarket: {
+    // P2P Market — disable this once the Solana contract is deployed
+    enabled: false,
+    estimatedTime: 4320, // 3 days
+    message: 'The P2P Marketplace is being set up. Secure peer-to-peer NUX trading will be live very soon!',
+    startTime: getOrInitializeStartTime('p2pmarket', new Date().toISOString()),
+  },
 };
 
-export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway' = 'airdrop'): boolean => {
+export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway' | 'launchpad' | 'p2pmarket' = 'airdrop'): boolean => {
   // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
   const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
   if (route === 'airdrop' && devOverride) return false;
@@ -160,7 +178,7 @@ export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marke
   return config.enabled;
 };
 
-export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway' = 'airdrop'): number => {
+export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway' | 'launchpad' | 'p2pmarket' = 'airdrop'): number => {
   const config = MAINTENANCE_CONFIG[route];
   const startTime = new Date(config.startTime).getTime();
   const estimatedEndTime = startTime + config.estimatedTime * 60 * 1000;
@@ -170,6 +188,6 @@ export const getMaintenanceTimeRemaining = (route: 'airdrop' | 'staking' | 'nfts
   return Math.ceil(remaining / 1000); // Return in seconds
 };
 
-export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway'): MaintenanceRoute => {
+export const getMaintenanceConfig = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'nux' | 'burntoken' | 'chat' | 'giveaway' | 'launchpad' | 'p2pmarket'): MaintenanceRoute => {
   return MAINTENANCE_CONFIG[route];
 };

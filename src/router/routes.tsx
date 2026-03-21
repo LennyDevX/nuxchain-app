@@ -30,7 +30,8 @@ const Admin = lazy(() => import(/* webpackChunkName: "workspace" */ '../pages/Ad
 const AdminLogin = lazy(() => import(/* webpackChunkName: "workspace-access" */ '../pages/AdminLogin'));
 const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
-const Launchpad = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/Launchpad'));
+const LaunchpadMaintenance = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/LaunchpadMaintenance'));
+const P2PMarketplace = lazy(() => import(/* webpackChunkName: "p2p-market" */ '../pages/P2PMarketplace'));
 const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
 const BurnToken = lazy(() => import(/* webpackChunkName: "burn-token" */ '../pages/BurnToken'));
 
@@ -92,7 +93,8 @@ function AppRoutes() {
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/nux" element={<Nux />} />
         <Route path="/rewards" element={<Rewards />} />
-        <Route path="/launchpad" element={<Launchpad />} />
+        <Route path="/launchpad" element={<LaunchpadMaintenance />} />
+        <Route path="/p2p-market" element={<P2PMarketplace />} />
         <Route path="/whitepaper" element={<Whitepaper />} />
         <Route path="/burntoken" element={<BurnToken />} />
       </Routes>

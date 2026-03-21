@@ -39,11 +39,19 @@ const AirdropsInfo = () => {
 
             <div className={`space-y-4 mb-8 ${isMobile ? 'grid grid-cols-2 gap-3 space-y-0' : ''}`}>
               {airdropPerks.map((perk, i) => (
-                <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="card-unified p-4 flex gap-3 items-start">
-                  <span className="text-3xl flex-shrink-0">{perk.icon}</span>
+                <motion.div
+                  key={i}
+                  {...fadeUp(0.1 + i * 0.08)}
+                  className={`card-unified p-4 ${
+                    isMobile
+                      ? 'flex flex-col items-center text-center gap-2'
+                      : 'flex gap-3 items-start'
+                  }`}
+                >
+                  <span className={`${isMobile ? 'text-3xl' : 'text-3xl flex-shrink-0'}`}>{perk.icon}</span>
                   <div>
-                    <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>{perk.title}</h3>
-                    <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-lg' : 'text-xl'}`}>{perk.desc}</p>
+                    <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-lg' : 'text-2xl'}`}>{perk.title}</h3>
+                    <p className={`jersey-20-regular text-white/55 ${isMobile ? 'text-base' : 'text-xl'}`}>{perk.desc}</p>
                   </div>
                 </motion.div>
               ))}

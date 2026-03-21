@@ -8,10 +8,9 @@ import WalletConnect from '../web3/WalletConnect.tsx';
 import { isMaintenanceMode } from '../../config/maintenance';
 
 // Iconos SVG
-const RocketIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.584 15.584a2 2 0 11-2.828-2.828 2 2 0 012.828 2.828z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2.25l-2.024 4.047-4.047 2.024L12 21.75l6.071-13.429-4.047-2.024L12 2.25z" />
+const P2PIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
   </svg>
 );
 
@@ -67,7 +66,7 @@ const MobileBottomNavbar: React.FC = () => {
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
 
   const navItems: NavItem[] = [
-    { path: '/launchpad', label: 'LP', icon: RocketIcon },
+    { path: '/p2p-market', label: 'P2P', icon: P2PIcon },
     { path: '/staking', label: 'Staking', icon: StakingIcon },
     { path: '/nfts', label: 'NFTs', icon: NFTIcon },
     { path: '/marketplace', label: 'Market', icon: MarketplaceIcon },

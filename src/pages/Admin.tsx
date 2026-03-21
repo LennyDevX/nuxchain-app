@@ -19,6 +19,7 @@ import EmergencyToolsModal from '../components/admin/EmergencyToolsModal';
 import DynamicAPYAdmin from '../components/admin/DynamicAPYAdmin';
 import QuestManager from '../components/admin/QuestManager';
 import TreasuryDashboardV2 from '../components/admin/TreasuryDashboardV2';
+import P2PEscrowManager from '../components/admin/P2PEscrowManager';
 
 const STAKING_ADDR = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 const TREASURY_ADDR = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
@@ -379,6 +380,15 @@ export default function Admin() {
               transition={{ delay: 0.6 }}
             >
               <QuestManager />
+            </motion.div>
+
+            {/* P2P Escrow Manager - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <P2PEscrowManager />
             </motion.div>
           </div>
         </main>

@@ -12,7 +12,7 @@ const chains = [
   {
     icon: '/assets/tokens/PolLogo.webp',
     name: 'Polygon',
-    subtitle: 'Activity Chain',
+    subtitle: 'Engagetment Chain',
     color: 'purple',
     desc: 'All on-chain activity happens here — staking, NFT minting, marketplace trades, skill purchases. Your Polygon wallet is your identity. Ultra-fast, ultra-cheap.',
     tags: ['Staking', 'NFT Minting', 'Marketplace', 'Skills', 'Governance'],

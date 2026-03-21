@@ -6,6 +6,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -851,11 +852,41 @@ app.use((req, res) => {
 // Start server
 function startServer() {
   app.listen(PORT, () => {
-    console.log(`🚀 Market Data API Server running on http://localhost:${PORT}`);
-    console.log(`📡 Endpoints available:`);
-    console.log(`   - GET  /api/health/status`);
-    console.log(`   - GET  /api/gridbot/data (types: current, history, all)`);
-    console.log(`\n📊 Using simulated data (BTC base: $${BTC_BASE_PRICE})\n`);
+    const w = 52;
+    const bar = chalk.gray('─'.repeat(w));
+    const pad = (s, n) => s + ' '.repeat(Math.max(0, n - s.length));
+
+    console.log('\n' + bar);
+    console.log(
+      chalk.bold.cyan(' MARKET') + chalk.bold.white(' DATA SERVER') +
+      chalk.dim('  v' + (process.env.npm_package_version || '1.0.0')) +
+      '  ' + chalk.green('● ONLINE')
+    );
+    console.log(bar);
+    console.log(chalk.dim('  URL    ') + chalk.cyan(`http://localhost:${PORT}`));
+    console.log(chalk.dim('  Mode   ') + chalk.yellow('Development'));
+    console.log(bar);
+    console.log(chalk.dim('  Endpoints'));
+    console.log('');
+
+    const routes = [
+      ['GET ', '/api/health/status',                  'Health check'],
+      ['GET ', '/api/market/prices',                  'CoinGecko market data'],
+      ['GET ', '/api/gridbot/data',                   'BTC price & history'],
+      ['GET ', '/api/uniswap/prices',                 'ETH/POL/USDC prices'],
+      ['GET ', '/api/launchpad/verify-whitelist',     'Wallet whitelist check'],
+      ['GET ', '/api/launchpad/stats',                'Launchpad statistics'],
+      ['GET ', '/api/launchpad/burn-leaderboard',     'Top NUX burners'],
+      ['POST', '/api/launchpad/burn-record',          'Record NUX burn'],
+      ['POST', '/api/launchpad/purchase',             'Register purchase'],
+    ];
+
+    routes.forEach(([method, path, desc]) => {
+      const mColor = method.trim() === 'GET' ? chalk.green(pad(method, 5)) : chalk.yellow(pad(method, 5));
+      console.log(`  ${mColor} ${chalk.white(pad(path, 34))} ${chalk.dim(desc)}`);
+    });
+
+    console.log('\n' + bar + '\n');
   });
 }
 

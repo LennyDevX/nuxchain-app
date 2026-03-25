@@ -26,22 +26,6 @@
       "maxDuration": 15,
       "memory": 512
     },
-    "api/launchpad/verify-whitelist.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
-    "api/launchpad/purchase.ts": {
-      "maxDuration": 20,
-      "memory": 512
-    },
-    "api/launchpad/stats.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
-    "api/launchpad/burn-record.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
     "api/ipfs/upload.ts": {
       "maxDuration": 30,
       "memory": 1024

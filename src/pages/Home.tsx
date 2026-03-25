@@ -11,11 +11,9 @@ import { HeroSkeletonLoader } from '../components/ui/SkeletonLoader'
 const NFTSection = lazy(() => import('../components/home/NFTSection'))
 const RewardsHubSection = lazy(() => import('../components/home/RewardsHubSection'))
 const CrossChainSection = lazy(() => import('../components/home/CrossChainSection'))
-const NuxTokenSection = lazy(() => import('../components/home/NuxTokenSection'))
 const StakingSection = lazy(() => import('../components/home/StakingSection'))
 const AISection = lazy(() => import('../components/home/AISection'))
 const TokenizationSection = lazy(() => import('../components/home/TokenizationSection'))
-const AirdropsInfo = lazy(() => import('../components/home/AirdropsInfo'))
 const BenefitsSection = lazy(() => import('../components/home/BenefitsSection'))
 
 const SectionLoader = () => (
@@ -60,13 +58,6 @@ function Home() {
         </Suspense>
       </LazySection>
 
-      {/* 4. NUX Token */}
-      <LazySection>
-        <Suspense fallback={<SectionLoader />}>
-          <NuxTokenSection />
-        </Suspense>
-      </LazySection>
-
       {/* 5. Staking */}
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
@@ -85,13 +76,6 @@ function Home() {
       <LazySection>
         <Suspense fallback={<SectionLoader />}>
           <TokenizationSection />
-        </Suspense>
-      </LazySection>
-
-      {/* 8. Airdrops */}
-      <LazySection>
-        <Suspense fallback={<SectionLoader />}>
-          <AirdropsInfo />
         </Suspense>
       </LazySection>
 

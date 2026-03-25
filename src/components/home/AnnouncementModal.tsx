@@ -24,7 +24,7 @@ const AnnouncementModal: React.FC = () => {
 
     const handleGiveawayAction = () => {
         setIsOpen(false);
-        navigate('/rewards');
+        navigate('/giveaway');
     };
 
     const features = [
@@ -180,19 +180,15 @@ const AnnouncementModal: React.FC = () => {
                                     <motion.div
                                         animate={{ rotate: [0, 5, -5, 0] }}
                                         transition={{ duration: 4, repeat: Infinity }}
-                                        className="flex-shrink-0 p-1.5 rounded-lg bg-gradient-to-br from-[#9945FF]/30 to-[#14F195]/20 border border-[#9945FF]/50"
+                                        className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-br from-[#9945FF]/30 to-[#14F195]/20 border border-[#9945FF]/50"
                                         style={{ boxShadow: '0 0 15px rgba(153, 69, 255, 0.3)' }}
                                     >
-                                        <img
-                                            src="/assets/tokens/SolanaLogo.png"
-                                            alt="SOL"
-                                            className="w-8 h-8 object-contain"
-                                        />
+                                        <span className="text-xl block">🎁</span>
                                     </motion.div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                             <h3 className="jersey-15-regular font-bold text-xl leading-tight" style={{ color: '#c084fc' }}>
-                                                2 SOL Giveaway
+                                                Giveaway Program
                                             </h3>
                                             <motion.span
                                                 animate={{ opacity: [1, 0.6, 1] }}
@@ -200,11 +196,11 @@ const AnnouncementModal: React.FC = () => {
                                                 className="px-1.5 py-0.5 rounded-full font-bold text-[10px] whitespace-nowrap"
                                                 style={{ background: 'rgba(20, 241, 149, 0.15)', color: '#14F195', border: '1px solid rgba(20, 241, 149, 0.4)' }}
                                             >
-                                                🎉 LIVE
+                                                📅 COMING SOON
                                             </motion.span>
                                         </div>
                                         <p className="jersey-20-regular text-white/70 text-[13px] leading-tight font-semibold">
-                                            Wave 4.6 community raffle — Join now
+                                            Exclusive rewards for community members
                                         </p>
                                     </div>
                                     <svg className="w-4 h-4 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,15 +286,14 @@ const AnnouncementModal: React.FC = () => {
                                     }}
                                 >
                                     <span className="relative z-10 flex items-center justify-center gap-3">
-                                        <motion.img
-                                            src="/assets/tokens/SolanaLogo.png"
-                                            alt="SOL"
-                                            className="w-7 h-7 object-contain inline-block flex-shrink-0"
+                                        <motion.span
+                                            className="text-xl block flex-shrink-0"
                                             animate={{ scale: [1, 1.1, 1] }}
                                             transition={{ duration: 2, repeat: Infinity }}
-                                            style={{ filter: 'drop-shadow(0 0 8px rgba(20, 241, 149, 0.6))' }}
-                                        />
-                                        <span>Enter 2 SOL Giveaway</span>
+                                        >
+                                            🎁
+                                        </motion.span>
+                                        <span>Explore Giveaway Program</span>
                                     </span>
                                 </motion.button>
 

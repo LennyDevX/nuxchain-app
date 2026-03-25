@@ -14,34 +14,14 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['Smart Staking v6.2', 'staking v6', 'v6 upgrade', 'EnhancedSmartStaking v4.0', 'staking v4']
   },
   {
-    content: "NUX Token is the native utility and governance token of the NuxChain protocol. It is an SPL token fully deployed on the Solana Mainnet with an ERC-20 bridge for composability on the Polygon network. It has a exact fixed supply of 100,000,000 NUX (100M). Both Mint Authority and Freeze Authority are permanently REVOKED on-chain.",
+    content: "NUX Token Overview: NUX is the native dual-chain utility token of the Nuxchain ecosystem with a fixed supply of 100,000,000 NUX (100M). It exists as an SPL token on Solana Mainnet (address: FRnAMJ7p4bgTeAbkhq5cKAX8Xif86h71Nn3nHnXPedtp) and as a bridged ERC-20 on Polygon. Both Mint Authority and Freeze Authority are permanently REVOKED on-chain \u2014 no new NUX can ever be minted. NUX serves two distinct purposes per chain: on Solana it is used for ecosystem services (subscriptions, store, third-party NFTs); on Polygon it powers DeFi interactions (Smart Staking, NFT creation/trading, AI Agents).",
     metadata: { type: "general", category: "token", topic: "nux-tokenomics" },
-    commands: ['NUX token', 'tokenomics', 'supply']
+    commands: ['NUX token', 'tokenomics', 'supply', 'NUX overview']
   },
   {
-    content: "NUX Token Utility: Provides dual yield rewards on top of POL in the Smart Staking contracts. Unlocks access tiers for Nuxbee AI (Basic: 0 NUX, Standard: 1k+ NUX, Premium: 10k+ NUX, Enterprise: 100k+ NUX). Reduces platform marketplace fees based on held amounts. Confers governance voting rights in the upcoming Nuxchain DAO (planned Q4 2026).",
+    content: "NUX Token Utility by Chain: Solana NUX (SPL) is used for services that do not require smart contracts \u2014 purchasing Nuxbee AI subscriptions (Pro at $10/mo or Premium at $25/mo), buying products in the Nuxchain online store, and purchasing third-party NFTs. Polygon NUX (ERC-20 bridged) is used for all DeFi interactions on Nuxchain \u2014 Smart Staking v6.2 contracts, creating/buying/selling Nuxchain-native NFTs, deploying AI Agents on the platform, and governance voting in the upcoming DAO. Holding Polygon NUX also confers access tier boosts for Nuxbee AI.",
     metadata: { type: "general", category: "token", topic: "nux-utility" },
-    commands: ['NUX utility', 'token use cases', 'DAO']
-  },
-  {
-    content: "NUX Tokenomics Distribution: 35% (35M) for Community & Ecosystem Rewards (emitted progressively over 4 years), 20% (20M) for Launchpad & Public Sale, 15% (15M) for Team & Advisors (3-year linear vesting, 12-month cliff), 15% (15M) for Treasury & DAO Reserve, 10% (10M) for DEX Liquidity (50% locked for min 1 year), and 5% (5M) for Marketing & partnerships.",
-    metadata: { type: "general", category: "token", topic: "nux-distribution" },
-    commands: ['tokenomics distribution', 'allocations']
-  },
-  {
-    content: "NUX Launchpad & Public Sale occurs in three phases. Tier 1 (Whitelist/Airdrop Participants): March 2-14, 2026 at 0.000015 SOL per NUX (Limits Min 5k / Max 200k NUX). Tier 2 (Open Presale): March 15-22, 2026 at 0.000025 SOL per NUX. Tier 3 (LP/TGE): Starts March 24, 2026 at 0.00004 SOL (then fully determined by the market).",
-    metadata: { type: "general", category: "launchpad", topic: "phases" },
-    commands: ['Launchpad', 'public sale', 'TGE']
-  },
-  {
-    content: "Launchpad Whitelist Process: The Launchpad platform enforces a whitelist verification endpoint (api/launchpad/verify-whitelist.ts). To be authorized within Tier 1, a user's wallet must exist in the verified Airdrop participants database stored in Firebase Firestore (nuxchainAirdropRegistrations).",
-    metadata: { type: "general", category: "launchpad", topic: "whitelist" },
-    commands: ['Whitelist', 'launchpad eligibility']
-  },
-  {
-    content: "Airdrop information: The Airdrop pool has a Max Pool of 50,000,000. Beyond initial rewards, successfully participating in the Airdrop grants exclusive Whitelist access to Tier 1 of the NUX Launchpad. Data is filtered for duplicate entries.",
-    metadata: { type: "general", category: "airdrop", topic: "details" },
-    commands: ['Airdrop', 'rewards']
+    commands: ['NUX utility', 'token use cases', 'DAO', 'NUX Solana use', 'NUX Polygon use']
   },
   {
     content: "Collaborator System (Collab): Uses specific smart contracts (CollaboratorBadgeRewards.sol) for 'Community Builders and Early Adopters'. Collaborators complete on-chain Quest criteria to earn unique non-transferable badges. There is a Treasury Allocation (collaboratorsAlloc) dedicated to rewarding significant ecosystem builders.",
@@ -59,7 +39,7 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['Nuxbee capabilities', 'chat functionality', 'assistant features']
   },
   {
-    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, airdrops and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking v6.2 contracts with gamification features (XP, levels, quests, achievements), GameifiedMarketplace v2.0 with Skills NFT system, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), Developer Hub with Web3 infrastructure tools, and tokenization tools. Built with React 19, Vite 7.1, TypeScript 5.7, TailwindCSS 4.0, Wagmi v2 and Viem 2.38 for blockchain interactions.",
+    content: "Nuxchain is a comprehensive decentralized platform that combines staking, NFT marketplace, AI-powered tools and tokenization. It's a complete ecosystem for digital asset management and passive income generation. The platform includes Smart Staking v6.2 contracts with gamification features (XP, levels, quests, achievements), GameifiedMarketplace v2.0 with Skills NFT system, AI-powered chat (Nuxbee AI 1.0 with upcoming dedicated platform), Developer Hub with Web3 infrastructure tools, and tokenization tools. Built with React 19, Vite 7.1, TypeScript 5.7, TailwindCSS 4.0, Wagmi v2 and Viem 2.38 for blockchain interactions.",
     metadata: { type: "general", category: "platform", topic: "overview" },
     commands: ['Nuxchain', 'Nuxchain platform', 'Nuxchain general', 'what is Nuxchain']
   },
@@ -69,7 +49,7 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['Nuxchain vision', 'Nuxchain mission', 'Nuxchain philosophy']
   },
   {
-    content: "Nuxchain is a cross-chain platform operating on two primary blockchains: Solana and Polygon. The NUX token is an SPL token on Solana Mainnet (the primary chain for NUX), with an ERC-20 bridge enabling full DeFi composability on Polygon. The platform's smart contracts (Smart Staking v6.2, GameifiedMarketplace v2.0) are deployed on Polygon, while NUX token distribution, launchpad, and liquidity (Raydium pools) operate on Solana. This dual-chain architecture combines Solana's speed and low fees for token operations with Polygon's EVM ecosystem for DeFi smart contracts. Users can hold and interact with NUX on whichever chain they prefer while accessing all platform features.",
+    content: "Nuxchain is a cross-chain platform operating on two primary blockchains: Solana and Polygon. The NUX token is an SPL token on Solana Mainnet (the primary chain for NUX), with an ERC-20 bridge enabling full DeFi composability on Polygon. The dual-chain design gives each network a distinct role: Solana NUX powers ecosystem services (Nuxbee AI subscriptions, online store purchases, third-party NFT purchases) \u2014 fast and fee-free for everyday service payments. Polygon NUX powers DeFi interactions via smart contracts: Smart Staking v6.2, creating/buying/selling Nuxchain-native NFTs, deploying AI Agents, and platform governance. Users can hold and interact with NUX on whichever chain they prefer while accessing all platform features.",
     metadata: { type: "general", category: "strategy", topic: "cross-chain-architecture" },
     commands: ['Nuxchain cross-chain', 'Nuxchain Solana', 'Nuxchain Polygon', 'Solana vs Polygon', 'which chain', 'networks', 'multi-chain', 'NUX chain', 'Nuxchain blockchain']
   },
@@ -173,8 +153,8 @@ const knowledgeBase: KnowledgeBaseItem[] = [
   },
   {
     content: "Nuxchain Active Skills (9 types, Types 8-16): Unlock platform features and marketplace advantages. All active skills share the same base pricing with a 30% markup: Common 65, Uncommon 104, Rare 130, Epic 195, Legendary 286 POL. PRIORITY_LISTING (Type 8): Your NFTs appear at the top of marketplace homepage and category pages. BATCH_MINTER (Type 9): Mint multiple NFTs in a single transaction, saving time and gas fees. VERIFIED_CREATOR (Type 10): Display a verified creator badge on your profile, building buyer trust. INFLUENCER (Type 11): Your likes and comments carry 2x weight in trending algorithms. CURATOR (Type 12): Create and manage featured collections to showcase top NFTs. AMBASSADOR (Type 13): Earn 2x referral bonuses for bringing new users to the platform. VIP_ACCESS (Type 14): Access exclusive NFT drops and private collections before the public. EARLY_ACCESS (Type 15): Get 24 hours early access to all new NFT launches and platform features. PRIVATE_AUCTIONS (Type 16): Participate in exclusive private auctions with premium NFTs. Active skills enhance marketplace visibility, creator reputation, and earning potential.",
-    metadata: { type: "skills", category: "marketplace", topic: "active-skills" },
-    commands: ['active skills', 'marketplace skills', 'priority listing', 'verified creator', 'batch minter', 'influencer skill', 'curator skill', 'ambassador skill', 'vip access', 'early access', 'private auctions']
+    metadata: { type: "skills", category: "nft", topic: "active-skills" },
+    commands: ['active skills', 'active skills nft', 'priority listing', 'verified creator', 'batch minter', 'influencer skill', 'curator skill', 'ambassador skill', 'vip access', 'early access', 'private auctions', 'platform features skills', 'social skills', 'creator skills', 'what are active skills', 'skills types 8 to 16']
   },
   {
     content: "Skills NFT Purchase and Renewal System: Skills can be purchased from the Nuxchain Store as NFTs. Purchase process: 1) Browse skills by category (Staking/Active) or rarity, 2) Select desired skill and rarity tier, 3) Pay price in POL (prices vary by type and rarity), 4) Receive Skill NFT in wallet, 5) Activate skill in staking dashboard (requires min 250 POL staked). Skill Duration: 30 days from activation. Renewal System: After 30 days, skills expire and become inactive. Renewal cost: 50% of original purchase price (e.g., RARE Stake Boost originally 100 POL, renewal 50 POL). Renewal extends skill for another 30 days. Users can renew anytime after expiration. Max Active Skills: 3 skills total can be active simultaneously per user. Skills can be deactivated and reactivated (deactivation requires 25% fee). Unopened/unactivated skills can be transferred or gifted to other users.",
@@ -214,28 +194,6 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     content: "NFT utility in Nuxchain includes: Governance voting rights, staking bonuses (enhanced APY for NFT holders), exclusive access to features, marketplace fee discounts, participation in special airdrops, gamification rewards, and cross-platform benefits. NFT holders may receive enhanced staking rates on their POL deposits, reduced marketplace fees, and priority access to new features. These utilities make NFTs functional assets rather than just collectibles, providing ongoing value to holders and creating a sustainable ecosystem.",
     metadata: { type: "nft", category: "utility", topic: "benefits" },
     commands: ['Nuxchain NFT', 'Nuxchain NFT utility', 'Nuxchain NFT benefits']
-  },
-
-  // === AIRDROPS ===
-  {
-    content: "Nuxchain airdrops reward early adopters and active users with POL tokens and exclusive NFTs. Eligibility based on wallet activity, staking participation, platform engagement, and holding specific NFTs. Current upcoming airdrops include: POL Token rewards for early platform users with enhanced staking rewards, and Governance NFT airdrop for active community members with voting rights and exclusive access. Registration is required through the Airdrops Dashboard.",
-    metadata: { type: "airdrops", category: "rewards", topic: "eligibility" },
-    commands: ['Nuxchain airdrop', 'Nuxchain rewards', 'Nuxchain POL airdrop', 'Nuxchain governance NFT']
-  },
-  {
-    content: "Nuxchain airdrop system includes multiple distribution mechanisms: automatic airdrops for eligible users, manual claim processes through the dashboard, and time-limited campaigns. The Airdrop contract handles secure token distribution with functions like claimAirdrop(), checkEligibility(), and getAirdropInfo(). Users can track their airdrop history and upcoming eligibility through their profile dashboard.",
-    metadata: { type: "airdrops", category: "process", topic: "distribution" },
-    commands: ['Nuxchain airdrop claim', 'Nuxchain airdrop contract', 'Nuxchain airdrop history']
-  },
-  {
-    content: "To participate in Nuxchain airdrops: 1) Keep POL in staking, 2) Participate in community, 3) Own Nuxchain NFTs, 4) Keep wallet connected during snapshots.",
-    metadata: { type: "airdrops", category: "tutorial", topic: "participation" },
-    commands: ['Nuxchain participate airdrop']
-  },
-  {
-    content: "Nuxchain airdrops are announced on Discord, Twitter and the platform. Snapshots are taken on specific dates and tokens are distributed automatically.",
-    metadata: { type: "airdrops", category: "process", topic: "distribution" },
-    commands: ['Nuxchain airdrop announcements']
   },
 
   // === NUXBEE AI 1.0 ===
@@ -471,20 +429,14 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     metadata: { type: "faq", category: "wallet", topic: "connection" },
     commands: ['Nuxchain wallet connection', 'Nuxchain Polygon network', 'Nuxchain WalletConnect']
   },
-  {
-    content: "FAQ - Airdrops: To participate in airdrops, connect your wallet and check eligibility requirements. Some airdrops require staking, NFT ownership, or community participation. Distribution is automatic for eligible wallets. Check the airdrops page regularly for new opportunities. Past participation may increase future eligibility.",
-    metadata: { type: "faq", category: "airdrops", topic: "participation" },
-    commands: ['Nuxchain airdrop participation', 'Nuxchain airdrop eligibility', 'Nuxchain airdrop requirements']
-  },
-
   // === ADVANCED USE CASES ===
   {
-    content: "Advanced Nuxchain strategies: 1) Portfolio diversification - combine staking, NFT investments, and airdrop participation, 2) Yield optimization - time compound operations with gas costs, 3) NFT flipping - use marketplace analytics to identify undervalued assets, 4) Community engagement - participate in governance discussions for future airdrops, 5) Cross-platform integration - use APIs for external portfolio tracking.",
+    content: "Advanced Nuxchain strategies: 1) Portfolio diversification - combine staking, NFT marketplace activities, and AI agent creation, 2) Yield optimization - time compound operations with gas costs, 3) NFT flipping - use marketplace analytics to identify undervalued assets, 4) Community engagement - participate in governance discussions and earn rewards, 5) Cross-platform integration - use APIs for external portfolio tracking.",
     metadata: { type: "advanced", category: "strategies", topic: "optimization" },
     commands: ['Nuxchain advanced strategies', 'Nuxchain portfolio optimization']
   },
   {
-    content: "Nuxchain developer resources: Smart contract ABIs available for SmartStaking.json, Marketplace.json, and Airdrop.json. Integration examples include Web3 connection, transaction handling, event listening, and error management. The platform supports custom dApp integrations and provides comprehensive documentation for developers building on top of Nuxchain infrastructure.",
+    content: "Nuxchain developer resources: Smart contract ABIs available for SmartStaking.json and Marketplace.json. Integration examples include Web3 connection, transaction handling, event listening, and error management. The platform supports custom dApp integrations and provides comprehensive documentation for developers building on top of Nuxchain infrastructure.",
     metadata: { type: "developer", category: "resources", topic: "integration" },
     commands: ['Nuxchain developers', 'Nuxchain API documentation', 'Nuxchain integration']
   },
@@ -508,7 +460,7 @@ const knowledgeBase: KnowledgeBaseItem[] = [
 
   // === PAGE FUNCTIONALITIES ===
   {
-    content: "Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuxbee AI 1.0, staking information with real-time statistics, NFT marketplace preview, airdrops section with upcoming events, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Nuxbee will have its own dedicated platform for advanced features.",
+    content: "Nuxchain Home page: Hero section with platform introduction, AI section highlighting Nuxbee AI 1.0, staking information with real-time statistics, NFT marketplace preview, tokenization information, ecosystem benefits section, and footer with important links. Responsive design optimized for conversion. Nuxbee will have its own dedicated platform for advanced features.",
     metadata: { type: "technical", category: "pages", topic: "home" },
     commands: ['Nuxchain home page', 'Nuxchain landing']
   },
@@ -531,11 +483,6 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     content: "Nuxchain NFTs page: Infinite grid of user's NFTs, filters by collection and status, personal NFT statistics, listing modal for sale, management of received offers, transaction history, and wallet integration to show owned NFTs. Design optimized for personal collection management.",
     metadata: { type: "technical", category: "pages", topic: "nfts" },
     commands: ['Nuxchain NFTs page', 'Nuxchain my NFTs']
-  },
-  {
-    content: "Nuxchain Airdrops page: Available airdrops dashboard, participation form, airdrop statistics, time counter for upcoming events, participation history, automatic eligibility verification, and notification system. Integration with airdrop contracts for automatic distribution.",
-    metadata: { type: "technical", category: "pages", topic: "airdrops" },
-    commands: ['Nuxchain airdrops page', 'Nuxchain airdrop dashboard']
   },
   {
     content: "Nuxchain Tokenization page: Tools to create ERC-20 tokens and ERC-721 NFTs, file upload to IPFS, metadata configuration, royalty management, whitelist management, batch minting, progress indicator, technical token details, tokenization FAQ, and process benefits. Step-by-step interface to facilitate creation.",
@@ -633,7 +580,7 @@ const knowledgeBase: KnowledgeBaseItem[] = [
 
   // === AVAILABLE COMMANDS ===
   {
-    content: "Available Nuxchain commands: 'Nuxchain help' (general help), 'Nuxchain staking' (staking information), 'Nuxchain NFT' (NFT marketplace), 'Nuxchain wallet' (wallet connection), 'Nuxchain tokenization' (asset tokenization), 'Nuxchain airdrops' (airdrop information), 'Nuxchain chat' (AI assistant), 'Nuxchain roadmap' (roadmap), 'Nuxchain security' (security), 'Nuxchain development' (development).",
+    content: "Available Nuxchain commands: 'Nuxchain help' (general help), 'Nuxchain staking' (staking information), 'Nuxchain NFT' (NFT marketplace), 'Nuxchain wallet' (wallet connection), 'Nuxchain tokenization' (asset tokenization), 'Nuxchain chat' (AI assistant), 'Nuxchain roadmap' (roadmap), 'Nuxchain security' (security), 'Nuxchain development' (development).",
     metadata: { type: "help", category: "commands", topic: "available" },
     commands: ['Nuxchain commands', 'available commands']
   },
@@ -848,12 +795,12 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['referral system', 'early exit fee', 'withdrawal penalty', 'staking referral', 'refer a friend staking', '7 day fee', 'flexible withdrawal fee']
   },
   {
-    content: "Nuxchain $NUX Tokenomics: Total Supply: 100,000,000 NUX (100 million). Token Utility: Governance (vote on protocol proposals), Staking Rewards (earn POL by staking), Fee Discounts (tiered based on holdings), Marketplace Trading (buy/sell NFTs), Launchpad Access (tiered allocations). Burn Mechanism: 50% of all platform fees (staking commissions, marketplace fees) are used to buy back and burn NUX tokens. Additionally, 10% of skill NFT sales are burned. Deflationary tokenomics ensure decreasing supply over time. Burn events are transparent and verifiable on-chain. Initial Distribution: 25% Ecosystem Rewards, 20% Team & Advisors (4-year vesting), 15% Treasury, 15% Public Sale (Launchpad), 15% Liquidity, 10% Community/Airdrops. Vesting schedules ensure long-term alignment.",
+    content: "Nuxchain $NUX Tokenomics: Total Supply: 100,000,000 NUX (100 million, fixed forever). Token Utility: Governance (vote on protocol proposals), Staking Rewards (earn POL by staking on Polygon), Fee Discounts (tiered based on holdings), Marketplace Trading (buy/sell NFTs on Polygon), Solana Services (subscriptions, store, third-party NFTs). Burn Mechanism: 50% of all platform fees (staking commissions, marketplace fees) are used to buy back and burn NUX tokens. Additionally, 10% of skill NFT sales are burned. Deflationary tokenomics ensure decreasing supply over time. Initial Distribution: 35% Community Rewards (4-yr emission), 20% Team & Advisors (3-yr vesting), 15% Treasury & DAO Reserve, 15% DEX Liquidity (50% locked), 15% Marketing & Ecosystem.",
     metadata: { type: "token", category: "economy", topic: "tokenomics" },
     commands: ['NUX tokenomics', 'token economy', 'NUX burn', 'burn mechanism', 'token supply', 'NUX utility', 'token distribution']
   },
   {
-    content: "Nuxchain Staking Skills Store: Skills are NFT-based power-ups that boost your staking performance. Types: STAKE_BOOST_I (+5% APY), STAKE_BOOST_II (+10% APY), STAKE_BOOST_III (+20% APY), AUTO_COMPOUND (automatic reinvestment), LOCK_REDUCER (-25% lock time), FEE_REDUCER_I (-10% platform fees), FEE_REDUCER_II (-25% platform fees). Prices range from 50 POL (Common) to 484 POL (Legendary) depending on skill type and rarity. Higher rarity = stronger effects. Active Skills: 8-16 are marketplace/social skills (Priority Listing, Batch Minter, Verified Creator, Influencer, etc.). You can activate up to 5 skills simultaneously. Skills expire after 30 days and can be renewed at 50% cost. Buy skills in the Skills Store section of the marketplace.",
+    content: "Nuxchain Staking Skills Store: Skills are NFT-based power-ups that boost your staking performance. Types: STAKE_BOOST_I (+5% APY), STAKE_BOOST_II (+10% APY), STAKE_BOOST_III (+20% APY), AUTO_COMPOUND (automatic reinvestment), LOCK_REDUCER (-25% lock time), FEE_REDUCER_I (-10% platform fees), FEE_REDUCER_II (-25% platform fees). Prices range from 50 POL (Common) to 484 POL (Legendary) depending on skill type and rarity. Higher rarity = stronger effects. Active Skills (Types 8-16) are platform & social power-ups: PRIORITY_LISTING (featured NFT placement), BATCH_MINTER (multi-mint in one tx), VERIFIED_CREATOR (trust badge), INFLUENCER (2x social weight), CURATOR (create featured collections), AMBASSADOR (2x referral bonuses), VIP_ACCESS (exclusive early drops), EARLY_ACCESS (24h head start), PRIVATE_AUCTIONS (invite-only auctions). All share the same pricing: Common 65 → Legendary 286 POL. Activate up to 3 skills simultaneously. Skills expire after 30 days and renew at 50% cost. Buy skills at /store.",
     metadata: { type: "skills", category: "store", topic: "staking-skills" },
     commands: ['staking skills', 'skill store', 'buy skills', 'skill prices', 'APY boost skills', 'staking power-ups', 'skill NFTs']
   },
@@ -861,11 +808,6 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     content: "Nuxchain Rewards Hub: The Rewards Hub is your central dashboard for all platform earnings. Features include: Staking Rewards (view and claim pending POL rewards), Level-Up Rewards (claim POL bonuses when leveling up), Quest Rewards (complete quests for XP and POL), Referral Rewards (track and claim referral bonuses), Achievement Badges (collectible milestones with rewards). Auto-Compound can be enabled to automatically reinvest staking rewards. The hub shows real-time balances, reward history, and estimated future earnings based on current APY. Access via the Rewards tab in the main navigation.",
     metadata: { type: "features", category: "rewards", topic: "rewards-hub" },
     commands: ['rewards hub', 'claim rewards', 'my rewards', 'staking rewards', 'level up rewards', 'quest rewards', 'referral rewards']
-  },
-  {
-    content: "Nuxchain Launchpad: The Launchpad enables token sales and new project launches. Current: NUX Token Sale with 3 tiers - Tier 1 (Whitelist): 40% off at 0.000015 SOL/NUX, min 5K max 200K NUX, 12M NUX cap. Tier 2 (Presale): Public at 0.000025 SOL/NUX, min 1K max 500K NUX, 13M NUX cap. Tier 3 (LP/TGE): Market price at 0.00004 SOL/NUX, unlimited. 50% of liquidity permanently locked at TGE to prevent rug pulls. Users can participate with SOL on Solana. Whitelist requires completing airdrop tasks. Launchpad features tiered access, countdown timers, and real-time stats tracking.",
-    metadata: { type: "launchpad", category: "token-sale", topic: "launchpad" },
-    commands: ['launchpad', 'NUX sale', 'token sale', 'whitelist', 'presale', 'buy NUX', 'launchpad tiers']
   },
   {
     content: "Nuxchain Roadmap 2025-2027: Achieved: Developer Tooling Suite (Q2 2025), Smart Contracts v1.0 (Q1 2025), AI Integration (Q2 2025), Beta Platform (Q3 2025), Mobile UX 2.0 (Q4 2025), Performance System 2.0 (Q1 2026), Smart Contracts v6.2 Update (Q1 2026). In Progress: Labs & Dev Hub (Q2 2025), Nuxbee AI Platform 1.0 (Q1 2026), Marketing Campaigns (Q1 2026), Partnerships 1.0 (Q1-Q2 2026), DAO Governance (Q4 2026), Tokenomics (Q1 2026), NFTs Wave 4 (Q1 2026). Upcoming: Nuxbee AI 2.0 (Q2 2026), Physical Branding NFTs (Q2 2026), Re-branding (Q2 2026), Nuxchain Kit SDK (Q4 2026), Global Expansion & Web Launch (Q1 2027), Gaming Platform (Q2-Q3 2027), Mobile App (Q4 2027), Enterprise Solutions (Q4 2027).",
@@ -1007,14 +949,30 @@ const knowledgeBase: KnowledgeBaseItem[] = [
     commands: ['marketplace architecture', 'how marketplace works', 'NFT marketplace modules', 'marketplace contracts', 'GameifiedMarketplace', 'marketplace quests', 'NFT referral']
   },
   {
-    content: "Nuxchain Skills NFT On-Chain Utility: Skills NFTs are NOT purely cosmetic — they have verifiable on-chain effects recorded in smart contracts. Types of utility: (1) APY Boost NFTs: STAKE_BOOST_I (+5%), STAKE_BOOST_II (+10%), STAKE_BOOST_III (+20%) — directly increase your staking hourly rate. (2) Auto-Compound NFT: activates automatic reward reinvestment passively. (3) Lock Reducer: -25% lockup time (e.g., 180d lockup becomes 135d effective). (4) Fee Reducers: FEE_REDUCER_I (-10% platform fees) and FEE_REDUCER_II (-25%). (5) Marketplace Skills: Priority Listing, Batch Minter, Verified Creator, Influencer social badge. All effects are applied via `applySkillBoost()` and `activateSkill()` on-chain. Up to 5 skills can be active simultaneously. Skills expire after 30 days but can be renewed at 50% cost.",
+    content: "Nuxchain Skills NFT On-Chain Utility: Skills NFTs are NOT purely cosmetic — they have verifiable on-chain effects recorded in smart contracts. Types of utility: (1) APY Boost NFTs: STAKE_BOOST_I (+5%), STAKE_BOOST_II (+10%), STAKE_BOOST_III (+20%) — directly increase your staking hourly rate. (2) Auto-Compound NFT: activates automatic reward reinvestment passively. (3) Lock Reducer: -25% lockup time (e.g., 180d lockup becomes 135d effective). (4) Fee Reducers: FEE_REDUCER_I (-10% platform fees) and FEE_REDUCER_II (-25%). (5) Active Skills (Types 8-16): PRIORITY_LISTING (Type 8, featured NFT placement), BATCH_MINTER (Type 9, multi-mint in one tx), VERIFIED_CREATOR (Type 10, trust badge on profile), INFLUENCER (Type 11, 2x social weight in trending), CURATOR (Type 12, create featured collections), AMBASSADOR (Type 13, 2x referral bonuses), VIP_ACCESS (Type 14, exclusive early drops), EARLY_ACCESS (Type 15, 24h head start on launches), PRIVATE_AUCTIONS (Type 16, invite-only auctions). All effects are applied via `applySkillBoost()` and `activateSkill()` on-chain. Up to 3 skills can be active simultaneously. Skills expire after 30 days but can be renewed at 50% cost.",
     metadata: { type: "marketplace", category: "skills", topic: "skills-nft-utility" },
     commands: ['skills NFT utility', 'how do skills work', 'APY boost NFT', 'skill effects', 'fee reducer NFT', 'auto compound NFT', 'lock reducer', 'skills marketplace', 'buy skills']
   },
+  // ===== DUAL-CHAIN ECOSYSTEM =====
   {
-    content: "Nuxchain Airdrop Program: The Nuxchain Airdrop distributes NUX tokens to early community participants. Pool: up to 50,000,000 NUX available. Participation grants exclusive Whitelist access to Tier 1 of the NUX Launchpad (best price: 0.000015 SOL/NUX). Airdrop tasks include social actions (follow, retweet, join Discord), on-chain activity verification, and early platform engagement. Registration is stored in Firebase Firestore. Anti-duplicate filters prevent multi-account farming. Successful airdrop participants also receive priority queue for upcoming NFT drops and launchpad allocations. The airdrop is the primary path to Tier 1 Launchpad eligibility.",
-    metadata: { type: "airdrop", category: "details", topic: "airdrop-program" },
-    commands: ['airdrop', 'NUX airdrop', 'airdrop eligibility', 'airdrop tasks', 'whitelist airdrop', 'how to join airdrop', 'earn free NUX', 'airdrop pool']
+    content: "NUX on Solana \u2014 Services Use Cases: The Solana NUX (SPL token, address: FRnAMJ7p4bgTeAbkhq5cKAX8Xif86h71Nn3nHnXPedtp) is the payment token for Nuxchain ecosystem services that do not require smart contracts. Accepted for: (1) Nuxbee AI subscriptions \u2014 Pro plan ($10/month equivalent in NUX) and Premium plan ($25/month equivalent in NUX); (2) Nuxchain online store purchases \u2014 apparel, merchandise, physical products with optional NFT redemption; (3) Third-party NFT purchases \u2014 select partner collections available without on-chain Polygon transactions. All Solana NUX payments are processed off-chain, instantly, with near-zero gas (\u22480.000005 SOL per tx). Fixed supply: 100M NUX. No custodian.",
+    metadata: { type: "general", category: "token", topic: "nux-solana-use-cases" },
+    commands: ['NUX Solana use cases', 'buy subscription NUX', 'Nuxbee AI subscription NUX', 'NUX store', 'NUX services', 'Solana NUX utility', 'pay with NUX', 'NUX SPL uses']
+  },
+  {
+    content: "NUX on Polygon \u2014 DeFi Use Cases: The Polygon NUX (ERC-20 bridged token) is the interaction token for all Nuxchain smart contracts on Polygon Mainnet (Chain ID 137). Use cases: (1) Smart Staking \u2014 deposit NUX alongside POL to access boosted APY tiers in the SmartStaking v6.2 contracts; (2) NFT Creation & Trading \u2014 mint Nuxchain-native NFTs, buy/sell on the GameifiedMarketplace v2.0, earn royalties; (3) AI Agent Deployment \u2014 stake NUX to register and deploy AI agents on the Nuxchain platform; (4) Skills NFT activation \u2014 spend NUX to activate staking and marketplace skill boosts; (5) Governance \u2014 vote on DAO proposals with your NUX holdings (Q4 2026). All Polygon interactions use POL for gas fees.",
+    metadata: { type: "general", category: "token", topic: "nux-polygon-use-cases" },
+    commands: ['NUX Polygon use cases', 'NUX DeFi', 'NUX staking Polygon', 'NUX NFT create', 'NUX AI agents', 'NUX governance', 'NUX ERC20 uses', 'Polygon NUX utility']
+  },
+  {
+    content: "Nuxchain Dual-Chain Ecosystem Vision: Nuxchain operates on two blockchains with clear separation of purpose. Solana is the \u2018Services Layer\u2019 \u2014 NUX SPL tokens are used for all service payments (subscriptions, store purchases, third-party NFTs) that benefit from Solana's sub-second finality and near-zero fees. Polygon is the \u2018DeFi Layer\u2019 \u2014 NUX ERC-20 powers all smart contract interactions (staking, NFT minting, AI agent creation, governance). This dual-chain architecture avoids the complexity of cross-chain bridges for everyday service payments while retaining the programmability of EVM smart contracts for DeFi. Users interact with the chain appropriate to their activity, and the Nuxchain frontend handles switching automatically.",
+    metadata: { type: "general", category: "strategy", topic: "nuxchain-dual-chain-ecosystem" },
+    commands: ['dual chain ecosystem', 'Nuxchain vision', 'Solana vs Polygon NUX', 'services layer', 'DeFi layer', 'dual chain design', 'why two chains', 'Nuxchain architecture vision']
+  },
+  {
+    content: "Nuxbee AI Subscription Plans (payable with Solana NUX): Free Tier \u2014 10 chat messages/day on the lite Gemini model, no skills access. Pro Tier ($10/month equivalent in NUX) \u2014 100 messages/day on the Flash model, 3 AI skills (Risk Analysis, NFT Listing Optimizer, Liquidity Advisor), 10 skill calls/day. Premium Tier ($25/month equivalent in NUX) \u2014 unlimited messages on the Pro model, all 9 AI skills, 50 skill calls/day, priority response, context caching enabled. Subscriptions are paid using Solana NUX tokens. The NUX price for each tier is calculated at the time of subscription based on current market rate. All plans require a connected wallet.",
+    metadata: { type: "subscription", category: "plans", topic: "nuxchain-subscription-plans" },
+    commands: ['subscription plans', 'Nuxbee AI plans', 'Pro plan NUX', 'Premium plan NUX', 'how much NUX subscription', 'subscribe Nuxbee', 'AI subscription cost', 'upgrade plan NUX']
   },
 
   // ===== NUXBEE AI SKILLS SYSTEM =====

@@ -325,8 +325,8 @@ const AIAnalysisOverview: React.FC = () => {
             <div>
               <h4 className="jersey-15-regular font-bold text-orange-400 text-xl">Low Wallet Balance</h4>
               <p className="jersey-20-regular text-slate-400 text-base">
-                You have {balance.balanceFormatted.toFixed(4)} {balance.symbol}. Need at least 5 POL to stake. 
-                Add {(5 - balance.availableForStaking).toFixed(2)} more POL to start earning rewards.
+                You have {balance.balanceFormatted.toFixed(4)} {balance.symbol}. Need at least 10 POL to stake. 
+                Add {(10 - balance.availableForStaking).toFixed(2)} more POL to start earning rewards.
               </p>
             </div>
           </div>

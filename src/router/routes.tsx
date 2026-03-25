@@ -28,12 +28,8 @@ const Tokenomics = lazy(() => import(/* webpackChunkName: "tokenomics" */ '../pa
 const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/ColabPortal'));
 const Admin = lazy(() => import(/* webpackChunkName: "workspace" */ '../pages/Admin'));
 const AdminLogin = lazy(() => import(/* webpackChunkName: "workspace-access" */ '../pages/AdminLogin'));
-const Nux = lazy(() => import(/* webpackChunkName: "nux" */ '../pages/Nux'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
-const LaunchpadMaintenance = lazy(() => import(/* webpackChunkName: "launchpad" */ '../pages/LaunchpadMaintenance'));
-const P2PMarketplace = lazy(() => import(/* webpackChunkName: "p2p-market" */ '../pages/P2PMarketplace'));
 const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
-const BurnToken = lazy(() => import(/* webpackChunkName: "burn-token" */ '../pages/BurnToken'));
 
 function AppRoutes() {
   // Smart preloading: Only preload on fast connections and after idle
@@ -91,12 +87,8 @@ function AppRoutes() {
         <Route path="/nothing/dashboard" element={<Admin />} />
         <Route path="/nothing" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
-        <Route path="/nux" element={<Nux />} />
         <Route path="/rewards" element={<Rewards />} />
-        <Route path="/launchpad" element={<LaunchpadMaintenance />} />
-        <Route path="/p2p-market" element={<P2PMarketplace />} />
         <Route path="/whitepaper" element={<Whitepaper />} />
-        <Route path="/burntoken" element={<BurnToken />} />
       </Routes>
     </Suspense>
   );

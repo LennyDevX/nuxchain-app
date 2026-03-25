@@ -11,13 +11,10 @@ function Navbar() {
   const navLinks = [
     { path: '/staking', label: 'Staking' },
     { path: '/nfts', label: 'NFTs' },
-    { path: '/giveaway', label: 'Giveaway' },
-    { path: '/p2p-market', label: 'P2P' },
+    { path: '/marketplace', label: 'Marketplace' },
     { path: '/store', label: 'Store' },
+    { path: '/giveaway', label: 'Giveaway' },
     { path: '/profile/ai-analysis', label: 'A.I' },
-    { path: '/nux', label: 'NUX' },
-    { path: '/burntoken', label: 'Burn' },
-    { path: '/tokenomics', label: 'Tokenomics' },
     { path: '/chat', label: 'Chat' }
   ]
 
@@ -100,41 +97,7 @@ function Navbar() {
                         }`}
                     >
                       {link.label}
-                      {link.path === '/p2p-market' && (
-                        <motion.div
-                          className="w-2 h-2 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        />
-                      )}
-                      {link.path === '/nux' && (
-                        <motion.div
-                          className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.7)]"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                      )}
-                      {link.path === '/giveaway' && (
-                        <motion.div
-                          className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.8)]"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        />
-                      )}
-                      {link.path === '/tokenomics' && (
-                        <motion.div
-                          className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]"
-                          animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                      )}
-                      {link.path === '/burntoken' && (
-                        <motion.div
-                          className="w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.9)]"
-                          animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 1.2, repeat: Infinity }}
-                        />
-                      )}
+
                     </Link>
                   </motion.div>
                 </motion.div>

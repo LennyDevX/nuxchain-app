@@ -31,8 +31,8 @@ function CrossChainSection() {
             Cross-Chain <span className="text-gradient">by Design</span>
           </h2>
           <p className={`jersey-20-regular text-white/60 max-w-2xl mx-auto ${isMobile ? 'text-lg' : 'text-xl'}`}>
-            Two chains. One ecosystem. Polygon for activity, Solana for rewards.
-            No bridges, no complexity — just seamless cross-chain power.
+            Two chains. One ecosystem. Polygon for DeFi & smart contracts, Solana for services.
+            Each chain has a purpose — together they power the full Nuxchain experience.
           </p>
         </motion.div>
 
@@ -49,11 +49,11 @@ function CrossChainSection() {
               </div>
             </div>
             <p className={`jersey-20-regular text-white/60 mb-6 leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-              All on-chain activity happens here — staking, NFT minting, marketplace trades, skill purchases.
-              Your Polygon wallet is your identity. Ultra-fast, ultra-cheap.
+              All DeFi interactions happen here — Smart Staking, NFT creation & trading, AI Agent deployment,
+              and marketplace activity. Your Polygon wallet is your identity. Ultra-fast, ultra-cheap.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
-              {['Staking', 'NFT Minting', 'Marketplace', 'Skills', 'Governance'].map(tag => (
+              {['Smart Staking', 'NFT Minting', 'Marketplace', 'AI Agents', 'Governance'].map(tag => (
                 <span key={tag} className={`jersey-20-regular px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 ${isMobile ? 'text-lg' : 'text-base'}`}>{tag}</span>
               ))}
             </div>
@@ -77,15 +77,16 @@ function CrossChainSection() {
               <div className="w-28 h-28 rounded-xl flex items-center justify-center overflow-hidden"><img src="/assets/tokens/SolanaLogo.png" alt="Solana" className="w-full h-full object-contain" /></div>
               <div>
                 <h3 className={`jersey-15-regular text-white ${isMobile ? 'text-2xl' : 'text-3xl'}`}>Solana</h3>
-                <p className={`jersey-20-regular text-green-300 ${isMobile ? 'text-lg' : 'text-lg'}`}>Rewards Chain</p>
+                <p className={`jersey-20-regular text-green-300 ${isMobile ? 'text-lg' : 'text-lg'}`}>Services Chain</p>
               </div>
             </div>
             <p className={`jersey-20-regular text-white/60 mb-6 leading-relaxed ${isMobile ? 'text-xl' : 'text-2xl'}`}>
-              NUX token rewards are distributed here. Zero gas for recipients.
-              Link your Solana wallet once — receive monthly rewards automatically.
+              NUX on Solana powers ecosystem services that don't need smart contracts — subscribe to
+              Nuxbee AI Pro or Premium, shop in the Nuxchain store, or purchase third-party NFTs.
+              Zero gas, instant settlement.
             </p>
             <div className="flex flex-wrap gap-2 mb-6">
-              {['NUX Rewards', 'Zero Gas', 'Monthly Drops', 'SPL Tokens'].map(tag => (
+              {['Subscriptions', 'Online Store', 'Third-party NFTs', 'SPL Token'].map(tag => (
                 <span key={tag} className={`jersey-20-regular px-3 py-1 rounded-full bg-green-500/15 border border-green-500/30 text-green-300 ${isMobile ? 'text-lg' : 'text-base'}`}>{tag}</span>
               ))}
             </div>
@@ -110,7 +111,7 @@ function CrossChainSection() {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-purple-500/20" />
             <div className="card-unified px-6 py-3 flex items-center gap-3">
               <span className="text-2xl">🔄</span>
-              <span className="jersey-20-regular text-white/70 text-2xl">Off-chain link — no bridge, no gas</span>
+              <span className="jersey-20-regular text-white/70 text-2xl">Dual utility — services on Solana, DeFi on Polygon</span>
             </div>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent via-green-500/50 to-green-500/20" />
           </motion.div>
@@ -118,8 +119,8 @@ function CrossChainSection() {
 
         {/* CTA */}
         <motion.div {...fadeUp(0.35)} className={`flex ${isMobile ? 'flex-col' : 'flex-row justify-center'} gap-4`}>
-          <Link to="/rewards" className="btn-primary jersey-20-regular text-2xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
-            🔗 Link Wallets Now
+          <Link to="/staking" className="btn-primary jersey-20-regular text-2xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center">
+            ⚡ Explore DeFi
           </Link>
           <Link to="/about" className="jersey-20-regular text-2xl px-10 py-4 rounded-xl inline-flex items-center gap-2 justify-center border border-green-500/40 hover:border-green-400 hover:bg-green-500/10 transition-all text-green-300">
             Learn Architecture →

@@ -8,9 +8,9 @@ import WalletConnect from '../web3/WalletConnect.tsx';
 import { isMaintenanceMode } from '../../config/maintenance';
 
 // Iconos SVG
-const P2PIcon = ({ isActive }: { isActive: boolean }) => (
-  <svg className={`w-6 h-6 ${isActive ? 'text-purple-400' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" />
+const ChatIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-blue-400' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
   </svg>
 );
 
@@ -45,6 +45,13 @@ const StoreIcon = ({ isActive }: { isActive: boolean }) => (
   </svg>
 );
 
+// Icono de Giveaway (regalo/caja)
+const GiveawayIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg className={`w-6 h-6 ${isActive ? 'text-red-400' : 'text-gray-400'}`} fill={isActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v-1m0 0H8m4 0h4m-4 3v6m-3 0h6M8 5h8a2 2 0 012 2v10a2 2 0 01-2 2H8a2 2 0 01-2-2V7a2 2 0 012-2z" />
+  </svg>
+);
+
 
 interface NavItem {
   path: string;
@@ -66,11 +73,12 @@ const MobileBottomNavbar: React.FC = () => {
   const hideNavbar = isInChat ? chatNavbar.hideNavbar : undefined;
 
   const navItems: NavItem[] = [
-    { path: '/p2p-market', label: 'P2P', icon: P2PIcon },
+    { path: '/chat', label: 'Chat', icon: ChatIcon },
     { path: '/staking', label: 'Staking', icon: StakingIcon },
     { path: '/nfts', label: 'NFTs', icon: NFTIcon },
     { path: '/marketplace', label: 'Market', icon: MarketplaceIcon },
-    { path: '/store', label: 'Store', icon: StoreIcon }
+    { path: '/store', label: 'Store', icon: StoreIcon },
+    { path: '/giveaway', label: 'Giveaway', icon: GiveawayIcon }
   ];
 
   const isActive = (path: string) => {
@@ -385,105 +393,6 @@ const MobileBottomNavbar: React.FC = () => {
                     </Link>
                   </motion.div>
 
-                  {/* Launchpad */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.38 }}
-                  >
-                    <Link
-                      to="/launchpad"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/20 transition-colors relative"
-                    >
-                      <span className="text-xl">🚀</span>
-                      <span className="jersey-20-regular text-purple-400 text-xl">Launchpad</span>
-                      <motion.span
-                        className="ml-auto jersey-20-regular text-xl px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 font-bold"
-                        animate={{ opacity: [0.7, 1, 0.7] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        NEW
-                      </motion.span>
-                    </Link>
-                  </motion.div>
-
-                  {/* NUX Token */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <Link
-                      to="/nux"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-colors relative"
-                    >
-                      <span className="text-xl">🪙</span>
-                      <span className="jersey-20-regular text-amber-400 text-xl">NUX Token</span>
-                      <motion.div
-                        className="w-2 h-2 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.6)] ml-auto"
-                        animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    </Link>
-                  </motion.div>
-
-                  {/* Burn Tokens Link */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.42 }}
-                  >
-                    <Link
-                      to="/burntoken"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors relative"
-                    >
-                      <span className="text-xl">🔥</span>
-                      <span className="jersey-20-regular text-red-400 text-xl">Burn Tokens</span>
-                      <motion.div
-                        className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)] ml-auto"
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                      />
-                    </Link>
-                  </motion.div>
-
-                  {/* Tokenomics */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.45 }}
-                  >
-                    <Link
-                      to="/tokenomics"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors relative"
-                    >
-                      <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="jersey-20-regular text-white text-xl">Tokenomics</span>
-                      {!isMaintenanceMode('tokenomics') && (
-                        <motion.div
-                          className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)] ml-auto"
-                          animate={{ scale: [1, 1.4, 1], opacity: [0.8, 1, 0.8] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        />
-                      )}
-                      {isMaintenanceMode('tokenomics') && (
-                        <motion.div
-                          className="w-2.5 h-2.5 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.8)] ml-auto"
-                          animate={{
-                            scale: [1, 1.4, 1],
-                            opacity: [0.8, 1, 0.8]
-                          }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        />
-                      )}
-                    </Link>
-                  </motion.div>
                 </motion.div>
               </div>
             </motion.div>

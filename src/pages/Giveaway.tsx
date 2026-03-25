@@ -1,400 +1,362 @@
-﻿import { useState, useEffect } from 'react';
+﻿  import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useIsMobile } from '../hooks/mobile/useIsMobile';
-import { useGiveawayTracker } from '../hooks/useGiveawayTracker';
+import { useSolPrice } from '../hooks/useSolPrice';
 import { isMaintenanceMode } from '../config/maintenance';
 import GiveawayMaintenance from './GiveawayMaintenance';
 
-const FOLLOW_URL = 'https://x.com/nuxchain';
 const TWEET_TEXT_RAW =
-  'Trading NUX on NuxChain P2P Market! Earning giveaway entries with every trade - 2 winners get 1 SOL each! Join now and start trading. #Nuxchain #Solana #NUX #Giveaway #Web3 #P2P';
-const TWEET_URL = 'https://x.com/intent/post?text=' + encodeURIComponent(TWEET_TEXT_RAW);
+  "🚀 I'm joining the @nuxchain giveaway for 2 Solana! Just reserved my NUX tokens before the launch. Don't miss out — only 2 winners! 🎰 #Nuxchain #Solana #NUX #Giveaway #Web3";
+// Use x.com/intent/post directly — avoids the twitter.com redirect that can strip query params
+const TWEET_URL =
+  'https://x.com/intent/post?text=' + encodeURIComponent(TWEET_TEXT_RAW);
+const FOLLOW_URL = 'https://x.com/nuxchain';
 
-const TIER_CONFIGS = [
-  { min: 1, max: 4, level: 1, label: 'Trader', multiplier: 1, color: 'slate' },
-  { min: 5, max: 14, level: 2, label: 'Active Trader', multiplier: 2, color: 'blue' },
-  { min: 15, max: 29, level: 3, label: 'Power Trader', multiplier: 3, color: 'purple' },
-  { min: 30, max: Infinity, level: 4, label: 'Elite Trader', multiplier: 5, color: 'amber' },
+type StepKey = 'follow' | 'buy' | 'share';
+const STORAGE_KEY = 'nux_giveaway_steps_v1';
+
+const steps: { key: StepKey; icon: string; title: string; desc: string; action: string; url: string | null; hint: string }[] = [
+  {
+    key: 'follow',
+    icon: '𝕏',
+    title: 'Follow @nuxchain on X',
+    desc: 'Follow the official Nuxchain account on X (Twitter) to stay updated on all project news and the winner announcement.',
+    action: 'Follow @nuxchain',
+    url: FOLLOW_URL,
+    hint: 'After you follow, mark this step as done.',
+  },
+  {
+    key: 'buy',
+    icon: '◎',
+    title: 'Buy min. $20 in NUX',
+    desc: 'Reserve NUX tokens through the presale whitelist with a minimum of $20 USD in Solana. Your purchase is confirmed instantly.',
+    action: 'Buy Tokens',
+    url: '/launchpad?buy=1',
+    hint: 'Complete your token reservation, then mark this step as done.',
+  },
+  {
+    key: 'share',
+    icon: '📢',
+    title: 'Share on X',
+    desc: 'Post the official giveaway tweet from your X account. The text is pre-filled — just click, review, and hit Post.',
+    action: 'Post Tweet',
+    url: TWEET_URL,
+    hint: 'After posting your tweet, mark this step as done.',
+  },
 ];
+
+const stepColors: Record<StepKey, { from: string; border: string; text: string; bg: string }> = {
+  follow: { from: 'from-slate-800/60', border: 'border-slate-600/30', text: 'text-white', bg: 'bg-white/10' },
+  buy:    { from: 'from-purple-900/30', border: 'border-purple-500/30', text: 'text-purple-300', bg: 'bg-purple-500/15' },
+  share:  { from: 'from-blue-900/30',   border: 'border-blue-500/30',   text: 'text-blue-300',   bg: 'bg-blue-500/15' },
+};
+
+function SolanaIcon({ size = 20, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg viewBox="0 0 96 96" width={size} height={size} fill="none" className={className}>
+      <defs>
+        <linearGradient id="sol-giveaway" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#9945FF" />
+          <stop offset="50%" stopColor="#43B4CA" />
+          <stop offset="100%" stopColor="#14F195" />
+        </linearGradient>
+      </defs>
+      <path d="M14 60 L62 60 L82 44 L34 44 Z" fill="url(#sol-giveaway)" />
+      <path d="M14 43 L62 43 L82 27 L34 27 Z" fill="url(#sol-giveaway)" />
+      <path d="M34 77 L82 77 L62 61 L14 61 Z" fill="url(#sol-giveaway)" />
+    </svg>
+  );
+}
 
 export default function Giveaway() {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  const { publicKey } = useWallet();
-  const { tradeCount, tier } = useGiveawayTracker();
-  const [followed, setFollowed] = useState(false);
-  const [shared, setShared] = useState(false);
+  const { getSolAmount, solPrice, loading: priceLoading } = useSolPrice();
+
+  // Minimum purchase: $20 USD expressed in SOL at live price
+  const MIN_USD = 20;
+  const solEquivalent = solPrice ? getSolAmount(MIN_USD) : null;
+  const solLabel = priceLoading
+    ? 'loading…'
+    : solEquivalent !== null
+      ? `≈ ${solEquivalent} SOL`
+      : '≈ 0.21 SOL';
 
   if (isMaintenanceMode('giveaway')) return <GiveawayMaintenance />;
 
-  const isEligible = followed && shared && tradeCount >= 1;
+  const [checked, setChecked] = useState<Record<StepKey, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : { follow: false, buy: false, share: false };
+    } catch {
+      return { follow: false, buy: false, share: false };
+    }
+  });
+
+  const allDone = checked.follow && checked.buy && checked.share;
 
   useEffect(() => {
-    const stored = localStorage.getItem('nux_giveaway_steps_v2');
-    if (stored) {
-      try {
-        const { followed: f, shared: s } = JSON.parse(stored);
-        setFollowed(f);
-        setShared(s);
-      } catch { }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(checked));
+  }, [checked]);
+
+  const toggle = (key: StepKey) => setChecked(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const handleAction = (url: string | null) => {
+    if (!url) return;
+    if (url.startsWith('/')) {
+      window.location.href = url;
+    } else {
+      // noreferrer only (no noopener) so Twitter intent can read query params
+      window.open(url, '_blank', 'noreferrer');
     }
-  }, []);
-
-  const handleFollowClick = () => {
-    window.open(FOLLOW_URL, '_blank', 'noreferrer');
-  };
-
-  const handleShareClick = async () => {
-    try {
-      await navigator.clipboard.writeText(TWEET_TEXT_RAW);
-      toast.success('Tweet text copied!', { icon: '📋' });
-    } catch { }
-    window.open(TWEET_URL, '_blank');
-  };
-
-  const toggleFollowed = (checked: boolean) => {
-    setFollowed(checked);
-    localStorage.setItem('nux_giveaway_steps_v2', JSON.stringify({ followed: checked, shared }));
-  };
-
-  const toggleShared = (checked: boolean) => {
-    setShared(checked);
-    localStorage.setItem('nux_giveaway_steps_v2', JSON.stringify({ followed, shared: checked }));
   };
 
   return (
-    <div className={`min-h-screen bg-black/40 ${isMobile ? 'pb-32' : ''}`}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
+    <div className={`min-h-screen py-6 lg:py-10 ${isMobile ? 'pb-32' : ''}`}>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
-        {/* HERO SECTION */}
+        {/* ── Prize Banner ─────────────────────────────── */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, type: 'spring', stiffness: 200, damping: 25 }}
-          className="relative overflow-hidden rounded-4xl border border-purple-500/20 bg-gradient-to-br from-purple-950/40 via-black/50 to-blue-950/30 p-8 sm:p-12 lg:p-16"
+          transition={{ duration: 0.5, type: 'spring', stiffness: 280, damping: 26 }}
+          className="relative overflow-hidden text-center px-6 py-10 rounded-3xl border border-purple-500/25 bg-gradient-to-br from-purple-900/30 via-black/40 to-blue-900/20"
         >
-          {/* Gradient background effects */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-32 -right-32 w-96 h-96 bg-purple-600/15 rounded-full blur-[100px]" />
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/10 rounded-full blur-[80px]" />
+          {/* Background glow */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-[420px] h-[220px] bg-purple-600/10 rounded-full blur-[80px]" />
           </div>
 
-          <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
-            {/* Left: Logo + Prize */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="flex flex-col items-center lg:items-start gap-6 flex-1"
-            >
-              {/* Solana Logo */}
-              <motion.img
-                src="/assets/tokens/SolanaLogo.png"
-                alt="Solana"
-                className={`${isMobile ? 'w-20 h-20' : 'w-32 h-32'} drop-shadow-[0_0_20px_rgba(159,122,234,0.5)]`}
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-              />
+          <p className="jersey-20-regular text-amber-400 text-base sm:text-lg uppercase tracking-[0.3em] mb-5">
+            🎰 Official Giveaway
+          </p>
 
-              {/* Prize amount */}
-              <div className="text-center lg:text-left">
-                <p className="jersey-20-regular text-purple-300 text-sm uppercase tracking-[0.3em] mb-2">Total Prize Pool</p>
-                <h1 className={`jersey-15-regular text-gradient ${isMobile ? 'text-6xl' : 'text-7xl lg:text-8xl'} leading-none font-black mb-3`}>
-                  2 SOL
-                </h1>
-                <p className="jersey-20-regular text-white/60 text-base sm:text-lg max-w-sm mx-auto lg:mx-0">
-                  Two winners will each receive 1 SOL from our community rewards.
-                </p>
-              </div>
+          {/* Title flanked by Solana logos */}
+          <div className="flex items-center justify-center gap-3 sm:gap-5 mb-6">
+            <SolanaIcon size={isMobile ? 52 : 72} />
+            <h1 className={`jersey-15-regular text-gradient ${isMobile ? 'text-6xl' : 'text-8xl'} leading-none`}>
+              Win 2 SOL
+            </h1>
+            <SolanaIcon size={isMobile ? 52 : 72} />
+          </div>
 
-              {/* Badge pills */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3">
-                <span className="jersey-20-regular px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs sm:text-sm">
-                  2 Winners
-                </span>
-                <span className="jersey-20-regular px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs sm:text-sm">
-                  1 SOL Each
-                </span>
-                <span className="jersey-20-regular px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs sm:text-sm">
-                  P2P Powered
-                </span>
-              </div>
-            </motion.div>
+          <p className={`jersey-20-regular text-white/70 ${isMobile ? 'text-lg' : 'text-xl'} max-w-lg mx-auto leading-relaxed mb-7`}>
+            Two winners will each receive{' '}
+            <span className="text-amber-300 font-semibold">1 SOL</span>.{' '}
+            Complete the 3 steps and reserve your NUX tokens before the launch.
+          </p>
 
-            {/* Right: Tagline + CTA */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="flex-1 text-center lg:text-right"
-            >
-              <div className="space-y-5">
-                <h2 className={`jersey-15-regular ${isMobile ? 'text-3xl' : 'text-4xl lg:text-5xl'} leading-tight text-white`}>
-                  Trade NUX &
-                  <br />
-                  <span className="text-gradient">Win SOL</span>
-                </h2>
-                <p className="jersey-20-regular text-white/50 text-base lg:text-lg leading-relaxed">
-                  Every trade on the NuxChain P2P Market automatically earns you entries into our giveaway. The more you trade, the better your chances!
-                </p>
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => navigate('/p2p-market')}
-                  className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white jersey-20-regular text-base sm:text-lg font-bold shadow-lg shadow-purple-900/50 transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                  Start Trading Now
-                </motion.button>
-              </div>
-            </motion.div>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <span className="jersey-20-regular px-5 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-base tracking-wide">
+              ✦ 2 Winners
+            </span>
+            <span className="jersey-20-regular px-5 py-2 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-base tracking-wide">
+            1 SOL each
+            </span>
+            <span className="jersey-20-regular px-5 py-2 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-base tracking-wide">
+              🚀 NUX Token Launch
+            </span>
           </div>
         </motion.div>
 
-        {/* ENTRIES SECTION */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="grid lg:grid-cols-2 gap-6"
-        >
-          {/* Entries Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-purple-500/30 bg-gradient-to-br from-purple-900/40 via-black/60 to-purple-950/30 p-6 sm:p-8">
-            <div className="absolute -right-16 -top-16 w-48 h-48 bg-purple-600/10 rounded-full blur-[60px]" />
-            <div className="relative z-10">
-              <p className="jersey-20-regular text-white/50 text-xs uppercase tracking-widest mb-3">Your Trade Entries</p>
-              <div className="flex items-end gap-4 mb-6">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={tradeCount}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`jersey-15-regular ${isMobile ? 'text-6xl' : 'text-7xl'} leading-none text-gradient font-black`}
-                  >
-                    {tradeCount}
-                  </motion.span>
-                </AnimatePresence>
-                <span className="jersey-20-regular text-white/40 text-base mb-2">/ 50 max</span>
-              </div>
+        {/* ── Steps ────────────────────────────────────── */}
+        <div className="space-y-4">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="jersey-20-regular text-white/50 text-base uppercase tracking-[0.2em] text-center"
+          >
+            Complete all 3 steps to enter
+          </motion.p>
 
-              {/* Tier badge */}
-              {tier && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-${tier.color}-500/30 bg-${tier.color}-500/10 text-${tier.color}-300 jersey-20-regular text-sm font-semibold mb-4`}
-                >
-                  <span>Level {tier.level}:</span>
-                  <span>{tier.name}</span>
-                  <span className="text-xs opacity-60">x{TIER_CONFIGS.find(t => t.level === tier.level)?.multiplier} weight</span>
-                </motion.div>
-              )}
-
-              {!tier && publicKey && (
-                <p className="jersey-20-regular text-white/40 text-sm mb-4">Complete your first trade to earn an entry automatically!</p>
-              )}
-
-              {!publicKey && (
-                <p className="jersey-20-regular text-white/40 text-sm mb-4">Connect your wallet to get started.</p>
-              )}
-
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-400 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min((tradeCount / 50) * 100, 100)}%` }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                  />
-                </div>
-                <p className="jersey-20-regular text-white/30 text-xs text-right">
-                  {50 - tradeCount} more trades for max entries
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Eligibility Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/40 via-black/60 to-emerald-950/20 p-6 sm:p-8">
-            <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-emerald-600/10 rounded-full blur-[60px]" />
-            <div className="relative z-10">
-              <p className="jersey-20-regular text-white/50 text-xs uppercase tracking-widest mb-4">Eligibility Checklist</p>
-
-              {/* Step 1: Follow */}
+          {steps.map((step, idx) => {
+            const c = stepColors[step.key];
+            const done = checked[step.key];
+            return (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="mb-4"
+                key={step.key}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.35, delay: 0.1 + idx * 0.1, type: 'spring', stiffness: 300, damping: 28 }}
+                className={`relative p-5 sm:p-6 rounded-3xl border bg-gradient-to-br ${c.from} ${c.border} transition-all duration-300 ${done ? 'opacity-80' : ''}`}
               >
-                <div className="flex items-start gap-3 mb-2">
-                  <motion.div
-                    className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      followed
-                        ? 'bg-emerald-500/30 border-emerald-500/60'
-                        : 'border-white/20 bg-white/5'
-                    }`}
-                  >
-                    {followed && <span className="text-emerald-300 text-sm font-bold">✓</span>}
-                  </motion.div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="jersey-20-regular text-white text-sm font-semibold">Follow @nuxchain</p>
+                <div className="flex items-start gap-4 sm:gap-5">
+                  <div className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center ${c.bg} border ${c.border} ${c.text}`}>
+                    <AnimatePresence mode="wait">
+                      {done ? (
+                        <motion.span
+                          key="check"
+                          initial={{ scale: 0, rotate: -20 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                          className="text-emerald-400 text-3xl font-black"
+                        >
+                          \u2713
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="icon"
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                        >
+                          {step.icon}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="jersey-20-regular text-white/40 text-sm uppercase tracking-widest">
+                        Step {idx + 1}
+                      </span>
+                      <AnimatePresence>
+                        {done && (
+                          <motion.span
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="jersey-20-regular text-sm px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                          >
+                            Done ✓
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    <h3 className={`jersey-15-regular ${c.text} ${isMobile ? 'text-2xl' : 'text-3xl'} leading-tight mb-3`}>
+                      {step.title}
+                    </h3>
+                    <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-base' : 'text-lg'} leading-relaxed mb-4`}>
+                      {step.desc}
+                      {step.key === 'buy' && (
+                        <span className="block mt-1.5 jersey-20-regular text-purple-300">
+                          Live rate: <span className="font-semibold text-white">{solLabel}</span>
+                          {solPrice && (
+                            <span className="text-white/40 text-sm ml-1">
+                              (1 SOL = ${solPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })})
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </p>
+
+                    {/* Tweet preview (step 3 only) */}
+                    {step.key === 'share' && (
+                      <div className="mb-4 p-4 rounded-2xl bg-white/[0.04] border border-blue-500/20">
+                        <p className="jersey-20-regular text-white/40 text-xs uppercase tracking-widest mb-2">Pre-filled tweet</p>
+                        <p className={`jersey-20-regular text-white/80 ${isMobile ? 'text-sm' : 'text-base'} leading-relaxed break-words`}>
+                          {TWEET_TEXT_RAW}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2.5 items-center">
+                      {step.key === 'share' ? (
+                        // Copy tweet text to clipboard FIRST, then open X.
+                        // X's SPA can strip the ?text= param for logged-in users;
+                        // clipboard is the guaranteed fallback so user can paste.
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(TWEET_TEXT_RAW);
+                              toast.success(
+                                'Tweet text copied! If the text box is empty on X, just paste it (Ctrl+V / ⌘V).',
+                                { duration: 6000, icon: '📋' }
+                              );
+                            } catch {
+                              // clipboard blocked — silently proceed
+                            }
+                            window.open(TWEET_URL, '_blank');
+                          }}
+                          className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} px-6 py-2.5 rounded-xl inline-flex items-center gap-2 border transition-all hover:scale-[1.02] active:scale-[0.98] ${c.bg} ${c.border} ${c.text} hover:brightness-125`}
+                        >
+                          {step.action}
+                          <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleAction(step.url)}
+                          className={`jersey-20-regular ${isMobile ? 'text-lg' : 'text-xl'} px-6 py-2.5 rounded-xl inline-flex items-center gap-2 border transition-all hover:scale-[1.02] active:scale-[0.98] ${c.bg} ${c.border} ${c.text} hover:brightness-125`}
+                        >
+                          {step.action}
+                          <svg className="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </button>
+                      )}
+
                       <button
-                        onClick={() => {
-                          handleFollowClick();
-                          setTimeout(() => toggleFollowed(true), 1500);
-                        }}
-                        className="text-emerald-400 hover:text-emerald-300 text-xs underline transition-colors"
+                        onClick={() => toggle(step.key)}
+                        className={`jersey-20-regular ${isMobile ? 'text-base' : 'text-lg'} px-5 py-2.5 rounded-xl border transition-all ${
+                          done
+                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/5'
+                            : 'bg-white/5 border-white/10 text-white/40 hover:text-white/70 hover:bg-white/10'
+                        }`}
                       >
-                        Open
+                        {done ? '✓ Mark as pending' : '○ Mark as done'}
                       </button>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
 
-              {/* Step 2: Trade */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.55 }}
-                className="mb-4"
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <motion.div
-                    className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      tradeCount >= 1
-                        ? 'bg-blue-500/30 border-blue-500/60'
-                        : 'border-white/20 bg-white/5'
-                    }`}
-                  >
-                    {tradeCount >= 1 && <span className="text-blue-300 text-sm font-bold">✓</span>}
-                  </motion.div>
-                  <div className="flex-1">
-                    <p className="jersey-20-regular text-white text-sm font-semibold">Make at least 1 P2P trade</p>
-                    <p className="jersey-20-regular text-white/40 text-xs mt-0.5">
-                      {tradeCount >= 1 ? `You have ${tradeCount} trades automatically tracked` : 'Trades are tracked automatically'}
+                    <p className="jersey-20-regular text-white/25 text-sm mt-3 italic">
+                      {step.hint}
                     </p>
                   </div>
                 </div>
               </motion.div>
+            );
+          })}
+        </div>
 
-              {/* Step 3: Share */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <motion.div
-                    className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      shared
-                        ? 'bg-purple-500/30 border-purple-500/60'
-                        : 'border-white/20 bg-white/5'
-                    }`}
-                  >
-                    {shared && <span className="text-purple-300 text-sm font-bold">✓</span>}
-                  </motion.div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="jersey-20-regular text-white text-sm font-semibold">Share on X</p>
-                      <button
-                        onClick={() => {
-                          handleShareClick();
-                          setTimeout(() => toggleShared(true), 1500);
-                        }}
-                        className="text-purple-400 hover:text-purple-300 text-xs underline transition-colors"
-                      >
-                        Post
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+        {/* ── All steps done — congratulations ─────────── */}
+        <AnimatePresence>
+          {allDone && (
+            <motion.div
+              key="congrats"
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, type: 'spring', stiffness: 260, damping: 22 }}
+              className="text-center py-10 px-6 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-900/20 to-transparent"
+            >
+              <p className="text-6xl mb-5">🎉</p>
+              <h3 className={`jersey-15-regular text-gradient ${isMobile ? 'text-4xl' : 'text-5xl'} mb-4`}>
+                You&apos;re in the draw!
+              </h3>
+              <p className={`jersey-20-regular text-white/60 ${isMobile ? 'text-base' : 'text-lg'} max-w-sm mx-auto leading-relaxed`}>
+                All 3 steps completed! Winners will be announced on{' '}
+                <a href={FOLLOW_URL} target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:text-amber-300 transition-colors">
+                  @nuxchain
+                </a>{' '}
+                after the token launch. Good luck! 🚀
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              {/* Eligibility status */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.65 }}
-                className="mt-5 pt-5 border-t border-white/10"
-              >
-                {isEligible ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
-                    <p className="jersey-20-regular text-emerald-300 text-sm font-semibold">You are eligible to win!</p>
-                  </div>
-                ) : (
-                  <p className="jersey-20-regular text-white/40 text-sm">Complete all steps to be eligible</p>
-                )}
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* TIER BREAKDOWN */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <p className="jersey-20-regular text-white/50 text-xs uppercase tracking-widest mb-4">Tier Multipliers</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {TIER_CONFIGS.map((t, i) => (
-              <motion.div
-                key={t.level}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55 + i * 0.05 }}
-                className={`relative p-4 rounded-2xl border transition-all ${
-                  tradeCount >= t.min
-                    ? `border-${t.color}-500/50 bg-${t.color}-500/10`
-                    : 'border-white/10 bg-white/5 opacity-50'
-                }`}
-              >
-                {tradeCount >= t.min && (
-                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                )}
-                <p className="jersey-20-regular text-white text-sm font-bold">{t.label}</p>
-                <p className={`jersey-20-regular text-${t.color}-300 text-xs mt-1`}>
-                  {t.min === 0 ? '0' : t.min}-{t.max === Infinity ? '50+' : t.max} trades
-                </p>
-                <p className="jersey-20-regular text-white/60 text-xs mt-2 font-semibold">x{t.multiplier} weight</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* RULES */}
+        {/* ── Rules & Terms ─────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 space-y-4"
+          transition={{ delay: 0.5 }}
+          className="p-5 rounded-2xl border border-white/5 bg-white/[0.02] space-y-3"
         >
-          <h3 className="jersey-20-regular text-white text-base uppercase tracking-widest">Giveaway Rules</h3>
-          <ul className="space-y-2.5">
+          <h4 className="jersey-20-regular text-white/50 text-base uppercase tracking-widest">Giveaway Rules</h4>
+          <ul className="space-y-2">
             {[
-              '2 winners selected from eligible participants.',
-              'Each winner receives exactly 1 SOL to their wallet.',
-              'Eligibility requires: following @nuxchain, making at least 1 P2P trade, and sharing on X.',
-              'Each P2P trade automatically counts as 1 entry (max 50 entries per wallet).',
-              'Tier multipliers increase your weighted chances of winning (Elite tier = 5x weight).',
-              'The shared tweet must be public and mention @nuxchain.',
-              'Winners will be announced on @nuxchain after the draw date.',
-              'Nuxchain reserves the right to verify on-chain trade activity before distributing prizes.',
+              '2 winners will be randomly selected from all eligible participants.',
+              'Each winner will receive exactly 1 SOL (Solana) sent to their wallet.',
+              'A minimum purchase of $20 USD in NUX must be confirmed on the whitelist.',
+              'The tweet must be public and mention @nuxchain.',
+              'One entry per wallet / X account.',
+              'Winners will be announced on @nuxchain after the token launch.',
+              'Nuxchain reserves the right to disqualify invalid or fraudulent entries.',
             ].map((rule, i) => (
-              <li key={i} className="jersey-20-regular text-white/60 text-sm flex items-start gap-3">
-                <span className="text-purple-400/60 shrink-0 mt-1">●</span>
+              <li key={i} className={`jersey-20-regular text-white/40 ${isMobile ? 'text-base' : 'text-lg'} flex items-start gap-2.5`}>
+                <span className="text-purple-500/70 shrink-0 mt-0.5">◆</span>
                 {rule}
               </li>
             ))}

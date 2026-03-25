@@ -32,3 +32,7 @@ api-dist
 
 # Scripts de corrección
 fix-vercel-functions.ps1
+.env*
+.flaskenv*
+!.env.project
+!.env.vault

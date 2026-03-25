@@ -37,10 +37,10 @@ const SOLANA_RPC = process.env.SOLANA_RPC_QUICKNODE || process.env.SOLANA_RPC_AL
 const AIRDROP_MAINTENANCE = process.env.VITE_AIRDROP_MAINTENANCE === 'true';
 
 // ⚡ INTELLIGENT CONFIGURATION
-const PARALLEL_BATCH_SIZE = 9; // 9 wallets max
-const BATCH_DELAY_MS = 5000; // 5 seconds between batches
+const PARALLEL_BATCH_SIZE = 4; // 4 wallets max (each = 2 RPC calls) = 8 parallel RPC calls
+const BATCH_DELAY_MS = 8000; // 8 seconds between batches
 const REQUEST_TIMEOUT = 15000;
-const MAX_RETRIES = 8; // More retries for 429s
+const MAX_RETRIES = 12; // More retries for 429s
 const SIGNATURE_LIMIT = 100; // Reduced from 1000 to lighten RPC load
 
 const MIN_SOL_BALANCE = 0.001;

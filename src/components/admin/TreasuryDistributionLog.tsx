@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import TreasuryManagerABIJSON from '../../abi/Treasury/TreasuryManager.json';
+import { TreasuryManagerABI as TreasuryManagerABIJSON } from '../../lib/export/abis/legacy';
 import {
   useTreasuryDistributions,
   fmtPOL,

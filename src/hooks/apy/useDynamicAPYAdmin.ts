@@ -7,7 +7,7 @@ import { useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import type { Abi } from 'viem';
-import DynamicAPYCalculatorABI from '../../abi/DynamicAPYCalculator.sol/DynamicAPYCalculator.json';
+import { DynamicAPYCalculatorABI } from '../../lib/export/abis/legacy';
 
 const DYNAMIC_APY_ADDRESS = import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS as `0x${string}`;
 

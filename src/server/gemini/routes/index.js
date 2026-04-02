@@ -1,7 +1,6 @@
 import express from 'express';
 import geminiRoutes from './gemini-routes.js';
 import enhancedStreamingRoutes from './enhanced-streaming-routes.js';
-import airdropRoutes from './airdrop-routes.js';
 import skillsRoutes from './skills-routes.js';
 import subscriptionsRoutes from './subscriptions-routes.js';
 import errorHandler from '../middlewares/error-handler.js';
@@ -81,9 +80,6 @@ router.use('/chat', geminiRoutes);
 
 // Usar el router de streaming mejorado
 router.use('/streaming', enhancedStreamingRoutes);
-
-// Rutas de Airdrop
-router.use('/airdrop', airdropRoutes);
 
 // 🧠 AI Skills routes (all 9 skill endpoints, no tier gating in local dev)
 router.use('/skills', skillsRoutes);

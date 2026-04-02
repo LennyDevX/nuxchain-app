@@ -26,9 +26,9 @@ if (isDevelopment) {
 
 // Throw an error if essential configuration is missing in production.
 if (!isDevelopment && (!firebaseConfig.apiKey || !firebaseConfig.projectId)) {
-    console.error('❌ Critical Firebase configuration is missing. The app cannot start.');
-    // You might want to throw an error here to halt execution
-    // throw new Error('Critical Firebase configuration is missing.');
+    const errorMsg = '❌ Critical Firebase configuration is missing. The app cannot start.';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
 }
 
 

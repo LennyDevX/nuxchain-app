@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useWatchContractEvent, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import { EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI } from '../../lib/export/abis/legacy';
 
 const STAKING_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;
 const TREASURY_ADDRESS = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;

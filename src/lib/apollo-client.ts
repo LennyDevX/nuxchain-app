@@ -2,8 +2,11 @@ import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 
-// The Graph Studio endpoint for nux subgraph (version/latest - always resolves to latest deployed)
-const SUBGRAPH_URL = import.meta.env.VITE_SUBGRAPH_URL || "https://api.studio.thegraph.com/query/1743068/nux/version/latest"
+// Runtime must prefer VITE_SUBGRAPH_URL; the fallback stays on the current Studio query endpoint
+// until the first nuxgraph deploy returns its final query URL.
+const SUBGRAPH_URL =
+  import.meta.env.VITE_SUBGRAPH_URL ||
+  'https://api.studio.thegraph.com/query/1743068/nux/version/latest';
 
 // ⚡ RATE LIMIT PROTECTION: Retry link with exponential backoff
 const retryLink = new RetryLink({

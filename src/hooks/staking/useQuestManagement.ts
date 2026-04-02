@@ -7,7 +7,7 @@ import { useMemo, useCallback } from 'react';
 import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingGamificationABI from '../../abi/SmartStaking/EnhancedSmartStakingGamification.json';
+import { EnhancedSmartStakingGamificationABI } from '../../lib/export/abis/legacy';
 
 const GAMIFICATION_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_GAMIFICATION_ADDRESS as `0x${string}`;
 

@@ -14,7 +14,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
 
 // ABIs
-import TreasuryManagerJSON from "../../abi/Treasury/TreasuryManager.json";
+import { TreasuryManagerABI as TreasuryManagerJSON } from '../../lib/export/abis/legacy';
 
 // Shared constants & types
 import {

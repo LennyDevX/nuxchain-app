@@ -115,7 +115,7 @@ function Chat() {
       const msg = buildSignMessage(evmAddress, timestamp)
       const sig = await signMessageAsync({ message: msg })
       setWalletAuth({ walletAddress: evmAddress, message: msg, signature: sig })
-      toast.success('? Wallet verified! NuxBee AI now has your full on-chain context.', { style: makeToastStyle('success') })
+      toast.success('Wallet verified! NuxBee AI now has your full on-chain context.', { style: makeToastStyle('success') })
     } catch (err) {
       if ((err as Error)?.message?.includes('User rejected') || (err as Error)?.message?.includes('rejected')) {
         toast.error('Signature cancelled.', { style: makeToastStyle('error') })

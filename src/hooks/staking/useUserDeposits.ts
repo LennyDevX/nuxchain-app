@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import { EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingCoreABI } from '../../lib/export/abis/legacy';
 
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS;
 

@@ -5,9 +5,10 @@
 
 import { useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import GameifiedMarketplaceQuestsABI from '../../abi/Marketplace/GameifiedMarketplaceQuests.json';
+import { GameifiedMarketplaceQuestsABI } from '../../lib/export/abis/legacy';
+import { CONTRACT_ADDRESSES } from '../../lib/export/config/legacy';
 
-const MARKETPLACE_QUESTS_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS;
+const MARKETPLACE_QUESTS_ADDRESS = CONTRACT_ADDRESSES.GameifiedMarketplaceQuests as `0x${string}`;
 
 export interface QuestStats {
   totalCompleted: number;

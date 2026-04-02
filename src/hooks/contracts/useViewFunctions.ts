@@ -5,10 +5,12 @@
 
 import { useReadContract } from 'wagmi'
 import { formatEther } from 'viem'
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json'
-import ReferralSystemABI from '../../abi/Marketplace/ReferralSystem.json'
-import GameifiedMarketplaceSkillsABI from '../../abi/Marketplace/GameifiedMarketplaceSkillsNft.json'
+import {
+  EnhancedSmartStakingViewABI,
+  GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI,
+  GameifiedMarketplaceSkillsNftABI as GameifiedMarketplaceSkillsABI,
+  ReferralSystemABI,
+} from '../../lib/export/abis/legacy'
 
 /**
  * Get user's staking deposit information

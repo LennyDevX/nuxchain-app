@@ -1,6 +1,6 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import type { Address } from 'viem'
-import AirdropFactoryABI from '../../abi/AirdropFactory.json'
+import { AirdropFactoryABI } from '../../lib/export/abis/legacy'
 
 // Dirección del contrato AirdropFactory desde variables de entorno
 const AIRDROP_FACTORY_ADDRESS = (import.meta.env.VITE_AIRDROP_FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000') as Address

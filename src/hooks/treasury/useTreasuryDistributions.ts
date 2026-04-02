@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { formatEther, decodeEventLog, keccak256, toBytes } from 'viem';
-import TreasuryManagerABIJSON from '../../abi/Treasury/TreasuryManager.json';
+import { TreasuryManagerABI as TreasuryManagerABIJSON } from '../../lib/export/abis/legacy';
 
 const TREASURY_MANAGER = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
 const TreasuryManagerABI = TreasuryManagerABIJSON.abi as any[];

@@ -1,9 +1,15 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { CONTRACT_ADDRESSES, CONTRACT_ABIS, QuestType, QUEST_TYPE_NAMES } from '../../abi/contracts.config';
+import {
+  CONTRACT_ADDRESSES,
+  QUEST_TYPE_NAMES,
+  QuestCategory,
+  QuestType,
+} from '../../lib/export/config/legacy';
+import { GameifiedMarketplaceQuestsABI } from '../../lib/export/abis/legacy';
 
 const ADDRESS = CONTRACT_ADDRESSES.GameifiedMarketplaceQuests as `0x${string}`;
-const ABI = CONTRACT_ABIS.GameifiedMarketplaceQuests;
+const ABI = GameifiedMarketplaceQuestsABI;
 
 export { QuestType, QUEST_TYPE_NAMES };
 
@@ -81,6 +87,10 @@ export function useMarketplaceQuestAdmin() {
       description: string;
       requirement: number; // target value e.g. buy 5 NFTs
       xpReward: number;
+      polReward?: number;
+      startTime?: number;
+      deadline?: number;
+      completionLimit?: number;
     }) => {
       if (!isConnected || !address) {
         setError('Wallet not connected');
@@ -94,11 +104,20 @@ export function useMarketplaceQuestAdmin() {
           abi: ABI,
           functionName: 'createQuest',
           args: [
-            params.questType,
-            params.title,
-            params.description,
-            BigInt(params.requirement),
-            BigInt(params.xpReward),
+            {
+              category: QuestCategory.MARKETPLACE,
+              questType: params.questType,
+              title: params.title,
+              description: params.description,
+              requirement: BigInt(params.requirement),
+              xpReward: BigInt(params.xpReward),
+              polReward: BigInt(params.polReward ?? 0),
+              startTime: BigInt(params.startTime ?? Math.floor(Date.now() / 1000)),
+              deadline: BigInt(
+                params.deadline ?? Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60
+              ),
+              completionLimit: BigInt(params.completionLimit ?? 0),
+            },
           ],
         });
       } catch (err) {

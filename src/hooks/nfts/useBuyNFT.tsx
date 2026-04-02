@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { parseEther, type Abi } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
+import { GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI } from '../../lib/export/abis/legacy';
 import { apolloClient } from '../../lib/apollo-client';
 import toast from 'react-hot-toast';
 import { nftToasts } from '../../utils/toasts';

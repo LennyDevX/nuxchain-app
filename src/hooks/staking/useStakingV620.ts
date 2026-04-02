@@ -15,10 +15,12 @@ import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
-import EnhancedSmartStakingRewardsABI from '../../abi/SmartStaking/EnhancedSmartStakingRewards.json';
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
-import EnhancedSmartStakingViewStatsABI from '../../abi/SmartStaking/EnhancedSmartStakingViewStats.json';
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingCoreABI,
+  EnhancedSmartStakingRewardsABI,
+  EnhancedSmartStakingViewABI,
+  EnhancedSmartStakingViewStatsABI,
+} from '../../lib/export/abis/legacy';
 
 // ── Constants ──
 const CORE_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;

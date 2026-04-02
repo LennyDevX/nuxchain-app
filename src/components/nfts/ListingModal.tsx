@@ -3,7 +3,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagm
 import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
 import { nftToasts } from '../../utils/toasts';
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
+import { GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI } from '../../lib/export/abis/legacy';
 import { useFocusTrap, useModalBackdrop } from '../../hooks/accessibility/useFocusTrap';
 
 interface ListingModalProps {

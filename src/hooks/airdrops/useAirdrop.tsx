@@ -1,6 +1,6 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import type { Address } from 'viem'
-import AirdropABI from '../../abi/Airdrop.json'
+import { AirdropABI } from '../../lib/export/abis/legacy'
 
 export interface AirdropStats {
   registeredUserCount: bigint

@@ -3,14 +3,11 @@
    Optimized for mobile, tablet, and desktop
    ============================================================================ */
 
-/* ========================================
-   ANIMATIONS
-   ======================================== */
-
-@keyframes alert-slide-down {
+/* Fade-in animation for alert entrance */
+@keyframes alert-fade-in {
   from {
     opacity: 0;
-    transform: translateY(-16px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
@@ -18,286 +15,20 @@
   }
 }
 
-@keyframes alert-slide-up {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-16px);
-  }
+/* Apply fade-in to fixed alerts */
+.fixed.top-20.z-40 > div {
+  animation: alert-fade-in 0.3s ease-out;
 }
 
-@keyframes icon-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.85;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .fixed.top-20.z-40 {
+    top: 16px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
-@keyframes gradient-shift-alert {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* ========================================
-   OVERLAY - BACKDROP BLUR
-   ======================================== */
-
-.network-alert-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 9998;
-  opacity: 1;
-  transition: opacity 0.4s ease;
-  pointer-events: all;
-}
-
-/* ========================================
-   CONTAINER - CENTERED WITH MARGINS
-   ======================================== */
-
-.network-alert-container {
-  position: fixed;
-  top: 40px; /* Increased margin from 20px */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  width: calc(100% - 32px);
-  max-width: 480px;
-  
-  animation: alert-slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.network-alert-container.network-alert-visible {
-  animation: alert-slide-down 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ========================================
-   CONTENT - COMPACT & SLEEK
-   ======================================== */
-
-.network-alert-content {
-  background: linear-gradient(
-    135deg,
-    rgba(17, 24, 39, 0.9) 0%,
-    rgba(31, 41, 55, 0.95) 50%,
-    rgba(15, 23, 42, 0.9) 100%
-  );
-  
-  border: 1px solid;
-  border-image: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.5),
-    rgba(236, 72, 153, 0.3),
-    rgba(139, 92, 246, 0.2)
-  ) 1;
-  
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  
-  box-shadow: 
-    0 0 30px rgba(139, 92, 246, 0.15),
-    0 8px 24px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
-  
-  backdrop-filter: blur(10px);
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-/* Animated gradient overlay */
-.network-alert-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.08),
-    transparent
-  );
-  animation: gradient-shift-alert 6s infinite;
-  pointer-events: none;
-}
-
-/* ========================================
-   ICON - PULSING WITH ACCENT COLORS
-   ======================================== */
-
-.network-alert-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.2),
-    rgba(236, 72, 153, 0.15)
-  );
-  
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 8px;
-  
-  color: #a78bfa;
-  font-weight: 600;
-  
-  animation: icon-pulse 2s ease-in-out infinite;
-  position: relative;
-  z-index: 1;
-}
-
-.network-alert-icon svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.5;
-}
-
-/* ========================================
-   TEXT CONTENT - CLEAN & READABLE
-   ======================================== */
-
-.network-alert-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
-}
-
-.network-alert-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #f1f5f9;
-  line-height: 1.25;
-  letter-spacing: -0.3px;
-  text-wrap: balance;
-}
-
-.network-alert-subtitle {
-  font-size: 12px;
-  color: #cbd5e1;
-  line-height: 1.25;
-  opacity: 0.85;
-  transition: opacity 0.3s ease;
-}
-
-/* ========================================
-   ACTION BUTTON - GRADIENT & INTERACTIVE
-   ======================================== */
-
-.network-alert-button {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  
-  padding: 8px 14px;
-  
-  background: linear-gradient(
-    135deg,
-    #8b5cf6 0%,
-    #a855f7 50%,
-    #d946ef 100%
-  );
-  background-size: 200% 200%;
-  
-  border: none;
-  border-radius: 7px;
-  
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.network-alert-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  
-  transition: left 0.5s ease;
-  z-index: -1;
-}
-
-.network-alert-button:hover {
-  background: linear-gradient(
-    135deg,
-    #a855f7 0%,
-    #d946ef 50%,
-    #ec4899 100%
-  );
-  background-size: 200% 200%;
-  animation: gradient-shift-alert 3s ease infinite;
-  
-  box-shadow: 
-    0 6px 20px rgba(139, 92, 246, 0.4),
-    0 0 15px rgba(217, 70, 239, 0.3);
-  
-  transform: translateY(-1px);
-}
-
-.network-alert-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
-}
-
-.network-alert-button svg {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.5;
-}
-
-/* ========================================
-   CLOSE BUTTON - MINIMAL & RESPONSIVE
-   ======================================== */
-
-.network-alert-close {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -2,7 +2,7 @@ import { useReadContract } from 'wagmi'
 import { formatEther } from 'viem'
 import { polygon } from 'wagmi/chains'
 import { useEffect } from 'react'
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
+import { EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI } from '../../lib/export/abis/legacy'
 
 /**
  * Hook optimizado V2 - Lee directamente del contrato

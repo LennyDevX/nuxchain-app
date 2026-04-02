@@ -29,6 +29,7 @@ const ColabPortal = lazy(() => import(/* webpackChunkName: "colab" */ '../pages/
 const Admin = lazy(() => import(/* webpackChunkName: "workspace" */ '../pages/Admin'));
 const AdminLogin = lazy(() => import(/* webpackChunkName: "workspace-access" */ '../pages/AdminLogin'));
 const Rewards = lazy(() => import(/* webpackChunkName: "rewards" */ '../pages/Rewards'));
+const ChainId = lazy(() => import(/* webpackChunkName: "chain-id" */ '../pages/ChainId'));
 const Whitepaper = lazy(() => import(/* webpackChunkName: "whitepaper" */ '../pages/Whitepaper'));
 
 function AppRoutes() {
@@ -88,6 +89,7 @@ function AppRoutes() {
         <Route path="/nothing" element={<AdminLogin />} />
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/rewards" element={<Rewards />} />
+        <Route path="/id" element={<ChainId />} />
         <Route path="/whitepaper" element={<Whitepaper />} />
       </Routes>
     </Suspense>

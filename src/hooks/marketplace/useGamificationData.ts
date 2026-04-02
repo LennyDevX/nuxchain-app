@@ -5,10 +5,12 @@
 
 import { useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import GameifiedMarketplaceQuestsABI from '../../abi/Marketplace/GameifiedMarketplaceQuests.json';
-import CollaboratorBadgeRewardsABI from '../../abi/Marketplace/CollaboratorBadgeRewards.json';
-import LevelingSystemABI from '../../abi/Marketplace/LevelingSystem.json';
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
+import {
+  CollaboratorBadgeRewardsABI,
+  GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI,
+  GameifiedMarketplaceQuestsABI,
+  LevelingSystemABI,
+} from '../../lib/export/abis/legacy';
 import { formatEther } from 'viem';
 
 const MARKETPLACE_QUESTS_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS as `0x${string}` | undefined;

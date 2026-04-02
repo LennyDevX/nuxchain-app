@@ -5,7 +5,6 @@
 
 import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
-import airdropRoutes from './airdrop/_routes.js';
 import priceRoutes from './price/_routes.js';
 
 const app: Express = express();
@@ -36,9 +35,6 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-
-// Airdrop registration routes
-app.use('/api/airdrop', airdropRoutes);
 
 // Price routes
 app.use('/api/price', priceRoutes);

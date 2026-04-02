@@ -10,7 +10,7 @@ import { useMemo, useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import { EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI } from '../../lib/export/abis/legacy';
 import { useUserDeposits } from './useUserDeposits';
 
 const STAKING_CONTRACT_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_ADDRESS as `0x${string}`;

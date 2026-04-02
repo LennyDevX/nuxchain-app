@@ -3,10 +3,10 @@ import { useAccount, useWalletClient, usePublicClient } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { getContract, isAddress } from 'viem';
 import type { Abi } from 'viem';
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
+import { GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI } from '../../lib/export/abis/legacy';
 // Ensure the JSON file exists at the specified path.
 // If you still get type errors, add a declaration for '*.json' imports in your project.
-import GameifiedMarketplaceSkillsABI from '../../abi/Marketplace/GameifiedMarketplaceSkillsNft.json';
+import { GameifiedMarketplaceSkillsNftABI as GameifiedMarketplaceSkillsABI } from '../../lib/export/abis/legacy';
 import { uploadFileToIPFS, uploadJsonToIPFS } from '../../utils/ipfs/ipfsUtils';
 
 interface MintNFTParams {

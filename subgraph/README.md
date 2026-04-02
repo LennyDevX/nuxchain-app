@@ -1,55 +1,36 @@
 # Nuxchain Subgraph
 
-Subgraph para indexar eventos de los contratos EnhancedSmartStaking y GameifiedMarketplace en Polygon.
+Subgraph para indexar los contratos activos de Nuxchain en Polygon usando The Graph Studio.
 
-## Contratos Indexados (Updated Feb 15, 2026)
+## Estado actual
 
-### EnhancedSmartStaking Core (v5.0.0)
-- **Address**: `0xAA334176a6f94Dfdb361a8c9812E8019558E9E1c`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
-- **Features**:
-  - Depósitos y retiros con lockup
-  - Auto-compound
-  - Sistema de Skills NFT
-  - Quests y Achievements
-  - Gamificación con XP y niveles
+- Red: Polygon (`matic`)
+- Start block base: `83626688`
+- Slug objetivo para el siguiente deploy: `nuxgraph`
+- Fuente de verdad de addresses: `src/deployments/addresses.json` y `src/lib/export/config/contracts.generated.ts`
 
-### EnhancedSmartStakingRewards (v5.0.0)
-- **Address**: `0x6844540B3DFb79D33FBbd458D5Ea3A62c2bB5CBA`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
+## Contratos indexados
 
-### EnhancedSmartStakingGamification (v5.0.0)
-- **Address**: `0xc47929beab8EFc09690aDF9e0d0266ae7380Ec97`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
+### EnhancedSmartStaking Core
+- Address: `0x96D6F29d5046CB4422e5e3BC2bdF185Fd21f302D`
 
-### EnhancedSmartStakingSkills (v5.0.0)
-- **Address**: `0xe2eed56a88a756A3E1339b0a80b001fEBEA907d5`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
+### EnhancedSmartStakingRewards
+- Address: `0x3d9E78Fe36fD89C96dd27a84b0837324316279BB`
 
-### GameifiedMarketplace (v3.0 - PROXY)
-- **Address**: `0xe99f85503aa287a1C06D7c3487DD1c4cE1DfbEe1`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
-- **Features**:
-  - Mint, list, buy/sell NFTs
-  - Sistema de ofertas
-  - Royalties automáticas
-  - Perfil de usuario con XP y niveles
-  - Tracking de actividades
+### EnhancedSmartStakingGamification
+- Address: `0x0753920050340ABb3e005435bEd838d0EaB282ce`
 
-### Individual Skills Contract
-- **Address**: `0x462b22c7Ac1Bf9C035258D6510E5404Fd97010F1`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
+### EnhancedSmartStakingSkills
+- Address: `0xdBab58a4E28F1b3E22145F051994e05ef8f5aef7`
 
-### Marketplace Quests
-- **Address**: `0x1ae4244d1678776b068A29dDE3417CF5710D04A0`
-- **Network**: Polygon (matic)
-- **Start Block**: 83023000
+### GameifiedMarketplaceCore Proxy
+- Address: `0xB39421d34479aa4bFe560DefB66eA6A46cA5909A`
+
+### IndividualSkillsMarketplace
+- Address: `0xb9F7De1560C97100D84D550b330AC99a35533481`
+
+### GameifiedMarketplaceQuests
+- Address: `0x126712d66b5AC71fCe1117A36D2BDd69Af141e6B`
 
 ## Instalación
 
@@ -73,14 +54,24 @@ graph codegen
 graph build
 ```
 
-### 3. Autenticar con The Graph
+### 3. Deploy a The Graph Studio
 ```bash
-graph auth --studio <DEPLOY_KEY>
+npm run deploy
 ```
 
-### 4. Deploy a The Graph Studio
+El script `npm run deploy` carga automáticamente `../.env` y `../.env.local` si existen, y usa estas variables de entorno:
+
+- `SUBGRAPH_STUDIO_SLUG`
+- `SUBGRAPH_DEPLOY_KEY`
+- `SUBGRAPH_VERSION_LABEL` (opcional, default `0.1.0`)
+
+Ejemplo:
+
 ```bash
-graph deploy --studio nuxchain-subgraph
+SUBGRAPH_STUDIO_SLUG=nuxgraph
+SUBGRAPH_DEPLOY_KEY=your_deploy_key
+SUBGRAPH_VERSION_LABEL=0.1.0
+npm run deploy
 ```
 
 ## Estructura de Entidades

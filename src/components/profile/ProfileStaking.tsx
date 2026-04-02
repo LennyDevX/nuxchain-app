@@ -4,7 +4,7 @@ import { useUserStaking } from '../../hooks/staking/useUserStaking';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { useIsMobile } from '../../hooks/mobile/useIsMobile';
 import { useReadContract } from 'wagmi';
-import SmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import { EnhancedSmartStakingCoreV2ABI as SmartStakingABI } from '../../lib/export/abis/legacy';
 import { formatEther } from 'viem';
 
 const ProfileStaking: React.FC = () => {

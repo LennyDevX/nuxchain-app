@@ -936,6 +936,7 @@ async function streamHandler(req: VercelRequest, res: VercelResponse): Promise<v
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('X-Accel-Buffering', 'no'); // disable Vercel/nginx response buffering
     res.status(200);
+    res.flushHeaders(); // open the HTTP streaming connection immediately
     
     let chunks = 0;
     let totalChars = 0;

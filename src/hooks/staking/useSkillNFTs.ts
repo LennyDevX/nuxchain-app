@@ -1,7 +1,9 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import EnhancedSmartStakingSkillsABI from '../../abi/SmartStaking/EnhancedSmartStakingSkills.json';
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
+import {
+  EnhancedSmartStakingSkillsABI,
+  EnhancedSmartStakingViewABI,
+} from '../../lib/export/abis/legacy';
 import type { SkillType, UserSkillProfile, NFTSkill } from '../../types/contracts';
 
 // ✅ Add BigInt serialization support for React DevTools

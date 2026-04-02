@@ -1,9 +1,10 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import GameifiedMarketplaceQuestsABI from '../../abi/Marketplace/GameifiedMarketplaceQuests.json';
+import { GameifiedMarketplaceQuestsABI } from '../../lib/export/abis/legacy';
+import { CONTRACT_ADDRESSES } from '../../lib/export/config/legacy';
 import type { Quest } from '../../types/contracts';
 
-const MARKETPLACE_CONTRACT_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_QUESTS;
+const MARKETPLACE_CONTRACT_ADDRESS = CONTRACT_ADDRESSES.GameifiedMarketplaceQuests as `0x${string}`;
 
 interface UseQuestsReturn {
   activeQuests: Quest[];
@@ -59,7 +60,7 @@ export function useQuestDetails(questId: bigint | null) {
 
   const { data: questData, isLoading } = useReadContract({
     ...contractConfig,
-    functionName: 'quests',
+    functionName: 'getQuest',
     args: [questId],
     query: { 
       enabled: !!questId && !!address && isConnected,
@@ -67,9 +68,9 @@ export function useQuestDetails(questId: bigint | null) {
     }
   });
 
-  const { data: isCompleted } = useReadContract({
+  const { data: questProgress } = useReadContract({
     ...contractConfig,
-    functionName: 'userQuestCompleted',
+    functionName: 'getUserQuestProgress',
     args: [address, questId],
     query: { 
       enabled: !!questId && !!address && isConnected,
@@ -82,20 +83,25 @@ export function useQuestDetails(questId: bigint | null) {
 
     return {
       id: BigInt(questData[0] || 0),
-      name: questData[1] as string,
-      description: questData[2] as string,
-      xpReward: BigInt(questData[3] || 0),
-      tokenReward: BigInt(questData[4] || 0),
+      name: questData[3] as string,
+      description: questData[4] as string,
+      xpReward: BigInt(questData[6] || 0),
+      tokenReward: BigInt(questData[7] || 0),
       requirement: BigInt(questData[5] || 0),
-      questType: Number(questData[6]),
-      deadline: BigInt(questData[7] || 0),
+      questType: Number(questData[2]),
+      deadline: BigInt(questData[10] || 0),
       isActive: Boolean(questData[8]),
     } as Quest;
   }, [questData]);
 
+  const isCompleted = useMemo(() => {
+    if (!questProgress || !Array.isArray(questProgress)) return false;
+    return Boolean(questProgress[2]);
+  }, [questProgress]);
+
   return {
     quest,
-    isCompleted: Boolean(isCompleted),
+    isCompleted,
     isLoading,
   };
 }

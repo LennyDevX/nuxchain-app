@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { formatEther } from 'viem'
 import { useReadContract, useAccount, useWatchContractEvent } from 'wagmi'
 import type { Abi } from 'viem'
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
+import { EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI } from '../../lib/export/abis/legacy'
 import { stakingLogger } from '../../utils/log/stakingLogger'
 
 interface PoolInfoProps {

@@ -1,10 +1,12 @@
 import { useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { useAccount, useReadContracts, useBalance } from 'wagmi';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
-import EnhancedSmartStakingViewABI from '../abi/SmartStaking/EnhancedSmartStakingView.json';
-import EnhancedSmartStakingGamificationABI from '../abi/SmartStaking/EnhancedSmartStakingGamification.json';
-import EnhancedSmartStakingViewStatsABI from '../abi/SmartStaking/EnhancedSmartStakingViewStats.json';
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI,
+  EnhancedSmartStakingGamificationABI,
+  EnhancedSmartStakingViewABI,
+  EnhancedSmartStakingViewStatsABI,
+} from '../lib/export/abis/legacy';
 import { StakingContext } from './StakingContextDefinition';
 import type { StakingContextType, PoolData, UserStakingData, GamificationData, ProtocolHealthData, AnalyticsData, CircuitBreakerData, ReferralData, LockupAnalysisData, PoolHealthData, StakingRatesInfo } from './StakingContext.types';
 

@@ -10,8 +10,9 @@ const alchemyApiKey = import.meta.env.VITE_ALCHEMY as string | undefined
 if (import.meta.env.DEV) {
   console.log('[Wagmi Config] WalletConnect ProjectID:', projectId ? `✓ Configured (${projectId.slice(0, 8)}...)` : '✗ Missing')
   if (!projectId) {
-    console.warn('[Wagmi Config] ⚠️ WalletConnect ProjectID is missing - WalletConnect connector will be disabled')
+    console.warn('[Wagmi Config] ⚠️ WalletConnect ProjectID is missing - WalletConnect connector will be disabled. Set VITE_WALLETCONNECT_PROJECT_ID to enable.')
   }
+  console.log('[Wagmi Config] Alchemy API Key:', alchemyApiKey ? '✓ Configured' : '✗ Missing (using public RPC)')
   console.log('[Wagmi Config] Default Solana Network:', DEFAULT_SOLANA_NETWORK)
 }
 

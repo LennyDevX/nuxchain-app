@@ -90,6 +90,28 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // WALLET MIGRATIONS - Solana → Polygon mapping for POL airdrop
+    // ================================================================
+    // Public read (needed for getCountFromServer progress bar).
+    // Clients can create their own migration record (one-time).
+    // No updates or deletes — migration is permanent.
+    // ================================================================
+    match /walletMigrations/{solanaAddress} {
+      // Allow public reads (count + individual doc existence check)
+      allow read: if true;
+
+      // Allow a client to create their own migration record.
+      // Validate required fields are present.
+      allow create: if request.resource.data.solanaAddress != null &&
+        request.resource.data.polygonAddress != null &&
+        request.resource.data.solanaAddress == solanaAddress;
+
+      // Permanent — no edits or deletes from clients
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ================================================================
     // LAUNCHPAD PURCHASES - Written and read exclusively by Admin SDK
     // Client reads are denied; all writes come from the purchase API.
     // ================================================================

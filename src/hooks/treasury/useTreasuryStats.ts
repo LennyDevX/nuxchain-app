@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import TreasuryManagerABI from '../../abi/Treasury/TreasuryManager.json';
+import { TreasuryManagerABI } from '../../lib/export/abis/legacy';
 
 const TREASURY_ADDRESS = import.meta.env.VITE_TREASURY_MANAGER_ADDRESS as `0x${string}`;
 

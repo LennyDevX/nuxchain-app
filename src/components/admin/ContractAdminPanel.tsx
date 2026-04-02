@@ -10,17 +10,19 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther, isAddress } from 'viem';
 
 // ── Full implementation ABIs (not interfaces) for admin write calls ──
-import EnhancedSmartStakingCoreV2ABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
-import EnhancedSmartStakingRewardsABI from '../../abi/SmartStaking/EnhancedSmartStakingRewards.json';
-import EnhancedSmartStakingGamificationABI from '../../abi/SmartStaking/EnhancedSmartStakingGamification.json';
-import EnhancedSmartStakingSkillsABI from '../../abi/SmartStaking/EnhancedSmartStakingSkills.json';
-import DynamicAPYCalculatorABI from '../../abi/DynamicAPYCalculator.sol/DynamicAPYCalculator.json';
-import CollaboratorBadgeRewardsABI from '../../abi/Marketplace/CollaboratorBadgeRewards.json';
-import GameifiedMarketplaceCoreV1ABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
-import GameifiedMarketplaceQuestsABI from '../../abi/Marketplace/GameifiedMarketplaceQuests.json';
-import GameifiedMarketplaceSkillsNftABI from '../../abi/Marketplace/GameifiedMarketplaceSkillsNft.json';
-import TreasuryManagerABI from '../../abi/Treasury/TreasuryManager.json';
-import LevelingSystemABI from '../../abi/Marketplace/LevelingSystem.json';
+import {
+  CollaboratorBadgeRewardsABI,
+  DynamicAPYCalculatorABI,
+  EnhancedSmartStakingCoreV2ABI,
+  EnhancedSmartStakingGamificationABI,
+  EnhancedSmartStakingRewardsABI,
+  EnhancedSmartStakingSkillsABI,
+  GameifiedMarketplaceCoreV1ABI,
+  GameifiedMarketplaceQuestsABI,
+  GameifiedMarketplaceSkillsNftABI,
+  LevelingSystemABI,
+  TreasuryManagerABI,
+} from '../../lib/export/abis/legacy';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AbiArray = readonly any[];

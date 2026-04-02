@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAccount, useReadContracts, useReadContract } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
 import type { Abi } from 'viem';
-import DynamicAPYCalculatorABI from '../../abi/DynamicAPYCalculator.sol/DynamicAPYCalculator.json';
+import { DynamicAPYCalculatorABI } from '../../lib/export/abis/legacy';
 import { useTreasuryHealthMonitor } from '../treasury/useTreasuryHealthMonitor';
 
 const DYNAMIC_APY_ADDRESS = import.meta.env.VITE_DYNAMIC_APY_CALCULATOR_ADDRESS as `0x${string}`;

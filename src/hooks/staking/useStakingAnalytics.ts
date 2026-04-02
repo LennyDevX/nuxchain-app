@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
+import { EnhancedSmartStakingViewABI } from '../../lib/export/abis/legacy';
 import { useStakingContext } from '../../context/useStakingContext';
 
 const STAKING_VIEW_ADDRESS = import.meta.env.VITE_ENHANCED_SMARTSTAKING_VIEWER_ADDRESS as `0x${string}`;

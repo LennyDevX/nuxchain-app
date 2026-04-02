@@ -13,6 +13,9 @@ declare global {
       marketplace?: boolean;
       tokenomics?: boolean;
       colab?: boolean;
+      store?: boolean;
+      labs?: boolean;
+      devhub?: boolean;
       chat?: boolean;
       giveaway?: boolean;
     };
@@ -66,43 +69,43 @@ export const MAINTENANCE_CONFIG: {
   giveaway: MaintenanceRoute;
 } = {
   airdrop: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Airdrop section is currently paused. We are rethinking our rewards distribution strategy. Check back soon for updates!',
     startTime: getOrInitializeStartTime('airdrop', AIRDROP_START_TIME),
   },
   staking: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days
     message: 'Smart Staking is being upgraded to v2 — new mechanics, better rewards, deeper DeFi integration on Polygon. Back very soon.',
     startTime: getOrInitializeStartTime('staking', STAKING_START_TIME),
   },
   nfts: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'We are updating the NFT Hub with new features and optimizations. We will be back soon with amazing improvements.',
     startTime: getOrInitializeStartTime('nfts', NFTS_START_TIME),
   },
   marketplace: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Marketplace is being optimized to give you a better buying and selling experience. We will be back very soon.',
     startTime: getOrInitializeStartTime('marketplace', MARKETPLACE_START_TIME),
   },
   tokenomics: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 7200, // 5 days
     message: 'We are rebuilding Tokenomics with our new dual-chain ecosystem vision. Solana for services, Polygon for DeFi — new page coming soon.',
     startTime: getOrInitializeStartTime('tokenomics', TOKENOMICS_START_TIME),
   },
   colab: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Colab Portal is being upgraded with new collaboration tools and enhanced builder rewards. We will be back shortly with exciting improvements.',
     startTime: getOrInitializeStartTime('colab', COLAB_START_TIME),
   },
   store: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Skills Store is undergoing major upgrades to bring you new skills, better pricing, and an improved purchasing experience. Back soon!',
     startTime: getOrInitializeStartTime('store', STORE_START_TIME),
@@ -114,7 +117,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('labs', LABS_START_TIME),
   },
   devhub: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 4320, // 3 days
     message: 'The Developer Hub is undergoing major improvements to bring you better documentation, tools, and builder resources. Back soon!',
     startTime: getOrInitializeStartTime('devhub', DEVHUB_START_TIME),
@@ -126,7 +129,7 @@ export const MAINTENANCE_CONFIG: {
     startTime: getOrInitializeStartTime('chat', new Date().toISOString()),
   },
   giveaway: {
-    enabled: true,
+    enabled: false,
     estimatedTime: 2880, // 48 hours
     message: 'Giveaway program is paused. A new rewards system is coming soon — stay tuned on X and Telegram!',
     startTime: getOrInitializeStartTime('giveaway', new Date().toISOString()),
@@ -134,9 +137,10 @@ export const MAINTENANCE_CONFIG: {
 };
 
 export const isMaintenanceMode = (route: 'airdrop' | 'staking' | 'nfts' | 'marketplace' | 'tokenomics' | 'colab' | 'store' | 'labs' | 'devhub' | 'chat' | 'giveaway' = 'airdrop'): boolean => {
-  // Dev override: bypass maintenance for airdrop if __NUX_DEV_OVERRIDES__.airdrop = false
-  const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.airdrop === false;
-  if (route === 'airdrop' && devOverride) return false;
+  // Dev override: bypass maintenance for ANY route via browser console
+  // Usage: window.__NUX_DEV_OVERRIDES__ = { [route]: false }
+  const devOverride = typeof window !== 'undefined' && window.__NUX_DEV_OVERRIDES__?.[route] === false;
+  if (devOverride) return false;
   
   const config = MAINTENANCE_CONFIG[route];
   return config.enabled;

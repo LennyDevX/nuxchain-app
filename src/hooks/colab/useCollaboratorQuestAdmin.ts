@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
-import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from '../../abi/contracts.config';
+import { CONTRACT_ADDRESSES } from '../../lib/export/config/legacy';
+import { CollaboratorBadgeRewardsABI } from '../../lib/export/abis/legacy';
 import type { CollaboratorQuest } from './useCollaboratorBadgeRewards';
 
 const ADDRESS = CONTRACT_ADDRESSES.CollaboratorBadgeRewards as `0x${string}`;
-const ABI = CONTRACT_ABIS.CollaboratorBadgeRewards;
+const ABI = CollaboratorBadgeRewardsABI;
 
 export interface CollaboratorQuestWithId extends CollaboratorQuest {
   id: bigint;

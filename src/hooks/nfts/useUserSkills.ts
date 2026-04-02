@@ -1,6 +1,6 @@
 import { useAccount, useReadContract } from 'wagmi';
 import { useMemo } from 'react';
-import GameifiedMarketplaceSkillsABI from '../../abi/Marketplace/GameifiedMarketplaceSkillsNft.json';
+import { GameifiedMarketplaceSkillsNftABI as GameifiedMarketplaceSkillsABI } from '../../lib/export/abis/legacy';
 
 const SKILLS_ADDRESS = import.meta.env.VITE_GAMEIFIED_MARKETPLACE_SKILLS;
 const MAX_ACTIVE_SKILLS = 3; // NEW: Security limit

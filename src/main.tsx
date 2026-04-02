@@ -7,11 +7,13 @@ import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import type { WalletAdapter } from '@solana/wallet-adapter-base'
+import { PhantomWalletAdapter, SolflareWalletAdapter, TrustWalletAdapter } from '@solana/wallet-adapter-wallets'
 import { registerSW } from 'virtual:pwa-register'
 import { getMobileOptimizationConfig } from './utils/mobile/performanceOptimization'
 import { logEnvironmentDiagnostics } from './utils/env/validateEnvironment'
 import { SOLANA_NETWORKS, DEFAULT_SOLANA_NETWORK } from './constants/solana'
 import GlobalErrorBoundary from './components/error/GlobalErrorBoundary'
+import { OkxWalletAdapter } from './wallets/OkxSolanaAdapter'
 
 // ✅ Log environment diagnostics at app startup (helps debug production issues)
 if (typeof window !== 'undefined') {
@@ -63,15 +65,19 @@ import './styles/index.css'
 import './styles/spacing.css'
 import './styles/responsive-grid.css'
 import './styles/walletconnect.css'
+import '@solana/wallet-adapter-react-ui/styles.css'
 import App from './App.tsx'
 import { config } from './wagmi.ts'
 import { SubscriptionProvider } from './context/SubscriptionContext'
 
 // ✅ Solana wallet adapters configuration
-// Modern wallets (Phantom, OKX, Solflare) are now "Standard Wallets"
-// and will be detected automatically by the WalletProvider.
-// We only need to provide adapters for wallets that don't support the standard.
-const solanaWallets: WalletAdapter[] = []
+// Provide explicit adapters so the modal always shows the expected wallets.
+const solanaWallets: WalletAdapter[] = [
+  new PhantomWalletAdapter(),
+  new SolflareWalletAdapter(),
+  new TrustWalletAdapter(),
+  new OkxWalletAdapter(),
+]
 
 // Get Solana RPC URL
 const solanaRpcUrl = SOLANA_NETWORKS[DEFAULT_SOLANA_NETWORK].rpcUrl

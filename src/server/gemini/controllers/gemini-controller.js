@@ -918,7 +918,10 @@ Expected response format: "[Data] clearly and directly."`;
           walletAddress: walletAuth?.walletAddress || walletAddress || null
         });
         
-        // ✅ RECOLECTAR RESPUESTA COMPLETA del stream de Gemini
+        // Flush headers immediately to open the HTTP streaming connection
+        res.flushHeaders();
+        
+        // Stream chunks directly to the client as they arrive from Gemini
         let fullResponse = '';
         let chunkCount = 0;
         const responseStartTime = Date.now();
@@ -928,34 +931,21 @@ Expected response format: "[Data] clearly and directly."`;
           if (text) {
             fullResponse += text;
             chunkCount++;
-            chatLogger.logResponseProgress(chunkCount, fullResponse.length);
+            res.write(text);
           }
         }
         
-        // ✅ APPLY MARKDOWN FORMATTING: Ensure consistent formatting across all environments
-        // This guarantees that both local dev and production responses have proper markdown structure
-        const formattedResponse = formatResponseForMarkdown(fullResponse);
+        res.end();
         
         // Log response completion
         const responseDuration = Date.now() - responseStartTime;
-        chatLogger.logResponseComplete(formattedResponse.length, responseDuration);
-        
-        // ✅ STREAMING SEMÁNTICO: Procesar la respuesta completa con chunking inteligente
-        await semanticStreamingService.streamSemanticContent(res, formattedResponse, {
-          enableSemanticChunking: true,
-          enableContextualPauses: true,
-          enableVariableSpeed: true,
-          clientInfo: {
-            userAgent,
-            isMobile
-          }
-        });
+        chatLogger.logResponseComplete(fullResponse.length, responseDuration);
         
         // Log final summary
         chatLogger.logSummary({
           queryType: 'streaming',
           kbUsed: true,
-          responseLength: formattedResponse.length,
+          responseLength: fullResponse.length,
           status: '✅ Success'
         });
         

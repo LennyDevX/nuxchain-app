@@ -8,8 +8,10 @@
 import { useMemo } from 'react';
 import { useReadContracts, useAccount } from 'wagmi';
 import { formatEther } from 'viem';
-import TreasuryManagerABIJSON from '../../abi/Treasury/TreasuryManager.json';
-import EnhancedSmartStakingABIJSON from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABIJSON,
+  TreasuryManagerABI as TreasuryManagerABIJSON,
+} from '../../lib/export/abis/legacy';
 
 const TreasuryManagerABI = TreasuryManagerABIJSON.abi;
 const SmartStakingABI = EnhancedSmartStakingABIJSON.abi;

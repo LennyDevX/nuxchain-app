@@ -10,8 +10,10 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAccount, useReadContracts } from 'wagmi';
 import { formatEther } from 'viem';
-import EnhancedSmartStakingABI from '../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
-import TreasuryManagerABI from '../abi/Treasury/TreasuryManager.json';
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI,
+  TreasuryManagerABI,
+} from '../lib/export/abis/legacy';
 import { useAdminAuth } from '../hooks/admin/useAdminAuth';
 import GlobalBackground from '../ui/gradientBackground';
 import ContractManager from '../components/admin/ContractManager';

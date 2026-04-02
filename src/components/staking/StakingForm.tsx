@@ -4,8 +4,10 @@ import { useAccount, useBalance, useWriteContract, useWaitForTransactionReceipt,
 import { parseEther, formatEther, formatUnits } from 'viem'
 import { polygon } from 'wagmi/chains'
 import toast from 'react-hot-toast'
-import EnhancedSmartStakingCoreABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json'
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json'
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingCoreABI,
+  EnhancedSmartStakingViewABI,
+} from '../../lib/export/abis/legacy'
 import { validateDepositAmount, validateLockupDuration } from '../../utils/errors/contractErrors'
 import { useIsMobile } from '../../hooks/mobile'
 import { stakingLogger } from '../../utils/log/stakingLogger'

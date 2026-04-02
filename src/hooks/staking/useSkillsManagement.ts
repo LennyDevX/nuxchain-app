@@ -7,8 +7,10 @@ import { useMemo, useCallback } from 'react';
 import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 import type { Abi } from 'viem';
-import EnhancedSmartStakingABI from '../../abi/SmartStaking/EnhancedSmartStakingCoreV2.json';
-import EnhancedSmartStakingViewABI from '../../abi/SmartStaking/EnhancedSmartStakingView.json';
+import {
+  EnhancedSmartStakingCoreV2ABI as EnhancedSmartStakingABI,
+  EnhancedSmartStakingViewABI,
+} from '../../lib/export/abis/legacy';
 import { SKILL_TYPE_NAMES, RARITY_NAMES, RARITY_COLORS } from '../../types/contracts';
 import type { SkillType, Rarity } from '../../types/contracts';
 

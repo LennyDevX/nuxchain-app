@@ -10,73 +10,41 @@
       "maxDuration": 60,
       "memory": 2048
     },
+    "api/chat/upload-image.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
     "api/health/status.ts": {
       "maxDuration": 10,
       "memory": 256
     },
-    "api/market/prices.ts": {
-      "maxDuration": 10,
-      "memory": 512
-    },
-    "api/price/pol.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
-    "api/uniswap/prices.ts": {
-      "maxDuration": 15,
-      "memory": 512
+    "api/init-cache/embeddings.ts": {
+      "maxDuration": 300,
+      "memory": 2048
     },
     "api/ipfs/upload.ts": {
       "maxDuration": 30,
       "memory": 1024
     },
-    "api/chat/upload-image.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/subscriptions/purchase.ts": {
-      "maxDuration": 20,
+    "api/market/prices.ts": {
+      "maxDuration": 10,
       "memory": 512
     },
-    "api/subscriptions/status.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
-    "api/skills/nft-listing.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/risk-analysis.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/market-alpha.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/content-moderation.ts": {
+    "api/price/[token].ts": {
       "maxDuration": 15,
       "memory": 512
     },
-    "api/skills/contract-auditor.ts": {
+    "api/skills/[skillId].ts": {
       "maxDuration": 30,
+      "memory": 2048
+    },
+    "api/subscriptions/[action].ts": {
+      "maxDuration": 20,
       "memory": 1024
     },
-    "api/skills/whale-tracker.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/portfolio-analyzer.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/token-research.ts": {
-      "maxDuration": 30,
-      "memory": 1024
-    },
-    "api/skills/liquidity-advisor.ts": {
-      "maxDuration": 30,
-      "memory": 1024
+    "api/uniswap/prices.ts": {
+      "maxDuration": 15,
+      "memory": 512
     }
   },
   "rewrites": [

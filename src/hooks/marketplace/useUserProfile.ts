@@ -1,7 +1,9 @@
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
 import { useMemo, useCallback } from 'react';
-import GameifiedMarketplaceCoreABI from '../../abi/Marketplace/GameifiedMarketplaceCoreV1.json';
-import LevelingSystemABI from '../../abi/Marketplace/LevelingSystem.json';
+import {
+  GameifiedMarketplaceCoreV1ABI as GameifiedMarketplaceCoreABI,
+  LevelingSystemABI,
+} from '../../lib/export/abis/legacy';
 import type { UserProfile } from '../../types/contracts';
 import { xpToasts } from '../../utils/toasts/xpToasts';
 

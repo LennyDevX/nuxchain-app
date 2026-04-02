@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy nux --node https://api.studio.thegraph.com/deploy/ --deploy-key 56b88202bf028e2ce119454633850425 --version-label v0.1",
+    "deploy": "node ./scripts/deploy-studio.mjs",
     "create-local": "graph create --node http://localhost:8020/ nux",
     "remove-local": "graph remove --node http://localhost:8020/ nux",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 nux"
